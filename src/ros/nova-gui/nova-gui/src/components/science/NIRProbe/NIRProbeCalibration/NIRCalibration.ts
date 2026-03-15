@@ -10,12 +10,12 @@ import {useMemo} from "react";
 export const COEFFICIENT_QUANTITY = 6;
 
 export const defaultCoefficients = [
-  1.5934e-11,
-  2.0356e-10,
-  1.1381e-10,
-  -0.001562,
-  -0.005579,
-  4.2845,
+  -0.000000007,
+  -0.0000000071,
+  -0.0000000156,
+  0,
+  0,
+  41.6
 ]
 
 export const defaultXRange = [33000, 42000]
