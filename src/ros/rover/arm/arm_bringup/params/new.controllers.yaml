@@ -8,8 +8,8 @@ arm:
       nova_arm_velocity_controller:
         type: nova_arm_controller/NovaArmController
 
-      nova_arm_position_controller:
-        type: nova_arm_controller/NovaArmController
+      #nova_arm_position_controller:
+      #  type: nova_arm_controller/NovaArmController
       
       nova_end_effector_velocity_controller:
         type: nova_arm_controller/NovaArmController
@@ -65,7 +65,7 @@ arm:
           max_position: 1.57
           min_position: -1.57
         j5: # wrist pitch
-          has_position_limits: true
+          has_position_limits: false # TODO: Need time to figure out what was going on with this!
           max_position: -0.14
           min_position: -3.0
         j6: # wrist roll

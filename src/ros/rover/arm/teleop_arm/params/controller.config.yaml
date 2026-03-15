@@ -71,6 +71,7 @@ joy_input_source:
           invert: true
         j5:
           from: "RIGHTX"
+          invert: true
         j6:
           from_buttons:
             positive: "X"

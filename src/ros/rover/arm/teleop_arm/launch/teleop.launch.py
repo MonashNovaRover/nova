@@ -120,7 +120,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='log_inputs',
-            default_value='False',
+            default_value='True',
             description='Set this true to display all the inputs. Very useful when trying to configure input sources!',
         ),
         DeclareLaunchArgument(
