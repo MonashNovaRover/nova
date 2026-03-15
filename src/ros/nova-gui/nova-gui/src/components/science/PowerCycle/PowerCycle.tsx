@@ -9,9 +9,10 @@ import { IRosScienceInterfacesPowerCycleRequest } from "../../../ros/rosTypes.ts
 const SciencePowerCycle = () => {
   const [sleepTime, setSleepTime] = useState<string>("1.0");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const bifrost = useBifrost({ service: RosService.POWER_CYCLE_SCIENCE });
+  const powerCycleScience = useBifrost({service: RosService.POWER_CYCLE_SCIENCE });
+  const powerCycleDrive = useBifrost({service: RosService.POWER_CYCLE_DRIVE });
 
-  const handlePowerCycle = () => {
+  const handlePowerCycle = (service: ReturnType<typeof useBifrost>) => {
     const duration = parseFloat(sleepTime);
     if (isNaN(duration) || duration <= 0) {
       toast.error("Enter a valid sleep duration:");
@@ -24,7 +25,7 @@ const SciencePowerCycle = () => {
       sleep_duration: duration,
     };
 
-    bifrost.callService(
+    service.callService(
       requestPayload,
       {
         responseToast: true,
@@ -48,16 +49,31 @@ const SciencePowerCycle = () => {
         min="0.1"
         step="0.1"
       />
-      <Button 
-        color="warning" 
-        variant="shadow"
-        size="lg"
-        isLoading={isLoading} 
-        onPressStart={handlePowerCycle}
-        startContent={!isLoading && <Zap size={18} />}
-      >
-        Cycle Rails
-      </Button>
+
+      <div className="flex flex-col gap-3">
+        <Button 
+          color="warning" 
+          variant="shadow"
+          size="lg"
+          isLoading={isLoading} 
+          onPressStart={()=>handlePowerCycle(powerCycleScience)}
+          startContent={!isLoading && <Zap size={18} />}
+        >
+          Cycle Science Rails
+        </Button>
+
+        <Button 
+          color="warning" 
+          variant="shadow"
+          size="lg"
+          isLoading={isLoading} 
+          onPressStart={()=>handlePowerCycle(powerCycleDrive)}
+          startContent={!isLoading && <Zap size={18} />}
+        >
+          Cycle Drive Rails
+        </Button>
+      </div>
+        
     </div>
   );
 };

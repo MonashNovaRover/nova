@@ -79,6 +79,7 @@ install(PROGRAMS
         science/nir_probe_publisher_old.py
         science/nir_probe.py
         science/power_cycle.py
+        science/power_cycle_drive.py
         science/scimbal_cam_old.py
         science/scimbal_cam.py
         science/control_test.py
