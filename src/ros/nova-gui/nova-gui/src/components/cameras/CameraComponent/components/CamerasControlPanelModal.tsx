@@ -93,7 +93,7 @@ export const CameraControlPanelModal = (props: {
           <div className="flex flex-row m-4 ml-0 gap-4 items-center justify-between">
             <div className="flex flex-row gap-4">
               <Button size="sm" color="primary" onPress={startStreaming}>
-                <Play size="15px" fill="white"}/> Start Streaming
+                <Play size="15px" fill="white"/> Start Streaming
               </Button>
               <Button size="sm" color="warning" onPress={pauseStreaming}>
                 <Pause size="15px" fill="white" /> Pause Streaming
