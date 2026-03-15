@@ -9,6 +9,13 @@ import SegmentedPicker from "../../../components/shared/components/SegmentedPick
 import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
 
+/**
+ * TODO: remove
+ *
+ * This is a temp copy of CamerasPage.tsx meant only for the 2026 ARCh autonomous task,
+ * the only change is having 3 instead of 4 columns of cameras.
+ */
+
 export interface CameraPageProps {
   views: CameraView[];
 }
