@@ -47,7 +47,7 @@ private:
   /// Helper struct to hold parameters used by the control mode.
   struct Params {
     /// The topic name to send messages to.
-    std::string topic = "/locked_status";
+    std::string topic = "";
 
     /// The ROS2 topic Quality of Service depth value to use in publisher_.
     int qos_depth = 1;

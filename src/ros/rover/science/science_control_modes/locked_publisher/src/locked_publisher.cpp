@@ -15,7 +15,7 @@ return_type LockedPublisher::on_init()
   // This effectively replaces the constructor for anything that depends on get_node()
 
   // Declare parameters here! Or consider using something like generate_parameter_library instead.
-  node->declare_parameter<std::string>("topic", "/locked_status");
+  node->declare_parameter<std::string>("topic", "");
   node->declare_parameter<int>("qos.depth", 1);
   node->declare_parameter<bool>("qos.reliable", true);  //< TODO: Check your subscribers use best_effort before making
                                                         //        false, but its better for teleop to use best_effort
