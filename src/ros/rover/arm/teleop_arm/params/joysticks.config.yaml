@@ -120,7 +120,6 @@ thrustmaster_right:
           from: "r_ax_stick_twist"
         j5: # pitch
           from: "r_ax_stick_y"
-          invert: true
         j6: # roll
           from: "r_ax_stick_x"
           invert: true
