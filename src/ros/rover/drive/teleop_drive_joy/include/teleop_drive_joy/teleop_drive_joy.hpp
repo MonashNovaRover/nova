@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <map>
 #include <functional>
+#include <optional>
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
@@ -103,6 +104,18 @@ inline uint8_t mode_to_drive_info(const DriveMode mode)
   }
 }
 
+struct AxisCallback
+{
+  // callback should run if axis value is between start and end (both inclusive)
+  // (if any empty, then inf and -inf respectively)
+  // note: current implementation means, for each axis in axis_callbacks_,
+  // only the first callback which has current axis value in [start, end] is called
+  std::optional<double> start;
+  std::optional<double> end;
+
+  std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> callback;
+};
+
 /**
  * @class TeleopDriveJoy
  * @brief Class for handling joystick input and publishing drive commands.
@@ -144,6 +157,11 @@ private:
   void initialize_params();
 
   /**
+   * @brief Updates parameters for the TeleopDriveJoy node.
+   */
+  void update_params();
+
+  /**
    * @brief Initializes the ros2 interfaces for the TeleopDriveJoy node.
    */
   void initialize_interfaces();
@@ -164,6 +182,12 @@ private:
    * @param joy_msg Shared pointer to the joystick message.
    */
   void handle_button_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+
+  /**
+   * @brief Handles axis callbacks.
+   * @param joy_msg Shared pointer to the joystick message.
+   */
+  void handle_axis_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
   /**
    * @brief Sends a Drive Command based on joystick input.
@@ -236,6 +260,7 @@ private:
   std::map<int, int> blcmd_error_count_ {};
   std::map<int, rclcpp::Time> blcmd_times_start_error_ {};
   std::map<int, rclcpp::Time> blcmd_times_last_error_ {};
+  bool autolock_override_trigger;
 
   Params params_;
   bool sent_lock_msg_;
@@ -245,6 +270,7 @@ private:
   double speed_;  // Linear Speed Multiplier that can be incremented
   std::map<int, rclcpp::Time> last_button_press_time_;
   std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
+  std::map<int, std::vector<AxisCallback>> axis_callbacks_;
   bool handbrake_pressed_;
   bool autonomous_mode_;
   bool connected_;

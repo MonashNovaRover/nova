@@ -40,6 +40,7 @@ TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   , handbrake_pressed_(false)
   , autonomous_mode_(false) // assume (maybe incorrectly) until set_autonomous_mode_for_controllers is called
   , connected_(false)
+  , autolock_override_trigger(false)
 {
 }
 
@@ -126,11 +127,22 @@ void TeleopDriveJoy::initialize_params()
   param_listener_ = std::make_shared<ParamListener>(this->shared_from_this());
   params_ = param_listener_->get_params();
 
+  //TODO: REMOVE
   if (param_listener_->is_old(params_))
   {
+    RCLCPP_ERROR_STREAM(this->get_logger(), "OMG ACTUAL UPDATE");
     params_ = param_listener_->get_params();
   }
   speed_ = params_.initial_speed;
+}
+
+void TeleopDriveJoy::update_params()
+{
+  if (param_listener_->is_old(params_))
+  {
+    params_ = param_listener_->get_params();
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Parameters updated" << C_END);
+  }
 }
 
 void TeleopDriveJoy::initialize_interfaces()
@@ -158,8 +170,11 @@ void TeleopDriveJoy::initialize_interfaces()
     joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
   }
 
-  drive_log_sub_ = this->create_subscription<nova_interfaces::msg::Log>(
-    params_.drive_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::drive_log_callback, this, _1));
+  if (params_.autolock_enable)
+  {
+    drive_log_sub_ = this->create_subscription<nova_interfaces::msg::Log>(
+      params_.drive_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::drive_log_callback, this, _1));
+  }
 }
 
 void TeleopDriveJoy::map_button_callbacks()
@@ -247,12 +262,50 @@ void TeleopDriveJoy::map_button_callbacks()
   {
     change_speed(params_.speed_change_coarse_val);
   };
+
+  axis_callbacks_[params_.axis_override_autolock] = {
+
+    {
+      .start = -params_.trigger_pressed_threshold,
+      .callback = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+      {
+        if (autolock_override_trigger)
+        {
+          autolock_override_trigger = false;
+          RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Autolock trigger override deactivated" << C_END);
+          send_drive_info();
+        }
+      },
+    },
+
+    {
+      .end = -params_.trigger_pressed_threshold,
+      .callback = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+      {
+        if (not autolock_override_trigger)
+        {
+          autolock_override_trigger = true;
+          RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Autolock trigger override activated" << C_END);
+          send_drive_info();
+        }
+      },
+    },
+
+    // TODO: toggle handbrake here instead of in send_drive_command
+
+  };
 }
 
 void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
+  update_params();
   handle_button_callbacks(joy_msg);
-  apply_autolock();
+  handle_axis_callbacks(joy_msg);
+
+  if (params_.autolock_enable)
+  {
+    apply_autolock();
+  }
 
   if (!locked_)
   {
@@ -287,6 +340,38 @@ void TeleopDriveJoy::handle_button_callbacks(const sensor_msgs::msg::Joy::Shared
     {
       last_button_press_time_[button_index] = now;
       button_callback(joy_msg);
+    }
+  }
+}
+
+void TeleopDriveJoy::handle_axis_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+{
+  auto inCallbackRange = [this, joy_msg](const int axis_index, const AxisCallback& axis_callback) -> bool
+  {
+    double axis_value = joy_msg->axes[axis_index];
+
+    bool in_range = true;
+    if (axis_callback.start.has_value() and axis_value < axis_callback.start.value())
+    {
+      in_range = false;
+    }
+    if (axis_callback.end.has_value() and axis_value > axis_callback.end.value())
+    {
+      in_range = false;
+    }
+
+    return in_range;
+  };
+
+  for (const auto& [axis_index, axis_callback_list] : axis_callbacks_)
+  {
+    for (const auto& axis_callback : axis_callback_list)
+    {
+      if (inCallbackRange(axis_index, axis_callback))
+      {
+        axis_callback.callback(joy_msg);
+        break;
+      }
     }
   }
 }
@@ -444,6 +529,7 @@ void TeleopDriveJoy::send_drive_info()
   msg.locked = locked_;
   msg.locked_reason = locked_reason_;
   msg.multiplier = static_cast<float>(speed_);
+  msg.override_autolock = autolock_override_trigger or params_.autolock_override;
 
   drive_info_pub_->publish(msg);
 }
@@ -556,6 +642,12 @@ void TeleopDriveJoy::apply_autolock()
 {
   const auto activate_autolock = [this](const std::string& error_message)
   {
+    // don't activate autolock if any override is active
+    if (autolock_override_trigger or params_.autolock_override)
+    {
+      return;
+    }
+
     if (not locked_ or locked_reason_ != drive_interfaces::msg::DriveInfo::BLCMD_ERRORS)
     {
       RCLCPP_ERROR(this->get_logger(), error_message.c_str());

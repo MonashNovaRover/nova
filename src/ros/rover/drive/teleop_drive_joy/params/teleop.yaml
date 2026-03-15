@@ -6,9 +6,11 @@ teleop_drive_joy_node:
     handbrake_speed_multiplier: 0.6
     trigger_pressed_threshold: 0.1
 
+    autolock_enable: true
     autolock_threshold_error_count: 3
     autolock_threshold_error_duration: 0
     autolock_error_active_duration: 200
+    autolock_override: false  # only change dynamically via service call or command line (edit autolock_enable instead)
 
     rumble_enable: true
     # rumble is currently updated every 50ms (period that drive joint states is published at),

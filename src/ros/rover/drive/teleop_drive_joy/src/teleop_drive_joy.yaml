@@ -10,6 +10,10 @@ teleop_drive_joy:
     type: string
     default_value: "/cmd_vel"
     description: "Output Topic for Twist Commands"
+  set_config_service:
+    type: string
+    default_value: "/drive/set_teleop_config"
+    description: "Service to set configs from other nodes (see interface definition for possible settings)"
   drive_info_topic:
     type: string
     default_value: "/drive/drive_info"
@@ -27,6 +31,10 @@ teleop_drive_joy:
     default_value: "/drive/log"
     description: "Topic where log messages related to drive are published (e.g. blcmd errors)"
 
+  autolock_enable:
+    type: bool
+    default_value: true
+    description: "Enable automatic locking of controls if there are persistent blcmd errors"
   # meeting ANY autolock threshold will trigger autolock
   autolock_threshold_error_count:
     type: int
@@ -40,6 +48,10 @@ teleop_drive_joy:
     type: int
     default_value: 200
     description: "Duration (in milliseconds) that (blcmd) errors remain 'active' for after receiving it"
+  autolock_override:
+    type: bool
+    default_value: false
+    description: "Toggleable override for autolock (set via service call or command)"
 
   rumble_enable:
     type: bool
@@ -185,10 +197,10 @@ teleop_drive_joy:
     default_value: 11
     description: "Increase speed on a coarse scale"
 
-  axis_hold_position:
+  axis_override_autolock:
     type: int
     default_value: 4
-    description: "NOT IMPLEMENTED: Hold position (for Holonomic Drive)"
+    description: "Prevents autolock from activating while held down"
   axis_handbrake:
     type: int
     default_value: 5

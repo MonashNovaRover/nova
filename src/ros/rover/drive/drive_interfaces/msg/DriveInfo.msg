@@ -29,3 +29,6 @@ byte drive_mode
 
 #handbrake on or off
 bool handbrake
+
+#autolock disabled or not
+bool override_autolock false
