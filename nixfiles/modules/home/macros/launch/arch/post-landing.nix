@@ -25,10 +25,11 @@ let
   two = {
     pre = pre-shell {payload-name=task-name + " two"; need-rover=true; };
     terminals = [
-      {name="Base:Teleop"; platform=base; cmd="ros2 launch teleop_drive_joy teleop.launch.py";}
+      {name="Base:Teleop"; platform=base; cmd="launch-teleop-drive";}
       {name = "Rover:Drive"; platform=rover; cmd="launch-drive";}
       {name = "Rover:GUI"; platform=base; cmd="gui-shell --command \"gui-run\"";}
       {name = "Rover:GUI Rosbridge"; platform=base; cmd="gui-rosbridge";}
+      {name = "Rover:Cameras"; platform=rover; cmd="cameras-orin payload:=arm";}
     ];
     post = post-shell;
   };
