@@ -19,6 +19,8 @@
 #include <utility>
 #include <tuple>
 #include <algorithm>
+#include <regex>
+#include <chrono>
 
 #include "teleop_drive_joy/teleop_drive_joy.hpp"
 
@@ -33,6 +35,7 @@ TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   : Node("teleop_drive_joy_node", options)
   , sent_lock_msg_(false)
   , locked_(true)
+  , locked_reason_(drive_interfaces::msg::DriveInfo::START_LOCKED)
   , drive_mode_(DriveMode::PIVOT)
   , handbrake_pressed_(false)
   , autonomous_mode_(false) // assume (maybe incorrectly) until set_autonomous_mode_for_controllers is called
@@ -154,6 +157,9 @@ void TeleopDriveJoy::initialize_interfaces()
       params_.joint_states_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joint_states_callback, this, _1));
     joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
   }
+
+  drive_log_sub_ = this->create_subscription<nova_interfaces::msg::Log>(
+    params_.drive_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::drive_log_callback, this, _1));
 }
 
 void TeleopDriveJoy::map_button_callbacks()
@@ -172,6 +178,7 @@ void TeleopDriveJoy::map_button_callbacks()
     if (!locked_)
     {
       locked_ = true;
+      locked_reason_ = drive_interfaces::msg::DriveInfo::LOCK_BUTTON;
       RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked" << C_END);
       send_drive_info();
     }
@@ -245,6 +252,7 @@ void TeleopDriveJoy::map_button_callbacks()
 void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
   handle_button_callbacks(joy_msg);
+  apply_autolock();
 
   if (!locked_)
   {
@@ -434,6 +442,7 @@ void TeleopDriveJoy::send_drive_info()
   msg.drive_mode = mode_to_drive_info(drive_mode_);
   msg.handbrake = handbrake_pressed_;
   msg.locked = locked_;
+  msg.locked_reason = locked_reason_;
   msg.multiplier = static_cast<float>(speed_);
 
   drive_info_pub_->publish(msg);
@@ -494,6 +503,96 @@ void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::S
   msg.id = 0;
   msg.intensity = static_cast<float>(rumble_intensity);
   joy_feedback_pub_->publish(msg);
+}
+
+void TeleopDriveJoy::drive_log_callback(const nova_interfaces::msg::Log::SharedPtr log_msg)
+{
+  // see blcmd_status_monitor.py for how source in log messages are constructed
+  const std::regex blcmd_source { R"(BLCMD (\d+))" };
+
+  std::smatch source_matches {};
+  std::regex_match(log_msg->source, source_matches, blcmd_source);
+
+  // source not blcmd or corrupted, so ignore log message
+  if (source_matches.size() != 2)
+  {
+    RCLCPP_DEBUG(this->get_logger(), "Ignoring drive log message with source: %s (which is not a BLCMD)", log_msg->source.c_str());
+    return;
+  }
+
+  RCLCPP_DEBUG(this->get_logger(), "Processing drive log message from %s with %lu errors", log_msg->source.c_str(), log_msg->errors.size());
+
+  // update when last error was received (if any)
+  if (log_msg->errors.size() > 0)
+  {
+    int blcmd_id {};
+
+    try {
+      blcmd_id = std::stoi(source_matches[1]);
+    } catch (const std::exception& e) {
+      RCLCPP_ERROR_ONCE(this->get_logger(), "Failed to extract BLCMD id from '%s' with exception: '%s' (not showing this error again)", log_msg->source.c_str(), e.what());
+      return;
+    }
+
+    // update error count
+    if (not blcmd_error_count_.contains(blcmd_id))
+    {
+      blcmd_error_count_[blcmd_id] = 0;
+    }
+    blcmd_error_count_[blcmd_id] += log_msg->errors.size();
+
+    // update error times
+    const rclcpp::Time now = this->now();
+    if (not blcmd_times_last_error_.contains(blcmd_id)
+      or now - blcmd_times_last_error_[blcmd_id] > std::chrono::milliseconds(params_.autolock_error_active_duration))
+    {
+      blcmd_times_start_error_[blcmd_id] = now;
+    }
+    blcmd_times_last_error_[blcmd_id] = now;
+  }
+}
+
+void TeleopDriveJoy::apply_autolock()
+{
+  const auto activate_autolock = [this](const std::string& error_message)
+  {
+    if (not locked_ or locked_reason_ != drive_interfaces::msg::DriveInfo::BLCMD_ERRORS)
+    {
+      RCLCPP_ERROR(this->get_logger(), error_message.c_str());
+      if (not locked_) { RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked" << C_END); }
+      locked_ = true;
+      locked_reason_ = drive_interfaces::msg::DriveInfo::BLCMD_ERRORS;
+      send_drive_info();
+    }
+  };
+
+  // check error count autolock trigger
+  if (params_.autolock_threshold_error_count > 0)
+  {
+    for (const auto [blcmd_id, error_count] : blcmd_error_count_)
+    {
+      if (error_count >= params_.autolock_threshold_error_count)
+      {
+        blcmd_error_count_[blcmd_id] = 0;
+        activate_autolock(std::format("{}Autolock triggered due to too many errors from BLCMD {}{}", C_FAIL, blcmd_id, C_END));
+      }
+    }
+  }
+
+  // check error duration autolock trigger
+  if (params_.autolock_threshold_error_duration > 0)
+  {
+    const rclcpp::Time now = this->now();
+
+    for (const auto& [blcmd_id, last_error] : blcmd_times_last_error_)
+    {
+      if (now - last_error <= std::chrono::milliseconds(params_.autolock_error_active_duration)
+        and now - blcmd_times_start_error_[blcmd_id] >= std::chrono::milliseconds(params_.autolock_threshold_error_duration))
+      {
+        activate_autolock(std::format("{}Autolock triggered due to continuous errors from BLCMD {}{}", C_FAIL, blcmd_id, C_END));
+      }
+    }
+  }
 }
 
 }  // namespace teleop_drive_joy

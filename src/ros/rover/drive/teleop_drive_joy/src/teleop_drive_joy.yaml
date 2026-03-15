@@ -22,6 +22,24 @@ teleop_drive_joy:
     type: string
     default_value: "/drive/joy/set_feedback"
     description: "Output topic for game pad feedback (e.g. rumble)"
+  drive_log_topic:
+    type: string
+    default_value: "/drive/log"
+    description: "Topic where log messages related to drive are published (e.g. blcmd errors)"
+
+  # meeting ANY autolock threshold will trigger autolock
+  autolock_threshold_error_count:
+    type: int
+    default_value: 3
+    description: "Number of (blcmd) errors received (since last autolock) required to trigger autolock (0 to disable)"
+  autolock_threshold_error_duration:
+    type: int
+    default_value: 0
+    description: "Minimum duration (in milliseconds) that (blcmd) errors must remain continuously active for to trigger autolock (0 to disable)"
+  autolock_error_active_duration:
+    type: int
+    default_value: 200
+    description: "Duration (in milliseconds) that (blcmd) errors remain 'active' for after receiving it"
 
   rumble_enable:
     type: bool

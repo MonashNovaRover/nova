@@ -4,6 +4,14 @@ float32 multiplier
 #bool for locked
 bool locked
 
+# provide reason for why the controller is currently or was previously locked
+byte locked_reason 0
+
+# possible locked reasons
+byte START_LOCKED = 1
+byte LOCK_BUTTON = 2
+byte BLCMD_ERRORS = 3
+
 #bool for autonomous_mode
 bool autonomous_mode
 
