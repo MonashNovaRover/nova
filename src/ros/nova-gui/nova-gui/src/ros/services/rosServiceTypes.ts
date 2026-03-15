@@ -183,6 +183,10 @@ export interface RosServiceInterface {
     IRosScienceInterfacesSetPositionRequest,
     IRosScienceInterfacesSetPositionResponse
   >;
+  [RosService.TOOL_ROTATOR_TWITCH]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
 
   // General
   [RosService.RGBInput]: RosServiceMessage<
