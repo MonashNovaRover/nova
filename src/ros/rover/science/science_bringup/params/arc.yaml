@@ -198,3 +198,17 @@ sweeper:
         can_id: 0x0E3
         max_effort: 1.0
         reversed: false
+
+power_cycle:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        service_name: "/science/power_cycle"
+
+power_cycle_drive:
+  ros__parameters:
+    can_bus: "can0"
+    controllers:
+      controller:
+        service_name: "/science/power_cycle_drive"

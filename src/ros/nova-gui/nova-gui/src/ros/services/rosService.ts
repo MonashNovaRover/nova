@@ -49,6 +49,7 @@ export enum RosService {
   
   // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
+  POWER_CYCLE_DRIVE = "/science/power_cycle_drive",
 
   // Autononomous Related
   CARTOGRAPHER_COMMAND = "/autonomous/cartographer_command",
