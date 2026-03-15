@@ -51,4 +51,5 @@ camera_directory:
           '2:1.0': ec_forklift_forward    # ec hub 3
           '1:1.0': ec_scraper_leg         # ec hub 4
     serial_remaps:
-      046d_C270_HD_WEBCAM_2A3D8660: anthony-cam
+      046d_HD_Pro_Webcam_C920_D113139F: anthony-cam
+      SunplusIT_Inc_ACER_FHD_User_Facing_01.00.00: brandon-cam

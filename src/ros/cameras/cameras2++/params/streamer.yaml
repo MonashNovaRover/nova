@@ -1,40 +1,34 @@
 camera_streamer:
   ros__parameters:
-    defaults:
-      width: 640
-      #height: 480
-      framerate: 10
-      mime: image/jpeg
-
-    # profiles:
-    #   snail:
-    #     width: 320
-    #     height: 240
-    #     framerate: 7.5
-    #   super:
-    #     width: 1280
-    #     height: 720
-    #     framerate: 10
+    autostart: true
 
     serial_pipelines:
       # Waveshare
-      openaicam_openaicam_2505121128: # need to test again
-        mime: image/jpeg
-        framerate: 30
-        width: 1920
-        height: 1080
-      webcamvendor_SK_series1_20220325JWGD2093: # need to test again
-        mime: video/x-h264 #image/jpeg
-        framerate: 30
-        width: 1920
-        height: 1080
-
-    serial_pipelines:
-      anthony-cam:
+      openaicam_openaicam_2505121128:
         pipeline_type: v4l2webrtc
-        width: 1280
-        height: 720
+        width: 1920
+        height: 1080
         framerate: 30
-        mime: image/jpeg
-        show_clock: true
-        video_caps: video/x-vp9
+      webcamvendor_SK_series1_20220325JWGD2093:
+        pipeline_type: h264direct
+        width: 1920
+        height: 1080
+        framerate: 30
+      HZ_USB_Camera_20220301104:
+        pipeline_type: v4l2webrtc
+        width: 1920
+        height: 1080
+        framerate: 30
+      brandon-cam:
+        pipeline_type: v4l2webrtc
+        width: 1920
+        height: 1080
+        framerate: 30
+        bitrate: 2048000
+        #video_caps: video/x-h264,profile=constrained-baseline
+        video_caps: video/x-h264,profile=high-4:2:2-intra
+      anthony-cam:
+        pipeline_type: h264direct
+        width: 1920
+        height: 1080
+        framerate: 30
