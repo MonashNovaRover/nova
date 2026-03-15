@@ -20,6 +20,7 @@ export enum URCCompModes {
 export enum CameraSerials {
   WHEEL_TELEMETRY = "wheel_telemetry",
   DRIVE_TELEMETRY = "drive_telemetry",
+  DRIVE_CONTROL = "drive_control",
   SITE_SELECT = "site_select",
   SCIENCE_POWER_CYCLE = "power_cycle",
 
@@ -96,6 +97,7 @@ const urcScienceCams = [
 const driveCams = [
   CameraSerials.WHEEL_TELEMETRY,
   CameraSerials.DRIVE_TELEMETRY,
+  CameraSerials.DRIVE_CONTROL,
 ]
 
 const autoCams = [
