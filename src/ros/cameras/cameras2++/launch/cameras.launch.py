@@ -9,7 +9,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    param_dir = LaunchConfiguration("param-dir")
+    param_dir = LaunchConfiguration("param_dir")
     platform = LaunchConfiguration("platform")
     payload = LaunchConfiguration("payload")
     port = LaunchConfiguration("port")
@@ -27,13 +27,13 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "param-dir",
+                "param_dir",
                 default_value=PathJoinSubstitution([FindPackageShare("cameras"), "params"]),
                 description="The path to the directory holding camera parameter files.",
             ),
             DeclareLaunchArgument(
                 "platform",
-                default_value="rover",
+                default_value="",
                 description="The target platform.",
             ),
             DeclareLaunchArgument(
@@ -56,12 +56,12 @@ def generate_launch_description():
             ),
             Node(
                 package="cameras",
-                executable="cameras_directory_service",
+                executable="camera_directory_service",
                 parameters=node_parameters,
             ),
             Node(
                 package="cameras",
-                executable="cameras_streamer_service",
+                executable="camera_streamer_service",
                 parameters=node_parameters,
             ),
         ]

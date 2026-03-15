@@ -12,6 +12,7 @@
 , std-msgs
 , std-srvs
 , systemd
+, sysprof
 , v4l-utils
 , wrapGAppsNoGuiHook
 }:
@@ -23,11 +24,12 @@ buildRosPackage {
   src = builtins.filterSource (path: type: baseNameOf path != "build") ./.;
 
   nativeBuildInputs = [ 
-    ament-cmake 
-    pkg-config 
-    gst_all_1.gstreamer 
-    wrapGAppsNoGuiHook 
+    ament-cmake
+    pkg-config
+    gst_all_1.gstreamer
+    wrapGAppsNoGuiHook
     gobject-introspection
+    sysprof                   # Build error
   ];
 
   buildInputs = [
@@ -68,6 +70,6 @@ buildRosPackage {
     '';
 
   preFixup = ''
-      wrapGApp "$out/lib/cameras/cameras_streamer_service"
+      wrapGApp "$out/lib/cameras/camera_streamer_service"
   '';
 }
