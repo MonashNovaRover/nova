@@ -24,15 +24,16 @@ analysis_arm:
 tool_rotator:
   ros__parameters:
     can_bus: "can1"
+    update_rate: 10
     controllers:
       controller:
         min_angle: 0.0
         max_angle: 360.0
-        initial_angle: 360.0
+        initial_angle: 240.0
         twitch_max: 5.0
-        sweeper_pos: 0.0
-        microscope_pos: 120.0
-        nir_probe_pos: 240.0
+        sweeper_pos: 240.0
+        microscope_pos: 0.0
+        nir_probe_pos: 120.0
         hardware_name: "rotation"
     hardware:
       rotation:
