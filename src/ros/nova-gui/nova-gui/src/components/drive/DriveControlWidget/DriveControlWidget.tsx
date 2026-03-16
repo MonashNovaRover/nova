@@ -134,17 +134,22 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
       <CardBody className="grid grid-flow-row gap-4 grid-cols-2">
 
         {/*display locked status of drive*/}
-        <Button className="col-span-full opacity-100" isDisabled variant="shadow" radius="full" size="sm" color={driveInfo.locked ? "danger" : "success"} >
+        <Button className="col-span-full opacity-100" isDisabled variant="shadow"
+                radius="full" size="sm" color={driveInfo.locked ? "danger" : "success"} >
           {driveInfo.locked ? lockedMessage : unlockedMessage}
         </Button>
 
         {/*allow toggling of autolock override*/}
-        <Button className="text-sm font-semibold" radius="sm" size="sm" color={autolockOverride ? "warning" : "primary"} variant={autolockOverride ? "solid" : "ghost"} onPress={onAutolockButtonPress}>
+        <Button className="text-sm font-semibold" radius="sm" size="sm"
+                color={autolockOverride ? "warning" : "primary"}
+                variant={autolockOverride ? "solid" : "ghost"} onPress={onAutolockButtonPress}>
           {autolockOverride ? overrideActivatedMessage : overrideDeactivatedMessage}
         </Button>
 
         {/*display connection status (of game pad)*/}
-        <Button className="opacity-100 text-sm font-semibold" isDisabled radius="full" size="sm" color={driveInfo.connected ? "default" : "danger"} variant={driveInfo.connected ? "bordered" : "solid"}>
+        <Button className="opacity-100 text-sm font-semibold" isDisabled radius="full"
+                size="sm" color={driveInfo.connected ? "default" : "danger"}
+                variant={driveInfo.connected ? "bordered" : "solid"}>
           {driveInfo.connected ? "Connected" : "Disconnected"}
         </Button>
 
