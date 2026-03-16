@@ -53,7 +53,7 @@ const NIRContourCalibrationCurve: React.FC<NIRContourCalibrationCurveProps> = ({
             showlabels: true,
           },
           colorbar: {
-            title: "Concentration",
+            title: { text: "Concentration" },
           },
         },
 
@@ -93,11 +93,11 @@ const NIRContourCalibrationCurve: React.FC<NIRContourCalibrationCurveProps> = ({
         },
 
         xaxis: {
-          title: "Water",
+          title: { text: "Water" },
         },
 
         yaxis: {
-          title: "Ice",
+          title: { text: "Ice" },
         },
 
         showlegend: true,
