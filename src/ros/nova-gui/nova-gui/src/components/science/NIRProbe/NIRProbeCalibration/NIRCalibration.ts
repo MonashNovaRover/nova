@@ -10,19 +10,19 @@ import {useMemo} from "react";
 export const COEFFICIENT_QUANTITY = 6;
 
 export const defaultCoefficients = [
-  -0.000000007,
-  -0.0000000071,
-  -0.0000000156,
-  0,
-  0,
-  41.6
-]
+  2.03125e-7,
+  1.5925e-8,
+  1.1375e-7,
+  -0.010051775,
+  -0.002814497,
+  126.18171
+];
 
-export const defaultXRange = [33000, 42000]
-export const defaultYRange = [33000, 42000]
+export const defaultXRange = [12000, 24000]
+export const defaultYRange = [0, 12000]
 
-export const defaultXOffset = 400;
-export const defaultYOffset = 400;
+export const defaultXOffset = 0;
+export const defaultYOffset = 0;
 
 // const absorbCoef = 3000
 
@@ -68,7 +68,7 @@ export const calibrationFunction = (coef: number[]) => (x: number, y: number): n
     + c[3] * x
     + c[4] * y
     + c[5]
-  );
+);
 }
 
 /**
@@ -105,6 +105,11 @@ export const useAverageReading = (): [number, number, number] => {
   }, [readings])
 
   const calibratedResult = calibrationFunc(averageX, averageY)
+
+  // give within range average if no values
+  if (readings[NIRProbeReadingType.PD1].length === 0 || readings[NIRProbeReadingType.PD2].length === 0) {
+    return [defaultXRange[0], defaultYRange[0], 0]
+  }
 
   return [averageX, averageY, calibratedResult]
 }
