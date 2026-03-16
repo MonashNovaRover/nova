@@ -9,7 +9,7 @@ teleop_drive_joy_node:
     autolock_enable: true
     autolock_threshold_error_count: 3
     autolock_threshold_error_duration: 0
-    autolock_error_active_duration: 200
+    autolock_error_active_duration: 500
     autolock_override: false  # only change dynamically via service call or command line (edit autolock_enable instead)
 
     lock_on_gamepad_disconnected: true
@@ -31,7 +31,7 @@ teleop_drive_joy_node:
     drive_info_topic: /drive/drive_info
     joint_states_topic: /drive/joint_states
     joy_feedback_topic: /drive/joy/set_feedback
-    drive_log_topic: /drive/log
+    blcmd_log_topic: /drive/blcmd_log
 
     controllers:
       - pivot_drive_controller

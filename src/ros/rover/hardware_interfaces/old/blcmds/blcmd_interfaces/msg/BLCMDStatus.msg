@@ -3,12 +3,12 @@
 #status's of the BLCMD
 
 #faults
-bool gate_fault
-bool stall_fault
-bool resolver_fault
-bool overspeed_fault
-bool overacceleration_fault
-bool encoder_fault
+bool gate_fault false
+bool stall_fault false
+bool resolver_fault false
+bool overspeed_fault false
+bool overacceleration_fault false
+bool encoder_fault false
 
 
 #id of the BLCMD

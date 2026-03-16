@@ -19,7 +19,6 @@
 #include <utility>
 #include <tuple>
 #include <algorithm>
-#include <regex>
 #include <chrono>
 
 #include "teleop_drive_joy/teleop_drive_joy.hpp"
@@ -172,8 +171,8 @@ void TeleopDriveJoy::initialize_interfaces()
 
   if (params_.autolock_enable)
   {
-    drive_log_sub_ = this->create_subscription<nova_interfaces::msg::Log>(
-      params_.drive_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::drive_log_callback, this, _1));
+    blcmd_log_sub_ = this->create_subscription<blcmd_interfaces::msg::BLCMDLog>(
+      params_.blcmd_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::blcmd_log_callback, this, _1));
   }
 }
 
@@ -605,41 +604,22 @@ void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::S
   joy_feedback_pub_->publish(msg);
 }
 
-void TeleopDriveJoy::drive_log_callback(const nova_interfaces::msg::Log::SharedPtr log_msg)
+void TeleopDriveJoy::blcmd_log_callback(const blcmd_interfaces::msg::BLCMDLog::SharedPtr blcmd_log_msg)
 {
-  // see blcmd_status_monitor.py for how source in log messages are constructed
-  const std::regex blcmd_source { R"(BLCMD (\d+))" };
 
-  std::smatch source_matches {};
-  std::regex_match(log_msg->source, source_matches, blcmd_source);
+  RCLCPP_DEBUG(this->get_logger(), "Processing blcmd log message from %hhu of type %hhu", blcmd_log_msg->id, blcmd_log_msg->type);
 
-  // source not blcmd or corrupted, so ignore log message
-  if (source_matches.size() != 2)
+  // update if log message was an error
+  if (blcmd_log_msg->type == blcmd_interfaces::msg::BLCMDLog::ERROR)
   {
-    RCLCPP_DEBUG(this->get_logger(), "Ignoring drive log message with source: %s (which is not a BLCMD)", log_msg->source.c_str());
-    return;
-  }
-
-  RCLCPP_DEBUG(this->get_logger(), "Processing drive log message from %s with %lu errors", log_msg->source.c_str(), log_msg->errors.size());
-
-  // update when last error was received (if any)
-  if (log_msg->errors.size() > 0)
-  {
-    int blcmd_id {};
-
-    try {
-      blcmd_id = std::stoi(source_matches[1]);
-    } catch (const std::exception& e) {
-      RCLCPP_ERROR_ONCE(this->get_logger(), "Failed to extract BLCMD id from '%s' with exception: '%s' (not showing this error again)", log_msg->source.c_str(), e.what());
-      return;
-    }
+    int blcmd_id { blcmd_log_msg->id };
 
     // update error count
     if (not blcmd_error_count_.contains(blcmd_id))
     {
       blcmd_error_count_[blcmd_id] = 0;
     }
-    blcmd_error_count_[blcmd_id] += log_msg->errors.size();
+    blcmd_error_count_[blcmd_id] += 1;
 
     // update error times
     const rclcpp::Time now = this->now();

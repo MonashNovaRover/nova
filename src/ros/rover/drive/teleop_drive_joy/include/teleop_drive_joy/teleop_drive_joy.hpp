@@ -38,7 +38,7 @@
 #include <rcl_interfaces/srv/set_parameters.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 #include <drive_interfaces/msg/drive_info.hpp>
-#include <nova_interfaces/msg/log.hpp>
+#include <blcmd_interfaces/msg/blcmd_log.hpp>
 
 #include "teleop_drive_joy_parameters.hpp"
 
@@ -229,10 +229,10 @@ private:
   void joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg);
 
   /**
-  * @brief Callback function for drive log messages.
-  * @param log_msg Shared pointer to the log message.
+  * @brief Callback function for blcmd log messages.
+  * @param blcmd_log_msg Shared pointer to the log message.
   */
-  void drive_log_callback(const nova_interfaces::msg::Log::SharedPtr log_msg);
+  void blcmd_log_callback(const blcmd_interfaces::msg::BLCMDLog::SharedPtr blcmd_log_msg);
 
   /**
   * @brief Activates lock if any autolock threshold has been breached
@@ -245,7 +245,7 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
   rclcpp::Publisher<sensor_msgs::msg::JoyFeedback>::SharedPtr joy_feedback_pub_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
-  rclcpp::Subscription<nova_interfaces::msg::Log>::SharedPtr drive_log_sub_;
+  rclcpp::Subscription<blcmd_interfaces::msg::BLCMDLog>::SharedPtr blcmd_log_sub_;
 
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     switch_controller_client_;

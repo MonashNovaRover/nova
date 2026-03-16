@@ -15,6 +15,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   drive_interfaces
   input_interfaces
   nova_interfaces
+  blcmd_interfaces
   pluginlib
   rclcpp
   realtime_tools

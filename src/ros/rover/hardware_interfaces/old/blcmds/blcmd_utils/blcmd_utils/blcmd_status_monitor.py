@@ -8,7 +8,8 @@ Purpose: ROS node to monitor the status of the blcmds
 NODE: blcmd_status_monitor
 TOPICS:
   - subscriber: /blcmds/reset [BLCMDReset]
-  - publisher: /drive/log [Log]
+  - publisher: /blcmds/status [BLCMDStatusArray] (TODO: Remove when no longer used)
+  - publisher: /drive/blcmd_log [BLCMDLog]
 SERVICES:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,7 +26,7 @@ from rclpy.duration import Duration
 import jcan
 
 # import custom messages
-from nova_interfaces.msg import Log
+from blcmd_interfaces.msg import BLCMDStatus, BLCMDStatusArray, BLCMDLog
 from blcmd_interfaces.srv import BLCMDReset
 
 
@@ -69,27 +70,46 @@ class BLCMDStatusMonitor(Node):
 
     # no GATE_DRIVE_CONDITION_MESSAGES as that is handled in a special way
 
+    # attributes of BLCMDStatus message with their corresponding error code
+    BLCMD_STATUS_ERROR_ATTRS = {
+        2 : "resolver_fault",
+        5 : "gate_fault",
+        10 : "stall_fault",
+        11 : "overspeed_fault",
+        12 : "overacceleration_fault",
+        13 : "encoder_fault",
+    }
+
     def __init__(self):
         super().__init__("blcmd_status_monitor")
         #publisher to publish the status of the blcmd
-        self.publisher = self.create_publisher(Log, "/drive/log", 1)
+        self.status_publisher = self.create_publisher(BLCMDStatusArray, "/blcmds/blcmd_status", 10)
+        #publisher to publish log messages from each blcmd
+        self.log_publisher = self.create_publisher(BLCMDLog, "/drive/blcmd_log", 1)
         #service to reset the blcmd
         self.reset_service = self.create_service(BLCMDReset, "/blcmds/blcmd_reset", self.reset)
 
         #declare parameters
-        self.declare_parameter("num_blcmds", 8)
+        self.num_blcmds = self.declare_parameter("num_blcmds", 8).value
         self.declare_parameter("canbus", "can0")
-        self.output_period = 1 / int(self.declare_parameter("output_rate_limit", 1).value) # in logs per second
-        self.publish_period = 1 / int(self.declare_parameter("publish_rate_limit", 10).value) # in logs per second
+
+        self.output_period = 1 / int(self.declare_parameter("output_max_frequency", 1).value) # in logs per second
+        self.publish_log_period = 1 / int(self.declare_parameter("publish_log_max_frequency", 10).value) # in logs per second
+        self.publish_status_period = 1 / int(self.declare_parameter("publish_status_frequency", 2).value) # in blcmd statuses per second
 
         # disabled by default as there seems to be issues with these messages rn
         self.log_gate_driver_condition = self.declare_parameter("log_gate_driver_condition", False).value
 
-        # remember when last output/published for rate limiting
-        self.output_times = [{} for _ in range(self.get_parameter("num_blcmds").value)]
-        self.publish_times = [{} for _ in range(self.get_parameter("num_blcmds").value)]
+        # params used to determine BLCMDStatus (i.e. keep track of blcmd error states so they can be published)
+        self.blcmd_statuses = [BLCMDStatus(id=i+1) for i in range(self.get_parameter("num_blcmds").value)]
+        self.error_active_duration = self.declare_parameter("error_active_duration", 2).value # in seconds
 
-        # stores registers temporarily until all gate driver fault message sequence is complete
+        # remember when last output, log published, and when error was last received (used to determine BLCMDStatus)
+        self.output_times = {}
+        self.publish_log_times = [{} for _ in range(self.num_blcmds)]
+        self.error_times = [{} for _ in range(self.num_blcmds)]
+
+        # stores registers temporarily until gate driver fault message sequence is complete
         # see gateDriver.c in blcmd firmware
         self.gate_driver_registers = []
 
@@ -101,11 +121,12 @@ class BLCMDStatusMonitor(Node):
         self.bus.set_id_filter_mask(0x400, 0xF0F)
 
         #add callbacks for each blcmd
-        for i in range(self.get_parameter("num_blcmds").value):
+        for i in range(self.num_blcmds):
             self.bus.add_callback(0x400 | (i + 1) << 4, self.get_callback(i))
 
         #create timers
         self.can_spin_timer = self.create_timer(0.01, self.bus.spin)
+        self.publish_status_timer = self.create_timer(self.publish_status_period, self.publish_blcmd_status)
 
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
@@ -133,31 +154,33 @@ class BLCMDStatusMonitor(Node):
             res.success = False
         return res
 
-    def output_rate_limited(self, blcmd: int, log_message: str) -> bool:
-        blcmd_output_times = self.output_times[blcmd]
+    def output_rate_limited(self, blcmd: int, output_message: str) -> bool:
+        output_id = (blcmd, output_message)
 
-        if (log_message not in blcmd_output_times
-          or (self.get_clock().now() - blcmd_output_times[log_message]) >= Duration(seconds=self.output_period)):
-            blcmd_output_times[log_message] = self.get_clock().now()
-
-            # is not rate limited
-            return False
-
-        # is rate limited
-        return True
-
-    def publish_rate_limited(self, blcmd: int, log_message: str) -> bool:
-        blcmd_publish_times = self.publish_times[blcmd]
-
-        if (log_message not in blcmd_publish_times
-                or (self.get_clock().now() - blcmd_publish_times[log_message]) >= Duration(seconds=self.publish_period)):
-            blcmd_publish_times[log_message] = self.get_clock().now()
+        if (output_id not in self.output_times
+          or (self.get_clock().now() - self.output_times[output_id]) >= Duration(seconds=self.output_period)):
+            self.output_times[output_id] = self.get_clock().now()
 
             # is not rate limited
             return False
 
         # is rate limited
         return True
+
+    def publish_log(self, blcmd: int, type: int, log_message: list[int]) -> None:
+        publish_times = self.publish_log_times[blcmd]
+
+        log_id = (type, *log_message)
+        if (log_id not in publish_times
+          or (self.get_clock().now() - publish_times[log_id]) >= Duration(seconds=self.publish_log_period)):
+            publish_times[log_id] = self.get_clock().now()
+
+            # not rate limited, so publish
+            msg = BLCMDLog()
+            msg.id = blcmd + 1
+            msg.type = type
+            msg.message = log_message
+            self.log_publisher.publish(msg)
 
     def get_callback(self, blcmd: int):
         """
@@ -177,11 +200,18 @@ class BLCMDStatusMonitor(Node):
 
                 if not self.output_rate_limited(blcmd, error_message):
                     self.get_logger().error(f"{error_message} on {source}")
-                if not self.publish_rate_limited(blcmd, error_message):
-                    msg = Log()
-                    msg.source = source
-                    msg.errors = [error_message]
-                    self.publisher.publish(msg)
+
+                # publish blcmd log
+                self.publish_log(blcmd, frame.data[0], [frame.data[1]])
+
+                # update blcmd status with received error
+                blcmd_status = self.blcmd_statuses[blcmd]
+
+                error_id = frame.data[1]
+                if (error_id in self.BLCMD_STATUS_ERROR_ATTRS
+                  and hasattr(blcmd_status, self.BLCMD_STATUS_ERROR_ATTRS[error_id])):
+                    setattr(blcmd_status, self.BLCMD_STATUS_ERROR_ATTRS[error_id], True)
+                    self.error_times[blcmd][error_id] = self.get_clock().now()
 
             # warnings
             elif frame.data[0] == 1:
@@ -192,11 +222,9 @@ class BLCMDStatusMonitor(Node):
 
                 if not self.output_rate_limited(blcmd, warning_message):
                     self.get_logger().warning(f"{warning_message} on {source}")
-                if not self.publish_rate_limited(blcmd, warning_message):
-                    msg = Log()
-                    msg.source = source
-                    msg.warnings = [warning_message]
-                    self.publisher.publish(msg)
+
+                # publish blcmd log
+                self.publish_log(blcmd, frame.data[0], [frame.data[1]])
 
             # info
             elif frame.data[0] == 2:
@@ -207,11 +235,9 @@ class BLCMDStatusMonitor(Node):
 
                 if not self.output_rate_limited(blcmd, info_message):
                     self.get_logger().info(f"{info_message} on {source}")
-                if not self.publish_rate_limited(blcmd, info_message):
-                    msg = Log()
-                    msg.source = source
-                    msg.info = [info_message]
-                    self.publisher.publish(msg)
+
+                # publish blcmd log
+                self.publish_log(blcmd, frame.data[0], [frame.data[1]])
 
             # gate driver condition
             elif frame.data[0] == 3:
@@ -231,11 +257,9 @@ class BLCMDStatusMonitor(Node):
 
                     if not self.output_rate_limited(blcmd, gate_driver_condition_messsage):
                         self.get_logger().error(f"{gate_driver_condition_messsage} on {source}")
-                    if not self.publish_rate_limited(blcmd, gate_driver_condition_messsage):
-                        msg = Log()
-                        msg.source = source
-                        msg.errors = [gate_driver_condition_messsage]
-                        self.publisher.publish(msg)
+
+                    # publish blcmd log
+                    self.publish_log(blcmd, frame.data[0], self.gate_driver_registers)
 
                     # reset for next sequence
                     self.gate_driver_registers = []
@@ -246,16 +270,28 @@ class BLCMDStatusMonitor(Node):
 
             # any log messages with unknown severity
             else:
-                error_message = f"Unknown severity \"{frame.data[0]:#2x}\" with log \"{frame.data[1]:#2x}\""
+                log_data = frame.data[1:]
+                error_message = f"Unknown severity \"{frame.data[0]:#2x}\" with remaining data \"{log_data}\""
                 if not self.output_rate_limited(blcmd, error_message):
                     self.get_logger().error(f"{error_message} on {source}")
-                if not self.publish_rate_limited(blcmd, error_message):
-                    msg = Log()
-                    msg.source = source
-                    msg.errors = [error_message]
-                    self.publisher.publish(msg)
+
+                # publish blcmd log
+                self.publish_log(blcmd, frame.data[0], log_data)
 
         return callback
+
+    def publish_blcmd_status(self):
+        now = self.get_clock().now()
+
+        # remove stale errors
+        for i, blcmd_status in enumerate(self.blcmd_statuses):
+            for error_id, error_time in self.error_times[i].items():
+                if (now - error_time) > Duration(seconds=self.error_active_duration):
+                    setattr(blcmd_status, self.BLCMD_STATUS_ERROR_ATTRS[error_id], False)
+
+        msg = BLCMDStatusArray()
+        msg.blcmds = self.blcmd_statuses
+        self.status_publisher.publish(msg)
 
 def main():
     rclpy.init()

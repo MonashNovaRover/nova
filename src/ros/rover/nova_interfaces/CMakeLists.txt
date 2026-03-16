@@ -21,7 +21,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RadioStatus.msg"
   "msg/RoverPoseGPS.msg"
   "msg/Status.msg"
-  "msg/Log.msg"
 
   # Service definitions
   "srv/CartographerCommand.srv"
