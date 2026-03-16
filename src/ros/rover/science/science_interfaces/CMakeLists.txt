@@ -35,6 +35,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/MoveHydraprobe.srv"
   "srv/MoveMicroscopeServo.srv"
   "srv/MoveScimbalCam.srv"
+  "srv/PowerCycle.srv"
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
   "srv/ScienceCommand.srv"

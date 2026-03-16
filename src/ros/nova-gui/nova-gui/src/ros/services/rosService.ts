@@ -46,9 +46,11 @@ export enum RosService {
   TOOL_ROTATOR_PRESETS = "/science/tool_rotator/set_presets",
   TOOL_ROTATOR_POSITION = "/science/tool_rotator/set_position",
   TOOL_ROTATOR_TWITCH = "/science/tool_rotator/twitch",
-
+  POWER_CYCLE_SCIENCE = "/science/power_cycle",
+  
   // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
+  POWER_CYCLE_DRIVE = "/science/power_cycle_drive",
 
   // Autononomous Related
   CARTOGRAPHER_COMMAND = "/autonomous/cartographer_command",
