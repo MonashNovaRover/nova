@@ -52,6 +52,11 @@ export const compNavigationData: NavigationInterface = {
       title: "Excavation and Construction",
       route: "/arc/cameras/excavation-construction",
       icon: <Camera />
+    },
+    {
+      title: "Autonomous",
+      route: "/arc/autonomous",
+      icon: <Camera />
     }
   ],
   ["URC Cameras"]: [

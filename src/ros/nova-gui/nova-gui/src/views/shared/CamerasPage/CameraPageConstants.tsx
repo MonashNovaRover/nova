@@ -179,7 +179,7 @@ export const space_resources_views: CameraView[] = [
 
 export const autonomous_views: CameraView[] = [
   {
-    cameraSerials: [...mastCams, ...driveCams, ...autoCams],
+    cameraSerials: [...mastCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
