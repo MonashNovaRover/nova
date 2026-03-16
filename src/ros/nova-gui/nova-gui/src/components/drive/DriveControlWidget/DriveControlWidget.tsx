@@ -29,6 +29,7 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
     "1": "Initial State",
     "2": "Lock Button Pressed",
     "3": "Excessive BLCMD Errors",
+    "4": "Gamepad Disconnected",
   };
 
   useEffect(() => {
@@ -96,7 +97,7 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
     <div className="flex flex-row items-center gap-1 text-base font-bold">
       Drive Locked
       <Dot className="text-xl"/>
-      {lockedReasons[driveInfo.locked_reason.toString()]}
+      {lockedReasons[driveInfo.locked_reason.toString()] ?? "Reason Unknown"}
     </div>
   );
 

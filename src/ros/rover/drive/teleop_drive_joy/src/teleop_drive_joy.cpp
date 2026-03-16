@@ -108,7 +108,7 @@ void TeleopDriveJoy::initialize()
   print_controls();
 
   // initialize connection timer
-  connection_timer_ = this->create_timer(0.5s, [this]()
+  connection_timer_ = this->create_timer(1s, [this]()
   {
     set_connected(false);
     connection_timer_->cancel();
@@ -502,20 +502,34 @@ void TeleopDriveJoy::print_controls()
 
 void TeleopDriveJoy::set_connected(const bool connected)
 {
-    if (connected != connected_)
-    {
-      connected_ = connected;
-      send_drive_info();
+  // no update required
+  if (connected == connected_)
+  {
+    return;
+  }
 
-      if (connected_)
-      {
-        RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad connected" << C_END);
-      }
-      else
-      {
-        RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad disconnected" << C_END);
-      }
-    }
+  connected_ = connected;
+
+  if (connected_)
+  {
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad connected" << C_END);
+  }
+  else
+  {
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad disconnected" << C_END);
+  }
+
+  if (connected_ == false and params_.lock_on_gamepad_disconnected)
+  {
+    locked_ = true;
+    locked_reason_ = drive_interfaces::msg::DriveInfo::GAME_PAD_DISCONNECTED;
+    RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked as gamepad was disconnected" << C_END);
+
+    // stop rover as joy_callback may no longer be run (i.e. when gamepad is disconnected)
+    send_halt_command();
+  }
+
+  send_drive_info();
 }
 
 void TeleopDriveJoy::send_drive_info()

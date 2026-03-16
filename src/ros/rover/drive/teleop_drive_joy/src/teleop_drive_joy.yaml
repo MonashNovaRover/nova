@@ -53,6 +53,11 @@ teleop_drive_joy:
     default_value: false
     description: "Toggleable override for autolock (set via service call or command)"
 
+  lock_on_gamepad_disconnected:
+    type: bool
+    default_value: true
+    description: "Enable gamepad locking when it is disconnected from the laptop"
+
   rumble_enable:
     type: bool
     default_value: true

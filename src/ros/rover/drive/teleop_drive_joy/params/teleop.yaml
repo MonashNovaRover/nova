@@ -12,6 +12,8 @@ teleop_drive_joy_node:
     autolock_error_active_duration: 200
     autolock_override: false  # only change dynamically via service call or command line (edit autolock_enable instead)
 
+    lock_on_gamepad_disconnected: true
+
     rumble_enable: true
     # rumble is currently updated every 50ms (period that drive joint states is published at),
     # so rumble_delay is actually ceiling(rumble_delay / 50) * 50

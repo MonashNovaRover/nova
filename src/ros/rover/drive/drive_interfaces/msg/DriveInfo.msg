@@ -11,6 +11,7 @@ byte locked_reason 0
 byte START_LOCKED = 1
 byte LOCK_BUTTON = 2
 byte BLCMD_ERRORS = 3
+byte GAME_PAD_DISCONNECTED = 4
 
 #bool for autonomous_mode
 bool autonomous_mode
