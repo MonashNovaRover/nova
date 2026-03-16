@@ -15,8 +15,9 @@ EDITED BY:  Kabilan Velmurugan Sujatha, Bailey
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from pathlib import Path
-import shutil
+import zipfile
 import subprocess
+from logging import Logger
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, RegisterEventHandler
@@ -27,7 +28,6 @@ from launch.logging import get_logger
 from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
-from logging import Logger
 
 class Colour:
     RED = '\033[1;31m'
@@ -37,7 +37,7 @@ class Colour:
 
 # Similar to RTABMap, we want to delete previous maps when running FAST-LIVO2
 # for minimised disk space and convenient use. 
-def on_launch(context, output_dir, logger):
+def delete_pcds(context, output_dir, logger):
     # Delete existing .pcd's in FAST-LIVO2 save directory.
     dir_path = Path(f'~/.ros/{output_dir}/pcd').expanduser()
     if dir_path.exists() and dir_path.is_dir():
@@ -48,19 +48,26 @@ def on_launch(context, output_dir, logger):
                 logger.warning(f"{Colour.YELLOW}{item} is not a file and was not deleted.{Colour.END}")
         logger.info(f"{Colour.GREEN}Directory {dir_path}/ cleared.{Colour.END}")
     else:
-        logger.error(f"{Colour.RED}Directory {dir_path} does not exist.{Colour.END}")
+        # normal for directory to not exist on first run
+        logger.error(f"{Colour.YELLOW}Directory {dir_path} does not exist.{Colour.END}")
 
-def on_exit(context, output_dir, save_dir, logger):
+def concat_pcds(context, output_dir, save_dir, logger):
     # Concatenate .pcd's in FAST-LIVO2 save directory into single .pcd.
     dir_path = Path(f'~/.ros/{output_dir}/pcd').expanduser()
     save_dir = Path(save_dir).expanduser()
     if dir_path.exists() and dir_path.is_dir():
         subprocess.run([
-            "/bin/sh", 
-            "-c", 
-            f"cd {save_dir} && /nix/store/ql7zsxy9wa4lkrnw6mzvndbnnqn8pbg5-pcl-1.15.0/bin/pcl_concatenate_points_pcd {dir_path}/*"
+            "/bin/sh",
+            "-c",
+            f"cd {save_dir} && pcl_concatenate_points_pcd {dir_path}/*"
         ])
         logger.info(f"{Colour.GREEN}Map saved to {save_dir}/output.pcd.{Colour.END}")
+        try:
+            with zipfile.ZipFile(save_dir / 'output.pcd.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
+                zipf.write(save_dir / 'output.pcd', arcname='output.pcd')
+        except Exception as e:
+            logger.error(f"{Colour.RED}Failed to zip the map: {e}{Colour.END}")
+        logger.info(f"{Colour.GREEN}Map zipped to {save_dir}/output.pcd.zip.{Colour.END}")
     else:
         logger.error(f"{Colour.RED}Directory {dir_path} does not exist and could not be concatenated.{Colour.END}")
 
@@ -158,7 +165,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(fastlivo2),
             actions=[
                 OpaqueFunction(
-                    function=on_launch,
+                    function=delete_pcds,
                     kwargs={'output_dir': output_dir,
                             'logger': logger}
                 ),
@@ -180,7 +187,7 @@ def launch_setup(context, *args, **kwargs):
                     event_handler=OnProcessExit(
                         target_action=fastlivo2_node,
                         on_exit=OpaqueFunction(
-                            function=on_exit,
+                            function=concat_pcds,
                             kwargs={'output_dir': output_dir, 
                                     'save_dir': save_dir,
                                     'logger': logger}
