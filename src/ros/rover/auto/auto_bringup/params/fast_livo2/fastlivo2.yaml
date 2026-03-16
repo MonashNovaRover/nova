@@ -15,7 +15,7 @@ fastlivo2:
       exposure_time_init: 0.0
 
     preprocess:
-      point_filter_num: 1
+      point_filter_num: 10
       filter_size_surf: 0.1
       lidar_type: 1 # Livox Mid-360 LiDAR
       scan_line: 4
