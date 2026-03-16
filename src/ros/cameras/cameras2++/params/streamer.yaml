@@ -20,13 +20,16 @@ camera_streamer:
         height: 1080
         framerate: 30
       brandon-cam:
-        pipeline_type: v4l2webrtc
+        pipeline_type: h264software
         width: 1920
         height: 1080
         framerate: 30
         bitrate: 2048000
         #video_caps: video/x-h264,profile=constrained-baseline
-        video_caps: video/x-h264,profile=high-4:2:2-intra
+        #video_caps: video/x-h264,profile=high-4:2:2-intra
+        video_caps: video/x-h264
+        tune: placebo
+        threads: 16
       anthony-cam:
         pipeline_type: h264direct
         width: 1920

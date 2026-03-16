@@ -64,6 +64,35 @@ class CameraStreamer : public rclcpp::Node
     subscription_ = this->create_subscription<camera_msgs::msg::Cameras>(
       TOPIC_CAMERAS, discover_qos, std::bind(&CameraStreamer::topic_callback, this, _1));
     RCLCPP_INFO(this->get_logger(), "Cameras2++ Streamer Running...");
+
+    // Define ideal decoders and encoders
+    GstRegistry* plugins_register = gst_registry_get();
+    auto set_element_priority = [](std::string element_name, int priority, GstRegistry* plugins_register) -> std::string {
+      const char* c_element_name = element_name.c_str();
+      GstPluginFeature* element = gst_registry_lookup_feature(plugins_register, c_element_name);
+      if(element == NULL) {
+        gst_object_unref(element);
+        return  element_name + " not running...";
+      } else {
+        gst_plugin_feature_set_rank(element, priority);
+        gst_object_unref(element);
+        return  element_name + " is running...";
+      }
+    };
+
+    // Decoders
+    std::string element_name = "nvv4l2decoder";               // Nvidia general decoder
+    set_element_priority(element_name, 255, plugins_register);
+    element_name = "vajpegdec";                               // Laptop accelerated jpeg decoder
+    set_element_priority(element_name, 254, plugins_register);
+    element_name = "jpegdec";                                 // Software jpeg decoder
+    set_element_priority(element_name, 253, plugins_register);
+
+    // Encoders
+    element_name = "vah264enc";                               // Laptop accelerated h264 encoder
+    set_element_priority(element_name, 255, plugins_register);
+    element_name = "x264enc";                                 // Software h264 encoder
+    set_element_priority(element_name, 254, plugins_register);
   }
 
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
@@ -85,7 +114,11 @@ class CameraStreamer : public rclcpp::Node
       auto props = get_h264direct_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = h264direct_pipeline(this, props);
-    } 
+    } else if (pipeline->pipeline_type == "h264software") {
+      auto props = get_h264software_pipeline_properties(this, pipeline->camera);
+      pipeline->props = props;
+      pipeline->gst_pipeline = h264software_pipeline(this, props);
+    }  
   }
 
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
