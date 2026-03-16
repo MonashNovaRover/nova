@@ -7,7 +7,7 @@ export const PowerCycleCameraComponent: FC<BaseCameraComponentProps> = (_: BaseC
   return (
     <Card className="self-start">
       <CardHeader>
-        Power Cycle Science Voltage Rails
+        Power Cycle Voltage Rails
       </CardHeader>
       <CardBody className="pt-0">
         <PowerCycle/>
