@@ -21,6 +21,9 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
 
   const bifrost = useBifrost({
     topic: RosTopic.DRIVE_INFO, service: RosService.TELEOP_DRIVE_SET_PARAMS });
+  useEffect(() => {
+    bifrost.syncWithTopic();
+  }, [bifrost]);
 
   const driveInfo = useSelector(
     (state: RootState) => state.driveStore);
@@ -31,13 +34,19 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
     "3": "Excessive BLCMD Errors",
     "4": "Gamepad Disconnected",
   };
-
-  useEffect(() => {
-    bifrost.syncWithTopic();
-  }, [bifrost]);
+  const suppressLockedReasonToast = [1, 2];
 
   const [autolockOverride, setAutolockOverride] = useState(false);
+  const currentLockedReason = lockedReasons[driveInfo.locked_reason.toString()] ?? "Reason Unknown";
 
+  // show toast when locked unexpectedly
+  useEffect(() => {
+    if (!suppressLockedReasonToast.includes(driveInfo.locked_reason) && driveInfo.locked) {
+      toast.error(`Drive Locked due to: ${currentLockedReason}`);
+    }
+  }, [driveInfo.locked_reason, driveInfo.locked]);
+
+  // callback to toggle autolock override in teleop drive
   const onAutolockButtonPress = () => {
 
     const newOverrideState = !autolockOverride;
@@ -97,7 +106,7 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
     <div className="flex flex-row items-center gap-1 text-base font-bold">
       Drive Locked
       <Dot className="text-xl"/>
-      {lockedReasons[driveInfo.locked_reason.toString()] ?? "Reason Unknown"}
+      {currentLockedReason}
     </div>
   );
 
