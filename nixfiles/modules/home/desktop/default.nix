@@ -36,7 +36,7 @@ in
       };
 
       "org/gnome/desktop/session" = {
-        idle-delay = lib.hm.gvariant.mkUint32 0; # 15 minutes before screen off
+        idle-delay = lib.hm.gvariant.mkUint32 0; # disabled because auto can't touch the laptops
       };
 
       "org/gnome/desktop/interface" = {
