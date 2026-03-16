@@ -3,7 +3,6 @@ import {NIRProbeCalibrationData} from "../../../../redux/models/genericStores/NI
 import {NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {useMemo} from "react";
-import {max, min} from "lodash";
 
 /**
  * Number of coefficients required for the calibration function
@@ -19,8 +18,8 @@ export const defaultCoefficients = [
   126.18171
 ];
 
-export const defaultXRange = [12000, 22000]
-export const defaultYRange = [0, 16000]
+export const defaultXRange = [12000, 24000]
+export const defaultYRange = [0, 12000]
 
 export const defaultXOffset = 0;
 export const defaultYOffset = 0;
