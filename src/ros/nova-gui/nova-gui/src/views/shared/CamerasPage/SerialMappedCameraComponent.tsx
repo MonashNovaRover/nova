@@ -14,6 +14,8 @@ import ActivatedNodesCameraComponent
   from "../../../components/cameras/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
 import DepthSensor
   from "../../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
+import MicroscopeScaleOverlayedCameraComponent
+  from "../../../components/cameras/CameraComponent/special/MicroscopeScaleOverlayedCameraComponent.tsx";
 import PowerCycleCameraComponent
   from "../../../components/cameras/CameraComponent/special/PowerCycleCameraComponent.tsx";
 
@@ -26,6 +28,7 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.SITE_SELECT]: SiteSelectCameraComponent,
   [CameraSerials.URC_ACTIVATED_NODES]: ActivatedNodesCameraComponent,
   [CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS]: DepthSensor,
+  [CameraSerials.SCIENCE_MICROSCOPE]: MicroscopeScaleOverlayedCameraComponent,
   [CameraSerials.SCIENCE_POWER_CYCLE]: PowerCycleCameraComponent,
 }
 
