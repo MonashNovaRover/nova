@@ -85,6 +85,12 @@ in {
             VXLAN = "vxlan0";
           };
         };
+        "20-vxlan0" = {
+          matchConfig.Name = "vxlan0";
+          linkConfig = {
+            ActivationPolicy = "always-up";
+          };
+        };
         "40-prp0" = {
           matchConfig.Name = "prp0";
           address = [
@@ -94,16 +100,22 @@ in {
             { Gateway = "10.0.0.1"; }
           ];
         };
-        "30-PRP-${netcfg.secondaryEthernetInterface}" = {
+        "30-PRP-B-${netcfg.secondaryEthernetInterface}" = lib.mkIf (netcfg.secondaryEthernetInterface != netcfg.ethernetInterface) {
           matchConfig.Name = netcfg.secondaryEthernetInterface;
           networkConfig = {
             VLAN = "vlan9";
           };
         };
-        "30-PRP-${netcfg.ethernetInterface}" = {
+        "30-PRP-A-${netcfg.ethernetInterface}" = lib.mkIf (netcfg.secondaryEthernetInterface != netcfg.ethernetInterface) {
           matchConfig.Name = netcfg.ethernetInterface;
           networkConfig = {
             VLAN = "vlan5";
+          };
+        };
+        "30-PRP-AB-${netcfg.ethernetInterface}" = lib.mkIf (netcfg.secondaryEthernetInterface == netcfg.ethernetInterface) {
+          matchConfig.Name = netcfg.ethernetInterface;
+          networkConfig = {
+            VLAN = "vlan5\nVLAN=vlan9";
           };
         };
       };
@@ -116,9 +128,9 @@ in {
       [HSR]
       Protocol = prp
       Ports = ${netcfg.ethernetInterface}
-      Ports = ${netcfg.secondaryEthernetInterface}
+      Ports = vxlan0
     '';
-      #Ports = vxlan0
+      #Ports = ${netcfg.secondaryEthernetInterface}
 
     assertions = [
       {
