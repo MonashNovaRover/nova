@@ -70,8 +70,8 @@ arm:
           min_position: -2.44
         j6: # wrist roll
           has_position_limits: true
-          max_position: 6.2832
-          min_position: -6.2832
+          max_position: 6.0 # TODO: is this enough to make the resolver get to 0xffff and have the position feedback overflow
+          min_position: -6.0
 
   nova_arm_position_controller:
     ros__parameters:
