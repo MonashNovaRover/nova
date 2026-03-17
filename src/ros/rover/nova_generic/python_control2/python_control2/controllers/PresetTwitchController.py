@@ -21,6 +21,7 @@ from ..controller_manager.Activation import Activation
 from ..controllers.Controller import Controller
 from teleop_python_utils import Inputs, Button
 from science_interfaces.srv import SetPositionPresets, SetPositionPresets_Request, SetPositionPresets_Response, SetPosition, SetPosition_Request, SetPosition_Response
+from std_msgs.msg import Float64
 
 
 class PresetTwitchController(Controller):
@@ -36,7 +37,9 @@ class PresetTwitchController(Controller):
         twitch_max: float = 30.0,
         hardware_name: str = "rotation",
         set_position_service: str = "",
-        set_presets_service: str = ""
+        set_presets_service: str = "",
+        twitch_service: str = "",
+        position_topic: str = ""
         ):
         """ Constructor for PresetTwitchController
 
@@ -63,7 +66,7 @@ class PresetTwitchController(Controller):
         if positions is None:
             positions = {}
 
-        # Set up optional services
+        # Set up optional services and publishers
         preset_service_name = self.declare_parameter("set_presets_service", set_presets_service, "Optional service name that will sets pose presets.").value
         if preset_service_name != "":
             self.set_presets_service = self.node.create_service(SetPositionPresets, preset_service_name, self.set_preset_callback)
@@ -72,6 +75,13 @@ class PresetTwitchController(Controller):
         if position_service_name != "":
             self.set_presets_service = self.node.create_service(SetPosition, position_service_name, self.set_position_callback)
 
+        twitch_service_name = self.declare_parameter("twitch_service", twitch_service, "Optional service name that will twitch position.").value
+        if twitch_service_name != "":
+            self.twitch_service = self.node.create_service(SetPosition, twitch_service_name, self.twitch_callback)
+
+        position_publisher_name = self.declare_parameter("position_publisher", position_topic, "Optional topic name that will publish position.").value
+        self.position_publisher = self.node.create_publisher(Float64, position_publisher_name, 5) if position_publisher_name != "" else None
+        
         # Get inputs
         inputs = contexts[Inputs]
 
@@ -142,6 +152,12 @@ class PresetTwitchController(Controller):
             self.twitch(-twitch_step)
         
         self.rotation_cmd.value = self.current_pos
+
+        if self.position_publisher:
+            position_msg = Float64()
+            position_msg.data = self.current_pos
+        
+            self.position_publisher.publish(position_msg)
     
     def twitch(self, step: float):
         """Updates the position by applying a twitch step"""
@@ -187,6 +203,13 @@ class PresetTwitchController(Controller):
 
         self.logger.info(f"Set position to: {self.current_pos}")
 
+        response.success = True
+        return response
+    
+    def twitch_callback(self, request: SetPosition_Request, response: SetPosition_Response):
+        """ Service callback to twitch the position """
+        self.twitch(request.position)
+        
         response.success = True
         return response
 

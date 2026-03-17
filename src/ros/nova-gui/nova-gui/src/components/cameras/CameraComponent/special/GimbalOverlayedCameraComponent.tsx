@@ -5,6 +5,7 @@ import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import { BaseCameraComponentProps } from "../CameraComponent.tsx";
 import { Input, Tooltip, Switch } from "@nextui-org/react";
 import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
+import { useToolRotatorKeyboard } from "../../../science/ToolRotatorWidget/useToolRotator.ts";
 
 export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
   // Default step size for incrementing angles
@@ -75,8 +76,8 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     switch (e.key.toLowerCase()) {
       case 'a': incrementPan(-stepNumber); break;
       case 'd': incrementPan(stepNumber); break;
-      case 'w': incrementTilt(-stepNumber); break;
-      case 's': incrementTilt(stepNumber); break;
+      case 's': incrementTilt(-stepNumber); break;
+      case 'w': incrementTilt(stepNumber); break;
     }
   }, [incrementPan, incrementTilt, stepNumber])
 
@@ -89,13 +90,13 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
           incrementPan(-stepNumber); //negative pan is left
           break;
         case 'd':
-          incrementPan(stepNumber);//positive pan is right
-          break;
-        case 'w':
-          incrementTilt(-stepNumber);//negative tilt is up
+          incrementPan(stepNumber); //positive pan is right
           break;
         case 's':
-          incrementTilt(stepNumber);//positive tilt is down
+          incrementTilt(-stepNumber); //negative tilt is down
+          break;
+        case 'w':
+          incrementTilt(stepNumber); //positive tilt is up
           break;
         default:
           break;
@@ -146,6 +147,8 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
       </Switch>
     </>
   )
+
+  useToolRotatorKeyboard()
 
   return (
     <div
