@@ -25,9 +25,12 @@ in
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       description = "Precision Time Protocol Daemon";
+      startLimitIntervalSec = 0;
       serviceConfig = {
         Type = "simple";
         ExecStart = ''${pkgs.nova.ptpd}/bin/ptpd2 -C -m -i ${cfg.interfaceName} --ptpengine:priority1=${toString cfg.priority}'';
+        Restart = "on-failure";
+        RestartSec = 2;
       };
     };
   };
