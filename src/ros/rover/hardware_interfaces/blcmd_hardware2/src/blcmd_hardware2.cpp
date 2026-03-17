@@ -35,12 +35,12 @@ namespace blcmd_hardware
 
 void differential_convert_to_motors(double pitch, double roll, double& j5, double& j6) {
   j5 = (pitch + roll*3);
-  j6 = -(pitch - roll*3);
+  j6 = (pitch - roll*3);
 }
 
 void differential_convert_from_motors(double j5, double j6, double& pitch, double& roll) {
   pitch = (j5 + (-j6)) / 2.0;
-  roll = (j5 - (-j6)) / 6.0;
+  roll = -(j5 - (-j6)) / 6.0;
 }
 
 hardware_interface::CallbackReturn BLCMDHardware::on_init(
