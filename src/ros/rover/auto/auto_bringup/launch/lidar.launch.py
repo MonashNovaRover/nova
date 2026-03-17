@@ -29,6 +29,7 @@ from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
 
+
 class Colour:
     RED = '\033[1;31m'
     GREEN = '\033[1;32m'
@@ -72,11 +73,10 @@ def concat_pcds(context, output_dir, save_dir, logger):
         logger.error(f"{Colour.RED}Directory {dir_path} does not exist and could not be concatenated.{Colour.END}")
 
 def launch_setup(context, *args, **kwargs):
-    intrinsics_params = LaunchConfiguration('intrinsics_params')
-    extrinsics_params = LaunchConfiguration('extrinsics_params')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
+
+    img_en = int(LaunchConfiguration('img_en').perform(context).lower() == 'true')
     img_topic = LaunchConfiguration('img_topic').perform(context)
-    fastcalib = LaunchConfiguration('fastcalib')
-    fastcalib_params = LaunchConfiguration('fastcalib_params')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
     obstacles_detection = LaunchConfiguration('obstacles_detection')
@@ -89,12 +89,15 @@ def launch_setup(context, *args, **kwargs):
     uncompress_img = LaunchConfiguration('uncompress_img')
     shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
 
+    intrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml'])
+    extrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_extrinsics.yaml'])
     logger = get_logger("lidar_launch")
 
     fastlivo2_rewritten_params = RewrittenYaml(
         source_file=fastlivo2_params,
         param_rewrites={
-            'common.img_topic': img_topic,
+            'img_en': img_en,
+            'img_topic': img_topic,
             'scan_line': '4' if sim.perform(context).lower() == 'false' else '40',
         },
         convert_types=True,
@@ -117,6 +120,18 @@ def launch_setup(context, *args, **kwargs):
         parameters=[
             {'nodes': ['parameter_blackboard']}
         ],
+    )
+
+    wait_topics = ['/livox/lidar_masked', 'livox/imu']
+    if img_en:
+        wait_topics.append(img_topic)
+    
+    wait_for_topics = Node(
+        package='nova_utils',
+        executable='topic_waiter.py',
+        name='fastlivo2_wait_for_topics',
+        output='screen',
+        parameters=[{'topics': wait_topics}],
     )
 
     return [
@@ -166,14 +181,6 @@ def launch_setup(context, *args, **kwargs):
             remappings=[("in/compressed",  f"{img_topic}/compressed"), 
                         ("out", img_topic)],
         ),
-        Node(
-            condition=IfCondition(fastcalib),
-            package='fast_calib',
-            executable='fast_calib',
-            name='mono_qr_pattern',
-            output='screen',
-            parameters=[fastcalib_params]
-        ),
         GroupAction(
             condition=IfCondition(fastlivo2),
             actions=[
@@ -193,6 +200,12 @@ def launch_setup(context, *args, **kwargs):
                 RegisterEventHandler(
                     event_handler=OnProcessExit(
                         target_action=wait_for_parameter_blackboard,
+                        on_exit=wait_for_topics,
+                    ),
+                ),
+                RegisterEventHandler(
+                    event_handler=OnProcessExit(
+                        target_action=wait_for_topics,
                         on_exit=fastlivo2_node,
                     ),
                 ),
@@ -296,21 +309,6 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
-            name='extrinsics_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_extrinsics.yaml']),
-            description='',
-        ),
-        DeclareLaunchArgument(
-            name='fastcalib',
-            default_value='False',
-            description='Use FAST-Calib?',
-        ),
-        DeclareLaunchArgument(
-            name='fastcalib_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','fastcalib.yaml']),
-            description='',
-        ),
-        DeclareLaunchArgument(
             name='fastlivo2',
             default_value='True',
             description='Use FAST-LIVO2?',
@@ -321,13 +319,13 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='img_topic',
-            default_value='/d415/color/image_raw',
-            description='',
+            name='img_en',
+            default_value='True',
+            description='Enable coloured mapping?',
         ),
         DeclareLaunchArgument(
-            name='intrinsics_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml']),
+            name='img_topic',
+            default_value='/d415/color/image_raw',
             description='',
         ),
         DeclareLaunchArgument(
