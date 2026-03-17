@@ -45,6 +45,9 @@ in
       shellAliases = lib.mkMerge [
         pkgs.nova.nova.config.shellAliases
         rec {
+          # Poweroff
+          off = "sudo poweroff";
+
           # Nix CLI shortcuts
           nova-build = "nix-build ${cfg.nixfileDir}";
           nova-shell = "nix-shell ${cfg.nixfileDir}";
