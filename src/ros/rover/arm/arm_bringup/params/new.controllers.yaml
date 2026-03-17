@@ -67,7 +67,7 @@ arm:
         j5: # wrist pitch
           has_position_limits: true # TODO: Need time to figure out what was going on with this!
           max_position: -0.1153
-          min_position: -2.7034
+          min_position: -2.44
         j6: # wrist roll
           has_position_limits: true
           max_position: 6.2832
