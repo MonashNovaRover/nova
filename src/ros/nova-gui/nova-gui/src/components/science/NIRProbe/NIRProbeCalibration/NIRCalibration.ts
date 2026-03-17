@@ -7,7 +7,7 @@ import {useMemo} from "react";
 /**
  * Number of coefficients required for the calibration function
  */
-export const COEFFICIENT_QUANTITY = 6;
+export const COEFFICIENT_QUANTITY = 5;
 
 export const defaultCoefficients = [
   1.59e-8,
@@ -15,11 +15,11 @@ export const defaultCoefficients = [
   -82092.70,
   0.000289,
   3.2,
-  0
+  
 ]
 
-export const defaultXRange = [12000, 24000]
-export const defaultYRange = [0, 12000]
+export const defaultXRange = [10000, 27000]
+export const defaultYRange = [0, 27000]
 
 export const defaultXOffset = 0;
 export const defaultYOffset = 0;
