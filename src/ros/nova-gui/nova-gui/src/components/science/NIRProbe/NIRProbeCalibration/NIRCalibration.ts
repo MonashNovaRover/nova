@@ -10,13 +10,13 @@ import {useMemo} from "react";
 export const COEFFICIENT_QUANTITY = 6;
 
 export const defaultCoefficients = [
-  2.03125e-7,
-  1.5925e-8,
-  1.1375e-7,
-  -0.010051775,
-  -0.002814497,
-  126.18171
-];
+  1.59e-8,
+  3.57,
+  -82092.70,
+  0.000289,
+  3.2,
+  0
+]
 
 export const defaultXRange = [12000, 24000]
 export const defaultYRange = [0, 12000]
@@ -62,13 +62,10 @@ export const calibrationFunction = (coef: number[]) => (x: number, y: number): n
   const c = coef.map(v => Number.isNaN(v) ? 0 : v)
 
   return (
-    c[0] * (x ** 2)
-    + c[1] * (y ** 2)
-    + c[2] * (x * y)
-    + c[3] * x
-    + c[4] * y
-    + c[5]
-);
+    c[0] * Math.abs(c[1] * x + y + c[2])**2 
+    + c[3] * Math.abs(c[1] * x + y + c[2])
+    + c[4]
+  );
 }
 
 /**
