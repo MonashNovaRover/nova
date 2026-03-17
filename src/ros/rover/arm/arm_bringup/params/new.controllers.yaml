@@ -43,7 +43,7 @@ arm:
         j2_idx: 1 # this is badly designed.
         j3_idx: 2
         max_position: 0.8487
-        min_position: -0.1
+        min_position: -1.0
       velocity_feedback: true
       position_feedback: true
       use_limits: true
@@ -93,7 +93,7 @@ arm:
         j2_idx: 1 # this is badly designed.
         j3_idx: 2
         max_position: 0.75
-        min_position: -0.1
+        min_position: -1.0
       joint_limits:
         j1:
           has_position_limits: true
