@@ -197,6 +197,19 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
+            # Remove points that intersect with the rover
+            package='pcl_ros',
+            executable='filter_crop_box_node',
+            name='crop_box_filter',
+            parameters=[{'min_x': -0.64, 'max_x': 0.64,
+                            'min_y': -0.57, 'max_y': 0.57,
+                            'min_z': 0.0, 'max_z': 4.0,
+                            'negative': True,
+                            'input_frame': 'base_link'}],
+            remappings=[('input', '/livox/lidar'),
+                        ('output', '/livox/lidar_masked')],
+        ),
+        Node(
             # NOTE image_transport only creates subscribers if subscribers exist for its publishers. 
             condition=IfCondition(uncompress_img),
             package="image_transport",
