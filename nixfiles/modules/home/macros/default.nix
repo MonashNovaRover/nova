@@ -177,10 +177,13 @@ in
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
           launch-auto-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
           launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak.launch.py";
+          launch-realsense = "~/Builds/master/bin/ros2 launch auto_bringup realsense.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
+          launch-lidar = "~/Builds/master/bin/ros2 launch auto_bringup lidar.launch.py";
           launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
+          launch-auto-urdf = "~/Builds/master/bin/ros2 launch auto_bringup urdf.launch.py";
           launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
           oak-gui = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
 
