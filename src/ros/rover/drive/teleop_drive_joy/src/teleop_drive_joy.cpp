@@ -125,13 +125,6 @@ void TeleopDriveJoy::initialize_params()
 {
   param_listener_ = std::make_shared<ParamListener>(this->shared_from_this());
   params_ = param_listener_->get_params();
-
-  //TODO: REMOVE
-  if (param_listener_->is_old(params_))
-  {
-    RCLCPP_ERROR_STREAM(this->get_logger(), "OMG ACTUAL UPDATE");
-    params_ = param_listener_->get_params();
-  }
   speed_ = params_.initial_speed;
 }
 

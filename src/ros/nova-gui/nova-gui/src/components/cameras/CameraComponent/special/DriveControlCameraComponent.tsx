@@ -5,7 +5,7 @@ import DriveControlWidget from "../../../drive/DriveControlWidget/DriveControlWi
 export const DriveControlCameraComponent: FC<BaseCameraComponentProps> = (_: BaseCameraComponentProps) => {
   return (
     <div>
-      <DriveControlWidget /*hideImage={true} className="row-span-2 w-full"*/ />
+      <DriveControlWidget/>
     </div>
 )
 }
