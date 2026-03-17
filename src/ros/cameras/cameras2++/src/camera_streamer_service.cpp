@@ -66,6 +66,7 @@ class CameraStreamer : public rclcpp::Node
     RCLCPP_INFO(this->get_logger(), "Cameras2++ Streamer Running...");
 
     // Define ideal decoders and encoders
+    std::string element_name;
     GstRegistry* plugins_register = gst_registry_get();
     auto set_element_priority = [](std::string element_name, int priority, GstRegistry* plugins_register) -> std::string {
       const char* c_element_name = element_name.c_str();
@@ -81,17 +82,17 @@ class CameraStreamer : public rclcpp::Node
     };
 
     // Decoders
-    std::string element_name = "nvv4l2decoder";               // Nvidia general decoder
+    element_name = "nvv4l2decoder"; // Nvidia general decoder
     set_element_priority(element_name, 255, plugins_register);
-    element_name = "vajpegdec";                               // Laptop accelerated jpeg decoder
+    element_name = "vajpegdec";                 // Laptop accelerated jpeg decoder
     set_element_priority(element_name, 254, plugins_register);
-    element_name = "jpegdec";                                 // Software jpeg decoder
+    element_name = "jpegdec";                   // Software jpeg decoder
     set_element_priority(element_name, 253, plugins_register);
 
     // Encoders
-    element_name = "vah264enc";                               // Laptop accelerated h264 encoder
+    element_name = "vah264enc";                 // Laptop accelerated h264 encoder
     set_element_priority(element_name, 255, plugins_register);
-    element_name = "x264enc";                                 // Software h264 encoder
+    element_name = "x264enc";                   // Software h264 encoder
     set_element_priority(element_name, 254, plugins_register);
   }
 

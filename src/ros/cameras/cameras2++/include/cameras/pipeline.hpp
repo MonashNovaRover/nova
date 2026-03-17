@@ -15,8 +15,11 @@ struct v4lProperties
   int width;
   int height;
   int framerate;
-  std::string mime;
   int bitrate;
+  int brightness;
+  int contrast;
+  std::string device;
+  std::string mime;
 };
 
 struct webRTCProperties
