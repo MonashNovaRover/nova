@@ -22,6 +22,7 @@ in
     systemd.services.ptpd = {
       enable = true;
       after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       description = "Precision Time Protocol Daemon";
       serviceConfig = {
