@@ -7,9 +7,9 @@ import { RosService } from "../../../ros/services/rosService.ts";
 import { IRosScienceInterfacesPowerCycleRequest } from "../../../ros/rosTypes.ts";
 
 const SciencePowerCycle = () => {
-  const [sleepTime, setSleepTime] = useState<string>("5.0");
+  const [sleepTime, setSleepTime] = useState<string>("3.0");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [sleepTimeDrive, setSleepTimeDrive] = useState<string>("5.0");
+  const [sleepTimeDrive, setSleepTimeDrive] = useState<string>("3.0");
   const [isLoadingDrive, setIsLoadingDrive] = useState<boolean>(false);
   const powerCycleScience = useBifrost({service: RosService.POWER_CYCLE_SCIENCE });
   const powerCycleDrive = useBifrost({service: RosService.POWER_CYCLE_DRIVE });
@@ -46,7 +46,7 @@ const SciencePowerCycle = () => {
         <Input
           type="number"
           label="Sleep Time"
-          placeholder="5.0"
+          placeholder="3.0"
           endContent={<div className="text-small text-default-400">sec</div>}
           value={sleepTime}
           onChange={(e) => setSleepTime(e.target.value)}
@@ -72,7 +72,7 @@ const SciencePowerCycle = () => {
         <Input
           type="number"
           label="Sleep Time"
-          placeholder="5.0"
+          placeholder="3.0"
           endContent={<div className="text-small text-default-400">sec</div>}
           value={sleepTimeDrive}
           onChange={(e) => setSleepTimeDrive(e.target.value)}
