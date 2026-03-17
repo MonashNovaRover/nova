@@ -120,6 +120,19 @@ def launch_setup(context, *args, **kwargs):
             parameters=[lidar_params, {'user_config_path': lidar_config, 'use_sim_time': sim}],
         ),
         Node(
+            # Remove points that intersect with the rover
+            package='pcl_ros',
+            executable='filter_crop_box_node',
+            name='crop_box_filter',
+            parameters=[{'min_x': -0.64, 'max_x': 0.64,
+                            'min_y': -0.57, 'max_y': 0.57,
+                            'min_z': 0.0, 'max_z': 4.0,
+                            'negative': True,
+                            'input_frame': 'base_link'}],
+            remappings=[('input', '/livox/lidar'),
+                        ('output', '/livox/lidar_masked')],
+        ),
+        Node(
             # NOTE image_transport only creates subscribers if subscribers exist for its publishers. 
             condition=IfCondition(uncompress_img),
             package="image_transport",
@@ -182,8 +195,8 @@ def launch_setup(context, *args, **kwargs):
                     executable='filter_voxel_grid_node',
                     name='voxel_grid_filter',
                     parameters=[{'leaf_size': 0.05}],
-                    remappings=[('input', '/livox/lidar'),
-                                ('output', '/livox/lidar_filtered')],
+                    remappings=[('input', '/livox/lidar_masked'),
+                                ('output', '/livox/lidar_downsampled')],
                 ),
                 Node(
                     package='rtabmap_util',
@@ -193,7 +206,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[{'max_obstacle_height': 1.6,
                                  'ground_normal_angle': 1.25664}], # ~72 degrees in radians
                     remappings=[
-                        ('cloud','/livox/lidar_filtered'),
+                        ('cloud','/livox/lidar_downsampled'),
                         ('obstacles','/livox/lidar/obstacles'),
                         ('ground', '/livox/lidar/ground'),
                     ],

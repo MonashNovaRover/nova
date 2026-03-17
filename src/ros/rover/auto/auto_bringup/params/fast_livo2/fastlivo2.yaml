@@ -2,7 +2,7 @@ fastlivo2:
   ros__parameters:
     common:
       img_topic: "/d415/color/image_raw"
-      lid_topic: "/livox/lidar"
+      lid_topic: "/livox/lidar_masked"
       imu_topic: "/livox/imu"
       img_en: 1
       lidar_en: 1
