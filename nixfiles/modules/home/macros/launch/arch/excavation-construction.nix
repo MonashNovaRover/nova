@@ -26,7 +26,7 @@ let
     terminals = [
       {name="Base: drive-teleop"; platform=base; cmd="./ros2 launch teleop_drive_joy teleop.launch.py";}
       {name = "Rover: drive"; platform=rover; cmd="./ros2 launch drive_bringup drive.launch.py";}
-      {name="Base: reolink"; platform=base-nix "nix-shell -p ffmpeg"; cmd="reolink";}
+      {name="Base: reolink"; platform=base-nix "nom-shell -p ffmpeg"; cmd="reolink";}
       {name="Base: reolink-ctl"; platform=base-window; cmd="./reolink-ctl";}
     ];
     post = post-shell;

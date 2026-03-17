@@ -17,7 +17,7 @@ let
       {name = "Base:Arm Teleop"; platform=base; cmd="./ros2 launch teleop_arm teleop.launch.py local:=True log_inputs:=True";}
       {name = "Base:Rviz"; platform=base; cmd="./rviz2 -d ../share/arm_bringup/rviz/arm.rviz | grep -v TF_NAN";}
       {name = "Rover:Reolink Ctl"; platform=rover; cmd="./reolink-ctl";}
-      {name="Base:Reolink"; platform=base-nix "nix-shell -p ffmpeg"; cmd="reolink low";}
+      {name="Base:Reolink"; platform=base-nix "nom-shell -p ffmpeg"; cmd="reolink low";}
     ];
     post = post-shell;
   };
