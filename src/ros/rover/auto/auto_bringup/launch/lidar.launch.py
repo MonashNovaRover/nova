@@ -31,6 +31,7 @@ from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
 
 
+
 class Colour:
     RED = '\033[1;31m'
     GREEN = '\033[1;32m'
