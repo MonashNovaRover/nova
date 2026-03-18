@@ -28,8 +28,8 @@ in {
       netcfg.secondaryEthernetInterface
       "vlan5"
       "vlan9"
-      "vxlan0"
-      "prp0"
+      #"vxlan0"
+      #"prp0" let networkmanager have this unless rover net config uses it
     ];
 
     systemd.network = {
@@ -55,18 +55,19 @@ in {
             Id = 5;
           };
         };
-        "20-vxlan0" = {
-          # VXLAN to ensure the rover switch never sees prp0's mac address on the 900MHz side
-          netdevConfig = {
-            Kind = "vxlan";
-            Name = "vxlan0";
-          };
-          vxlanConfig = {
-            VNI = 7; # Kevin's choice
-            Group = "239.1.1.7";
-            DestinationPort = 4789;
-          };
-        };
+        # VXLAN Doesn't work well as the multicast packets get sent from rover to both networks :(
+        #"20-vxlan0" = {
+        #  # VXLAN to ensure the rover switch never sees prp0's mac address on the 900MHz side
+        #  netdevConfig = {
+        #    Kind = "vxlan";
+        #    Name = "vxlan0";
+        #  };
+        #  vxlanConfig = {
+        #    VNI = 7; # Kevin's choice
+        #    Group = "239.1.1.7";
+        #    DestinationPort = 4789;
+        #  };
+        #};
       };
 
       networks = {
@@ -81,25 +82,25 @@ in {
           address = [
             ("10.9." + cfg.address + "/23")
           ];
-          networkConfig = {
-            VXLAN = "vxlan0";
-          };
+          #networkConfig = {
+          #  VXLAN = "vxlan0";
+          #};
         };
-        "20-vxlan0" = {
-          matchConfig.Name = "vxlan0";
-          linkConfig = {
-            ActivationPolicy = "always-up";
-          };
-        };
-        "40-prp0" = {
-          matchConfig.Name = "prp0";
-          address = [
-            ("10.0." + cfg.address + "/23")
-          ];
-          routes = [
-            { Gateway = "10.0.0.1"; }
-          ];
-        };
+        #"20-vxlan0" = {
+        #  matchConfig.Name = "vxlan0";
+        #  linkConfig = {
+        #    ActivationPolicy = "always-up";
+        #  };
+        #};
+        #"80-prp0" = {
+        #  matchConfig.Name = "prp0";
+        #  address = [
+        #    ("10.0." + cfg.address + "/23")
+        #  ];
+        #  routes = [
+        #    { Gateway = "10.0.0.1"; }
+        #  ];
+        #};
         "30-PRP-B-${netcfg.secondaryEthernetInterface}" = lib.mkIf (netcfg.secondaryEthernetInterface != netcfg.ethernetInterface) {
           matchConfig.Name = netcfg.secondaryEthernetInterface;
           networkConfig = {
@@ -112,12 +113,12 @@ in {
             VLAN = "vlan5";
           };
         };
-        "30-PRP-AB-${netcfg.ethernetInterface}" = lib.mkIf (netcfg.secondaryEthernetInterface == netcfg.ethernetInterface) {
-          matchConfig.Name = netcfg.ethernetInterface;
-          networkConfig = {
-            VLAN = "vlan5\nVLAN=vlan9";
-          };
-        };
+        #"30-PRP-AB-${netcfg.ethernetInterface}" = lib.mkIf (netcfg.secondaryEthernetInterface == netcfg.ethernetInterface) {
+        #  matchConfig.Name = netcfg.ethernetInterface;
+        #  networkConfig = {
+        #    VLAN = "vlan5\nVLAN=vlan9";
+        #  };
+        #};
       };
     };
     # NixOS doesn't let you configure HSR netdevs :/
@@ -128,9 +129,9 @@ in {
       [HSR]
       Protocol = prp
       Ports = ${netcfg.ethernetInterface}
-      Ports = vxlan0
+      Ports = ${netcfg.secondaryEthernetInterface}
     '';
-      #Ports = ${netcfg.secondaryEthernetInterface}
+      #Ports = vxlan0
 
     assertions = [
       {
