@@ -63,7 +63,7 @@ const NIRContourCalibrationCurve: React.FC<NIRContourCalibrationCurveProps> = ({
           mode: "markers",
           name: "Readings",
           marker: {
-            color: "#3c1c88",
+            color: "#f5a524",
             size: 8,
           },
         },
@@ -74,7 +74,7 @@ const NIRContourCalibrationCurve: React.FC<NIRContourCalibrationCurveProps> = ({
           mode: "markers",
           name: "Average",
           marker: {
-            color: "#0b8399",
+            color: "#22d3ee",
             size: 10,
           },
         },
