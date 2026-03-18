@@ -70,18 +70,18 @@ in
           coms = "${nova}/src/other/coms_utils";
 
           # Networking 
-          jetson = "ssh -Y nvidia@10.0.0.10";
-          jetson-wifi = "ssh -Y nvidia@tegra-ubuntu";
-          orin = "ssh -Y nova@10.0.0.11";
-          orin2 = "ssh -Y nova@10.0.0.12"; # for the other devkit
-          pi5 = "ssh -Y nova@10.0.0.50";
-          orin-devkit-1 = "ssh -Y nova@orin-devkit-1";
-          J1 = "ssh -Y nvidia@10.0.2.21";
-          J2 = "ssh -Y nvidia@10.0.2.22";
-          J3 = "ssh -Y nvidia@10.0.2.23";
-          N1 = "ssh -Y nova@10.0.2.11";
-          N2 = "ssh -Y nova@10.0.2.12";
-          N3 = "ssh -Y nova@10.0.2.13";
+          jetson = "ssh -C -Y nvidia@10.0.0.10";
+          jetson-wifi = "ssh -C -Y nvidia@tegra-ubuntu";
+          orin = "ssh -C -Y nova@10.0.0.11";
+          orin2 = "ssh -C -Y nova@10.0.0.12"; # for the other devkit
+          pi5 = "ssh -C -Y nova@10.0.0.50";
+          orin-devkit-1 = "ssh -C -Y nova@orin-devkit-1";
+          J1 = "ssh -C -Y nvidia@10.0.2.21";
+          J2 = "ssh -C -Y nvidia@10.0.2.22";
+          J3 = "ssh -C -Y nvidia@10.0.2.23";
+          N1 = "ssh -C -Y nova@10.0.2.11";
+          N2 = "ssh -C -Y nova@10.0.2.12";
+          N3 = "ssh -C -Y nova@10.0.2.13";
 
           # Application 
           code = "codium";
@@ -184,7 +184,7 @@ in
 
           # GPS
           launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
-          mast = "ssh nova@10.0.0.150";
+          mast = "ssh -C nova@10.0.0.150";
 
           # Master build binaries
           mros2 = "~/Builds/master/bin/ros2";
