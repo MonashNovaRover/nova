@@ -30,7 +30,7 @@ from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from os import listdir
+import os
 
 def launch_setup(context, *args, **kwargs):
     # package directories
@@ -47,7 +47,8 @@ def launch_setup(context, *args, **kwargs):
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
     gazebo = LaunchConfiguration('gazebo')
-    mppi_params = LaunchConfiguration('mppi_params')
+    mppi = LaunchConfiguration('mppi').perform(context).lower() == 'true'
+    mppi_config = LaunchConfiguration('mppi_config').perform(context)
 
     # comp defaults
     if comp == 'arch':
@@ -68,10 +69,14 @@ def launch_setup(context, *args, **kwargs):
         'autostart': autostart,
     }
     # Combine all params from sim, substitution, and nav2 directory
-    nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
+    nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in os.listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
     nav2_params.append(substitution_params)
-    if mppi_params.perform(context) != '':
-        nav2_params.append(mppi_params)
+    if mppi:
+        mppi_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_mppi', mppi_config + '.yaml'])
+        if os.path.exists(mppi_params.perform(context)):
+            nav2_params.append(mppi_params)
+        else:
+            raise ValueError(f'MPPI config "{mppi_config}" does not exist in auto_bringup/params/nav2_mppi/')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -252,9 +257,14 @@ def generate_launch_description():
             description='Sim parameters to use if using sim time', 
         ),
         DeclareLaunchArgument(
-            name='mppi_params',
-            default_value='',
-            description='MPPI parameters to use', 
+            name='mppi',
+            default_value='True',
+            description='Using MPPI?', 
+        ),
+        DeclareLaunchArgument(
+            name='mppi_config',
+            default_value='regular',
+            description='Name of the MPPI config to use (without .yaml)', 
         ),
         # arguments with comp defaults
         DeclareLaunchArgument(
