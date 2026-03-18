@@ -11,7 +11,7 @@ PACKAGE: 	auto_bringup
 CREATION:	15/01/2026
 EDITED:     15/01/2026
 EDITED BY:  Kabilan Velmurugan Sujatha, Bailey 
-    Chessum, Victor Bartlinski
+    Chessum, Victor Bartlinski, Terry Tian
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from pathlib import Path
@@ -71,6 +71,10 @@ def concat_pcds(context, output_dir, save_dir, logger):
         logger.info(f"{Colour.GREEN}Map zipped to {save_dir}/output.pcd.zip.{Colour.END}")
     else:
         logger.error(f"{Colour.RED}Directory {dir_path} does not exist and could not be concatenated.{Colour.END}")
+
+def block_until_enter_pressed(context, logger):
+    logger.info(f"{Colour.YELLOW}Press Enter to start FAST-LIVO2 mapping...{Colour.END}")
+    input()
 
 def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
@@ -206,7 +210,8 @@ def launch_setup(context, *args, **kwargs):
                 RegisterEventHandler(
                     event_handler=OnProcessExit(
                         target_action=wait_for_topics,
-                        on_exit=fastlivo2_node,
+                        on_exit=[OpaqueFunction(function=block_until_enter_pressed, kwargs={'logger': logger}),
+                                 fastlivo2_node],
                     ),
                 ),
                 RegisterEventHandler(
