@@ -245,6 +245,11 @@ def generate_launch_description():
             default_value='regular',
             description='Name of the MPPI config to use (without .yaml)',
         ),
+        DeclareLaunchArgument(
+            name='mppi_config',
+            default_value='regular',
+            description='Name of the MPPI config to use (without .yaml)',
+        ),
         # arguments with comp defaults
         DeclareLaunchArgument(
             name='localization',
