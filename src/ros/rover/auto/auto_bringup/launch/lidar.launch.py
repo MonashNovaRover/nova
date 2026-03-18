@@ -112,6 +112,8 @@ def launch_setup(context, *args, **kwargs):
         executable='fastlivo_mapping',
         name='fastlivo2',
         output='screen',
+        # gives 66.67% of CPU under 100% load assuming all other processes have default weight of 100
+        prefix='systemd-run --scope -p CPUWeight=200 --unit=fastlivo2',
         parameters=[fastlivo2_rewritten_params, extrinsics_params,
                     {'save_folder': output_dir}],
     )
