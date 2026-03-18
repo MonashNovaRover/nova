@@ -116,6 +116,7 @@ def launch_setup(context, *args, **kwargs):
         prefix='systemd-run --scope -p CPUWeight=200 --unit=fastlivo2',
         parameters=[fastlivo2_rewritten_params, extrinsics_params,
                     {'save_folder': output_dir}],
+        remappings=[('/aft_mapped_to_init', '/odometry/filtered')],
     )
 
     wait_for_parameter_blackboard = Node(
