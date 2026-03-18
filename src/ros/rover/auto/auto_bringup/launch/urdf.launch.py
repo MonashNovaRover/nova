@@ -114,7 +114,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='joints',
-            default_value='False',
+            default_value='True',
             description='Whether to launch joint_state_publisher.',
         ),
         DeclareLaunchArgument(
