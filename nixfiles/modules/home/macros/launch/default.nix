@@ -1,10 +1,11 @@
 # This nix-shell is designed to run on the base station to quickly spin up the entire stack for any payload!
-# Usage (Also in macros/default.nix): nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch --argstr rover-ip user@ip --argstr mast-ip user@ip
-# Or nix-build ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch, then ~/Builds/build-name/bin/run-auto-arch user@rover-ip user@mast-ip
+# Usage (Also in macros/default.nix): nix-shell ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch --argstr rover-ip user@ip --argstr mast-ip user@ip --argstr pi5-ip user@ip
+# Or nix-build ${cfg.nixfileDir}/modules/home/macros/launch -A auto.arch, then ~/Builds/build-name/bin/run-auto-arch user@rover-ip user@mast-ip user@pi5-ip
 { 
     pkgs ? import <nixpkgs> {}, 
     rover-ip ? "$1",
     mast-ip ? "$2",
+    pi5-ip ? "$3",
     route ? "",
 }:
 
@@ -36,6 +37,7 @@ let
   rover = ssh-terminal rover-ip;
   rover-nix = ssh-nix-terminal rover-ip;
   mast = ssh-terminal mast-ip;
+  pi5 = ssh-terminal pi5-ip;
   base-window = local-window;
   base-window-nix = local-nix-window;
 
@@ -43,6 +45,7 @@ let
   ssh-check = payload-ip: "ssh-copy-id ${payload-ip}";
   rover-ssh-check = need-rover: if need-rover then ssh-check rover-ip else "";
   mast-ssh-check = need-mast: if need-mast then ssh-check mast-ip else "";
+  pi5-ssh-check = need-pi5: if need-pi5 then ssh-check pi5-ip else "";
 
   # usage strings for nix-shell and nix-build respectively
   # usage-string-shell = platform: "You must provide a target for ${platform} ssh commands.\n  Usage: nix-shell shell.nix --argstr ${platform}-ip <user@ip>\n  e.g nix-shell shell.nix --argstr ${platform}-ip nova@10.0.0.11";
@@ -51,6 +54,7 @@ let
   # check that ip is present and optionally enforce this 
   rover-check = need-rover: if !need-rover then "" else "  echo \"SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...\"";
   mast-check = need-mast: if !need-mast then "" else "  echo \"SSHing into mast at ${ansi.light-purple}${mast-ip}${ansi.nc}...\"";
+  pi5-check = need-pi5: if !need-pi5 then "" else "  echo \"SSHing into pi5 at ${ansi.light-purple}${pi5-ip}${ansi.nc}...\"";
 
   # check if the store path exists on the rover, otherwise look for commit id
   rover-store-check = need-rover: if !need-rover then "" else ''
@@ -94,17 +98,19 @@ let
   # if statement prevents infinite loop
   # create tmp dir for nix-shell inception having no access to /tmp
   # echo tips
-  # check for rover or mast ip if required
+  # check for rover, mast or pi5 ip if required
   # copy ssh keys if first time target so ssh is instant
-  pre-shell = {payload-name, need-rover ? false, need-mast? false}: ''
+  pre-shell = {payload-name, need-rover ? false, need-mast? false, need-pi5? false}: ''
     if [ -z "$SHELL_STARTED" ]; then
       export SHELL_STARTED=1
       export TMPDIR=/tmp
       echo -e "Launching ${ansi.light-green}${payload-name}${ansi.nc} \nRunning in ${ansi.orange}$STORE_DIR${ansi.nc}"
       ${rover-check need-rover}
       ${mast-check need-mast}
+      ${pi5-check need-pi5}
       ${rover-ssh-check need-rover}
       ${mast-ssh-check need-mast}
+      ${pi5-ssh-check need-pi5}
       ${rover-store-check need-rover}
   '';
   # combine all the terminals together so that they all run simultaneously
@@ -136,7 +142,7 @@ let
 
     # put it in the launch dir
     # implement optional arguments with flags
-    # add checkers for $1 and $2 for rover and mast ips
+    # add checkers for $1, $2 and $3 for rover, mast and pi5 ips
     buildPhase = ''
       mkdir -p $out/launch
       cat > $out/launch/${shellName} <<'EOF'
@@ -149,7 +155,7 @@ let
       while getopts "${builtins.concatStringsSep ":" (map (opt: opt.letter) flag-args)}:" opt; do
         case "$opt" in
           ${builtins.concatStringsSep "\n    " (map (opt: opt.letter + ") " + opt.variable + "=\"$OPTARG\" ;;") flag-args)}
-          *) echo -e "Usage: $0 [-flag <value>] <nova@rover-ip> [nova@mast-ip]\nFlags:\n  ${builtins.concatStringsSep "\n  " (map (opt: "-"+opt.letter + (if opt ? required && opt.required == true then "" else " default=\\\"" + opt.default) + "\\\" " + opt.description) flag-args)}"; exit 1 ;;
+          *) echo -e "Usage: $0 [-flag <value>] <nova@rover-ip> [nova@mast-ip] [nova@pi5-ip]\nFlags:\n  ${builtins.concatStringsSep "\n  " (map (opt: "-"+opt.letter + (if opt ? required && opt.required == true then "" else " default=\\\"" + opt.default) + "\\\" " + opt.description) flag-args)}"; exit 1 ;;
         esac
       done
       shift $((OPTIND - 1))
@@ -157,9 +163,10 @@ let
       ${builtins.concatStringsSep "\n" (map (opt: "if [ -z \"$" + opt.variable + "\" ]; then\n  echo -e \"${ansi.light-red}ERROR:${ansi.nc} Flag -" + opt.letter + " is required! " + opt.description + "\"\n  exit 1\nfi\n") (builtins.filter (x: x ? required && x.required == true) flag-args))}
 
       ${
-        builtins.replaceStrings [(rover-check true) (mast-check true)] 
+        builtins.replaceStrings [(rover-check true) (mast-check true) (pi5-check true)] 
         ["if [ -z \"$1\" ]; then\n    echo -e \"${usage-string-build "rover"}\"\n    exit 1\n  fi" 
-        "if [ -z \"$2\" ]; then\n    echo -e \"${usage-string-build "mast"}\"\n    exit 1\n  fi"] 
+        "if [ -z \"$2\" ]; then\n    echo -e \"${usage-string-build "mast"}\"\n    exit 1\n  fi"
+        "if [ -z \"$3\" ]; then\n    echo -e \"${usage-string-build "pi5"}\"\n    exit 1\n  fi"] 
         shellString # replace the nix-shell arg check with bash arg check
       }
       EOF
@@ -170,7 +177,7 @@ let
   # final single function to pass to child nix files to make defining setups easy
   bashBuilder = struct: shellName: shellAndBuild (mkBashScript struct) shellName;
 
-  callPackage = pkgs.lib.callPackageWith {inherit pkgs base base-nix base-window base-window-nix rover rover-nix mast pre-shell post-shell bashBuilder route;};
+  callPackage = pkgs.lib.callPackageWith {inherit pkgs base base-nix base-window base-window-nix rover rover-nix mast pi5 pre-shell post-shell bashBuilder route;};
 
   search-folders = [ "arch" "urc" "other" ];
   nix-setups = builtins.concatLists (builtins.attrValues (
