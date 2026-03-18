@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode name="NavigateRecovery"
+                  number_of_retries="6">
+      <PipelineSequence name="NavigateWithReplanning">
+        <BlackboardPublisher topic_name="blackboard"
+                             keys="goals"
+                             publish_frequency="1"/>
+        <RateController hz="1.0">
+          <ReactiveSequence>
+            <RemovePassedGoals input_goals="{goals}"
+                               radius="0.7"
+                               global_frame=""
+                               robot_base_frame=""
+                               output_goals="{goals}"/>
+            <GetCurrentPose global_frame=""
+                            robot_base_frame=""
+                            current_pose="{current_pose}"/>
+            <RemoveNearbyInCollisionGoals input_goals="{goals}"
+                                          max_distance_threshold="5"
+                                          current_pose="{current_pose}"
+                                          output_goals="{goals}"/>
+            <ComputePathThroughPoses goals="{goals}"
+                                     start=""
+                                     server_name=""
+                                     server_timeout=""
+                                     planner_id="GridBased"
+                                     path="{path}"
+                                     error_code_id=""/>
+            <SmoothPath smoother_id="simple_smoother"
+                        unsmoothed_path="{path}"
+                        max_smoothing_duration=""
+                        check_for_collisions=""
+                        smoothed_path="{path}"
+                        smoothing_duration=""
+                        was_completed=""/>
+          </ReactiveSequence>
+        </RateController>
+        <FollowPath controller_id="RotationShimMPPI"
+                    path="{path}"
+                    goal_checker_id="goal_checker"
+                    progress_checker_id="progress_checker"
+                    service_name=""
+                    server_timeout=""
+                    error_code_id=""/>
+      </PipelineSequence>
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated goal=""
+                     goals=""/>
+        <Sequence name="ClearingActions">
+          <ClearEntireCostmap name="ClearLocalCostmap-Subtree"
+                              service_name="local_costmap/clear_entirely_local_costmap"
+                              server_timeout=""/>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree"
+                              service_name="global_costmap/clear_entirely_global_costmap"
+                              server_timeout=""/>
+        </Sequence>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="BlackboardPublisher">
+      <input_port name="topic_name">ROS topic for publishing</input_port>
+      <input_port name="keys">Blackboard keys to publish</input_port>
+      <input_port name="publish_frequency">Publish rate in hz</input_port>
+    </Action>
+    <Action ID="ClearEntireCostmap">
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+    </Action>
+    <Action ID="ComputePathThroughPoses">
+      <input_port name="goals">Destinations to plan through</input_port>
+      <input_port name="start">Start pose of the path if overriding current robot pose</input_port>
+      <input_port name="server_name">Server name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <input_port name="planner_id">Mapped name to the planner plugin type to use</input_port>
+      <output_port name="path">Path created by ComputePathToPose node</output_port>
+      <output_port name="error_code_id">"Compute path through poses error code"</output_port>
+    </Action>
+    <Action ID="FollowPath">
+      <input_port name="controller_id"
+                  default="FollowPath"/>
+      <input_port name="path">Path to follow</input_port>
+      <input_port name="goal_checker_id">Goal checker</input_port>
+      <input_port name="progress_checker_id">Progress checker</input_port>
+      <input_port name="service_name">Service name</input_port>
+      <input_port name="server_timeout">Server timeout</input_port>
+      <output_port name="error_code_id">Follow Path error code</output_port>
+    </Action>
+    <Action ID="GetCurrentPose">
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+      <output_port name="current_pose">The current pose of the rover</output_port>
+    </Action>
+    <Condition ID="GoalUpdated">
+      <input_port name="goal">Vector of navigation goals</input_port>
+      <input_port name="goals">Navigation goal</input_port>
+    </Condition>
+    <Control ID="PipelineSequence"/>
+    <Decorator ID="RateController">
+      <input_port name="hz">Rate</input_port>
+    </Decorator>
+    <Control ID="RecoveryNode">
+      <input_port name="number_of_retries">Number of retries</input_port>
+    </Control>
+    <Action ID="RemoveNearbyInCollisionGoals">
+      <input_port name="input_goals">A vector of goals to check if in collision</input_port>
+      <input_port name="max_distance_threshold">Maximum distance (m) within which to consider goals for removal</input_port>
+      <input_port name="current_pose">Current pose of the rover</input_port>
+      <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
+    </Action>
+    <Action ID="RemovePassedGoals">
+      <input_port name="input_goals">Input goals to remove if passed</input_port>
+      <input_port name="radius">Radius tolerance on a goal to consider it passed</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+      <output_port name="output_goals">Set of goals after removing any passed</output_port>
+    </Action>
+    <Action ID="SmoothPath">
+      <input_port name="smoother_id"
+                  default="SmoothPath"/>
+      <input_port name="unsmoothed_path">Path to be smoothed</input_port>
+      <input_port name="max_smoothing_duration">Maximum smoothing duration</input_port>
+      <input_port name="check_for_collisions">Bool if collision check should be performed</input_port>
+      <output_port name="smoothed_path">Smoothed path</output_port>
+      <output_port name="smoothing_duration">Smoothing duration</output_port>
+      <output_port name="was_completed">True if smoothing was not interrupted by time limit</output_port>
+    </Action>
+  </TreeNodesModel>
+
+</root>
