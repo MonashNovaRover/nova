@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from "react";
 import {Button, Card, CardBody, CardHeader,} from "@nextui-org/react";
 import {MoreHorizontal} from "react-feather";
-import NIR3DCalibrationCurve, {Scatter3DPlotData} from "./NIR3DCalibrationCurve.tsx";
+import NIR3DCalibrationCurve, {ScatterPlotData} from "./NIR3DCalibrationCurve.tsx";
 import NIR3DCurveSettingsModal from "./NIR3DCurveSettingsModal.tsx";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
 import {NIRProbeCalibrationData} from "../../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
@@ -38,7 +38,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
   const [calibrationData, _] = useGenericStore<NIRProbeCalibrationData>("nirProbeCalibrationData");
   const calibrationFunc = useCalibrationFunction()
   const [readings, ,] = useNIRSiteData()
-  const [averageX, averageY, calibratedResult] = useAverageReading()
+  const [averageX, averageY] = useAverageReading()
 
   /* Plotting readings on the calibration curve */
 
@@ -53,7 +53,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
     const zValuesScatter = valuesScatter
       .map(v => v[0] !== undefined && v[1] !== undefined ? calibrationFunc(v[0], v[1]) : 0)
 
-    return {x: valuesScatter.map(v => v[0]), y: valuesScatter.map(v => v[1]), z: zValuesScatter, text: labels} as Scatter3DPlotData
+    return {x: valuesScatter.map(v => v[0]), y: valuesScatter.map(v => v[1]), z: zValuesScatter, text: labels} as ScatterPlotData
   }, [readings, calibrationFunc])
 
   /* Generating points on the calibration curve */
@@ -82,7 +82,7 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
         <NIR3DCalibrationCurve
           surfaceData={{x: xValuesSurface, y: yValuesSurface, z: zValuesSurface}}
           readingsScatterData={readingsScatterData}
-          averageScatterData={{x: [averageX], y: [averageY], z: [calibratedResult], text: []}}
+          averageScatterData={{x: [averageX], y: [averageY], text: []}}
         />
       </CardBody>
       <NIR3DCurveSettingsModal
