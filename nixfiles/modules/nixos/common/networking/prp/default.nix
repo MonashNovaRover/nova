@@ -31,6 +31,10 @@ in {
       #"vxlan0"
       #"prp0" let networkmanager have this unless rover net config uses it
     ];
+    networking.networkmanager.settings = {
+      device = {
+      };
+    };
 
     systemd.network = {
       enable = true;
