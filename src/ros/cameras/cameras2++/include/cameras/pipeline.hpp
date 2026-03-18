@@ -20,6 +20,7 @@ struct v4lProperties
   int contrast;
   std::string device;
   std::string mime;
+  std::string extra_controls;
 };
 
 struct webRTCProperties
@@ -36,6 +37,7 @@ struct x264encProperties
   std::string speed_preset;
   std::string me;
   int threads;
+  int noise_reduction;
   std::string platform;
 };
 

@@ -273,6 +273,10 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
 
   g_object_set(source, "device", props->device.c_str(), NULL);
+  if (!props->extra_controls.empty()) {
+    g_object_set(source, "extra_controls", props->extra_controls.c_str(), NULL);
+  }
+
 
   GstCaps *caps = gst_caps_new_simple(
       props->mime.c_str(),
@@ -312,9 +316,10 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
       props->me == "tesa" ? 4:
       0), // dia, faster
     "threads", props->threads, // 1
+    "noise-reduction", props->noise_reduction,
     "b-adapt", false, // Do not allow b frames
     "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
-    NULL); 
+    NULL);
 
   GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
   GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
@@ -397,6 +402,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".tune").c_str(), props->tune, "zerolatency");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".speed_preset").c_str(), props->speed_preset, "ultrafast");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".me").c_str(), props->me, "dia");
+  streamer_node->get_parameter_or((camera_prefix + ".noise_reduction").c_str(), props->noise_reduction, 256);
   streamer_node->get_parameter_or((camera_prefix + ".threads").c_str(), props->threads, 1);
 
   return props;
