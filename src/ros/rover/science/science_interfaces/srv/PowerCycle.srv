@@ -1,0 +1,6 @@
+# Request
+float32 sleep_duration  # Allows GUI to dictate the wait time
+---
+# Response
+bool success
+string message
