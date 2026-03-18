@@ -160,27 +160,17 @@ bool RemoveNearbyInCollisionGoalsAction::is_goal_in_collision(const PoseStamped 
     return !is_cell_free(global_cell);
 }
 
-bool RemoveNearbyInCollisionGoalsAction::get_rover_pose()
-{
-  if (!getInput("current_pose", current_pose_))
-    {
-        RCLCPP_ERROR(node_->get_logger(), "RemoveNearbyInCollisionGoals Could not retrieve current pose");
-        return false;
-    }
-    return true;  
-}
-
 bool RemoveNearbyInCollisionGoalsAction::remove_goals()
 {
   // Get rovers current pose to calulate distance from
-  if (!get_rover_pose())
-  {
-    return false;
-  }
+  current_pose_ = config().blackboard->get<geometry_msgs::msg::PoseStamped>("current_pose");
+  // How to check if this exists? We should throw an error and return false if we couldn't get the current pose
+//   if () {
+//     RCLCPP_ERROR(node_->get_logger(), "RemoveNearbyInCollisionGoals Could not retrieve current pose");
+//     return false
+//   }
 
-  // Goals after filtering
   Goals output_goals_;
-
   for (size_t i=0; i < input_goals_.size(); i++)
   {
     Goal goal = input_goals_[i];
@@ -208,7 +198,6 @@ bool RemoveNearbyInCollisionGoalsAction::remove_goals()
   setOutput("output_goals", output_goals_);
   return true;
 }
-
 
 /** Methods from SnapInCollisionGoals */
  

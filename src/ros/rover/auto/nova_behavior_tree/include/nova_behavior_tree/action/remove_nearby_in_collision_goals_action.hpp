@@ -95,7 +95,6 @@ public:
     return {
         BT::InputPort<double>("max_distance_threshold", 5.0, "Maximum radius (m) for a goal to be considered for removal"),
         BT::InputPort<Goals>("input_goals", "Original goals to remove if in collision"),
-        BT::InputPort<geometry_msgs::msg::PoseStamped>("current_pose", "Current pose of the rover"),
         BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals removed"),
       };
   }
@@ -106,7 +105,6 @@ private:
   bool is_goal_in_collision(const PoseStamped & goal);
   void wait_for_occu_grids();
   bool remove_goals();
-  bool get_rover_pose();
   bool is_cell_free(const GridCell &global_cell);
   bool is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
   GridCell world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid);
