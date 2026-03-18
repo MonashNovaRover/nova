@@ -49,6 +49,7 @@ def launch_setup(context, *args, **kwargs):
     use_respawn = LaunchConfiguration('use_respawn')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
+    mppi_config = LaunchConfiguration('mppi_config')
 
     # comp defaults
     if comp == 'arch':
@@ -116,6 +117,7 @@ def launch_setup(context, *args, **kwargs):
                 'use_respawn': use_respawn,
                 'gazebo': gazebo,
                 'map_params': map_params,
+                'mppi_config': mppi_config,
             }.items()
         ),
         IncludeLaunchDescription(
@@ -215,6 +217,11 @@ def generate_launch_description():
             name='fastlivo2_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'fast_livo2', 'fastlivo2.yaml']),
             description='Params file for FAST-LIVO2 Nodes',
+        ),
+        DeclareLaunchArgument(
+            name='mppi_config',
+            default_value='regular',
+            description='Name of the MPPI config to use (without .yaml)',
         ),
         # arguments with comp defaults
         DeclareLaunchArgument(

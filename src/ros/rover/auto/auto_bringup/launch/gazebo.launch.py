@@ -77,7 +77,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
-            launch_arguments={'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
+            launch_arguments={'urdf': 'False', 'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
