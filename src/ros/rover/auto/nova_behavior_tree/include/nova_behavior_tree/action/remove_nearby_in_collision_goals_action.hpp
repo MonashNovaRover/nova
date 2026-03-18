@@ -41,7 +41,7 @@ using namespace geometry_msgs::msg;
 using namespace nav_msgs::msg;
 
 struct GridCell
-{s
+{
   int x, y;
 };
 
