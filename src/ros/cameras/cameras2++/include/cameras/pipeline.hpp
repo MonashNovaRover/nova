@@ -36,6 +36,7 @@ struct x264encProperties
   std::string speed_preset;
   std::string me;
   int threads;
+  std::string platform;
 };
 
 struct clockProperties
@@ -55,9 +56,9 @@ struct v4l2webrtcPipelineProperties : Properties, v4lProperties, webRTCPropertie
 v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProperties* props);
 
-struct h264directPipelineProperties : Properties, v4lProperties, webRTCProperties {};
-h264directPipelineProperties* get_h264direct_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
-GstElement* h264direct_pipeline(rclcpp::Node* log_node, h264directPipelineProperties* props);
+struct h264passthroughPipelineProperties : Properties, v4lProperties, webRTCProperties {};
+h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
+GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, h264passthroughPipelineProperties* props);
 
 struct h264softwarePipelineProperties : Properties, v4lProperties, webRTCProperties, x264encProperties {};
 h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);

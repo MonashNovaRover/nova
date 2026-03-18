@@ -151,7 +151,7 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
  * Enforces alignment from h264 v4l camera and feeds directly to webrtc 
  * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-h264
  */
-GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineProperties* props)
+GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroughPipelineProperties* props)
 {
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
@@ -220,12 +220,12 @@ GstElement* h264direct_pipeline(rclcpp::Node* streamer_node, h264directPipelineP
 
 
 /*
- * Retrieve ros2 parameters for h264direct pipeline or sets defaults
+ * Retrieve ros2 parameters for h264passthrough pipeline or sets defaults
 */
 
-h264directPipelineProperties* get_h264direct_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
-  h264directPipelineProperties* props = new h264directPipelineProperties; 
+  h264passthroughPipelineProperties* props = new h264passthroughPipelineProperties; 
 
   std::map<std::string, rclcpp::Parameter> serial_params;
 
@@ -263,11 +263,10 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
-  GstElement* decode = gst_element_factory_make("jpegdec", "decoder");
   GstElement* encode = gst_element_factory_make("x264enc", "encoder");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
-  if (!gst_pipeline || !source || !filter || !decode || !encode || !webrtc) {
+  if (!gst_pipeline || !source || !filter || !encode || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
@@ -313,6 +312,8 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
       props->me == "tesa" ? 4:
       0), // dia, faster
     "threads", props->threads, // 1
+    "b-adapt", false, // Do not allow b frames
+    "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
     NULL); 
 
   GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
@@ -332,24 +333,33 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
     
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, decode, encode, parse, queue, webrtc, NULL);
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, encode, webrtc, NULL);
 
   bool ret = true;
 
   ret = gst_element_link(source, filter) ? ret : false;
-  ret = gst_element_link(filter, decode) ? ret : false;
-  if (!ret) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link filter to decode of pipeline for %s", props->serial.c_str());
-      return nullptr;
-  }
-  ret = gst_element_link(decode, encode) ? ret : false;
-  if (!ret) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link decode to encode of pipeline for %s", props->serial.c_str());
-      return nullptr;
+
+  if (props->mime == "image/jpeg") {
+    // Convert to hardware decoding if possible
+    std::string decoder = (
+        props->platform == "nvidia" ? "nvjpegdec" :
+        props->platform == "laptop" ? "vajpegdec" :
+        "jpegdec"
+        );
+
+    GstElement* decode = gst_element_factory_make(decoder.c_str(), "decoder");
+    gst_bin_add(GST_BIN(gst_pipeline), decode);
+    ret = gst_element_link(filter, decode) ? ret : false;
+    ret = gst_element_link(decode, encode) ? ret : false;
+  } else {
+    GstElement* convert = gst_element_factory_make("videoconvert", "converter");
+    gst_bin_add(GST_BIN(gst_pipeline), convert);
+    ret = gst_element_link(filter, convert) ? ret : false;
+    ret = gst_element_link(convert, encode) ? ret : false;
   }
   ret = gst_element_link(encode, webrtc) ? ret : false;
   if (!ret) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link encode to webrtc of pipeline for %s", props->serial.c_str());
+      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link elements of pipeline for %s", props->serial.c_str());
       return nullptr;
   }
   return gst_pipeline;
@@ -372,17 +382,17 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
 
   // override any defaults with params
   std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
-  streamer_node->get_parameter_or<std::string>((camera_prefix + ".device").c_str(), props->device, props->node); 
-  streamer_node->get_parameter_or((camera_prefix + ".width").c_str(), props->width, 1280); 
-  streamer_node->get_parameter_or((camera_prefix + ".height").c_str(), props->height, 720); 
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".device").c_str(), props->device, props->node);
+  streamer_node->get_parameter_or((camera_prefix + ".width").c_str(), props->width, 1280);
+  streamer_node->get_parameter_or((camera_prefix + ".height").c_str(), props->height, 720);
   streamer_node->get_parameter_or((camera_prefix + ".framerate").c_str(), props->framerate, 30);
-  streamer_node->get_parameter_or((camera_prefix + ".brightness").c_str(), props->brightness, 0); 
+  streamer_node->get_parameter_or((camera_prefix + ".brightness").c_str(), props->brightness, 0);
   streamer_node->get_parameter_or((camera_prefix + ".contrast").c_str(), props->contrast, 0);
-  streamer_node->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), props->mime, "image/jpeg"); 
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), props->mime, "image/jpeg");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".congestion_control").c_str(), props->congestion_control, "gcc");
-  streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false); 
-  streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false); 
-  streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264,profile=constrained-baseline");
+  streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false);
+  streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false);
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264,profile=high-10-intra");
   streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 409600);
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".tune").c_str(), props->tune, "zerolatency");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".speed_preset").c_str(), props->speed_preset, "ultrafast");

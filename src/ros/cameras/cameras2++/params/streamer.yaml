@@ -10,7 +10,7 @@ camera_streamer:
         height: 1080
         framerate: 30
       webcamvendor_SK_series1_20220325JWGD2093:
-        pipeline_type: h264direct
+        pipeline_type: h264passthrough
         width: 1920
         height: 1080
         framerate: 30
@@ -26,10 +26,8 @@ camera_streamer:
         width: 1920
         height: 1080
         framerate: 30
-        # video_caps: video/x-vp8
-        # video_caps: video/x-h264,profile=constrained-baseline
         video_caps: video/x-h264,profile=high-4:2:2-intra
-        speed_preset: faster
+        platform: laptop
       Sonix_Technology_Co.__Ltd._292A-AR0230_SN0001:
         pipeline_type: v4l2webrtc
         device: /dev/video0
@@ -40,7 +38,7 @@ camera_streamer:
         # video_caps: video/x-h264,profile=high-4:2:2-intra
 
       anthony-cam:
-        pipeline_type: h264direct
+        pipeline_type: h264passthrough
         width: 1920
         height: 1080
         framerate: 30

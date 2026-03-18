@@ -83,17 +83,17 @@ class CameraStreamer : public rclcpp::Node
 
     // Decoders
     element_name = "nvv4l2decoder"; // Nvidia general decoder
-    set_element_priority(element_name, 255, plugins_register);
+    //set_element_priority(element_name, 255, plugins_register);
     element_name = "vajpegdec";                 // Laptop accelerated jpeg decoder
-    set_element_priority(element_name, 254, plugins_register);
+    //set_element_priority(element_name, 254, plugins_register);
     element_name = "jpegdec";                   // Software jpeg decoder
-    set_element_priority(element_name, 253, plugins_register);
+    //set_element_priority(element_name, 253, plugins_register);
 
     // Encoders
     element_name = "vah264enc";                 // Laptop accelerated h264 encoder
-    set_element_priority(element_name, 255, plugins_register);
+    //set_element_priority(element_name, 255, plugins_register);
     element_name = "x264enc";                   // Software h264 encoder
-    set_element_priority(element_name, 254, plugins_register);
+    //set_element_priority(element_name, 254, plugins_register);
   }
 
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
@@ -111,10 +111,10 @@ class CameraStreamer : public rclcpp::Node
       auto props = get_v4l2webrtc_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = v4l2webrtc_pipeline(this, props);
-    } else if (pipeline->pipeline_type == "h264direct") {
-      auto props = get_h264direct_pipeline_properties(this, pipeline->camera);
+    } else if (pipeline->pipeline_type == "h264passthrough") {
+      auto props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
-      pipeline->gst_pipeline = h264direct_pipeline(this, props);
+      pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
     } else if (pipeline->pipeline_type == "h264software") {
       auto props = get_h264software_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
