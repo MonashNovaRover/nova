@@ -107,6 +107,7 @@ def launch_setup(context, *args, **kwargs):
                      'save_folder': output_dir,
                      'img_en': img_en,
                      'img_topic': img_topic}],
+        remappings=[('/aft_mapped_to_init', '/odometry/filtered')],
     )
 
     wait_for_parameter_blackboard = Node(
