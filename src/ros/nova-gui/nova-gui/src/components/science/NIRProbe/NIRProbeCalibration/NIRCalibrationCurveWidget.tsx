@@ -7,7 +7,7 @@ import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
 import {NIRProbeCalibrationData} from "../../../../redux/models/genericStores/NIRProbeCalibrationData.ts";
 import {useAverageReading, useCalibrationFunction} from "./NIRCalibration.ts";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
-import {ISpaceResourcesEntry, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
+import {NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 
 const GRANUALITY = 24
 
@@ -43,17 +43,26 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
   /* Plotting readings on the calibration curve */
 
   const readingsScatterData = useMemo(() => {
-    const xAndAllY = readings[NIRProbeReadingType.PD1]
-      .map(v => [v.data, readings[NIRProbeReadingType.PD2].filter(val => val.label === v.label)] as [number, ISpaceResourcesEntry[]])
-      .filter(arr => arr[1].length > 0)
-    const labels = xAndAllY
-      .map(arr => arr[1][0].label)
-    const valuesScatter = xAndAllY
-      .map(arr => [arr[0], arr[1][0].data])
-    const zValuesScatter = valuesScatter
-      .map(v => v[0] !== undefined && v[1] !== undefined ? calibrationFunc(v[0], v[1]) : 0)
+    // Compare based on index:
+    // match readings based on index
+    const indexPairedXY = readings[NIRProbeReadingType.PD1]
+      .filter((_, i) => i < readings[NIRProbeReadingType.PD2].length)     // cut pd1 readings to pd2 length
+      .map((v, i) => [v.data, readings[NIRProbeReadingType.PD2][i].data]) // list of [x, y] values
+    const zValuesScatter = indexPairedXY
+      .map(v => calibrationFunc(v[0], v[1]))
 
-    return {x: valuesScatter.map(v => v[0]), y: valuesScatter.map(v => v[1]), z: zValuesScatter, text: labels} as ScatterPlotData
+    // Compare based on labels:
+    // const xAndAllY = readings[NIRProbeReadingType.PD1]
+    //   .map(v => [v.data, readings[NIRProbeReadingType.PD2].filter(val => val.label === v.label)] as [number, ISpaceResourcesEntry[]])
+    //   .filter(arr => arr[1].length > 0)
+    // const labels = xAndAllY
+    //   .map(arr => arr[1][0].label)
+    // const valuesScatter = xAndAllY
+    //   .map(arr => [arr[0], arr[1][0].data])
+    // const zValuesScatter = valuesScatter
+    //   .map(v => v[0] !== undefined && v[1] !== undefined ? calibrationFunc(v[0], v[1]) : 0)
+
+    return {x: indexPairedXY.map(v => v[0]), y: indexPairedXY.map(v => v[1]), z: zValuesScatter, text:[]} as ScatterPlotData
   }, [readings, calibrationFunc])
 
   /* Generating points on the calibration curve */
