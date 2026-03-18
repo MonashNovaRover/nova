@@ -5,7 +5,6 @@ import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import { BaseCameraComponentProps } from "../CameraComponent.tsx";
 import { Input, Tooltip, Switch } from "@nextui-org/react";
 import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
-import { useToolRotatorKeyboard } from "../../../science/ToolRotatorWidget/useToolRotator.ts";
 
 export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
   // Default step size for incrementing angles
@@ -147,8 +146,6 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
       </Switch>
     </>
   )
-
-  useToolRotatorKeyboard()
 
   return (
     <div
