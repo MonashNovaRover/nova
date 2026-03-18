@@ -14,6 +14,8 @@ import ActivatedNodesCameraComponent
   from "../../../components/cameras/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
 import DepthSensor
   from "../../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
+import MicroscopeScaleOverlayedCameraComponent
+  from "../../../components/cameras/CameraComponent/special/MicroscopeScaleOverlayedCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
@@ -24,6 +26,7 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.SITE_SELECT]: SiteSelectCameraComponent,
   [CameraSerials.URC_ACTIVATED_NODES]: ActivatedNodesCameraComponent,
   [CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS]: DepthSensor,
+  [CameraSerials.SCIENCE_MICROSCOPE]: MicroscopeScaleOverlayedCameraComponent,
 }
 
 /// Function that used the above map to get the component for a specified camera serial
