@@ -20,26 +20,24 @@ camera_streamer:
         height: 1080
         framerate: 30
       brandon-cam:
-        pipeline_type: v4l2webrtc
-        mime: video/x-raw
-        device: /dev/video2
-        width: 640
-        height: 360
-        brightness: 2000000000
-        framerate: 15
-        bitrate: 2048000
-        #video_caps: video/x-h264,profile=constrained-baseline
+        pipeline_type: h264software
+        mime: image/jpeg
+        device: /dev/video0
+        width: 1920
+        height: 1080
+        framerate: 30
+        # video_caps: video/x-vp8
+        # video_caps: video/x-h264,profile=constrained-baseline
         video_caps: video/x-h264,profile=high-4:2:2-intra
-        #tune: placebo
-        #threads: 16
+        speed_preset: faster
       Sonix_Technology_Co.__Ltd._292A-AR0230_SN0001:
-        pipeline_type: h264direct
-        device: /dev/video2
-        width: 1280
-        height: 720
-        framerate: 25
-        #video_caps: video/x-h264,profile=constrained-baseline
-        #video_caps: video/x-h264,profile=high-4:2:2-intra
+        pipeline_type: v4l2webrtc
+        device: /dev/video0
+        width: 1920
+        height: 1080
+        framerate: 30
+        video_caps: video/x-h264,profile=constrained-baseline
+        # video_caps: video/x-h264,profile=high-4:2:2-intra
 
       anthony-cam:
         pipeline_type: h264direct
