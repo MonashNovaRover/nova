@@ -372,8 +372,9 @@ export const reduxStores = {
   cameraProfiles: createGenericStore("cameraProfiles", initialCameraProfilesState),
   clickAndHold: createGenericStore("clickAndHold", false),
   windowWideWASD: createGenericStore("windowWideWASD", false),
-  toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 0.0, microscope: 120.0, nir_probe: 240.0} as PresetPositions),
+  toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 240.0, microscope: 0.0, nir_probe: 120.0} as PresetPositions),
   toolRotatorTwitchStep: createGenericStore("toolRotatorTwitchStep", 5.0),
+  toolRotatorKeyboardControl: createGenericStore("toolRotatorKeyboardControl", false),
 };
 
 // all store reducers

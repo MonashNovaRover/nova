@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Card, CardBody, CardHeader, Input } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Input, Switch } from "@nextui-org/react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import { useToolRotatorKeyboard, useToolRotatorServices } from "./useToolRotator.ts";
 import { ArrowClockwise, ArrowCounterclockwise } from "react-bootstrap-icons";
@@ -24,6 +24,7 @@ const ToolRotatorWidget: React.FC = () => {
   const [microscopeInput, setMicroscopeInput] = useState(savedPresets.microscope.toString())
   const [nirInput, setNirInput] = useState(savedPresets.nir_probe.toString())
   const [sweeperInput, setSweeperInput] = useState(savedPresets.sweeper.toString())
+  const [enabled, setEnabled] = useGenericStore<boolean>("toolRotatorKeyboardControl");
   const [twitchStep, setTwitchStep] = useGenericStore<number>("toolRotatorTwitchStep")
   const [twitchInput, setTwitchInput] = useState(twitchStep.toString())
 
@@ -44,8 +45,11 @@ const ToolRotatorWidget: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex justify-between items-center">
         Tool Rotator
+        <Switch size="sm" isSelected={enabled} onValueChange={setEnabled}>
+          Keyboard Control
+        </Switch>
       </CardHeader>
 
       <CardBody className="flex flex-col pt-0">

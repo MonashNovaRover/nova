@@ -35,11 +35,13 @@ export function useToolRotatorServices(): [(name: string, position: number) => v
  * Global keyboard shortcuts for Tool Rotator controls.
  */
 export function useToolRotatorKeyboard() {
+  const [enabled] = useGenericStore<boolean>("toolRotatorKeyboardControl");
   const [, setPosition, twitchPos] = useToolRotatorServices()
   const [toolRotatorPresets] = useGenericStore<PresetPositions>("toolRotatorPresets")
   const [twitchStep] = useGenericStore<number>("toolRotatorTwitchStep")
-  
+
   useEffect(() => {
+    if (!enabled) return;
     const handleKey = (e: KeyboardEvent) => {
       switch (e.key.toLowerCase()) {
         case 'q': twitchPos(-twitchStep); break;
@@ -51,5 +53,5 @@ export function useToolRotatorKeyboard() {
     }
     window.addEventListener('keyup', handleKey);
     return () => window.removeEventListener('keyup', handleKey);
-  }, [twitchStep, twitchPos, toolRotatorPresets, setPosition])
+  }, [enabled, twitchStep, twitchPos, toolRotatorPresets, setPosition])
 }
