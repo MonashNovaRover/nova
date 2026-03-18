@@ -46,11 +46,9 @@ local_costmap:
         obstacles:
           topic: /livox/lidar/obstacles
           max_obstacle_height: 1.6
-          clearing: True
+          clearing: False
           marking: True
           data_type: "PointCloud2"
-          raytrace_max_range: 7.0
-          raytrace_min_range: 0.0
           obstacle_max_range: 5.0
           obstacle_min_range: 0.0
       denoise_layer:
