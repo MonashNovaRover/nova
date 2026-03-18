@@ -59,7 +59,7 @@ teleop_science:
 
 locked_publisher:
   ros__parameters:
-    topic: "/science/locked"
+    topic: "/locked_status"
 
 input_publisher_mode:
   ros__parameters:
