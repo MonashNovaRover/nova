@@ -2,17 +2,14 @@
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Power cycles the science payload voltage rails
 
-This is not good practice for python control2,
-please look at other files for proper practices.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: PowerCycleController
 SERVICES:
-    - server: /science/power_cycle [MoveScimbalCam]
+    - server: 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE:        science
-AUTHOR(S):      Chetan Edupalli, Felicity Matthews
+PACKAGE:        
+AUTHOR(S):      
 CREATION:       12/03/2026
 EDITED:         13/03/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,7 +21,6 @@ from rclpy.node import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from science_interfaces.srv import PowerCycle
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection
-
 
 class PowerCycleController(Controller):
     def __init__(self, contexts: Contexts, service_name:str = ""):
@@ -72,14 +68,15 @@ class PowerCycleController(Controller):
 
         return response
 
+
 if __name__ == "__main__":
     print("Setting up!")
 
     rclpy.init()
 
-    node = Node("power_cycle")
+    node = Node("power_cycle_drive")
 
-    PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("controller", PowerCycleController, service_name='/science/power_cycle') \
+    PythonControl(node, update_rate=5, can_bus="can0") \
+        .with_controller("controller", PowerCycleController, service_name = "/science/power_cycle_drive") \
         .with_jcan() \
         .spin()

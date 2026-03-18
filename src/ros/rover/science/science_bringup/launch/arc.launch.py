@@ -182,6 +182,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='power_cycle_drive',
+            package='science',
+            executable='power_cycle_drive.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
         # launch CAN bus
         IncludeLaunchDescription(

@@ -190,6 +190,11 @@ export interface RosServiceInterface {
     IRosScienceInterfacesPowerCycleResponse
   >;
 
+  [RosService.POWER_CYCLE_DRIVE]:  RosServiceMessage<
+    IRosScienceInterfacesPowerCycleRequest,
+    IRosScienceInterfacesPowerCycleResponse
+  >;
+
   // General
   [RosService.RGBInput]: RosServiceMessage<
     IRosNovaInterfacesRgbInputRequest,
