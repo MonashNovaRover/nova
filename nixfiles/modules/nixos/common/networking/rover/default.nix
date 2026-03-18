@@ -7,6 +7,10 @@ in
   options = {
     nova.networking.rover = {
       enable = lib.mkEnableOption "Enable rover networking configuration";
+      interface = lib.mkOption {
+        type = lib.types.str;
+        description = "Main network interface (usually etherent or prp0)";
+      };
       ethernetIpAddr = lib.mkOption {
         type = lib.types.str;
         description = "IP address of the rover over ethernet. must be in 10.0.0.0/23 subnet.";
@@ -22,15 +26,15 @@ in
     # Don't let networkmanager touch interfaces
     # we are configuring declaratively my with networkd
     networking.networkmanager.unmanaged = [
-      netcfg.ethernetInterface
+      cfg.interface
     ];
 
     systemd.network = {
       enable = true;
 
       networks = {
-        "30-${netcfg.ethernetInterface}" = {
-          matchConfig.Name = netcfg.ethernetInterface;
+        "30-${cfg.interface}" = {
+          matchConfig.Name = cfg.interface;
           address = [
             (cfg.ethernetIpAddr + "/23")
           ];
