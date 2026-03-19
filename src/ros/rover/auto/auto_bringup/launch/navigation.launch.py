@@ -51,6 +51,19 @@ def launch_setup(context, *args, **kwargs):
     mppi_config = LaunchConfiguration('mppi_config').perform(context)
     obstacles_detection = LaunchConfiguration('obstacles_detection')
 
+    use_lidar = LaunchConfiguration('obstacles_detection').perform(context).lower() == 'true'
+
+    if use_lidar:
+        pc_input = '/livox/lidar_masked'
+        pc_downsampled = '/livox/lidar_downsampled'
+        pc_obstacles = '/livox/lidar/obstacles'
+        pc_ground = '/livox/lidar/ground'
+    else:
+        pc_input = '/d415/depth/color/points'
+        pc_downsampled = '/d415/depth/downsampled'
+        pc_obstacles = '/d415/obstacles'
+        pc_ground = '/d415/ground'
+
     # comp defaults
     if comp == 'arch':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
@@ -101,8 +114,8 @@ def launch_setup(context, *args, **kwargs):
                     executable='filter_voxel_grid_node',
                     name='voxel_grid_filter',
                     parameters=[{'leaf_size': 0.05}],
-                    remappings=[('input', '/livox/lidar_masked'),
-                                ('output', '/livox/lidar_downsampled')],
+                    remappings=[('input', pc_input),
+                                ('output', pc_downsampled)],
                 ),
                 Node(
                     package='rtabmap_util',
@@ -112,9 +125,9 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[{'max_obstacle_height': 1.6,
                                  'ground_normal_angle': 1.25664}], # ~72 degrees in radians
                     remappings=[
-                        ('cloud','/livox/lidar_downsampled'),
-                        ('obstacles','/livox/lidar/obstacles'),
-                        ('ground', '/livox/lidar/ground'),
+                        ('cloud',pc_downsampled),
+                        ('obstacles',pc_obstacles),
+                        ('ground', pc_ground),
                     ],
                 ),
             ],
@@ -303,6 +316,16 @@ def generate_launch_description():
             name='nav2_params_dir',
             default_value='',
             description='Full path to the folder with ROS2 parameters files to use with all nodes',
+        ),
+        DeclareLaunchArgument(
+            name='obstacles_detection',
+            default_value='True',
+            description='Run RTAB-Map node for obstacle detection?',
+        ),
+        DeclareLaunchArgument(
+            name='lidar',
+            default_value='False',
+            description='Use Livox lidar pointcloud for obstacle detection (default False uses Realsense d415)',
         ),
     ]
 
