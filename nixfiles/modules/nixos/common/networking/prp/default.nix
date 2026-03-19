@@ -147,7 +147,10 @@ in {
             ("10.0." + cfg.address + "/23")
           ];
           routes = [
-            { Gateway = "10.0.0.1"; }
+            {
+              Gateway = "10.0.0.1";
+              Metric = 2000;
+            }
           ];
         };
         "30-PRP-B-${netcfg.secondaryEthernetInterface}" = {
