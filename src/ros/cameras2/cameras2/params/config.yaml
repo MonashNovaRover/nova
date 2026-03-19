@@ -43,7 +43,7 @@ camera_streamer:
           uiProps:
             name: Mast - Down
       mast_forward:
-      width: 1920
+        width: 1920
         meta:
           uiProps:
             name: Mast - Forwards
