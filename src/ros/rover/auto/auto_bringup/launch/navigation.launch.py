@@ -53,6 +53,7 @@ def launch_setup(context, *args, **kwargs):
     gazebo = LaunchConfiguration('gazebo')
     mppi = LaunchConfiguration('mppi').perform(context).lower() == 'true'
     mppi_config = LaunchConfiguration('mppi_config').perform(context)
+    obstacles_detection = LaunchConfiguration('obstacles_detection')
 
     # comp defaults
     if comp == 'arch':
@@ -87,6 +88,32 @@ def launch_setup(context, *args, **kwargs):
     return [
         SetParameter(name='use_sim_time', value=gazebo),
         SetParameter(name='autostart', value=autostart),
+        GroupAction(
+            condition=IfCondition(obstacles_detection),
+            actions = [
+                Node(
+                    package='pcl_ros',
+                    executable='filter_voxel_grid_node',
+                    name='voxel_grid_filter',
+                    parameters=[{'leaf_size': 0.05}],
+                    remappings=[('input', '/livox/lidar_masked'),
+                                ('output', '/livox/lidar_downsampled')],
+                ),
+                Node(
+                    package='rtabmap_util',
+                    executable='obstacles_detection',
+                    name='rtabmap_obstacles_detection',
+                    output='screen',
+                    parameters=[{'max_obstacle_height': 1.6,
+                                 'ground_normal_angle': 1.25664}], # ~72 degrees in radians
+                    remappings=[
+                        ('cloud','/livox/lidar_downsampled'),
+                        ('obstacles','/livox/lidar/obstacles'),
+                        ('ground', '/livox/lidar/ground'),
+                    ],
+                ),
+            ],
+        ),
         GroupAction(
             actions=[
                 Node(
