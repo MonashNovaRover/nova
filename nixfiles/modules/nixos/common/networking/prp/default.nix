@@ -6,7 +6,8 @@ in {
   options = {
     nova.networking.prp = {
       enable = lib.mkEnableOption "Enable parallel redundancy protocol.";
-      networkmanager = lib.mkEnableOption "Use network manager to control the final redundant connection";
+      # the redundant path doesn't seem to work with network manager :(
+      networkmanager = lib.mkEnableOption "DOESN'T WORK. Use network manager to control the final redundant connection";
       address = lib.mkOption {
         type = lib.types.str;
         description = ''
@@ -28,6 +29,7 @@ in {
       unmanaged = [
         netcfg.ethernetInterface
         netcfg.secondaryEthernetInterface
+        "br0"
         "vlan5"
         "vlan9"
         #"vxlan0"
