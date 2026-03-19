@@ -39,7 +39,7 @@ export const ARCActivatedNodeConfig: ActivatedNodeConfig[] = [
     icon: <Pocket/>,
   },
   {
-    name: "AnalysisArm",
+    name: "analysis_arm",
     displayName: "Analysis Arm",
     icon: <Search/>,
   },
