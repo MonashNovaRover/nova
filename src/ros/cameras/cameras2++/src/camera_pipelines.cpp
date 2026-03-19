@@ -156,11 +156,9 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
-  GstElement* parse = gst_element_factory_make("h264parse", "parser");
-  GstElement* queue = gst_element_factory_make("queue", "queue");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
-  if (!gst_pipeline || !source || !filter || !parse || !queue || !webrtc) {
+  if (!gst_pipeline || !source || !filter || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
@@ -178,13 +176,6 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
       NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
-  
-  g_object_set(parse, "config-interval", -1, NULL);
-  g_object_set(queue,
-      "leaky", 2,
-      "max-size-buffers", 1,
-      "silent", true,
-      NULL); //reduce latency by dropping old frames
 
   GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
   GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
@@ -202,13 +193,30 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
     
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, parse, webrtc, NULL);
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, webrtc, NULL);
 
   bool ret = true;
 
   ret = gst_element_link(source, filter) ? ret : false;
-  ret = gst_element_link(filter, parse) ? ret : false;
-  ret = gst_element_link(parse, webrtc) ? ret : false;
+  if (props->payload_quirk) {
+    // Apply patch for gc2093
+    GstElement* payload = gst_element_factory_make("rtph264pay", "payloader");
+    GstElement* depayload = gst_element_factory_make("rtph264depay", "depayloader");
+    g_object_set(payload,
+        "aggregate-mode", 1,
+        "config-interval", 1,
+        NULL);
+    gst_bin_add_many(GST_BIN(gst_pipeline), payload, depayload, NULL);
+    ret = gst_element_link(filter, payload) ? ret : false;
+    ret = gst_element_link(payload, depayload) ? ret : false;
+    ret = gst_element_link(depayload, webrtc) ? ret: false;
+  } else {
+    GstElement* parse = gst_element_factory_make("h264parse", "parser");
+    gst_bin_add(GST_BIN(gst_pipeline), parse);
+    g_object_set(parse, "config-interval", -1, NULL);
+    ret = gst_element_link(filter, parse) ? ret : false;
+    ret = gst_element_link(parse, webrtc) ? ret : false;
+  }
 
   if (!ret) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not link elements of pipeline for %s", props->serial.c_str());
@@ -246,6 +254,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false); 
   streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false); 
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264");
+  streamer_node->get_parameter_or((camera_prefix + ".payload_quirk").c_str(), props->payload_quirk, false); 
 
   return props;
 }
@@ -317,6 +326,7 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
       0), // dia, faster
     "threads", props->threads, // 1
     "noise-reduction", props->noise_reduction,
+    "key-int-max", props->key_int_max, // Largest GOP
     "b-adapt", false, // Do not allow b frames
     "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
     NULL);
@@ -398,12 +408,13 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false);
   streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false);
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264,profile=high-10-intra");
-  streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 409600);
+  streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 819200);
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".tune").c_str(), props->tune, "zerolatency");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".speed_preset").c_str(), props->speed_preset, "ultrafast");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".me").c_str(), props->me, "dia");
   streamer_node->get_parameter_or((camera_prefix + ".noise_reduction").c_str(), props->noise_reduction, 256);
   streamer_node->get_parameter_or((camera_prefix + ".threads").c_str(), props->threads, 1);
+  streamer_node->get_parameter_or((camera_prefix + ".key_int_max").c_str(), props->key_int_max, 30); // Low latency GOP
 
   return props;
 }

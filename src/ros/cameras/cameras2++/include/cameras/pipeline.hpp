@@ -31,6 +31,11 @@ struct webRTCProperties
   std::string congestion_control;
 };
 
+struct h264passthroughProperties
+{
+  bool payload_quirk;
+};
+
 struct x264encProperties
 {
   std::string tune;
@@ -38,6 +43,7 @@ struct x264encProperties
   std::string me;
   int threads;
   int noise_reduction;
+  int key_int_max;
   std::string platform;
 };
 
@@ -58,7 +64,7 @@ struct v4l2webrtcPipelineProperties : Properties, v4lProperties, webRTCPropertie
 v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProperties* props);
 
-struct h264passthroughPipelineProperties : Properties, v4lProperties, webRTCProperties {};
+struct h264passthroughPipelineProperties : Properties, v4lProperties, webRTCProperties, h264passthroughProperties {};
 h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, h264passthroughPipelineProperties* props);
 
