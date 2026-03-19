@@ -6,6 +6,7 @@ in {
   options = {
     nova.networking.prp = {
       enable = lib.mkEnableOption "Enable parallel redundancy protocol.";
+      networkmanager = lib.mkEnableOption "Use network manager to control the final redundant connection";
       address = lib.mkOption {
         type = lib.types.str;
         description = ''
@@ -23,27 +24,57 @@ in {
   config = lib.mkIf cfg.enable {
     # Don't let networkmanager touch interfaces
     # we are configuring decleratively with networkd
-    networking.networkmanager.unmanaged = [
-      netcfg.ethernetInterface
-      netcfg.secondaryEthernetInterface
-      "vlan5"
-      "vlan9"
-      #"vxlan0"
-      #"prp0" let networkmanager have this unless rover net config uses it
-    ];
-
-  systemd.network = {
-    links = {
-      "70-usbeth" = {
-        matchConfig = {
-          Property = "ID_BUS=usb";
+    networking.networkmanager = {
+      unmanaged = [
+        netcfg.ethernetInterface
+        netcfg.secondaryEthernetInterface
+        "vlan5"
+        "vlan9"
+        #"vxlan0"
+        "prp0"
+      ];
+      ensureProfiles.profiles = lib.mkIf cfg.networkmanager {
+        prp-shared = {
+          connection = {
+            id = "prp-shared";
+            interface-name = "br1";
+            autoconnect=false;
+            type="bridge";
+          };
+          ipv4 = {
+            method = "shared";
+            address1 = ("10.0." + cfg.address + "/23");
+            address2 = "10.0.0.1/23";
+          };
         };
-        linkConfig = {
-          Name = "usbeth0";
+        prp-normal = {
+          connection = {
+            id = "prp-normal";
+            interface-name = "br1";
+            autoconnect=true;
+            type="bridge";
+          };
+          ipv4 = {
+            method = "manual";
+            address1 = ("10.0." + cfg.address + "/23");
+            gateway = "10.0.0.1";
+          };
         };
       };
     };
-  };
+
+    systemd.network = {
+      links = {
+        "70-usbeth" = {
+          matchConfig = {
+            Property = "ID_BUS=usb";
+          };
+          linkConfig = {
+            Name = "usbeth0";
+          };
+        };
+      };
+    };
 
     systemd.network = {
       enable = true;
@@ -55,6 +86,14 @@ in {
           netdevConfig = {
             Kind = "bridge";
             Name = "br0";
+          };
+        };
+        "20-br1" = lib.mkIf cfg.networkmanager {
+          # network manager doesn't seem to want to manager the prp interface
+          # so make a bridge for network manager to access it with.
+          netdevConfig = {
+            Kind = "bridge";
+            Name = "br1";
           };
         };
         "20-vlan9" = {
@@ -92,7 +131,14 @@ in {
             ("10.9." + cfg.address + "/23")
           ];
         };
-        "80-prp0" = {
+        "81-prp0" = lib.mkIf cfg.networkmanager {
+          matchConfig.Name = "prp0";
+          networkConfig = {
+            # let network manager use this bridge to control it
+            Bridge = "br1";
+          };
+        };
+        "80-prp0" = lib.mkIf (!cfg.networkmanager) {
           matchConfig.Name = "prp0";
           address = [
             ("10.0." + cfg.address + "/23")
