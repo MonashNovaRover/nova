@@ -115,7 +115,6 @@ in
         cloudcompare
         usbutils
         gpsd
-        v4l-utils
         can-utils
         btop
         nix-output-monitor
