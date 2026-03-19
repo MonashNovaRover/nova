@@ -21,6 +21,10 @@ in
 
       virtualisation = vmConf;
 
+      environment.systemPackages = with pkgs; [
+        tcpdump
+      ];
+
       nova.networking = {
         ethernetInterface = "ethA";
         wifiInterface = "none";
@@ -35,13 +39,17 @@ in
     base = { pkgs, ... }: {
       virtualisation = vmConf;
 
+      environment.systemPackages = with pkgs; [
+        tcpdump
+      ];
+
       nova.networking = {
         ethernetInterface = "ethA";
         wifiInterface = "none";
         secondaryEthernetInterface = "ethB";
         prp = {
           enable = true;
-          address = "0.1";
+          address = "0.100";
         };
       };
     };
