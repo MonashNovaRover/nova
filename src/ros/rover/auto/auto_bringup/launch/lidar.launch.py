@@ -82,7 +82,6 @@ def launch_setup(context, *args, **kwargs):
     img_topic = LaunchConfiguration('img_topic').perform(context)
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
-    obstacles_detection = LaunchConfiguration('obstacles_detection')
     output_dir = LaunchConfiguration('output_dir').perform(context)
     save_dir = LaunchConfiguration('save_dir').perform(context)
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
@@ -105,8 +104,8 @@ def launch_setup(context, *args, **kwargs):
         parameters=[fastlivo2_params, extrinsics_params,
                     {'use_sim_time': sim,
                      'save_folder': output_dir,
-                     'img_en': img_en,
-                     'img_topic': img_topic}],
+                     'common.img_en': img_en,
+                     'common.img_topic': img_topic}],
         remappings=[('/aft_mapped_to_init', '/odometry/filtered')],
     )
 
@@ -209,32 +208,6 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         GroupAction(
-            condition=IfCondition(obstacles_detection),
-            actions = [
-                Node(
-                    package='pcl_ros',
-                    executable='filter_voxel_grid_node',
-                    name='voxel_grid_filter',
-                    parameters=[{'leaf_size': 0.05}],
-                    remappings=[('input', '/livox/lidar_masked'),
-                                ('output', '/livox/lidar_downsampled')],
-                ),
-                Node(
-                    package='rtabmap_util',
-                    executable='obstacles_detection',
-                    name='rtabmap_obstacles_detection',
-                    output='screen',
-                    parameters=[{'max_obstacle_height': 1.6,
-                                 'ground_normal_angle': 1.25664}], # ~72 degrees in radians
-                    remappings=[
-                        ('cloud','/livox/lidar_downsampled'),
-                        ('obstacles','/livox/lidar/obstacles'),
-                        ('ground', '/livox/lidar/ground'),
-                    ],
-                ),
-            ],
-        ),
-        GroupAction(
             condition = IfCondition(tfs),
             actions = [
                 Node(
@@ -297,11 +270,6 @@ def generate_launch_description():
             name='lidar_params',
             default_value=PathJoinSubstitution([auto_bringup_dir,'params','lidar.yaml']),
             description='',
-        ),
-        DeclareLaunchArgument(
-            name='obstacles_detection',
-            default_value='True',
-            description='Run RTAB-Map node for obstacle detection?',
         ),
         DeclareLaunchArgument(
             name='output_dir',
