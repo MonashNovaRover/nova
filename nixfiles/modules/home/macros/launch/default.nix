@@ -49,7 +49,7 @@ let
 
   # usage strings for nix-shell and nix-build respectively
   # usage-string-shell = platform: "You must provide a target for ${platform} ssh commands.\n  Usage: nix-shell shell.nix --argstr ${platform}-ip <user@ip>\n  e.g nix-shell shell.nix --argstr ${platform}-ip nova@10.0.0.11";
-  usage-string-build = platform: "${ansi.light-red}ERROR:${ansi.nc} ${platform}-ip is required for ssh commands. \\n  Usage: $0 \[-flag \<value\>\] \<nova@rover-ip\> \[nova@mast-ip\] \\n  e.g $0 nova@10.0.0.2 nova@10.0.0.3";
+  usage-string-build = platform: "${ansi.light-red}ERROR:${ansi.nc} ${platform}-ip is required for ssh commands. \\n  Usage: $0 \[-flag \<value\>\] \<nova@rover-ip\> \[nova@mast-ip\] \[nova@pi5-ip\] \\n  e.g $0 nova@10.0.0.2 nova@10.0.0.3 nova@10.0.0.4";
 
   # check that ip is present and optionally enforce this 
   rover-check = need-rover: if !need-rover then "" else "  echo \"SSHing into rover at ${ansi.light-purple}${rover-ip}${ansi.nc}...\"";
