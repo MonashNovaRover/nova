@@ -74,6 +74,7 @@ in {
           netdevConfig = {
             Kind = "vxlan";
             Name = "vxlan0";
+            MACAddress = "9e:06:05:54:78:07";
           };
           vxlanConfig = {
             VNI = 7; # Kevin's choice
@@ -140,10 +141,11 @@ in {
       [NetDev]
       Kind = hsr
       Name = prp0
+      MACAddress=9e:06:05:54:78:07
       [HSR]
       Protocol = prp
-      Ports = vxlan0
       Ports = ${netcfg.ethernetInterface}
+      Ports = vxlan0
     '';
       #Ports = ${netcfg.secondaryEthernetInterface}
 
