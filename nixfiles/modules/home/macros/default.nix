@@ -228,6 +228,10 @@ in
           # use this as `can_viewer can0` for example to get "-c can0"
           can-viewer = "can_viewer";
           can_viewer = "~/Builds/master/bin/can_viewer -i socketcan -c";
+
+          # networking
+          share-internet = "nmcli connection up prp-shared";
+          unshare-internet = "nmcli connection up prp-normal";
         }
       ];
 

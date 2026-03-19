@@ -62,6 +62,7 @@ in {
             method = "manual";
             address1 = ("10.0." + cfg.address + "/23");
             gateway = "10.0.0.1";
+            route-metric = 2000; # prefer wifi
           };
           hsr = {
             port1 = netcfg.ethernetInterface;
