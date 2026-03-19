@@ -4,6 +4,8 @@
   depthai = callPackage ./depthai { };
   fast-calib = callPackage ./fast-calib { };
   fast-livo2 = callPackage ./fast-livo2 { };
+  ground-segmentation = callPackage ./ground-segmentation { };
+  ground-segmentation-ros2 = callPackage ./ground-segmentation-ros2 { };
   gst-bridge = callPackage ./gst-bridge { };
   gst-msgs = callPackage ./gst-msgs { };
   gst-pipeline = callPackage ./gst-pipeline { };
