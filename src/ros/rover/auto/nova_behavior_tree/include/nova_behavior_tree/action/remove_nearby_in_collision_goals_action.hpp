@@ -112,13 +112,10 @@ private:
   Point grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
 
   rclcpp::Node::SharedPtr node_;
-  std::string global_frame_, robot_base_frame_;
-  std::shared_ptr<tf2_ros::Buffer> tf_;
   rclcpp::Subscription<OccupancyGrid>::SharedPtr local_occu_grid_sub_;
   rclcpp::Subscription<OccupancyGrid>::SharedPtr global_occu_grid_sub_;
   OccupancyGrid::SharedPtr local_occu_grid_;
   OccupancyGrid::SharedPtr global_occu_grid_;
-  double transform_tolerance_;
   
   Goals input_goals_;
   double max_distance_threshold_;
