@@ -36,7 +36,7 @@ local_costmap:
         mark_threshold: 0
         observation_sources: ground obstacles
         ground:
-          topic: /livox/lidar/ground
+          topic: /ground_segmentation/ground_points
           max_obstacle_height: 1.6
           clearing: True
           marking: False
@@ -44,7 +44,7 @@ local_costmap:
           raytrace_max_range: 7.0
           raytrace_min_range: 0.0
         obstacles:
-          topic: /livox/lidar/obstacles
+          topic: /ground_segmentation/obstacle_points
           max_obstacle_height: 1.6
           clearing: False
           marking: True

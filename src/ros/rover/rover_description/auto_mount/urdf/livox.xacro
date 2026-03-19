@@ -11,40 +11,39 @@
   </link>
 
   <gazebo reference="livox_frame">
-        <sensor name="gpu_lidar" type="gpu_lidar">
-            <update_rate>10</update_rate>
-            <topic>livox/lidar</topic>
-            <gz_frame_id>livox_frame</gz_frame_id>
-            <update_rate>10</update_rate>
-            <ray>
-              <scan>
-                <horizontal>
-                  <samples>720</samples>      <!-- MID-360 0.5° resolution -->
-                  <resolution>1</resolution>
-                  <!-- MID-360 HFOV = 360° -->
-                  <min_angle>-3.14156</min_angle>
-                  <max_angle>3.14156</max_angle>
-                </horizontal>
-                <vertical>
-                  <samples
-                        >40</samples>       <!-- MID-360 point cloud density -->
-                  <resolution>1</resolution>
-                  <!-- MID-360 VFOV = 59° -->
-                  <min_angle>0</min_angle>
-                  <max_angle>0.9774</max_angle>
-                </vertical>
-              </scan>
-              <range>
-                <min
-                    >0.01</min>                 <!-- MID-360 min. detection range -->
-                <max
-                    >40.0</max>                 <!-- MID-360 max. detection range -->
-                <resolution>0.01</resolution>
-              </range>
-            </ray>
-            <always_on>1</always_on>
-            <visualize>true</visualize>
-        </sensor>
+    <sensor name="gpu_lidar" type="gpu_lidar">
+        <update_rate>10</update_rate>
+        <topic>livox/lidar</topic>
+        <gz_frame_id>livox_frame</gz_frame_id>
+        <update_rate>10</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>720</samples>      <!-- MID-360 0.5° resolution -->
+              <resolution>0.01</resolution>
+              <!-- MID-360 HFOV = 360° -->
+              <min_angle>-3.14156</min_angle>
+              <max_angle>3.14156</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>40</samples>       <!-- MID-360 point cloud density -->
+              <resolution>0.01</resolution>
+              <!-- MID-360 VFOV = 59° -->
+              <min_angle>-0.122173</min_angle>
+              <max_angle>0.907571</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min
+                >0.01</min>                 <!-- MID-360 min. detection range -->
+            <max
+                >40.0</max>                 <!-- MID-360 max. detection range -->
+            <resolution>0.01</resolution>
+          </range>
+        </ray>
+        <always_on>1</always_on>
+        <visualize>true</visualize>
+    </sensor>
   </gazebo>
 
 </robot>

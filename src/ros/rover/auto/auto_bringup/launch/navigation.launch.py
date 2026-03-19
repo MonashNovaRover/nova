@@ -42,6 +42,7 @@ def launch_setup(context, *args, **kwargs):
     autostart = LaunchConfiguration('autostart')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
+    ground_seg_params = LaunchConfiguration('ground_seg_params')
     namespace = LaunchConfiguration('namespace')
     sim_params = LaunchConfiguration('sim_params')
     publish_goals = LaunchConfiguration('publish_goals')
@@ -63,7 +64,6 @@ def launch_setup(context, *args, **kwargs):
     if LaunchConfiguration('nav2_params_dir').perform(context) != '':
         nav2_params_dir = LaunchConfiguration('nav2_params_dir')
 
-    in_sim = (gazebo.perform(context).lower() == 'true')
     # Substitute params for each node with launch params
     substitution_params = {
         'use_sim_time': gazebo,
@@ -93,31 +93,15 @@ def launch_setup(context, *args, **kwargs):
                   ('/tf_static', 'tf_static')]
     
     return [
-        GroupAction(
-            condition=IfCondition(obstacles_detection),
-            actions = [
-                Node(
-                    package='pcl_ros',
-                    executable='filter_voxel_grid_node',
-                    name='voxel_grid_filter',
-                    parameters=[{'leaf_size': 0.05}],
-                    remappings=[('input', '/livox/lidar_masked'),
-                                ('output', '/livox/lidar_downsampled')],
-                ),
-                Node(
-                    package='rtabmap_util',
-                    executable='obstacles_detection',
-                    name='rtabmap_obstacles_detection',
-                    output='screen',
-                    parameters=[{'max_obstacle_height': 1.6,
-                                 'ground_normal_angle': 1.25664}], # ~72 degrees in radians
-                    remappings=[
-                        ('cloud','/livox/lidar_downsampled'),
-                        ('obstacles','/livox/lidar/obstacles'),
-                        ('ground', '/livox/lidar/ground'),
-                    ],
-                ),
+        Node(
+            package="ground_segmentation_ros2",
+            executable="ground_segmentation_ros2_node",
+            parameters=[ground_seg_params, {"use_sim_time": gazebo}],
+            remappings=[
+                ("/ground_segmentation/input_pointcloud", '/livox/lidar'), # TODO: change to /livox/lidar_masked
+                ("/ground_segmentation/input_imu", '/livox/imu'),
             ],
+            output="screen",
         ),
         GroupAction(
             actions=[
@@ -257,6 +241,11 @@ def generate_launch_description():
             name='map_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'map.yaml']),
             description='Full path to the parameters file to use for static map layer',
+        ),
+        DeclareLaunchArgument(
+            name='ground_seg_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ground_segmentation.yaml']),
+            description='Full path to the parameters file to use for ground segmentation',
         ),
         DeclareLaunchArgument(
             name='namespace',
