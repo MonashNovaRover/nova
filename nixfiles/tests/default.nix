@@ -10,14 +10,14 @@ let
     node.pkgs = novaPkgs;
     node.pkgsReadOnly = false;
 
-    defaults = { pkgs, ... }: {
+    defaults = { pkgs, lib, ... }: {
       # Protect machines from external influence.
       virtualisation.restrictNetwork = true;
 
       # Manually configure FastDDS.
       # TODO: When https://github.com/eProsima/Fast-DDS/pull/3973 is available,
       # inter-VM interfaces can be whitelisted.
-      environment.sessionVariables.FASTRTPS_DEFAULT_PROFILES_FILE = pkgs.writeText "profiles.xml" ''
+      environment.sessionVariables.FASTRTPS_DEFAULT_PROFILES_FILE = lib.mkDefault (pkgs.writeText "profiles.xml" ''
         <?xml version="1.0" encoding="UTF-8" ?>
         <dds>
             <profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
@@ -39,7 +39,7 @@ let
                 </participant>
             </profiles>
         </dds>
-      '';
+      '');
     };
 
     nodes =

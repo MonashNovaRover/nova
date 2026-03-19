@@ -23,6 +23,41 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    # don't let the ros dds use vlan9 and vlan5
+    # builtin transport is for shm within the same computer which we want enabled still
+    # but we don't use builtin udp as we modify udp to filter to the interface we want
+    environment.sessionVariables = {
+      FASTDDS_BUILTIN_TRANSPORTS = "SHM";
+      FASTRTPS_DEFAULT_PROFILES_FILE = pkgs.writeTextFile {
+        name = "fastdds_prp.xml";
+        text = ''
+<?xml version="1.0" encoding="UTF-8" ?>
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+    <transport_descriptors>
+        <transport_descriptor>
+            <transport_id>CustomUDPTransport</transport_id>
+            <type>UDPv4</type>
+            <interfaceWhiteList>
+                 <interface>prp0</interface>
+            </interfaceWhiteList>
+        </transport_descriptor>
+    </transport_descriptors>
+
+    <participant profile_name="CustomTransportParticipant" is_default_profile="true">
+        <rtps>
+            <userTransports>
+                <transport_id>CustomUDPTransport</transport_id>
+            </userTransports>
+            <useBuiltinTransports>true</useBuiltinTransports>
+        </rtps>
+    </participant>
+</profiles>
+        '';
+      };
+    };
+
+
+
     # Don't let networkmanager touch interfaces
     # we are configuring decleratively with networkd
     networking.networkmanager = {
