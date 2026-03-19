@@ -55,9 +55,10 @@ const EffortControl: React.FC<EffortControlProps> = ({ controlName, currentStatu
         label: "text-medium",
       }}
       color="primary"
+      fillOffset={0}
       label={`${controlName}`}
       maxValue={100}
-      minValue={0}
+      minValue={-100}
       step={1}
       renderValue={({ children, ...props }) => (
         <output {...props}>
@@ -73,7 +74,7 @@ const EffortControl: React.FC<EffortControlProps> = ({ controlName, currentStatu
               value={effortInput}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const v = Number(e.target.value);
-                setEffortInput(Math.min(100, Math.max(0, v)));
+                setEffortInput(Math.min(100, Math.max(-100, v)));
               }}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === "Enter" && !isNaN(Number(effortInput))) {

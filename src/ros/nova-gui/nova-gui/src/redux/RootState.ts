@@ -14,6 +14,7 @@ import {
   IRosBlcmdInterfacesTelemetry,
   IRosStdMsgsString,
   IRosStdMsgsBool,
+  IRosStdMsgsFloat64,
   IRosGeometryMsgsPose,
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
@@ -102,6 +103,7 @@ export interface RootState {
   bmeSensorStore: IRosScienceInterfacesBmeSensor;
   auger1DepthSensorStore: IRosStdMsgsBool;
   auger2DepthSensorStore: IRosStdMsgsBool;
+  toolRotatorAngleStore: IRosStdMsgsFloat64;
 
   // Maps Related Stores
   roverLocationStore: IRosSensorMsgsNavSatFix;
@@ -125,6 +127,7 @@ export interface RootState {
   clickAndHold : GenericStoreState<boolean>;
   windowWideWASD : GenericStoreState<boolean>;
   toolRotatorPresets: GenericStoreState<PresetPositions>
+  toolRotatorTwitchStep: GenericStoreState<number>;
 
   batteryStore: IRosSensorMsgsBatteryState;
 
