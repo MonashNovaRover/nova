@@ -31,6 +31,7 @@ in
         ExecStart = ''${pkgs.nova.ptpd}/bin/ptpd2 -C -m -i ${cfg.interfaceName} --ptpengine:priority1=${toString cfg.priority}'';
         Restart = "on-failure";
         RestartSec = 2;
+        CPUWeight = 300; # mapping process for auto is set to 200
       };
     };
   };
