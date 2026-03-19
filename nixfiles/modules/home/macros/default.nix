@@ -219,6 +219,8 @@ in
           ducketn = "cansend can0 0C1#9000";
 
           # can
+          lscan = "for bus in $(ip link show type vcan | cut -d : -f2 | grep -v -e link -e alias | tr -d ' ') $(ip link show type can | cut -d : -f2 | grep -v -e link -e alias | tr -d ' '); do echo $bus; udevadm info /sys/class/net/$bus | grep DEVPATH; done";
+
           can-sleuth = "can_sleuth";
           can_sleuth = "~/Builds/master/bin/can_sleuth";
 
