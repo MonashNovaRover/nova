@@ -32,6 +32,20 @@ in {
       "prp0"
     ];
 
+  # TODO: move to nixfiles
+  systemd.network = {
+    links = {
+      "70-usbeth" = {
+        matchConfig = {
+          Driver = "cdc_ncm";
+        };
+        linkConfig = {
+          Name = "usbeth0";
+        };
+      };
+    };
+  };
+
     systemd.network = {
       enable = true;
       netdevs = {
