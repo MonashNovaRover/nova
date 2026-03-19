@@ -135,15 +135,14 @@ in {
       };
     };
     # NixOS doesn't let you configure HSR netdevs :/
-    # VXLAN Must be first slave! the prp0 must have the same mac address as vxlan0 or all packets set to prp0 over vxlan will be sent as multicast not unicast
     environment.etc."systemd/network/30-prp0.netdev".text = ''
       [NetDev]
       Kind = hsr
       Name = prp0
       [HSR]
       Protocol = prp
-      Ports = vxlan0
       Ports = ${netcfg.ethernetInterface}
+      Ports = vxlan0
     '';
       #Ports = ${netcfg.secondaryEthernetInterface}
 
