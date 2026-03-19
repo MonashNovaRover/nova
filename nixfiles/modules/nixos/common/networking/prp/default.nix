@@ -31,33 +31,42 @@ in {
         "vlan5"
         "vlan9"
         #"vxlan0"
-        "prp0"
+        (lib.mkIf (!cfg.networkmanager) "prp0")
       ];
       ensureProfiles.profiles = lib.mkIf cfg.networkmanager {
         prp-shared = {
           connection = {
             id = "prp-shared";
-            interface-name = "br1";
+            interface-name = "prp0";
             autoconnect=false;
-            type="bridge";
+            type="hsr";
           };
           ipv4 = {
             method = "shared";
-            address1 = ("10.0." + cfg.address + "/23");
-            address2 = "10.0.0.1/23";
+            address1 = "10.0.0.1/23";
+          };
+          hsr = {
+            port1 = netcfg.ethernetInterface;
+            port2 = "br0";
+            prp = true;
           };
         };
         prp-normal = {
           connection = {
             id = "prp-normal";
-            interface-name = "br1";
+            interface-name = "prp0";
             autoconnect=true;
-            type="bridge";
+            type="hsr";
           };
           ipv4 = {
             method = "manual";
             address1 = ("10.0." + cfg.address + "/23");
             gateway = "10.0.0.1";
+          };
+          hsr = {
+            port1 = netcfg.ethernetInterface;
+            port2 = "br0";
+            prp = true;
           };
         };
       };
@@ -86,14 +95,6 @@ in {
           netdevConfig = {
             Kind = "bridge";
             Name = "br0";
-          };
-        };
-        "20-br1" = lib.mkIf cfg.networkmanager {
-          # network manager doesn't seem to want to manager the prp interface
-          # so make a bridge for network manager to access it with.
-          netdevConfig = {
-            Kind = "bridge";
-            Name = "br1";
           };
         };
         "20-vlan9" = {
@@ -131,11 +132,10 @@ in {
             ("10.9." + cfg.address + "/23")
           ];
         };
-        "81-prp0" = lib.mkIf cfg.networkmanager {
-          matchConfig.Name = "prp0";
-          networkConfig = {
-            # let network manager use this bridge to control it
-            Bridge = "br1";
+        "20-br0" = {
+          matchConfig.Name = "br0";
+          linkConfig = {
+            ActivationPolicy = "always-up";
           };
         };
         "80-prp0" = lib.mkIf (!cfg.networkmanager) {
@@ -163,16 +163,17 @@ in {
       };
     };
     # NixOS doesn't let you configure HSR netdevs :/
-    environment.etc."systemd/network/30-prp0.netdev".text = ''
-      [NetDev]
-      Kind = hsr
-      Name = prp0
-      [HSR]
-      Protocol = prp
-      Ports = ${netcfg.ethernetInterface}
-      Ports = br0
-    '';
-      #Ports = ${netcfg.secondaryEthernetInterface}
+    environment.etc."systemd/network/30-prp0.netdev" = lib.mkIf (!cfg.networkmanager) {
+        text = ''
+        [NetDev]
+        Kind = hsr
+        Name = prp0
+        [HSR]
+        Protocol = prp
+        Ports = ${netcfg.ethernetInterface}
+        Ports = br0
+      '';
+    };
 
     assertions = [
       {
