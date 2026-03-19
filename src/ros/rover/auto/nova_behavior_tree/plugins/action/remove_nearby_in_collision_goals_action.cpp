@@ -26,6 +26,8 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "tf2/utils.h"
 #include "nav2_behavior_tree/bt_utils.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "behaviortree_cpp/decorator_node.h"
 
 #include "nova_behavior_tree/action/remove_nearby_in_collision_goals_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
@@ -39,38 +41,42 @@ using namespace geometry_msgs::msg;
 using namespace nav_msgs::msg;
 
 RemoveNearbyInCollisionGoalsAction::RemoveNearbyInCollisionGoalsAction(
-    const std::string & name,
-    const BT::NodeConfiguration & conf)
-    : BT::ActionNodeBase(name, conf)
-    {
-    }
+  const std::string & name,
+  const BT::NodeConfiguration & conf)
+: BT::ActionNodeBase(name, conf)
+{
+  node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+  tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
+  node_->get_parameter("transform_tolerance", transform_tolerance_);
+  global_frame_ = BT::deconflictPortAndParamFrame<std::string>(
+    node, "global_frame", this);
+  robot_base_frame_ = BT::deconflictPortAndParamFrame<std::string>(
+    node, "robot_base_frame", this);
+}
 
 void RemoveNearbyInCollisionGoalsAction::initialize()
 {
-    node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
-    getInput("max_distance_threshold", max_distance_threshold_);
-
-    // Subscribe to local and global costmaps' occupancy grids
-    local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
-         "/local_costmap/costmap", 1,
-         [this](const OccupancyGrid::SharedPtr msg) -> void
-         {
-            local_occu_grid_ = msg;
-            RCLCPP_DEBUG(node_->get_logger(), "Received local costmap");
-        }
-    );
-    global_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
-        "/global_costmap/costmap", 1,
+  // Subscribe to local and global costmaps' occupancy grids
+  local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
+        "/local_costmap/costmap", 1,
         [this](const OccupancyGrid::SharedPtr msg) -> void
         {
-            global_occu_grid_ = msg;
-            RCLCPP_DEBUG(node_->get_logger(), "Received global costmap");
-        }
-    );
+          local_occu_grid_ = msg;
+          RCLCPP_DEBUG(node_->get_logger(), "Received local costmap");
+      }
+  );
+  global_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
+      "/global_costmap/costmap", 1,
+      [this](const OccupancyGrid::SharedPtr msg) -> void
+      {
+          global_occu_grid_ = msg;
+          RCLCPP_DEBUG(node_->get_logger(), "Received global costmap");
+      }
+  );
 
-    wait_for_occu_grids();
-    RCLCPP_INFO(node_->get_logger(), "RemoveNearbyInCollisionGoals successfully initialized!");
-    initialized_ = true;
+  wait_for_occu_grids();
+  RCLCPP_INFO(node_->get_logger(), "RemoveNearbyInCollisionGoals successfully initialized!");
+  initialized_ = true;
 }
 
 void RemoveNearbyInCollisionGoalsAction::setup()
@@ -162,13 +168,15 @@ bool RemoveNearbyInCollisionGoalsAction::is_goal_in_collision(const PoseStamped 
 
 bool RemoveNearbyInCollisionGoalsAction::remove_goals()
 {
-  // Get rovers current pose to calulate distance from
-  current_pose_ = config().blackboard->get<geometry_msgs::msg::PoseStamped>("current_pose");
-  // How to check if this exists? We should throw an error and return false if we couldn't get the current pose
-//   if () {
-//     RCLCPP_ERROR(node_->get_logger(), "RemoveNearbyInCollisionGoals Could not retrieve current pose");
-//     return false
-//   }
+  geometry_msgs::msg::PoseStamped current_pose_;
+
+  if (!nav2_util::getCurrentPose(
+      current_pose_, *tf_, global_frame_, robot_base_frame_, transform_tolerance_))
+  {
+    RCLCPP_WARN(config().blackboard->get<rclcpp::Node::SharedPtr>("node")->get_logger(),
+      "Current robot pose is not available.");
+    return false;
+  }
 
   Goals output_goals_;
   for (size_t i=0; i < input_goals_.size(); i++)
