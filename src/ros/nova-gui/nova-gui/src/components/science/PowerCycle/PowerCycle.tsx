@@ -14,7 +14,7 @@ const SciencePowerCycle = () => {
   const powerCycleScience = useBifrost({service: RosService.POWER_CYCLE_SCIENCE });
   const powerCycleDrive = useBifrost({service: RosService.POWER_CYCLE_DRIVE });
 
-  const handlePowerCycle = (service: ReturnType<typeof useBifrost>, sleepTime:string, setLoading:React.Dispatch<React.SetStateAction<boolean>>) => {
+  const handlePowerCycle = (service:string, sleepTime:string, setLoading:React.Dispatch<React.SetStateAction<boolean>>) => {
     const duration = parseFloat(sleepTime);
     if (isNaN(duration) || duration <= 0) {
       toast.error("Enter a valid sleep duration:");
@@ -27,15 +27,27 @@ const SciencePowerCycle = () => {
       sleep_duration: duration,
     };
 
-    service.callService(
-      requestPayload,
-      {
-        responseToast: true,
-        successToastMessage: `Power cycle successful`,
-        errorToastMessage: `Failed to power cycle`,
-        handleResponse: () => setLoading(false),
-      }
-    )
+    if (service === "powerCycleScience") {
+      powerCycleScience.callService(
+        requestPayload,
+        {
+          responseToast: true,
+          successToastMessage: `Power cycle successful`,
+          errorToastMessage: `Failed to power cycle`,
+          handleResponse: () => setLoading(false),
+        }
+      )
+    } else if (service === "powerCycleDrive") {
+      powerCycleDrive.callService(
+        requestPayload,
+        {
+          responseToast: true,
+          successToastMessage: `Power cycle successful`,
+          errorToastMessage: `Failed to power cycle`,
+          handleResponse: () => setLoading(false),
+        }
+      )
+    }
   };
 
   return (
@@ -59,7 +71,7 @@ const SciencePowerCycle = () => {
           variant="shadow"
           size="lg"
           isLoading={isLoading} 
-          onPressStart={()=>handlePowerCycle(powerCycleScience, sleepTime, setIsLoading)}
+          onPressStart={()=>handlePowerCycle("powerCycleScience", sleepTime, setIsLoading)}
           startContent={!isLoading && <Zap size={18} />}
         >
           Cycle Science Rails
@@ -86,7 +98,7 @@ const SciencePowerCycle = () => {
           variant="shadow"
           size="lg"
           isLoading={isLoadingDrive} 
-          onPressStart={()=>handlePowerCycle(powerCycleDrive, sleepTimeDrive, setIsLoadingDrive)}
+          onPressStart={()=>handlePowerCycle("powerCycleDrive", sleepTimeDrive, setIsLoadingDrive)}
           startContent={!isLoadingDrive && <Zap size={18} />}
         >
           Cycle Drive Rails
