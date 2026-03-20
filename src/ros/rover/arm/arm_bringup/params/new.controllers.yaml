@@ -37,7 +37,7 @@ arm:
         - j5
         - j6
       use_position_control: false
-      use_collision_limits: true
+      use_collision_limits: false
       do_4bar: true
       j2_minus_j3:
         j2_idx: 1 # this is badly designed.
@@ -50,8 +50,8 @@ arm:
       joint_limits:
         j1:
           has_position_limits: true
-          max_position: 3.14
-          min_position: -3.14
+          max_position: 1.57
+          min_position: -1.57
         j2:
           has_position_limits: true
           max_position: 2.35
@@ -65,12 +65,12 @@ arm:
           max_position: 3.14
           min_position: -3.14
         j5: # wrist pitch
-          has_position_limits: true # TODO: Need time to figure out what was going on with this!
+          has_position_limits: true
           max_position: -0.1153
           min_position: -2.44
         j6: # wrist roll
           has_position_limits: true
-          max_position: 6.0 # TODO: is this enough to make the resolver get to 0xffff and have the position feedback overflow
+          max_position: 6.0
           min_position: -6.0
 
   nova_arm_position_controller:
