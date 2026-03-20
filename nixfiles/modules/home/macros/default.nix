@@ -140,7 +140,7 @@ in
           zero-arm = "${pkgs.bash}/bin/bash ${../../../scripts/zero-arm.sh}";
           zero-pivots = "${pkgs.bash}/bin/bash ${../../../scripts/zero-pivots.sh}";
           list-blcmds = "more ${cfg.nixfileDir}/doc/blcmd-ids.md";
-          mast="cansend can0 0E2#1000; sleep 5.2; cansend can0 0E2#0000";
+          mast-up="cansend can0 0E2#1000; sleep 5.2; cansend can0 0E2#0000";
 
           # GUI
           gui-serve = "~/Builds/master/bin/gui-serve 5173 && echo http://localhost:5173";
