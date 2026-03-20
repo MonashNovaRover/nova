@@ -32,7 +32,7 @@
     "geolib": "^3.3.4",
     "humanize-string": "^3.1.0",
     "lodash": "^4.17.23",
-    "plotly.js-dist-min": "^3.4.0",
+    "plotly.js-cartesian-dist-min": "^3.4.0",
     "plotly.js-gl3d-dist-min": "^3.3.1",
     "react": "^19.2.4",
     "react-apexcharts": "^1.9.0",

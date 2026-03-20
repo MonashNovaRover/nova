@@ -9018,10 +9018,10 @@ pirates@^4.0.1:
   resolved "https://registry.yarnpkg.com/pirates/-/pirates-4.0.7.tgz#643b4a18c4257c8a65104b73f3049ce9a0a15e22"
   integrity sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==
 
-plotly.js-dist-min@^3.4.0:
+plotly.js-cartesian-dist-min@^3.4.0:
   version "3.4.0"
-  resolved "https://registry.yarnpkg.com/plotly.js-dist-min/-/plotly.js-dist-min-3.4.0.tgz#02b81de918914d34e82dc0ed3c5ef402a3e477b8"
-  integrity sha512-eo7xh7oyE9fFoE/wintgmvfOjvTKwCb3wRf9ShQv90du4n+EVkOY7w5qEkmUS9SSkHRnAw8sk/0QI7wEc5U+8Q==
+  resolved "https://registry.yarnpkg.com/plotly.js-cartesian-dist-min/-/plotly.js-cartesian-dist-min-3.4.0.tgz#a45ba2e3ca44b0f45c19a27c4f7d5fc5e03a6aff"
+  integrity sha512-BtKs67Hew+3OUu/F5yDsgHoAOqzN+ecJldD7QccjYCEixVGE7dAvLB3O5QbDSb3+zHl5gc/ABR+TjUlKjeY1zw==
 
 plotly.js-gl3d-dist-min@^3.3.1:
   version "3.3.1"

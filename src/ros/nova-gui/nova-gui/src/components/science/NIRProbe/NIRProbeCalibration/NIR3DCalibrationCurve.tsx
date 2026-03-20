@@ -4,7 +4,7 @@ import React from "react";
 // I tried and failed to create a module type dependency.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import Plotly from "plotly.js-dist-min";
+import Plotly from "plotly.js-cartesian-dist-min";
 import createPlotlyComponent from "react-plotly.js/factory";
 
 const Plot = createPlotlyComponent(Plotly);
