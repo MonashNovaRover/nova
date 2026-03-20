@@ -88,3 +88,12 @@ with subtest("ROS DDS only on prp0"):
     rover.fail("timeout 5 sudo tcpdump -i vlan5 dst 239.255.0.1 --print -c 1 -n")
     base.fail("timeout 5 sudo tcpdump -i vlan5 dst 239.255.0.1 --print -c 1 -n")
 
+with subtest("Everyone can talk to everyone on ros? and talk to themself?"):
+    rover.execute("ros2 topic pub /rover/test std_msgs/String \"data: 'hello from rover'\" > /dev/null & disown; exit")
+    base.execute("ros2 topic pub /base/test std_msgs/String \"data: 'hello from base'\" > /dev/null & disown; exit")
+    
+    base.succeed('ros2 topic echo /base/test std_msgs/String --once --timeout 2 | grep "hello from base"')
+    rover.succeed('ros2 topic echo /base/test std_msgs/String --once --timeout 2 | grep "hello from base"')
+
+    base.succeed('ros2 topic echo /rover/test std_msgs/String --once --timeout 2 | grep "hello from rover"')
+    rover.succeed('ros2 topic echo /rover/test std_msgs/String --once --timeout 2 | grep "hello from rover"')
