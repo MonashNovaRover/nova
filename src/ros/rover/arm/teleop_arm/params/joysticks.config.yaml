@@ -78,7 +78,7 @@ thrustmaster_left:
           from: "l_btn_bottom_l2_state"
         unlock:
           from: "l_btn_bottom_l5_state"
-        task_space:
+        no_limits:
           from: "l_btn_thumb_u_state"
 
 thrustmaster_right:

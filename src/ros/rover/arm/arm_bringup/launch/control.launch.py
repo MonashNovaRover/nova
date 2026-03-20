@@ -88,7 +88,7 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive', "-c", "/arm/controller_manager"],
+                    arguments=['nova_arm_limitless_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(

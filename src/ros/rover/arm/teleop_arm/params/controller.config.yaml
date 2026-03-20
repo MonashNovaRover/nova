@@ -115,7 +115,7 @@ joy_input_source:
           from: "BACK"
         unlock:
           from: "START"
-        task_space:
+        no_limits:
           from_axis:
             axis: "TRIGGERLEFT"
           from: "PADDLE1"
