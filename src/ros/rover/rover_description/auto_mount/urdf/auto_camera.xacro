@@ -250,7 +250,7 @@ which is how it gets added to the gazebo sim. Edited by: Victor Bartlinski, Kabi
   </joint>
   
   <joint name="auto_mount_to_chassis" type="fixed">
-      <origin xyz="-0.137 0 -0.063" rpy="0 -1.01333e-15 0" />
+      <origin xyz="-0.348 0 -0.063" rpy="0 -1.01333e-15 0" />
       <parent link="chassis" />
       <child link="clam" />
       <axis xyz="0 0 1" />
