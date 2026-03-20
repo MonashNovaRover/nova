@@ -115,6 +115,7 @@ in {
         "70-usbeth" = {
           matchConfig = {
             Property = "ID_BUS=usb";
+            Type = "ether";
           };
           linkConfig = {
             Name = "usbeth0";
