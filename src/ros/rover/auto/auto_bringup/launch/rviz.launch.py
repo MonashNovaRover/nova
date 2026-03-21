@@ -11,13 +11,11 @@ from launch.actions import OpaqueFunction, ExecuteProcess
 
 def launch_setup(context, *args, **kwargs):
     # package directories
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-
-    gazebo = LaunchConfiguration('gazebo')
-    rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
+    gazebo = LaunchConfiguration('gazebo').perform(context)
     rviz_params = LaunchConfiguration('rviz_params')
     model = LaunchConfiguration('model').perform(context)
-    urdf = LaunchConfiguration('urdf')
+    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount').perform(context)
+    robot_name = LaunchConfiguration('robot_name').perform(context)
 
     return [
         Node(
@@ -27,28 +25,14 @@ def launch_setup(context, *args, **kwargs):
             name='rviz2',
             arguments=['-d', [rviz_params]]
         ),
-        Node(
-            condition=IfCondition(rtabmap_viz),
-            package='rtabmap_viz',
-            executable='rtabmap_viz',
-            output='screen',
-            parameters=[{
-                "subscribe_rgbd": True,
-                "use_sim_time": gazebo}],
-            remappings=[
-                ('rgbd_image','oak/rgbd/image_raw'),
-                ('odom', 'odom/visual'),
-            ],
-        ),
         ExecuteProcess(
-            cmd=["xacro", model, '-o', os.path.expanduser("~/rviz.urdf")],
+            cmd=['xacro', model,
+                 f'gazebo:={gazebo}',
+                 f'robot_name:={robot_name}',
+                 'auto_mount:=True',
+                 f'shortened_auto_mount:={shortened_auto_mount}',
+                 '-o', os.path.expanduser("~/rviz.urdf")],
             output="screen"
-        ),
-        IncludeLaunchDescription(
-            condition=IfCondition(urdf),
-            launch_description_source=PythonLaunchDescriptionSource(
-                PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model}.items(),
         ),
     ]
 
@@ -63,11 +47,6 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='rtabmap_viz',
-            default_value='false',
-            description='Launch rtabmap_viz for mapping visualisation',
-        ),
-        DeclareLaunchArgument(
             name='rviz_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
             description='Full path to the RViz config file to use',
@@ -78,9 +57,14 @@ def generate_launch_description():
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
-            name='urdf',
-            default_value='False',
-            description='Launch URDF?',
+            name='shortened_auto_mount',
+            default_value='True',
+            description='Whether to use the shortened auto mount model',
+        ),
+        DeclareLaunchArgument(
+            name='robot_name',
+            default_value='Banksia',
+            description='name of the robot',
         ),
     ]
 

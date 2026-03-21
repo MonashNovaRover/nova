@@ -50,7 +50,6 @@ def launch_setup(context, *args, **kwargs):
         'arm:=', arm, ' ',
         'old_arm:=', old_arm, ' ',
         'use_mock_hardware:=', use_mock_hardware, ' ',
-        'auto_camera:=false ',
         'rover_description_dir:=', rover_description_dir, ' ',
         'drive_control:=False ', 'arm_control:=True '
     ]

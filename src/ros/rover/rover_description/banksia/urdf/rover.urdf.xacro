@@ -9,27 +9,20 @@
     <xacro:arg name="use_mock_hardware" default="false"/>
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="old_arm" default="false"/>
-    <xacro:arg name="auto_camera" default="true"/>
+    <xacro:arg name="auto_mount" default="false"/>
+    <xacro:arg name="shortened_auto_mount" default="true"/>
     <xacro:arg name="robot_name" default="Banksia"/>
-    <xacro:arg name="oak_angle" default="15"/>
-    <xacro:arg name="bootie_angle" default="15"/>
-    <xacro:arg name="lidar_angle" default="40"/>
     <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 
     <!-- Needed to prevent arm control from launching hardware interfaces for the wheels/pivots -->
     <xacro:arg name="drive_control" default="true"/>
     <xacro:arg name="arm_control" default="false"/>
 
+
     <!-- Robot properties-->
     <gazebo>
         <self_collide>false</self_collide>
     </gazebo>
-
-    <!-- Variables -->
-    <xacro:property name="oak_angle" value="$(arg oak_angle)" />
-    <xacro:property name="bootie_angle" value="$(arg bootie_angle)" />
-    <xacro:property name="lidar_angle" value="$(arg lidar_angle)" />
-
 
     <link name="base_link" />
     <joint name="base_link_to_chassis" type="fixed">
@@ -43,8 +36,8 @@
     <!-- Include additional xacro files-->
     <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/ckc.xacro"/>
 
-    <xacro:if value="$(arg auto_camera)">
-        <xacro:include filename="$(arg rover_description_dir)/auto_mount/urdf/auto_camera.xacro"/>
+    <xacro:if value="$(arg auto_mount)">
+        <xacro:include filename="$(arg rover_description_dir)/auto_mount/urdf/auto_mount.xacro"/>
     </xacro:if>
 
     <xacro:if value="$(arg arm)">
