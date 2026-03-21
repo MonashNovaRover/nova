@@ -47,6 +47,7 @@ install(PROGRAMS
   scripts/gz_frame_fixer.py
   scripts/gz_gps_fixer.py
   scripts/gz_imu_fixer.py
+  scripts/livox_field_republisher.py
   scripts/load_waypoint.py
   scripts/quaternion_to_euler.py
   scripts/record_metrics.py

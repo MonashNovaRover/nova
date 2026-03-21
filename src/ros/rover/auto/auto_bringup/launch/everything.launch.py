@@ -47,8 +47,8 @@ def launch_setup(context, *args, **kwargs):
     rviz_params = LaunchConfiguration('rviz_params')
     sim_params = LaunchConfiguration('sim_params')
     use_respawn = LaunchConfiguration('use_respawn')
-    rtabmap = LaunchConfiguration('rtabmap')
-    rtabmap_params = LaunchConfiguration('rtabmap_params')
+    fastlivo2 = LaunchConfiguration('fastlivo2')
+    fastlivo2_params = LaunchConfiguration('fastlivo2_params')
 
     # comp defaults
     if comp == 'arch':
@@ -80,11 +80,12 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
                 'comp': comp,
-                'camera':'True',
                 'controller_params': controller_params,
                 'model': model,
                 'namespace': namespace,
                 'world': world,
+                'rviz': rviz,
+                'rviz_params': rviz_params,
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -99,14 +100,6 @@ def launch_setup(context, *args, **kwargs):
                 'gazebo': gazebo,
                 'gps': gps,
                 'rl_params': rl_params,
-            }.items()
-        ),
-        IncludeLaunchDescription(
-            condition=IfCondition(rviz),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            launch_arguments={
-                'gazebo': gazebo,
-                'rviz_params': rviz_params,
             }.items()
         ),
         IncludeLaunchDescription(
@@ -126,11 +119,11 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
         IncludeLaunchDescription(
-            condition=IfCondition(rtabmap),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
+            condition=IfCondition(fastlivo2),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'lidar.launch.py'])),
             launch_arguments={
-                'rtabmap_params': rtabmap_params,
-                'gazebo': gazebo,
+                'fastlivo2_params': fastlivo2_params,
+                'sim': gazebo,
             }.items(),
         ),
     ]
@@ -214,14 +207,14 @@ def generate_launch_description():
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
         DeclareLaunchArgument(
-            name='rtabmap',
+            name='fastlivo2',
             default_value='True',
-            description='Launch rtabmap?',
+            description='Launch FAST-LIVO2?',
         ),
         DeclareLaunchArgument(
-            name='rtabmap_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'rtabmap.yaml']),
-            description='Params file for RTABMap Nodes',
+            name='fastlivo2_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'fast_livo2', 'fastlivo2.yaml']),
+            description='Params file for FAST-LIVO2 Nodes',
         ),
         # arguments with comp defaults
         DeclareLaunchArgument(
