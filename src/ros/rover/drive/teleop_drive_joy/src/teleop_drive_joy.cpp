@@ -155,18 +155,12 @@ void TeleopDriveJoy::initialize_interfaces()
   drive_info_pub_ = this->create_publisher<drive_interfaces::msg::DriveInfo>(
     params_.drive_info_topic, rclcpp::QoS(1).transient_local());
 
-  if (params_.rumble_enable)
-  {
-    joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-      params_.joint_states_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joint_states_callback, this, _1));
-    joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
-  }
+  joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
+    params_.joint_states_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joint_states_callback, this, _1));
+  joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
 
-  if (params_.autolock_enable)
-  {
-    blcmd_log_sub_ = this->create_subscription<blcmd_interfaces::msg::BLCMDLog>(
-      params_.blcmd_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::blcmd_log_callback, this, _1));
-  }
+  blcmd_log_sub_ = this->create_subscription<blcmd_interfaces::msg::BLCMDLog>(
+    params_.blcmd_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::blcmd_log_callback, this, _1));
 }
 
 void TeleopDriveJoy::map_button_callbacks()
@@ -542,6 +536,12 @@ void TeleopDriveJoy::send_drive_info()
 
 void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg)
 {
+  // don't rumble if disabled
+  if (not params_.rumble_enable)
+  {
+    return;
+  }
+
   // get max effort of joints in rumble_joints
   const auto joint_effort = [joint_state_msg](const std::string& joint) -> double
   {
@@ -599,6 +599,11 @@ void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::S
 
 void TeleopDriveJoy::blcmd_log_callback(const blcmd_interfaces::msg::BLCMDLog::SharedPtr blcmd_log_msg)
 {
+  // don't record blcmd errors for autolock if disabled
+  if (not params_.autolock_enable)
+  {
+    return;
+  }
 
   RCLCPP_DEBUG(this->get_logger(), "Processing blcmd log message from %hhu of type %hhu", blcmd_log_msg->id, blcmd_log_msg->type);
 
@@ -627,6 +632,12 @@ void TeleopDriveJoy::blcmd_log_callback(const blcmd_interfaces::msg::BLCMDLog::S
 
 void TeleopDriveJoy::apply_autolock()
 {
+  // don't autolock if disabled
+  if (not params_.autolock_enable)
+  {
+    return;
+  }
+
   const auto activate_autolock = [this](const std::string& error_message)
   {
     // don't activate autolock if any override is active
