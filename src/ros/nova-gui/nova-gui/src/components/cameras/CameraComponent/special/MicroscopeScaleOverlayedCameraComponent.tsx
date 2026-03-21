@@ -14,7 +14,7 @@ import CameraVideo, { CameraVideoProps } from "../components/CameraVideo.tsx";
 
 const MIN_SCALE_MM = 3;
 const MAX_SCALE_MM = 60;
-const DEFAULT_SCALE_MM = 20;
+const DEFAULT_SCALE_MM = 15;
 
 const TICK_SHADOW = "0 0 3px rgba(0,0,0,0.9)";
 const LABEL_SHADOW = "0 0 4px rgba(0,0,0,0.9)";
