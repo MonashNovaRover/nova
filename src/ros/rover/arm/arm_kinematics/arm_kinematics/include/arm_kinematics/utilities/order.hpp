@@ -10,29 +10,63 @@
 namespace arm_kinematics {
 
 /**
- * Represents a permutation between 'original' and 'reordered' indices.
+ * Represents an ordering/permutation relationship between two indexed collections.
+ *
+ * The most important mental model is:
+ *
+ * - `Order` does not primarily describe a semantic relationship between items
+ * - `Order` describes where items from one indexed layout appear in another indexed layout
+ *
+ * In other words, use `Order` when you care about:
+ *
+ * - reordering a collection
+ * - converting between "old index" and "new index"
+ * - crossing a boundary where named items are assigned stable internal ids
+ * - composing multiple index-layout transformations
+ *
+ * Do not use `Order` as a general-purpose lookup table when plain ids or arrays are enough.
  *
  * Let the original sequence be indexed 0..N-1.
- *   - order[i]         = original index of the element that is now at new index i
- *   - order.inverse[j] = new index of the element that originally was at index j
-
+ *
+ * - `order[i]` is the original index of the element that is now at new index `i`
+ * - `order.inverse[j]` is the new index of the element that originally was at index `j`
+ *
+ * That means:
+ *
+ * - use `order[...]` when you have a new index and need to know which original element lives there
+ * - use `order.inverse[...]` when you have an original index and need to know where it moved
+ *
  * To create a reordered copy of a vector:
  * \code
- *   std::vector<std::string> my_vec;
+ *   std::vector<std::string> names = { ... };
+ *   Order<> order(names.size(), names.size());
  *   // ...
- *   my_vec = order.map(my_vec);
+ *
+ *   auto reordered = order.reorder(names);
+ *   // reordered[i] == names[ order[i] ]
+ * \endcode
+ *
+ * `Order` is also useful at representation boundaries.
+ * For example, if named items are assigned stable internal ids:
+ * \code
+ *   Order<std::string, size_t> ids;
+ *   // ids[new_id] gives the original named key stored at that id
+ *   // ids.inverse[original_name_index] gives the assigned internal id
  * \endcode
  *
  * If you don't want to modify the original collection, the \c Reordered helper lets you index through the
- * permutation without modifying the original container:
+ * permutation without copying the original container:
  * \code
  *   std::vector<std::string> names = { ... };
- *   Order<> order(num_in, num_out);
+ *   Order<> order(names.size(), names.size());
  *   // ...
  *
  *   auto view = Reordered(names, order);
  *   // view[i] gives names[ order[i] ] without copying
  * \endcode
+ *
+ * Orders can also be composed. If `r` maps A -> B and `l` maps B -> C, then `l * r` maps A -> C.
+ * This is useful when several layout changes happen in sequence and you want one combined transform.
  *
  * \tparam TKey the type used to index into the underlying collection
  * \tparam TValue the type stored in the collection for indices
@@ -61,8 +95,10 @@ public:
   using const_reverse_iterator = typename Container::const_reverse_iterator;
 
   /**
-   * This is the type returned when indexing into the order, which allows us to set the inverse relationship as a
-   * side-effect of assigning elements in the array (i.e. `order[i] = v;` will also assign `order.inverse[v] = i;`)
+   * This is the type returned when indexing into the forward order.
+   *
+   * Assigning through this proxy updates both sides of the permutation:
+   * `order[i] = v;` also performs `order.inverse[v] = i;`.
    */
   struct Proxy {
     Order & parent;
@@ -197,9 +233,11 @@ public:
   }
 
   // Indexing into the order
+  // `order[new_index] -> old_index`
   reference operator[](size_type idx) noexcept {
     return Proxy{*this, idx};
   }
+  // `order[new_index] -> old_index`
   const_reference operator[](size_type idx) const noexcept {
     return data_[idx];
   }
@@ -283,7 +321,8 @@ public:
   }
 
   /**
-   * Stores the inverse mapping for this order, accepting old indices and outputting new indices.
+   * Stores the inverse mapping for this order:
+   * `inverse[old_index] -> new_index`.
    */
   InverseRef inverse{};
 
@@ -310,7 +349,8 @@ private:
   Container data_{};
 };
 
-/// Function style composition, where output applies mapping r, then l
+/// Function style composition, where the resulting order applies `r` first, then `l`.
+/// If `r` maps A -> B and `l` maps B -> C, then `l * r` maps A -> C.
 template<typename TA, typename TB, typename TC, bool StoresInverseL, bool StoresInverseR>
 Order<TA, TB, true>
 operator*(
