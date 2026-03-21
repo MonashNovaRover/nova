@@ -45,7 +45,6 @@ export enum RosTopic {
   BME_SENSOR = "/science/bme_sensor",
   AUGER1_DEPTH_SENSOR = "/science/auger_depth/Auger1",
   AUGER2_DEPTH_SENSOR = "/science/auger_depth/Auger2",
-  TOOL_ROTATOR_ANGLE = "/science/tool_rotator/position",
 
   // Mapping Related Topics
   ROVER_LOCATION = "/gps_rover/fix",

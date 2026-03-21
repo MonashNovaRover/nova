@@ -49,14 +49,14 @@ class ScimbalCamController(Controller):
         self.service_name = self.declare_parameter("service_name", "/science/scimbal_cam_service").value
 
         # Defining start, min, and max angles
-        self.start_tilt_angle = self.declare_parameter("start_tilt_angle", 45).value
+        self.start_tilt_angle = self.declare_parameter("start_tilt_angle", 90).value
         self.start_pan_angle = self.declare_parameter("start_pan_angle", 180).value
 
         self.min_tilt_angle = self.declare_parameter("min_tilt_angle", 0).value
         self.min_pan_angle = self.declare_parameter("min_pan_angle", 0).value
 
-        self.max_tilt_angle = self.declare_parameter("max_tilt_angle", 90).value
-        self.max_pan_angle = self.declare_parameter("max_pan_angle", 360).value
+        self.max_tilt_angle = self.declare_parameter("max_tilt_angle", 180).value
+        self.max_pan_angle = self.declare_parameter("max_pan_angle", 360).value        
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.

@@ -26,7 +26,6 @@ import {
   IRosNovaInterfacesRadioStatus,
   IRosScienceInterfacesEffortStatus,
   IRosSensorMsgsJointState,
-  IRosStdMsgsFloat64,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -74,7 +73,6 @@ export interface RosTopicInterfaces {
   [RosTopic.BME_SENSOR]: IRosScienceInterfacesBmeSensor;
   [RosTopic.AUGER1_DEPTH_SENSOR]: IRosStdMsgsBool;
   [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
-  [RosTopic.TOOL_ROTATOR_ANGLE]: IRosStdMsgsFloat64;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;

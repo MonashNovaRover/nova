@@ -75,8 +75,8 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
     switch (e.key.toLowerCase()) {
       case 'a': incrementPan(-stepNumber); break;
       case 'd': incrementPan(stepNumber); break;
-      case 's': incrementTilt(-stepNumber); break;
-      case 'w': incrementTilt(stepNumber); break;
+      case 'w': incrementTilt(-stepNumber); break;
+      case 's': incrementTilt(stepNumber); break;
     }
   }, [incrementPan, incrementTilt, stepNumber])
 
@@ -89,13 +89,13 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
           incrementPan(-stepNumber); //negative pan is left
           break;
         case 'd':
-          incrementPan(stepNumber); //positive pan is right
-          break;
-        case 's':
-          incrementTilt(-stepNumber); //negative tilt is down
+          incrementPan(stepNumber);//positive pan is right
           break;
         case 'w':
-          incrementTilt(stepNumber); //positive tilt is up
+          incrementTilt(-stepNumber);//negative tilt is up
+          break;
+        case 's':
+          incrementTilt(stepNumber);//positive tilt is down
           break;
         default:
           break;

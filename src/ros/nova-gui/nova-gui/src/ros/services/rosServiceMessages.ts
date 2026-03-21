@@ -43,8 +43,7 @@ export const rosServiceMessages = {
   [RosService.TOOL_ROTATOR_PRESETS]: "science_interfaces/srv/SetPositionPresets",
   [RosService.TOOL_ROTATOR_POSITION]:"science_interfaces/srv/SetPosition",
   [RosService.POWER_CYCLE_SCIENCE]: "science_interfaces/srv/PowerCycleScience",
-  [RosService.TOOL_ROTATOR_TWITCH]: "science_interfaces/srv/SetPosition",
-  
+
   // General
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",
 

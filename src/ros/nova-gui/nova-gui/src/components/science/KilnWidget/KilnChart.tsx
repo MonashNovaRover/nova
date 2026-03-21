@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Button, CardProps, Chip } from "@nextui-org/react";
+import { Button, CardProps } from "@nextui-org/react";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
@@ -123,6 +123,8 @@ const KilnChart: React.FC<KilnChartProps> = () => {
     };
   }, [chartConfig, seriesData]);
 
+  const currentTemp = kilnData?.temp?.[0];
+  const currentTempText = currentTemp === undefined || currentTemp === null ? "--" : `${currentTemp.toFixed(2)}°C`;
 
   const exportChart = useCallback(() => {
     const chartInstance = chartRef.current?.getEchartsInstance?.();
@@ -149,16 +151,11 @@ const KilnChart: React.FC<KilnChartProps> = () => {
   return (
     <>
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Chip size="lg" variant="flat" radius="md" className="h-10" color="warning" classNames={{ content: "flex items-center gap-2" }}>
-            <div className="text-sm">KILN</div>
-            <div className="text-white">{kilnData?.temp?.[0] != null ? `${kilnData.temp[0].toFixed(2)}°C` : "--"}</div>
-          </Chip>
-          <Chip size="lg" variant="flat" radius="md" className="h-10" color="primary" classNames={{ content: "flex items-center gap-2" }}>
-            <div className="text-sm">CONDENSER</div>
-            <div className="text-white">{kilnData?.temp?.[1] != null ? `${kilnData.temp[1].toFixed(2)}°C` : "--"}</div>
-          </Chip>
-        </div>
+        <Button
+          isDisabled
+          className={"text-lg opacity-100 bg-content3"}>
+          {currentTempText}
+        </Button>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="flat" isIconOnly onPress={exportChart}>
             <Download size={16} />

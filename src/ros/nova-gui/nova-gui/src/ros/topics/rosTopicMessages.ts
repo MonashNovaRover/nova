@@ -45,7 +45,6 @@ export const rosTopicMessages = {
   [RosTopic.BME_SENSOR]: "science_interfaces/msg/BMESensor",
   [RosTopic.AUGER1_DEPTH_SENSOR]: "std_msgs/msg/Bool",
   [RosTopic.AUGER2_DEPTH_SENSOR]: "std_msgs/msg/Bool",
-  [RosTopic.TOOL_ROTATOR_ANGLE]: "std_msgs/msg/Float64",
 
   // Maps Related
   [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",

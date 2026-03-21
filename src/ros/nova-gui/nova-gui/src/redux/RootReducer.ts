@@ -274,10 +274,6 @@ export const reduxStores = {
       data: false
     }
   ),
-  toolRotatorAngleStore: createBifrostStore(
-    { topic: RosTopic.TOOL_ROTATOR_ANGLE },
-    { data: 240.0 }
-  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
@@ -372,9 +368,7 @@ export const reduxStores = {
   cameraProfiles: createGenericStore("cameraProfiles", initialCameraProfilesState),
   clickAndHold: createGenericStore("clickAndHold", false),
   windowWideWASD: createGenericStore("windowWideWASD", false),
-  toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 240.0, microscope: 0.0, nir_probe: 120.0} as PresetPositions),
-  toolRotatorTwitchStep: createGenericStore("toolRotatorTwitchStep", 5.0),
-  toolRotatorKeyboardControl: createGenericStore("toolRotatorKeyboardControl", false),
+  toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 0.0, microscope: 120.0, nir_probe: 240.0} as PresetPositions)
 };
 
 // all store reducers
