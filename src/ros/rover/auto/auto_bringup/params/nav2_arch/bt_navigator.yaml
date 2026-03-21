@@ -17,7 +17,7 @@ bt_navigator:
     default_nav_to_pose_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/nav_to_pose.xml
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/nav_through_poses_remove_goals.xml
+    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/nav_through_poses_remove_nearby_collision_goals.xml
     plugin_lib_names:
       - nova_blackboard_publisher_bt_node
       - nova_get_current_pose_action_bt_node
