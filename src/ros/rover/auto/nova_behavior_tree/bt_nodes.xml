@@ -45,6 +45,8 @@
     <Action ID="RemoveNearbyInCollisionGoals">
       <input_port name="input_goals">A vector of goals to check if in collision</input_port>
       <input_port name="max_distance_threshold">Maximum distance (m) within which to consider goals for removal</input_port>
+      <input_port  name="global_frame">Global frame</input_port>
+      <input_port  name="robot_base_frame">Robot base frame</input_port>
       <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
     </Action>
 
