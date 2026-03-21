@@ -1,0 +1,99 @@
+<?xml version="1.0" ?>
+<sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="nova_world_physics">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+  </xacro:macro>
+
+  <xacro:macro name="nova_world_plugins">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+        name="gz::sim::systems::Imu">
+    </plugin>
+  </xacro:macro>
+
+  <xacro:macro name="nova_world_spherical_coordinates" params="latitude_deg longitude_deg elevation:='1370.0' heading_deg:='180' world_frame_orientation:=''">
+    <spherical_coordinates>
+      <!-- currently gazebo has a bug: instead of outputting lat, long, altitude in ENU
+      (x = East, y = North and z = Up) as the default configurations, it's outputting (-E)(-N)U,
+      therefore we rotate the default frame 180 so that it would go back to ENU
+      see: https://github.com/osrf/gazebo/issues/2022 -->
+      <surface_model>EARTH_WGS84</surface_model>
+      <xacro:if value="${world_frame_orientation != ''}">
+        <world_frame_orientation>${world_frame_orientation}</world_frame_orientation>
+      </xacro:if>
+      <latitude_deg>${latitude_deg}</latitude_deg>
+      <longitude_deg>${longitude_deg}</longitude_deg>
+      <elevation>${elevation}</elevation>
+      <heading_deg>${heading_deg}</heading_deg>
+    </spherical_coordinates>
+  </xacro:macro>
+
+  <xacro:macro name="nova_world_directional_sun" params="cast_shadows:='true'">
+    <light type="directional" name="sun">
+      <cast_shadows>${cast_shadows}</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+  </xacro:macro>
+
+  <xacro:macro name="nova_world_scene" params="shadows:='false' include_sky:='false'">
+    <scene>
+      <shadows>${shadows}</shadows>
+      <xacro:if value="${include_sky == 'true'}">
+        <sky></sky>
+      </xacro:if>
+    </scene>
+  </xacro:macro>
+
+  <xacro:macro name="nova_world_orbit_camera_gui" params="camera_pose">
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose frame=''>${camera_pose}</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </xacro:macro>
+
+  <xacro:macro name="nova_world_ground_plane">
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane
+      </uri>
+    </include>
+  </xacro:macro>
+
+  <xacro:macro name="nova_world_sun" params="pose:='2 -10 10 0.8 -0.8 0'">
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun
+      </uri>
+      <pose>${pose}</pose>
+    </include>
+  </xacro:macro>
+</sdf>

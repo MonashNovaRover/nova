@@ -24,8 +24,9 @@ from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.logging import get_logger
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
+from nav2_common.launch import RewrittenYaml
 from logging import Logger
 
 class Colour:
@@ -79,18 +80,26 @@ def launch_setup(context, *args, **kwargs):
     tfs = LaunchConfiguration('tfs')
     sim = LaunchConfiguration('sim')
     uncompress_img = LaunchConfiguration('uncompress_img')
+    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
 
     logger = get_logger("lidar_launch")
+
+    fastlivo2_rewritten_params = RewrittenYaml(
+        source_file=fastlivo2_params,
+        param_rewrites={
+            'common.img_topic': img_topic,
+            'scan_line': '4' if sim.perform(context).lower() == 'false' else '40',
+        },
+        convert_types=True,
+    )
 
     fastlivo2_node = Node(
         package='fast_livo',
         executable='fastlivo_mapping',
         name='fastlivo2',
         output='screen',
-        parameters=[fastlivo2_params, extrinsics_params,
-                    {'use_sim_time': sim,
-                     'save_folder': output_dir,
-                     'img_topic': img_topic}],
+        parameters=[fastlivo2_rewritten_params, extrinsics_params,
+                    {'save_folder': output_dir}],
     )
 
     wait_for_parameter_blackboard = Node(
@@ -104,13 +113,26 @@ def launch_setup(context, *args, **kwargs):
     )
 
     return [
+        SetParameter(name='use_sim_time', value=sim),
         Node(
             condition=UnlessCondition(sim),
             package='livox_ros_driver2',
             executable='livox_ros_driver2_node',
             name='livox_lidar_publisher',
             output='screen',
-            parameters=[lidar_params, {'user_config_path': lidar_config, 'use_sim_time': sim}],
+            parameters=[lidar_params, {'user_config_path': lidar_config}],
+        ),
+        Node(
+            condition=IfCondition(sim),
+            package='nova_utils',
+            executable='livox_field_republisher.py',
+            name='livox_field_republisher',
+            output='screen',
+            parameters=[
+                {'input_topic': '/livox/lidar_sim'},
+                {'output_topic': '/livox/lidar'},
+                {'default_tag': 16},
+            ],
         ),
         Node(
             # NOTE image_transport only creates subscribers if subscribers exist for its publishers. 
@@ -203,21 +225,47 @@ def launch_setup(context, *args, **kwargs):
                     arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
                     output='screen',
                 ),
-                Node(
-                    package='tf2_ros',
-                    executable='static_transform_publisher',
-                    name='odom_to_camera_init_publisher',
-                    # tf2_echo base_link to livox_frame
-                    arguments=["0.541", "0", "0.950", "0", "0", "0", "odom", "camera_init"],
-                    output='screen',
+                GroupAction(
+                    condition=UnlessCondition(shortened_auto_mount),
+                    actions=[
+                        Node(
+                            package='tf2_ros',
+                            executable='static_transform_publisher',
+                            name='odom_to_camera_init_publisher',
+                            # tf2_echo base_link to livox_frame
+                            arguments=["0.541", "0", "0.950", "0", "0", "0", "odom", "camera_init"],
+                            output='screen',
+                        ),
+                        Node(
+                            package='tf2_ros',
+                            executable='static_transform_publisher',
+                            name='aft_mapped_to_base_link_publisher',
+                            # tf2_echo livox_frame to base_link
+                            arguments=["0.196", "0", "-1.076", "0", "-0.698", "0", "aft_mapped", "base_link"],
+                            output='screen',
+                        ),
+                    ],
                 ),
-                Node(
-                    package='tf2_ros',
-                    executable='static_transform_publisher',
-                    name='aft_mapped_to_base_link_publisher',
-                    # tf2_echo livox_frame to base_link
-                    arguments=["0.196", "0", "-1.076", "0", "-0.698", "0", "aft_mapped", "base_link"],
-                    output='screen',
+                GroupAction(
+                    condition=IfCondition(shortened_auto_mount),
+                    actions=[
+                        Node(
+                            package='tf2_ros',
+                            executable='static_transform_publisher',
+                            name='odom_to_camera_init_publisher',
+                            # tf2_echo base_link to livox_frame
+                            arguments=["0.330", "0", "0.950", "0", "0", "0", "odom", "camera_init"],
+                            output='screen',
+                        ),
+                        Node(
+                            package='tf2_ros',
+                            executable='static_transform_publisher',
+                            name='aft_mapped_to_base_link_publisher',
+                            # tf2_echo livox_frame to base_link
+                            arguments=["0.358", "0", "-0.940", "0", "-0.698", "0", "aft_mapped", "base_link"],
+                            output='screen',
+                        ),
+                    ],
                 ),
             ],
         ),
@@ -301,6 +349,11 @@ def generate_launch_description():
             name='uncompress_img',
             default_value='False',
             description='Uncompress compressed image stream? (for playing back from rosbag)',
+        ),
+        DeclareLaunchArgument(
+            name='shortened_auto_mount',
+            default_value='True',
+            description='Use shortened auto mount TFs?',
         ),
     ]
 

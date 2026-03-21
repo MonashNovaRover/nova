@@ -38,8 +38,6 @@ def launch_setup(context, *args, **kwargs):
     comp = LaunchConfiguration('comp').perform(context).lower()
 
     # comp agnostic arguments
-    angle = LaunchConfiguration('angle')
-    camera = LaunchConfiguration('camera')
     gz_params = LaunchConfiguration('gz_params')
     gz_qos_params = LaunchConfiguration('gz_qos_params')
     controller_params = LaunchConfiguration('controller_params')
@@ -52,6 +50,9 @@ def launch_setup(context, *args, **kwargs):
             'P': LaunchConfiguration('P').perform(context),
             'Y': LaunchConfiguration('Y').perform(context)}
     robot_name = LaunchConfiguration('robot_name')
+    world = LaunchConfiguration('world')
+    rviz = LaunchConfiguration('rviz')
+    rviz_params = LaunchConfiguration('rviz_params')
     
     # comp defaults
     if comp == 'arch':
@@ -79,17 +80,12 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
-            condition=IfCondition(camera),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'oak.launch.py'])),
-            launch_arguments={'gazebo': 'True'}.items(),
-        ),
-        IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'angle': angle, 'camera': camera}.items(),
+            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'rviz': rviz, 'rviz_params': rviz_params}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
-            launch_arguments={'gz_args': ['-r -v4 ', world], 'on_exit_shutdown': 'True'}.items(),
+            launch_arguments={'gz_args': ['-r -v1 ', world], 'on_exit_shutdown': 'True'}.items(),
         ),
         Node(
             package='ros_gz_sim',
@@ -129,16 +125,6 @@ def generate_launch_description():
         ),
         # comp agnostic arguments
         DeclareLaunchArgument(
-            name='angle',
-            default_value='15',
-            description='Angle (in degrees) at which the camera is mounted',
-        ),
-        DeclareLaunchArgument(
-            name='camera',
-            default_value='True',
-            description='Whether to spawn auto mount on the rover.',
-        ),
-        DeclareLaunchArgument(
             name='gz_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge.yaml']),
             description='Absolute path to ros_gz_bridge params file',
@@ -167,6 +153,16 @@ def generate_launch_description():
             name='robot_name',
             default_value='Banksia',
             description='name of the robot',
+        ),
+        DeclareLaunchArgument(
+            name='rviz',
+            default_value='False',
+            description='Whether to launch RViz',
+        ),
+        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
+            name='rviz_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
+            description='Full path to the RViz config file to use',
         ),
         DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
