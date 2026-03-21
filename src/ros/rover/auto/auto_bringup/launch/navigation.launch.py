@@ -28,7 +28,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetParameter
 from launch_ros.substitutions import FindPackageShare
 import os
 
@@ -47,7 +47,6 @@ def launch_setup(context, *args, **kwargs):
     autostart = LaunchConfiguration('autostart')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
-    ground_seg_params = LaunchConfiguration('ground_seg_params')
     namespace = LaunchConfiguration('namespace')
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
@@ -63,14 +62,8 @@ def launch_setup(context, *args, **kwargs):
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
 
-    # Substitute params for each node with launch params
-    substitution_params = {
-        'use_sim_time': gazebo,
-        'autostart': autostart,
-    }
     # Combine all params from sim, substitution, and nav2 directory
     nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in os.listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
-    nav2_params.append(substitution_params)
     if mppi:
         mppi_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_mppi', mppi_config + '.yaml'])
         if os.path.exists(mppi_params.perform(context)):
@@ -92,16 +85,8 @@ def launch_setup(context, *args, **kwargs):
                   ('/tf_static', 'tf_static')]
     
     return [
-        Node(
-            package="ground_segmentation_ros2",
-            executable="ground_segmentation_ros2_node",
-            parameters=[ground_seg_params, {"use_sim_time": gazebo}],
-            remappings=[
-                ("/ground_segmentation/input_pointcloud", '/livox/lidar_masked'),
-                ("/ground_segmentation/input_imu", '/livox/imu'),
-            ],
-            output="screen",
-        ),
+        SetParameter(name='use_sim_time', value=gazebo),
+        SetParameter(name='autostart', value=autostart),
         GroupAction(
             actions=[
                 Node(
@@ -250,11 +235,6 @@ def generate_launch_description():
             name='map_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'map.yaml']),
             description='Full path to the parameters file to use for static map layer',
-        ),
-        DeclareLaunchArgument(
-            name='ground_seg_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ground_segmentation.yaml']),
-            description='Full path to the parameters file to use for ground segmentation',
         ),
         DeclareLaunchArgument(
             name='namespace',

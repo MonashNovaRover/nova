@@ -82,13 +82,15 @@ def launch_setup(context, *args, **kwargs):
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
     livox_driver = LaunchConfiguration('livox_driver')
-    mask = LaunchConfiguration('mask')
-    img_en = int(LaunchConfiguration('img_en').perform(context).lower() == 'true')
-    fastlivo2 = LaunchConfiguration('fastlivo2')
-    fastlivo2_params = LaunchConfiguration('fastlivo2_params')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
+    mask = LaunchConfiguration('mask')
+    ground_seg = LaunchConfiguration('ground_seg')
+    ground_seg_params = LaunchConfiguration('ground_seg_params')
     tfs = LaunchConfiguration('tfs')
+    fastlivo2 = LaunchConfiguration('fastlivo2')
+    fastlivo2_params = LaunchConfiguration('fastlivo2_params')
+    img_en = int(LaunchConfiguration('img_en').perform(context).lower() == 'true')
     sim = LaunchConfiguration('sim')
     uncompress_img = LaunchConfiguration('uncompress_img')
     shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
@@ -170,6 +172,17 @@ def launch_setup(context, *args, **kwargs):
                             'input_frame': 'base_link'}],
             remappings=[('input', '/livox/lidar'),
                         ('output', '/livox/lidar_masked')],
+        ),
+        Node(
+            condition=IfCondition(ground_seg),
+            package="ground_segmentation_ros2",
+            executable="ground_segmentation_ros2_node",
+            parameters=[ground_seg_params],
+            remappings=[
+                ("/ground_segmentation/input_pointcloud", '/livox/lidar_masked'),
+                ("/ground_segmentation/input_imu", '/livox/imu'),
+            ],
+            output="screen",
         ),
         Node(
             condition=IfCondition(sim),
@@ -316,6 +329,16 @@ def generate_launch_description():
             name='mask',
             default_value='True',
             description='Remove points that intersect with the rover?',
+        ),
+        DeclareLaunchArgument(
+            name='ground_seg',
+            default_value='True',
+            description='Run ground segmentation?',
+        ),
+        DeclareLaunchArgument(
+            name='ground_seg_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ground_segmentation.yaml']),
+            description='Full path to the parameters file to use for ground segmentation',
         ),
         DeclareLaunchArgument(
             name='tfs',
