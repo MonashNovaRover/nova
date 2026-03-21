@@ -27,7 +27,7 @@ const urdf::Model & RobotModel::get_urdf_model() const {
 
 const JointMapBuilder & RobotModel::get_joint_map_builder() const {
   std::call_once(joint_map_builder_flag_, [&]{
-    joint_map_builder_ = std::make_unique<JointMapBuilder>();
+    joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>();
 
     joint_map_builder_->with_urdf(get_urdf_model());
     joint_map_builder_->with_transmissions(get_robot_description(), rclcpp::get_logger("robot_model"));

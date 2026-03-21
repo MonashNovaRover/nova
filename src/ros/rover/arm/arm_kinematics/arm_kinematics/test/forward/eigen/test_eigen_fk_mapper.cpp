@@ -222,7 +222,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
   std::vector<double> joint_states{ d, theta };
 
   auto weird_joint_map = plugin->get_joint_map_builder().build({"joint1", "joint2"}, {"joint1", "joint2", "joint1", "joint 1", "joint 2"});
-  std::vector<float> mapped_joint_states_weird(weird_joint_map.output_count);
+  std::vector<float> mapped_joint_states_weird(weird_joint_map.output_count());
   weird_joint_map.map(joint_states, mapped_joint_states_weird);
 
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
@@ -233,23 +233,15 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
   auto * tree = dynamic_cast<EigenForwardKinematicsPlugin::TreeImpl *>(tree_.get());
   ASSERT_TRUE(tree) << "Failed to create tree";
 
-  std::vector<float> mapped_joint_states(tree->get_joint_map().output_count);
+  std::vector<float> mapped_joint_states(tree->get_joint_map().output_count());
   tree->get_joint_map().map(joint_states, mapped_joint_states);
   EXPECT_NEAR(mapped_joint_states[0], joint_states[0], EPSILON) << "joint 0 value mapped incorrectly";
   EXPECT_NEAR(mapped_joint_states[1], joint_states[1], EPSILON) << "joint 1 value mapped incorrectly";
 
-  EXPECT_NEAR(tree->get_joint_map().multipliers[0], 1, EPSILON) << "wrong joint 0 multiplier";
-  EXPECT_NEAR(tree->get_joint_map().multipliers[1], 1, EPSILON) << "wrong joint 1 multiplier";
-
-  EXPECT_NEAR(tree->get_joint_map().offsets[0], 0, EPSILON) << "wrong joint 0 offset";
-  EXPECT_NEAR(tree->get_joint_map().offsets[1], 0, EPSILON) << "wrong joint 1 offset";
-
-  EXPECT_EQ(tree->get_joint_map().sources[0], 0) << "wrong joint 0 source";
-  EXPECT_EQ(tree->get_joint_map().sources[1], 1) << "wrong joint 1 source";
-
   EXPECT_EQ(tree->get_tree().get_tree().poses.size(), 2) << "joint tree poses are the wrong size";
-  EXPECT_EQ(tree->get_joint_map().input_count, 2) << "joint map is the wrong size";
-  EXPECT_EQ(tree->get_joint_map().output_count, 2) << "joint map is the wrong size";
+  EXPECT_EQ(tree->get_joint_map().input_count(), 2) << "joint map is the wrong size";
+  EXPECT_EQ(tree->get_joint_map().output_count(), 2) << "joint map is the wrong size";
+  EXPECT_TRUE(tree->get_joint_map().valid()) << "joint map should be valid";
   EXPECT_EQ(tree->get_mapped_joint_states().size(), 2) << "mapped joint states are the wrong size";
 
   EXPECT_EQ(tree->get_tree().get_parents()[0], 0) << "frame 0 has the wrong parent";
@@ -345,7 +337,7 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
 
   const std::vector<std::string> & mapper_joint_names = {subanal.get_joints().names.begin() + 1, subanal.get_joints().names.end()};
   const auto joint_map = plugin->get_joint_map_builder().build(joint_names, mapper_joint_names);
-  std::vector<float> joint_states_mapped(joint_map.output_count);
+  std::vector<float> joint_states_mapped(joint_map.output_count());
   joint_map.map(joint_states, joint_states_mapped);
 
   tree.update(joint_states_mapped);

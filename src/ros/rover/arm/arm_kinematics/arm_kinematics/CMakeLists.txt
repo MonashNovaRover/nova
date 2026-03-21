@@ -33,7 +33,8 @@ include_directories(
 add_library(${PROJECT_NAME} SHARED
   src/utilities/utilities.cpp
   src/joint_map/joint_map.cpp
-  src/joint_map/joint_map_builder.cpp
+  src/joint_map/affine_joint_map.cpp
+  src/joint_map/default_joint_map_builder.cpp
   src/common/kinematics_params.cpp
   src/common/kinematics_base.cpp
   src/forward/forward_kinematics_plugin.cpp

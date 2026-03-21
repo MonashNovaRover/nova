@@ -181,9 +181,6 @@ protected:
    * \returns True if initialization was successful. False otherwise.
    */
   virtual bool on_initialize() = 0;
-
-private:
-  JointMapBuilder joint_map_builder_{};
 };
 
 } // arm_kinematics

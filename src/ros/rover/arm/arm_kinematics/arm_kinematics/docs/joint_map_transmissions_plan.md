@@ -163,7 +163,7 @@ Something like:
 class JointMap {
 public:
   virtual ~JointMap() = default;
-  virtual void map(const std::vector<double> & inputs, std::vector<float> & outputs) const = 0;
+  virtual void map(const span<double> & inputs, span<float> & outputs) const = 0;
 
   size_t input_count = 0;
   size_t output_count = 0;
@@ -186,8 +186,7 @@ public:
   template<class Impl>
   JointMap(Impl impl);
 
-  void map(const std::vector<double> & inputs, std::vector<float> & outputs) const;
-  void map(const std::vector<double> & inputs, KDL::JntArray & outputs) const;
+  void map(const span<double> & inputs, span<float> & outputs) const;
 };
 ```
 
@@ -314,6 +313,17 @@ The builder's job becomes:
 
 This is the only clean way to handle arbitrary directionality.
 
+This problem mirrors that solved by the default `EigenForwardKinematicsPlugin` forward kinematics plugin's 
+implementation of `ForwardKinematicsPlugin::make_tree`, making use of a new `AnalysisTree` type. 
+
+`AnalysisTree` first simplified the problem by converting the URDF to an equivalent representation that was more 
+suited to contructing the compute-oriented data structures with arbitrary directionality as to which joint is 
+considered the root. It converted fixed joints into equivalent affine offsets to actuated joints (which it names 
+"frames" in the code).
+
+The use of additional data structures, such as seen previously with `AnalysisTree`, should be considered to 
+encapsulate the complexity of solving complex problems in multiple steps.
+
 ## 2. Directionality must be explicit
 
 Your note about acting in reverse depending on requested inputs and outputs is the core difficulty.
@@ -336,7 +346,9 @@ For ros2_control transmissions, the builder may need adapters that know how to:
 depending on the transmission type and what was requested.
 
 Not every stage should be assumed reversible.
-Reversibility should be a capability, not a default assumption.
+Reversibility should be a capability, not a default assumption. 
+However, it should be strongly encouraged. No user should misunderstand that 
+omitting the logic for reversing a transmission should be a very intentional choice.
 
 ## 3. Some transmission groups must be solved as a unit
 
@@ -392,6 +404,13 @@ Characteristics:
 - probably cannot be vectorized the same way as the affine path
 
 This should be the base abstraction for both ros2_control transmissions and custom plugin-defined transmission logic.
+
+ros2_control types should not be used internally, and a lightweight type specific to our problem case should be employed.
+
+FK plugin implementations should be able to provide transmission definitions for building joint maps without the 
+overhead and complexity of implementing a transmission for ros2 control.
+
+ros2_control transmissions should simply be implemented throguh this lightweight interface.
 
 ## 3. `CompositeJointMap`
 
@@ -479,7 +498,8 @@ The main change here is conceptual:
 `RobotModel::get_joint_map_builder()` probably should remain, but be reframed as:
 
 - the shared default builder factory
-- not necessarily the final policy owner for a specific FK backend
+- however this should relate to the specific FK backend
+- we should not end up with two different competing joint map builder sources. 
 
 I would not remove it immediately.
 It is still useful as the common backing source of URDF-derived mapping rules.
@@ -535,21 +555,29 @@ Risk:
 Success criterion:
 
 - you can answer, for any requested input/output name sets, whether a valid propagation plan exists
+  - A: no, if we can't assume all transmission are reversible, or conflicting definitions for joints exist, we should not return a valid map. 
+    tl::expected could be used here. We can make a case by case judgement as to whether certain configurations should produce a warning, or fail entirely, as we encounter them.
 
-## Stage 4: ros2_control transmission-backed runtime map
+## Stage 4: transmission-backed runtime map
 
 Deliverables:
 
-- implement `TransmissionJointMap` for the supported ros2_control transmission types
+- implement `TransmissionJointMap` for lightweight transmission types
 - allow forward and reverse mapping where valid
+- support ros2_control transmission types through previously defined lightweight transmission types. 
+  ros2_control headers should not touch the implementation fo the transmission joint map, with the exception of helper constructors.
 
 Risk:
 
 - medium-high, depending on how many transmission types you want initially
+  - A: the number of transmission types should not be relevant to us here. We should implement support for transmissions that fit the form of some lightweight transmission type that we define. 
+    This should then be used to support any future transmission needs, with consumers defining the functions for mapping in either direction per transmission they want to support.
+    ros2_control transmission types should not be the focus.
 
 Success criterion:
 
 - end-to-end tests show actuator/joint mappings working in both supported directions
+- ros2_control transmission types do not necessarily need to be in-scope for this testing. 
 
 ## Stage 5: composition and optimization
 
@@ -593,7 +621,7 @@ The main risks I see are:
 
 If the abstraction is too close to current ros2_control parser structures, plugin-specific custom mappings will become awkward.
 
-The abstraction should be about propagation stages, not about XML.
+The abstraction should be about propagation stages, not about XML. Do not consult ros2_control in creating the design.
 
 ### 2. Breaking the fast path
 
@@ -637,6 +665,8 @@ Do not start by implementing ros2_control transmission support directly inside t
 Start by making the runtime and builder abstractions capable of hosting multiple implementations.
 
 That is the prerequisite that will make the rest of the work tractable.
+
+- A: I agree! I love the type erasure approach.
 
 ## Recommended Immediate Work Items
 

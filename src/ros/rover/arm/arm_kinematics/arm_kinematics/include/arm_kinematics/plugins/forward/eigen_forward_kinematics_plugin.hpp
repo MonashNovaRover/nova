@@ -27,7 +27,7 @@ public:
     : Tree(output_count),
       tree_(std::move(mapper)),
       joint_map_(std::move(joint_map)),
-      mapped_joint_states_(joint_map_.output_count)
+      mapped_joint_states_(joint_map_.output_count())
     {
     }
 

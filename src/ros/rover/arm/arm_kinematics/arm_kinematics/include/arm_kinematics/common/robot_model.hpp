@@ -11,6 +11,7 @@
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/forward/utilities/analysis_tree.hpp"
+#include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 
 namespace arm_kinematics {
@@ -53,7 +54,7 @@ private:
   mutable std::once_flag urdf_model_flag_{};
 
   /// Lazily evaluated joint map builder
-  mutable std::unique_ptr<JointMapBuilder> joint_map_builder_ = nullptr;
+  mutable std::unique_ptr<DefaultJointMapBuilder> joint_map_builder_ = nullptr;
   mutable std::once_flag joint_map_builder_flag_{};
 
   /// Lazily evaluated analysis tree
