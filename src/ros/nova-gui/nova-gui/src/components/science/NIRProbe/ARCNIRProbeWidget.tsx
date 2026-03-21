@@ -7,6 +7,7 @@ import SiteTypeSelectWidget from "../SiteSelectWidget/SiteTypeSelectWidget.tsx";
 import NIRProbeCalcTable from "./NIRProbeFileTable/NIRProbeCalcTable.tsx";
 import NIRCalibrationSettingsModal from "./NIRProbeFileTable/NIRCalibrationSettingsModal.tsx";
 import {ARCNIRPRobeReadingTypeInfo} from "./SpaceResourcesSiteType.tsx";
+import { useToolRotatorKeyboard } from "../ToolRotatorWidget/useToolRotator.ts";
 
 interface INIRProbeWidgetProps {
 }
@@ -18,6 +19,8 @@ interface INIRProbeWidgetProps {
 export const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
   // whether to show the advanced capabilities
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+
+  useToolRotatorKeyboard()
 
   return (
     <div className="grid grid-flow-col auto-cols-fr gap-3">
@@ -50,6 +53,8 @@ export const ARCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
 export const ARCNIRProbeWidgetOneCol: React.FC<INIRProbeWidgetProps> = () => {
   // whether to show the advanced capabilities
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+
+  useToolRotatorKeyboard()
 
   return (
       <div className="grid grid-cols-2 gap-3">
