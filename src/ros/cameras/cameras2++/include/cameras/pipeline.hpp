@@ -15,7 +15,6 @@ struct v4lProperties
   int width;
   int height;
   int framerate;
-  int bitrate;
   int brightness;
   int contrast;
   std::string device;
@@ -43,9 +42,10 @@ struct x264encProperties
   std::string me;
   int subme;
   int threads;
+  int bitrate;
   int noise_reduction;
   int gop;
-  std::string platform;
+  std::string decoder;
 };
 
 struct clockProperties

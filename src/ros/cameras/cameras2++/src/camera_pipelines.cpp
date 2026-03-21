@@ -66,7 +66,6 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
         props->congestion_control == "gcc" ? 2 : -1),
       "meta", meta,
       "video-caps", webrtc_caps,
-      "max-bitrate", props->bitrate,
       NULL);
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
@@ -141,7 +140,6 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false); 
   streamer_node->get_parameter_or((camera_prefix + ".show_clock").c_str(), props->show_clock, false);
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264,profile=constrained-baseline");
-  streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 409600);
 
   return props;
 }
@@ -325,10 +323,11 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
       props->me == "tesa" ? 4:
       0), // dia, faster
     "subme", props->subme, // Subpixel motion blur
-    "threads", props->threads, // 1
+    "threads", props->threads, // 1 is best for cpu and compression ratio
+    "bitrate", props->bitrate,
     "noise-reduction", props->noise_reduction,
-    "key-int-max", props->gop, // Largest GOP
-    "vbv-buf-capacity", props->gop*34+200,        // Buffer size for GOP, assuming fps=30
+    "key-int-max", props->gop*props->framerate, // Largest GOP
+    "vbv-buf-capacity", props->gop*1000,        // Buffer size for GOP
     "b-adapt", false, // Do not allow b frames
     "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
     NULL);
@@ -345,11 +344,10 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
         2),
       "meta", meta,
       "video-caps", webrtc_caps,
-      "max-bitrate", props->bitrate,
       NULL);
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
-    
+
   gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, encode, webrtc, NULL);
 
   bool ret = true;
@@ -358,13 +356,7 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
 
   if (props->mime == "image/jpeg") {
     // Convert to hardware decoding if possible
-    std::string decoder = (
-        props->platform == "nvidia" ? "nvjpegdec" :
-        props->platform == "laptop" ? "vajpegdec" :
-        "jpegdec"
-        );
-
-    GstElement* decode = gst_element_factory_make(decoder.c_str(), "decoder");
+    GstElement* decode = gst_element_factory_make(props->decoder.c_str(), "decoder");
     gst_bin_add(GST_BIN(gst_pipeline), decode);
     ret = gst_element_link(filter, decode) ? ret : false;
     ret = gst_element_link(decode, encode) ? ret : false;
@@ -410,14 +402,15 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false);
   streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false);
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264,profile=high-10-intra");
-  streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 819200);
+  streamer_node->get_parameter_or((camera_prefix + ".bitrate").c_str(), props->bitrate, 8192);
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".tune").c_str(), props->tune, "zerolatency");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".speed_preset").c_str(), props->speed_preset, "ultrafast");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".me").c_str(), props->me, "dia");
   streamer_node->get_parameter_or((camera_prefix + ".subme").c_str(), props->subme, 1);
   streamer_node->get_parameter_or((camera_prefix + ".noise_reduction").c_str(), props->noise_reduction, 256);
   streamer_node->get_parameter_or((camera_prefix + ".threads").c_str(), props->threads, 1);
-  streamer_node->get_parameter_or((camera_prefix + ".gop").c_str(), props->gop, 1); // Low latency GOP
+  streamer_node->get_parameter_or((camera_prefix + ".gop").c_str(), props->gop, 2); // Distance between frames, in seconds
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".decoder").c_str(), props->decoder, "jpegdec");
 
   return props;
 }
