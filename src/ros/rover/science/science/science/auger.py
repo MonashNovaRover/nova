@@ -114,8 +114,8 @@ if __name__ == "__main__":
     # ARCh auger system
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", AugerController) \
-        .with_hardware("actuation", QCMDHardware, can_id=0xC2) \
-        .with_hardware("drill", QCMDHardware, can_id=0xC1) \
+        .with_hardware("actuation", QCMDHardware, can_id=0x031) \
+        .with_hardware("drill", QCMDHardware, can_id=0x041) \
         .with_teleop(inputs) \
         .with_activation_buttons(
             start_active=True, 
