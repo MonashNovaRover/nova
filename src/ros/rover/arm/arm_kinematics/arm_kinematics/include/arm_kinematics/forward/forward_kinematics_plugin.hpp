@@ -131,7 +131,7 @@ public:
 
   /**
    * \brief Constructs the plugin implementation's Tree subclass. This helper overload provides the joint_map_builder
-   * automatically as the default joint map builder from get_robot_model().get_joint_map_builder().
+   * automatically via get_joint_map_builder().
    * \see ForwardKinematicsPlugin::Tree
    *
    * \param joint_names[in] The name of the joints to use as inputs
@@ -169,8 +169,10 @@ public:
   /**
    * \brief Gets the default joint map builder used for constructing trees.
    *
-   * Different plugin implementations may choose to provide a joint map builder that differs from the default
-   * implementation provided by RobotModel
+   * This is the canonical source of the FK plugin's default runtime joint mapping policy.
+   *
+   * Different plugin implementations may choose to provide a joint map builder that differs from the shared default
+   * implementation exposed by RobotModel.
    */
   [[nodiscard]] virtual const JointMapBuilder & get_joint_map_builder() const noexcept;
 

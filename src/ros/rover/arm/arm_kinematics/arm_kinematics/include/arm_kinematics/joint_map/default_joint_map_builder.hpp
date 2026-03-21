@@ -38,41 +38,90 @@ constexpr const auto kOffsetAttribute = "offset";
 
 namespace arm_kinematics {
 
+/**
+ * Default shared builder backed by the robot model's URDF-derived metadata.
+ *
+ * Stage 1 behavior:
+ *   - gathers mimic-joint definitions from the URDF
+ *   - parses ros2_control transmission definitions for future use
+ *   - always builds an AffineJointMap at runtime
+ *
+ * This type is the default shared implementation, not the only possible implementation. FK plugins may return a
+ * different JointMapBuilder when they need backend-specific mapping behavior.
+ */
 class ARM_KINEMATICS_PUBLIC DefaultJointMapBuilder final : public JointMapBuilder {
 public:
   DefaultJointMapBuilder() = default;
 
+  /**
+   * Constructs a JointMap that maps input_names to output_names.
+   *
+   * In Stage 1 this always returns an AffineJointMap wrapped as a JointMap.
+   */
   [[nodiscard]] JointMap build(
     const std::vector<std::string> & input_names,
     const std::vector<std::string> & output_names) const override;
 
+  /**
+   * Uses the given URDF model to add mimic joints.
+   *
+   * \param urdf_model The urdf::Model to get mimic joints from.
+   */
   DefaultJointMapBuilder & with_urdf(const urdf::Model & urdf_model);
+
+  /**
+   * Manually parses the given URDF string to get transmission definitions to include in the builder.
+   *
+   * \note This overload gracefully fails with a log message rather than throwing an exception. No transmissions are
+   *       added in the case of an exception occurring.
+   *
+   * \param urdf_string The URDF as a string, containing a ros2_control definition.
+   * \param logger the logger to log any caught exceptions to.
+   */
   DefaultJointMapBuilder & with_transmissions(const std::string & urdf_string, rclcpp::Logger logger);
+
+  /**
+   * Manually parses the given URDF string to get transmission definitions to include in the builder.
+   *
+   * \param urdf_string The URDF as a string, containing a ros2_control definition.
+   * \throws std::runtime_error for invalid URDFs.
+   */
   DefaultJointMapBuilder & with_transmissions_dangerous(const std::string & urdf_string);
 
 private:
+  // ros2_control transmission XML parsers
+  // source from ros2_control hardware_interface component parser
+
+  /// Gets value of the text between tags.
   static std::string get_text_for_element(
     const tinyxml2::XMLElement * element_it, const std::string & tag_name);
 
+  /// Gets value of the attribute on an XMLElement.
   static std::string get_attribute_value(
     const tinyxml2::XMLElement * element_it, const char * attribute_name, std::string tag_name);
 
+  /// Gets value of the attribute on an XMLElement.
   static std::string get_attribute_value(
     const tinyxml2::XMLElement * element_it, const char * attribute_name, const char * tag_name);
 
   static hardware_interface::JointInfo parse_transmission_joint_from_xml(const tinyxml2::XMLElement * element_it);
   static hardware_interface::ActuatorInfo parse_transmission_actuator_from_xml(const tinyxml2::XMLElement * element_it);
 
+  /// Gets value of the parameter on an XMLElement, or a default if absent.
   static double get_parameter_value_or(
     const tinyxml2::XMLElement * params_it, const char * parameter_name, double default_value);
 
+  /// Search XML snippet from URDF for parameters.
   static std::unordered_map<std::string, std::string> parse_parameters_from_xml(
     const tinyxml2::XMLElement * params_it);
 
+  /// Search XML snippet from URDF for information about a transmission.
   static hardware_interface::TransmissionInfo parse_transmission_from_xml(
     const tinyxml2::XMLElement * transmission_it);
 
+  /// Parsed transmission metadata from ros2_control XML. Parsed for future use, but not consumed in Stage 1 build().
   std::vector<hardware_interface::TransmissionInfo> transmissions_{};
+  /// Mimic joints gathered from the URDF.
   std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints_{};
 };
 
