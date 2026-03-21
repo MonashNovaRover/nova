@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /TF1/Frames1
         - /TF1/Tree1
         - /Mapping1
@@ -345,230 +346,21 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz_default_plugins/TF
-      Enabled: true
+      Enabled: false
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_link:
-          Value: true
-        bl_ankle:
-          Value: true
-        bl_ball_link_x:
-          Value: true
-        bl_ball_link_y:
-          Value: true
-        bl_wheel:
-          Value: true
-        bootie-base-frame:
-          Value: true
-        bootie_imu_frame:
-          Value: true
-        bootie_left_camera_frame:
-          Value: true
-        bootie_left_camera_optical_frame:
-          Value: true
-        bootie_link:
-          Value: true
-        bootie_link_gz_pointcloud:
-          Value: true
-        bootie_link_optical:
-          Value: true
-        bootie_model_origin:
-          Value: true
-        bootie_rgb_camera_frame:
-          Value: true
-        bootie_rgb_camera_optical_frame:
-          Value: true
-        bootie_right_camera_frame:
-          Value: true
-        bootie_right_camera_optical_frame:
-          Value: true
-        bootie_rotator:
-          Value: true
-        br_ankle:
-          Value: true
-        br_ball_link_x:
-          Value: true
-        br_ball_link_y:
-          Value: true
-        br_wheel:
-          Value: true
-        camera_holder:
-          Value: true
-        camera_holder_2:
-          Value: true
-        chassis:
-          Value: true
-        clam:
-          Value: true
-        d415_bottom_screw_frame:
-          Value: true
-        d415_link:
-          Value: true
-        diffbar:
-          Value: true
-        fl_ankle:
-          Value: true
-        fl_wheel:
-          Value: true
-        fr_ankle:
-          Value: true
-        fr_wheel:
-          Value: true
-        gps:
-          Value: true
-        left_diffend_dummy:
-          Value: true
-        left_difflink:
-          Value: true
-        left_leg:
-          Value: true
-        lidar_holder:
-          Value: true
-        lidar_rotator:
-          Value: true
-        livox_frame:
-          Value: true
-        map:
-          Value: true
-        mount:
-          Value: true
-        oak-base-frame:
-          Value: true
-        oak_imu_frame:
-          Value: true
-        oak_left_camera_frame:
-          Value: true
-        oak_left_camera_optical_frame:
-          Value: true
-        oak_link:
-          Value: true
-        oak_link_gz_pointcloud:
-          Value: true
-        oak_link_optical:
-          Value: true
-        oak_model_origin:
-          Value: true
-        oak_rgb_camera_frame:
-          Value: true
-        oak_rgb_camera_optical_frame:
-          Value: true
-        oak_right_camera_frame:
-          Value: true
-        oak_right_camera_optical_frame:
-          Value: true
-        oak_rotator:
-          Value: true
-        odom:
-          Value: true
-        right_diffend_dummy:
-          Value: true
-        right_difflink:
-          Value: true
-        right_leg:
-          Value: true
-        tl_ball_link_x:
-          Value: true
-        tl_ball_link_y:
-          Value: true
-        tr_ball_link_x:
-          Value: true
-        tr_ball_link_y:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: false
       Tree:
-        map:
-          odom:
-            base_link:
-              chassis:
-                clam:
-                  mount:
-                    bootie_rotator:
-                      camera_holder:
-                        bootie_link:
-                          bootie-base-frame:
-                            bootie_left_camera_frame:
-                              bootie_imu_frame:
-                                {}
-                              bootie_left_camera_optical_frame:
-                                {}
-                            bootie_model_origin:
-                              {}
-                            bootie_rgb_camera_frame:
-                              bootie_rgb_camera_optical_frame:
-                                {}
-                            bootie_right_camera_frame:
-                              bootie_right_camera_optical_frame:
-                                {}
-                          bootie_link_optical:
-                            bootie_link_gz_pointcloud:
-                              {}
-                    lidar_rotator:
-                      lidar_holder:
-                        livox_frame:
-                          {}
-                    oak_rotator:
-                      camera_holder_2:
-                        d415_bottom_screw_frame:
-                          d415_link:
-                            {}
-                        oak_link:
-                          oak-base-frame:
-                            oak_left_camera_frame:
-                              oak_imu_frame:
-                                {}
-                              oak_left_camera_optical_frame:
-                                {}
-                            oak_model_origin:
-                              {}
-                            oak_rgb_camera_frame:
-                              oak_rgb_camera_optical_frame:
-                                {}
-                            oak_right_camera_frame:
-                              oak_right_camera_optical_frame:
-                                {}
-                          oak_link_optical:
-                            oak_link_gz_pointcloud:
-                              {}
-                diffbar:
-                  tl_ball_link_x:
-                    tl_ball_link_y:
-                      left_difflink:
-                        bl_ball_link_x:
-                          bl_ball_link_y:
-                            left_diffend_dummy:
-                              {}
-                  tr_ball_link_x:
-                    tr_ball_link_y:
-                      right_difflink:
-                        br_ball_link_x:
-                          br_ball_link_y:
-                            right_diffend_dummy:
-                              {}
-                left_leg:
-                  bl_ankle:
-                    bl_wheel:
-                      {}
-                  fl_ankle:
-                    fl_wheel:
-                      {}
-                right_leg:
-                  br_ankle:
-                    br_wheel:
-                      {}
-                  fr_ankle:
-                    fr_wheel:
-                      {}
-              gps:
-                {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Class: rviz_common/Group
       Displays:
         - Alpha: 1
@@ -583,7 +375,7 @@ Visualization Manager:
           Color: 239; 41; 41
           Color Transformer: FlatColor
           Decay Time: 0
-          Enabled: false
+          Enabled: true
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Max Intensity: 4096
@@ -866,7 +658,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -878,7 +670,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        goal_marker: true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -1038,6 +830,105 @@ Visualization Manager:
           Value: false
       Enabled: false
       Name: RawSensorData
+    - Alpha: 0.30000001192092896
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz_default_plugins/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 0
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /livox/lidar
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz_default_plugins/PointCloud2
+      Color: 51; 209; 122
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ground_segmentation/ground_points
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz_default_plugins/PointCloud2
+      Color: 224; 27; 36
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ground_segmentation/obstacle_points
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1076,7 +967,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/ThirdPersonFollower
-      Distance: 10.59791374206543
+      Distance: 7.288106441497803
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -1091,10 +982,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6650004982948303
+      Pitch: 0.48000115156173706
       Target Frame: base_link
       Value: ThirdPersonFollower (rviz_default_plugins)
-      Yaw: 3.146601438522339
+      Yaw: 3.124742269515991
     Saved:
       - Class: rviz_default_plugins/ThirdPersonFollower
         Distance: 10
