@@ -17,6 +17,7 @@ The proposed change is to make `JointMap` able to represent more than one implem
 - more complex many-to-many transmission logic becomes possible
 - plugin-specific FK implementations can provide the most appropriate default `JointMapBuilder`
 - ros2_control transmissions can be supported as one concrete mapping layer rather than being hard-coded into the current affine implementation
+- position and velocity mapping can both be expressed explicitly by requesting the appropriate `JointMap` at build time, rather than forcing users to choose between multiple runtime mapping methods
 
 The design goal should be:
 
@@ -45,6 +46,7 @@ The hardest parts are:
 
 - introducing many-to-many mapping semantics without destroying the current fast path
 - defining how reversibility works when the caller asks for arbitrary input and output joint sets
+- defining how different quantity types, especially position and velocity, should be mapped across the same joint-space relationship
 - deciding where builder ownership should live so plugin-specific defaults are clean
 - keeping runtime usage simple and real-time-friendly
 
@@ -140,6 +142,8 @@ That is a different category of problem.
 
 The current representation is output-local and affine.
 Transmission propagation is graph-like and may require grouped evaluation.
+Velocity propagation may also differ from position propagation even when the named spaces are the same.
+That does not necessarily mean the runtime API should expose two map functions; it may be cleaner to treat quantity type as part of map construction.
 
 That is why I do not think "just add more arrays to `JointMap`" is the right path.
 The abstraction boundary itself needs to change.
@@ -206,6 +210,7 @@ Its role:
 - remain the default for reorder-only and mimic-only cases
 - preserve the current vectorizable behavior
 - stay trivially cheap to execute in the hot path
+- allow the builder to select a position-specific or velocity-specific affine map if a future implementation needs that distinction
 
 This is important because the majority of FK tree updates probably still fall into this category.
 
@@ -337,6 +342,7 @@ So each mapping stage should expose, conceptually:
 - what named variables it can produce
 - whether it supports forward propagation
 - whether it supports reverse propagation
+- whether its position and velocity propagation rules are the same or intentionally different
 
 For ros2_control transmissions, the builder may need adapters that know how to:
 
@@ -402,6 +408,7 @@ Characteristics:
 - likely uses small intermediate scratch buffers
 - stage evaluation may be per-group rather than per-output
 - probably cannot be vectorized the same way as the affine path
+- should be able to distinguish position and velocity propagation rules explicitly
 
 This should be the base abstraction for both ros2_control transmissions and custom plugin-defined transmission logic.
 
@@ -604,8 +611,10 @@ At minimum, add tests for:
 - pure reorder
 - mimic chain
 - affine fast path still chosen when no transmissions are involved
+- position and velocity behavior are both covered for affine-only mappings
 - one transmission, forward direction
 - one transmission, reverse direction
+- one transmission where velocity mapping intentionally differs from position mapping
 - many-input/many-output grouped transmission
 - impossible mapping requests fail clearly
 - composition of affine stage plus transmission stage
