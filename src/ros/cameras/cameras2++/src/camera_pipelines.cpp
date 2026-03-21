@@ -409,8 +409,8 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   streamer_node->get_parameter_or((camera_prefix + ".subme").c_str(), props->subme, 1);
   streamer_node->get_parameter_or((camera_prefix + ".noise_reduction").c_str(), props->noise_reduction, 256);
   streamer_node->get_parameter_or((camera_prefix + ".threads").c_str(), props->threads, 1);
-  streamer_node->get_parameter_or((camera_prefix + ".gop").c_str(), props->gop, 2); // Distance between frames, in seconds
-  streamer_node->get_parameter_or<std::string>((camera_prefix + ".decoder").c_str(), props->decoder, "jpegdec");
+  streamer_node->get_parameter_or((camera_prefix + ".gop").c_str(), props->gop, 1); // Distance between frames, in seconds
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".decoder").c_str(), props->decoder, "nvjpegdec");
 
   return props;
 }
