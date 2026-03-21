@@ -34,10 +34,10 @@ def launch_setup(context, *args, **kwargs):
 
     if rover == 'true':
         fixed_frame = 'base_link'
-        robot_description = ParameterValue(Command(['xacro ', rover_urdf_path, ' arm:=', arm, ' auto_camera:=false']), value_type=str)
+        robot_description = ParameterValue(Command(['xacro ', rover_urdf_path, ' arm:=', arm]), value_type=str)
     else:
         fixed_frame = 'arm_link'
-        robot_description = ParameterValue(Command(['xacro ', arm_urdf_path, ' auto_camera:=false']), value_type=str)
+        robot_description = ParameterValue(Command(['xacro ', arm_urdf_path]), value_type=str)
 
     return [
         Node(
