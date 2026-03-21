@@ -122,6 +122,10 @@ but it is structurally insufficient for:
 
 That means the parser work is already done, but the runtime abstraction is not.
 
+### 6. `KDL` is no longer used
+
+We can remove KDL types, as the library has since been replaced with a custom solution via AnalysisTree, ComputeJointTree, and ComputeFrameTree
+
 ## The Main Design Constraint
 
 Transmission support changes the problem from:
@@ -160,7 +164,6 @@ class JointMap {
 public:
   virtual ~JointMap() = default;
   virtual void map(const std::vector<double> & inputs, std::vector<float> & outputs) const = 0;
-  virtual void map(const std::vector<double> & inputs, KDL::JntArray & outputs) const = 0;
 
   size_t input_count = 0;
   size_t output_count = 0;
@@ -197,11 +200,7 @@ It preserves current caller ergonomics and avoids forcing ownership of `JointMap
 
 The existing `JointMap` code should become a concrete implementation with a name that reflects what it really is.
 
-Suggested names:
-
 - `AffineJointMap`
-- `GatherAffineJointMap`
-- `SimdJointMap`
 
 Its role:
 
