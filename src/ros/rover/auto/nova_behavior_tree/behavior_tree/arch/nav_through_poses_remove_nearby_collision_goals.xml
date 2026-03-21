@@ -7,7 +7,7 @@
           <Sequence name="ComputeAndSmoothPathThroughPoses">
             <ReactiveSequence>
               <GetCurrentPose global_frame="map" robot_base_frame="base_link" current_pose="{current_pose}"/>
-              <RemoveNearbyInCollisionGoals input_goals="{goals}" current_pose="{current_pose}" max_distance_threshold="2" output_goals="{goals}"/>
+              <RemoveNearbyInCollisionGoals input_goals="{goals}" current_pose="{current_pose}" max_distance_threshold="2.5" output_goals="{goals}"/>
               <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
               <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
             </ReactiveSequence>
