@@ -8,7 +8,6 @@ gazebo simulation environment.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INCLUDED LAUNCH FILES:
 - drive.launch.py
-- oak.launch.py
 - urdf.launch.py
 - gz_sim.launch.py
 
@@ -21,18 +20,33 @@ CREATION:	27/04/2023
 EDITED:     05/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
+
 from launch import LaunchDescription
 from launch.conditions import IfCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+from os.path import expanduser
+
 def launch_setup(context, *args, **kwargs):
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    nova_gazebo_dir = FindPackageShare('nova_gazebo')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
+    # package directories
+    local = LaunchConfiguration('local')
+
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+    nova_gazebo_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/simulations/nova_gazebo']),
+        FindPackageShare('nova_gazebo')
+    )
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     comp = LaunchConfiguration('comp').perform(context).lower()
@@ -113,11 +127,26 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
+    local = LaunchConfiguration('local')
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
+    rover_description_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
+        FindPackageShare('rover_description')
+    )
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='comp',
             default_value='arch',

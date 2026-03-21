@@ -25,10 +25,25 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+from os.path import expanduser
+
 def launch_setup(context, *args, **kwargs):
+    # package directories
+    local = LaunchConfiguration('local')
+    
+    nova_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
+        FindPackageShare('nova_bringup')
+    )
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+
     auto = LaunchConfiguration('auto')
     nova_params = LaunchConfiguration('nova_params')
     auto_params = LaunchConfiguration('auto_params')
+    params = IfElseSubstitution(auto, auto_params, nova_params)
     
     # nova-specific arguments
     arm = LaunchConfiguration('arm')
@@ -42,10 +57,6 @@ def launch_setup(context, *args, **kwargs):
     model = LaunchConfiguration('model')
     urdf = LaunchConfiguration('urdf')
     active_controller = LaunchConfiguration('active_controller')
-    
-    nova_bringup_dir = FindPackageShare('nova_bringup')
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    params = IfElseSubstitution(auto, auto_params, nova_params)
 
     def spawner_args(controller: str) -> list[str]:
         arguments = [controller]
@@ -142,8 +153,15 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    drive_bringup_dir = FindPackageShare('drive_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
+    local = LaunchConfiguration('local')
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
+    rover_description_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
+        FindPackageShare('rover_description')
+    )
 
     declared_arguments = [   
         DeclareLaunchArgument(

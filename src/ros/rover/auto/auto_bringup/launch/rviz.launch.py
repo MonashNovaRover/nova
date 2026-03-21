@@ -1,13 +1,14 @@
-import os
 from launch import LaunchDescription
 from launch.conditions.unless_condition import IfCondition
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, PythonExpression
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import OpaqueFunction, ExecuteProcess
+
+from os.path import expanduser
 
 def launch_setup(context, *args, **kwargs):
     # package directories
@@ -31,14 +32,20 @@ def launch_setup(context, *args, **kwargs):
                  f'robot_name:={robot_name}',
                  'auto_mount:=True',
                  f'shortened_auto_mount:={shortened_auto_mount}',
-                 '-o', os.path.expanduser("~/rviz.urdf")],
+                 '-o', expanduser("~/rviz.urdf")],
             output="screen"
         ),
     ]
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
+    local = PythonExpression(['"', LaunchConfiguration('local'), '".lower() == "true"'])
+
+    if not local:
+        auto_bringup_dir = FindPackageShare('auto_bringup')
+        rover_description_dir = FindPackageShare('rover_description')
+    else:
+        auto_bringup_dir = PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup'])
+        rover_description_dir = PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description'])
 
     launch_args = [
         DeclareLaunchArgument(

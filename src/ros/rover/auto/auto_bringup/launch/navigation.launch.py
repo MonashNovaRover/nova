@@ -27,14 +27,19 @@ EDITED BY:  Anthony Lew, Terry Tian
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, OpaqueFunction
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import os
 
 def launch_setup(context, *args, **kwargs):
     # package directories
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    local = LaunchConfiguration('local')
+
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
 
     comp = LaunchConfiguration('comp').perform(context).lower()
     
@@ -44,13 +49,11 @@ def launch_setup(context, *args, **kwargs):
     map_params = LaunchConfiguration('map_params')
     ground_seg_params = LaunchConfiguration('ground_seg_params')
     namespace = LaunchConfiguration('namespace')
-    sim_params = LaunchConfiguration('sim_params')
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
     gazebo = LaunchConfiguration('gazebo')
     mppi = LaunchConfiguration('mppi').perform(context).lower() == 'true'
     mppi_config = LaunchConfiguration('mppi_config').perform(context)
-    obstacles_detection = LaunchConfiguration('obstacles_detection')
 
     # comp defaults
     if comp == 'arch':
@@ -59,10 +62,6 @@ def launch_setup(context, *args, **kwargs):
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
-
-    # comp defaults overrides
-    if LaunchConfiguration('nav2_params_dir').perform(context) != '':
-        nav2_params_dir = LaunchConfiguration('nav2_params_dir')
 
     # Substitute params for each node with launch params
     substitution_params = {
@@ -98,7 +97,7 @@ def launch_setup(context, *args, **kwargs):
             executable="ground_segmentation_ros2_node",
             parameters=[ground_seg_params, {"use_sim_time": gazebo}],
             remappings=[
-                ("/ground_segmentation/input_pointcloud", '/livox/lidar'), # TODO: change to /livox/lidar_masked
+                ("/ground_segmentation/input_pointcloud", '/livox/lidar_masked'),
                 ("/ground_segmentation/input_imu", '/livox/imu'),
             ],
             output="screen",
@@ -218,9 +217,19 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    local = LaunchConfiguration('local')
+
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([os.path.expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='comp',
             default_value='arch',
@@ -268,11 +277,6 @@ def generate_launch_description():
             description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
-            name='sim_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml']),
-            description='Sim parameters to use if using sim time', 
-        ),
-        DeclareLaunchArgument(
             name='mppi',
             default_value='True',
             description='Using MPPI?', 
@@ -281,17 +285,6 @@ def generate_launch_description():
             name='mppi_config',
             default_value='regular',
             description='Name of the MPPI config to use (without .yaml)', 
-        ),
-        DeclareLaunchArgument(
-            name='obstacles_detection',
-            default_value='True',
-            description='Run RTAB-Map node for obstacle detection?',
-        ),
-        # arguments with comp defaults
-        DeclareLaunchArgument(
-            name='nav2_params_dir',
-            default_value='',
-            description='Full path to the folder with ROS2 parameters files to use with all nodes',
         ),
     ]
 

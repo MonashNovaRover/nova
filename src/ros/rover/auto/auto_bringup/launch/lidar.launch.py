@@ -18,11 +18,12 @@ from pathlib import Path
 import zipfile
 import subprocess
 from logging import Logger
+from os.path import expanduser
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, AndSubstitution, NotSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.logging import get_logger
 from launch_ros.actions import Node, SetParameter
@@ -77,14 +78,14 @@ def block_until_enter_pressed(context, logger):
     input()
 
 def launch_setup(context, *args, **kwargs):
+    # package directories
     auto_bringup_dir = FindPackageShare('auto_bringup')
 
+    livox_driver = LaunchConfiguration('livox_driver')
+    mask = LaunchConfiguration('mask')
     img_en = int(LaunchConfiguration('img_en').perform(context).lower() == 'true')
-    img_topic = LaunchConfiguration('img_topic').perform(context)
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
-    output_dir = LaunchConfiguration('output_dir').perform(context)
-    save_dir = LaunchConfiguration('save_dir').perform(context)
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     tfs = LaunchConfiguration('tfs')
@@ -92,8 +93,12 @@ def launch_setup(context, *args, **kwargs):
     uncompress_img = LaunchConfiguration('uncompress_img')
     shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
 
+    img_topic = '/d415/color/image_raw'
+    lid_topic = '/livox/lidar_masked'
+    imu_topic = '/livox/imu'
     intrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml'])
     extrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_extrinsics.yaml'])
+    output_dir = 'fastlivo2' # relative to ~/.ros
     logger = get_logger("lidar_launch")
 
     fastlivo2_rewritten_params = RewrittenYaml(
@@ -101,7 +106,9 @@ def launch_setup(context, *args, **kwargs):
         param_rewrites={
             'img_en': str(img_en),
             'img_topic': img_topic,
-            'scan_line': '4' if sim.perform(context).lower() == 'false' else '120',
+            'lid_topic': lid_topic,
+            'imu_topic': imu_topic,
+            'scan_line': '4' if sim.perform(context).lower() == 'false' else '40',
         },
         convert_types=True,
     )
@@ -143,12 +150,26 @@ def launch_setup(context, *args, **kwargs):
     return [
         SetParameter(name='use_sim_time', value=sim),
         Node(
-            condition=UnlessCondition(sim),
+            condition=IfCondition(AndSubstitution(livox_driver, NotSubstitution(sim))),
             package='livox_ros_driver2',
             executable='livox_ros_driver2_node',
             name='livox_lidar_publisher',
             output='screen',
             parameters=[lidar_params, {'user_config_path': lidar_config}],
+        ),
+        Node(
+            # Remove points that intersect with the rover
+            condition=IfCondition(mask),
+            package='pcl_ros',
+            executable='filter_crop_box_node',
+            name='crop_box_filter',
+            parameters=[{'min_x': -0.64, 'max_x': 0.64,
+                            'min_y': -0.57, 'max_y': 0.57,
+                            'min_z': 0.0, 'max_z': 4.0,
+                            'negative': True,
+                            'input_frame': 'base_link'}],
+            remappings=[('input', '/livox/lidar'),
+                        ('output', '/livox/lidar_masked')],
         ),
         Node(
             condition=IfCondition(sim),
@@ -161,19 +182,6 @@ def launch_setup(context, *args, **kwargs):
                 {'output_topic': '/livox/lidar'},
                 {'default_tag': 16},
             ],
-        ),
-        Node(
-            # Remove points that intersect with the rover
-            package='pcl_ros',
-            executable='filter_crop_box_node',
-            name='crop_box_filter',
-            parameters=[{'min_x': -0.64, 'max_x': 0.64,
-                            'min_y': -0.57, 'max_y': 0.57,
-                            'min_z': 0.0, 'max_z': 4.0,
-                            'negative': True,
-                            'input_frame': 'base_link'}],
-            remappings=[('input', '/livox/lidar'),
-                        ('output', '/livox/lidar_masked')],
         ),
         Node(
             # NOTE image_transport only creates subscribers if subscribers exist for its publishers. 
@@ -199,7 +207,7 @@ def launch_setup(context, *args, **kwargs):
                     package='demo_nodes_cpp',
                     executable='parameter_blackboard',
                     name='parameter_blackboard',
-                    parameters=[intrinsics_params, {'use_sim_time': sim}],
+                    parameters=[intrinsics_params],
                     output='screen'
                 ),
                 wait_for_parameter_blackboard,
@@ -222,7 +230,7 @@ def launch_setup(context, *args, **kwargs):
                         on_exit=OpaqueFunction(
                             function=concat_pcds,
                             kwargs={'output_dir': output_dir, 
-                                    'save_dir': save_dir,
+                                    'save_dir': '~',
                                     'logger': logger}
                         ),
                     ),
@@ -286,9 +294,34 @@ def launch_setup(context, *args, **kwargs):
     ]
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    local = LaunchConfiguration('local')
+    
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
+        DeclareLaunchArgument(
+            name='livox_driver',
+            default_value='True',
+            description='Launch livox_ros_driver2?',
+        ),
+        DeclareLaunchArgument(
+            name='mask',
+            default_value='True',
+            description='Remove points that intersect with the rover?',
+        ),
+        DeclareLaunchArgument(
+            name='tfs',
+            default_value='True',
+            description='Publish Nav2-required transforms? (map -> odom -> base_link)',
+        ),
         DeclareLaunchArgument(
             name='fastlivo2',
             default_value='True',
@@ -305,11 +338,6 @@ def generate_launch_description():
             description='Enable coloured mapping?',
         ),
         DeclareLaunchArgument(
-            name='img_topic',
-            default_value='/d415/color/image_raw',
-            description='',
-        ),
-        DeclareLaunchArgument(
             name='lidar_config',
             default_value=PathJoinSubstitution([auto_bringup_dir,'params','lidar_config.json']),
             description='',
@@ -320,26 +348,6 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
-            name='output_dir',
-            default_value='fastlivo2',
-            description='The folder to save FAST-LIVO2 outputs to, relative to ~/.ros.',
-        ),
-        DeclareLaunchArgument(
-            name='save_dir',
-            default_value='~',
-            description='The path to save the zipped FAST-LIVO2 PCD files.',
-        ),
-        DeclareLaunchArgument(
-            name='sim',
-            default_value='False',
-            description='Use /clock instead of system clock?',
-        ),
-        DeclareLaunchArgument(
-            name='tfs',
-            default_value='True',
-            description='Publish Nav2-required transforms? (map -> odom -> base_link)',
-        ),
-        DeclareLaunchArgument(
             name='uncompress_img',
             default_value='False',
             description='Uncompress compressed image stream? (for playing back from rosbag)',
@@ -348,6 +356,11 @@ def generate_launch_description():
             name='shortened_auto_mount',
             default_value='True',
             description='Use shortened auto mount TFs?',
+        ),
+        DeclareLaunchArgument(
+            name='sim',
+            default_value='False',
+            description='Use /clock instead of system clock?',
         ),
     ]
 

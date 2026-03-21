@@ -9,9 +9,8 @@ INCLUDED LAUNCH FILES:
   - gazebo.launch.py
   - drive.launch.py
   - localization.launch.py
-  - rviz.launch.py
   - navigation.launch.py
-  - rtabmap.launch.py
+  - lidar.launch.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
@@ -20,16 +19,29 @@ EDITED:     05/01/2026
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
 
+from os.path import expanduser
+
 def launch_setup(context, *args, **kwargs):
     # package directories
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
-    nova_gazebo_dir = FindPackageShare('nova_gazebo')
+    local = LaunchConfiguration('local')
+    
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
+    nova_gazebo_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/simulations/nova_gazebo']),
+        FindPackageShare('nova_gazebo')
+    )
 
     comp = LaunchConfiguration('comp').perform(context).lower()
     
@@ -66,8 +78,6 @@ def launch_setup(context, *args, **kwargs):
         raise ValueError('"comp" arg must be either "arch" or "urc"')
     
     # comp defaults overrides
-    if LaunchConfiguration('nav2_params_dir').perform(context) != '':
-        nav2_params_dir = LaunchConfiguration('nav2_params_dir')
     if LaunchConfiguration('rl_params').perform(context) != '':
         rl_params = LaunchConfiguration('rl_params')
     if LaunchConfiguration('world').perform(context) != '':
@@ -132,11 +142,27 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
+    local = LaunchConfiguration('local')
+
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+    rover_description_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
+        FindPackageShare('rover_description')
+    )
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='comp',
             default_value='arch',
@@ -224,11 +250,6 @@ def generate_launch_description():
             description='Name of the MPPI config to use (without .yaml)',
         ),
         # arguments with comp defaults
-        DeclareLaunchArgument(
-            name='nav2_params_dir',
-            default_value='',
-            description='Full path to the folder with ROS2 parameters files to use with all nodes',
-        ),
         DeclareLaunchArgument(
             name='rl_params',
             default_value='',

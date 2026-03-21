@@ -46,7 +46,7 @@ ground_segmentation:
     slopeThresholdDegrees: 45.0
     groundInlierThreshold: 0.2
     centroidSearchRadius: 5.0
-    use_imu_orientation: false # TODO: set to true
+    use_imu_orientation: true
     maxGroundHeightDeviation: 0.1
 
     #debug
