@@ -280,8 +280,8 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
 
   g_object_set(source, "device", props->device.c_str(), NULL);
-  if (!props->extra_controls.empty()) {
-    g_object_set(source, "extra_controls", props->extra_controls.c_str(), NULL);
+  if (!props->v4l2_controls.empty()) {
+    g_object_set(source, "extra_controls", props->v4l2_controls.c_str(), NULL);
   }
 
 
