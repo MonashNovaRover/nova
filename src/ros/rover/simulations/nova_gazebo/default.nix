@@ -1,6 +1,7 @@
 { lib
 , buildRosPackage
 , ament-cmake
+, xacro
 , launch
 , launch-ros
 , leo-gz-worlds
@@ -16,6 +17,6 @@ buildRosPackage rec {
     filter = lib.novaSourceFilter [ "!worlds/**" ] path;
   };
 
-  nativeBuildInputs = [ ament-cmake ];
+  nativeBuildInputs = [ ament-cmake xacro ];
   propagatedBuildInputs = [ launch launch-ros leo-gz-worlds ];
 }
