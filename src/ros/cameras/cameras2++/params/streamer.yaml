@@ -9,25 +9,23 @@ camera_streamer:
         width: 1920
         height: 1080
         framerate: 30
-        bitrate: 800000
-        video_caps: video/x-h264,profile=high-10-intra
+        video_caps: video/x-h264,profile=high-4:2:2-intra
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
-        payload_quirk: true
+        #payload_quirk: true
         width: 1920
         height: 1080
         framerate: 30
+        video_caps: video/x-h264,profile=high-4:2:2-intra
       HZ_USB_Camera_20220301104:
         pipeline_type: h264software
         width: 1920
         height: 1080
         framerate: 30
-        bitrate: 800000
-        video_caps: video/x-h264,profile=high-10-intra
+        video_caps: video/x-h264,profile=high-4:2:2-intra
       brandon-cam:
         pipeline_type: h264software
         mime: image/jpeg
-        device: /dev/video0
         width: 1920
         height: 1080
         framerate: 30
@@ -39,3 +37,68 @@ camera_streamer:
         width: 1920
         height: 1080
         framerate: 30
+
+
+
+
+      # Mast
+      mast_backward:
+        meta: Mast - Backwards
+      mast_arm_stow:
+        meta: Mast - Arm Stow
+
+        pipeline_type: h264software
+        # payload_quirk: true
+        width: 1920
+        height: 1080
+        framerate: 30
+        video_caps: video/x-h264,profile=high-4:2:2-intra
+        noise_reduction: 100
+        gop: 300
+        speed-preset: faster
+        threads: 4
+        bitrate: 16000000
+
+      mast_down:
+        meta: Mast - Down
+      mast_forward:
+        meta: Mast - Forwards
+
+      # Science
+      science_microscope:
+        mime: video/x-raw
+        width: 640
+        framerate: 25
+        show_clock: false
+        meta: Science - Microscope
+        #    rotation: 180
+      science_gantry:
+        meta: Science - Gantry
+        #    rotation: 180
+      science_spectrometer_top:
+        meta: Science - Spectrometer (Top)
+      science_spectrometer_side:
+        meta: Science - Spectrometer (Side)
+        #    rotation: 180
+      science_backward:
+        meta: Science - Butt
+        #    rotation: 180
+      science_shotglass:
+        meta: Science - Shotglass
+      science_rock_flipper:
+        meta: Science - Rock flipper
+      #science_spectroscope:
+      #  autostart: false
+
+      # Arm
+      arm_gimbal:
+        meta: Arm - Gimbal
+      arm_end_forward:
+        meta: Arm - Forward
+        #    mirrorX: true
+      arm_end_top:
+        meta: Arm - Top
+      arm_end_finger:
+        meta: Arm - Finger
+      arm_end_side:
+        meta: Arm - Side

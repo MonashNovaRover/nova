@@ -41,9 +41,10 @@ struct x264encProperties
   std::string tune;
   std::string speed_preset;
   std::string me;
+  int subme;
   int threads;
   int noise_reduction;
-  int key_int_max;
+  int gop;
   std::string platform;
 };
 

@@ -11,7 +11,7 @@
 /*
  * V4l camera to webrtc pipeline
  * converts any v4l source to raw video and then encodes a format for webrtc
- * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1 ! decodebin3 ! videoconvert ! webrtcsink meta='meta, serial=(string){props->serial}' video-caps={props->video_caps}
+ * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1 ! decodebin ! videoconvert ! webrtcsink meta='meta, serial=(string){props->serial}' video-caps={props->video_caps}
  */
 
 GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineProperties* props)
@@ -28,7 +28,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
-  GstElement* decode = gst_element_factory_make("decodebin3", "decoder");
+  GstElement* decode = gst_element_factory_make("decodebin", "decoder");
   GstElement* convert = gst_element_factory_make("videoconvert", "converter");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
   GstElement* clock = props->show_clock ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
@@ -324,9 +324,11 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
       props->me == "esa" ? 3:
       props->me == "tesa" ? 4:
       0), // dia, faster
+    "subme", props->subme, // Subpixel motion blur
     "threads", props->threads, // 1
     "noise-reduction", props->noise_reduction,
-    "key-int-max", props->key_int_max, // Largest GOP
+    "key-int-max", props->gop, // Largest GOP
+    "vbv-buf-capacity", props->gop*34+200,        // Buffer size for GOP, assuming fps=30
     "b-adapt", false, // Do not allow b frames
     "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
     NULL);
@@ -412,9 +414,10 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".tune").c_str(), props->tune, "zerolatency");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".speed_preset").c_str(), props->speed_preset, "ultrafast");
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".me").c_str(), props->me, "dia");
+  streamer_node->get_parameter_or((camera_prefix + ".subme").c_str(), props->subme, 1);
   streamer_node->get_parameter_or((camera_prefix + ".noise_reduction").c_str(), props->noise_reduction, 256);
   streamer_node->get_parameter_or((camera_prefix + ".threads").c_str(), props->threads, 1);
-  streamer_node->get_parameter_or((camera_prefix + ".key_int_max").c_str(), props->key_int_max, 30); // Low latency GOP
+  streamer_node->get_parameter_or((camera_prefix + ".gop").c_str(), props->gop, 1); // Low latency GOP
 
   return props;
 }
