@@ -231,6 +231,7 @@ Important properties:
 - direction matters only while checking support and building the compute object
 - runtime execution should use the built compute object, not repeatedly branch on quantity
 - implementations may share logic between position and velocity where appropriate
+- build products should be returned as `std::unique_ptr` and treated as move-only by default
 
 ## 4. `TransmissionAnalysis`
 
@@ -239,6 +240,7 @@ Stage 2 should introduce a reusable robot-wide analysis structure, analogous in 
 Recommended ownership:
 
 - `RobotModel` owns and caches the default `TransmissionAnalysis`
+- `TransmissionAnalysis` owns the normalized transmission models, preferably in a contiguous `std::vector<std::unique_ptr<TransmissionModel>>`
 - builders query that cached analysis rather than rebuilding it
 - plugin-specific builders may augment or replace planning policy, but should still be able to reuse the base analysis
 
@@ -260,6 +262,7 @@ public:
   };
 
   [[nodiscard]] const Order<std::string, JointId> & joint_ids() const noexcept;
+  [[nodiscard]] const std::vector<std::unique_ptr<TransmissionModel>> & models() const noexcept;
   [[nodiscard]] const std::vector<Group> & groups() const noexcept;
 };
 ```
@@ -271,6 +274,7 @@ The important point is that the robot-wide cache should be:
 - contiguous where possible
 - derived once from definitions/models
 - reusable for many `JointMap` build requests
+- the long-lived ownership root for transmission models used during build
 
 At this layer, the data should already be concretely `JointId`-based.
 The earlier `TransmissionDefinition<TJoint>` template should not leak into `TransmissionAnalysis`.
@@ -412,6 +416,9 @@ Important properties:
 - preallocated scratch storage can be used where needed
 - ownership should remain single-owner by default; use `std::unique_ptr` for built compute stages unless a concrete need for sharing appears later
 
+Some transmissions may also need precomputed constants or captured state to execute efficiently.
+That state should be owned by each `ComputeTransmission` instance at construction time, not allocated in the hot loop.
+
 ### `CompiledTransmissionPlan`
 
 The runtime map should execute from a compiled indexed form.
@@ -425,23 +432,30 @@ using OutputIndex = size_t;
 class ComputeTransmission {
 public:
   virtual ~ComputeTransmission() = default;
-  virtual void compute(span<const float> inputs, span<float> outputs) const = 0;
+  virtual void compute(
+    span<const float> inputs,
+    span<float> outputs,
+    span<float> scratch) const = 0;
 };
 
 struct CompiledTransmissionStage {
   std::unique_ptr<const ComputeTransmission> compute;
   std::vector<InputIndex> input_indices;
+  size_t scratch_offset = 0;
+  size_t scratch_size = 0;
   std::vector<OutputIndex> output_indices;
 };
 
 struct CompiledTransmissionPlan {
   InputIndex input_count = 0;
   OutputIndex output_count = 0;
+  size_t scratch_size = 0;
   std::vector<CompiledTransmissionStage> stages;
 };
 ```
 
 Names should already be gone by this point.
+Scratch should be allocated once when the runtime map is built or constructed, then reused for every compute call.
 
 ### `CompositeJointMap`
 

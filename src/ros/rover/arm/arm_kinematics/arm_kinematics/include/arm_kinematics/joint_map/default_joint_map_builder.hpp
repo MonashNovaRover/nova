@@ -17,6 +17,8 @@
 #include <urdf/model.h>
 
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis.hpp"
+#include "arm_kinematics/joint_map/transmission_model.hpp"
 #include "arm_kinematics/visibility_control.h"
 
 namespace
@@ -43,8 +45,9 @@ namespace arm_kinematics {
  *
  * Stage 1 behavior:
  *   - gathers mimic-joint definitions from the URDF
- *   - parses ros2_control transmission definitions for future use
- *   - always builds an AffineJointMap at runtime
+ *   - parses ros2_control transmission definitions
+ *   - caches a TransmissionAnalysis built from normalized transmission models
+ *   - still only succeeds at runtime for AffineJointMap-style requests
  *
  * This type is the default shared implementation, not the only possible implementation. FK plugins may return a
  * different JointMapBuilder when they need backend-specific mapping behavior.
@@ -54,13 +57,15 @@ public:
   DefaultJointMapBuilder() = default;
 
   /**
-   * Constructs a JointMap that maps input_names to output_names.
+   * Constructs a JointMap that maps input_names to output_names for the requested quantity.
    *
-   * In Stage 1 this always returns an AffineJointMap wrapped as a JointMap.
+   * Today this succeeds for affine reorder/mimic cases and reports a build-time error for recognized
+   * transmission-backed requests, since the runtime transmission compute path is not implemented yet.
    */
-  [[nodiscard]] JointMap build(
+  [[nodiscard]] tl::expected<JointMap, std::string> build_expected(
     const std::vector<std::string> & input_names,
-    const std::vector<std::string> & output_names) const override;
+    const std::vector<std::string> & output_names,
+    JointQuantity quantity) const override;
 
   /**
    * Uses the given URDF model to add mimic joints.
@@ -87,6 +92,13 @@ public:
    * \throws std::runtime_error for invalid URDFs.
    */
   DefaultJointMapBuilder & with_transmissions_dangerous(const std::string & urdf_string);
+
+  /**
+   * Adds a normalized transmission model to the cached transmission analysis.
+   */
+  DefaultJointMapBuilder & with_transmission_model(std::unique_ptr<TransmissionModel> model);
+
+  [[nodiscard]] const TransmissionAnalysis & get_transmission_analysis() const noexcept;
 
 private:
   // ros2_control transmission XML parsers
@@ -123,6 +135,8 @@ private:
   std::vector<hardware_interface::TransmissionInfo> transmissions_{};
   /// Mimic joints gathered from the URDF.
   std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints_{};
+  /// Cached structural transmission analysis derived from registered transmission models.
+  TransmissionAnalysis transmission_analysis_{};
 };
 
 } // arm_kinematics

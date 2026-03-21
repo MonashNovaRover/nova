@@ -13,6 +13,8 @@
 #include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis.hpp"
+#include "arm_kinematics/joint_map/transmission_types.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include "arm_kinematics/utilities/reordered.hpp"
 #include <chrono>
@@ -31,6 +33,8 @@ using arm_kinematics::DefaultJointMapBuilder;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
 using arm_kinematics::RobotModel;
+using arm_kinematics::JointQuantity;
+using arm_kinematics::TransmissionAnalysis;
 
 namespace {
 
@@ -186,6 +190,85 @@ TEST_F(MimicUrdfTests, DefaultJointMapBuilderMatchesRobotModelBuilder)
   EXPECT_EQ(default_outputs, robot_model_outputs);
   EXPECT_NEAR(default_outputs[0], 1.5, EPSILON);
   EXPECT_NEAR(default_outputs[1], -2.5, EPSILON);
+}
+
+class TransmissionUrdfTests : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    robot_description_ = R"(
+      <robot name="transmission_robot">
+        <link name="base_link"/>
+        <link name="driven_link"/>
+
+        <joint name="driven_joint" type="revolute">
+          <parent link="base_link"/>
+          <child  link="driven_link"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <ros2_control>
+          <transmission name="main_transmission">
+            <plugin>transmission_interface/SimpleTransmission</plugin>
+            <joint name="driven_joint" role="joint">
+              <mechanical_reduction>2.0</mechanical_reduction>
+              <offset>0.25</offset>
+            </joint>
+            <actuator name="motor_joint" role="actuator">
+              <mechanical_reduction>1.0</mechanical_reduction>
+              <offset>0.0</offset>
+            </actuator>
+          </transmission>
+        </ros2_control>
+      </robot>
+    )";
+
+    ASSERT_TRUE(urdf::Model().initString(robot_description_));
+    robot_model_ = std::make_unique<RobotModel>(robot_description_);
+  }
+
+  std::string robot_description_;
+  RobotModel::UniquePtr robot_model_;
+};
+
+TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
+{
+  const TransmissionAnalysis & first = robot_model_->get_transmission_analysis();
+  const TransmissionAnalysis & second = robot_model_->get_transmission_analysis();
+
+  EXPECT_EQ(&first, &second);
+  ASSERT_EQ(first.models().size(), 1u);
+  ASSERT_EQ(first.groups().size(), 1u);
+  ASSERT_TRUE(first.contains_joint("motor_joint"));
+  ASSERT_TRUE(first.contains_joint("driven_joint"));
+
+  const auto motor_id = first.find_joint_id("motor_joint");
+  const auto driven_id = first.find_joint_id("driven_joint");
+  ASSERT_TRUE(motor_id.has_value());
+  ASSERT_TRUE(driven_id.has_value());
+
+  const auto & group = first.groups().front();
+  ASSERT_EQ(group.model_id, 0u);
+  ASSERT_EQ(group.input_joint_ids.size(), 1u);
+  ASSERT_EQ(group.output_joint_ids.size(), 1u);
+  EXPECT_EQ(group.input_joint_ids.front(), *motor_id);
+  EXPECT_EQ(group.output_joint_ids.front(), *driven_id);
+  EXPECT_TRUE(group.supports_forward);
+  EXPECT_TRUE(group.supports_reverse);
+}
+
+TEST_F(TransmissionUrdfTests, BuildExpectedReportsTransmissionRuntimeAsUnimplemented)
+{
+  const auto result = robot_model_->get_joint_map_builder().build_expected(
+    {"motor_joint"},
+    {"driven_joint"},
+    JointQuantity::Position);
+
+  ASSERT_FALSE(result.has_value());
+  EXPECT_NE(result.error().find("Transmission-backed JointMap build"), std::string::npos);
 }
 
 // Small helper for comparing isometries

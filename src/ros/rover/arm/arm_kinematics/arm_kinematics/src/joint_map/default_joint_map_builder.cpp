@@ -14,11 +14,108 @@
 
 namespace arm_kinematics {
 
-JointMap DefaultJointMapBuilder::build(
-  const std::vector<std::string> & input_names,
-  const std::vector<std::string> & output_names) const
+namespace {
+
+class Ros2ControlTransmissionModel final : public TransmissionModel {
+public:
+  explicit Ros2ControlTransmissionModel(hardware_interface::TransmissionInfo info)
+  : definition_(to_definition(info))
+  {
+  }
+
+  [[nodiscard]] const NamedTransmissionDefinition & definition() const noexcept override
+  {
+    return definition_;
+  }
+
+  [[nodiscard]] bool can_build(
+    const JointQuantity,
+    const PropagationDirection) const noexcept override
+  {
+    return false;
+  }
+
+  [[nodiscard]] std::unique_ptr<const ComputeTransmission> build(
+    const JointQuantity,
+    const PropagationDirection,
+    span<const JointId>,
+    span<const JointId>) const override
+  {
+    throw std::logic_error("Ros2ControlTransmissionModel::build() called before transmission runtime support exists");
+  }
+
+private:
+  static NamedTransmissionDefinition to_definition(const hardware_interface::TransmissionInfo & info)
+  {
+    NamedTransmissionDefinition definition{};
+    definition.name = info.name;
+    definition.supports_forward = !info.actuators.empty() && !info.joints.empty();
+    definition.supports_reverse = definition.supports_forward;
+
+    definition.inputs.reserve(info.actuators.size());
+    for (const auto & actuator : info.actuators) {
+      definition.inputs.push_back(actuator.name);
+    }
+
+    definition.outputs.reserve(info.joints.size());
+    for (const auto & joint : info.joints) {
+      definition.outputs.push_back(joint.name);
+    }
+
+    return definition;
+  }
+
+  NamedTransmissionDefinition definition_{};
+};
+
+std::string to_string(const JointQuantity quantity)
 {
-  return JointMap(AffineJointMap(input_names, output_names, mimic_joints_));
+  switch (quantity) {
+    case JointQuantity::Position:
+      return "position";
+    case JointQuantity::Velocity:
+      return "velocity";
+  }
+
+  return "unknown";
+}
+
+} // namespace
+
+tl::expected<JointMap, std::string> DefaultJointMapBuilder::build_expected(
+  const std::vector<std::string> & input_names,
+  const std::vector<std::string> & output_names,
+  const JointQuantity quantity) const
+{
+  try {
+    return JointMap(AffineJointMap(input_names, output_names, mimic_joints_));
+  } catch (const std::exception & e) {
+    bool touches_transmission_analysis = false;
+
+    for (const auto & name : input_names) {
+      if (transmission_analysis_.contains_joint(name)) {
+        touches_transmission_analysis = true;
+        break;
+      }
+    }
+
+    if (!touches_transmission_analysis) {
+      for (const auto & name : output_names) {
+        if (transmission_analysis_.contains_joint(name)) {
+          touches_transmission_analysis = true;
+          break;
+        }
+      }
+    }
+
+    if (touches_transmission_analysis && !transmission_analysis_.empty()) {
+      return tl::make_unexpected(
+        "Transmission-backed JointMap build for " + to_string(quantity) +
+        " is recognized by the builder, but runtime transmission mapping is not implemented yet");
+    }
+
+    return tl::make_unexpected(std::string(e.what()));
+  }
 }
 
 DefaultJointMapBuilder & DefaultJointMapBuilder::with_urdf(const urdf::Model & urdf_model)
@@ -79,8 +176,11 @@ DefaultJointMapBuilder & DefaultJointMapBuilder::with_transmissions_dangerous(co
     const auto * ros2_control_child_it = ros2_control_it->FirstChildElement();
 
     while (ros2_control_child_it) {
-      if (std::string(kTransmissionTag) == ros2_control_child_it->Name())
-        transmissions_.push_back(parse_transmission_from_xml(ros2_control_child_it));
+      if (std::string(kTransmissionTag) == ros2_control_child_it->Name()) {
+        auto transmission = parse_transmission_from_xml(ros2_control_child_it);
+        transmissions_.push_back(transmission);
+        with_transmission_model(std::make_unique<Ros2ControlTransmissionModel>(std::move(transmission)));
+      }
 
       ros2_control_child_it = ros2_control_child_it->NextSiblingElement();
     }
@@ -89,6 +189,17 @@ DefaultJointMapBuilder & DefaultJointMapBuilder::with_transmissions_dangerous(co
   }
 
   return *this;
+}
+
+DefaultJointMapBuilder & DefaultJointMapBuilder::with_transmission_model(std::unique_ptr<TransmissionModel> model)
+{
+  transmission_analysis_.add_model(std::move(model));
+  return *this;
+}
+
+const TransmissionAnalysis & DefaultJointMapBuilder::get_transmission_analysis() const noexcept
+{
+  return transmission_analysis_;
 }
 
 std::string DefaultJointMapBuilder::get_text_for_element(

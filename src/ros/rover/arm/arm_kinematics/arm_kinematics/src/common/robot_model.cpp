@@ -37,6 +37,18 @@ const JointMapBuilder & RobotModel::get_joint_map_builder() const {
   return *joint_map_builder_;
 }
 
+const TransmissionAnalysis & RobotModel::get_transmission_analysis() const {
+  std::call_once(joint_map_builder_flag_, [&]{
+    joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>();
+
+    joint_map_builder_->with_urdf(get_urdf_model());
+    joint_map_builder_->with_transmissions(get_robot_description(), rclcpp::get_logger("robot_model"));
+  });
+
+  assert(joint_map_builder_);
+  return joint_map_builder_->get_transmission_analysis();
+}
+
 const AnalysisTree & RobotModel::get_analysis_tree() const {
   std::call_once(analysis_tree_flag_, [&] {
     analysis_tree_ = std::make_unique<AnalysisTree>(get_urdf_model());

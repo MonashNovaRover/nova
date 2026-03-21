@@ -13,6 +13,7 @@
 #include "arm_kinematics/forward/utilities/analysis_tree.hpp"
 #include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis.hpp"
 
 namespace arm_kinematics {
 
@@ -39,6 +40,9 @@ public:
 
   /// Gets the standard joint map builder constructed from robot_description and get_urdf_model()
   [[nodiscard]] const JointMapBuilder & get_joint_map_builder() const;
+
+  /// Gets the cached transmission analysis owned by the shared default joint map builder.
+  [[nodiscard]] const TransmissionAnalysis & get_transmission_analysis() const;
 
   /// Data structure modelling the tree of joints in the urdf, and how links in the urdf relate to those joints, lazily
   /// evaluated using get_urdf_model() as the constructor input
