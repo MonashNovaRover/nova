@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Card, CardBody, CardHeader, Input, Switch } from "@nextui-org/react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
-import { useToolRotatorKeyboard, useToolRotatorServices } from "./useToolRotator.ts";
+import { useToolRotatorServices } from "./useToolRotator.ts";
 import { ArrowClockwise, ArrowCounterclockwise } from "react-bootstrap-icons";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
@@ -41,7 +41,6 @@ const ToolRotatorWidget: React.FC = () => {
     twitchPos(step)
   }
 
-  useToolRotatorKeyboard()
 
   return (
     <Card>

@@ -11,11 +11,11 @@ export function useToolRotatorServices(): [(name: string, position: number) => v
   const bifrostPresets = useBifrost({service: RosService.TOOL_ROTATOR_PRESETS});
   const bifrostSetPos = useBifrost({service: RosService.TOOL_ROTATOR_POSITION});
   const bifrostTwitch = useBifrost({service: RosService.TOOL_ROTATOR_TWITCH});
-  const rosAngleBifrost = useBifrost({topic: RosTopic.TOOL_ROTATOR_ANGLE})
+  const bifrostAngle = useBifrost({topic: RosTopic.TOOL_ROTATOR_ANGLE})
   
   useEffect(() => { 
-    rosAngleBifrost.syncWithTopic() 
-  }, [rosAngleBifrost])
+    bifrostAngle.syncWithTopic() 
+  }, [bifrostAngle])
 
   const setPresets = (name: string, position: number) => {
     bifrostPresets.callService({names: [name], positions: [position]})
