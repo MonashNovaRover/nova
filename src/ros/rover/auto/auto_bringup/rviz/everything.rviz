@@ -136,6 +136,38 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        d415_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d415_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d415_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d415_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d415_infra1_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d415_infra1_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d415_infra2_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d415_infra2_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         d415_link:
           Alpha: 1
           Show Axes: false
@@ -252,6 +284,8 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        aft_mapped:
+          Value: false
         back_camera_rotator:
           Value: false
         base_link:
@@ -276,11 +310,29 @@ Visualization Manager:
           Value: false
         camera_holder_2:
           Value: false
+        camera_init:
+          Value: false
         chassis:
           Value: true
         clam:
           Value: false
         d415_bottom_screw_frame:
+          Value: false
+        d415_color_frame:
+          Value: false
+        d415_color_optical_frame:
+          Value: false
+        d415_depth_frame:
+          Value: false
+        d415_depth_optical_frame:
+          Value: false
+        d415_infra1_frame:
+          Value: false
+        d415_infra1_optical_frame:
+          Value: false
+        d415_infra2_frame:
+          Value: false
+        d415_infra2_optical_frame:
           Value: false
         d415_link:
           Value: false
@@ -310,8 +362,12 @@ Visualization Manager:
           Value: false
         livox_frame:
           Value: true
+        map:
+          Value: true
         mount:
           Value: false
+        odom:
+          Value: true
         right_diffend_dummy:
           Value: false
         right_difflink:
@@ -332,53 +388,10 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        base_link:
-          chassis:
-            clam:
-              mount:
-                back_camera_rotator:
-                  camera_holder:
-                    {}
-                front_camera_rotator:
-                  camera_holder_2:
-                    d415_bottom_screw_frame:
-                      d415_link:
-                        {}
-                lidar_rotator:
-                  lidar_holder:
-                    livox_frame:
-                      {}
-            diffbar:
-              tl_ball_link_x:
-                tl_ball_link_y:
-                  left_difflink:
-                    bl_ball_link_x:
-                      bl_ball_link_y:
-                        left_diffend_dummy:
-                          {}
-              tr_ball_link_x:
-                tr_ball_link_y:
-                  right_difflink:
-                    br_ball_link_x:
-                      br_ball_link_y:
-                        right_diffend_dummy:
-                          {}
-            left_leg:
-              bl_ankle:
-                bl_wheel:
-                  {}
-              fl_ankle:
-                fl_wheel:
-                  {}
-            right_leg:
-              br_ankle:
-                br_wheel:
-                  {}
-              fr_ankle:
-                fr_wheel:
-                  {}
-          gps:
-            {}
+        map:
+          odom:
+            camera_init:
+              {}
       Update Interval: 0
       Value: true
     - Class: rviz_common/Group
@@ -799,7 +812,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/ThirdPersonFollower
-      Distance: 5.5928568840026855
+      Distance: 11.039308547973633
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -814,10 +827,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8150006532669067
+      Pitch: 0.6850007772445679
       Target Frame: base_link
       Value: ThirdPersonFollower (rviz_default_plugins)
-      Yaw: 3.2166099548339844
+      Yaw: 3.131608486175537
     Saved:
       - Class: rviz_default_plugins/ThirdPersonFollower
         Distance: 10
