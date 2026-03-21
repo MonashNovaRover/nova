@@ -11,7 +11,7 @@ fastlivo2:
 
     time_offset: 
       imu_time_offset: 0.0
-      img_time_offset: 0.1
+      img_time_offset: 0.0
       exposure_time_init: 0.0
 
     preprocess:

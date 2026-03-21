@@ -160,7 +160,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='localization',
-            default_value='True',
+            default_value='False',
             description='Flag to robot localization nodes',
         ),
         DeclareLaunchArgument(

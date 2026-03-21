@@ -99,9 +99,9 @@ def launch_setup(context, *args, **kwargs):
     fastlivo2_rewritten_params = RewrittenYaml(
         source_file=fastlivo2_params,
         param_rewrites={
-            'img_en': img_en,
+            'img_en': str(img_en),
             'img_topic': img_topic,
-            'scan_line': '4' if sim.perform(context).lower() == 'false' else '40',
+            'scan_line': '4' if sim.perform(context).lower() == 'false' else '120',
         },
         convert_types=True,
     )
