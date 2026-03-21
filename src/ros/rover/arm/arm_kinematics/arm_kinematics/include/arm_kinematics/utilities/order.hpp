@@ -5,9 +5,90 @@
 #ifndef ARM_KINEMATICS_ORDERING_HPP
 #define ARM_KINEMATICS_ORDERING_HPP
 
+#include <map>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 namespace arm_kinematics {
+
+namespace detail {
+
+template<typename TKey, typename TValue, typename Enable = void>
+struct LookupStorage {
+  using type = std::map<TKey, TValue>;
+
+  static type make_sized(const size_t) {
+    return {};
+  }
+
+  static void set(type & container, const TKey & key, const TValue & value) {
+    container[key] = value;
+  }
+
+  static TValue & at(type & container, const TKey & key) {
+    return container.at(key);
+  }
+
+  static const TValue & at(const type & container, const TKey & key) {
+    return container.at(key);
+  }
+};
+
+template<typename TKey, typename TValue>
+struct LookupStorage<TKey, TValue, std::enable_if_t<std::is_integral_v<TKey> || std::is_enum_v<TKey>>> {
+  using type = std::vector<TValue>;
+
+  static type make_sized(const size_t size) {
+    return type(size);
+  }
+
+  static void set(type & container, const TKey & key, const TValue & value) {
+    const auto index = static_cast<size_t>(key);
+    if (index >= container.size()) {
+      container.resize(index + 1);
+    }
+    container[index] = value;
+  }
+
+  static TValue & at(type & container, const TKey & key) {
+    return container[static_cast<size_t>(key)];
+  }
+
+  static const TValue & at(const type & container, const TKey & key) {
+    return container[static_cast<size_t>(key)];
+  }
+};
+
+template<typename TValue>
+struct LookupStorage<std::string, TValue, void> {
+  using type = std::unordered_map<std::string, TValue>;
+
+  static type make_sized(const size_t size) {
+    type container;
+    container.reserve(size);
+    return container;
+  }
+
+  static void set(type & container, const std::string & key, const TValue & value) {
+    container[key] = value;
+  }
+
+  static TValue & at(type & container, const std::string & key) {
+    return container.at(key);
+  }
+
+  static const TValue & at(const type & container, const std::string & key) {
+    return container.at(key);
+  }
+};
+
+template<typename TKey>
+inline constexpr bool is_contiguous_lookup_key_v = std::is_integral_v<TKey> || std::is_enum_v<TKey>;
+
+} // namespace detail
 
 /**
  * Represents an ordering/permutation relationship between two indexed collections.
@@ -77,8 +158,8 @@ namespace arm_kinematics {
 template<typename TKey = std::size_t, typename TValue = std::size_t, bool StoresInverse = true>
 class Order {
 public:
-  using Container        = std::vector<TValue>;
-  using InverseContainer = std::vector<TKey>;
+  using Container        = typename detail::LookupStorage<TKey, TValue>::type;
+  using InverseContainer = typename detail::LookupStorage<TValue, TKey>::type;
 
   using InverseType      = Order<TValue, TKey, !StoresInverse>;
   /// When StoresInverse=true, this stores the actual inverse directly, otherwise it is a reference to its owning parent
@@ -89,10 +170,13 @@ public:
   >;
 
   using value_type      = TValue;
-  using size_type       = typename Container::size_type;
-  using const_reference = typename Container::const_reference;
+  using size_type       = std::size_t;
+  using const_reference = const TValue &;
   using const_iterator  = typename Container::const_iterator;
-  using const_reverse_iterator = typename Container::const_reverse_iterator;
+  using const_reverse_iterator = std::conditional_t<
+    detail::is_contiguous_lookup_key_v<TKey>,
+    typename Container::const_reverse_iterator,
+    void>;
 
   /**
    * This is the type returned when indexing into the forward order.
@@ -119,7 +203,7 @@ public:
 
     // Conversion to value_type so it behaves like a reference
     operator value_type() const {
-      return parent.data_[idx];
+      return detail::LookupStorage<TKey, TValue>::at(parent.data_, idx);
     }
 
   };
@@ -142,7 +226,7 @@ public:
     size_type index = 0;
 
     reference operator*() const noexcept {
-      return parent[index];
+      return parent[static_cast<TKey>(index)];
     }
 
     iterator & operator++() noexcept {
@@ -171,7 +255,7 @@ public:
     size_type index   = 0;  // index into order, counting backwards
 
     reference operator*() const noexcept {
-      return parent[index];
+      return parent[static_cast<TKey>(index)];
     }
 
     reverse_iterator & operator++() noexcept {
@@ -194,12 +278,12 @@ public:
   // Forward constructor -- only enabled if StoresInverse
   template<bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order(size_t in_size, size_t out_size)
-    : inverse(out_size, *this), data_(in_size) {}
+    : inverse(out_size, *this), data_(detail::LookupStorage<TKey, TValue>::make_sized(in_size)) {}
 
   // Forward default constructor -- only enabled if StoresInverse
   template<bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order()
-    : inverse(0, *this), data_(0) {}
+    : inverse(0, *this), data_(detail::LookupStorage<TKey, TValue>::make_sized(0)) {}
 
   // Forward copy constructor -- only enabled if StoresInverse
   template<bool OtherStoresInverse, bool B = StoresInverse, std::enable_if_t<B, int> = 0>
@@ -215,7 +299,7 @@ public:
   template<bool OtherStoresInverse>
   Order & operator=(const Order<TKey, TValue, OtherStoresInverse> & other) {
     data_ = other.data_;
-    inverse.data_ = other.data_;
+    inverse.data_ = other.inverse.data_;
     return *this;
   }
 
@@ -223,40 +307,52 @@ public:
   template<bool OtherStoresInverse>
   Order & operator=(Order<TKey, TValue, OtherStoresInverse> && other) noexcept {
     data_ = std::move(other.data_);
-    inverse.data_ = std::move(other.data_);
+    inverse.data_ = std::move(other.inverse.data_);
     return *this;
   }
 
-  void set(size_type new_id, value_type old_id) {
-    data_[new_id] = old_id;
-    inverse.data_[old_id] = new_id;
+  void set(const TKey & new_id, const value_type & old_id) {
+    detail::LookupStorage<TKey, TValue>::set(data_, new_id, old_id);
+    detail::LookupStorage<TValue, TKey>::set(inverse.data_, old_id, new_id);
   }
 
   // Indexing into the order
   // `order[new_index] -> old_index`
-  reference operator[](size_type idx) noexcept {
+  reference operator[](const TKey & idx) noexcept {
     return Proxy{*this, idx};
   }
   // `order[new_index] -> old_index`
-  const_reference operator[](size_type idx) const noexcept {
-    return data_[idx];
+  const_reference operator[](const TKey & idx) const noexcept {
+    return detail::LookupStorage<TKey, TValue>::at(data_, idx);
   }
 
   // Iteration over the indices
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   iterator begin() noexcept { return {*this, 0}; }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_iterator begin() const noexcept { return data_.begin(); }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_iterator cbegin() const noexcept { return data_.cbegin(); }
 
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   iterator end() noexcept { return {*this, size()}; }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_iterator end() const noexcept { return data_.end(); }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_iterator cend() const noexcept { return data_.cend(); }
 
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   reverse_iterator rbegin() noexcept { return {*this, size() - 1}; }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_reverse_iterator rbegin() const noexcept { return data_.rbegin(); }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_reverse_iterator crbegin() const noexcept { return data_.crbegin(); }
 
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   reverse_iterator rend() noexcept { return {*this, static_cast<size_type>(-1)}; }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_reverse_iterator rend() const noexcept { return data_.rend(); }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_reverse_iterator crend() const noexcept { return data_.crend(); }
 
   size_type size() const noexcept { return data_.size(); }
@@ -267,7 +363,7 @@ public:
    * @param original The vector to take elements from
    * @return A copy of the original vector, with the items sorted to match the order
    */
-  template<typename U, typename UAlloc>
+  template<typename U, typename UAlloc, bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   [[nodiscard]] std::vector<U, UAlloc> reorder(const std::vector<U, UAlloc> & original) const noexcept {
     if (original.empty())
       return {};
@@ -288,7 +384,7 @@ public:
    * @param original The vector to take elements from
    * @return A copy of the original vector, with the items sorted to match the order
    */
-  template<typename U, typename UAlloc>
+  template<typename U, typename UAlloc, bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   [[nodiscard]] std::vector<U, UAlloc> reorder(std::vector<U, UAlloc> && original) const noexcept {
     if (original.empty())
       return {};
@@ -304,6 +400,7 @@ public:
     return mapped;
   }
 
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   [[nodiscard]] std::string to_string() const {
     std::stringstream ss;
     ss << "Order{";
@@ -339,7 +436,7 @@ private:
   // Inverse constructor -- only enabled if not StoresInverse
   template<bool B = StoresInverse, std::enable_if_t<!B, int> = 0>
   explicit Order(size_type out_size, Order<TValue, TKey, true> & parent)
-    : inverse(parent), data_(out_size) {}
+    : inverse(parent), data_(detail::LookupStorage<TKey, TValue>::make_sized(out_size)) {}
 
   // Inverse constructor -- only enabled if not StoresInverse
   template<bool B = StoresInverse, std::enable_if_t<!B, int> = 0>
