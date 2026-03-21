@@ -4,292 +4,397 @@
 
 This document specifies Stage 2 of the `JointMap` refactor.
 
-Stage 1 split the abstraction successfully:
+Stage 1 established the runtime abstraction boundary successfully:
 
 - `JointMap` is now a runtime wrapper
 - `AffineJointMap` is the fast reorder/mimic path
 - `JointMapBuilder` is an interface
 - `DefaultJointMapBuilder` is the shared default implementation
 
-Stage 2 is the first stage that should introduce transmission-aware planning and runtime execution.
+Stage 2 should introduce transmission-aware planning, but it should do so in a way that matches the rest of this package.
 
-The goal of this stage is not to support every possible transmission system immediately.
-The goal is to define the library's lightweight transmission model and the planning machinery needed to build valid `JointMap` instances for transmission-backed mappings.
-It should also future-proof the API by making quantity type explicit at build time, so callers request either a position map or a velocity map and then use one runtime `map(...)` operation on the resulting `JointMap`.
+The intent of this stage is:
+
+- keep the runtime API simple for users
+- keep transmission topology purely joint-to-joint
+- move quantity-specific complexity to build time only
+- build transmission analysis once for the whole robot
+- compile request-specific `JointMap` instances from cached indexed analysis
+- align the transmission side of the library with the same kind of analysis-first approach already used by FK
+
+The resulting user-facing shape should be:
+
+- callers request a `JointMap` for a specific `JointQuantity`
+- the returned `JointMap` still exposes one runtime `map(...)`
+- failures happen while building the map, not during routine runtime use
+- the final runtime compute structures do not carry `JointQuantity` as part of their execution API
+
+## Existing References
+
+This stage should follow patterns that already exist in the repository rather than inventing a separate architecture.
+
+The most important references are:
+
+- [implementation_guide.md](./implementation_guide.md)
+- [joint_map_transmissions_plan.md](./joint_map_transmissions_plan.md)
+- [analysis_tree.hpp](../include/arm_kinematics/forward/utilities/analysis_tree.hpp)
+- [order.hpp](../include/arm_kinematics/utilities/order.hpp)
+
+Those files point toward the architecture we should use:
+
+- convert source metadata into a robot-wide analysis structure once
+- use `Order<>` at analysis boundaries where named or reordered data is converted into indexed arrays
+- store analysis data contiguously where possible
+- derive smaller request-specific plans from the cached whole-robot analysis
+- keep names out of the runtime hot path
 
 ## Context From The Original Overview
 
-The broader architecture described in the implementation guide still matters here:
+The broader architecture described in the earlier documentation still applies here:
 
 - FK, collision, and IK are cooperating views over one shared robot description
-- the runtime path should stay array-oriented and preallocated
 - expensive structural work should happen during setup
-- `JointMap` exists to bridge between caller-facing and compute-facing joint spaces
-- the same named joint-space relationship may need different rules for position and velocity propagation
+- runtime execution should be array-oriented and preallocated
+- `JointMap` bridges caller-facing joint spaces and compute-facing joint spaces
 
-That means Stage 2 should preserve these package-level properties:
+Stage 2 should preserve these properties:
 
-1. setup-time planning, runtime execution
-2. explicit alignment between named spaces and indexed runtime buffers
-3. no hidden name lookup in the hot path
-4. composition with existing FK plugin customization seams
+1. setup-time analysis, runtime execution
+2. one canonical name-to-id mapping for the robot-wide transmission problem
+3. request-specific planning derived from cached analysis instead of reparsing raw metadata
+4. no hidden string lookup in the hot path
+5. compatibility with FK plugin customization seams
 
-The Stage 2 design must also respect the updated direction from the joint-map transmission plan:
+The design must also preserve the direction established in the transmission plan:
 
 - do not overfit to ros2_control
-- define a lightweight transmission abstraction first
-- allow FK plugins to provide custom transmission definitions through specialized builders
-- treat ros2_control as one metadata source, not as the architectural center
+- treat ros2_control as one metadata source, not the center of the architecture
+- let FK plugins provide custom transmission definitions or custom builder behavior
+- preserve the affine fast path
 
 ## Scope
 
-This stage covers:
+Stage 2 covers:
 
-- defining a lightweight transmission abstraction for `JointMap` planning
+- introducing a robot-wide `TransmissionAnalysis` cache
+- defining indexed joint-to-joint transmission analysis data structures
+- defining quantity-aware build-time selection for position and velocity
 - defining directionality and reversibility rules
 - defining grouped transmission execution semantics
-- defining how builders plan a mapping from requested inputs to requested outputs
-- introducing a transmission-capable runtime `JointMap` implementation
-- defining how position and velocity mapping are represented separately in the planning model and builder request
+- compiling request-specific indexed plans into runtime `JointMap` instances
 
-This stage does not yet need to solve:
+Stage 2 does not need to solve:
 
-- global optimization of composed mapping pipelines
-- scratch-buffer minimization across arbitrarily many stages
-- replacing `RobotModel` as the owner of the default builder
+- global optimization across arbitrary multi-stage pipelines
+- aggressive scratch-buffer minimization
+- relocation of the default builder away from `RobotModel`
 - all possible ros2_control transmission forms
 
 ## Non-Goals
 
-This stage must not:
+Stage 2 must not:
 
 - degrade the current affine fast path for reorder/mimic-only requests
-- require ros2_control headers or types inside the transmission runtime implementation
-- assume that every transmission is reversible
+- require ros2_control headers or types inside the core runtime transmission map
+- keep names alive in runtime mapping structures where ids would suffice
 - silently invent a mapping for ambiguous requests
 
 ## Design Goals
 
 The Stage 2 design should satisfy these requirements:
 
-1. Builders can answer whether a requested mapping is valid.
-2. Builders can reject impossible or ambiguous mappings cleanly.
-3. Transmission-backed runtime maps operate on grouped inputs and outputs, not per-output independent lookups.
-4. ros2_control support can be layered on top of the lightweight transmission abstraction later.
-5. FK plugins can supply custom transmission definitions or custom builders without changing the runtime `JointMap` API again.
-6. Position and velocity mapping are explicit builder-time choices, and the design does not assume they always share identical propagation rules.
+1. `RobotModel` can build and cache a reusable transmission analysis for the whole robot.
+2. Builders can derive request-specific plans from that cached analysis without rebuilding it.
+3. Builders can reject impossible or ambiguous mappings cleanly.
+4. `TransmissionAnalysis` is quantity-agnostic and describes only structural joint relationships.
+5. Position and velocity mapping are explicit build-time choices through `JointQuantity`.
+6. Runtime transmission maps execute on grouped indexed data without carrying semantic quantity tags at execution time.
+7. FK plugins can extend or specialize the builder policy without changing the `JointMap` runtime API again. 
+   This is intended to be done through composition. JointMaps and builders should be unaware of FK plugins.
 
 ## Core Idea
 
-The central shift in Stage 2 is:
+The central shift in Stage 2 is not just:
 
 `JointMap` planning should move from "per-output source lookup" to "space-to-space propagation planning."
 
-For affine maps, each output is independent.
-For transmissions, that assumption breaks down.
+It is also:
 
-So the builder must answer a different question:
+that planning should be based on a reusable robot-wide indexed analysis structure, not ad hoc string-heavy searches per request.
 
-"Given the names I know, and the names I need, what set of transforms can validly propagate values from the input space to the output space?"
+This should mirror the intent behind `AnalysisTree`:
 
-That is closer to what `AnalysisTree` did for FK:
+- simplify source data into a representation suited to planning
+- keep the full-robot representation cached
+- derive smaller request-specific structures from that cached analysis
+- compile the chosen structure into a runtime-friendly compute form
 
-- simplify the problem into a representation suited to planning
-- then compile that representation into a runtime-friendly compute form
+For transmissions, the equivalent should be `TransmissionAnalysis`.
 
-Stage 2 should apply the same philosophy to transmission-backed joint mapping.
-That propagation question should be interpreted per quantity type.
-The valid plan for position may not be identical to the valid plan for velocity, even when the input and output names are the same.
-The quantity choice should therefore be part of the builder request, not a runtime branch inside every caller.
+In the revised design, `TransmissionAnalysis` should capture only structural joint relationships.
+Quantity should not change the cached analysis topology, and is not involved in `TransmissionAnalysis`'s responsibilities.
+It should only affect whether a builder can compile a requested `JointMap` from that topology.
 
 ## Proposed Stage 2 Architecture
 
-## 1. Lightweight Transmission Definitions
+## 1. Quantity Type
 
-Introduce a lightweight transmission abstraction owned by `arm_kinematics`, not by ros2_control.
+Quantity type should be explicit at build time.
 
-Suggested conceptual shape:
+Suggested shape:
 
 ```cpp
 enum class JointQuantity {
   Position,
   Velocity,
 };
-
-struct TransmissionDefinition {
-  std::string name;
-  std::vector<std::string> inputs;
-  std::vector<std::string> outputs;
-  bool supports_forward = false;
-  bool supports_reverse = false;
-  bool same_velocity_rule_as_position = true;
-};
 ```
 
-This is only the descriptive layer.
-It says:
+This is important because:
 
-- what values a transmission can consume
-- what values it can produce
-- what directions it supports
-- whether velocity propagation should be treated as identical to position propagation by default
+- a valid position map may not imply a valid velocity map for the same joint topology
+- velocity propagation rules may differ from position rules even when the joint connectivity is identical
+- the caller should select the quantity it needs while building the map, then use one runtime `map(...)`
+- once planning is complete, runtime compute structures should not need to know why that specific map was selected
 
-It does not yet say how the runtime math is executed.
+## 2. Lightweight Transmission Definitions
 
-## 2. Lightweight Transmission Runtime Interface
-
-Each transmission needs a runtime evaluation object separate from the static definition.
+Introduce a lightweight transmission abstraction owned by `arm_kinematics`, not by ros2_control. ros2_control should shape the design in any way.
 
 Suggested conceptual shape:
 
 ```cpp
+using JointId = size_t;
+enum class PropagationDirection {
+  Forward,
+  Reverse,
+};
+
+template<typename TJoint>
+struct TransmissionDefinition {
+  std::string name;
+  std::vector<TJoint> inputs;
+  std::vector<TJoint> outputs;
+  bool supports_forward = false;
+  bool supports_reverse = false;
+
+  using joint_type = TJoint;
+};
+
+using NamedTransmissionDefinition = TransmissionDefinition<std::string>;
+using IndexedTransmissionDefinition = TransmissionDefinition<JointId>;
+```
+
+This definition layer is intentionally flexible at the boundary:
+
+- `NamedTransmissionDefinition` is appropriate for imported source metadata such as URDF or plugin-provided named descriptions.
+- `IndexedTransmissionDefinition` is appropriate when a consumer already works in canonical `JointId` values, and is always preferred.
+
+This template should remain a boundary-layer convenience, not a pattern that spreads through the full runtime and analysis stack.
+
+## 3. Lightweight Transmission Builder Interface
+
+Each transmission still needs a lightweight planning-layer interface, but Stage 2 should avoid forcing quantity semantics through the final runtime compute API.
+
+Suggested conceptual shape:
+
+```cpp
+using JointId = size_t;
+enum class PropagationDirection {
+  Forward,
+  Reverse,
+};
+
 class TransmissionModel {
 public:
   virtual ~TransmissionModel() = default;
 
-  [[nodiscard]] virtual const TransmissionDefinition & definition() const noexcept = 0;
+  [[nodiscard]] virtual const NamedTransmissionDefinition & definition() const noexcept = 0;
 
-  virtual void forward(
+  virtual bool can_build(
     JointQuantity quantity,
-    span<const float> inputs,
-    span<float> outputs) const = 0;
-  virtual void reverse(
+    PropagationDirection direction) const noexcept = 0;
+
+  virtual std::unique_ptr<const ComputeTransmission> build(
     JointQuantity quantity,
-    span<const float> outputs,
-    span<float> inputs) const = 0;
+    PropagationDirection direction,
+    span<const JointId> input_joint_ids,
+    span<const JointId> output_joint_ids) const = 0;
 };
 ```
 
-Important:
+Important properties:
 
-- this interface is grouped, not scalar
-- forward and reverse are separate operations
-- quantity type is explicit at the model boundary
-- implementations are allowed to support only one direction
-- implementations are allowed to share logic internally when velocity is identical to position
+- grouped, not scalar
+- topology remains joint-based
+- quantity matters only while checking support and building the compute object
+- direction matters only while checking support and building the compute object
+- runtime execution should use the built compute object, not repeatedly branch on quantity
+- implementations may share logic between position and velocity where appropriate
 
-This keeps the abstraction centered on propagation, not XML.
+## 4. `TransmissionAnalysis`
 
-## 3. Transmission Registry / Collection
+Stage 2 should introduce a reusable robot-wide analysis structure, analogous in intent to `AnalysisTree`.
 
-Builders need a way to access all available transmission models.
+Recommended ownership:
+
+- `RobotModel` owns and caches the default `TransmissionAnalysis`
+- builders query that cached analysis rather than rebuilding it
+- plugin-specific builders may augment or replace planning policy, but should still be able to reuse the base analysis
 
 Suggested conceptual shape:
 
 ```cpp
-struct TransmissionSet {
-  std::vector<std::shared_ptr<const TransmissionModel>> models;
+using JointId = size_t;
+using GroupId = size_t;
+using ModelId = size_t;
+
+class TransmissionAnalysis {
+public:
+  struct Group {
+    ModelId model_id = 0;
+    std::vector<JointId> input_joint_ids;
+    std::vector<JointId> output_joint_ids;
+    bool supports_forward = false;
+    bool supports_reverse = false;
+  };
+
+  [[nodiscard]] const Order<std::string, JointId> & joint_ids() const noexcept;
+  [[nodiscard]] const std::vector<Group> & groups() const noexcept;
 };
 ```
 
-This can later be populated from:
+The important point is not the exact final class shape.
+The important point is that the robot-wide cache should be:
 
-- ros2_control transmission XML adapters
-- plugin-specific transmission definitions
-- custom solver-specific transmission sources
+- indexed
+- contiguous where possible
+- derived once from definitions/models
+- reusable for many `JointMap` build requests
 
-## 4. Transmission Planning Representation
+At this layer, the data should already be concretely `JointId`-based.
+The earlier `TransmissionDefinition<TJoint>` template should not leak into `TransmissionAnalysis`.
 
-The builder should not plan directly against raw XML or raw model objects.
-It should plan against a simplified intermediate representation.
+## 5. Canonical Name/Id Mapping
 
-Suggested internal planning representation:
+`TransmissionAnalysis` should use one canonical `Order<std::string, JointId>` only at the analysis boundary where named metadata is converted into internal ids.
+
+That boundary mapping should be used for:
+
+- assigning canonical joint ids across the full robot analysis
+- converting requested input/output names into internal ids
+- reconstructing readable names when diagnostics need them
+
+After that conversion step, the analysis itself should remain in `JointId`-based contiguous arrays.
+Group membership, plan stages, and compiled runtime structures should not keep `Order<>` members just to restate which joints they contain.
+
+When a reverse mapping is needed for diagnostics, use `Order<std::string, JointId>::inverse` to obtain the corresponding `Order<JointId, std::string>` view rather than storing separate ad hoc lookup structures.
+
+This is the intended use of `Order<>` in this design:
+
+- use it once to cross the named boundary
+- use it again when an actual ordering or permutation between arrays must be modeled
+- do not use it as the default storage for internal analysis relationships
+
+## 6. Indexed Analysis Structures
+
+Once source metadata is imported, planning structures should become indexed rather than string-heavy.
+
+Instead of this kind of structure:
 
 ```cpp
 struct TransmissionEdge {
   size_t model_index;
-  enum class Direction { Forward, Reverse } direction;
   std::vector<std::string> consumed_names;
   std::vector<std::string> produced_names;
 };
 ```
 
-And the planning result:
+Stage 2 should prefer indexed structures more like:
 
 ```cpp
-struct TransmissionPlan {
-  std::vector<TransmissionEdge> stages;
-  std::vector<std::string> final_output_order;
+using JointId = size_t;
+using GroupId = size_t;
+
+struct TransmissionAnalysisEdge {
+  GroupId group_id = 0;
+  PropagationDirection direction;
+  std::vector<JointId> consumed_joint_ids;
+  std::vector<JointId> produced_joint_ids;
 };
 ```
 
-This is the transmission analogue of what `AnalysisTree` did for FK:
+The exact data layout can still evolve, but the design direction should be:
 
-- it is easier to reason about than the original source format
-- it can be validated before runtime execution
-- it can later be compiled into a fast runtime map
+- ids, not names
+- contiguous vectors, not scattered maps
+- analysis records separated from request-specific plans
 
-## Builder Responsibilities In Stage 2
+## 7. Request-Specific Planning
 
-## 1. Add a Result Type
+Builders should not plan directly from raw transmission definitions.
+They should plan from `TransmissionAnalysis`.
 
-Stage 1 kept `JointMapBuilder::build()` simple and always returned a `JointMap`.
-Stage 2 should upgrade the transmission-capable path to return an error-aware result.
+For a requested `(input_names, output_names, quantity)` build, the builder should:
 
-Recommended shape:
-
-```cpp
-using BuildJointMapResult = tl::expected<JointMap, std::string>;
-```
-
-And for planning-only helpers:
-
-```cpp
-using BuildTransmissionPlanResult = tl::expected<TransmissionPlan, std::string>;
-```
-
-Reason:
-
-- ambiguous mappings must not silently succeed
-- unsupported reverse requests must not silently produce junk
-- conflicting definitions should be surfaced cleanly
-
-This was explicitly called out in the transmission plan notes and should now become part of the actual interface.
-
-## 2. Planning Algorithm
-
-For a requested `input_names -> output_names` mapping, the builder should:
-
-1. Identify which requested outputs are already satisfiable by affine mapping alone.
-2. Identify which requested outputs require transmission-backed propagation.
-3. Search available transmission definitions for valid propagation paths.
-4. Reject the request if:
-   - a required output cannot be produced
-   - more than one incompatible plan exists and the ambiguity is not resolvable
-   - the necessary direction is unsupported
-5. Compile the valid plan into a runtime `JointMap`.
+1. convert requested names into canonical ids using the cached analysis boundary order
+2. identify which outputs are satisfiable by affine mapping alone
+3. identify which outputs require grouped transmission propagation
+4. search the indexed analysis for a valid structural propagation plan
+5. for each referenced transmission model, check whether it can build the requested quantity and propagation direction
+6. reject the request if:
+   - a required output cannot be reached
+   - the needed direction is unsupported
+   - the requested quantity is unsupported
+   - multiple incompatible plans exist
+7. compile the selected indexed plan into a runtime `JointMap`
 
 This search does not need to be globally optimal yet.
-It just needs to be correct and deterministic.
+It does need to be correct, deterministic, and derived from cached analysis.
 
-The builder should also be allowed to reject requests where position mapping is valid but velocity mapping is unsupported, because the caller should ask for the quantity type it actually needs and receive a quantity-specific `JointMap`.
+If a request needs a specific ordering relationship between caller buffers and internal indexed arrays, that is an appropriate place to introduce request-local `Order<>` objects.
+Those orders should describe buffer layout relationships, not replace the underlying `JointId`-based analysis structures.
 
-## 3. Affine Fast Path Preservation
+## 8. Request Plan Representation
 
-The builder must still prefer the current affine implementation whenever possible.
+The request-specific planning result should also be indexed.
+It should remain structural.
+The requested `JointQuantity` should be carried by the build operation that compiles the plan, not by the plan data itself.
 
-Required behavior:
+Suggested conceptual shape:
 
-- if a request is satisfiable by pure reorder/mimic, return `AffineJointMap`
-- do not route simple requests through transmission planning unnecessarily
+```cpp
+using JointId = size_t;
+using GroupId = size_t;
 
-This should remain true for both:
+struct TransmissionPlanStage {
+  GroupId group_id = 0;
+  PropagationDirection direction;
+  std::vector<JointId> consumed_joint_ids;
+  std::vector<JointId> produced_joint_ids;
+};
 
-- `DefaultJointMapBuilder`
-- plugin-specific builders
+struct TransmissionPlan {
+  std::vector<JointId> input_joint_ids;
+  std::vector<JointId> output_joint_ids;
+  std::vector<TransmissionPlanStage> stages;
+};
+```
 
-## Runtime Types To Introduce
+This is the transmission-side equivalent of deriving a smaller request-specific structure from a full robot analysis tree.
 
-## 1. `TransmissionJointMap`
+## 9. Runtime Types
 
-Stage 2 should introduce a new concrete runtime mapping type:
+### `TransmissionJointMap`
+
+Stage 2 should introduce a concrete runtime mapping type for grouped transmission propagation.
+
+Suggested conceptual shape:
 
 ```cpp
 class TransmissionJointMap {
 public:
-  explicit TransmissionJointMap(
-    JointQuantity quantity,
-    CompiledTransmissionPlan plan);
+  explicit TransmissionJointMap(CompiledTransmissionPlan plan);
 
   void map(span<const double> inputs, span<float> outputs) const;
 
@@ -298,67 +403,83 @@ public:
 };
 ```
 
-Its job is to execute grouped transmission propagation.
-
 Important properties:
 
-- it should operate on precomputed index layouts, not name lookups
-- it should support forward and reverse stage execution as compiled by the builder
-- it should preserve the quantity type selected at build time, so runtime callers still execute one `map(...)`
-- it should use preallocated intermediate storage planned at setup time
+- runtime execution uses only indexed layouts
+- no runtime string lookup
+- no runtime quantity dispatch
+- grouped stage execution is preserved
+- preallocated scratch storage can be used where needed
+- ownership should remain single-owner by default; use `std::unique_ptr` for built compute stages unless a concrete need for sharing appears later
 
-## 2. `CompiledTransmissionPlan`
+### `CompiledTransmissionPlan`
 
-The runtime map should not execute directly from string-based planning data.
-It should execute from an indexed compiled form.
+The runtime map should execute from a compiled indexed form.
 
 Suggested shape:
 
 ```cpp
+using InputIndex = size_t;
+using OutputIndex = size_t;
+
+class ComputeTransmission {
+public:
+  virtual ~ComputeTransmission() = default;
+  virtual void compute(span<const float> inputs, span<float> outputs) const = 0;
+};
+
 struct CompiledTransmissionStage {
-  std::shared_ptr<const TransmissionModel> model;
-  Direction direction;
-  std::vector<size_t> input_indices;
-  std::vector<size_t> output_indices;
+  std::unique_ptr<const ComputeTransmission> compute;
+  std::vector<InputIndex> input_indices;
+  std::vector<OutputIndex> output_indices;
 };
 
 struct CompiledTransmissionPlan {
-  size_t input_count = 0;
-  size_t output_count = 0;
+  InputIndex input_count = 0;
+  OutputIndex output_count = 0;
   std::vector<CompiledTransmissionStage> stages;
-  std::vector<float> initial_affine_buffer_template;
 };
 ```
 
-This is where names should disappear.
+Names should already be gone by this point.
 
-## 3. `CompositeJointMap`
+### `CompositeJointMap`
 
-Stage 2 should decide whether `CompositeJointMap` becomes real now or stays deferred.
+`CompositeJointMap` remains optional for Stage 2.
+Introduce it only if it materially simplifies composition between:
 
-Recommendation:
+- affine reorder/mimic stages
+- grouped transmission stages
+- final output reordering
 
-Implement it in Stage 2 only if it materially simplifies the builder output.
+## Builder Responsibilities In Stage 2
 
-Useful cases:
+## 1. Result Types
 
-- affine reorder into a transmission-space layout
-- transmission stage(s)
-- final affine reorder into caller-requested output layout
+Stage 2 should introduce explicit result types for analysis-derived planning.
 
-If introduced, it should operate over `JointMap` stages and a fixed set of scratch buffers allocated at construction.
+Suggested shapes:
 
-## Proposed Stage 2 Builder Types
+```cpp
+using BuildJointMapResult = tl::expected<JointMap, std::string>;
+using BuildTransmissionPlanResult = tl::expected<TransmissionPlan, std::string>;
+```
 
-## 1. Extend `DefaultJointMapBuilder`
+These are justified because:
+
+- ambiguous mappings must not silently succeed
+- unsupported quantity/direction requests must fail clearly
+- conflicts in transmission metadata should be surfaced at build time
+
+## 2. `DefaultJointMapBuilder`
 
 `DefaultJointMapBuilder` should gain:
 
-- a collection of lightweight transmission definitions/models
-- planning helpers
-- a transmission-aware build path
+- access to the cached `TransmissionAnalysis`
+- indexed planning helpers
+- a quantity-aware expected-returning build path
 
-Suggested additions:
+Suggested conceptual shape:
 
 ```cpp
 class DefaultJointMapBuilder : public JointMapBuilder {
@@ -367,53 +488,41 @@ public:
     const std::vector<std::string> & input_names,
     const std::vector<std::string> & output_names,
     JointQuantity quantity) const;
-
-  DefaultJointMapBuilder & with_transmission_model(
-    std::shared_ptr<const TransmissionModel> model);
 };
 ```
 
-Its existing `build()` can remain temporarily if you want a compatibility wrapper, but Stage 2 should move the real planning path onto an expected-returning API.
+Its existing `build()` can remain temporarily as a compatibility wrapper if needed, but the real Stage 2 planning path should be quantity-aware and analysis-driven.
 
-## 2. Plugin-Specific Builder Composition
+## 3. Plugin-Specific Builder Composition
 
-The plugin delegation pattern should become concrete here.
+The plugin seam remains important.
 
-Suggested shape:
+FK plugins should be able to:
 
-```cpp
-class SpecializedJointMapBuilder : public JointMapBuilder {
-public:
-  explicit SpecializedJointMapBuilder(const JointMapBuilder & base);
+- reuse the default affine and transmission analysis path
+- inject custom transmission models or definitions
+- supply custom planning policy where needed
 
-  BuildJointMapResult build_expected(...) const;
-};
-```
+The important boundary is still:
 
-The builder should be able to:
-
-- reuse the default affine/mimic behavior
-- inject custom transmission models
-- choose a custom plan when the backend requires it
-
-This preserves the design goal that FK plugins own policy, while the default builder still owns shared robot-derived facts.
+- `RobotModel` owns shared robot-derived facts and default cached analysis
+- FK plugins own policy for how that analysis is used to build maps
 
 ## ros2_control Integration Rules
 
 Stage 2 should define these rules clearly:
 
 1. ros2_control types must not appear inside `TransmissionJointMap`.
-2. ros2_control types must not define the core transmission abstraction.
-3. ros2_control support should be implemented as adapters that construct lightweight `TransmissionModel` instances.
-4. Custom FK plugins must be able to provide the same kind of lightweight transmission models without depending on ros2_control.
+2. ros2_control types must not define `TransmissionAnalysis`.
+3. ros2_control support should be implemented as adapters that produce lightweight transmission definitions/models consumed by the core analysis layer.
+4. Custom FK plugins must be able to provide equivalent definitions/models without depending on ros2_control.
+5. Either source may reasonably provide named definitions or already-indexed definitions, but the core analysis layer should normalize them to `JointId`-based storage.
 
 That keeps the core architecture reusable.
 
 ## Error Semantics
 
-Stage 2 must define explicit failure modes.
-
-Recommended categories:
+Recommended failure categories:
 
 - `unsupported_direction`
 - `unsupported_quantity_type`
@@ -422,37 +531,40 @@ Recommended categories:
 - `ambiguous_plan`
 - `conflicting_definitions`
 
-The builder should fail rather than silently choose a dubious mapping.
-The intended user-facing simplification is that this failure happens when building the `JointMap`, not during routine runtime mapping calls.
+These failures should occur while building the `JointMap`, not during routine runtime mapping.
 
-Warnings may still be appropriate in cases like:
+Warnings may still be appropriate for cases like:
 
 - unused transmission definitions
-- duplicate definitions that are identical
+- duplicate but equivalent definitions
 
-But incorrect propagation should not degrade into "best effort" behavior.
+But incorrect propagation must not degrade into best-effort behavior.
 
 ## Testing Requirements
 
-Minimum Stage 2 test coverage:
+Minimum Stage 2 coverage should include:
 
-1. pure affine path is still chosen when no transmissions are required
-2. pure affine path remains correct for both position and velocity mapping
-3. one transmission, forward direction
-4. one transmission, reverse direction
-5. unsupported reverse direction fails clearly
-6. unsupported velocity mapping fails clearly when a transmission only supports position
-7. one transmission where velocity propagation intentionally differs from position
-8. many-input/many-output grouped transmission executes as a unit
-9. ambiguous mapping fails clearly
-10. plugin-specific builder can supply a custom transmission model
-11. ros2_control adapter tests are separate from core transmission runtime tests
+1. `TransmissionAnalysis` is built once and reused across multiple requests.
+2. analysis uses stable canonical `JointId` assignments derived from one boundary `Order<std::string, JointId>`.
+3. pure affine path is still chosen when no transmissions are required.
+4. pure affine path remains correct for both position and velocity builds.
+5. one transmission, forward direction.
+6. one transmission, reverse direction.
+7. unsupported reverse direction fails clearly.
+8. unsupported velocity mapping fails clearly when quantity support differs.
+9. one transmission where velocity propagation intentionally differs from position.
+10. many-input/many-output grouped transmission executes as a unit.
+11. ambiguous mapping fails clearly.
+12. plugin-specific builders can reuse cached analysis and extend behavior.
+13. ros2_control adapter tests remain separate from core analysis/runtime tests.
 
 Also add planning-only tests for:
 
-- graph construction
+- canonical id assignment
+- request name to id conversion
+- request-local order construction when caller buffer ordering differs from canonical joint ordering
 - direction selection
-- quantity-type selection
+- quantity selection
 - output reachability
 - deterministic error messages for invalid requests
 
@@ -460,31 +572,37 @@ Also add planning-only tests for:
 
 Stage 2 is complete when:
 
-- a lightweight transmission abstraction exists independent of ros2_control
-- transmission-backed mappings can be planned and compiled into runtime `JointMap` instances
-- callers request position or velocity behavior when building the `JointMap`, not by selecting between separate runtime mapping methods
-- invalid or ambiguous requests fail cleanly
+- a reusable robot-wide `TransmissionAnalysis` exists
+- `TransmissionAnalysis` topology is joint-based and quantity-agnostic
+- `RobotModel` can cache that analysis and expose it to builders
+- transmission-backed mappings are planned from indexed cached analysis rather than raw string metadata
+- callers request position or velocity behavior when building the `JointMap`
+- runtime `JointMap` execution remains a single `map(...)` operation
+- invalid or ambiguous requests fail cleanly at build time
 - the affine fast path remains intact and preferred for simple cases
-- FK plugins can add custom transmission-backed mapping behavior through their builders
+- FK plugins can extend transmission-backed mapping behavior through their builders
 
 ## Deferred Decisions
 
 Still defer these beyond Stage 2 if needed:
 
-- removal or relocation of the default builder from `RobotModel`
-- global optimization of multi-stage mapping pipelines
-- scratch-buffer minimization and aggressive runtime optimization
-- broader builder API cleanup across all call sites if `build_expected()` replaces `build()` completely
+- relocation of default builder ownership away from `RobotModel`
+- global optimization of arbitrary multi-stage propagation pipelines
+- aggressive scratch-buffer reuse optimization
+- broader builder API cleanup if `build_expected()` fully replaces `build()`
 
 ## Recommended Execution Order
 
-1. Define `JointQuantity`, `TransmissionDefinition`, and `TransmissionModel`.
-2. Add a transmission planning representation and planning helpers.
-3. Introduce expected-based planning/build APIs that take the requested quantity type.
-4. Keep `JointMap` as a single runtime type with one `map(...)` operation.
-5. Implement `TransmissionJointMap`.
-6. Add `CompositeJointMap` only if the planning output needs it.
-7. Add plugin-specific builder extension tests.
-8. Add ros2_control adapters last, on top of the lightweight transmission layer.
+1. Introduce `JointQuantity`, lightweight transmission definitions, and `TransmissionModel`.
+2. Introduce templated boundary definitions such as `TransmissionDefinition<TJoint>`, with named and indexed aliases.
+3. Introduce quantity-agnostic `TransmissionAnalysis` with one boundary `Order<std::string, JointId>` and contiguous `JointId`-based internal storage.
+4. Add `RobotModel` support for building and caching the whole-robot default `TransmissionAnalysis`.
+5. Add indexed structural request-planning structures derived from `TransmissionAnalysis`, introducing request-local `Order<>` objects only where actual buffer ordering/permutation needs to be modeled.
+6. Introduce quantity-aware expected-based builder APIs that compile from a structural plan to a quantity-specific runtime map.
+7. Keep `JointMap` as a single runtime type with one `map(...)`.
+8. Implement `TransmissionJointMap` from compiled indexed plans using evaluators selected during build.
+9. Add `CompositeJointMap` only if it materially simplifies composition.
+10. Add plugin-specific builder extension tests.
+11. Add ros2_control adapters last, on top of the lightweight analysis layer.
 
-That keeps Stage 2 aligned with the original architecture and avoids slipping back into a ros2_control-shaped design.
+That keeps Stage 2 aligned with the existing architecture of the repository and with the analysis-first approach already established by FK.
