@@ -176,10 +176,12 @@
 let
   buildWorkspace = buildROSWorkspace.override {
     buildROSWorkspace = buildWorkspace;
-    buildROSEnv = args: buildEnv (args // {
+    buildROSEnv = args: (buildEnv (args // {
       # There are too many packages to completely avoid collisions.
       # Warnings during build time should be carefully observed.
       ignoreCollisions = true;
+    })).overrideAttrs (_: {
+      dontFixup = true;
     });
   };
 in
