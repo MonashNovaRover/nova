@@ -5,75 +5,33 @@
   gz_type_name: "gz.msgs.Clock"
   direction: GZ_TO_ROS # BIDIRECTIONAL or ROS_TO_GZ
 
-# Oak depth image
-- ros_topic_name: "/oak/stereo/image_raw"
-  gz_topic_name: "/oak/depth_image"
+# RealSense D415 color image
+- ros_topic_name: "/d415/color/image_raw"
+  gz_topic_name: "/d415/color"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
   direction: GZ_TO_ROS
 
-# Oak depth camera info
-- ros_topic_name: "/oak/stereo/camera_info"
-  gz_topic_name: "/oak/camera_info"
+# RealSense D415 color camera info ( Intrinsics Identical to DepthImages )
+- ros_topic_name: "/d415/color/camera_info"
+  gz_topic_name: "/d415/color/camera_info"
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
 
-# Oak rgb image
-- ros_topic_name: "/oak/rgb/image_raw"
-  gz_topic_name: "/oak/image"
-  ros_type_name: "sensor_msgs/msg/Image"
-  gz_type_name: "gz.msgs.Image"
-  direction: GZ_TO_ROS
+# # RealSense D415 depth image
+# - ros_topic_name: "/d415/depth/image_raw"
+#   gz_topic_name: "/d415/depth"
+#   ros_type_name: "sensor_msgs/msg/Image"
+#   gz_type_name: "gz.msgs.Image"
+#   direction: GZ_TO_ROS
 
-# Oak rgb camera info ( Intrinsics Identical to DepthImages )
-- ros_topic_name: "/oak/rgb/camera_info"
-  gz_topic_name: "/oak/camera_info"
-  ros_type_name: "sensor_msgs/msg/CameraInfo"
-  gz_type_name: "gz.msgs.CameraInfo"
-  direction: GZ_TO_ROS
-
-# Oak Imu
-- ros_topic_name: "/oak/imu/transformed"
-  gz_topic_name: "/oak/imu"
-  ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.IMU"
-  direction: GZ_TO_ROS
-
-# Bootie depth image
-- ros_topic_name: "/bootie/stereo/image_raw"
-  gz_topic_name: "/bootie/depth_image"
-  ros_type_name: "sensor_msgs/msg/Image"
-  gz_type_name: "gz.msgs.Image"
-  direction: GZ_TO_ROS
-
-# Bootie depth camera info
-- ros_topic_name: "/bootie/stereo/camera_info"
-  gz_topic_name: "/bootie/camera_info"
-  ros_type_name: "sensor_msgs/msg/CameraInfo"
-  gz_type_name: "gz.msgs.CameraInfo"
-  direction: GZ_TO_ROS
-
-# Bootie rgb image
-- ros_topic_name: "/bootie/rgb/image_raw"
-  gz_topic_name: "/bootie/image"
-  ros_type_name: "sensor_msgs/msg/Image"
-  gz_type_name: "gz.msgs.Image"
-  direction: GZ_TO_ROS
-
-# Bootie rgb camera info ( Intrinsics Identical to DepthImages )
-- ros_topic_name: "/bootie/rgb/camera_info"
-  gz_topic_name: "/bootie/camera_info"
-  ros_type_name: "sensor_msgs/msg/CameraInfo"
-  gz_type_name: "gz.msgs.CameraInfo"
-  direction: GZ_TO_ROS
-
-# Bootie imu
-- ros_topic_name: "/bootie/imu/transformed"
-  gz_topic_name: "/bootie/imu"
-  ros_type_name: "sensor_msgs/msg/Imu"
-  gz_type_name: "gz.msgs.IMU"
-  direction: GZ_TO_ROS
+# # RealSense D415 depth camera info
+# - ros_topic_name: "/d415/depth/camera_info"
+#   gz_topic_name: "/d415/camera_info"
+#   ros_type_name: "sensor_msgs/msg/CameraInfo"
+#   gz_type_name: "gz.msgs.CameraInfo"
+#   direction: GZ_TO_ROS
 
 # Livox LaserScans
 - ros_topic_name: "/livox/lidar/scan"
@@ -83,10 +41,17 @@
   direction: GZ_TO_ROS
 
 # Livox PointClouds
-- ros_topic_name: "/livox/lidar"
+- ros_topic_name: "/livox/lidar_sim"
   gz_topic_name: "/livox/lidar/points"
   ros_type_name: "sensor_msgs/msg/PointCloud2"
   gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: GZ_TO_ROS
+
+# Livox IMU
+- ros_topic_name: "/livox/imu"
+  gz_topic_name: "/livox/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS
 
 # GPS

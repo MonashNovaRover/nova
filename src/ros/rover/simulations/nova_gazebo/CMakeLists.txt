@@ -17,15 +17,42 @@ endif()
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
+find_program(XACRO_EXECUTABLE xacro REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-# Add all the installation directories
+file(GLOB WORLD_TEMPLATE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} worlds/*.sdf)
+
+set(GENERATED_WORLDS_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated_worlds)
+set(GENERATED_WORLD_FILES)
+
+foreach(WORLD_TEMPLATE ${WORLD_TEMPLATE_FILES})
+  get_filename_component(WORLD_NAME ${WORLD_TEMPLATE} NAME)
+  set(GENERATED_WORLD ${GENERATED_WORLDS_DIR}/${WORLD_NAME})
+
+  add_custom_command(
+    OUTPUT ${GENERATED_WORLD}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${GENERATED_WORLDS_DIR}
+    COMMAND ${XACRO_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/${WORLD_TEMPLATE} -o ${GENERATED_WORLD}
+    DEPENDS
+      ${CMAKE_CURRENT_SOURCE_DIR}/${WORLD_TEMPLATE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/worlds/includes/world_base.xacro
+    VERBATIM
+  )
+
+  list(APPEND GENERATED_WORLD_FILES ${GENERATED_WORLD})
+endforeach()
+
+add_custom_target(generate_worlds ALL DEPENDS ${GENERATED_WORLD_FILES})
+
 install(DIRECTORY
   models
-  worlds 
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(FILES ${GENERATED_WORLD_FILES}
+  DESTINATION share/${PROJECT_NAME}/worlds
 )
 
 # Run build testing package nodes

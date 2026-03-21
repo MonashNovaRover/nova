@@ -32,6 +32,7 @@ def launch_setup(context, *args, **kwargs):
     robot_name = LaunchConfiguration('robot_name').perform(context)
     joints = LaunchConfiguration('joints').perform(context)
     rviz = LaunchConfiguration('rviz')
+    rviz_params = LaunchConfiguration('rviz_params')
 
     return [
         Node(
@@ -57,13 +58,14 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=IfCondition(rviz),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            launch_arguments={'gazebo': gazebo, 'model': model, 'shortened_auto_mount': shortened_auto_mount, 'robot_name': robot_name}.items(),
+            launch_arguments={'gazebo': gazebo, 'model': model, 'shortened_auto_mount': shortened_auto_mount, 'robot_name': robot_name, 'rviz_params': rviz_params}.items(),
         ),
     ]
 
 
 def generate_launch_description():
     rover_description_dir = FindPackageShare('rover_description')
+    auto_bringup_dir = FindPackageShare('auto_bringup')
 
     declared_arguments = [
         DeclareLaunchArgument(
@@ -95,6 +97,11 @@ def generate_launch_description():
             name='rviz',
             default_value='False',
             description='Whether to launch RViz2.',
+        ),
+        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
+            name='rviz_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
+            description='Full path to the RViz config file to use',
         ),
     ]
 
