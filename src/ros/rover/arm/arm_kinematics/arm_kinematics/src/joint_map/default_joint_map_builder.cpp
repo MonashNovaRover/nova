@@ -1,5 +1,5 @@
 //
-// Created by Codex on 21/03/2026.
+// Created by Bailey Chessum on 21/03/2026.
 //
 
 #include "arm_kinematics/joint_map/default_joint_map_builder.hpp"

@@ -1,5 +1,5 @@
 //
-// Created by Codex on 21/03/2026.
+// Created by Bailey Chessum on 21/03/2026.
 //
 
 #ifndef ARM_KINEMATICS_COMPUTE_TRANSMISSION_HPP
