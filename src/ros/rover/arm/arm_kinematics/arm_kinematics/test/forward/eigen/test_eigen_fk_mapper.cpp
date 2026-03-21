@@ -9,11 +9,14 @@
 #include "arm_kinematics/forward/utilities/compute_joint_tree.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 #include "arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
+#include "arm_kinematics/joint_map/affine_joint_map.hpp"
+#include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include "arm_kinematics/utilities/reordered.hpp"
 #include <chrono>
+#include <stdexcept>
 
 using arm_kinematics::ComputeFrameTree;
 using arm_kinematics::ComputeJointTree;
@@ -23,6 +26,8 @@ using arm_kinematics::JointMapBuilder;
 using arm_kinematics::ForwardKinematicsPlugin;
 using arm_kinematics::EigenForwardKinematicsPlugin;
 using arm_kinematics::AnalysisTree;
+using arm_kinematics::AffineJointMap;
+using arm_kinematics::DefaultJointMapBuilder;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
 using arm_kinematics::RobotModel;
@@ -38,6 +43,149 @@ static void ExpectVectorNear(const Eigen::Vector3f & actual,
   EXPECT_NEAR(actual.x(), expected.x(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
   EXPECT_NEAR(actual.y(), expected.y(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
   EXPECT_NEAR(actual.z(), expected.z(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
+}
+
+TEST(JointMapStage1Tests, DefaultConstructedJointMapIsInvalid)
+{
+  JointMap joint_map{};
+
+  EXPECT_FALSE(joint_map.valid());
+  EXPECT_EQ(joint_map.input_count(), 0);
+  EXPECT_EQ(joint_map.output_count(), 0);
+
+  std::vector<double> inputs{};
+  std::vector<float> outputs{};
+  EXPECT_THROW(joint_map.map(inputs, outputs), std::logic_error);
+}
+
+TEST(JointMapStage1Tests, AffineJointMapPreservesPureReorderBehavior)
+{
+  AffineJointMap map(
+    {"joint_a", "joint_b", "joint_c"},
+    {"joint_c", "joint_a", "joint_b"});
+
+  std::vector<double> inputs{1.0, 2.0, 3.0};
+  std::vector<float> outputs(3);
+  map.map(inputs, outputs);
+
+  ASSERT_EQ(map.input_count(), 3);
+  ASSERT_EQ(map.output_count(), 3);
+  EXPECT_NEAR(outputs[0], 3.0, EPSILON);
+  EXPECT_NEAR(outputs[1], 1.0, EPSILON);
+  EXPECT_NEAR(outputs[2], 2.0, EPSILON);
+}
+
+TEST(JointMapStage1Tests, AffineJointMapPreservesMimicBehavior)
+{
+  std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints{};
+  auto mimic = std::make_shared<urdf::JointMimic>();
+  mimic->joint_name = "driver";
+  mimic->multiplier = -1.0;
+  mimic->offset = 0.25;
+  mimic_joints["follower"] = mimic;
+
+  AffineJointMap map(
+    {"driver"},
+    {"driver", "follower"},
+    mimic_joints);
+
+  std::vector<double> inputs{2.0};
+  std::vector<float> outputs(2);
+  map.map(inputs, outputs);
+
+  ASSERT_EQ(map.input_count(), 1);
+  ASSERT_EQ(map.output_count(), 2);
+  EXPECT_NEAR(outputs[0], 2.0, EPSILON);
+  EXPECT_NEAR(outputs[1], -1.75, EPSILON);
+}
+
+TEST(JointMapStage1Tests, JointMapCopyRetainsBehavior)
+{
+  JointMap original(AffineJointMap(
+    {"driver"},
+    {"driver", "driver"}));
+
+  JointMap copy = original;
+
+  ASSERT_TRUE(original.valid());
+  ASSERT_TRUE(copy.valid());
+  ASSERT_EQ(copy.input_count(), 1);
+  ASSERT_EQ(copy.output_count(), 2);
+
+  std::vector<double> inputs{4.0};
+  std::vector<float> original_outputs(2);
+  std::vector<float> copy_outputs(2);
+
+  original.map(inputs, original_outputs);
+  copy.map(inputs, copy_outputs);
+
+  EXPECT_EQ(original_outputs, copy_outputs);
+}
+
+class MimicUrdfTests : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    robot_description_ = R"(
+      <robot name="mimic_robot">
+        <link name="base_link"/>
+        <link name="driver_link"/>
+        <link name="follower_link"/>
+
+        <joint name="driver_joint" type="revolute">
+          <parent link="base_link"/>
+          <child  link="driver_link"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <joint name="follower_joint" type="revolute">
+          <parent link="driver_link"/>
+          <child  link="follower_link"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <mimic joint="driver_joint" multiplier="-2.0" offset="0.5"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <ros2_control>
+        </ros2_control>
+      </robot>
+    )";
+
+    ASSERT_TRUE(urdf::Model().initString(robot_description_));
+    robot_model_ = std::make_unique<RobotModel>(robot_description_);
+  }
+
+  std::string robot_description_;
+  RobotModel::UniquePtr robot_model_;
+};
+
+TEST_F(MimicUrdfTests, DefaultJointMapBuilderMatchesRobotModelBuilder)
+{
+  DefaultJointMapBuilder builder{};
+  builder.with_urdf(robot_model_->get_urdf_model());
+  builder.with_transmissions(robot_description_, rclcpp::get_logger("joint_map_test"));
+
+  const auto default_map = builder.build(
+    {"driver_joint"},
+    {"driver_joint", "follower_joint"});
+  const auto robot_model_map = robot_model_->get_joint_map_builder().build(
+    {"driver_joint"},
+    {"driver_joint", "follower_joint"});
+
+  std::vector<double> inputs{1.5};
+  std::vector<float> default_outputs(2);
+  std::vector<float> robot_model_outputs(2);
+
+  default_map.map(inputs, default_outputs);
+  robot_model_map.map(inputs, robot_model_outputs);
+
+  EXPECT_EQ(default_outputs, robot_model_outputs);
+  EXPECT_NEAR(default_outputs[0], 1.5, EPSILON);
+  EXPECT_NEAR(default_outputs[1], -2.5, EPSILON);
 }
 
 // Small helper for comparing isometries
