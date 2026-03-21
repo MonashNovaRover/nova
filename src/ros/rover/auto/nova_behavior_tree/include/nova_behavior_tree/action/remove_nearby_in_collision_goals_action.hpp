@@ -26,12 +26,17 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
-#include "behaviortree_cpp/action_node.h"
+#include "nav_msgs/msg/path.hpp"
+#include "nav2_util/geometry_utils.hpp"
+#include "nav2_util/robot_utils.hpp"
+#include "nav2_behavior_tree/bt_utils.hpp"
 
+#include "behaviortree_cpp/action_node.h"
 #include "rclcpp/rclcpp.hpp"
 
 namespace nova_behavior_tree
@@ -90,12 +95,15 @@ public:
    */
   void halt() override;
 
+  /**
+   * @brief Creates list of BT ports
+   * @return BT::PortsList Containing basic ports along with node-specific ports
+   */
   static BT::PortsList providedPorts()
   {
     return {
         BT::InputPort<double>("max_distance_threshold", 5.0, "Maximum radius (m) for a goal to be considered for removal"),
         BT::InputPort<Goals>("input_goals", "Original goals to remove if in collision"),
-        BT::InputPort<geometry_msgs::msg::PoseStamped>("current_pose", "Current pose input"),
         BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals removed"),
       };
   }
@@ -116,9 +124,12 @@ private:
   rclcpp::Subscription<OccupancyGrid>::SharedPtr global_occu_grid_sub_;
   OccupancyGrid::SharedPtr local_occu_grid_;
   OccupancyGrid::SharedPtr global_occu_grid_;
-  
-  Goals input_goals_;
+
+  std::string global_frame_, robot_base_frame_;
+  std::shared_ptr<tf2_ros::Buffer> tf_;
+  double transform_tolerance_;
   double max_distance_threshold_;
+  Goals input_goals_;
 
   bool initialized_ = false;
   bool set_up_ = false;

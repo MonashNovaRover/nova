@@ -50,6 +50,16 @@ RemoveNearbyInCollisionGoalsAction::RemoveNearbyInCollisionGoalsAction(
 void RemoveNearbyInCollisionGoalsAction::initialize()
 {
   node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+  
+  // Get vars for figuring out current pose
+  tf_ = config().blackboard->get<std::shared_ptr<tf2_ros::Buffer>>("tf_buffer");
+  node_->get_parameter("transform_tolerance", transform_tolerance_);
+  global_frame_ = BT::deconflictPortAndParamFrame<std::string>(
+    node_, "global_frame", this);
+  robot_base_frame_ = BT::deconflictPortAndParamFrame<std::string>(
+    node_, "robot_base_frame", this);
+
+  // Get input params
   getInput("max_distance_threshold", max_distance_threshold_);
 
   // Subscribe to local and global costmaps' occupancy grids
@@ -164,8 +174,14 @@ bool RemoveNearbyInCollisionGoalsAction::is_goal_in_collision(const PoseStamped 
 
 bool RemoveNearbyInCollisionGoalsAction::remove_goals()
 {
-  geometry_msgs::msg::PoseStamped current_pose_;
-  getInput("current_pose", current_pose_);
+  // Get the current pose of the rover
+  geometry_msgs::msg::PoseStamped current_pose;
+
+  if (!nav2_util::getCurrentPose(current_pose, *tf_, global_frame_, robot_base_frame_, transform_tolerance_))
+  {
+    RCLCPP_WARN(node_->get_logger(), "Current robot pose is not available.");
+    return false;
+  }
 
   Goals output_goals_;
   for (size_t i=0; i < input_goals_.size(); i++)
@@ -173,7 +189,7 @@ bool RemoveNearbyInCollisionGoalsAction::remove_goals()
     Goal goal = input_goals_[i];
 
     // Keep goal if it is outside max distance to consider for removal
-    const double dist = euclidean_distance(current_pose_, goal);
+    const double dist = euclidean_distance(current_pose, goal);
     if (dist > max_distance_threshold_)
     {
       output_goals_.push_back(goal);
