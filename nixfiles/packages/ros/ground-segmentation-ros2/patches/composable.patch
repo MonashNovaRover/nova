@@ -1,0 +1,81 @@
+diff -ur a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -13,6 +13,7 @@
+ find_package(geometry_msgs REQUIRED)
+ find_package(tf2_geometry_msgs REQUIRED)
+ find_package(ground_segmentation REQUIRED)
++find_package(rclcpp_components REQUIRED)
+ 
+ set(dependencies
+   geometry_msgs
+@@ -26,6 +27,7 @@
+   tf2_eigen
+   pcl_conversions
+   message_filters
++  rclcpp_components
+ )
+ 
+ add_executable(ground_segmentation_ros2_node src/ground_segmentation_ros2_node.cpp)
+@@ -45,6 +47,27 @@
+ install(TARGETS ground_segmentation_ros2_node
+   DESTINATION lib/${PROJECT_NAME})
+ 
++add_library(ground_segmentation_ros2_component SHARED src/ground_segmentation_ros2_node.cpp)
++target_include_directories(ground_segmentation_ros2_component PUBLIC
++  ${pcl_conversions_INCLUDE_DIRS}
++)
++ament_target_dependencies(ground_segmentation_ros2_component
++  ${dependencies}
++)
++target_link_libraries(ground_segmentation_ros2_component
++  ${PCL_LIBRARIES}
++  ground_segmentation::ground_segmentation
++)
++rclcpp_components_register_node(ground_segmentation_ros2_component
++  PLUGIN "GroundSegmentatioNode"
++  EXECUTABLE ground_segmentation_ros2_component_node
++)
++install(TARGETS ground_segmentation_ros2_component
++  ARCHIVE DESTINATION lib
++  LIBRARY DESTINATION lib
++  RUNTIME DESTINATION bin
++)
++
+ install(DIRECTORY launch config
+   DESTINATION share/${PROJECT_NAME})
+ 
+diff -ur a/package.xml b/package.xml
+--- a/package.xml
++++ b/package.xml
+@@ -19,6 +19,7 @@
+   <depend>tf2_ros</depend>
+   <depend>ground_segmentation</depend>
+   <depend>message_filters</depend>
++  <depend>rclcpp_components</depend>
+ 
+   <build_depend>libpcl-all-dev</build_depend>
+   <exec_depend>libpcl-all</exec_depend>
+diff -ur a/src/ground_segmentation_ros2_node.cpp b/src/ground_segmentation_ros2_node.cpp
+--- a/src/ground_segmentation_ros2_node.cpp
++++ b/src/ground_segmentation_ros2_node.cpp
+@@ -51,7 +51,11 @@
+ 
+ class GroundSegmentatioNode : public rclcpp::Node {
+ public:
+-    GroundSegmentatioNode(rclcpp::NodeOptions options) : Node("ground_segmentation",options) {
++    GroundSegmentatioNode(rclcpp::NodeOptions options)
++        : Node(
++            "ground_segmentation",
++            options.allow_undeclared_parameters(true).automatically_declare_parameters_from_overrides(true))
++    {
+         publisher_ground_points = this->create_publisher<sensor_msgs::msg::PointCloud2>("/ground_segmentation/ground_points", 10);
+         publisher_obstacle_points = this->create_publisher<sensor_msgs::msg::PointCloud2>("/ground_segmentation/obstacle_points", 10);
+         publisher_raw_points = this->create_publisher<sensor_msgs::msg::PointCloud2>("/ground_segmentation/raw_points", 10);
+@@ -301,3 +305,6 @@
+     rclcpp::shutdown();
+     return 0;
+ }
++
++#include "rclcpp_components/register_node_macro.hpp"
++RCLCPP_COMPONENTS_REGISTER_NODE(GroundSegmentatioNode)

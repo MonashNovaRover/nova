@@ -26,7 +26,8 @@ from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, AndSubstitution, NotSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.logging import get_logger
-from launch_ros.actions import Node, SetParameter
+from launch_ros.actions import Node, SetParameter, LoadComposableNodes
+from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 from nav2_common.launch import RewrittenYaml
 
@@ -79,9 +80,16 @@ def block_until_enter_pressed(context, logger):
 
 def launch_setup(context, *args, **kwargs):
     # package directories
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    local = LaunchConfiguration('local')
 
-    livox_driver = LaunchConfiguration('livox_driver')
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+
+    new_container = LaunchConfiguration('new_container')
+    container_name = LaunchConfiguration('container_name')
+    driver = LaunchConfiguration('driver')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     mask = LaunchConfiguration('mask')
@@ -152,7 +160,7 @@ def launch_setup(context, *args, **kwargs):
     return [
         SetParameter(name='use_sim_time', value=sim),
         Node(
-            condition=IfCondition(AndSubstitution(livox_driver, NotSubstitution(sim))),
+            condition=IfCondition(AndSubstitution(driver, NotSubstitution(sim))),
             package='livox_ros_driver2',
             executable='livox_ros_driver2_node',
             name='livox_lidar_publisher',
@@ -160,29 +168,42 @@ def launch_setup(context, *args, **kwargs):
             parameters=[lidar_params, {'user_config_path': lidar_config}],
         ),
         Node(
-            # Remove points that intersect with the rover
-            condition=IfCondition(mask),
-            package='pcl_ros',
-            executable='filter_crop_box_node',
-            name='crop_box_filter',
-            parameters=[{'min_x': -0.64, 'max_x': 0.64,
-                            'min_y': -0.57, 'max_y': 0.57,
-                            'min_z': 0.0, 'max_z': 4.0,
-                            'negative': True,
-                            'input_frame': 'base_link'}],
-            remappings=[('input', '/livox/lidar'),
-                        ('output', '/livox/lidar_masked')],
+            condition=IfCondition(new_container),
+            name=container_name,
+            package='rclcpp_components',
+            executable='component_container_isolated',
+            output='screen',
         ),
-        Node(
-            condition=IfCondition(ground_seg),
-            package="ground_segmentation_ros2",
-            executable="ground_segmentation_ros2_node",
-            parameters=[ground_seg_params],
-            remappings=[
-                ("/ground_segmentation/input_pointcloud", '/livox/lidar_masked'),
-                ("/ground_segmentation/input_imu", '/livox/imu'),
+        LoadComposableNodes(
+            target_container=container_name,
+            composable_node_descriptions=[
+                ComposableNode(
+                    condition=IfCondition(mask),
+                    package='pcl_ros',
+                    plugin='pcl_ros::CropBox',
+                    name='crop_box_filter',
+                    parameters=[{'min_x': -0.64, 'max_x': 0.64,
+                                 'min_y': -0.57, 'max_y': 0.57,
+                                 'min_z': 0.0, 'max_z': 4.0,
+                                 'negative': True,
+                                 'input_frame': 'base_link'}],
+                    remappings=[('input', '/livox/lidar'),
+                                ('output', '/livox/lidar_masked')],
+                    extra_arguments=[{'use_intra_process_comms': True}],
+                ),
+                ComposableNode(
+                    condition=IfCondition(ground_seg),
+                    package='ground_segmentation_ros2',
+                    plugin='GroundSegmentatioNode',
+                    name='ground_segmentation',
+                    parameters=[ground_seg_params],
+                    remappings=[
+                        ('/ground_segmentation/input_pointcloud', '/livox/lidar_masked'),
+                        ('/ground_segmentation/input_imu', '/livox/imu'),
+                    ],
+                    extra_arguments=[{'use_intra_process_comms': True}],
+                ),
             ],
-            output="screen",
         ),
         Node(
             condition=IfCondition(sim),
@@ -321,7 +342,17 @@ def generate_launch_description():
             description='Whether to use local directories instead of the nix store.',
         ),
         DeclareLaunchArgument(
-            name='livox_driver',
+            name='new_container',
+            default_value='True',
+            description='Whether to start a new component container.',
+        ),
+        DeclareLaunchArgument(
+            name='container_name',
+            default_value='auto_container',
+            description='Name of the component container.',
+        ),
+        DeclareLaunchArgument(
+            name='driver',
             default_value='True',
             description='Launch livox_ros_driver2?',
         ),

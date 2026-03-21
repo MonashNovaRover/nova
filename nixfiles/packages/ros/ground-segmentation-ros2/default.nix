@@ -3,6 +3,7 @@
   fetchgit,
   ament-cmake,
   rclcpp,
+  rclcpp-components,
   sensor-msgs,
   tf2-ros,
   tf2-geometry-msgs,
@@ -23,6 +24,10 @@ buildRosPackage {
     hash = "sha256-bLtYc9aX0uoLQQDg5G7jPHv0Xhe1JPd/V1HG+LwfXu0="; 
   };
 
+  patches = [
+    ./patches/composable.patch
+  ];
+
   buildType = "ament_cmake"; 
 
   nativeBuildInputs = [ 
@@ -31,6 +36,7 @@ buildRosPackage {
 
   buildInputs = [
     rclcpp
+    rclcpp-components
     sensor-msgs
     tf2-ros
     tf2-geometry-msgs
