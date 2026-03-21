@@ -35,7 +35,7 @@ ground_segmentation:
     minZ: -10.0
     downsample: false
     downsample_resolution: 0.1
-    lidar_to_ground: -1.076
+    lidar_to_ground: -0.940
     transform_tolerance: 0.1
 
     ##ground detection
