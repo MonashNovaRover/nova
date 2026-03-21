@@ -29,7 +29,7 @@ from os.path import expanduser
 def launch_setup(context, *args, **kwargs):
     # package directories
     local = LaunchConfiguration('local')
-    
+
     auto_bringup_dir = IfElseSubstitution(local,
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
@@ -38,10 +38,7 @@ def launch_setup(context, *args, **kwargs):
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
         FindPackageShare('drive_bringup')
     )
-    nova_gazebo_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/simulations/nova_gazebo']),
-        FindPackageShare('nova_gazebo')
-    )
+    nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
     comp = LaunchConfiguration('comp').perform(context).lower()
     
@@ -66,11 +63,13 @@ def launch_setup(context, *args, **kwargs):
     # comp defaults
     if comp == 'arch':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
+        localization = 'False'
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_arch.yaml'])
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
         gps = 'False'
     elif comp == 'urc':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
+        localization = 'True'
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_urc.yaml'])
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf'])
         gps = 'True'
@@ -78,6 +77,8 @@ def launch_setup(context, *args, **kwargs):
         raise ValueError('"comp" arg must be either "arch" or "urc"')
     
     # comp defaults overrides
+    if LaunchConfiguration('localization').perform(context) != '':
+        localization = LaunchConfiguration('localization')
     if LaunchConfiguration('rl_params').perform(context) != '':
         rl_params = LaunchConfiguration('rl_params')
     if LaunchConfiguration('world').perform(context) != '':
@@ -185,11 +186,6 @@ def generate_launch_description():
             description='Flag to launch gazebo',
         ),
         DeclareLaunchArgument(
-            name='localization',
-            default_value='False',
-            description='Flag to robot localization nodes',
-        ),
-        DeclareLaunchArgument(
             name='log_level',
             default_value='info',
             description='What level of logging output should be displayed',
@@ -250,6 +246,11 @@ def generate_launch_description():
             description='Name of the MPPI config to use (without .yaml)',
         ),
         # arguments with comp defaults
+        DeclareLaunchArgument(
+            name='localization',
+            default_value='',
+            description='Run robot_localization?',
+        ),
         DeclareLaunchArgument(
             name='rl_params',
             default_value='',

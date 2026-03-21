@@ -128,6 +128,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     local = LaunchConfiguration('local')
+    
     auto_bringup_dir = IfElseSubstitution(local,
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
