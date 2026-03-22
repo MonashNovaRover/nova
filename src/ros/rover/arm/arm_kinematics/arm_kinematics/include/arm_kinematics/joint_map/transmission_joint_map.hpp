@@ -35,7 +35,9 @@ struct CompiledTransmissionStage {
 struct CompiledTransmissionPlan {
   size_t input_count = 0;
   size_t output_count = 0;
+  size_t value_count = 0;
   size_t scratch_size = 0;
+  std::vector<size_t> output_value_indices{};
   std::vector<CompiledTransmissionStage> stages{};
 
   CompiledTransmissionPlan() = default;
@@ -63,7 +65,7 @@ public:
 
 private:
   struct Workspace {
-    std::vector<float> inputs{};
+    std::vector<float> values{};
     std::vector<float> stage_inputs{};
     std::vector<float> stage_outputs{};
     std::vector<float> scratch{};

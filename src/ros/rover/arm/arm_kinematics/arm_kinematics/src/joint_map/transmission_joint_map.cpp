@@ -5,29 +5,39 @@
 #include "arm_kinematics/joint_map/transmission_joint_map.hpp"
 
 #include <algorithm>
+#include <unordered_map>
 #include <stdexcept>
 
 namespace arm_kinematics {
 
 namespace {
 
-tl::expected<std::vector<size_t>, std::string> make_indices_expected(
-  const std::vector<JointId> & plan_joint_ids,
-  const std::vector<JointId> & stage_joint_ids,
-  const char * label)
+size_t ensure_value_index(
+  std::unordered_map<JointId, size_t> & value_indices,
+  const JointId joint_id,
+  size_t & next_value_index)
+{
+  const auto it = value_indices.find(joint_id);
+  if (it != value_indices.end()) {
+    return it->second;
+  }
+
+  const auto value_index = next_value_index;
+  value_indices.emplace(joint_id, value_index);
+  ++next_value_index;
+  return value_index;
+}
+
+std::vector<size_t> ensure_value_indices(
+  std::unordered_map<JointId, size_t> & value_indices,
+  span<const JointId> joint_ids,
+  size_t & next_value_index)
 {
   std::vector<size_t> indices{};
-  indices.reserve(stage_joint_ids.size());
+  indices.reserve(joint_ids.size());
 
-  for (const auto joint_id : stage_joint_ids) {
-    const auto joint_it = std::find(plan_joint_ids.begin(), plan_joint_ids.end(), joint_id);
-    if (joint_it == plan_joint_ids.end()) {
-      return tl::make_unexpected(
-        std::string("Transmission plan stage references a ") + label +
-        " joint that is not present in the enclosing plan");
-    }
-
-    indices.push_back(static_cast<size_t>(joint_it - plan_joint_ids.begin()));
+  for (const auto joint_id : joint_ids) {
+    indices.push_back(ensure_value_index(value_indices, joint_id, next_value_index));
   }
 
   return indices;
@@ -43,8 +53,20 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
   CompiledTransmissionPlan compiled_plan{};
   compiled_plan.input_count = transmission_plan.input_joint_ids.size();
   compiled_plan.output_count = transmission_plan.output_joint_ids.size();
+  compiled_plan.value_count = transmission_plan.input_joint_ids.size();
   compiled_plan.scratch_size = 0;
+  compiled_plan.output_value_indices.reserve(transmission_plan.output_joint_ids.size());
   compiled_plan.stages.reserve(transmission_plan.stages.size());
+
+  std::unordered_map<JointId, size_t> value_indices{};
+  value_indices.reserve(
+    transmission_plan.input_joint_ids.size() +
+    transmission_plan.output_joint_ids.size());
+
+  size_t next_value_index = 0;
+  for (const auto joint_id : transmission_plan.input_joint_ids) {
+    ensure_value_index(value_indices, joint_id, next_value_index);
+  }
 
   const auto & models = analysis.models();
   for (const auto & stage : transmission_plan.stages) {
@@ -57,21 +79,14 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
       return tl::make_unexpected("Transmission plan references a model_id not present in TransmissionAnalysis");
     }
 
-    auto input_indices = make_indices_expected(
-      transmission_plan.input_joint_ids,
-      stage.consumed_joint_ids,
-      "consumed");
-    if (!input_indices.has_value()) {
-      return tl::make_unexpected(input_indices.error());
-    }
-
-    auto output_indices = make_indices_expected(
-      transmission_plan.output_joint_ids,
-      stage.produced_joint_ids,
-      "produced");
-    if (!output_indices.has_value()) {
-      return tl::make_unexpected(output_indices.error());
-    }
+    const auto input_indices = ensure_value_indices(
+      value_indices,
+      span<const JointId>(stage.consumed_joint_ids),
+      next_value_index);
+    const auto output_indices = ensure_value_indices(
+      value_indices,
+      span<const JointId>(stage.produced_joint_ids),
+      next_value_index);
 
     auto compute = models[transmission.model_id]->build(
       quantity,
@@ -82,13 +97,24 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
 
     compiled_plan.stages.push_back(CompiledTransmissionStage{
       std::move(compute),
-      std::move(*input_indices),
-      std::move(*output_indices),
+      input_indices,
+      output_indices,
       compiled_plan.scratch_size,
       stage_scratch_size
     });
     compiled_plan.scratch_size += stage_scratch_size;
   }
+
+  for (const auto joint_id : transmission_plan.output_joint_ids) {
+    const auto value_it = value_indices.find(joint_id);
+    if (value_it == value_indices.end()) {
+      return tl::make_unexpected(
+        "Transmission plan output joint is not produced by the compiled grouped plan");
+    }
+
+    compiled_plan.output_value_indices.push_back(value_it->second);
+  }
+  compiled_plan.value_count = next_value_index;
 
   return compiled_plan;
 }
@@ -109,7 +135,7 @@ TransmissionJointMap::Workspace TransmissionJointMap::make_workspace() const
   }
 
   return Workspace{
-    std::vector<float>(compiled_plan_.input_count, 0.0F),
+    std::vector<float>(compiled_plan_.value_count, 0.0F),
     std::vector<float>(max_stage_input_count, 0.0F),
     std::vector<float>(max_stage_output_count, 0.0F),
     std::vector<float>(compiled_plan_.scratch_size, 0.0F)
@@ -125,14 +151,14 @@ void TransmissionJointMap::map(span<const double> inputs, span<float> outputs) c
     throw std::invalid_argument("TransmissionJointMap::map() received outputs with the wrong size");
   }
 
-  auto & input_buffer = workspace_.inputs;
+  auto & values = workspace_.values;
   for (size_t i = 0; i < inputs.size(); ++i) {
-    input_buffer[i] = static_cast<float>(inputs[i]);
+    values[i] = static_cast<float>(inputs[i]);
   }
 
   for (const auto & stage : compiled_plan_.stages) {
     for (size_t i = 0; i < stage.input_indices.size(); ++i) {
-      workspace_.stage_inputs[i] = input_buffer[stage.input_indices[i]];
+      workspace_.stage_inputs[i] = values[stage.input_indices[i]];
     }
 
     stage.compute->compute(
@@ -143,8 +169,12 @@ void TransmissionJointMap::map(span<const double> inputs, span<float> outputs) c
         stage.scratch_size));
 
     for (size_t i = 0; i < stage.output_indices.size(); ++i) {
-      outputs[stage.output_indices[i]] = workspace_.stage_outputs[i];
+      values[stage.output_indices[i]] = workspace_.stage_outputs[i];
     }
+  }
+
+  for (size_t i = 0; i < compiled_plan_.output_value_indices.size(); ++i) {
+    outputs[i] = values[compiled_plan_.output_value_indices[i]];
   }
 }
 

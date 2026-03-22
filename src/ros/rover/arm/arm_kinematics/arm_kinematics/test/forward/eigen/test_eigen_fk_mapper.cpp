@@ -733,6 +733,76 @@ TEST(JointMapStage2Tests, CompiledGroupedTransmissionPlanTracksNonzeroScratchLay
   EXPECT_NEAR(outputs[0], 3.5F, EPSILON);
 }
 
+TEST(JointMapStage2Tests, CompilesAndExecutesManualTwoStageGroupedTransmissionPlan)
+{
+  TransmissionAnalysis analysis{};
+  const auto first_model_id = analysis.add_model(std::make_unique<TestRuntimeTransmissionModel>(2.0F, 0.0F));
+  const auto second_model_id = analysis.add_model(std::make_unique<TestRuntimeTransmissionModel>(1.0F, 0.25F));
+
+  const std::vector<std::string> first_input_names{"motor_joint"};
+  const std::vector<std::string> first_output_names{"intermediate_joint"};
+  analysis.add_transmission(
+    first_model_id,
+    arm_kinematics::span<const std::string>(first_input_names),
+    arm_kinematics::span<const std::string>(first_output_names),
+    "first_stage");
+
+  const std::vector<std::string> second_input_names{"intermediate_joint"};
+  const std::vector<std::string> second_output_names{"driven_joint"};
+  analysis.add_transmission(
+    second_model_id,
+    arm_kinematics::span<const std::string>(second_input_names),
+    arm_kinematics::span<const std::string>(second_output_names),
+    "second_stage");
+
+  const auto & joint_order = analysis.joint_order();
+  const auto motor_joint_id = joint_order["motor_joint"];
+  const auto intermediate_joint_id = joint_order["intermediate_joint"];
+  const auto driven_joint_id = joint_order["driven_joint"];
+
+  arm_kinematics::TransmissionPlan plan{};
+  plan.input_joint_ids = {motor_joint_id};
+  plan.output_joint_ids = {driven_joint_id};
+  plan.stages = {
+    arm_kinematics::TransmissionPlanStage{
+      0,
+      arm_kinematics::PropagationDirection::Forward,
+      {motor_joint_id},
+      {intermediate_joint_id}
+    },
+    arm_kinematics::TransmissionPlanStage{
+      1,
+      arm_kinematics::PropagationDirection::Forward,
+      {intermediate_joint_id},
+      {driven_joint_id}
+    }
+  };
+
+  auto compiled_plan = arm_kinematics::compile_transmission_plan_expected(
+    analysis,
+    plan,
+    JointQuantity::Position);
+
+  ASSERT_TRUE(compiled_plan.has_value());
+  ASSERT_EQ(compiled_plan->input_count, 1u);
+  ASSERT_EQ(compiled_plan->output_count, 1u);
+  ASSERT_EQ(compiled_plan->value_count, 3u);
+  ASSERT_EQ(compiled_plan->stages.size(), 2u);
+  ASSERT_EQ(compiled_plan->output_value_indices.size(), 1u);
+  EXPECT_EQ(compiled_plan->output_value_indices.front(), 2u);
+  EXPECT_EQ(compiled_plan->stages[0].input_indices.front(), 0u);
+  EXPECT_EQ(compiled_plan->stages[0].output_indices.front(), 1u);
+  EXPECT_EQ(compiled_plan->stages[1].input_indices.front(), 1u);
+  EXPECT_EQ(compiled_plan->stages[1].output_indices.front(), 2u);
+
+  arm_kinematics::TransmissionJointMap joint_map(std::move(*compiled_plan));
+  std::vector<double> inputs{1.5};
+  std::vector<float> outputs(1, 0.0F);
+  joint_map.map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 3.25F, EPSILON);
+}
+
 TEST(TransmissionAnalysisTests, AffinePlannerBuildsIdentityPlanForDirectInputJoint)
 {
   TransmissionAnalysis analysis{};
