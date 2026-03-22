@@ -71,6 +71,7 @@ runtime note.
 
 The most important remaining items are:
 
-1. broaden real transmission-model coverage beyond simple single-input single-output transmissions
-2. decide which additional ros2_control transmission forms should receive real grouped runtime implementations next
-3. decide whether any reusable concrete TransmissionModel implementations should be promoted out of import-time internals
+1. move transmission-analysis ownership and builder sourcing fully onto the `ForwardKinematicsPlugin` seam, with `RobotModel` reduced to a lazy shared default analysis cache
+2. broaden real transmission-model coverage beyond simple single-input single-output transmissions
+3. decide which additional ros2_control transmission forms should receive real grouped runtime implementations next
+4. decide whether any reusable concrete TransmissionModel implementations should be promoted out of import-time internals

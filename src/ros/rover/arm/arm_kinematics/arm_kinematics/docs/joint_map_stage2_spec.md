@@ -76,7 +76,7 @@ The design must also preserve the direction established in the transmission plan
 
 Stage 2 covers:
 
-- introducing a robot-wide `TransmissionAnalysis` cache
+- introducing a lazily-built shared default `TransmissionAnalysis` cache
 - defining indexed joint-to-joint transmission analysis data structures
 - defining affine transmission analysis data for mimic relationships
 - defining quantity-aware build-time selection for position and velocity
@@ -88,7 +88,6 @@ Stage 2 does not need to solve:
 
 - global optimization across arbitrary multi-stage pipelines
 - aggressive scratch-buffer minimization
-- relocation of the default builder away from `RobotModel`
 - all possible ros2_control transmission forms
 
 ## Non-Goals
@@ -109,13 +108,14 @@ Ensure:
 
 The Stage 2 design should satisfy these requirements:
 
-1. `RobotModel` can build and cache a reusable transmission analysis for the whole robot.
-2. Builders can derive request-specific plans from that cached analysis without rebuilding it.
-3. Builders can reject impossible or ambiguous mappings cleanly.
-4. `TransmissionAnalysis` is quantity-agnostic and describes only structural joint relationships.
-5. Position and velocity mapping are explicit build-time choices through `JointQuantity`.
-6. Runtime transmission maps execute on grouped indexed data without carrying semantic quantity tags at execution time.
-7. FK plugins can extend or specialize the builder policy without changing the `JointMap` runtime API again. 
+1. `RobotModel` can build and cache a reusable default transmission analysis for the whole robot.
+2. `ForwardKinematicsPlugin` can explicitly choose which `TransmissionAnalysis` it exposes to its builders.
+3. Builders can derive request-specific plans from that chosen analysis without rebuilding it.
+4. Builders can reject impossible or ambiguous mappings cleanly.
+5. `TransmissionAnalysis` is quantity-agnostic and describes only structural joint relationships.
+6. Position and velocity mapping are explicit build-time choices through `JointQuantity`.
+7. Runtime transmission maps execute on grouped indexed data without carrying semantic quantity tags at execution time.
+8. FK plugins can extend or specialize builder and analysis policy without changing the `JointMap` runtime API again.
    This is intended to be done through composition. JointMaps and builders should be unaware of FK plugins.
 
 ## Core Idea
@@ -242,11 +242,34 @@ Stage 2 should introduce a reusable robot-wide analysis structure, analogous in 
 
 Recommended ownership:
 
-- `RobotModel` owns and caches the default `TransmissionAnalysis`
+- `RobotModel` owns and caches only a lazily-built default `TransmissionAnalysis`
 - `TransmissionAnalysis` owns the normalized transmission models, preferably in a contiguous `std::vector<std::unique_ptr<TransmissionModel>>`
 - `TransmissionAnalysis` also owns normalized affine transmission relationships for mimic joints
-- builders query that cached analysis rather than rebuilding it
-- plugin-specific builders may augment or replace planning policy, but should still be able to reuse the base analysis
+- `ForwardKinematicsPlugin` owns the choice of which `TransmissionAnalysis` it exposes to its builders
+- builders query that chosen analysis rather than rebuilding it
+- plugin-specific builders may augment or replace planning policy, but should still be able to reuse the shared default analysis when appropriate
+
+This ownership split should be explicit:
+
+- `RobotModel` is the source of shared robot-derived default analysis, not the final source of FK policy
+- `ForwardKinematicsPlugin` is the source of the transmission analysis actually used by that FK implementation
+
+That mirrors the existing FK seam better than treating `RobotModel` as the permanent owner of transmission-analysis
+policy, while still preserving the efficiency benefit of one lazy shared default analysis reused across multiple FK
+plugin instances.
+
+Suggested FK seam:
+
+```cpp
+class ForwardKinematicsPlugin : public KinematicsBase {
+public:
+  [[nodiscard]] virtual const TransmissionAnalysis & get_transmission_analysis() const noexcept;
+  [[nodiscard]] virtual const JointMapBuilder & get_joint_map_builder() const noexcept;
+};
+```
+
+The default implementation can return the lazy shared default analysis from `RobotModel`, but specialized FK plugins
+should be equally free to return an analysis they built, augmented, or wrapped themselves.
 
 Suggested conceptual shape:
 
@@ -545,8 +568,8 @@ FK plugins should be able to:
 
 The important boundary is still:
 
-- `RobotModel` owns shared robot-derived facts and default cached analysis
-- FK plugins own policy for how that analysis is used to build maps
+- `RobotModel` owns shared robot-derived facts and a lazy default cached analysis
+- FK plugins own policy for how that analysis is used to build maps, including which transmission analysis they expose
 
 ## ros2_control Integration Rules
 
@@ -614,7 +637,8 @@ Stage 2 is complete when:
 
 - a reusable robot-wide `TransmissionAnalysis` exists
 - `TransmissionAnalysis` topology is joint-based and quantity-agnostic
-- `RobotModel` can cache that analysis and expose it to builders
+- `RobotModel` can lazily cache a clearly-named default analysis for shared reuse
+- `ForwardKinematicsPlugin` can explicitly expose the transmission analysis its builders should consume
 - transmission-backed mappings are planned from indexed cached analysis rather than raw string metadata
 - callers request position or velocity behavior when building the `JointMap`
 - runtime `JointMap` execution remains a single `map(...)` operation
@@ -626,7 +650,6 @@ Stage 2 is complete when:
 
 Still defer these beyond Stage 2 if needed:
 
-- relocation of default builder ownership away from `RobotModel`
 - global optimization of arbitrary multi-stage propagation pipelines
 - aggressive scratch-buffer reuse optimization
 - broader builder API cleanup if `build_expected()` fully replaces `build()`
@@ -635,13 +658,14 @@ Still defer these beyond Stage 2 if needed:
 
 1. Introduce `JointQuantity`, lightweight transmission definitions, and `TransmissionModel`.
 3. Introduce quantity-agnostic `TransmissionAnalysis` with one boundary `Order<std::string, JointId>` and contiguous `JointId`-based internal storage.
-4. Add `RobotModel` support for building and caching the whole-robot default `TransmissionAnalysis`.
-5. Add indexed structural request-planning structures derived from `TransmissionAnalysis`, introducing request-local `Order<>` objects only where actual buffer ordering/permutation needs to be modeled.
-6. Introduce quantity-aware expected-based builder APIs that compile from a structural plan to a quantity-specific runtime map.
-7. Keep `JointMap` as a single runtime type with one `map(...)`.
-8. Implement `TransmissionJointMap` from compiled indexed plans using evaluators selected during build.
-9. Add `CompositeJointMap` only if it materially simplifies composition.
-10. Add plugin-specific builder extension tests.
-11. Add ros2_control adapters last, on top of the lightweight analysis layer.
+4. Add `RobotModel` support for building and caching the whole-robot default `TransmissionAnalysis`, explicitly as a shared default cache.
+5. Add `ForwardKinematicsPlugin` support for exposing the `TransmissionAnalysis` it wants its builders to consume, defaulting to the lazy `RobotModel` cache.
+6. Add indexed structural request-planning structures derived from `TransmissionAnalysis`, introducing request-local `Order<>` objects only where actual buffer ordering/permutation needs to be modeled.
+7. Introduce quantity-aware expected-based builder APIs that compile from a structural plan to a quantity-specific runtime map.
+8. Keep `JointMap` as a single runtime type with one `map(...)`.
+9. Implement `TransmissionJointMap` from compiled indexed plans using evaluators selected during build.
+10. Add `CompositeJointMap` only if it materially simplifies composition.
+11. Add plugin-specific builder extension tests.
+12. Add ros2_control adapters last, on top of the lightweight analysis layer.
 
 That keeps Stage 2 aligned with the existing architecture of the repository and with the analysis-first approach already established by FK.
