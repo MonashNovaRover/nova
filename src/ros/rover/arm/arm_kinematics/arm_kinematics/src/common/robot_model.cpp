@@ -30,7 +30,7 @@ const TransmissionAnalysis & RobotModel::get_default_transmission_analysis() con
     default_transmission_analysis_ = std::make_unique<TransmissionAnalysis>();
 
     add_mimic_transmissions_to_analysis(*default_transmission_analysis_, get_urdf_model());
-    add_ros2_control_transmissions_to_analysis(
+    (void)add_ros2_control_transmissions_to_analysis(
       *default_transmission_analysis_,
       get_robot_description(),
       rclcpp::get_logger("robot_model"));

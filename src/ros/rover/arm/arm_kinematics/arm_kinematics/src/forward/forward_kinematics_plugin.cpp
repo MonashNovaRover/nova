@@ -29,8 +29,10 @@ const TransmissionAnalysis & ForwardKinematicsPlugin::get_transmission_analysis(
 
 const JointMapBuilder & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept
 {
-  if (!joint_map_builder_) {
-    joint_map_builder_ = std::make_unique<TransmissionAnalysisJointMapBuilder>(get_transmission_analysis());
+  const auto & transmission_analysis = get_transmission_analysis();
+  if (!joint_map_builder_ || joint_map_builder_analysis_ != &transmission_analysis) {
+    joint_map_builder_ = std::make_unique<TransmissionAnalysisJointMapBuilder>(transmission_analysis);
+    joint_map_builder_analysis_ = &transmission_analysis;
   }
 
   return *joint_map_builder_;

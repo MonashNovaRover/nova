@@ -239,6 +239,39 @@ private:
   mutable std::unique_ptr<TransmissionAnalysis> transmission_analysis_{};
 };
 
+class TestSwitchingAnalysisEigenForwardKinematicsPlugin final : public EigenForwardKinematicsPlugin
+{
+public:
+  [[nodiscard]] const TransmissionAnalysis & get_transmission_analysis() const noexcept override
+  {
+    if (use_second_analysis_) {
+      return second_analysis_;
+    }
+
+    return first_analysis_;
+  }
+
+  void set_use_second_analysis(const bool use_second_analysis)
+  {
+    use_second_analysis_ = use_second_analysis;
+  }
+
+  TransmissionAnalysis & first_analysis() noexcept
+  {
+    return first_analysis_;
+  }
+
+  TransmissionAnalysis & second_analysis() noexcept
+  {
+    return second_analysis_;
+  }
+
+private:
+  mutable bool use_second_analysis_ = false;
+  TransmissionAnalysis first_analysis_{};
+  TransmissionAnalysis second_analysis_{};
+};
+
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
                              const Eigen::Vector3f & expected,
                              const char * message = "", double tol = EPSILON)
@@ -686,6 +719,46 @@ TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginCanOverrideWit
   result->map(inputs, outputs);
 
   EXPECT_NEAR(outputs[0], 0.75F, EPSILON);
+}
+
+TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginRebuildsCachedBuilderWhenAnalysisChanges)
+{
+  auto plugin = std::make_shared<TestSwitchingAnalysisEigenForwardKinematicsPlugin>();
+  ASSERT_TRUE(plugin->initialize(*node_, *robot_model_, kinematics_params_));
+
+  auto & first_analysis = plugin->first_analysis();
+  const auto first_model_id = first_analysis.add_model(std::make_unique<TestRuntimeTransmissionModel>(1.0F, 0.0F));
+  const std::vector<std::string> first_inputs{"motor_a"};
+  const std::vector<std::string> first_outputs{"joint_a"};
+  first_analysis.add_transmission(
+    first_model_id,
+    arm_kinematics::span<const std::string>(first_inputs),
+    arm_kinematics::span<const std::string>(first_outputs),
+    "first");
+
+  auto result = plugin->get_joint_map_builder().build_expected(
+    {"motor_a"},
+    {"joint_a"},
+    JointQuantity::Position);
+  ASSERT_TRUE(result.has_value()) << result.error();
+
+  auto & second_analysis = plugin->second_analysis();
+  const auto second_model_id = second_analysis.add_model(std::make_unique<TestRuntimeTransmissionModel>(1.0F, 0.0F));
+  const std::vector<std::string> second_inputs{"motor_b"};
+  const std::vector<std::string> second_outputs{"joint_b"};
+  second_analysis.add_transmission(
+    second_model_id,
+    arm_kinematics::span<const std::string>(second_inputs),
+    arm_kinematics::span<const std::string>(second_outputs),
+    "second");
+
+  plugin->set_use_second_analysis(true);
+
+  result = plugin->get_joint_map_builder().build_expected(
+    {"motor_b"},
+    {"joint_b"},
+    JointQuantity::Position);
+  ASSERT_TRUE(result.has_value()) << result.error();
 }
 
 TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdge)

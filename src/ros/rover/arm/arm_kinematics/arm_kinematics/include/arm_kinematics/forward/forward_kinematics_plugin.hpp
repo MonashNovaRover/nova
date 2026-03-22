@@ -173,6 +173,8 @@ public:
    *
    * Different FK plugin implementations may choose to provide a transmission analysis that differs from the shared
    * default analysis exposed by RobotModel.
+   *
+   * \warning The returned reference must remain valid for as long as any builder or tree using it remains alive.
    */
   [[nodiscard]] virtual const TransmissionAnalysis & get_transmission_analysis() const noexcept;
 
@@ -196,6 +198,7 @@ protected:
 
 private:
   mutable std::unique_ptr<TransmissionAnalysisJointMapBuilder> joint_map_builder_ = nullptr;
+  mutable const TransmissionAnalysis * joint_map_builder_analysis_ = nullptr;
 };
 
 } // arm_kinematics

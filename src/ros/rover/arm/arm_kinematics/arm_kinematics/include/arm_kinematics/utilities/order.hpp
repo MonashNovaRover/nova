@@ -308,6 +308,12 @@ public:
   explicit Order()
     : inverse(0, *this), data_(detail::LookupStorage<TKey, TValue>::make_sized(0)) {}
 
+  Order(const Order & other)
+    : inverse(copy_inverse(other, *this)), data_(other.data_) {}
+
+  Order(Order && other) noexcept
+    : inverse(move_inverse(std::move(other), *this)), data_(std::move(other.data_)) {}
+
   // Forward copy constructor -- only enabled if StoresInverse
   template<bool OtherStoresInverse, bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order(const Order<TKey, TValue, OtherStoresInverse> & other)
@@ -323,8 +329,13 @@ public:
       return *this;
     }
 
-    data_ = other.data_;
-    inverse.data_ = other.inverse.data_;
+    if constexpr (StoresInverse) {
+      data_ = other.data_;
+      inverse.data_ = other.inverse.data_;
+    } else {
+      inverse = other.inverse;
+      data_ = other.data_;
+    }
     return *this;
   }
 
@@ -333,8 +344,13 @@ public:
       return *this;
     }
 
-    data_ = std::move(other.data_);
-    inverse.data_ = std::move(other.inverse.data_);
+    if constexpr (StoresInverse) {
+      data_ = std::move(other.data_);
+      inverse.data_ = std::move(other.inverse.data_);
+    } else {
+      inverse = std::move(other.inverse);
+      data_ = std::move(other.data_);
+    }
     return *this;
   }
 
@@ -471,6 +487,24 @@ public:
   InverseRef inverse{};
 
 private:
+  static InverseRef copy_inverse(const Order & other, Order & self)
+  {
+    if constexpr (StoresInverse) {
+      return InverseType(other.inverse.data_, self);
+    } else {
+      return other.inverse;
+    }
+  }
+
+  static InverseRef move_inverse(Order && other, Order & self)
+  {
+    if constexpr (StoresInverse) {
+      return InverseType(std::move(other.inverse.data_), self);
+    } else {
+      return other.inverse;
+    }
+  }
+
   // Allow all Order<*,*,*> specializations to access private members
   template<typename, typename, bool>
   friend class Order;
