@@ -233,6 +233,7 @@ in
 
       packages = with pkgs.nova-scripts; [
         can
+        cameras--
       ];
     };
 
@@ -254,6 +255,29 @@ in
       (
         self: super: with self; {
           nova-scripts = self.lib.makeScope self.newScope (novaSelf: {
+            cameras-- = writeShellApplication {
+              name = "cameras--";
+              runtimeEnv = {
+                GST_PLUGIN_SYSTEM_PATH_1_0 = 
+                lib.strings.concatMapStringsSep ":" (x: "${x.out}/lib/gstreamer-1.0")
+                [
+                  gst_all_1.gstreamer
+                  gst_all_1.gst-plugins-base
+                  gst_all_1.gst-plugins-good
+                  gst_all_1.gst-plugins-bad
+                  gst_all_1.gst-plugins-ugly
+                  gst_all_1.gst-libav
+                  gst_all_1.gst-vaapi
+                  gst_all_1.gst-plugins-rs
+                  libnice
+                ];
+              };
+              runtimeInputs = [
+                gst_all_1.gstreamer
+                v4l-utils
+              ];
+              text = builtins.readFile ./cameras--.sh;
+            };
             can = writeShellApplication {
               name = "can";
               runtimeInputs = [
