@@ -8,28 +8,28 @@
 
 namespace arm_kinematics {
 
-AffineJointMap::AffineJointMap(
-  const std::vector<std::string> & input_names,
-  const std::vector<std::string> & output_names,
-  const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints)
-  : input_count_(input_names.size()),
-    output_count_(output_names.size())
-{
-  sources_.reserve(output_count_);
-  multipliers_.reserve(output_count_);
-  offsets_.reserve(output_count_);
-
-  for (const auto & name : output_names) {
-    float multiplier = 1.0F;
-    float offset = 0.0F;
-
-    const auto source = find_source(input_names, mimic_joints, name, multiplier, offset);
-
-    sources_.push_back(source);
-    multipliers_.push_back(multiplier);
-    offsets_.push_back(offset);
-  }
-}
+// AffineJointMap::AffineJointMap(
+//   const std::vector<std::string> & input_names,
+//   const std::vector<std::string> & output_names,
+//   const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints)
+//   : input_count_(input_names.size()),
+//     output_count_(output_names.size())
+// {
+//   sources_.reserve(output_count_);
+//   multipliers_.reserve(output_count_);
+//   offsets_.reserve(output_count_);
+//
+//   for (const auto & name : output_names) {
+//     float multiplier = 1.0F;
+//     float offset = 0.0F;
+//
+//     const auto source = find_source(input_names, mimic_joints, name, multiplier, offset);
+//
+//     sources_.push_back(source);
+//     multipliers_.push_back(multiplier);
+//     offsets_.push_back(offset);
+//   }
+// }
 
 AffineJointMap::AffineJointMap(
   const std::vector<std::string> & input_names,
@@ -138,41 +138,6 @@ size_t AffineJointMap::find_source(
   multiplier *= static_cast<float>(mimic->multiplier);
 
   return find_source(joint_names, mimic_joints, mimic->joint_name, multiplier, offset);
-}
-
-size_t AffineJointMap::find_source(
-  const std::vector<JointId> & input_joint_ids,
-  const std::vector<TransmissionAnalysis::AffineTransmission> & affine_transmissions,
-  const JointId output_joint_id,
-  float & multiplier,
-  float & offset)
-{
-  const auto input_it = std::find(input_joint_ids.begin(), input_joint_ids.end(), output_joint_id);
-  if (input_it != input_joint_ids.end()) {
-    return static_cast<size_t>(input_it - input_joint_ids.begin());
-  }
-
-  const auto affine_it = std::find_if(
-    affine_transmissions.begin(),
-    affine_transmissions.end(),
-    [output_joint_id](const TransmissionAnalysis::AffineTransmission & affine_transmission) {
-      return affine_transmission.target_joint_id == output_joint_id;
-    });
-  if (affine_it == affine_transmissions.end()) {
-    multiplier = 0.0F;
-    offset = 0.0F;
-    return 0;
-  }
-
-  offset += multiplier * affine_it->offset;
-  multiplier *= affine_it->multiplier;
-
-  return find_source(
-    input_joint_ids,
-    affine_transmissions,
-    affine_it->source_joint_id,
-    multiplier,
-    offset);
 }
 
 } // arm_kinematics

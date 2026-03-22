@@ -15,6 +15,7 @@
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis_import.hpp"
+#include "arm_kinematics/joint_map/transmission_joint_map.hpp"
 #include "arm_kinematics/joint_map/transmission_plan.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include <rclcpp/rclcpp.hpp>
@@ -80,6 +81,63 @@ public:
 private:
   bool supports_forward_ = false;
   bool supports_reverse_ = false;
+};
+
+class TestComputeTransmission final : public arm_kinematics::ComputeTransmission
+{
+public:
+  TestComputeTransmission(const float multiplier, const float offset)
+  : multiplier_(multiplier),
+    offset_(offset)
+  {
+  }
+
+  void compute(
+    arm_kinematics::span<const float> inputs,
+    arm_kinematics::span<float> outputs,
+    arm_kinematics::span<float>) const override
+  {
+    outputs[0] = inputs[0] * multiplier_ + offset_;
+  }
+
+  [[nodiscard]] std::unique_ptr<arm_kinematics::ComputeTransmission> clone() const override
+  {
+    return std::make_unique<TestComputeTransmission>(multiplier_, offset_);
+  }
+
+private:
+  float multiplier_ = 1.0F;
+  float offset_ = 0.0F;
+};
+
+class TestRuntimeTransmissionModel final : public arm_kinematics::TransmissionModel
+{
+public:
+  explicit TestRuntimeTransmissionModel(const float multiplier, const float offset)
+  : multiplier_(multiplier),
+    offset_(offset)
+  {
+  }
+
+  [[nodiscard]] bool can_build(
+    arm_kinematics::JointQuantity,
+    arm_kinematics::PropagationDirection direction) const noexcept override
+  {
+    return direction == arm_kinematics::PropagationDirection::Forward;
+  }
+
+  [[nodiscard]] std::unique_ptr<const arm_kinematics::ComputeTransmission> build(
+    arm_kinematics::JointQuantity,
+    arm_kinematics::PropagationDirection,
+    arm_kinematics::span<const arm_kinematics::JointId>,
+    arm_kinematics::span<const arm_kinematics::JointId>) const override
+  {
+    return std::make_unique<TestComputeTransmission>(multiplier_, offset_);
+  }
+
+private:
+  float multiplier_ = 1.0F;
+  float offset_ = 0.0F;
 };
 
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
@@ -419,7 +477,7 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
   EXPECT_EQ(transmission.name, "main_transmission");
 }
 
-TEST_F(TransmissionUrdfTests, BuildExpectedReportsTransmissionRuntimeAsUnimplemented)
+TEST_F(TransmissionUrdfTests, BuildExpectedDoesNotClaimGroupedTransmissionSupportYet)
 {
   const auto result = robot_model_->get_joint_map_builder().build_expected(
     {"motor_joint"},
@@ -427,7 +485,7 @@ TEST_F(TransmissionUrdfTests, BuildExpectedReportsTransmissionRuntimeAsUnimpleme
     JointQuantity::Position);
 
   ASSERT_FALSE(result.has_value());
-  EXPECT_NE(result.error().find("No direct transmission plan found"), std::string::npos);
+  EXPECT_NE(result.error().find("No affine plan found"), std::string::npos);
 }
 
 TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdge)
@@ -516,6 +574,48 @@ TEST(JointMapStage2Tests, DefaultJointMapBuilderBuildsDirectTransmissionPlan)
   ASSERT_EQ(plan.value().stages.size(), 1u);
   EXPECT_EQ(plan.value().stages.front().group_id, 0u);
   EXPECT_EQ(plan.value().stages.front().direction, arm_kinematics::PropagationDirection::Forward);
+}
+
+TEST(JointMapStage2Tests, CompilesAndExecutesDirectGroupedTransmissionPlan)
+{
+  TransmissionAnalysis analysis{};
+  const auto model_id = analysis.add_model(std::make_unique<TestRuntimeTransmissionModel>(2.0F, 0.25F));
+
+  const std::vector<std::string> input_names{"motor_joint"};
+  const std::vector<std::string> output_names{"driven_joint"};
+  analysis.add_transmission(
+    model_id,
+    arm_kinematics::span<const std::string>(input_names),
+    arm_kinematics::span<const std::string>(output_names),
+    "direct");
+
+  const auto & joint_order = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  const auto plan = arm_kinematics::make_transmission_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    JointQuantity::Position);
+
+  ASSERT_TRUE(plan.has_value());
+
+  const auto compiled_plan = arm_kinematics::compile_transmission_plan_expected(
+    analysis,
+    *plan,
+    JointQuantity::Position);
+
+  ASSERT_TRUE(compiled_plan.has_value());
+  ASSERT_EQ(compiled_plan->input_count, 1u);
+  ASSERT_EQ(compiled_plan->output_count, 1u);
+  ASSERT_EQ(compiled_plan->stages.size(), 1u);
+
+  arm_kinematics::TransmissionJointMap joint_map(std::move(compiled_plan.value()));
+  std::vector<double> inputs{1.5};
+  std::vector<float> outputs(1, 0.0F);
+  joint_map.map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 3.25F, EPSILON);
 }
 
 TEST(TransmissionAnalysisTests, AffinePlannerBuildsIdentityPlanForDirectInputJoint)
@@ -694,7 +794,7 @@ TEST(TransmissionAnalysisTests, AffinePlannerRejectsAmbiguousAffineTargets)
   EXPECT_NE(plan.error().find("Ambiguous affine plan"), std::string::npos);
 }
 
-TEST(JointMapStage2Tests, BuildExpectedReportsPlannedTransmissionRuntimeAsUnimplemented)
+TEST(JointMapStage2Tests, BuildExpectedDoesNotClaimGroupedTransmissionSupportYet)
 {
   DefaultJointMapBuilder builder{};
   builder.with_transmission_model(std::make_unique<TestTransmissionModel>(true, false));
@@ -711,7 +811,7 @@ TEST(JointMapStage2Tests, BuildExpectedReportsPlannedTransmissionRuntimeAsUnimpl
   const auto result = builder.build_expected(input_names, output_names, JointQuantity::Position);
 
   ASSERT_FALSE(result.has_value());
-  EXPECT_NE(result.error().find("planned successfully"), std::string::npos);
+  EXPECT_NE(result.error().find("No affine plan found"), std::string::npos);
 }
 
 // Small helper for comparing isometries

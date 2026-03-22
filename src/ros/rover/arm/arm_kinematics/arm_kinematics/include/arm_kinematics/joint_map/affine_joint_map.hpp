@@ -36,10 +36,10 @@ public:
   /**
    * Constructs an affine mapping from input_names to output_names, applying mimic-joint relationships where needed.
    */
-  AffineJointMap(
-    const std::vector<std::string> & input_names,
-    const std::vector<std::string> & output_names,
-    const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints = {});
+  // AffineJointMap(
+  //   const std::vector<std::string> & input_names,
+  //   const std::vector<std::string> & output_names,
+  //   const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints = {});
 
   /**
    * Constructs an affine mapping from input_names to output_names using affine transmission relationships from the
@@ -98,13 +98,6 @@ private:
     const std::vector<std::string> & joint_names,
     std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints,
     const std::string & name,
-    float & multiplier,
-    float & offset);
-
-  static size_t find_source(
-    const std::vector<JointId> & input_joint_ids,
-    const std::vector<TransmissionAnalysis::AffineTransmission> & affine_transmissions,
-    JointId output_joint_id,
     float & multiplier,
     float & offset);
 

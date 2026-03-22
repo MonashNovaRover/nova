@@ -19,15 +19,13 @@ namespace arm_kinematics {
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
   struct AffineTransmission {
-    // The joint written to by this mimic
-    JointId target_joint_id = 0;  //< Infer from the index of this in affine_transmissions_
+    // The joint written to by this affine transmission
+    JointId target_joint_id = 0;
 
-    // The joint read by this mimic
+    // The joint read by this affine transmission
     JointId source_joint_id = 0;
     float multiplier = 1.0F;
     float offset = 0.0F;
-
-    // No name for logging. Derive this instead from the names of the source and target in joint_order().inverse
   };
 
   struct TransmissionInstance {
@@ -73,12 +71,23 @@ public:
     span<const std::string> outputs,
     std::string name = "unnamed");
 
+  /**
+   * Adds one affine transmission relationship to the cached analysis.
+   *
+   * \warning This API does not validate cycles between affine transmissions. Callers must not add cyclic affine
+   * transmission relationships.
+   */
   void add_affine_transmission(
     JointId source_joint_id,
     JointId target_joint_id,
     float multiplier = 1.0f,
-    float offset = 0.0f,
-    std::string name = "unnamed");
+    float offset = 0.0f);
+  /**
+   * Adds one affine transmission relationship to the cached analysis.
+   *
+   * \warning This API does not validate cycles between affine transmissions. Callers must not add cyclic affine
+   * transmission relationships.
+   */
   void add_affine_transmission(
     const std::string & source_joint_name,
     const std::string & target_joint_name,

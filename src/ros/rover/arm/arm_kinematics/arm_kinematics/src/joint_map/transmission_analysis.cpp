@@ -90,8 +90,7 @@ void TransmissionAnalysis::add_affine_transmission(
   const JointId source_joint_id,
   const JointId target_joint_id,
   const float multiplier,
-  const float offset,
-  std::string name)
+  const float offset)
 {
   const auto max_joint_id = joint_order_.inverse.size();
   if (source_joint_id >= max_joint_id) {
@@ -104,11 +103,10 @@ void TransmissionAnalysis::add_affine_transmission(
   }
 
   affine_transmissions_.push_back(AffineTransmission{
-    source_joint_id,
     target_joint_id,
+    source_joint_id,
     multiplier,
-    offset,
-    std::move(name)
+    offset
   });
 }
 
@@ -116,15 +114,13 @@ void TransmissionAnalysis::add_affine_transmission(
   const std::string & source_joint_name,
   const std::string & target_joint_name,
   const float multiplier,
-  const float offset,
-  std::string name)
+  const float offset)
 {
   add_affine_transmission(
     ensure_joint_id(source_joint_name),
     ensure_joint_id(target_joint_name),
     multiplier,
-    offset,
-    std::move(name));
+    offset);
 }
 
 } // namespace arm_kinematics
