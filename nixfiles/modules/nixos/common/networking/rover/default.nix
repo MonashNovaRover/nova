@@ -19,6 +19,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+   nova.services.ptpd = {
+     enable = true;
+     interfaceName = "prp0";
+   };
+
    nova.networking.prp = {
      enable = true;
      networkmanager= false;
