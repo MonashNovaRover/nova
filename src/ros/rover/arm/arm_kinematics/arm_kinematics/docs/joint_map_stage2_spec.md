@@ -99,6 +99,10 @@ Stage 2 must not:
 - keep names alive in runtime mapping structures where ids would suffice
 - silently invent a mapping for ambiguous requests
 
+Ensure:
+- Where a name Order<std::string, id> is present, always immediately convert given named representations to indexed 
+  representations immediately. Do not store strings anywhere but the name Order<std::string, id>.
+
 ## Design Goals
 
 The Stage 2 design should satisfy these requirements:
@@ -161,34 +165,42 @@ This is important because:
 
 Introduce a lightweight transmission abstraction owned by `arm_kinematics`, not by ros2_control. ros2_control should shape the design in any way.
 
-Suggested conceptual shape:
+Previously, we suggested this conceptual shape:
 
 ```cpp
-using JointId = size_t;
-enum class PropagationDirection {
-  Forward,
-  Reverse,
-};
+using JointId = size_t; //< Always prefer
 
 template<typename TJoint>
 struct TransmissionDefinition {
-  std::string name;
   std::vector<TJoint> inputs;
   std::vector<TJoint> outputs;
-  bool supports_forward = false;
-  bool supports_reverse = false;
 
   using joint_type = TJoint;
 };
 
-using NamedTransmissionDefinition = TransmissionDefinition<std::string>;
 using IndexedTransmissionDefinition = TransmissionDefinition<JointId>;
+/// Provided for API convenience. If you ever get a NamedTransmissionDefinition, immediately convert it to an IndexedTransmissionDefinition
+using NamedTransmissionDefinition = TransmissionDefinition<std::string>;
 ```
 
-This definition layer is intentionally flexible at the boundary:
+However, this can be dealt with function overloads, and does not need to introduce unnecessary complexity.
+```
+  void add_transmission(
+    TransmissionModelId model_id,
+    std::vector<JointId> && inputs, 
+    std::vector<JointId> && outputs);
+    
+  // Convenience overload, which calls the above overload that uses JointId
+  void add_transmission(
+    TransmissionModelId model_id,
+    span<cosnt std::string> && inputs, 
+    span<const std::string> && outputs);
+```
 
-- `NamedTransmissionDefinition` is appropriate for imported source metadata such as URDF or plugin-provided named descriptions.
-- `IndexedTransmissionDefinition` is appropriate when a consumer already works in canonical `JointId` values, and is always preferred.
+You will see the above snipped later on in this document.
+
+- `std::string` joint identification is appropriate for imported source metadata such as URDF or plugin-provided named descriptions. This should be immediately converted to the indexed equivalent.
+- `size_t` (with the alias `JointID` for clarity) is appropriate when a consumer already works in canonical `JointId` values, and is always preferred.
 
 This template should remain a boundary-layer convenience, not a pattern that spreads through the full runtime and analysis stack.
 
@@ -208,8 +220,6 @@ enum class PropagationDirection {
 class TransmissionModel {
 public:
   virtual ~TransmissionModel() = default;
-
-  [[nodiscard]] virtual const NamedTransmissionDefinition & definition() const noexcept = 0;
 
   virtual bool can_build(
     JointQuantity quantity,
@@ -253,17 +263,39 @@ using ModelId = size_t;
 
 class TransmissionAnalysis {
 public:
-  struct Group {
+  [[nodiscard]] const Order<std::string, JointId> & joint_ids() const noexcept;
+  
+  [[nodiscard]] const std::vector<std::unique_ptr<TransmissionModel>> & models() const noexcept;
+  TransmissionModelId add_model(std::unique_ptr<TransmissionModel> model);
+  
+  [[nodiscard]] const std::vector<TransmissionInstance> & transmissions() const noexcept;
+  void add_transmission(
+    TransmissionModelId model_id,
+    std::vector<JointId> && inputs, 
+    std::vector<JointId> && outputs,
+    std::string name = "unnamed");
+  /// Convenience overload, which calls the above overload that uses JointID
+  void add_transmission(
+    TransmissionModelId model_id,
+    span<const std::string> && inputs, 
+    span<const std::string> && outputs,
+    std::string name = "unnamed");
+  
+  /// Canonical boundary mapping from named joints in descriptions to stable internal JointIds.
+  [[nodiscard]] const Order<std::string, JointId> & joint_order() const noexcept { return joint_order_; }
+  /// provides the JointID from joint_order_, adding it to the end of the order if it is not already present.
+  JointId ensure_joint_id(const std::string & name);
+  
+private:
+  struct TransmissionInstance {
     ModelId model_id = 0;
     std::vector<JointId> input_joint_ids;
     std::vector<JointId> output_joint_ids;
-    bool supports_forward = false;
-    bool supports_reverse = false;
+  
+    std::string name;   //< only used for logging to give info about invalid configurations!
+    // forward and backward support determined by the TransmissionModel
   };
-
-  [[nodiscard]] const Order<std::string, JointId> & joint_ids() const noexcept;
-  [[nodiscard]] const std::vector<std::unique_ptr<TransmissionModel>> & models() const noexcept;
-  [[nodiscard]] const std::vector<Group> & groups() const noexcept;
+  // ...
 };
 ```
 
@@ -277,7 +309,6 @@ The important point is that the robot-wide cache should be:
 - the long-lived ownership root for transmission models used during build
 
 At this layer, the data should already be concretely `JointId`-based.
-The earlier `TransmissionDefinition<TJoint>` template should not leak into `TransmissionAnalysis`.
 
 ## 5. Canonical Name/Id Mapping
 

@@ -8,57 +8,60 @@
 
 namespace arm_kinematics {
 
-ModelId TransmissionAnalysis::add_model(std::unique_ptr<TransmissionModel> model)
+TransmissionModelId TransmissionAnalysis::add_model(std::unique_ptr<TransmissionModel> model)
 {
   if (!model)
     throw std::invalid_argument("TransmissionAnalysis::add_model() received a null model");
 
   const auto model_id = models_.size();
-  const auto & definition = model->definition();
-
-  Group group{};
-  group.model_id = model_id;
-  group.supports_forward = definition.supports_forward;
-  group.supports_reverse = definition.supports_reverse;
-
-  group.input_joint_ids.reserve(definition.inputs.size());
-  for (const auto & input_name : definition.inputs) {
-    group.input_joint_ids.emplace_back(ensure_joint_id(input_name));
-  }
-
-  group.output_joint_ids.reserve(definition.outputs.size());
-  for (const auto & output_name : definition.outputs) {
-    group.output_joint_ids.emplace_back(ensure_joint_id(output_name));
+  if (const auto * definition = model->indexed_definition()) {
+    add_indexed_group(*definition, model_id);
+  } else if (const auto * definition = model->named_definition()) {
+    add_named_group(*definition, model_id);
+  } else {
+    throw std::invalid_argument(
+      "TransmissionAnalysis::add_model() received a TransmissionModel without a named or indexed definition");
   }
 
   models_.push_back(std::move(model));
-  groups_.push_back(std::move(group));
-
   return model_id;
 }
 
-bool TransmissionAnalysis::contains_joint(const std::string & name) const noexcept
+void TransmissionAnalysis::add_transmission(
+  const TransmissionModelId model_id,
+  std::vector<JointId> && inputs,
+  std::vector<JointId> && outputs,
+  std::string name)
 {
-  return joint_ids_.find(name) != joint_ids_.end();
+  // TODO
+
 }
 
-std::optional<JointId> TransmissionAnalysis::find_joint_id(const std::string & name) const noexcept
+void TransmissionAnalysis::add_transmission(
+  const TransmissionModelId model_id,
+  const span<const std::string> && inputs,
+  const span<const std::string> && outputs,
+  std::string name)
 {
-  const auto it = joint_ids_.find(name);
-  if (it == joint_ids_.end())
-    return std::nullopt;
+  std::vector<JointId> inputIds;
+  std::vector<JointId> outputIds;
 
-  return it->second;
+  // TODO: fill above vectors with ensure_joint_id on inputs and outputs. remember to reserve the correct size.
+
+  add_transmission(
+    model_id,
+    std::move(inputIds),
+    std::move(outputIds),
+    std::move(name));
 }
 
 JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
 {
-  if (const auto existing = find_joint_id(name))
-    return *existing;
+  if (joint_order_.contains_key(name))
+    return joint_order_[name];
 
-  const auto id = joint_names_.size();
-  joint_names_.push_back(name);
-  joint_ids_.emplace(name, id);
+  const auto id = joint_order_.inverse.size();
+  joint_order_[name] = id;
   return id;
 }
 

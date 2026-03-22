@@ -35,6 +35,10 @@ struct LookupStorage {
   static const TValue & at(const type & container, const TKey & key) {
     return container.at(key);
   }
+
+  static bool contains_key(const type & container, const TKey & key) {
+    return container.find(key) != container.end();
+  }
 };
 
 template<typename TKey, typename TValue>
@@ -60,6 +64,10 @@ struct LookupStorage<TKey, TValue, std::enable_if_t<std::is_integral_v<TKey> || 
   static const TValue & at(const type & container, const TKey & key) {
     return container[static_cast<size_t>(key)];
   }
+
+  static bool contains_key(const type & container, const TKey & key) {
+    return static_cast<size_t>(key) < container.size();
+  }
 };
 
 template<typename TValue>
@@ -83,10 +91,27 @@ struct LookupStorage<std::string, TValue, void> {
   static const TValue & at(const type & container, const std::string & key) {
     return container.at(key);
   }
+
+  static bool contains_key(const type & container, const std::string & key) {
+    return container.contains(key);
+  }
 };
 
 template<typename TKey>
 inline constexpr bool is_contiguous_lookup_key_v = std::is_integral_v<TKey> || std::is_enum_v<TKey>;
+
+template<typename TContainer, bool IsContiguous>
+struct ReverseIteratorType;
+
+template<typename TContainer>
+struct ReverseIteratorType<TContainer, true> {
+  using type = typename TContainer::const_reverse_iterator;
+};
+
+template<typename TContainer>
+struct ReverseIteratorType<TContainer, false> {
+  using type = void;
+};
 
 } // namespace detail
 
@@ -130,9 +155,9 @@ inline constexpr bool is_contiguous_lookup_key_v = std::is_integral_v<TKey> || s
  * `Order` is also useful at representation boundaries.
  * For example, if named items are assigned stable internal ids:
  * \code
- *   Order<std::string, size_t> ids;
- *   // ids[new_id] gives the original named key stored at that id
- *   // ids.inverse[original_name_index] gives the assigned internal id
+ *   Order<std::string, size_t> names;
+ *   // names[new_id] gives the original named key stored at that id
+ *   // names.inverse[original_name_index] gives the assigned internal id
  * \endcode
  *
  * If you don't want to modify the original collection, the \c Reordered helper lets you index through the
@@ -173,10 +198,8 @@ public:
   using size_type       = std::size_t;
   using const_reference = const TValue &;
   using const_iterator  = typename Container::const_iterator;
-  using const_reverse_iterator = std::conditional_t<
-    detail::is_contiguous_lookup_key_v<TKey>,
-    typename Container::const_reverse_iterator,
-    void>;
+  using const_reverse_iterator =
+    typename detail::ReverseIteratorType<Container, detail::is_contiguous_lookup_key_v<TKey>>::type;
 
   /**
    * This is the type returned when indexing into the forward order.
@@ -326,6 +349,10 @@ public:
     return detail::LookupStorage<TKey, TValue>::at(data_, idx);
   }
 
+  [[nodiscard]] bool contains_key(const TKey & idx) const noexcept {
+    return detail::LookupStorage<TKey, TValue>::contains(data_, idx);
+  }
+
   // Iteration over the indices
   template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   iterator begin() noexcept { return {*this, 0}; }
@@ -465,7 +492,7 @@ operator*(
 }
 
 /// Function style composition with a vector
-template<typename TKey, typename TValue, typename TKeyAlloc, typename TValueAlloc = std::allocator<TKey>, bool StoresInverse>
+template<typename TKey, typename TValue, typename TKeyAlloc, typename TValueAlloc = std::allocator<TValue>, bool StoresInverse>
 std::vector<TValue, TValueAlloc> operator*(
   const Order<TKey, TValue, StoresInverse>& order,
   const std::vector<TKey, TKeyAlloc>& indices)

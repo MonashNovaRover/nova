@@ -14,17 +14,16 @@ namespace arm_kinematics {
 
 template<typename TJoint>
 struct TransmissionDefinition {
-  std::string name;
   std::vector<TJoint> inputs;
   std::vector<TJoint> outputs;
-  bool supports_forward = false;
-  bool supports_reverse = false;
 
   using joint_type = TJoint;
 };
 
-using NamedTransmissionDefinition = TransmissionDefinition<std::string>;
 using IndexedTransmissionDefinition = TransmissionDefinition<JointId>;
+
+/// If you ever get a NamedTransmissionDefinition, immediately convert it to an IndexedTransmissionDefinition
+using NamedTransmissionDefinition = TransmissionDefinition<std::string>;
 
 } // namespace arm_kinematics
 

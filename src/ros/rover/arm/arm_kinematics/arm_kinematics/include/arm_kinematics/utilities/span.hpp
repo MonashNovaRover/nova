@@ -17,6 +17,7 @@
 #ifndef ARM_KINEMATICS_INPUT_SOURCE_SPAN_HPP
 #define ARM_KINEMATICS_INPUT_SOURCE_SPAN_HPP
 
+#include <cassert>
 #include <vector>
 #include <cstddef>
 

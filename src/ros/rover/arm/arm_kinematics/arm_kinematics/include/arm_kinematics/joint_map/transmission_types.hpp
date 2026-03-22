@@ -10,8 +10,8 @@
 namespace arm_kinematics {
 
 using JointId = std::size_t;
-using GroupId = std::size_t;
-using ModelId = std::size_t;
+using TransmissionGroupId = std::size_t;
+using TransmissionModelId = std::size_t;
 
 enum class JointQuantity {
   Position,

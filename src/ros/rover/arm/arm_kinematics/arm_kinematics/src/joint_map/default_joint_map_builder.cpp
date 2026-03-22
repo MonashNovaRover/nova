@@ -6,6 +6,8 @@
 
 #include "arm_kinematics/joint_map/affine_joint_map.hpp"
 
+#include <rclcpp/logging.hpp>
+
 #include <charconv>
 #include <cstring>
 #include <optional>
@@ -16,6 +18,11 @@ namespace arm_kinematics {
 
 namespace {
 
+struct BoundaryJointIds {
+  std::vector<JointId> ids{};
+  size_t known_count = 0;
+};
+
 class Ros2ControlTransmissionModel final : public TransmissionModel {
 public:
   explicit Ros2ControlTransmissionModel(hardware_interface::TransmissionInfo info)
@@ -23,9 +30,9 @@ public:
   {
   }
 
-  [[nodiscard]] const NamedTransmissionDefinition & definition() const noexcept override
+  [[nodiscard]] const NamedTransmissionDefinition * named_definition() const noexcept override
   {
-    return definition_;
+    return &definition_;
   }
 
   [[nodiscard]] bool can_build(
@@ -50,7 +57,7 @@ private:
     NamedTransmissionDefinition definition{};
     definition.name = info.name;
     definition.supports_forward = !info.actuators.empty() && !info.joints.empty();
-    definition.supports_reverse = definition.supports_forward;
+    definition.supports_reverse = false;
 
     definition.inputs.reserve(info.actuators.size());
     for (const auto & actuator : info.actuators) {
@@ -80,6 +87,24 @@ std::string to_string(const JointQuantity quantity)
   return "unknown";
 }
 
+BoundaryJointIds convert_joint_names_to_ids(
+  const Order<std::string, JointId> & joint_ids,
+  const std::vector<std::string> & joint_names)
+{
+  BoundaryJointIds result{};
+  result.ids.reserve(joint_names.size());
+
+  for (const auto & name : joint_names) {
+    if (!joint_ids.contains_key(name))
+      continue;
+
+    result.ids.emplace_back(joint_ids[name]);
+    ++result.known_count;
+  }
+
+  return result;
+}
+
 } // namespace
 
 tl::expected<JointMap, std::string> DefaultJointMapBuilder::build_expected(
@@ -90,23 +115,12 @@ tl::expected<JointMap, std::string> DefaultJointMapBuilder::build_expected(
   try {
     return JointMap(AffineJointMap(input_names, output_names, mimic_joints_));
   } catch (const std::exception & e) {
-    bool touches_transmission_analysis = false;
+    const auto & joint_ids = transmission_analysis_.joint_order();
+    const auto input_ids = convert_joint_names_to_ids(joint_ids, input_names);
+    const auto output_ids = convert_joint_names_to_ids(joint_ids, output_names);
 
-    for (const auto & name : input_names) {
-      if (transmission_analysis_.contains_joint(name)) {
-        touches_transmission_analysis = true;
-        break;
-      }
-    }
-
-    if (!touches_transmission_analysis) {
-      for (const auto & name : output_names) {
-        if (transmission_analysis_.contains_joint(name)) {
-          touches_transmission_analysis = true;
-          break;
-        }
-      }
-    }
+    const bool touches_transmission_analysis =
+      input_ids.known_count > 0 || output_ids.known_count > 0;
 
     if (touches_transmission_analysis && !transmission_analysis_.empty()) {
       return tl::make_unexpected(
