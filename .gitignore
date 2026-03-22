@@ -29,3 +29,6 @@ __pycache__
 
 ## Rope project settings
 .ropeproject
+
+cmake-build-debug/
+cmake-build-debug-coverage/
