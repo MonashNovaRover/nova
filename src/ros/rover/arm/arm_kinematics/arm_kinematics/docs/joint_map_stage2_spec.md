@@ -71,6 +71,7 @@ The design must also preserve the direction established in the transmission plan
 - treat ros2_control as one metadata source, not the center of the architecture
 - let FK plugins provide custom transmission definitions or custom builder behavior
 - preserve the affine fast path
+- preserve the ability to collapse many affine transmission relationships into one affine runtime map
 
 ## Scope
 
@@ -145,6 +146,15 @@ This includes mimic joints.
 Mimic joints should be treated as affine transmissions during setup-time analysis, not as builder-local rewrite rules.
 However, they should not be represented through `TransmissionModel`.
 They should use dedicated affine analysis structures so the planner can still compile the affine fast path directly.
+
+Stage 2 should continue to think about affine transmission execution in grouped terms:
+
+- `TransmissionAnalysis` may store many affine transmission relationships
+- a request-specific affine planner should collapse all affine-only work for that request into one `AffinePlan` where possible
+- `AffineJointMap` should execute that whole affine group together
+
+Do not design toward one runtime affine stage per relationship.
+The long-term direction is one `AffineJointMap` per affine execution segment.
 
 ## Proposed Stage 2 Architecture
 
@@ -405,6 +415,15 @@ For a requested `(input_names, output_names, quantity)` build, the builder shoul
 This search does not need to be globally optimal yet.
 It does need to be correct, deterministic, and derived from cached analysis.
 
+For mixed affine and non-affine requests, the long-term direction is:
+
+- identify maximal affine-only portions of the requested propagation
+- compile each affine portion into one `AffineJointMap`
+- separate those affine portions by grouped non-affine runtime stages only where genuinely required
+
+Stage 2 does not need to finish that full automatic partitioning if doing so would force a design that later needs to
+be undone.
+
 If a request needs a specific ordering relationship between caller buffers and internal indexed arrays, that is an appropriate place to introduce request-local `Order<>` objects.
 Those orders should describe buffer layout relationships, not replace the underlying `JointId`-based analysis structures.
 
@@ -644,6 +663,7 @@ Stage 2 is complete when:
 - runtime `JointMap` execution remains a single `map(...)` operation
 - invalid or ambiguous requests fail cleanly at build time
 - the affine fast path remains intact and preferred for simple cases
+- affine-only requests are compiled as grouped affine execution, not as one runtime stage per affine relationship
 - FK plugins can extend transmission-backed mapping behavior through their builders
 
 ## Deferred Decisions
@@ -651,6 +671,8 @@ Stage 2 is complete when:
 Still defer these beyond Stage 2 if needed:
 
 - global optimization of arbitrary multi-stage propagation pipelines
+- automatic partitioning of arbitrary mixed affine/non-affine propagation into minimal execution segments, if the
+  simpler Stage 2 implementation remains architecturally clean
 - aggressive scratch-buffer reuse optimization
 - broader builder API cleanup if `build_expected()` fully replaces `build()`
 

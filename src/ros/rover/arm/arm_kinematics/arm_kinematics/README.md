@@ -51,6 +51,8 @@ Maintain this distinction carefully:
 - `TransmissionModel` is only for grouped non-affine transmission compute that may need quantity-specific build behavior.
 - Mimics should be normalized during analysis into affine transmission relationships, not modeled through `TransmissionModel`.
 - `AffineJointMap` is the fast compiled execution form for reorder and affine transmission cases. It is not where mimic semantics should originate.
+- Many affine transmission relationships for one request should usually compile into one `AffineJointMap`, not one runtime stage per relationship.
+- In the longer term, mixed requests should be split into affine execution segments separated by genuinely non-affine transmission stages.
 
 ## Setup-Time Work Versus Runtime Work
 

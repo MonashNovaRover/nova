@@ -2,13 +2,13 @@
 
 ## Purpose
 
-This note records the next implementation step after the affine transmission path was moved onto:
+This note records the grouped-runtime implementation step after the affine transmission path was moved onto:
 
 - `TransmissionAnalysis` for cached structure
 - `make_affine_plan_expected(...)` for affine planning
 - `AffineJointMap` for runtime affine execution
 
-The remaining major gap in Stage 2 is the grouped transmission runtime path.
+The grouped transmission runtime path was the major gap addressed by this note.
 
 ## Current State
 
@@ -56,7 +56,9 @@ This runtime path now supports:
 
 - `TransmissionModel` remains the build-time capability interface only
 - `ComputeTransmission` remains the runtime grouped compute interface
-- affine transmission and mimic handling stay out of this path
+- affine transmission and mimic handling stay out of this path and should continue to compile into `AffineJointMap`
+- many affine transmission relationships should collapse into one `AffineJointMap` per affine execution segment rather
+  than executing as separate runtime stages
 - runtime execution should not allocate
 - runtime execution should not do string lookup
 - `DefaultJointMapBuilder` should not become the design center for this work
@@ -88,3 +90,11 @@ The most important remaining items are:
 4. decide whether any reusable concrete `TransmissionModel` implementations should be promoted out of import-time
    internals
 5. add plugin-extension coverage where FK plugins augment, rather than only replace, the shared default analysis
+
+Longer-term direction beyond this focused note:
+
+- mixed requests should eventually be partitioned automatically into maximal affine execution segments separated by
+  non-affine grouped stages
+- each affine-only segment should compile into one `AffineJointMap`
+- that mixed-stage composition should not be overbuilt into Stage 2 if doing so would distort the simpler current
+  architecture
