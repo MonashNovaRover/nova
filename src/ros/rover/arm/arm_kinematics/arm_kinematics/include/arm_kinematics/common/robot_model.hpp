@@ -11,8 +11,7 @@
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/forward/utilities/analysis_tree.hpp"
-#include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
-#include "arm_kinematics/joint_map/joint_map_builder.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis_import.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 
 namespace arm_kinematics {
@@ -38,11 +37,8 @@ public:
   /// Lazily evaluated urdf model from parsing robot_description
   [[nodiscard]] const urdf::Model & get_urdf_model() const;
 
-  /// Gets the standard joint map builder constructed from robot_description and get_urdf_model()
-  [[nodiscard]] const JointMapBuilder & get_joint_map_builder() const;
-
-  /// Gets the cached transmission analysis owned by the shared default joint map builder.
-  [[nodiscard]] const TransmissionAnalysis & get_transmission_analysis() const;
+  /// Gets the lazily-built shared default transmission analysis derived from the robot description.
+  [[nodiscard]] const TransmissionAnalysis & get_default_transmission_analysis() const;
 
   /// Data structure modelling the tree of joints in the urdf, and how links in the urdf relate to those joints, lazily
   /// evaluated using get_urdf_model() as the constructor input
@@ -57,9 +53,9 @@ private:
   mutable std::unique_ptr<urdf::Model> urdf_model_ = nullptr;
   mutable std::once_flag urdf_model_flag_{};
 
-  /// Lazily evaluated joint map builder
-  mutable std::unique_ptr<DefaultJointMapBuilder> joint_map_builder_ = nullptr;
-  mutable std::once_flag joint_map_builder_flag_{};
+  /// Lazily evaluated shared default transmission analysis.
+  mutable std::unique_ptr<TransmissionAnalysis> default_transmission_analysis_ = nullptr;
+  mutable std::once_flag default_transmission_analysis_flag_{};
 
   /// Lazily evaluated analysis tree
   mutable std::unique_ptr<AnalysisTree> analysis_tree_ = nullptr;

@@ -8,6 +8,35 @@
 
 namespace arm_kinematics {
 
+TransmissionAnalysis::TransmissionAnalysis(const TransmissionAnalysis & other)
+  : affine_transmissions_(other.affine_transmissions_),
+    transmissions_(other.transmissions_),
+    joint_order_(other.joint_order_)
+{
+  models_.reserve(other.models_.size());
+  for (const auto & model : other.models_) {
+    models_.push_back(model ? model->clone() : nullptr);
+  }
+}
+
+TransmissionAnalysis & TransmissionAnalysis::operator=(const TransmissionAnalysis & other)
+{
+  if (this == &other) {
+    return *this;
+  }
+
+  models_.clear();
+  models_.reserve(other.models_.size());
+  for (const auto & model : other.models_) {
+    models_.push_back(model ? model->clone() : nullptr);
+  }
+
+  affine_transmissions_ = other.affine_transmissions_;
+  transmissions_ = other.transmissions_;
+  joint_order_ = other.joint_order_;
+  return *this;
+}
+
 TransmissionModelId TransmissionAnalysis::add_model(std::unique_ptr<TransmissionModel> model)
 {
   if (!model)

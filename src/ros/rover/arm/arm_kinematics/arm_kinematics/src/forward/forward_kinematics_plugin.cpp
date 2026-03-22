@@ -5,7 +5,6 @@
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 #include <urdf/model.h>
 #include <stdexcept>
-#include "arm_kinematics/joint_map/joint_map_builder.hpp"
 
 namespace arm_kinematics {
 
@@ -23,8 +22,18 @@ bool ForwardKinematicsPlugin::initialize(
   return on_initialize();
 }
 
-const JointMapBuilder & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept {
-  return get_robot_model().get_joint_map_builder();
+const TransmissionAnalysis & ForwardKinematicsPlugin::get_transmission_analysis() const noexcept
+{
+  return get_robot_model().get_default_transmission_analysis();
+}
+
+const JointMapBuilder & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept
+{
+  if (!joint_map_builder_) {
+    joint_map_builder_ = std::make_unique<TransmissionAnalysisJointMapBuilder>(get_transmission_analysis());
+  }
+
+  return *joint_map_builder_;
 }
 
 } // arm_kinematics

@@ -38,10 +38,10 @@ public:
   };
 
   TransmissionAnalysis() = default;
+  TransmissionAnalysis(const TransmissionAnalysis & other);
   TransmissionAnalysis(TransmissionAnalysis &&) noexcept = default;
+  TransmissionAnalysis & operator=(const TransmissionAnalysis & other);
   TransmissionAnalysis & operator=(TransmissionAnalysis &&) noexcept = default;
-  TransmissionAnalysis(const TransmissionAnalysis &) = delete;
-  TransmissionAnalysis & operator=(const TransmissionAnalysis &) = delete;
   ~TransmissionAnalysis() = default;
 
   [[nodiscard]] const std::vector<std::unique_ptr<TransmissionModel>> & models() const noexcept { return models_; }

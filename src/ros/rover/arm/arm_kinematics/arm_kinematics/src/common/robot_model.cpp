@@ -25,28 +25,19 @@ const urdf::Model & RobotModel::get_urdf_model() const {
   return *urdf_model_;
 }
 
-const JointMapBuilder & RobotModel::get_joint_map_builder() const {
-  std::call_once(joint_map_builder_flag_, [&]{
-    joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>();
+const TransmissionAnalysis & RobotModel::get_default_transmission_analysis() const {
+  std::call_once(default_transmission_analysis_flag_, [&]{
+    default_transmission_analysis_ = std::make_unique<TransmissionAnalysis>();
 
-    joint_map_builder_->with_urdf(get_urdf_model());
-    joint_map_builder_->with_transmissions(get_robot_description(), rclcpp::get_logger("robot_model"));
+    add_mimic_transmissions_to_analysis(*default_transmission_analysis_, get_urdf_model());
+    add_ros2_control_transmissions_to_analysis(
+      *default_transmission_analysis_,
+      get_robot_description(),
+      rclcpp::get_logger("robot_model"));
   });
 
-  assert(joint_map_builder_);
-  return *joint_map_builder_;
-}
-
-const TransmissionAnalysis & RobotModel::get_transmission_analysis() const {
-  std::call_once(joint_map_builder_flag_, [&]{
-    joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>();
-
-    joint_map_builder_->with_urdf(get_urdf_model());
-    joint_map_builder_->with_transmissions(get_robot_description(), rclcpp::get_logger("robot_model"));
-  });
-
-  assert(joint_map_builder_);
-  return joint_map_builder_->get_transmission_analysis();
+  assert(default_transmission_analysis_);
+  return *default_transmission_analysis_;
 }
 
 const AnalysisTree & RobotModel::get_analysis_tree() const {

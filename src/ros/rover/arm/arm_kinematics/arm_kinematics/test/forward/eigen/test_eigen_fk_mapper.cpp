@@ -57,6 +57,11 @@ public:
   {
   }
 
+  [[nodiscard]] std::unique_ptr<arm_kinematics::TransmissionModel> clone() const override
+  {
+    return std::make_unique<TestTransmissionModel>(supports_forward_, supports_reverse_);
+  }
+
   [[nodiscard]] bool can_build(
     arm_kinematics::JointQuantity,
     arm_kinematics::PropagationDirection direction) const noexcept override
@@ -126,6 +131,11 @@ public:
   {
   }
 
+  [[nodiscard]] std::unique_ptr<arm_kinematics::TransmissionModel> clone() const override
+  {
+    return std::make_unique<TestRuntimeTransmissionModel>(multiplier_, offset_);
+  }
+
   [[nodiscard]] bool can_build(
     arm_kinematics::JointQuantity,
     arm_kinematics::PropagationDirection direction) const noexcept override
@@ -187,6 +197,11 @@ public:
   {
   }
 
+  [[nodiscard]] std::unique_ptr<arm_kinematics::TransmissionModel> clone() const override
+  {
+    return std::make_unique<TestScratchTransmissionModel>(offset_);
+  }
+
   [[nodiscard]] bool can_build(
     arm_kinematics::JointQuantity,
     arm_kinematics::PropagationDirection direction) const noexcept override
@@ -210,18 +225,18 @@ private:
 class TestAnalysisBackedEigenForwardKinematicsPlugin final : public EigenForwardKinematicsPlugin
 {
 public:
-  [[nodiscard]] const JointMapBuilder & get_joint_map_builder() const noexcept override
+  [[nodiscard]] const TransmissionAnalysis & get_transmission_analysis() const noexcept override
   {
-    if (!joint_map_builder_) {
-      joint_map_builder_ = std::make_unique<TransmissionAnalysisJointMapBuilder>(
-        get_robot_model().get_transmission_analysis());
+    if (!transmission_analysis_) {
+      transmission_analysis_ = std::make_unique<TransmissionAnalysis>(
+        get_robot_model().get_default_transmission_analysis());
     }
 
-    return *joint_map_builder_;
+    return *transmission_analysis_;
   }
 
 private:
-  mutable std::unique_ptr<TransmissionAnalysisJointMapBuilder> joint_map_builder_{};
+  mutable std::unique_ptr<TransmissionAnalysis> transmission_analysis_{};
 };
 
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
@@ -363,7 +378,8 @@ TEST_F(MimicUrdfTests, DefaultJointMapBuilderMatchesRobotModelBuilder)
   const auto default_map = builder.build(
     {"driver_joint"},
     {"driver_joint", "follower_joint"});
-  const auto robot_model_map = robot_model_->get_joint_map_builder().build(
+  const auto robot_model_map = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build(
     {"driver_joint"},
     {"driver_joint", "follower_joint"});
 
@@ -381,7 +397,7 @@ TEST_F(MimicUrdfTests, DefaultJointMapBuilderMatchesRobotModelBuilder)
 
 TEST_F(MimicUrdfTests, RobotModelCachesMimicsAsAffineTransmissions)
 {
-  const auto & analysis = robot_model_->get_transmission_analysis();
+  const auto & analysis = robot_model_->get_default_transmission_analysis();
   const auto & joint_ids = analysis.joint_order();
   const auto & affine_transmissions = analysis.affine_transmissions();
 
@@ -553,8 +569,8 @@ protected:
 
 TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
 {
-  const TransmissionAnalysis & first = robot_model_->get_transmission_analysis();
-  const TransmissionAnalysis & second = robot_model_->get_transmission_analysis();
+  const TransmissionAnalysis & first = robot_model_->get_default_transmission_analysis();
+  const TransmissionAnalysis & second = robot_model_->get_default_transmission_analysis();
   const auto & joint_ids = first.joint_order();
   const auto & transmissions = first.transmissions();
 
@@ -580,7 +596,8 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
 
 TEST_F(TransmissionUrdfTests, BuildExpectedBuildsSimpleRos2ControlTransmissionModel)
 {
-  const auto result = robot_model_->get_joint_map_builder().build_expected(
+  const auto result = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build_expected(
     {"motor_joint"},
     {"driven_joint"},
     JointQuantity::Position);
@@ -598,7 +615,8 @@ TEST_F(TransmissionUrdfTests, BuildExpectedBuildsSimpleRos2ControlTransmissionMo
 
 TEST_F(TransmissionUrdfTests, BuildExpectedBuildsVelocitySimpleRos2ControlTransmissionModel)
 {
-  const auto result = robot_model_->get_joint_map_builder().build_expected(
+  const auto result = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build_expected(
     {"motor_joint"},
     {"driven_joint"},
     JointQuantity::Velocity);
@@ -614,7 +632,26 @@ TEST_F(TransmissionUrdfTests, BuildExpectedBuildsVelocitySimpleRos2ControlTransm
 
 TEST_F(TransmissionUrdfTests, TransmissionAnalysisJointMapBuilderBuildsFromSharedAnalysis)
 {
-  TransmissionAnalysisJointMapBuilder builder(robot_model_->get_transmission_analysis());
+  TransmissionAnalysisJointMapBuilder builder(robot_model_->get_default_transmission_analysis());
+
+  const auto result = builder.build_expected(
+    {"motor_joint"},
+    {"driven_joint"},
+    JointQuantity::Position);
+
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<double> inputs{1.0};
+  std::vector<float> outputs(1, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 0.75F, EPSILON);
+}
+
+TEST_F(TransmissionUrdfTests, TransmissionAnalysisCopyRetainsBuildBehavior)
+{
+  TransmissionAnalysis copied_analysis(robot_model_->get_default_transmission_analysis());
+  TransmissionAnalysisJointMapBuilder builder(copied_analysis);
 
   const auto result = builder.build_expected(
     {"motor_joint"},
@@ -653,7 +690,7 @@ TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginCanOverrideWit
 
 TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdge)
 {
-  const auto & analysis = robot_model_->get_transmission_analysis();
+  const auto & analysis = robot_model_->get_default_transmission_analysis();
   const auto & joint_ids = analysis.joint_order();
 
   ASSERT_TRUE(joint_ids.contains_key("motor_joint"));

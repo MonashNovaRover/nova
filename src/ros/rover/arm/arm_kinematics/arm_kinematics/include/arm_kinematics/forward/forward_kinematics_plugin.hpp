@@ -11,6 +11,8 @@
 #include <urdf/model.h>
 #include <arm_kinematics/common/kinematics_base.hpp>
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
+#include <arm_kinematics/joint_map/transmission_analysis.hpp>
+#include <arm_kinematics/joint_map/transmission_analysis_joint_map_builder.hpp>
 #include <arm_kinematics/utilities/aliases.hpp>
 #include <arm_kinematics/forward/frame_definitions.hpp>
 #include <arm_kinematics/utilities/order.hpp>
@@ -167,12 +169,20 @@ public:
     KinematicsParams::SharedPtr kinematics_params);
 
   /**
+   * \brief Gets the transmission analysis used by this FK plugin's default mapping policy.
+   *
+   * Different FK plugin implementations may choose to provide a transmission analysis that differs from the shared
+   * default analysis exposed by RobotModel.
+   */
+  [[nodiscard]] virtual const TransmissionAnalysis & get_transmission_analysis() const noexcept;
+
+  /**
    * \brief Gets the default joint map builder used for constructing trees.
    *
    * This is the canonical source of the FK plugin's default runtime joint mapping policy.
    *
-   * Different plugin implementations may choose to provide a joint map builder that differs from the shared default
-   * implementation exposed by RobotModel.
+   * Different plugin implementations may choose to provide a joint map builder that differs from the analysis-backed
+   * default implementation provided here.
    */
   [[nodiscard]] virtual const JointMapBuilder & get_joint_map_builder() const noexcept;
 
@@ -183,6 +193,9 @@ protected:
    * \returns True if initialization was successful. False otherwise.
    */
   virtual bool on_initialize() = 0;
+
+private:
+  mutable std::unique_ptr<TransmissionAnalysisJointMapBuilder> joint_map_builder_ = nullptr;
 };
 
 } // arm_kinematics

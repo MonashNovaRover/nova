@@ -18,6 +18,8 @@ class ARM_KINEMATICS_PUBLIC TransmissionModel {
 public:
   virtual ~TransmissionModel() = default;
 
+  [[nodiscard]] virtual std::unique_ptr<TransmissionModel> clone() const = 0;
+
   [[nodiscard]] virtual bool can_build(
     JointQuantity quantity,
     PropagationDirection direction) const noexcept = 0;

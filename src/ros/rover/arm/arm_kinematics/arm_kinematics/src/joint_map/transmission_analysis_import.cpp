@@ -103,6 +103,11 @@ public:
   {
   }
 
+  [[nodiscard]] std::unique_ptr<TransmissionModel> clone() const override
+  {
+    return std::make_unique<SimpleTransmissionModel>(reduction_, offset_);
+  }
+
   [[nodiscard]] bool can_build(
     const JointQuantity quantity,
     const PropagationDirection) const noexcept override
@@ -134,6 +139,11 @@ private:
 
 class UnsupportedRos2ControlTransmissionModel final : public TransmissionModel {
 public:
+  [[nodiscard]] std::unique_ptr<TransmissionModel> clone() const override
+  {
+    return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
+  }
+
   [[nodiscard]] bool can_build(
     const JointQuantity,
     const PropagationDirection) const noexcept override
