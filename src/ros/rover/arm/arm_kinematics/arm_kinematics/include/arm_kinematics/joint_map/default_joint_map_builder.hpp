@@ -5,7 +5,6 @@
 #ifndef ARM_KINEMATICS_DEFAULT_JOINT_MAP_BUILDER_HPP
 #define ARM_KINEMATICS_DEFAULT_JOINT_MAP_BUILDER_HPP
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -26,7 +25,7 @@ namespace arm_kinematics {
  * Default shared builder backed by the robot model's URDF-derived metadata.
  *
  * Stage 1 behavior:
- *   - gathers mimic-joint definitions from the URDF
+ *   - gathers mimic-joint affine transmissions from the URDF
  *   - parses ros2_control transmission definitions
  *   - caches a TransmissionAnalysis built from normalized transmission models
  *   - still only succeeds at runtime for AffineJointMap-style requests
@@ -50,7 +49,7 @@ public:
     JointQuantity quantity) const override;
 
   /**
-   * Uses the given URDF model to add mimic joints.
+   * Uses the given URDF model to add mimic-joint affine transmissions to the cached TransmissionAnalysis.
    *
    * \param urdf_model The urdf::Model to get mimic joints from.
    */
@@ -85,8 +84,6 @@ public:
 private:
   /// Parsed transmission metadata from ros2_control XML. Parsed for future use, but not consumed in Stage 1 build().
   std::vector<hardware_interface::TransmissionInfo> transmissions_{};
-  /// Mimic joints gathered from the URDF.
-  std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints_{};
   /// Cached structural transmission analysis derived from registered transmission models.
   TransmissionAnalysis transmission_analysis_{};
 };

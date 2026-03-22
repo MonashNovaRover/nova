@@ -18,6 +18,18 @@ namespace arm_kinematics {
 
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
+  struct AffineTransmission {
+    // The joint written to by this mimic
+    JointId target_joint_id = 0;  //< Infer from the index of this in affine_transmissions_
+
+    // The joint read by this mimic
+    JointId source_joint_id = 0;
+    float multiplier = 1.0F;
+    float offset = 0.0F;
+
+    // No name for logging. Derive this instead from the names of the source and target in joint_order().inverse
+  };
+
   struct TransmissionInstance {
     TransmissionModelId model_id = 0;
     std::vector<JointId> input_joint_ids;
@@ -38,6 +50,11 @@ public:
   TransmissionModelId add_model(std::unique_ptr<TransmissionModel> model);
 
   [[nodiscard]] const std::vector<TransmissionInstance> & transmissions() const noexcept { return transmissions_; }
+  /// a.k.a. mimic joints
+  [[nodiscard]] const std::vector<AffineTransmission> & affine_transmissions() const noexcept
+  {
+    return affine_transmissions_;
+  }
 
   /// Canonical boundary mapping from named joints in descriptions to stable internal JointIds.
   [[nodiscard]] const Order<std::string, JointId> & joint_order() const noexcept { return joint_order_; }
@@ -56,8 +73,21 @@ public:
     span<const std::string> outputs,
     std::string name = "unnamed");
 
+  void add_affine_transmission(
+    JointId source_joint_id,
+    JointId target_joint_id,
+    float multiplier = 1.0f,
+    float offset = 0.0f,
+    std::string name = "unnamed");
+  void add_affine_transmission(
+    const std::string & source_joint_name,
+    const std::string & target_joint_name,
+    float multiplier = 1.0f,
+    float offset = 0.0f);
+
 private:
   std::vector<std::unique_ptr<TransmissionModel>> models_{};
+  std::vector<AffineTransmission> affine_transmissions_{};
   std::vector<TransmissionInstance> transmissions_{};
   Order<std::string, JointId> joint_order_{};
 };

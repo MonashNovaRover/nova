@@ -10,6 +10,7 @@
 
 #include <hardware_interface/component_parser.hpp>
 #include <rclcpp/logger.hpp>
+#include <urdf/model.h>
 
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 #include "arm_kinematics/visibility_control.h"
@@ -47,6 +48,20 @@ add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
   rclcpp::Logger logger);
+
+/**
+ * Adds normalized affine transmission relationships for all mimic joints in the given URDF model.
+ *
+ * Mimic chains are reduced during import so each stored affine transmission maps from the original source joint to the
+ * final mimic joint directly.
+ *
+ * \param transmission_analysis The analysis object to modify.
+ * \param urdf_model The URDF model to import mimic relationships from.
+ * \throws std::runtime_error for invalid mimic chains or cycles.
+ */
+ARM_KINEMATICS_PUBLIC void add_mimic_transmissions_to_analysis(
+  TransmissionAnalysis & transmission_analysis,
+  const urdf::Model & urdf_model);
 
 } // namespace arm_kinematics
 

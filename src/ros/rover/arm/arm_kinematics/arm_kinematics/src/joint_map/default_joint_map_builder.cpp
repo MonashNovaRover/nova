@@ -55,7 +55,7 @@ tl::expected<JointMap, std::string> DefaultJointMapBuilder::build_expected(
   const JointQuantity quantity) const
 {
   try {
-    return JointMap(AffineJointMap(input_names, output_names, mimic_joints_));
+    return JointMap(AffineJointMap(input_names, output_names, transmission_analysis_));
   } catch (const std::exception & e) {
     const auto & joint_ids = transmission_analysis_.joint_order();
     const auto input_ids = convert_joint_names_to_ids(joint_ids, input_names);
@@ -89,13 +89,7 @@ tl::expected<JointMap, std::string> DefaultJointMapBuilder::build_expected(
 
 DefaultJointMapBuilder & DefaultJointMapBuilder::with_urdf(const urdf::Model & urdf_model)
 {
-  for (const auto & [name, joint] : urdf_model.joints_) {
-    if (!joint->mimic)
-      continue;
-
-    mimic_joints_[name] = joint->mimic;
-  }
-
+  add_mimic_transmissions_to_analysis(transmission_analysis_, urdf_model);
   return *this;
 }
 

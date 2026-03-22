@@ -9,6 +9,9 @@
 
 namespace arm_kinematics {
 
+// These usings are included to make types more explicit, as throwing size_t around everywhere with different meanings
+// can get disorienting.
+
 using JointId = std::size_t;
 using TransmissionGroupId = std::size_t;
 using TransmissionModelId = std::size_t;

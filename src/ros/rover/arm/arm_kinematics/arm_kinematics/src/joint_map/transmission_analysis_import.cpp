@@ -12,6 +12,7 @@
 #include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_map>
 #include <utility>
 
 namespace
@@ -248,6 +249,62 @@ void add_ros2_control_transmission_to_analysis(
 
 } // namespace
 
+namespace {
+
+enum class MimicVisitState {
+  Unvisited,
+  Visiting,
+  Done
+};
+
+TransmissionAnalysis::AffineTransmission normalize_affine_transmission(
+  const JointId target_joint_id,
+  const std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> & raw_affine_transmissions,
+  std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> & normalized_affine_transmissions,
+  std::unordered_map<JointId, MimicVisitState> & visit_states)
+{
+  const auto normalized_it = normalized_affine_transmissions.find(target_joint_id);
+  if (normalized_it != normalized_affine_transmissions.end()) {
+    return normalized_it->second;
+  }
+
+  const auto raw_it = raw_affine_transmissions.find(target_joint_id);
+  if (raw_it == raw_affine_transmissions.end()) {
+    return TransmissionAnalysis::AffineTransmission{
+      target_joint_id,
+      target_joint_id,
+      1.0F,
+      0.0F
+    };
+  }
+
+  const auto visit_state = visit_states[target_joint_id];
+  if (visit_state == MimicVisitState::Visiting) {
+    throw std::runtime_error("Cycle detected while normalizing mimic transmissions");
+  }
+
+  visit_states[target_joint_id] = MimicVisitState::Visiting;
+
+  const auto normalized_source = normalize_affine_transmission(
+    raw_it->second.source_joint_id,
+    raw_affine_transmissions,
+    normalized_affine_transmissions,
+    visit_states);
+
+  const auto normalized = TransmissionAnalysis::AffineTransmission{
+    target_joint_id,
+    normalized_source.source_joint_id,
+    normalized_source.multiplier * raw_it->second.multiplier,
+    normalized_source.offset * raw_it->second.multiplier + raw_it->second.offset
+  };
+
+  visit_states[target_joint_id] = MimicVisitState::Done;
+  normalized_affine_transmissions[target_joint_id] = normalized;
+  return normalized;
+}
+
+} // namespace
+
 std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions_to_analysis_dangerous(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string)
@@ -310,6 +367,45 @@ std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions
   } catch (const std::runtime_error & e) {
     RCLCPP_WARN(logger, "Error trying to add transmissions to TransmissionAnalysis: %s", e.what());
     return {};
+  }
+}
+
+void add_mimic_transmissions_to_analysis(
+  TransmissionAnalysis & transmission_analysis,
+  const urdf::Model & urdf_model)
+{
+  std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> raw_affine_transmissions{};
+
+  for (const auto & [joint_name, joint] : urdf_model.joints_) {
+    if (!joint->mimic) {
+      continue;
+    }
+
+    const auto target_joint_id = transmission_analysis.ensure_joint_id(joint_name);
+
+    raw_affine_transmissions[target_joint_id] = TransmissionAnalysis::AffineTransmission{
+      target_joint_id,
+      transmission_analysis.ensure_joint_id(joint->mimic->joint_name),
+      static_cast<float>(joint->mimic->multiplier),
+      static_cast<float>(joint->mimic->offset)
+    };
+  }
+
+  std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> normalized_affine_transmissions{};
+  std::unordered_map<JointId, MimicVisitState> visit_states{};
+
+  for (const auto & [target_joint_id, _] : raw_affine_transmissions) {
+    const auto normalized = normalize_affine_transmission(
+      target_joint_id,
+      raw_affine_transmissions,
+      normalized_affine_transmissions,
+      visit_states);
+
+    transmission_analysis.add_affine_transmission(
+      normalized.source_joint_id,
+      normalized.target_joint_id,
+      normalized.multiplier,
+      normalized.offset);
   }
 }
 

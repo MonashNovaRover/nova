@@ -86,4 +86,45 @@ JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
   return id;
 }
 
+void TransmissionAnalysis::add_affine_transmission(
+  const JointId source_joint_id,
+  const JointId target_joint_id,
+  const float multiplier,
+  const float offset,
+  std::string name)
+{
+  const auto max_joint_id = joint_order_.inverse.size();
+  if (source_joint_id >= max_joint_id) {
+    throw std::invalid_argument(
+      "TransmissionAnalysis::add_affine_transmission() received a source JointId not present in joint_order()");
+  }
+  if (target_joint_id >= max_joint_id) {
+    throw std::invalid_argument(
+      "TransmissionAnalysis::add_affine_transmission() received a target JointId not present in joint_order()");
+  }
+
+  affine_transmissions_.push_back(AffineTransmission{
+    source_joint_id,
+    target_joint_id,
+    multiplier,
+    offset,
+    std::move(name)
+  });
+}
+
+void TransmissionAnalysis::add_affine_transmission(
+  const std::string & source_joint_name,
+  const std::string & target_joint_name,
+  const float multiplier,
+  const float offset,
+  std::string name)
+{
+  add_affine_transmission(
+    ensure_joint_id(source_joint_name),
+    ensure_joint_id(target_joint_name),
+    multiplier,
+    offset,
+    std::move(name));
+}
+
 } // namespace arm_kinematics

@@ -14,10 +14,12 @@
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis_import.hpp"
 #include "arm_kinematics/joint_map/transmission_plan.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include "arm_kinematics/utilities/reordered.hpp"
+#include <algorithm>
 #include <chrono>
 #include <stdexcept>
 
@@ -230,6 +232,122 @@ TEST_F(MimicUrdfTests, DefaultJointMapBuilderMatchesRobotModelBuilder)
   EXPECT_EQ(default_outputs, robot_model_outputs);
   EXPECT_NEAR(default_outputs[0], 1.5, EPSILON);
   EXPECT_NEAR(default_outputs[1], -2.5, EPSILON);
+}
+
+TEST_F(MimicUrdfTests, RobotModelCachesMimicsAsAffineTransmissions)
+{
+  const auto & analysis = robot_model_->get_transmission_analysis();
+  const auto & joint_ids = analysis.joint_order();
+  const auto & affine_transmissions = analysis.affine_transmissions();
+
+  ASSERT_EQ(affine_transmissions.size(), 1u);
+  ASSERT_TRUE(joint_ids.contains_key("driver_joint"));
+  ASSERT_TRUE(joint_ids.contains_key("follower_joint"));
+
+  const auto & affine_transmission = affine_transmissions.front();
+  EXPECT_EQ(affine_transmission.source_joint_id, joint_ids["driver_joint"]);
+  EXPECT_EQ(affine_transmission.target_joint_id, joint_ids["follower_joint"]);
+  EXPECT_FLOAT_EQ(affine_transmission.multiplier, -2.0F);
+  EXPECT_FLOAT_EQ(affine_transmission.offset, 0.5F);
+}
+
+TEST(TransmissionAnalysisTests, MimicChainsNormalizeToSingleAffineTransmission)
+{
+  const std::string robot_description = R"(
+      <robot name="mimic_chain_robot">
+        <link name="base_link"/>
+        <link name="driver_link"/>
+        <link name="middle_link"/>
+        <link name="follower_link"/>
+
+        <joint name="driver_joint" type="revolute">
+          <parent link="base_link"/>
+          <child  link="driver_link"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <joint name="middle_joint" type="revolute">
+          <parent link="driver_link"/>
+          <child  link="middle_link"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <mimic joint="driver_joint" multiplier="-2.0" offset="0.5"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <joint name="follower_joint" type="revolute">
+          <parent link="middle_link"/>
+          <child  link="follower_link"/>
+          <origin xyz="0 0 1" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <mimic joint="middle_joint" multiplier="3.0" offset="-1.0"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+      </robot>
+    )";
+
+  urdf::Model urdf_model{};
+  ASSERT_TRUE(urdf_model.initString(robot_description));
+
+  TransmissionAnalysis analysis{};
+  add_mimic_transmissions_to_analysis(analysis, urdf_model);
+
+  const auto & joint_ids = analysis.joint_order();
+  const auto & affine_transmissions = analysis.affine_transmissions();
+
+  ASSERT_EQ(affine_transmissions.size(), 2u);
+
+  const auto follower_it = std::find_if(
+    affine_transmissions.begin(),
+    affine_transmissions.end(),
+    [&joint_ids](const TransmissionAnalysis::AffineTransmission & affine_transmission) {
+      return affine_transmission.target_joint_id == joint_ids["follower_joint"];
+    });
+
+  ASSERT_NE(follower_it, affine_transmissions.end());
+  EXPECT_EQ(follower_it->source_joint_id, joint_ids["driver_joint"]);
+  EXPECT_FLOAT_EQ(follower_it->multiplier, -6.0F);
+  EXPECT_FLOAT_EQ(follower_it->offset, 0.5F);
+}
+
+TEST(TransmissionAnalysisTests, MimicImportCreatesCanonicalIdForUndefinedSourceJoint)
+{
+  const std::string robot_description = R"(
+      <robot name="mimic_dangling_source_robot">
+        <link name="base_link"/>
+        <link name="follower_link"/>
+
+        <joint name="follower_joint" type="revolute">
+          <parent link="base_link"/>
+          <child  link="follower_link"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <mimic joint="undefined_driver_joint" multiplier="2.0" offset="1.0"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+      </robot>
+    )";
+
+  urdf::Model urdf_model{};
+  ASSERT_TRUE(urdf_model.initString(robot_description));
+
+  TransmissionAnalysis analysis{};
+  add_mimic_transmissions_to_analysis(analysis, urdf_model);
+
+  const auto & joint_ids = analysis.joint_order();
+  const auto & affine_transmissions = analysis.affine_transmissions();
+
+  ASSERT_TRUE(joint_ids.contains_key("undefined_driver_joint"));
+  ASSERT_TRUE(joint_ids.contains_key("follower_joint"));
+  ASSERT_EQ(affine_transmissions.size(), 1u);
+
+  const auto & affine_transmission = affine_transmissions.front();
+  EXPECT_EQ(affine_transmission.source_joint_id, joint_ids["undefined_driver_joint"]);
+  EXPECT_EQ(affine_transmission.target_joint_id, joint_ids["follower_joint"]);
+  EXPECT_FLOAT_EQ(affine_transmission.multiplier, 2.0F);
+  EXPECT_FLOAT_EQ(affine_transmission.offset, 1.0F);
 }
 
 class TransmissionUrdfTests : public ::testing::Test

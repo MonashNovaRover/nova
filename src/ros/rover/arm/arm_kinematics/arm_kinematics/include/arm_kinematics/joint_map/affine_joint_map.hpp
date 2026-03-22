@@ -11,6 +11,7 @@
 #include <vector>
 #include <urdf/model.h>
 
+#include "arm_kinematics/joint_map/transmission_analysis.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/visibility_control.h"
 
@@ -38,6 +39,15 @@ public:
     const std::vector<std::string> & input_names,
     const std::vector<std::string> & output_names,
     const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints = {});
+
+  /**
+   * Constructs an affine mapping from input_names to output_names using affine transmission relationships from the
+   * given TransmissionAnalysis.
+   */
+  AffineJointMap(
+    const std::vector<std::string> & input_names,
+    const std::vector<std::string> & output_names,
+    const TransmissionAnalysis & transmission_analysis);
 
   /// Creates an identity affine map for an N-element joint space.
   static AffineJointMap identity(size_t element_count);
@@ -82,6 +92,13 @@ private:
     const std::vector<std::string> & joint_names,
     std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints,
     const std::string & name,
+    float & multiplier,
+    float & offset);
+
+  static size_t find_source(
+    const std::vector<JointId> & input_joint_ids,
+    const std::vector<TransmissionAnalysis::AffineTransmission> & affine_transmissions,
+    JointId output_joint_id,
     float & multiplier,
     float & offset);
 
