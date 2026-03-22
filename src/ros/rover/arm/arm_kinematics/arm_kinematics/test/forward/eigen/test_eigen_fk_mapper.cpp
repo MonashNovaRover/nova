@@ -145,6 +145,66 @@ private:
   float offset_ = 0.0F;
 };
 
+class TestScratchComputeTransmission final : public arm_kinematics::ComputeTransmission
+{
+public:
+  explicit TestScratchComputeTransmission(const float offset)
+  : offset_(offset)
+  {
+  }
+
+  void compute(
+    arm_kinematics::span<const float> inputs,
+    arm_kinematics::span<float> outputs,
+    arm_kinematics::span<float> scratch) const override
+  {
+    scratch[0] = inputs[0] + offset_;
+    scratch[1] = scratch[0] * 2.0F;
+    outputs[0] = scratch[1];
+  }
+
+  [[nodiscard]] size_t scratch_size() const noexcept override
+  {
+    return 2;
+  }
+
+  [[nodiscard]] std::unique_ptr<arm_kinematics::ComputeTransmission> clone() const override
+  {
+    return std::make_unique<TestScratchComputeTransmission>(offset_);
+  }
+
+private:
+  float offset_ = 0.0F;
+};
+
+class TestScratchTransmissionModel final : public arm_kinematics::TransmissionModel
+{
+public:
+  explicit TestScratchTransmissionModel(const float offset)
+  : offset_(offset)
+  {
+  }
+
+  [[nodiscard]] bool can_build(
+    arm_kinematics::JointQuantity,
+    arm_kinematics::PropagationDirection direction) const noexcept override
+  {
+    return direction == arm_kinematics::PropagationDirection::Forward;
+  }
+
+  [[nodiscard]] std::unique_ptr<const arm_kinematics::ComputeTransmission> build(
+    arm_kinematics::JointQuantity,
+    arm_kinematics::PropagationDirection,
+    arm_kinematics::span<const arm_kinematics::JointId>,
+    arm_kinematics::span<const arm_kinematics::JointId>) const override
+  {
+    return std::make_unique<TestScratchComputeTransmission>(offset_);
+  }
+
+private:
+  float offset_ = 0.0F;
+};
+
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
                              const Eigen::Vector3f & expected,
                              const char * message = "", double tol = EPSILON)
@@ -624,6 +684,53 @@ TEST(JointMapStage2Tests, CompilesAndExecutesDirectGroupedTransmissionPlan)
   joint_map.map(inputs, outputs);
 
   EXPECT_NEAR(outputs[0], 3.25F, EPSILON);
+}
+
+TEST(JointMapStage2Tests, CompiledGroupedTransmissionPlanTracksNonzeroScratchLayout)
+{
+  TransmissionAnalysis analysis{};
+  const auto model_id = analysis.add_model(std::make_unique<TestScratchTransmissionModel>(0.25F));
+
+  const std::vector<std::string> input_names{"motor_joint"};
+  const std::vector<std::string> output_names{"driven_joint"};
+  analysis.add_transmission(
+    model_id,
+    arm_kinematics::span<const std::string>(input_names),
+    arm_kinematics::span<const std::string>(output_names),
+    "scratch_direct");
+
+  const auto & joint_order = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  auto plan = arm_kinematics::make_transmission_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    JointQuantity::Position);
+
+  ASSERT_TRUE(plan.has_value());
+
+  auto compiled_plan = arm_kinematics::compile_transmission_plan_expected(
+    analysis,
+    *plan,
+    JointQuantity::Position);
+
+  ASSERT_TRUE(compiled_plan.has_value());
+  ASSERT_EQ(compiled_plan->scratch_size, 2u);
+  ASSERT_EQ(compiled_plan->stages.size(), 1u);
+  EXPECT_EQ(compiled_plan->stages.front().scratch_offset, 0u);
+  EXPECT_EQ(compiled_plan->stages.front().scratch_size, 2u);
+
+  arm_kinematics::TransmissionJointMap joint_map(std::move(*compiled_plan));
+  std::vector<double> inputs{1.5};
+  std::vector<float> outputs(1, 0.0F);
+
+  joint_map.map(inputs, outputs);
+  EXPECT_NEAR(outputs[0], 3.5F, EPSILON);
+
+  outputs[0] = 0.0F;
+  joint_map.map(inputs, outputs);
+  EXPECT_NEAR(outputs[0], 3.5F, EPSILON);
 }
 
 TEST(TransmissionAnalysisTests, AffinePlannerBuildsIdentityPlanForDirectInputJoint)
