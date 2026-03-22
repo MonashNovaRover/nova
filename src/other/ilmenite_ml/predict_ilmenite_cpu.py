@@ -71,7 +71,7 @@ def predict_all_images(model, image_paths, transform):
         for img_path in image_paths:
             img = transform(Image.open(img_path).convert("RGB")).unsqueeze(0).to(DEVICE)
             output = model(img)
-            pred_label = output.item()
+            pred_label = output.item()*100.0 # convert back to percentages from normalised model
             predictions.append(pred_label)
     
     return predictions
