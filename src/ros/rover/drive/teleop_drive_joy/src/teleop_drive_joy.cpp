@@ -107,7 +107,7 @@ void TeleopDriveJoy::initialize()
   print_controls();
 
   // initialize connection timer
-  connection_timer_ = this->create_timer(1s, [this]()
+  connection_timer_ = this->create_timer(std::chrono::milliseconds(params_.gamepad_connection_timeout), [this]()
   {
     set_connected(false);
     connection_timer_->cancel();
@@ -418,6 +418,7 @@ void TeleopDriveJoy::send_halt_command()
   if (sent_lock_msg_) return;
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+  cmd_vel_msg->header.stamp = this->now();
   cmd_vel_pub_->publish(std::move(cmd_vel_msg));
 
   sent_lock_msg_ = true;

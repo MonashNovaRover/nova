@@ -53,6 +53,10 @@ teleop_drive_joy:
     type: bool
     default_value: true
     description: "Enable gamepad locking when it is disconnected from the laptop"
+  gamepad_connection_timeout:
+    type: int
+    default_value: 2000
+    description: "Gamepad is considered disconnected after this many milliseconds since receiving the last joy message"
 
   rumble_enable:
     type: bool
