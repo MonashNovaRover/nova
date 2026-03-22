@@ -7,8 +7,8 @@ teleop_drive_joy_node:
     trigger_pressed_threshold: 0.1
 
     autolock_enable: true
-    autolock_threshold_error_count: 3
-    autolock_threshold_error_duration: 0
+    autolock_threshold_error_count: 0
+    autolock_threshold_error_duration: 2250
     autolock_error_active_duration: 500
     autolock_override: false  # only change dynamically via service call or command line (edit autolock_enable instead)
 

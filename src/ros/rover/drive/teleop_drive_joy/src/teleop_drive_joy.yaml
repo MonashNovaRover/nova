@@ -34,11 +34,11 @@ teleop_drive_joy:
   # meeting ANY autolock threshold will trigger autolock
   autolock_threshold_error_count:
     type: int
-    default_value: 3
+    default_value: 0
     description: "Number of (blcmd) errors received (since last autolock) required to trigger autolock (0 to disable)"
   autolock_threshold_error_duration:
     type: int
-    default_value: 0
+    default_value: 2250
     description: "Minimum duration (in milliseconds) that (blcmd) errors must remain continuously active for to trigger autolock (0 to disable)"
   autolock_error_active_duration:
     type: int
