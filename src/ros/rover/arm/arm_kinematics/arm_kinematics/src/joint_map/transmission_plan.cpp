@@ -6,7 +6,10 @@
 
 #include <algorithm>
 #include <optional>
+#include <queue>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace arm_kinematics {
 
@@ -71,6 +74,44 @@ std::optional<TransmissionPlanStage> make_direct_stage(
     consumed_joint_ids,
     produced_joint_ids
   };
+}
+
+bool contains_all_joint_ids(
+  const std::vector<JointId> & available_joint_ids,
+  const std::vector<JointId> & required_joint_ids)
+{
+  return std::all_of(
+    required_joint_ids.begin(),
+    required_joint_ids.end(),
+    [&available_joint_ids](const JointId joint_id) {
+      return std::find(available_joint_ids.begin(), available_joint_ids.end(), joint_id) != available_joint_ids.end();
+    });
+}
+
+std::vector<JointId> merge_joint_ids(
+  const std::vector<JointId> & available_joint_ids,
+  const std::vector<JointId> & produced_joint_ids)
+{
+  std::vector<JointId> merged_joint_ids = available_joint_ids;
+
+  for (const auto joint_id : produced_joint_ids) {
+    if (std::find(merged_joint_ids.begin(), merged_joint_ids.end(), joint_id) == merged_joint_ids.end()) {
+      merged_joint_ids.push_back(joint_id);
+    }
+  }
+
+  std::sort(merged_joint_ids.begin(), merged_joint_ids.end());
+  return merged_joint_ids;
+}
+
+std::string join_joint_ids(const std::vector<JointId> & joint_ids)
+{
+  return join_joint_ids(span<const JointId>(joint_ids));
+}
+
+std::string available_joint_ids_key(const std::vector<JointId> & joint_ids)
+{
+  return join_joint_ids(joint_ids);
 }
 
 tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
@@ -170,101 +211,101 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
 {
   const auto & transmissions = analysis.transmissions();
   const auto & models = analysis.models();
+  struct SearchState {
+    std::vector<JointId> available_joint_ids{};
+    std::vector<TransmissionPlanStage> stages{};
+  };
 
-  std::optional<TransmissionPlan> direct_plan = std::nullopt;
+  SearchState initial_state{
+    {input_joint_ids.begin(), input_joint_ids.end()},
+    {}
+  };
+  std::sort(initial_state.available_joint_ids.begin(), initial_state.available_joint_ids.end());
 
-  for (TransmissionGroupId group_id = 0; group_id < transmissions.size(); ++group_id) {
-    const auto & transmission = transmissions[group_id];
-    const auto & model = *models[transmission.model_id];
+  std::queue<SearchState> queue{};
+  queue.push(initial_state);
 
-    for (const auto direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
-      const auto direct_stage = make_direct_stage(
-        transmission,
-        group_id,
-        model,
-        direction,
-        input_joint_ids,
-        output_joint_ids,
-        quantity);
-      if (!direct_stage.has_value()) {
-        continue;
+  std::unordered_map<std::string, size_t> visited_state_depths{};
+  visited_state_depths.emplace(available_joint_ids_key(initial_state.available_joint_ids), 0u);
+  std::unordered_map<std::string, size_t> state_path_counts{};
+  state_path_counts.emplace(available_joint_ids_key(initial_state.available_joint_ids), 1u);
+
+  std::optional<TransmissionPlan> plan = std::nullopt;
+
+  while (!queue.empty()) {
+    auto state = std::move(queue.front());
+    queue.pop();
+    const auto current_key = available_joint_ids_key(state.available_joint_ids);
+
+    if (contains_all_joint_ids(state.available_joint_ids, {output_joint_ids.begin(), output_joint_ids.end()})) {
+      if (state_path_counts[current_key] > 1 || plan.has_value()) {
+        return tl::make_unexpected("Ambiguous transmission plan: multiple grouped candidates were found");
       }
 
-      if (direct_plan.has_value()) {
-        return tl::make_unexpected("Ambiguous transmission plan: multiple direct candidates were found");
-      }
-
-      direct_plan = TransmissionPlan{
+      plan = TransmissionPlan{
         {input_joint_ids.begin(), input_joint_ids.end()},
         {output_joint_ids.begin(), output_joint_ids.end()},
-        {*direct_stage}
+        std::move(state.stages)
       };
+      continue;
     }
-  }
 
-  if (direct_plan.has_value()) {
-    return *direct_plan;
-  }
+    for (TransmissionGroupId group_id = 0; group_id < transmissions.size(); ++group_id) {
+      const auto & transmission = transmissions[group_id];
+      const auto & model = *models[transmission.model_id];
 
-  std::optional<TransmissionPlan> two_stage_plan = std::nullopt;
-
-  for (TransmissionGroupId first_group_id = 0; first_group_id < transmissions.size(); ++first_group_id) {
-    const auto & first_transmission = transmissions[first_group_id];
-    const auto & first_model = *models[first_transmission.model_id];
-
-    for (const auto first_direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
-      const auto & intermediate_joint_ids =
-        produced_joint_ids_for_direction(first_transmission, first_direction);
-      const auto first_stage = make_direct_stage(
-        first_transmission,
-        first_group_id,
-        first_model,
-        first_direction,
-        input_joint_ids,
-        span<const JointId>(intermediate_joint_ids),
-        quantity);
-      if (!first_stage.has_value()) {
-        continue;
-      }
-
-      for (TransmissionGroupId second_group_id = 0; second_group_id < transmissions.size(); ++second_group_id) {
-        const auto & second_transmission = transmissions[second_group_id];
-        const auto & second_model = *models[second_transmission.model_id];
-
-        for (const auto second_direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
-          const auto second_stage = make_direct_stage(
-            second_transmission,
-            second_group_id,
-            second_model,
-            second_direction,
-            span<const JointId>(intermediate_joint_ids),
-            output_joint_ids,
-            quantity);
-          if (!second_stage.has_value()) {
-            continue;
-          }
-
-          if (two_stage_plan.has_value()) {
-            return tl::make_unexpected("Ambiguous transmission plan: multiple two-stage candidates were found");
-          }
-
-          two_stage_plan = TransmissionPlan{
-            {input_joint_ids.begin(), input_joint_ids.end()},
-            {output_joint_ids.begin(), output_joint_ids.end()},
-            {*first_stage, *second_stage}
-          };
+      for (const auto direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
+        if (!model.can_build(quantity, direction)) {
+          continue;
         }
+
+        const auto & consumed_joint_ids = consumed_joint_ids_for_direction(transmission, direction);
+        const auto & produced_joint_ids = produced_joint_ids_for_direction(transmission, direction);
+        if (!contains_all_joint_ids(state.available_joint_ids, consumed_joint_ids)) {
+          continue;
+        }
+
+        const auto next_available_joint_ids = merge_joint_ids(state.available_joint_ids, produced_joint_ids);
+        if (next_available_joint_ids == state.available_joint_ids) {
+          continue;
+        }
+
+        const auto key = available_joint_ids_key(next_available_joint_ids);
+        const auto next_depth = state.stages.size() + 1;
+        const auto visited_it = visited_state_depths.find(key);
+        if (visited_it == visited_state_depths.end()) {
+          visited_state_depths.emplace(key, next_depth);
+          state_path_counts.emplace(key, state_path_counts[current_key]);
+        } else if (visited_it->second == next_depth) {
+          state_path_counts[key] += state_path_counts[current_key];
+          continue;
+        } else {
+          continue;
+        }
+
+        auto next_stages = state.stages;
+        next_stages.push_back(TransmissionPlanStage{
+          group_id,
+          direction,
+          consumed_joint_ids,
+          produced_joint_ids
+        });
+
+        queue.push(SearchState{
+          std::move(next_available_joint_ids),
+          std::move(next_stages)
+        });
       }
     }
   }
 
-  if (!two_stage_plan.has_value()) {
+  if (!plan.has_value()) {
     return tl::make_unexpected(
-      "No direct or two-stage transmission plan found for inputs [" + join_joint_ids(input_joint_ids) +
+      "No grouped transmission plan found for inputs [" + join_joint_ids(input_joint_ids) +
       "] and outputs [" + join_joint_ids(output_joint_ids) + "]");
   }
 
-  return *two_stage_plan;
+  return *plan;
 }
 
 } // namespace arm_kinematics

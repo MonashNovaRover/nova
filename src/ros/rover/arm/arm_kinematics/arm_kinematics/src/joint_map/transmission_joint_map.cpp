@@ -129,6 +129,11 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
       span<const JointId>(stage.produced_joint_ids),
       next_value_index);
 
+    if (!models[transmission.model_id]->can_build(quantity, stage.direction)) {
+      return tl::make_unexpected(
+        "Transmission plan stage references a transmission model that cannot build the requested direction/quantity");
+    }
+
     auto compute = models[transmission.model_id]->build(
       quantity,
       stage.direction,
