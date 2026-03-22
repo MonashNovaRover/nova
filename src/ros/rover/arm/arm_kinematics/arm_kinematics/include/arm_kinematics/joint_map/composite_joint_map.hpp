@@ -43,6 +43,30 @@ private:
   mutable Workspace workspace_{};
 };
 
+class ARM_KINEMATICS_PUBLIC StagedJointMap {
+public:
+  StagedJointMap() = default;
+  explicit StagedJointMap(std::vector<JointMap> stages);
+
+  void map(span<const double> inputs, span<float> outputs) const;
+
+  [[nodiscard]] size_t input_count() const noexcept { return input_count_; }
+  [[nodiscard]] size_t output_count() const noexcept { return output_count_; }
+
+private:
+  struct Workspace {
+    std::vector<std::vector<double>> stage_inputs{};
+    std::vector<std::vector<float>> stage_outputs{};
+  };
+
+  [[nodiscard]] Workspace make_workspace() const;
+
+  std::vector<JointMap> stages_{};
+  size_t input_count_ = 0;
+  size_t output_count_ = 0;
+  mutable Workspace workspace_{};
+};
+
 using CompileJointMapPlanResult = tl::expected<JointMap, std::string>;
 
 [[nodiscard]] ARM_KINEMATICS_PUBLIC CompileJointMapPlanResult compile_joint_map_plan_expected(

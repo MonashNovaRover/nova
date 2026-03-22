@@ -50,10 +50,16 @@ struct JointMapPlanSegment {
   JointMapPlanSegmentPlan plan{};
 };
 
-struct JointMapPlan {
+struct JointMapPlanStage {
   std::vector<JointId> input_joint_ids{};
   std::vector<JointId> output_joint_ids{};
   std::vector<JointMapPlanSegment> segments{};
+};
+
+struct JointMapPlan {
+  std::vector<JointId> input_joint_ids{};
+  std::vector<JointId> output_joint_ids{};
+  std::vector<JointMapPlanStage> stages{};
 };
 
 using MakeTransmissionPlanResult = tl::expected<TransmissionPlan, std::string>;

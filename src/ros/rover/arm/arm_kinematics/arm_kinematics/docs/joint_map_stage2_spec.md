@@ -26,6 +26,11 @@ The resulting user-facing shape should be:
 
 - callers request a `JointMap` for a specific `JointQuantity`
 - the returned `JointMap` still exposes one runtime `map(...)`
+- the runtime `JointMap` boundary should be `float`-native for both inputs and outputs
+- any `double`-based caller API should adapt at the consumer boundary rather than forcing conversion inside staged
+  `JointMap` execution
+- this also applies to `JointMap`-layer convenience overloads taking `span` or `std::vector`; those APIs should move
+  to `float` as well
 - failures happen while building the map, not during routine runtime use
 - the final runtime compute structures do not carry `JointQuantity` as part of their execution API
 
@@ -64,6 +69,8 @@ Stage 2 should preserve these properties:
 3. request-specific planning derived from cached analysis instead of reparsing raw metadata
 4. no hidden string lookup in the hot path
 5. compatibility with FK plugin customization seams
+6. no implicit double-to-float conversion inside staged `JointMap` composition
+7. no `double`-accepting runtime `joint_map` APIs inside this package layer
 
 The design must also preserve the direction established in the transmission plan:
 
@@ -177,6 +184,7 @@ This is important because:
 - velocity propagation rules may differ from position rules even when the joint connectivity is identical
 - the caller should select the quantity it needs while building the map, then use one runtime `map(...)`
 - once planning is complete, runtime compute structures should not need to know why that specific map was selected
+- the runtime scalar type should remain consistent across affine, grouped, and mixed execution paths
 
 ## 2. Lightweight Transmission Definitions
 
@@ -427,6 +435,10 @@ be undone.
 If a request needs a specific ordering relationship between caller buffers and internal indexed arrays, that is an appropriate place to introduce request-local `Order<>` objects.
 Those orders should describe buffer layout relationships, not replace the underlying `JointId`-based analysis structures.
 
+Likewise, if a caller naturally owns `double` values, conversion to the runtime `JointMap` scalar type should happen at
+the caller boundary or consumer adapter boundary, not inside a staged mixed `JointMap` executor or any `joint_map`
+helper overload.
+
 ## 8. Request Plan Representation
 
 The request-specific planning result should also be indexed.
@@ -468,7 +480,7 @@ class TransmissionJointMap {
 public:
   explicit TransmissionJointMap(CompiledTransmissionPlan plan);
 
-  void map(span<const double> inputs, span<float> outputs) const;
+  void map(span<const float> inputs, span<float> outputs) const;
 
   [[nodiscard]] size_t input_count() const noexcept;
   [[nodiscard]] size_t output_count() const noexcept;

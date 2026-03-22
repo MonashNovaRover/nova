@@ -337,7 +337,7 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
     grouped_output_indices.push_back(i);
   }
 
-  JointMapPlan plan{
+  JointMapPlanStage stage_plan{
     {input_joint_ids.begin(), input_joint_ids.end()},
     {output_joint_ids.begin(), output_joint_ids.end()},
     {}
@@ -352,7 +352,7 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
       return tl::make_unexpected(affine_plan.error());
     }
 
-    plan.segments.push_back(JointMapPlanSegment{
+    stage_plan.segments.push_back(JointMapPlanSegment{
       std::move(affine_output_indices),
       *affine_plan
     });
@@ -368,19 +368,23 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
       return tl::make_unexpected(transmission_plan.error());
     }
 
-    plan.segments.push_back(JointMapPlanSegment{
+    stage_plan.segments.push_back(JointMapPlanSegment{
       std::move(grouped_output_indices),
       *transmission_plan
     });
   }
 
-  if (plan.segments.empty()) {
+  if (stage_plan.segments.empty()) {
     return tl::make_unexpected(
       "No joint map plan found for inputs [" + join_joint_ids(input_joint_ids) +
       "] and outputs [" + join_joint_ids(output_joint_ids) + "]");
   }
 
-  return plan;
+  return JointMapPlan{
+    {input_joint_ids.begin(), input_joint_ids.end()},
+    {output_joint_ids.begin(), output_joint_ids.end()},
+    {std::move(stage_plan)}
+  };
 }
 
 } // namespace arm_kinematics

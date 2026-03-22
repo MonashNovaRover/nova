@@ -78,6 +78,8 @@ This runtime path now supports:
   than executing as separate runtime stages
 - runtime execution should not allocate
 - runtime execution should not do string lookup
+- runtime `joint_map` APIs should be `float`-native end to end; callers that own `double` should convert before
+  crossing into this layer
 - `DefaultJointMapBuilder` should not become the design center for this work
 
 ## Status
@@ -101,18 +103,20 @@ note.
 
 The most important remaining items are:
 
-1. extend mixed planning beyond the current parallel split so later grouped stages can depend on earlier affine or
+1. move the `joint_map` runtime API surface from `double` inputs to `float` inputs, including `span` and
+   `std::vector` helper overloads
+2. extend mixed planning beyond the current parallel split so later grouped stages can depend on earlier affine or
    grouped results
-2. decide whether the next clean representation should be:
-   - a more general staged `JointMapPlan`
-   - or a distinct mixed execution plan type once true sequencing is needed
-3. continue Stage 2.1 failure-mode coverage for the generic ros2_control plugin wrapper path where useful
-4. avoid reintroducing concrete per-plugin transmission math into `arm_kinematics`
+3. keep the top-level `JointMapPlan` capable of representing that full staged case rather than introducing a separate
+   competing top-level plan abstraction
+4. continue Stage 2.1 failure-mode coverage for the generic ros2_control plugin wrapper path where useful
+5. avoid reintroducing concrete per-plugin transmission math into `arm_kinematics`
 
 Longer-term direction beyond this focused note:
 
 - mixed requests should eventually be partitioned automatically into maximal affine execution segments separated by
   non-affine grouped stages
 - each affine-only segment should compile into one `AffineJointMap`
+- staged mixed execution should remain `float`-native throughout the `joint_map` layer
 - that mixed-stage composition should not be overbuilt into Stage 2 if doing so would distort the simpler current
   architecture

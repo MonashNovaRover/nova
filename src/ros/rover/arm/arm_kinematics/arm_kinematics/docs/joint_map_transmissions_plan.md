@@ -167,7 +167,7 @@ Something like:
 class JointMap {
 public:
   virtual ~JointMap() = default;
-  virtual void map(const span<double> & inputs, span<float> & outputs) const = 0;
+  virtual void map(const span<float> & inputs, span<float> & outputs) const = 0;
 
   size_t input_count = 0;
   size_t output_count = 0;
@@ -190,7 +190,7 @@ public:
   template<class Impl>
   JointMap(Impl impl);
 
-  void map(const span<double> & inputs, span<float> & outputs) const;
+  void map(const span<float> & inputs, span<float> & outputs) const;
 };
 ```
 
