@@ -71,6 +71,6 @@ runtime note.
 
 The most important remaining items are:
 
-1. make quantity-specific transmission build behavior real
-2. add the first real lightweight transmission compute/model implementation beyond test doubles
-3. add plugin-specific builder extension coverage using the shared cached analysis
+1. broaden real transmission-model coverage beyond simple single-input single-output transmissions
+2. decide which additional ros2_control transmission forms should receive real grouped runtime implementations next
+3. decide whether any reusable concrete TransmissionModel implementations should be promoted out of import-time internals

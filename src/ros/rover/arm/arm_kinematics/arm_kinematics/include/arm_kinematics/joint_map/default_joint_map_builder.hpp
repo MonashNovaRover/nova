@@ -28,7 +28,7 @@ namespace arm_kinematics {
  *   - gathers mimic-joint affine transmissions from the URDF
  *   - parses ros2_control transmission definitions
  *   - caches a TransmissionAnalysis built from normalized transmission models
- *   - delegates affine and grouped runtime construction to the underlying planning/compilation helpers
+ *   - delegates affine and grouped runtime construction to TransmissionAnalysisJointMapBuilder
  *
  * This type is the default shared implementation, not the only possible implementation. FK plugins may return a
  * different JointMapBuilder when they need backend-specific mapping behavior.

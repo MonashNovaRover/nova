@@ -8,6 +8,7 @@
 #include <tinyxml2.h>
 
 #include <charconv>
+#include <cmath>
 #include <cstring>
 #include <optional>
 #include <sstream>
@@ -158,14 +159,24 @@ std::unique_ptr<TransmissionModel> make_ros2_control_transmission_model(
     transmission.actuators.size() == 1 &&
     transmission.joints.size() == 1)
   {
-    const auto reduction =
-      static_cast<float>(
-      transmission.joints.front().mechanical_reduction /
-      transmission.actuators.front().mechanical_reduction);
+    const auto actuator_reduction = transmission.actuators.front().mechanical_reduction;
+    if (actuator_reduction == 0.0) {
+      return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
+    }
+
+    const auto reduction = static_cast<float>(
+      transmission.joints.front().mechanical_reduction / actuator_reduction);
+    if (reduction == 0.0F || !std::isfinite(reduction)) {
+      return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
+    }
+
     const auto offset =
       static_cast<float>(
       transmission.joints.front().offset -
       transmission.actuators.front().offset / reduction);
+    if (!std::isfinite(offset)) {
+      return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
+    }
     return std::make_unique<SimpleTransmissionModel>(reduction, offset);
   }
 

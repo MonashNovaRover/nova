@@ -14,6 +14,7 @@
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis_joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis_import.hpp"
 #include "arm_kinematics/joint_map/transmission_joint_map.hpp"
 #include "arm_kinematics/joint_map/transmission_plan.hpp"
@@ -39,6 +40,7 @@ using arm_kinematics::Reordered;
 using arm_kinematics::RobotModel;
 using arm_kinematics::JointQuantity;
 using arm_kinematics::TransmissionAnalysis;
+using arm_kinematics::TransmissionAnalysisJointMapBuilder;
 
 namespace {
 
@@ -203,6 +205,23 @@ public:
 
 private:
   float offset_ = 0.0F;
+};
+
+class TestAnalysisBackedEigenForwardKinematicsPlugin final : public EigenForwardKinematicsPlugin
+{
+public:
+  [[nodiscard]] const JointMapBuilder & get_joint_map_builder() const noexcept override
+  {
+    if (!joint_map_builder_) {
+      joint_map_builder_ = std::make_unique<TransmissionAnalysisJointMapBuilder>(
+        get_robot_model().get_transmission_analysis());
+    }
+
+    return *joint_map_builder_;
+  }
+
+private:
+  mutable std::unique_ptr<TransmissionAnalysisJointMapBuilder> joint_map_builder_{};
 };
 
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
@@ -518,6 +537,20 @@ protected:
   RobotModel::UniquePtr robot_model_;
 };
 
+class TransmissionUrdfPluginBuilderTests : public TransmissionUrdfTests
+{
+protected:
+  void SetUp() override
+  {
+    TransmissionUrdfTests::SetUp();
+    node_ = std::make_shared<rclcpp::Node>("test_transmission_joint_map_builder");
+    kinematics_params_ = std::make_shared<KinematicsParams>(*node_);
+  }
+
+  std::shared_ptr<rclcpp::Node> node_;
+  KinematicsParams::SharedPtr kinematics_params_;
+};
+
 TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
 {
   const TransmissionAnalysis & first = robot_model_->get_transmission_analysis();
@@ -545,15 +578,77 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
   EXPECT_EQ(transmission.name, "main_transmission");
 }
 
-TEST_F(TransmissionUrdfTests, BuildExpectedRejectsUnsupportedRos2ControlTransmissionModel)
+TEST_F(TransmissionUrdfTests, BuildExpectedBuildsSimpleRos2ControlTransmissionModel)
 {
   const auto result = robot_model_->get_joint_map_builder().build_expected(
     {"motor_joint"},
     {"driven_joint"},
     JointQuantity::Position);
 
-  ASSERT_FALSE(result.has_value());
-  EXPECT_NE(result.error().find("No grouped transmission plan found"), std::string::npos);
+  ASSERT_TRUE(result.has_value());
+  ASSERT_EQ(result->input_count(), 1u);
+  ASSERT_EQ(result->output_count(), 1u);
+
+  std::vector<double> inputs{1.0};
+  std::vector<float> outputs(1, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 0.75F, EPSILON);
+}
+
+TEST_F(TransmissionUrdfTests, BuildExpectedBuildsVelocitySimpleRos2ControlTransmissionModel)
+{
+  const auto result = robot_model_->get_joint_map_builder().build_expected(
+    {"motor_joint"},
+    {"driven_joint"},
+    JointQuantity::Velocity);
+
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<double> inputs{1.0};
+  std::vector<float> outputs(1, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 0.5F, EPSILON);
+}
+
+TEST_F(TransmissionUrdfTests, TransmissionAnalysisJointMapBuilderBuildsFromSharedAnalysis)
+{
+  TransmissionAnalysisJointMapBuilder builder(robot_model_->get_transmission_analysis());
+
+  const auto result = builder.build_expected(
+    {"motor_joint"},
+    {"driven_joint"},
+    JointQuantity::Position);
+
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<double> inputs{1.0};
+  std::vector<float> outputs(1, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 0.75F, EPSILON);
+}
+
+TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginCanOverrideWithAnalysisBackedBuilder)
+{
+  auto plugin = std::make_shared<TestAnalysisBackedEigenForwardKinematicsPlugin>();
+  const auto init_result = plugin->initialize(*node_, *robot_model_, kinematics_params_);
+
+  ASSERT_TRUE(init_result);
+
+  const auto result = plugin->get_joint_map_builder().build_expected(
+    {"motor_joint"},
+    {"driven_joint"},
+    JointQuantity::Position);
+
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<double> inputs{1.0};
+  std::vector<float> outputs(1, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 0.75F, EPSILON);
 }
 
 TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdge)
