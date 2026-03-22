@@ -656,6 +656,44 @@ TEST(TransmissionAnalysisTests, AffineJointMapConstructsFromTransmissionAnalysis
   EXPECT_NEAR(outputs[1], -2.5, EPSILON);
 }
 
+TEST(TransmissionAnalysisTests, AffinePlannerRejectsUnresolvedOutputJoint)
+{
+  TransmissionAnalysis analysis{};
+  const auto input_joint_id = analysis.ensure_joint_id("input_joint");
+  const auto output_joint_id = analysis.ensure_joint_id("unresolved_output_joint");
+
+  const std::vector<arm_kinematics::JointId> input_ids{input_joint_id};
+  const std::vector<arm_kinematics::JointId> output_ids{output_joint_id};
+  const auto plan = arm_kinematics::make_affine_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+
+  ASSERT_FALSE(plan.has_value());
+  EXPECT_NE(plan.error().find("No affine plan found"), std::string::npos);
+}
+
+TEST(TransmissionAnalysisTests, AffinePlannerRejectsAmbiguousAffineTargets)
+{
+  TransmissionAnalysis analysis{};
+  analysis.add_affine_transmission("driver_a_joint", "follower_joint", 2.0F, 0.0F);
+  analysis.add_affine_transmission("driver_b_joint", "follower_joint", 3.0F, 0.0F);
+
+  const auto & joint_ids = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{
+    joint_ids["driver_a_joint"],
+    joint_ids["driver_b_joint"]
+  };
+  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const auto plan = arm_kinematics::make_affine_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+
+  ASSERT_FALSE(plan.has_value());
+  EXPECT_NE(plan.error().find("Ambiguous affine plan"), std::string::npos);
+}
+
 TEST(JointMapStage2Tests, BuildExpectedReportsPlannedTransmissionRuntimeAsUnimplemented)
 {
   DefaultJointMapBuilder builder{};
