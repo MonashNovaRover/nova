@@ -21,10 +21,9 @@ The codebase now has:
 
 What is still missing is the grouped runtime execution side:
 
-- no validation yet for nonzero scratch layout
-- no proof yet that runtime scratch is reused correctly across calls
-- no support yet for multi-stage grouped plans
-- no support yet for stage-to-stage dataflow beyond the current direct single-stage case
+- no validation yet that each compiled stage respects the cached transmission topology
+- no validation yet that multi-stage grouped plans are topologically executable
+- no planner yet for multi-stage grouped plans
 
 ## Current Runtime Scope
 
@@ -36,7 +35,13 @@ The codebase now has:
 4. a compiler from `TransmissionPlan` to `CompiledTransmissionPlan`
 5. scratch sizing via `ComputeTransmission::scratch_size()`
 
-This runtime path is intentionally limited to the current direct single-stage grouped plan case.
+This runtime path now supports:
+
+- direct single-stage grouped plans from `make_transmission_plan_expected(...)`
+- manually constructed multi-stage grouped plans at compile/runtime level
+- stage-to-stage dataflow through a compiled value buffer
+
+What it still does not support is deriving those multi-stage plans automatically from `TransmissionAnalysis`.
 
 ## Design Constraints
 
@@ -49,22 +54,22 @@ This runtime path is intentionally limited to the current direct single-stage gr
 
 ## Next Implementation Step
 
-The next incremental step is to validate the grouped runtime contract before broadening planner scope.
+The next incremental step is to tighten grouped plan compilation correctness before broadening grouped planning.
 
 That step should:
 
-1. add a grouped runtime test with nonzero scratch
-2. verify `compile_transmission_plan_expected(...)` assigns:
-   - per-stage `scratch_offset`
-   - per-stage `scratch_size`
-   - total `CompiledTransmissionPlan::scratch_size`
-3. verify `TransmissionJointMap` reuses the owned scratch workspace across repeated calls
-4. keep the implementation limited to the current direct single-stage grouped case
+1. validate that each `TransmissionPlanStage` matches the referenced cached transmission topology
+2. validate that each stage consumes only:
+   - plan inputs
+   - or values produced by earlier stages
+3. reject grouped plans that rely on future-stage outputs or unrelated joint ids
+4. add tests for invalid grouped plans
+5. only after that, broaden `make_transmission_plan_expected(...)` toward multi-stage grouped search
 
 ## Recommended Order
 
-1. add a test `ComputeTransmission` with nonzero scratch requirements
-2. assert compiled scratch layout in tests
-3. assert runtime execution correctness using scratch-backed compute
-4. only after that, broaden the planner/compiler toward multi-stage grouped execution
+1. validate stage topology against `TransmissionAnalysis::transmissions()`
+2. validate stage ordering/data availability in `compile_transmission_plan_expected(...)`
+3. add failure tests for malformed grouped plans
+4. then broaden the planner toward real multi-stage grouped plan construction
 5. keep `DefaultJointMapBuilder` out of that work until the grouped path is structurally complete
