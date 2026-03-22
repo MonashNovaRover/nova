@@ -103,7 +103,7 @@ tl::expected<JointMap, std::string> TransmissionAnalysisJointMapBuilder::build_e
         span<const JointId>(resolved_output_joint_ids.known_joint_ids),
         quantity);
       if (!known_joint_map_plan.has_value()) {
-        return tl::make_unexpected(known_joint_map_plan.error());
+        return tl::make_unexpected(known_joint_map_plan.error().message);
       }
 
       joint_map_plan = *known_joint_map_plan;

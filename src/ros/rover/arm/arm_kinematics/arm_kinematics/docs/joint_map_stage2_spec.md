@@ -163,6 +163,16 @@ Stage 2 should continue to think about affine transmission execution in grouped 
 Do not design toward one runtime affine stage per relationship.
 The long-term direction is one `AffineJointMap` per affine execution segment.
 
+Mixed staged planning must keep the original ambiguity rule:
+
+- distinct valid decompositions must not be silently chosen between
+- the planner may only collapse or prefer one candidate over another when the candidates normalize to the same
+  execution structure and therefore do not represent conflicting staged interpretations
+- when that narrow equivalence holds, the lower-cost compute structure should be preferred
+- otherwise the request remains ambiguous and must fail at build time
+- recursive mixed-plan search must classify failures structurally rather than by parsing error strings; ambiguity,
+  invalid structure, and simple "no plan here" outcomes should remain distinct in the planner result type
+
 ## Proposed Stage 2 Architecture
 
 ## 1. Quantity Type

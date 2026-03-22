@@ -62,9 +62,22 @@ struct JointMapPlan {
   std::vector<JointMapPlanStage> stages{};
 };
 
+enum class JointMapPlanErrorKind
+{
+  NoPlan,
+  Ambiguous,
+  Invalid,
+};
+
+struct JointMapPlanError
+{
+  JointMapPlanErrorKind kind = JointMapPlanErrorKind::NoPlan;
+  std::string message{};
+};
+
 using MakeTransmissionPlanResult = tl::expected<TransmissionPlan, std::string>;
 using MakeAffinePlanResult = tl::expected<AffinePlan, std::string>;
-using MakeJointMapPlanResult = tl::expected<JointMapPlan, std::string>;
+using MakeJointMapPlanResult = tl::expected<JointMapPlan, JointMapPlanError>;
 
 [[nodiscard]] MakeAffinePlanResult make_affine_plan_expected(
   const TransmissionAnalysis & analysis,

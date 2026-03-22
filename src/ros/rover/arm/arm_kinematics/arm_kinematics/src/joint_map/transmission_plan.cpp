@@ -28,6 +28,14 @@ std::string join_joint_ids(span<const JointId> joint_ids)
   return ss.str();
 }
 
+JointMapPlanError make_joint_map_plan_error(const JointMapPlanErrorKind kind, std::string message)
+{
+  return JointMapPlanError{
+    kind,
+    std::move(message)
+  };
+}
+
 const std::vector<JointId> & consumed_joint_ids_for_direction(
   const TransmissionAnalysis::TransmissionInstance & transmission,
   const PropagationDirection direction)
@@ -114,6 +122,11 @@ std::string available_joint_ids_key(const std::vector<JointId> & joint_ids)
   return join_joint_ids(joint_ids);
 }
 
+tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
+  const TransmissionAnalysis & analysis,
+  span<const JointId> input_joint_ids,
+  JointId output_joint_id);
+
 tl::expected<JointId, std::string> find_affine_root_source_joint_id_expected(
   const TransmissionAnalysis & analysis,
   const JointId output_joint_id)
@@ -141,6 +154,42 @@ tl::expected<JointId, std::string> find_affine_root_source_joint_id_expected(
   }
 
   return find_affine_root_source_joint_id_expected(analysis, affine_it->source_joint_id);
+}
+
+tl::expected<std::vector<JointId>, std::string> collect_affine_closure_joint_ids_expected(
+  const TransmissionAnalysis & analysis,
+  const span<const JointId> input_joint_ids)
+{
+  std::vector<JointId> closure_joint_ids{input_joint_ids.begin(), input_joint_ids.end()};
+  std::sort(closure_joint_ids.begin(), closure_joint_ids.end());
+
+  bool changed = true;
+  while (changed) {
+    changed = false;
+
+    for (const auto & affine_transmission : analysis.affine_transmissions()) {
+      const auto affine_stage = make_affine_plan_stage_expected(
+        analysis,
+        span<const JointId>(closure_joint_ids),
+        affine_transmission.target_joint_id);
+      if (!affine_stage.has_value()) {
+        continue;
+      }
+
+      if (std::find(
+        closure_joint_ids.begin(),
+        closure_joint_ids.end(),
+        affine_transmission.target_joint_id) != closure_joint_ids.end()) {
+        continue;
+      }
+
+      closure_joint_ids.push_back(affine_transmission.target_joint_id);
+      std::sort(closure_joint_ids.begin(), closure_joint_ids.end());
+      changed = true;
+    }
+  }
+
+  return closure_joint_ids;
 }
 
 tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
@@ -202,6 +251,73 @@ tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
     source_stage->multiplier * affine_it->multiplier,
     source_stage->offset * affine_it->multiplier + affine_it->offset
   };
+}
+
+JointMapPlanStage make_grouped_prefix_stage(
+  const std::vector<JointId> & input_joint_ids,
+  const std::vector<JointId> & output_joint_ids,
+  const TransmissionPlanStage & grouped_stage)
+{
+  JointMapPlanStage stage{
+    input_joint_ids,
+    output_joint_ids,
+    {}
+  };
+
+  std::vector<JointId> identity_output_joint_ids{};
+  std::vector<size_t> identity_output_indices{};
+  identity_output_joint_ids.reserve(input_joint_ids.size());
+  identity_output_indices.reserve(input_joint_ids.size());
+
+  for (size_t i = 0; i < output_joint_ids.size(); ++i) {
+    const auto output_joint_id = output_joint_ids[i];
+    if (std::find(input_joint_ids.begin(), input_joint_ids.end(), output_joint_id) != input_joint_ids.end()) {
+      identity_output_joint_ids.push_back(output_joint_id);
+      identity_output_indices.push_back(i);
+    }
+  }
+
+  if (!identity_output_joint_ids.empty()) {
+    AffinePlan identity_plan{};
+    identity_plan.input_joint_ids = input_joint_ids;
+    identity_plan.output_joint_ids = identity_output_joint_ids;
+    identity_plan.stages.reserve(identity_output_joint_ids.size());
+
+    for (const auto output_joint_id : identity_output_joint_ids) {
+      const auto input_it = std::find(input_joint_ids.begin(), input_joint_ids.end(), output_joint_id);
+      identity_plan.stages.push_back(AffinePlanStage{
+        output_joint_id,
+        output_joint_id,
+        static_cast<size_t>(input_it - input_joint_ids.begin()),
+        1.0F,
+        0.0F
+      });
+    }
+
+    stage.segments.push_back(JointMapPlanSegment{
+      std::move(identity_output_indices),
+      std::move(identity_plan)
+    });
+  }
+
+  std::vector<size_t> grouped_output_indices{};
+  grouped_output_indices.reserve(grouped_stage.produced_joint_ids.size());
+  for (const auto produced_joint_id : grouped_stage.produced_joint_ids) {
+    const auto output_it = std::find(output_joint_ids.begin(), output_joint_ids.end(), produced_joint_id);
+    grouped_output_indices.push_back(static_cast<size_t>(output_it - output_joint_ids.begin()));
+  }
+
+  TransmissionPlan grouped_plan{};
+  grouped_plan.input_joint_ids = input_joint_ids;
+  grouped_plan.output_joint_ids = grouped_stage.produced_joint_ids;
+  grouped_plan.stages.push_back(grouped_stage);
+
+  stage.segments.push_back(JointMapPlanSegment{
+    std::move(grouped_output_indices),
+    std::move(grouped_plan)
+  });
+
+  return stage;
 }
 
 } // namespace
@@ -424,6 +540,82 @@ std::vector<size_t> identity_output_indices(const size_t size)
   return indices;
 }
 
+size_t joint_map_plan_segment_cost(const JointMapPlanSegment & segment)
+{
+  if (const auto * affine_plan = std::get_if<AffinePlan>(&segment.plan)) {
+    return affine_plan->stages.size();
+  }
+
+  const auto & transmission_plan = std::get<TransmissionPlan>(segment.plan);
+  return transmission_plan.stages.size() * 4u;
+}
+
+size_t joint_map_plan_cost(const JointMapPlan & plan)
+{
+  size_t cost = plan.stages.size() * 16u;
+  for (const auto & stage : plan.stages) {
+    cost += stage.segments.size() * 8u;
+    for (const auto & segment : stage.segments) {
+      cost += joint_map_plan_segment_cost(segment);
+    }
+  }
+  return cost;
+}
+
+std::string joint_map_plan_segment_signature(const JointMapPlanSegment & segment)
+{
+  std::ostringstream ss;
+  ss << "idx[" << join_joint_ids(span<const size_t>(segment.output_indices)) << "]";
+
+  if (const auto * affine_plan = std::get_if<AffinePlan>(&segment.plan)) {
+    ss << "|affine|in[" << join_joint_ids(affine_plan->input_joint_ids) << "]";
+    ss << "|out[" << join_joint_ids(affine_plan->output_joint_ids) << "]";
+    for (const auto & affine_stage : affine_plan->stages) {
+      ss << "|a(" << affine_stage.source_joint_id
+         << "," << affine_stage.target_joint_id
+         << "," << affine_stage.source_input_index
+         << "," << affine_stage.multiplier
+         << "," << affine_stage.offset << ")";
+    }
+    return ss.str();
+  }
+
+  const auto & transmission_plan = std::get<TransmissionPlan>(segment.plan);
+  ss << "|grouped|in[" << join_joint_ids(transmission_plan.input_joint_ids) << "]";
+  ss << "|out[" << join_joint_ids(transmission_plan.output_joint_ids) << "]";
+  for (const auto & transmission_stage : transmission_plan.stages) {
+    ss << "|t(" << transmission_stage.transmission_instance_id
+       << "," << static_cast<int>(transmission_stage.direction)
+       << ",c[" << join_joint_ids(transmission_stage.consumed_joint_ids)
+       << "],p[" << join_joint_ids(transmission_stage.produced_joint_ids) << "])";
+  }
+  return ss.str();
+}
+
+std::string joint_map_plan_signature(const JointMapPlan & plan)
+{
+  std::ostringstream ss;
+  ss << "plan|in[" << join_joint_ids(plan.input_joint_ids) << "]";
+  ss << "|out[" << join_joint_ids(plan.output_joint_ids) << "]";
+  for (const auto & stage : plan.stages) {
+    ss << "|stage|in[" << join_joint_ids(stage.input_joint_ids) << "]";
+    ss << "|out[" << join_joint_ids(stage.output_joint_ids) << "]";
+    for (const auto & segment : stage.segments) {
+      ss << "|" << joint_map_plan_segment_signature(segment);
+    }
+  }
+  return ss.str();
+}
+
+void append_joint_map_plan_stages(
+  std::vector<JointMapPlanStage> & stages,
+  std::vector<JointMapPlanStage> appended_stages)
+{
+  for (auto & stage : appended_stages) {
+    stages.push_back(std::move(stage));
+  }
+}
+
 MakeJointMapPlanResult make_joint_map_plan_expected(
   const TransmissionAnalysis & analysis,
   const span<const JointId> input_joint_ids,
@@ -443,12 +635,152 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
     };
   }
 
+  std::optional<JointMapPlan> grouped_prefix_plan = std::nullopt;
+  {
+    const auto & transmissions = analysis.transmissions();
+    const auto & models = analysis.models();
+    std::vector<JointId> current_input_joint_ids{input_joint_ids.begin(), input_joint_ids.end()};
+    std::sort(current_input_joint_ids.begin(), current_input_joint_ids.end());
+
+    for (TransmissionInstanceId transmission_instance_id = 0;
+         transmission_instance_id < transmissions.size();
+         ++transmission_instance_id) {
+      const auto & transmission = transmissions[transmission_instance_id];
+      const auto & model = *models[transmission.model_id];
+
+      for (const auto direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
+        if (!model.can_build(quantity, direction)) {
+          continue;
+        }
+
+        const auto & consumed_joint_ids = consumed_joint_ids_for_direction(transmission, direction);
+        const auto & produced_joint_ids = produced_joint_ids_for_direction(transmission, direction);
+        if (!contains_all_joint_ids(current_input_joint_ids, consumed_joint_ids)) {
+          continue;
+        }
+
+        const auto next_available_joint_ids = merge_joint_ids(current_input_joint_ids, produced_joint_ids);
+        if (next_available_joint_ids == current_input_joint_ids) {
+          continue;
+        }
+
+        const auto suffix_plan = make_joint_map_plan_expected(
+          analysis,
+          span<const JointId>(next_available_joint_ids),
+          output_joint_ids,
+          quantity);
+        if (!suffix_plan.has_value()) {
+          if (suffix_plan.error().kind == JointMapPlanErrorKind::Ambiguous) {
+            return tl::make_unexpected(suffix_plan.error());
+          }
+          continue;
+        }
+
+        std::vector<JointMapPlanStage> stages{};
+        stages.push_back(make_grouped_prefix_stage(
+          current_input_joint_ids,
+          next_available_joint_ids,
+          TransmissionPlanStage{
+            transmission_instance_id,
+            direction,
+            consumed_joint_ids,
+            produced_joint_ids
+        }));
+        append_joint_map_plan_stages(stages, std::move(suffix_plan->stages));
+
+        if (grouped_prefix_plan.has_value()) {
+          return tl::make_unexpected(make_joint_map_plan_error(
+            JointMapPlanErrorKind::Ambiguous,
+            "Ambiguous joint map plan: multiple staged grouped-prefix candidates were found"));
+        }
+
+        grouped_prefix_plan = JointMapPlan{
+          {input_joint_ids.begin(), input_joint_ids.end()},
+          {output_joint_ids.begin(), output_joint_ids.end()},
+          std::move(stages)
+        };
+      }
+    }
+  }
+
+  const auto affine_closure_joint_ids = collect_affine_closure_joint_ids_expected(analysis, input_joint_ids);
+  if (!affine_closure_joint_ids.has_value()) {
+    return tl::make_unexpected(make_joint_map_plan_error(
+      JointMapPlanErrorKind::Invalid,
+      affine_closure_joint_ids.error()));
+  }
+
+  std::optional<JointMapPlan> affine_prefix_plan_candidate = std::nullopt;
+  if (*affine_closure_joint_ids != std::vector<JointId>(input_joint_ids.begin(), input_joint_ids.end())) {
+    const auto affine_prefix_plan = make_affine_plan_expected(
+      analysis,
+      input_joint_ids,
+      span<const JointId>(*affine_closure_joint_ids));
+    if (!affine_prefix_plan.has_value()) {
+      return tl::make_unexpected(make_joint_map_plan_error(
+        JointMapPlanErrorKind::Invalid,
+        affine_prefix_plan.error()));
+    }
+
+    const auto second_stage_plan = make_joint_map_plan_expected(
+      analysis,
+      span<const JointId>(*affine_closure_joint_ids),
+      output_joint_ids,
+      quantity);
+    if (!second_stage_plan.has_value()) {
+      if (second_stage_plan.error().kind == JointMapPlanErrorKind::Ambiguous) {
+        return tl::make_unexpected(second_stage_plan.error());
+      }
+    } else {
+      std::vector<JointMapPlanStage> stages{};
+      stages.push_back(JointMapPlanStage{
+        {input_joint_ids.begin(), input_joint_ids.end()},
+        *affine_closure_joint_ids,
+        {
+          JointMapPlanSegment{
+            identity_output_indices(affine_closure_joint_ids->size()),
+            *affine_prefix_plan
+          }
+        }
+      });
+      append_joint_map_plan_stages(stages, std::move(second_stage_plan->stages));
+
+      affine_prefix_plan_candidate = JointMapPlan{
+        {input_joint_ids.begin(), input_joint_ids.end()},
+        {output_joint_ids.begin(), output_joint_ids.end()},
+        std::move(stages)
+      };
+    }
+  }
+
+  if (grouped_prefix_plan.has_value() && affine_prefix_plan_candidate.has_value()) {
+    const auto grouped_signature = joint_map_plan_signature(*grouped_prefix_plan);
+    const auto affine_signature = joint_map_plan_signature(*affine_prefix_plan_candidate);
+    if (grouped_signature == affine_signature) {
+      return joint_map_plan_cost(*grouped_prefix_plan) <= joint_map_plan_cost(*affine_prefix_plan_candidate) ?
+        *grouped_prefix_plan :
+        *affine_prefix_plan_candidate;
+    }
+
+    return tl::make_unexpected(make_joint_map_plan_error(
+      JointMapPlanErrorKind::Ambiguous,
+      "Ambiguous joint map plan: competing grouped-prefix and affine-prefix staged candidates were found"));
+  }
+  if (grouped_prefix_plan.has_value()) {
+    return *grouped_prefix_plan;
+  }
+  if (affine_prefix_plan_candidate.has_value()) {
+    return *affine_prefix_plan_candidate;
+  }
+
   std::vector<JointId> final_affine_input_joint_ids{};
   final_affine_input_joint_ids.reserve(output_joint_ids.size());
   for (const auto output_joint_id : output_joint_ids) {
     const auto root_source_joint_id = find_affine_root_source_joint_id_expected(analysis, output_joint_id);
     if (!root_source_joint_id.has_value()) {
-      return tl::make_unexpected(root_source_joint_id.error());
+      return tl::make_unexpected(make_joint_map_plan_error(
+        JointMapPlanErrorKind::Invalid,
+        root_source_joint_id.error()));
     }
 
     if (std::find(
@@ -459,33 +791,29 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
     }
   }
 
-  if (final_affine_input_joint_ids == std::vector<JointId>(output_joint_ids.begin(), output_joint_ids.end())) {
-    return tl::make_unexpected(single_stage_plan.error());
-  }
+  if (final_affine_input_joint_ids != std::vector<JointId>(output_joint_ids.begin(), output_joint_ids.end())) {
+    const auto first_stage_plan = make_joint_map_plan_expected(
+      analysis,
+      input_joint_ids,
+      span<const JointId>(final_affine_input_joint_ids),
+      quantity);
+    if (!first_stage_plan.has_value()) {
+      if (first_stage_plan.error().kind == JointMapPlanErrorKind::Ambiguous) {
+        return tl::make_unexpected(first_stage_plan.error());
+      }
+    } else {
+      const auto final_affine_plan = make_affine_plan_expected(
+        analysis,
+        span<const JointId>(final_affine_input_joint_ids),
+        output_joint_ids);
+      if (!final_affine_plan.has_value()) {
+        return tl::make_unexpected(make_joint_map_plan_error(
+          JointMapPlanErrorKind::Invalid,
+          final_affine_plan.error()));
+      }
 
-  const auto first_stage_plan = make_single_stage_joint_map_plan_expected(
-    analysis,
-    input_joint_ids,
-    span<const JointId>(final_affine_input_joint_ids),
-    quantity);
-  if (!first_stage_plan.has_value()) {
-    return tl::make_unexpected(first_stage_plan.error());
-  }
-
-  const auto final_affine_plan = make_affine_plan_expected(
-    analysis,
-    span<const JointId>(final_affine_input_joint_ids),
-    output_joint_ids);
-  if (!final_affine_plan.has_value()) {
-    return tl::make_unexpected(final_affine_plan.error());
-  }
-
-  return JointMapPlan{
-    {input_joint_ids.begin(), input_joint_ids.end()},
-    {output_joint_ids.begin(), output_joint_ids.end()},
-    {
-      std::move(*first_stage_plan),
-      JointMapPlanStage{
+      std::vector<JointMapPlanStage> stages = std::move(first_stage_plan->stages);
+      stages.push_back(JointMapPlanStage{
         final_affine_input_joint_ids,
         {output_joint_ids.begin(), output_joint_ids.end()},
         {
@@ -494,9 +822,19 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
             *final_affine_plan
           }
         }
-      }
+      });
+
+      return JointMapPlan{
+        {input_joint_ids.begin(), input_joint_ids.end()},
+        {output_joint_ids.begin(), output_joint_ids.end()},
+        std::move(stages)
+      };
     }
-  };
+  }
+
+  return tl::make_unexpected(make_joint_map_plan_error(
+    JointMapPlanErrorKind::NoPlan,
+    single_stage_plan.error()));
 }
 
 } // namespace arm_kinematics

@@ -41,6 +41,13 @@ The codebase now has:
 - staged `JointMapPlan` support for the first sequential mixed case:
   - a first stage that builds an intermediate joint space
   - a final affine stage compiled from that intermediate space to the requested outputs
+- staged `JointMapPlan` support for the first affine-prefix sequential mixed case:
+  - a first affine stage that expands the caller input space into an intermediate affine closure
+  - a later grouped or single-stage mixed stage that consumes that intermediate space
+- recursive staged `JointMapPlan` composition across those same primitives, so a staged prefix can feed a later
+  staged mixed suffix without introducing a second top-level plan abstraction
+- grouped-prefix staged `JointMapPlan` support, where a grouped stage can explicitly carry the caller-available joint
+  space forward for later affine or grouped stages
 - `StagedJointMap` runtime support for executing that staged mixed case with float-native buffers
 - `ForwardKinematicsPlugin` as the authoritative seam for the `TransmissionAnalysis` its builders consume
 - `RobotModel` reduced to a lazy shared default `TransmissionAnalysis` cache
@@ -73,6 +80,9 @@ This runtime path now supports:
 - grouped `JointMap` copy semantics through cloned `ComputeTransmission` stages
 - parallel mixed affine/grouped requests compiled into a `CompositeJointMap`
 - staged mixed requests for the first grouped-then-affine case compiled into a `StagedJointMap`
+- staged mixed requests for the first affine-then-grouped case compiled into a `StagedJointMap`
+- staged mixed requests for the first three-stage affine-grouped-affine case compiled into a `StagedJointMap`
+- staged mixed requests for the first three-stage grouped-affine-grouped case compiled into a `StagedJointMap`
 
 ## Design Constraints
 
@@ -119,9 +129,23 @@ The current staged planner handles a useful first sequential case:
 
 - a request-local first stage can build an intermediate joint space from the caller inputs
 - a final affine stage can consume that intermediate space to produce the requested outputs
+- a request-local first affine stage can expand the caller input space into an intermediate affine closure
+- a later grouped or single-stage mixed stage can consume that intermediate affine closure
+- those staged prefixes and suffixes can now compose recursively within the same `JointMapPlan`
+- the first verified three-stage mixed case is affine -> grouped -> affine
+- the first verified grouped-prefix alternating case is grouped -> affine -> grouped
 
-The next planning gap is broader staged search when a later non-affine grouped stage depends on earlier affine results,
-or when more than one non-affine grouped stage needs to be separated by affine execution segments.
+The staged ambiguity policy is now:
+
+- the currently implemented competing-family check is the staged grouped-prefix versus staged affine-prefix branch
+- only structurally equivalent candidates may be coalesced or preferred by cost in that branch
+- distinct staged decompositions in that branch remain ambiguous and must fail
+- where candidates are structurally equivalent, the lower-cost compute structure should be preferred
+- recursive staged planning now uses a typed `JointMapPlanError` with explicit `NoPlan`, `Ambiguous`, and `Invalid`
+  outcomes rather than parsing error strings inside the planner
+
+The next planning gap is broadening that explicit policy beyond the current grouped-prefix versus affine-prefix branch,
+not another ad hoc family ordering rule.
 
 Longer-term direction beyond this focused note:
 
