@@ -38,6 +38,10 @@ The codebase now has:
   - one grouped segment
   - both consuming the same caller input space
 - `CompositeJointMap` runtime support for compiling and executing that first mixed case
+- staged `JointMapPlan` support for the first sequential mixed case:
+  - a first stage that builds an intermediate joint space
+  - a final affine stage compiled from that intermediate space to the requested outputs
+- `StagedJointMap` runtime support for executing that staged mixed case with float-native buffers
 - `ForwardKinematicsPlugin` as the authoritative seam for the `TransmissionAnalysis` its builders consume
 - `RobotModel` reduced to a lazy shared default `TransmissionAnalysis` cache
 - builder cache invalidation when an FK plugin switches which `TransmissionAnalysis` object it exposes
@@ -68,6 +72,7 @@ This runtime path now supports:
 - builder-produced grouped `JointMap` instances
 - grouped `JointMap` copy semantics through cloned `ComputeTransmission` stages
 - parallel mixed affine/grouped requests compiled into a `CompositeJointMap`
+- staged mixed requests for the first grouped-then-affine case compiled into a `StagedJointMap`
 
 ## Design Constraints
 
@@ -109,6 +114,14 @@ The most important remaining items are:
    competing top-level plan abstraction
 3. continue Stage 2.1 failure-mode coverage for the generic ros2_control plugin wrapper path where useful
 4. avoid reintroducing concrete per-plugin transmission math into `arm_kinematics`
+
+The current staged planner handles a useful first sequential case:
+
+- a request-local first stage can build an intermediate joint space from the caller inputs
+- a final affine stage can consume that intermediate space to produce the requested outputs
+
+The next planning gap is broader staged search when a later non-affine grouped stage depends on earlier affine results,
+or when more than one non-affine grouped stage needs to be separated by affine execution segments.
 
 Longer-term direction beyond this focused note:
 
