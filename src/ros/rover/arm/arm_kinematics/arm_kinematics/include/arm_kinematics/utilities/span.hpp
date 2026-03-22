@@ -18,8 +18,9 @@
 #define ARM_KINEMATICS_INPUT_SOURCE_SPAN_HPP
 
 #include <cassert>
-#include <vector>
 #include <cstddef>
+#include <type_traits>
+#include <vector>
 
 namespace arm_kinematics
 {
@@ -33,6 +34,7 @@ template<typename T>
 struct span
 {
   using iterator = T *;
+  using element_type = std::remove_const_t<T>;
 
   T * data_;
   std::size_t size_;
@@ -46,14 +48,14 @@ struct span
   {
   }
 
-  template<typename TAlloc = std::allocator<T>>
-  constexpr explicit span(std::vector<T, TAlloc> & vector) noexcept
+  template<typename TAlloc>
+  constexpr span(std::vector<element_type, TAlloc> & vector) noexcept
   : data_(vector.data()), size_(vector.size())
   {
   }
 
-  template<typename TAlloc = std::allocator<T>>
-  constexpr explicit span(const std::vector<T, TAlloc> & vector) noexcept
+  template<typename TAlloc, typename U = T, std::enable_if_t<std::is_const_v<U>, int> = 0>
+  constexpr span(const std::vector<element_type, TAlloc> & vector) noexcept
   : data_(vector.data()), size_(vector.size())
   {
   }

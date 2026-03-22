@@ -29,6 +29,20 @@ void TransmissionAnalysis::add_transmission(
       "TransmissionAnalysis::add_transmission() received a model_id that is not present in models()");
   }
 
+  const auto max_joint_id = joint_order_.inverse.size();
+  for (const auto joint_id : inputs) {
+    if (joint_id >= max_joint_id) {
+      throw std::invalid_argument(
+        "TransmissionAnalysis::add_transmission() received an input JointId not present in joint_order()");
+    }
+  }
+  for (const auto joint_id : outputs) {
+    if (joint_id >= max_joint_id) {
+      throw std::invalid_argument(
+        "TransmissionAnalysis::add_transmission() received an output JointId not present in joint_order()");
+    }
+  }
+
   transmissions_.push_back(TransmissionInstance{
     model_id,
     std::move(inputs),

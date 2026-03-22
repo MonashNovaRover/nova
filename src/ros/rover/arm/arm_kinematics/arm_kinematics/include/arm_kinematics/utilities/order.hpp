@@ -93,7 +93,7 @@ struct LookupStorage<std::string, TValue, void> {
   }
 
   static bool contains_key(const type & container, const std::string & key) {
-    return container.contains(key);
+    return container.find(key) != container.end();
   }
 };
 

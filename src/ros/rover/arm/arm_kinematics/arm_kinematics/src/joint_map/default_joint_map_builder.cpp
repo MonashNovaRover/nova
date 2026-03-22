@@ -7,6 +7,7 @@
 #include "arm_kinematics/joint_map/affine_joint_map.hpp"
 
 #include <rclcpp/logging.hpp>
+#include <tinyxml2.h>
 
 #include <charconv>
 #include <cstring>
@@ -86,13 +87,26 @@ tl::expected<JointMap, std::string> DefaultJointMapBuilder::build_expected(
     const auto input_ids = convert_joint_names_to_ids(joint_ids, input_names);
     const auto output_ids = convert_joint_names_to_ids(joint_ids, output_names);
 
+    MakeTransmissionPlanResult maybe_plan = tl::make_unexpected(
+      "Not all requested joint names are present in the transmission analysis boundary");
+    if (input_ids.known_count == input_names.size() && output_ids.known_count == output_names.size()) {
+      maybe_plan = make_transmission_plan_expected(
+        transmission_analysis_,
+        {input_ids.ids.data(), input_ids.ids.size()},
+        {output_ids.ids.data(), output_ids.ids.size()},
+        quantity);
+    }
+
+    if (maybe_plan.has_value()) {
+      return tl::make_unexpected(
+        "Transmission-backed JointMap build for " + to_string(quantity) +
+        " was planned successfully, but runtime transmission mapping is not implemented yet");
+    }
     const bool touches_transmission_analysis =
       input_ids.known_count > 0 || output_ids.known_count > 0;
 
     if (touches_transmission_analysis && !transmission_analysis_.transmissions().empty()) {
-      return tl::make_unexpected(
-        "Transmission-backed JointMap build for " + to_string(quantity) +
-        " is recognized by the builder, but runtime transmission mapping is not implemented yet");
+      return tl::make_unexpected(maybe_plan.error());
     }
 
     return tl::make_unexpected(std::string(e.what()));

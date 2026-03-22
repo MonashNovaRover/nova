@@ -14,6 +14,7 @@
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
+#include "arm_kinematics/joint_map/transmission_plan.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include "arm_kinematics/utilities/reordered.hpp"
@@ -43,10 +44,25 @@ constexpr double EPSILON = 1e-7;
 class TestTransmissionModel final : public arm_kinematics::TransmissionModel
 {
 public:
+  explicit TestTransmissionModel(
+    const bool supports_forward = false,
+    const bool supports_reverse = false)
+  : supports_forward_(supports_forward),
+    supports_reverse_(supports_reverse)
+  {
+  }
+
   [[nodiscard]] bool can_build(
     arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection) const noexcept override
+    arm_kinematics::PropagationDirection direction) const noexcept override
   {
+    switch (direction) {
+      case arm_kinematics::PropagationDirection::Forward:
+        return supports_forward_;
+      case arm_kinematics::PropagationDirection::Reverse:
+        return supports_reverse_;
+    }
+
     return false;
   }
 
@@ -58,6 +74,10 @@ public:
   {
     throw std::logic_error("TestTransmissionModel::build() should not be called in this test");
   }
+
+private:
+  bool supports_forward_ = false;
+  bool supports_reverse_ = false;
 };
 
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
@@ -289,7 +309,7 @@ TEST_F(TransmissionUrdfTests, BuildExpectedReportsTransmissionRuntimeAsUnimpleme
     JointQuantity::Position);
 
   ASSERT_FALSE(result.has_value());
-  EXPECT_NE(result.error().find("Transmission-backed JointMap build"), std::string::npos);
+  EXPECT_NE(result.error().find("No direct transmission plan found"), std::string::npos);
 }
 
 TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdge)
@@ -337,6 +357,67 @@ TEST(TransmissionAnalysisTests, NamedAddTransmissionImmediatelyConvertsToJointId
   EXPECT_EQ(transmission.input_joint_ids.front(), joint_ids["motor_joint"]);
   EXPECT_EQ(transmission.output_joint_ids.front(), joint_ids["driven_joint"]);
   EXPECT_EQ(transmission.name, "named_seed");
+}
+
+TEST(TransmissionAnalysisTests, IndexedAddTransmissionRejectsUnknownJointIds)
+{
+  TransmissionAnalysis analysis{};
+  const auto model_id = analysis.add_model(std::make_unique<TestTransmissionModel>());
+
+  EXPECT_THROW(
+    analysis.add_transmission(model_id, std::vector<arm_kinematics::JointId>{0}, std::vector<arm_kinematics::JointId>{1}),
+    std::invalid_argument);
+}
+
+TEST(JointMapStage2Tests, DefaultJointMapBuilderBuildsDirectTransmissionPlan)
+{
+  DefaultJointMapBuilder builder{};
+  builder.with_transmission_model(std::make_unique<TestTransmissionModel>(true, false));
+
+  auto & analysis = const_cast<TransmissionAnalysis &>(builder.get_transmission_analysis());
+  const std::vector<std::string> input_names{"motor_joint"};
+  const std::vector<std::string> output_names{"driven_joint"};
+  analysis.add_transmission(
+    0,
+    arm_kinematics::span<const std::string>(input_names),
+    arm_kinematics::span<const std::string>(output_names),
+    "direct");
+
+  const auto & joint_order = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  const auto plan = arm_kinematics::make_transmission_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    JointQuantity::Position);
+
+  ASSERT_TRUE(plan.has_value());
+  ASSERT_EQ(plan.value().input_joint_ids.size(), 1u);
+  ASSERT_EQ(plan.value().output_joint_ids.size(), 1u);
+  ASSERT_EQ(plan.value().stages.size(), 1u);
+  EXPECT_EQ(plan.value().stages.front().group_id, 0u);
+  EXPECT_EQ(plan.value().stages.front().direction, arm_kinematics::PropagationDirection::Forward);
+}
+
+TEST(JointMapStage2Tests, BuildExpectedReportsPlannedTransmissionRuntimeAsUnimplemented)
+{
+  DefaultJointMapBuilder builder{};
+  builder.with_transmission_model(std::make_unique<TestTransmissionModel>(true, false));
+
+  auto & analysis = const_cast<TransmissionAnalysis &>(builder.get_transmission_analysis());
+  const std::vector<std::string> input_names{"motor_joint"};
+  const std::vector<std::string> output_names{"driven_joint"};
+  analysis.add_transmission(
+    0,
+    arm_kinematics::span<const std::string>(input_names),
+    arm_kinematics::span<const std::string>(output_names),
+    "direct");
+
+  const auto result = builder.build_expected(input_names, output_names, JointQuantity::Position);
+
+  ASSERT_FALSE(result.has_value());
+  EXPECT_NE(result.error().find("planned successfully"), std::string::npos);
 }
 
 // Small helper for comparing isometries

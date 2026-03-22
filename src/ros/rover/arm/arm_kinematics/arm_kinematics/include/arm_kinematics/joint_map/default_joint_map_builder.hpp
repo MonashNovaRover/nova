@@ -13,12 +13,12 @@
 
 #include <hardware_interface/component_parser.hpp>
 #include <rclcpp/logger.hpp>
-#include <tinyxml2.h>
 #include <urdf/model.h>
 
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 #include "arm_kinematics/joint_map/transmission_model.hpp"
+#include "arm_kinematics/joint_map/transmission_plan.hpp"
 #include "arm_kinematics/visibility_control.h"
 
 namespace
@@ -37,6 +37,10 @@ constexpr const auto kRoleAttribute = "role";
 constexpr const auto kReductionAttribute = "mechanical_reduction";
 constexpr const auto kOffsetAttribute = "offset";
 }  // namespace
+
+namespace tinyxml2 {
+class XMLElement;
+}
 
 namespace arm_kinematics {
 
