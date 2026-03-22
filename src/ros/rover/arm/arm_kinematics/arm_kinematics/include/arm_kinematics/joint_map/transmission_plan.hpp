@@ -15,6 +15,20 @@
 
 namespace arm_kinematics {
 
+struct AffinePlanStage {
+  JointId source_joint_id = 0;
+  JointId target_joint_id = 0;
+  size_t source_input_index = 0;
+  float multiplier = 1.0F;
+  float offset = 0.0F;
+};
+
+struct AffinePlan {
+  std::vector<JointId> input_joint_ids{};
+  std::vector<JointId> output_joint_ids{};
+  std::vector<AffinePlanStage> stages{};
+};
+
 struct TransmissionPlanStage {
   TransmissionGroupId group_id = 0;
   PropagationDirection direction = PropagationDirection::Forward;
@@ -29,6 +43,12 @@ struct TransmissionPlan {
 };
 
 using MakeTransmissionPlanResult = tl::expected<TransmissionPlan, std::string>;
+using MakeAffinePlanResult = tl::expected<AffinePlan, std::string>;
+
+[[nodiscard]] MakeAffinePlanResult make_affine_plan_expected(
+  const TransmissionAnalysis & analysis,
+  span<const JointId> input_joint_ids,
+  span<const JointId> output_joint_ids);
 
 [[nodiscard]] MakeTransmissionPlanResult make_transmission_plan_expected(
   const TransmissionAnalysis & analysis,

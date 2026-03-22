@@ -518,6 +518,72 @@ TEST(JointMapStage2Tests, DefaultJointMapBuilderBuildsDirectTransmissionPlan)
   EXPECT_EQ(plan.value().stages.front().direction, arm_kinematics::PropagationDirection::Forward);
 }
 
+TEST(TransmissionAnalysisTests, AffinePlannerBuildsIdentityPlanForDirectInputJoint)
+{
+  TransmissionAnalysis analysis{};
+  const auto input_joint_id = analysis.ensure_joint_id("input_joint");
+
+  const std::vector<arm_kinematics::JointId> input_ids{input_joint_id};
+  const std::vector<arm_kinematics::JointId> output_ids{input_joint_id};
+  const auto plan = arm_kinematics::make_affine_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+
+  ASSERT_TRUE(plan.has_value());
+  ASSERT_EQ(plan->stages.size(), 1u);
+  EXPECT_EQ(plan->stages.front().source_joint_id, input_joint_id);
+  EXPECT_EQ(plan->stages.front().target_joint_id, input_joint_id);
+  EXPECT_EQ(plan->stages.front().source_input_index, 0u);
+  EXPECT_FLOAT_EQ(plan->stages.front().multiplier, 1.0F);
+  EXPECT_FLOAT_EQ(plan->stages.front().offset, 0.0F);
+}
+
+TEST(TransmissionAnalysisTests, AffinePlannerBuildsPlanForMimicDerivedAffineTransmission)
+{
+  TransmissionAnalysis analysis{};
+  analysis.add_affine_transmission("driver_joint", "follower_joint", -2.0F, 0.5F);
+
+  const auto & joint_ids = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const auto plan = arm_kinematics::make_affine_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+
+  ASSERT_TRUE(plan.has_value());
+  ASSERT_EQ(plan->stages.size(), 1u);
+  EXPECT_EQ(plan->stages.front().source_joint_id, joint_ids["driver_joint"]);
+  EXPECT_EQ(plan->stages.front().target_joint_id, joint_ids["follower_joint"]);
+  EXPECT_EQ(plan->stages.front().source_input_index, 0u);
+  EXPECT_FLOAT_EQ(plan->stages.front().multiplier, -2.0F);
+  EXPECT_FLOAT_EQ(plan->stages.front().offset, 0.5F);
+}
+
+TEST(TransmissionAnalysisTests, AffinePlannerComposesAffineTransmissionChains)
+{
+  TransmissionAnalysis analysis{};
+  analysis.add_affine_transmission("driver_joint", "middle_joint", -2.0F, 0.5F);
+  analysis.add_affine_transmission("middle_joint", "follower_joint", 3.0F, -1.0F);
+
+  const auto & joint_ids = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const auto plan = arm_kinematics::make_affine_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+
+  ASSERT_TRUE(plan.has_value());
+  ASSERT_EQ(plan->stages.size(), 1u);
+  EXPECT_EQ(plan->stages.front().source_joint_id, joint_ids["driver_joint"]);
+  EXPECT_EQ(plan->stages.front().target_joint_id, joint_ids["follower_joint"]);
+  EXPECT_EQ(plan->stages.front().source_input_index, 0u);
+  EXPECT_FLOAT_EQ(plan->stages.front().multiplier, -6.0F);
+  EXPECT_FLOAT_EQ(plan->stages.front().offset, 0.5F);
+}
+
 TEST(JointMapStage2Tests, BuildExpectedReportsPlannedTransmissionRuntimeAsUnimplemented)
 {
   DefaultJointMapBuilder builder{};
