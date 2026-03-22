@@ -16,6 +16,7 @@ The codebase now has:
 
 - cached grouped transmission structure in `TransmissionAnalysis`
 - cached affine transmission structure in `TransmissionAnalysis`
+- copyable `TransmissionAnalysis` for FK-plugin-local reuse or augmentation
 - grouped planning over cached grouped transmissions in indexed space
 - a working affine planner and affine runtime compilation path
 - grouped compiler validation for:
@@ -25,6 +26,9 @@ The codebase now has:
 - grouped ambiguity handling across multiple candidate plans
 - builder-level grouped orchestration through `DefaultJointMapBuilder`
 - builder-level grouped execution and copy-semantics test coverage
+- `ForwardKinematicsPlugin` as the authoritative seam for the `TransmissionAnalysis` its builders consume
+- `RobotModel` reduced to a lazy shared default `TransmissionAnalysis` cache
+- builder cache invalidation when an FK plugin switches which `TransmissionAnalysis` object it exposes
 
 What is still missing is the grouped runtime execution side:
 
@@ -64,6 +68,13 @@ This grouped runtime plan is now substantially complete.
 The reusable grouped planner/compiler/runtime structures exist, and `DefaultJointMapBuilder` is now acting as a thin
 consumer of those structures rather than owning grouped semantics.
 
+The FK-plugin ownership migration is also complete:
+
+- `RobotModel` exposes only `get_default_transmission_analysis()`
+- `ForwardKinematicsPlugin::get_transmission_analysis()` is the authoritative seam
+- `ForwardKinematicsPlugin::get_joint_map_builder()` now consumes that seam and rebuilds its cached builder if the
+  exposed analysis object changes
+
 ## Next Stage
 
 The next work should come from the broader Stage 2 / transmission-spec documents rather than from this focused grouped
@@ -71,7 +82,9 @@ runtime note.
 
 The most important remaining items are:
 
-1. move transmission-analysis ownership and builder sourcing fully onto the `ForwardKinematicsPlugin` seam, with `RobotModel` reduced to a lazy shared default analysis cache
+1. make quantity-specific build behavior real for concrete transmission models rather than only structurally supported
 2. broaden real transmission-model coverage beyond simple single-input single-output transmissions
 3. decide which additional ros2_control transmission forms should receive real grouped runtime implementations next
-4. decide whether any reusable concrete TransmissionModel implementations should be promoted out of import-time internals
+4. decide whether any reusable concrete `TransmissionModel` implementations should be promoted out of import-time
+   internals
+5. add plugin-extension coverage where FK plugins augment, rather than only replace, the shared default analysis
