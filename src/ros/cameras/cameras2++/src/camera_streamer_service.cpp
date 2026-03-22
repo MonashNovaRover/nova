@@ -89,7 +89,7 @@ class CameraStreamer : public rclcpp::Node
       auto props = get_h264software_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = h264software_pipeline(this, props);
-    }  
+    } 
   }
 
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
@@ -145,6 +145,19 @@ class CameraStreamer : public rclcpp::Node
             // start pipeline if the gst bin doesn't exist yet
               RCLCPP_INFO(this->get_logger(), "Starting %s", serial.c_str());
               this->start_pipeline(pipeline);
+
+              // Test resolution change
+              GstElement* filter = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "filter");
+              GstCaps* caps = gst_caps_new_simple(
+                  "image/jpeg",
+                  "width", G_TYPE_INT, 320,
+                  "height", G_TYPE_INT, 240,
+                  NULL
+                  );
+              g_object_set(G_OBJECT(filter), "caps", caps, NULL);
+              gst_caps_unref(caps);
+              gst_object_unref(filter);
+
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }
           } else {
