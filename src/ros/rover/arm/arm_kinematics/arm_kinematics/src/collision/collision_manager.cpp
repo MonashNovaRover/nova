@@ -20,7 +20,7 @@ bool CollisionManager::collide() const {
   return plugin_->collide();
 }
 
-void CollisionManager::update_poses(const std::vector<double> & joint_states) {
+void CollisionManager::update_poses(const std::vector<float> & joint_states) {
   tree_->position_fk(joint_states, collider_poses_);
   plugin_->update_poses(0, {collider_poses_.data(), collider_poses_.size()});
 }

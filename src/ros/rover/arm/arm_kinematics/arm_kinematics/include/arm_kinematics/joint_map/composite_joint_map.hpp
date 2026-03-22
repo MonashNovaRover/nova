@@ -25,7 +25,7 @@ public:
   CompositeJointMap() = default;
   explicit CompositeJointMap(std::vector<CompositeJointMapSegment> segments);
 
-  void map(span<const double> inputs, span<float> outputs) const;
+  void map(span<const float> inputs, span<float> outputs) const;
 
   [[nodiscard]] size_t input_count() const noexcept { return input_count_; }
   [[nodiscard]] size_t output_count() const noexcept { return output_count_; }
@@ -48,14 +48,14 @@ public:
   StagedJointMap() = default;
   explicit StagedJointMap(std::vector<JointMap> stages);
 
-  void map(span<const double> inputs, span<float> outputs) const;
+  void map(span<const float> inputs, span<float> outputs) const;
 
   [[nodiscard]] size_t input_count() const noexcept { return input_count_; }
   [[nodiscard]] size_t output_count() const noexcept { return output_count_; }
 
 private:
   struct Workspace {
-    std::vector<std::vector<double>> stage_inputs{};
+    std::vector<std::vector<float>> stage_inputs{};
     std::vector<std::vector<float>> stage_outputs{};
   };
 

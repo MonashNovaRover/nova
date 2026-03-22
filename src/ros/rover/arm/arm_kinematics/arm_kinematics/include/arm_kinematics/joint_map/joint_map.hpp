@@ -49,12 +49,12 @@ public:
    * \warning inputs and outputs must be pre-allocated to the correct size!
    * \warning inputs and outputs must not point to the same memory, or be any internal storage from the implementation.
    */
-  void map(span<const double> inputs, span<float> outputs) const;
+  void map(span<const float> inputs, span<float> outputs) const;
 
   /**
-   * std::vector helper overload for map(span<const double>, span<float>).
+   * std::vector helper overload for map(span<const float>, span<float>).
    */
-  void map(const std::vector<double> & inputs, std::vector<float> & outputs) const;
+  void map(const std::vector<float> & inputs, std::vector<float> & outputs) const;
 
   /// The number of elements expected in the input joint space for this map.
   [[nodiscard]] size_t input_count() const noexcept;
@@ -72,7 +72,7 @@ private:
    */
   struct Concept {
     virtual ~Concept() = default;
-    virtual void map(span<const double> inputs, span<float> outputs) const = 0;
+    virtual void map(span<const float> inputs, span<float> outputs) const = 0;
     [[nodiscard]] virtual size_t input_count() const noexcept = 0;
     [[nodiscard]] virtual size_t output_count() const noexcept = 0;
     [[nodiscard]] virtual std::unique_ptr<Concept> clone() const = 0;
@@ -85,7 +85,7 @@ private:
   struct Model final : Concept {
     explicit Model(Impl impl) : impl(std::move(impl)) {}
 
-    void map(span<const double> inputs, span<float> outputs) const override { impl.map(inputs, outputs); }
+    void map(span<const float> inputs, span<float> outputs) const override { impl.map(inputs, outputs); }
     [[nodiscard]] size_t input_count() const noexcept override { return impl.input_count(); }
     [[nodiscard]] size_t output_count() const noexcept override { return impl.output_count(); }
     [[nodiscard]] std::unique_ptr<Concept> clone() const override {

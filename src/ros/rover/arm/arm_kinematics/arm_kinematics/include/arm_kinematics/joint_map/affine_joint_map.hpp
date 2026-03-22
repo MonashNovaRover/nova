@@ -68,12 +68,12 @@ public:
    * \warning inputs and outputs must be pre-allocated to the correct size!
    * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
    */
-  void map(span<const double> inputs, span<float> outputs) const;
+  void map(span<const float> inputs, span<float> outputs) const;
 
   /**
-   * std::vector helper overload for map(span<const double>, span<float>).
+   * std::vector helper overload for map(span<const float>, span<float>).
    */
-  void map(const std::vector<double> & inputs, std::vector<float> & outputs) const {
+  void map(const std::vector<float> & inputs, std::vector<float> & outputs) const {
     map(
       {inputs.data(), inputs.size()},
       {outputs.data(), outputs.size()});
@@ -96,7 +96,7 @@ private:
    */
   static size_t find_source(
     const std::vector<std::string> & joint_names,
-    std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints,
+    const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints,
     const std::string & name,
     float & multiplier,
     float & offset);

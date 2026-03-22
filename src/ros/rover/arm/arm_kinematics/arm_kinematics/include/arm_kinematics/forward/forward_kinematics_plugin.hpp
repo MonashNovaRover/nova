@@ -57,7 +57,7 @@ public:
      * \warning inputs and outputs must be pre-allocated to the correct size!
      * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
      */
-    virtual void position_fk(const std::vector<double> & joint_states, Isometry3fVector & link_poses) = 0;
+    virtual void position_fk(const std::vector<float> & joint_states, Isometry3fVector & link_poses) = 0;
 
     // TODO: velocity_fk?
 

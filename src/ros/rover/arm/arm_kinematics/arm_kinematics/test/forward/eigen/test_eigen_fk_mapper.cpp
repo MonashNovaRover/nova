@@ -317,7 +317,7 @@ TEST(JointMapStage1Tests, DefaultConstructedJointMapIsInvalid)
   EXPECT_EQ(joint_map.input_count(), 0);
   EXPECT_EQ(joint_map.output_count(), 0);
 
-  std::vector<double> inputs{};
+  std::vector<float> inputs{};
   std::vector<float> outputs{};
   EXPECT_THROW(joint_map.map(inputs, outputs), std::logic_error);
 }
@@ -444,7 +444,7 @@ TEST_F(MimicUrdfTests, DefaultJointMapBuilderMatchesRobotModelBuilder)
     {"driver_joint"},
     {"driver_joint", "follower_joint"});
 
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> default_outputs(2);
   std::vector<float> robot_model_outputs(2);
 
@@ -829,7 +829,7 @@ TEST_F(TransmissionUrdfTests, BuildExpectedBuildsRos2ControlPluginTransmissionMo
   ASSERT_EQ(result->input_count(), 1u);
   ASSERT_EQ(result->output_count(), 1u);
 
-  std::vector<double> inputs{1.0};
+  std::vector<float> inputs{1.0F};
   std::vector<float> outputs(1, 0.0F);
   result->map(inputs, outputs);
 
@@ -846,7 +846,7 @@ TEST_F(TransmissionUrdfTests, BuildExpectedBuildsVelocityRos2ControlPluginTransm
 
   ASSERT_TRUE(result.has_value());
 
-  std::vector<double> inputs{1.0};
+  std::vector<float> inputs{1.0F};
   std::vector<float> outputs(1, 0.0F);
   result->map(inputs, outputs);
 
@@ -865,7 +865,7 @@ TEST_F(TransmissionUrdfTests, BuildExpectedBuildsReverseRos2ControlPluginTransmi
   ASSERT_EQ(result->input_count(), 1u);
   ASSERT_EQ(result->output_count(), 1u);
 
-  std::vector<double> inputs{0.75};
+  std::vector<float> inputs{0.75F};
   std::vector<float> outputs(1, 0.0F);
   result->map(inputs, outputs);
 
@@ -882,7 +882,7 @@ TEST_F(TransmissionUrdfTests, BuildExpectedBuildsReverseVelocityRos2ControlPlugi
 
   ASSERT_TRUE(result.has_value()) << result.error();
 
-  std::vector<double> inputs{0.5};
+  std::vector<float> inputs{0.5F};
   std::vector<float> outputs(1, 0.0F);
   result->map(inputs, outputs);
 
@@ -900,7 +900,7 @@ TEST_F(TransmissionUrdfTests, TransmissionAnalysisJointMapBuilderBuildsFromShare
 
   ASSERT_TRUE(result.has_value());
 
-  std::vector<double> inputs{1.0};
+  std::vector<float> inputs{1.0F};
   std::vector<float> outputs(1, 0.0F);
   result->map(inputs, outputs);
 
@@ -919,7 +919,7 @@ TEST_F(TransmissionUrdfTests, TransmissionAnalysisCopyRetainsBuildBehavior)
 
   ASSERT_TRUE(result.has_value());
 
-  std::vector<double> inputs{1.0};
+  std::vector<float> inputs{1.0F};
   std::vector<float> outputs(1, 0.0F);
   result->map(inputs, outputs);
 
@@ -940,7 +940,7 @@ TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginCanOverrideWit
 
   ASSERT_TRUE(result.has_value());
 
-  std::vector<double> inputs{1.0};
+  std::vector<float> inputs{1.0F};
   std::vector<float> outputs(1, 0.0F);
   result->map(inputs, outputs);
 
@@ -998,7 +998,7 @@ TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginCanAugmentShar
     JointQuantity::Position);
   ASSERT_TRUE(default_result.has_value()) << default_result.error();
 
-  std::vector<double> default_inputs{1.0};
+  std::vector<float> default_inputs{1.0F};
   std::vector<float> default_outputs(1, 0.0F);
   default_result->map(default_inputs, default_outputs);
   EXPECT_NEAR(default_outputs[0], 0.75F, EPSILON);
@@ -1009,7 +1009,7 @@ TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginCanAugmentShar
     JointQuantity::Position);
   ASSERT_TRUE(augmented_result.has_value()) << augmented_result.error();
 
-  std::vector<double> augmented_inputs{2.0};
+  std::vector<float> augmented_inputs{2.0F};
   std::vector<float> augmented_outputs(1, 0.0F);
   augmented_result->map(augmented_inputs, augmented_outputs);
   EXPECT_NEAR(augmented_outputs[0], 5.5F, EPSILON);
@@ -1065,7 +1065,7 @@ TEST_F(DifferentialTransmissionUrdfTests, BuildExpectedBuildsDifferentialRos2Con
   ASSERT_EQ(result->input_count(), 2u);
   ASSERT_EQ(result->output_count(), 2u);
 
-  std::vector<double> inputs{8.0, 4.0};
+  std::vector<float> inputs{8.0F, 4.0F};
   std::vector<float> outputs(2, 0.0F);
   result->map(inputs, outputs);
 
@@ -1083,7 +1083,7 @@ TEST_F(DifferentialTransmissionUrdfTests, BuildExpectedBuildsDifferentialRos2Con
 
   ASSERT_TRUE(result.has_value()) << result.error();
 
-  std::vector<double> inputs{8.0, 4.0};
+  std::vector<float> inputs{8.0F, 4.0F};
   std::vector<float> outputs(2, 0.0F);
   result->map(inputs, outputs);
 
@@ -1101,7 +1101,7 @@ TEST_F(DifferentialTransmissionUrdfTests, BuildExpectedBuildsReverseDifferential
 
   ASSERT_TRUE(result.has_value()) << result.error();
 
-  std::vector<double> inputs{1.0, -0.25};
+  std::vector<float> inputs{1.0F, -0.25F};
   std::vector<float> outputs(2, 0.0F);
   result->map(inputs, outputs);
 
@@ -1119,7 +1119,7 @@ TEST_F(DifferentialTransmissionUrdfTests, BuildExpectedBuildsReverseDifferential
 
   ASSERT_TRUE(result.has_value()) << result.error();
 
-  std::vector<double> inputs{0.5, 0.0};
+  std::vector<float> inputs{0.5F, 0.0F};
   std::vector<float> outputs(2, 0.0F);
   result->map(inputs, outputs);
 
@@ -1228,7 +1228,7 @@ TEST(JointMapStage2Tests, CompilesAndExecutesDirectGroupedTransmissionPlan)
   ASSERT_EQ(compiled_plan->stages.size(), 1u);
 
   arm_kinematics::TransmissionJointMap joint_map(std::move(*compiled_plan));
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> outputs(1, 0.0F);
   joint_map.map(inputs, outputs);
 
@@ -1271,7 +1271,7 @@ TEST(JointMapStage2Tests, CompiledGroupedTransmissionPlanTracksNonzeroScratchLay
   EXPECT_EQ(compiled_plan->stages.front().scratch_size, 2u);
 
   arm_kinematics::TransmissionJointMap joint_map(std::move(*compiled_plan));
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> outputs(1, 0.0F);
 
   joint_map.map(inputs, outputs);
@@ -1345,7 +1345,7 @@ TEST(JointMapStage2Tests, CompilesAndExecutesManualTwoStageGroupedTransmissionPl
   EXPECT_EQ(compiled_plan->stages[1].output_indices.front(), 2u);
 
   arm_kinematics::TransmissionJointMap joint_map(std::move(*compiled_plan));
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> outputs(1, 0.0F);
   joint_map.map(inputs, outputs);
 
@@ -1697,7 +1697,7 @@ TEST(TransmissionAnalysisTests, AffineJointMapExecutesCompiledAffinePlan)
   ASSERT_TRUE(plan.has_value());
 
   AffineJointMap map(*plan);
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> outputs(2);
   map.map(inputs, outputs);
 
@@ -1724,7 +1724,7 @@ TEST(TransmissionAnalysisTests, AffineJointMapExecutesCompiledAffineChainPlan)
   ASSERT_TRUE(plan.has_value());
 
   AffineJointMap map(*plan);
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> outputs(1);
   map.map(inputs, outputs);
 
@@ -1743,7 +1743,7 @@ TEST(TransmissionAnalysisTests, AffineJointMapConstructsFromTransmissionAnalysis
     {"driver_joint", "follower_joint"},
     analysis);
 
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> outputs(2);
   map.map(inputs, outputs);
 
@@ -1811,7 +1811,7 @@ TEST(JointMapStage2Tests, DefaultJointMapBuilderBuildsAndExecutesGroupedTransmis
   ASSERT_EQ(result->input_count(), 1u);
   ASSERT_EQ(result->output_count(), 1u);
 
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> outputs(1, 0.0F);
   result->map(inputs, outputs);
 
@@ -1843,7 +1843,7 @@ TEST(JointMapStage2Tests, GroupedJointMapCopyRetainsBehavior)
   ASSERT_EQ(copy.input_count(), 1u);
   ASSERT_EQ(copy.output_count(), 1u);
 
-  std::vector<double> inputs{1.5};
+  std::vector<float> inputs{1.5F};
   std::vector<float> original_outputs(1, 0.0F);
   std::vector<float> copy_outputs(1, 0.0F);
 
@@ -1885,11 +1885,12 @@ TEST(JointMapStage2Tests, BuildsParallelAffineAndGroupedJointMapPlan)
     JointQuantity::Position);
 
   ASSERT_TRUE(joint_map_plan.has_value()) << joint_map_plan.error();
-  ASSERT_EQ(joint_map_plan->segments.size(), 2u);
-  EXPECT_EQ(joint_map_plan->segments[0].output_indices, std::vector<size_t>({1u}));
-  EXPECT_EQ(joint_map_plan->segments[1].output_indices, std::vector<size_t>({0u}));
-  EXPECT_TRUE(std::holds_alternative<arm_kinematics::AffinePlan>(joint_map_plan->segments[0].plan));
-  EXPECT_TRUE(std::holds_alternative<arm_kinematics::TransmissionPlan>(joint_map_plan->segments[1].plan));
+  ASSERT_EQ(joint_map_plan->stages.size(), 1u);
+  ASSERT_EQ(joint_map_plan->stages[0].segments.size(), 2u);
+  EXPECT_EQ(joint_map_plan->stages[0].segments[0].output_indices, std::vector<size_t>({1u}));
+  EXPECT_EQ(joint_map_plan->stages[0].segments[1].output_indices, std::vector<size_t>({0u}));
+  EXPECT_TRUE(std::holds_alternative<arm_kinematics::AffinePlan>(joint_map_plan->stages[0].segments[0].plan));
+  EXPECT_TRUE(std::holds_alternative<arm_kinematics::TransmissionPlan>(joint_map_plan->stages[0].segments[1].plan));
 }
 
 TEST(JointMapStage2Tests, TransmissionAnalysisJointMapBuilderBuildsAndExecutesMixedCompositeMap)
@@ -1915,7 +1916,7 @@ TEST(JointMapStage2Tests, TransmissionAnalysisJointMapBuilderBuildsAndExecutesMi
   ASSERT_EQ(result->input_count(), 2u);
   ASSERT_EQ(result->output_count(), 2u);
 
-  std::vector<double> inputs{2.0, 4.0};
+  std::vector<float> inputs{2.0F, 4.0F};
   std::vector<float> outputs(2, 0.0F);
   result->map(inputs, outputs);
 
@@ -1952,9 +1953,15 @@ TEST(JointMapStage2Tests, CompileJointMapPlanSupportsSingleSegmentWithNonIdentit
   arm_kinematics::JointMapPlan joint_map_plan{};
   joint_map_plan.input_joint_ids = affine_plan.input_joint_ids;
   joint_map_plan.output_joint_ids = {analysis.joint_order()["joint_b"], analysis.joint_order()["joint_a"]};
-  joint_map_plan.segments.push_back(arm_kinematics::JointMapPlanSegment{
-    {1u, 0u},
-    affine_plan
+  joint_map_plan.stages.push_back(arm_kinematics::JointMapPlanStage{
+    joint_map_plan.input_joint_ids,
+    joint_map_plan.output_joint_ids,
+    {
+      arm_kinematics::JointMapPlanSegment{
+        {1u, 0u},
+        affine_plan
+      }
+    }
   });
 
   const auto result = arm_kinematics::compile_joint_map_plan_expected(
@@ -1964,7 +1971,7 @@ TEST(JointMapStage2Tests, CompileJointMapPlanSupportsSingleSegmentWithNonIdentit
 
   ASSERT_TRUE(result.has_value()) << result.error();
 
-  std::vector<double> inputs{2.0, 5.0};
+  std::vector<float> inputs{2.0F, 5.0F};
   std::vector<float> outputs(2, 0.0F);
   result->map(inputs, outputs);
 
@@ -2149,9 +2156,9 @@ TEST_F(SimpleUrdfTests, SimpleUrdfEigenFKPluginTree)
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
-  const double theta = M_PI / 2.0;
-  const double d     = 0.5;
-  std::vector<double> joint_states{ d, theta };
+  const float theta = static_cast<float>(M_PI / 2.0);
+  const float d     = 0.5F;
+  std::vector<float> joint_states{ d, theta };
 
   auto weird_joint_map = plugin->get_joint_map_builder().build({"joint1", "joint2"}, {"joint1", "joint2", "joint1", "joint 1", "joint 2"});
   std::vector<float> mapped_joint_states_weird(weird_joint_map.output_count());
@@ -2217,9 +2224,9 @@ TEST_F(SimpleUrdfTests, SimpleUrdfComputeJointTreeReversed)
 
   ASSERT_TRUE(init_result) << "Failed to initialize plugin";
 
-  const double theta = M_PI / 2.0;
-  const double d     = 0.5;
-  std::vector<double> joint_states{ d, theta };
+  const float theta = static_cast<float>(M_PI / 2.0);
+  const float d     = 0.5F;
+  std::vector<float> joint_states{ d, theta };
 
   RCLCPP_INFO(node_->get_logger(), "Creating FK Tree");
   auto anal = AnalysisTree(plugin->get_robot_model().get_urdf_model());
@@ -2512,7 +2519,7 @@ TEST_F(FixedJointUrdfTest, ForwardFromRootWithActuations) {
   const auto expected = Reordered{expected_frame_poses_, order};
 
   // Set joint states to cancel out all axes but the z axis
-  const std::vector<double> joint_states(joint_names_.size(), -1.0);
+  const std::vector<float> joint_states(joint_names_.size(), -1.0F);
 
   // Do FK
   auto actual = arm_kinematics::Isometry3fVector(expected.size());

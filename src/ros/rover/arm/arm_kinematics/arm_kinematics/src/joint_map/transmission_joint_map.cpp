@@ -231,7 +231,7 @@ TransmissionJointMap::Workspace TransmissionJointMap::make_workspace() const
   };
 }
 
-void TransmissionJointMap::map(span<const double> inputs, span<float> outputs) const
+void TransmissionJointMap::map(span<const float> inputs, span<float> outputs) const
 {
   if (inputs.size() != compiled_plan_.input_count) {
     throw std::invalid_argument("TransmissionJointMap::map() received inputs with the wrong size");
@@ -242,7 +242,7 @@ void TransmissionJointMap::map(span<const double> inputs, span<float> outputs) c
 
   auto & values = workspace_.values;
   for (size_t i = 0; i < inputs.size(); ++i) {
-    values[i] = static_cast<float>(inputs[i]);
+    values[i] = inputs[i];
   }
 
   for (const auto & stage : compiled_plan_.stages) {

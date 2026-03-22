@@ -136,7 +136,7 @@ AffineJointMap AffineJointMap::identity(const size_t element_count)
   return jm;
 }
 
-void AffineJointMap::map(span<const double> inputs, span<float> outputs) const
+void AffineJointMap::map(span<const float> inputs, span<float> outputs) const
 {
   assert(!input_count_ || inputs.size() == input_count_);
   assert(outputs.size() == output_count_);
@@ -157,7 +157,7 @@ void AffineJointMap::map(span<const double> inputs, span<float> outputs) const
   auto * __restrict__ src = sources_.data();
 
   for (size_t i = 0; i < output_count_; ++i) {
-    out[i] = static_cast<float>(in[src[i]]);
+    out[i] = in[src[i]];
   }
 
   #pragma omp simd
@@ -168,7 +168,7 @@ void AffineJointMap::map(span<const double> inputs, span<float> outputs) const
 
 size_t AffineJointMap::find_source(
   const std::vector<std::string> & joint_names,
-  std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints,
+  const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints,
   const std::string & name,
   float & multiplier,
   float & offset)

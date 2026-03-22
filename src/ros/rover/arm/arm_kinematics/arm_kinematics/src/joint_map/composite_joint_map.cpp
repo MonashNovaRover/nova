@@ -129,7 +129,7 @@ CompositeJointMap::Workspace CompositeJointMap::make_workspace() const
   return workspace;
 }
 
-void CompositeJointMap::map(const span<const double> inputs, const span<float> outputs) const
+void CompositeJointMap::map(const span<const float> inputs, const span<float> outputs) const
 {
   if (inputs.size() != input_count_) {
     throw std::invalid_argument("CompositeJointMap::map() received inputs with the wrong size");
@@ -182,13 +182,13 @@ StagedJointMap::Workspace StagedJointMap::make_workspace() const
     const auto & stage = stages_[i];
     workspace.stage_outputs.emplace_back(stage.output_count(), 0.0F);
     if (i + 1 < stages_.size()) {
-      workspace.stage_inputs.emplace_back(stages_[i + 1].input_count(), 0.0);
+    workspace.stage_inputs.emplace_back(stages_[i + 1].input_count(), 0.0F);
     }
   }
   return workspace;
 }
 
-void StagedJointMap::map(const span<const double> inputs, const span<float> outputs) const
+void StagedJointMap::map(const span<const float> inputs, const span<float> outputs) const
 {
   if (inputs.size() != input_count_) {
     throw std::invalid_argument("StagedJointMap::map() received inputs with the wrong size");
@@ -210,7 +210,7 @@ void StagedJointMap::map(const span<const double> inputs, const span<float> outp
     }
 
     stages_[i].map(
-      span<const double>(stage_inputs.data(), stage_inputs.size()),
+      span<const float>(stage_inputs.data(), stage_inputs.size()),
       workspace_.stage_outputs[i]);
   }
 

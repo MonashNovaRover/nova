@@ -75,7 +75,7 @@ public:
   TransmissionJointMap(TransmissionJointMap &&) noexcept = default;
   TransmissionJointMap & operator=(TransmissionJointMap &&) noexcept = default;
 
-  void map(span<const double> inputs, span<float> outputs) const;
+  void map(span<const float> inputs, span<float> outputs) const;
 
   [[nodiscard]] size_t input_count() const noexcept { return compiled_plan_.input_count; }
   [[nodiscard]] size_t output_count() const noexcept { return compiled_plan_.output_count; }

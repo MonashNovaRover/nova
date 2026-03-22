@@ -28,7 +28,7 @@ JointMap & JointMap::operator=(const JointMap & other)
   return *this;
 }
 
-void JointMap::map(span<const double> inputs, span<float> outputs) const
+void JointMap::map(span<const float> inputs, span<float> outputs) const
 {
   if (!impl_)
     throw std::logic_error("Used JointMap::map() on an invalid JointMap");
@@ -36,7 +36,7 @@ void JointMap::map(span<const double> inputs, span<float> outputs) const
   impl_->map(inputs, outputs);
 }
 
-void JointMap::map(const std::vector<double> & inputs, std::vector<float> & outputs) const
+void JointMap::map(const std::vector<float> & inputs, std::vector<float> & outputs) const
 {
   map(
     {inputs.data(), inputs.size()},
