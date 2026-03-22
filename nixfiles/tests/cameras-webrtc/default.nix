@@ -20,7 +20,7 @@
     };
 
     base = { pkgs, ... }: {
-      services.nova-gui.enable = true;
+      nova.services.nova-gui.enable = true;
     };
   };
 
