@@ -11,9 +11,10 @@ camera_streamer:
         framerate: 30
 
       webcamvendor_SK_series1_20220325JWGD2093:
-        pipeline_type: h264software
+        pipeline_type: h264passthrough
+        mime: video/x-h264
         payload_quirk: true
-        width: 640
+        width: 1920
         height: 1080
         framerate: 30
 
@@ -43,6 +44,7 @@ camera_streamer:
       mast_arm_stow:
         meta: Mast - Arm Stow
         pipeline_type: h264passthrough
+        mime: video/x-h264
         payload_quirk: true
         width: 1920
         height: 1080

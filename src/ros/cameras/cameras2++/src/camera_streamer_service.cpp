@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
@@ -20,6 +21,8 @@
 
 #include "cameras/cameras.hpp"
 #include "cameras/pipeline.hpp"
+
+#include <yaml-cpp/yaml.h>
 
 using namespace std::placeholders;
 
@@ -107,6 +110,8 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera->serial=camera.serial;
         pipeline->camera->node=camera.node;
 
+
+        std::map<std::string, rclcpp::Parameter> serial_params;
         std::string pipeline_type;
         this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera.serial + ".pipeline_type").c_str(), pipeline_type, "v4l2webrtc");
         pipeline->pipeline_type = pipeline_type;
@@ -121,29 +126,6 @@ class CameraStreamer : public rclcpp::Node
         }
         RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline_type.c_str(), camera.serial.c_str());
         this->pipelines[camera.serial] = pipeline;
-
-
-
-
-
-
-        std::map<std::string, rclcpp::Parameter> serial_params;
-
-        RCLCPP_INFO(this->get_logger(), "Getting props for %s TESTINGGGGGGGGG", camera.serial.c_str());
-        //props->serial = camera->serial;
-        //props->node = camera->node;
-
-        // override any defaults with params
-        std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera.serial;
-        //streamer_node->get_parameter_or<std::string>((camera_prefix + ".device").c_str(), props->device, props->node); 
-        //streamer_node->get_parameter_or((camera_prefix + ".width").c_str(), props->width, 1280);
-        
-        int width;
-        
-        this->get_parameter_or((camera_prefix + ".width").c_str(), width, 1280); 
-
-        RCLCPP_INFO(this->get_logger(), "Parameter width: %i", width);
-
       }
     }
   }
@@ -152,7 +134,7 @@ class CameraStreamer : public rclcpp::Node
   private: void operation_callback(
     const std::shared_ptr<camera_msgs::srv::CameraOperation::Request> request,
     std::shared_ptr<camera_msgs::srv::CameraOperation::Response> response,
-    CameraState state)  
+    CameraState state)
   {
     response->success = true;
     switch (state) {
@@ -168,24 +150,12 @@ class CameraStreamer : public rclcpp::Node
             // start pipeline if the gst bin doesn't exist yet
               RCLCPP_INFO(this->get_logger(), "Starting %s", serial.c_str());
               this->start_pipeline(pipeline);
-
-              // Test resolution change
-              GstElement* filter = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "filter");
-              GstCaps* caps = gst_caps_new_simple(
-                  "image/jpeg",
-                  "width", G_TYPE_INT, 320,
-                  "height", G_TYPE_INT, 240,
-                  NULL
-                  );
-              g_object_set(G_OBJECT(filter), "caps", caps, NULL);
-              gst_caps_unref(caps);
-              gst_object_unref(filter);
-
+              read_yaml_capsfilter(serial, pipeline);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }
           } else {
           // otherwise report error
-            RCLCPP_INFO(this->get_logger(), "Issue with pipeline of: %s", serial.c_str());
+            RCLCPP_ERROR(this->get_logger(), "Issue with pipeline of: %s", serial.c_str());
             response->success = false;
           }
         }
@@ -271,6 +241,45 @@ class CameraStreamer : public rclcpp::Node
     */
    std::vector<std::string> ips;
    response->ips = ips;
+  }
+
+  private: void read_yaml_capsfilter(
+    std::string serial,
+    Pipeline* pipeline)
+  {
+    // Load from yaml
+    YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
+    YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][serial];
+
+    std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + serial;
+    std::string mime, src_mime;
+    int width, src_width, height, src_height, framerate, src_framerate, brightness, src_brightness, contrast, src_contrast;
+
+    this->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), src_mime, "image/jpeg");
+    mime = param["mime"] ? param["mime"].as<std::string>() : src_mime;
+    this->get_parameter_or((camera_prefix + ".width").c_str(), src_width, 1280);
+    width = param["width"] ? param["width"].as<int>() : src_width;
+    this->get_parameter_or((camera_prefix + ".height").c_str(), src_height, 720);
+    height = param["height"] ? param["height"].as<int>() : src_height;
+    this->get_parameter_or((camera_prefix + ".framerate").c_str(), src_framerate, 30);
+    framerate = param["framerate"] ? param["framerate"].as<int>() : src_framerate;
+    this->get_parameter_or((camera_prefix + ".brightness").c_str(), src_brightness, 0);
+    brightness = param["brightness"] ? param["brightness"].as<int>() : src_brightness;
+    this->get_parameter_or((camera_prefix + ".contrast").c_str(), src_contrast, 0);
+    contrast = param["contrast"] ? param["contrast"].as<int>() : src_contrast;
+
+    GstElement* filter = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "filter");
+    GstCaps* caps = gst_caps_new_simple(
+        mime.c_str(),
+        "width", G_TYPE_INT, width,
+        "height", G_TYPE_INT, height,
+        "framerate", GST_TYPE_FRACTION, framerate, 1,
+        "brightness", G_TYPE_INT, brightness,
+        "contrast", G_TYPE_INT,  contrast,
+        NULL);
+    g_object_set(G_OBJECT(filter), "caps", caps, NULL);
+    gst_object_unref(filter);
+    gst_caps_unref(caps);
   }
 };
 

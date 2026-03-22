@@ -29,6 +29,8 @@ pkg_check_modules(GSTREAMERMM REQUIRED gstreamermm-1.0)
 include_directories(${GSTREAMERMM_INCLUDE_DIRS})
 link_directories(${GSTREAMERMM_LIB_DIRS})
 
+find_package(yaml-cpp REQUIRED)
+include_directories(${YAML_CPP_INCLUDE_DIRS})
 
 include_directories(
   include
@@ -39,7 +41,7 @@ target_link_libraries(camera_directory_service ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp src/camera_pipelines.cpp)
-target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES})
+target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES} yaml-cpp::yaml-cpp)
 ament_target_dependencies(camera_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Install executables
