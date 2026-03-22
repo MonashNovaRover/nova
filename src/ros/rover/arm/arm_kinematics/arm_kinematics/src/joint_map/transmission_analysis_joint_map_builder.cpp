@@ -4,8 +4,7 @@
 
 #include "arm_kinematics/joint_map/transmission_analysis_joint_map_builder.hpp"
 
-#include "arm_kinematics/joint_map/affine_joint_map.hpp"
-#include "arm_kinematics/joint_map/transmission_joint_map.hpp"
+#include "arm_kinematics/joint_map/composite_joint_map.hpp"
 
 #include <stdexcept>
 
@@ -41,36 +40,22 @@ tl::expected<JointMap, std::string> TransmissionAnalysisJointMapBuilder::build_e
   const JointQuantity quantity) const
 {
   try {
-    return JointMap(AffineJointMap(input_names, output_names, transmission_analysis_));
-  } catch (const std::exception & e) {
-    const auto affine_error = std::string(e.what());
+    const auto & joint_order = transmission_analysis_.joint_order();
+    const auto input_joint_ids = to_joint_ids_expected(joint_order, input_names, "input");
+    const auto output_joint_ids = to_joint_ids_expected(joint_order, output_names, "output");
 
-    try {
-      const auto & joint_order = transmission_analysis_.joint_order();
-      const auto input_joint_ids = to_joint_ids_expected(joint_order, input_names, "input");
-      const auto output_joint_ids = to_joint_ids_expected(joint_order, output_names, "output");
-
-      const auto transmission_plan = make_transmission_plan_expected(
-        transmission_analysis_,
-        span<const JointId>(input_joint_ids),
-        span<const JointId>(output_joint_ids),
-        quantity);
-      if (!transmission_plan.has_value()) {
-        return tl::make_unexpected(affine_error + "; " + transmission_plan.error());
-      }
-
-      auto compiled_plan = compile_transmission_plan_expected(
-        transmission_analysis_,
-        *transmission_plan,
-        quantity);
-      if (!compiled_plan.has_value()) {
-        return tl::make_unexpected(compiled_plan.error());
-      }
-
-      return JointMap(TransmissionJointMap(std::move(*compiled_plan)));
-    } catch (const std::exception & grouped_error) {
-      return tl::make_unexpected(affine_error + "; " + grouped_error.what());
+    const auto joint_map_plan = make_joint_map_plan_expected(
+      transmission_analysis_,
+      span<const JointId>(input_joint_ids),
+      span<const JointId>(output_joint_ids),
+      quantity);
+    if (!joint_map_plan.has_value()) {
+      return tl::make_unexpected(joint_map_plan.error());
     }
+
+    return compile_joint_map_plan_expected(transmission_analysis_, *joint_map_plan, quantity);
+  } catch (const std::exception & error) {
+    return tl::make_unexpected(error.what());
   }
 }
 

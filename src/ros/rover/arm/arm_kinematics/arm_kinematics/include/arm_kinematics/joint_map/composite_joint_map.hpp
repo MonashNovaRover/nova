@@ -1,0 +1,55 @@
+//
+// Created by Bailey Chessum on 22/03/2026.
+//
+
+#ifndef ARM_KINEMATICS_COMPOSITE_JOINT_MAP_HPP
+#define ARM_KINEMATICS_COMPOSITE_JOINT_MAP_HPP
+
+#include <vector>
+
+#include "arm_kinematics/joint_map/joint_map.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis.hpp"
+#include "arm_kinematics/joint_map/transmission_plan.hpp"
+#include "arm_kinematics/utilities/expected.hpp"
+#include "arm_kinematics/visibility_control.h"
+
+namespace arm_kinematics {
+
+struct CompositeJointMapSegment {
+  JointMap joint_map{};
+  std::vector<size_t> output_indices{};
+};
+
+class ARM_KINEMATICS_PUBLIC CompositeJointMap {
+public:
+  CompositeJointMap() = default;
+  explicit CompositeJointMap(std::vector<CompositeJointMapSegment> segments);
+
+  void map(span<const double> inputs, span<float> outputs) const;
+
+  [[nodiscard]] size_t input_count() const noexcept { return input_count_; }
+  [[nodiscard]] size_t output_count() const noexcept { return output_count_; }
+
+private:
+  struct Workspace {
+    std::vector<std::vector<float>> segment_outputs{};
+  };
+
+  [[nodiscard]] Workspace make_workspace() const;
+
+  std::vector<CompositeJointMapSegment> segments_{};
+  size_t input_count_ = 0;
+  size_t output_count_ = 0;
+  mutable Workspace workspace_{};
+};
+
+using CompileJointMapPlanResult = tl::expected<JointMap, std::string>;
+
+[[nodiscard]] ARM_KINEMATICS_PUBLIC CompileJointMapPlanResult compile_joint_map_plan_expected(
+  const TransmissionAnalysis & analysis,
+  const JointMapPlan & joint_map_plan,
+  JointQuantity quantity);
+
+} // namespace arm_kinematics
+
+#endif // ARM_KINEMATICS_COMPOSITE_JOINT_MAP_HPP

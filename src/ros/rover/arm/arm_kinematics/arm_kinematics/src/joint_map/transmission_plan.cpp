@@ -308,4 +308,79 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
   return *plan;
 }
 
+MakeJointMapPlanResult make_joint_map_plan_expected(
+  const TransmissionAnalysis & analysis,
+  const span<const JointId> input_joint_ids,
+  const span<const JointId> output_joint_ids,
+  const JointQuantity quantity)
+{
+  std::vector<JointId> affine_output_joint_ids{};
+  std::vector<size_t> affine_output_indices{};
+  std::vector<JointId> grouped_output_joint_ids{};
+  std::vector<size_t> grouped_output_indices{};
+
+  affine_output_joint_ids.reserve(output_joint_ids.size());
+  affine_output_indices.reserve(output_joint_ids.size());
+  grouped_output_joint_ids.reserve(output_joint_ids.size());
+  grouped_output_indices.reserve(output_joint_ids.size());
+
+  for (size_t i = 0; i < output_joint_ids.size(); ++i) {
+    const auto output_joint_id = output_joint_ids[i];
+    const auto affine_stage = make_affine_plan_stage_expected(analysis, input_joint_ids, output_joint_id);
+    if (affine_stage.has_value()) {
+      affine_output_joint_ids.push_back(output_joint_id);
+      affine_output_indices.push_back(i);
+      continue;
+    }
+
+    grouped_output_joint_ids.push_back(output_joint_id);
+    grouped_output_indices.push_back(i);
+  }
+
+  JointMapPlan plan{
+    {input_joint_ids.begin(), input_joint_ids.end()},
+    {output_joint_ids.begin(), output_joint_ids.end()},
+    {}
+  };
+
+  if (!affine_output_joint_ids.empty()) {
+    const auto affine_plan = make_affine_plan_expected(
+      analysis,
+      input_joint_ids,
+      span<const JointId>(affine_output_joint_ids));
+    if (!affine_plan.has_value()) {
+      return tl::make_unexpected(affine_plan.error());
+    }
+
+    plan.segments.push_back(JointMapPlanSegment{
+      std::move(affine_output_indices),
+      *affine_plan
+    });
+  }
+
+  if (!grouped_output_joint_ids.empty()) {
+    const auto transmission_plan = make_transmission_plan_expected(
+      analysis,
+      input_joint_ids,
+      span<const JointId>(grouped_output_joint_ids),
+      quantity);
+    if (!transmission_plan.has_value()) {
+      return tl::make_unexpected(transmission_plan.error());
+    }
+
+    plan.segments.push_back(JointMapPlanSegment{
+      std::move(grouped_output_indices),
+      *transmission_plan
+    });
+  }
+
+  if (plan.segments.empty()) {
+    return tl::make_unexpected(
+      "No joint map plan found for inputs [" + join_joint_ids(input_joint_ids) +
+      "] and outputs [" + join_joint_ids(output_joint_ids) + "]");
+  }
+
+  return plan;
+}
+
 } // namespace arm_kinematics

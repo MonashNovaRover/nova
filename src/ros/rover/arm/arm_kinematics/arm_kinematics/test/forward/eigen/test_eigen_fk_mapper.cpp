@@ -10,6 +10,7 @@
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 #include "arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/joint_map/affine_joint_map.hpp"
+#include "arm_kinematics/joint_map/composite_joint_map.hpp"
 #include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
@@ -1851,6 +1852,124 @@ TEST(JointMapStage2Tests, GroupedJointMapCopyRetainsBehavior)
 
   EXPECT_EQ(original_outputs, copy_outputs);
   EXPECT_NEAR(copy_outputs[0], 3.25F, EPSILON);
+}
+
+TEST(JointMapStage2Tests, BuildsParallelAffineAndGroupedJointMapPlan)
+{
+  TransmissionAnalysis analysis{};
+  analysis.add_affine_transmission("driver_joint", "follower_joint", 2.0F, 1.0F);
+
+  const auto model_id = analysis.add_model(std::make_unique<TestRuntimeTransmissionModel>(3.0F, 0.25F));
+  const std::vector<std::string> grouped_inputs{"motor_joint"};
+  const std::vector<std::string> grouped_outputs{"driven_joint"};
+  analysis.add_transmission(
+    model_id,
+    arm_kinematics::span<const std::string>(grouped_inputs),
+    arm_kinematics::span<const std::string>(grouped_outputs),
+    "grouped");
+
+  const auto & joint_ids = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{
+    joint_ids["motor_joint"],
+    joint_ids["driver_joint"]
+  };
+  const std::vector<arm_kinematics::JointId> output_ids{
+    joint_ids["driven_joint"],
+    joint_ids["follower_joint"]
+  };
+
+  const auto joint_map_plan = arm_kinematics::make_joint_map_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    JointQuantity::Position);
+
+  ASSERT_TRUE(joint_map_plan.has_value()) << joint_map_plan.error();
+  ASSERT_EQ(joint_map_plan->segments.size(), 2u);
+  EXPECT_EQ(joint_map_plan->segments[0].output_indices, std::vector<size_t>({1u}));
+  EXPECT_EQ(joint_map_plan->segments[1].output_indices, std::vector<size_t>({0u}));
+  EXPECT_TRUE(std::holds_alternative<arm_kinematics::AffinePlan>(joint_map_plan->segments[0].plan));
+  EXPECT_TRUE(std::holds_alternative<arm_kinematics::TransmissionPlan>(joint_map_plan->segments[1].plan));
+}
+
+TEST(JointMapStage2Tests, TransmissionAnalysisJointMapBuilderBuildsAndExecutesMixedCompositeMap)
+{
+  TransmissionAnalysis analysis{};
+  analysis.add_affine_transmission("driver_joint", "follower_joint", 2.0F, 1.0F);
+
+  const auto model_id = analysis.add_model(std::make_unique<TestRuntimeTransmissionModel>(3.0F, 0.25F));
+  const std::vector<std::string> grouped_inputs{"motor_joint"};
+  const std::vector<std::string> grouped_outputs{"driven_joint"};
+  analysis.add_transmission(
+    model_id,
+    arm_kinematics::span<const std::string>(grouped_inputs),
+    arm_kinematics::span<const std::string>(grouped_outputs),
+    "grouped");
+
+  const auto result = TransmissionAnalysisJointMapBuilder(analysis).build_expected(
+    {"motor_joint", "driver_joint"},
+    {"driven_joint", "follower_joint"},
+    JointQuantity::Position);
+
+  ASSERT_TRUE(result.has_value()) << result.error();
+  ASSERT_EQ(result->input_count(), 2u);
+  ASSERT_EQ(result->output_count(), 2u);
+
+  std::vector<double> inputs{2.0, 4.0};
+  std::vector<float> outputs(2, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 6.25F, EPSILON);
+  EXPECT_NEAR(outputs[1], 9.0F, EPSILON);
+}
+
+TEST(JointMapStage2Tests, CompileJointMapPlanSupportsSingleSegmentWithNonIdentityOutputIndices)
+{
+  TransmissionAnalysis analysis{};
+  analysis.ensure_joint_id("joint_a");
+  analysis.ensure_joint_id("joint_b");
+
+  arm_kinematics::AffinePlan affine_plan{};
+  affine_plan.input_joint_ids = {analysis.joint_order()["joint_a"], analysis.joint_order()["joint_b"]};
+  affine_plan.output_joint_ids = {analysis.joint_order()["joint_a"], analysis.joint_order()["joint_b"]};
+  affine_plan.stages = {
+    arm_kinematics::AffinePlanStage{
+      analysis.joint_order()["joint_a"],
+      analysis.joint_order()["joint_a"],
+      0,
+      1.0F,
+      0.0F
+    },
+    arm_kinematics::AffinePlanStage{
+      analysis.joint_order()["joint_b"],
+      analysis.joint_order()["joint_b"],
+      1,
+      1.0F,
+      0.0F
+    }
+  };
+
+  arm_kinematics::JointMapPlan joint_map_plan{};
+  joint_map_plan.input_joint_ids = affine_plan.input_joint_ids;
+  joint_map_plan.output_joint_ids = {analysis.joint_order()["joint_b"], analysis.joint_order()["joint_a"]};
+  joint_map_plan.segments.push_back(arm_kinematics::JointMapPlanSegment{
+    {1u, 0u},
+    affine_plan
+  });
+
+  const auto result = arm_kinematics::compile_joint_map_plan_expected(
+    analysis,
+    joint_map_plan,
+    JointQuantity::Position);
+
+  ASSERT_TRUE(result.has_value()) << result.error();
+
+  std::vector<double> inputs{2.0, 5.0};
+  std::vector<float> outputs(2, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 5.0F, EPSILON);
+  EXPECT_NEAR(outputs[1], 2.0F, EPSILON);
 }
 
 // Small helper for comparing isometries

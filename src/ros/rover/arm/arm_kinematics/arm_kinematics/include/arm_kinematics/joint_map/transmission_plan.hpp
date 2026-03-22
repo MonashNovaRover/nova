@@ -6,6 +6,7 @@
 #define ARM_KINEMATICS_TRANSMISSION_PLAN_HPP
 
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
@@ -42,8 +43,22 @@ struct TransmissionPlan {
   std::vector<TransmissionPlanStage> stages{};
 };
 
+using JointMapPlanSegmentPlan = std::variant<AffinePlan, TransmissionPlan>;
+
+struct JointMapPlanSegment {
+  std::vector<size_t> output_indices{};
+  JointMapPlanSegmentPlan plan{};
+};
+
+struct JointMapPlan {
+  std::vector<JointId> input_joint_ids{};
+  std::vector<JointId> output_joint_ids{};
+  std::vector<JointMapPlanSegment> segments{};
+};
+
 using MakeTransmissionPlanResult = tl::expected<TransmissionPlan, std::string>;
 using MakeAffinePlanResult = tl::expected<AffinePlan, std::string>;
+using MakeJointMapPlanResult = tl::expected<JointMapPlan, std::string>;
 
 [[nodiscard]] MakeAffinePlanResult make_affine_plan_expected(
   const TransmissionAnalysis & analysis,
@@ -51,6 +66,12 @@ using MakeAffinePlanResult = tl::expected<AffinePlan, std::string>;
   span<const JointId> output_joint_ids);
 
 [[nodiscard]] MakeTransmissionPlanResult make_transmission_plan_expected(
+  const TransmissionAnalysis & analysis,
+  span<const JointId> input_joint_ids,
+  span<const JointId> output_joint_ids,
+  JointQuantity quantity);
+
+[[nodiscard]] MakeJointMapPlanResult make_joint_map_plan_expected(
   const TransmissionAnalysis & analysis,
   span<const JointId> input_joint_ids,
   span<const JointId> output_joint_ids,

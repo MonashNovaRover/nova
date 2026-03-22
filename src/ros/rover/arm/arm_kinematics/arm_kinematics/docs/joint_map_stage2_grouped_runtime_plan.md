@@ -33,6 +33,11 @@ The codebase now has:
 - grouped ambiguity handling across multiple candidate plans
 - builder-level grouped orchestration through `DefaultJointMapBuilder`
 - builder-level grouped execution and copy-semantics test coverage
+- request-level mixed `JointMapPlan` support for the first clean mixed case:
+  - one affine segment
+  - one grouped segment
+  - both consuming the same caller input space
+- `CompositeJointMap` runtime support for compiling and executing that first mixed case
 - `ForwardKinematicsPlugin` as the authoritative seam for the `TransmissionAnalysis` its builders consume
 - `RobotModel` reduced to a lazy shared default `TransmissionAnalysis` cache
 - builder cache invalidation when an FK plugin switches which `TransmissionAnalysis` object it exposes
@@ -62,6 +67,7 @@ This runtime path now supports:
 - stage-to-stage dataflow through a compiled value buffer
 - builder-produced grouped `JointMap` instances
 - grouped `JointMap` copy semantics through cloned `ComputeTransmission` stages
+- parallel mixed affine/grouped requests compiled into a `CompositeJointMap`
 
 ## Design Constraints
 
@@ -95,10 +101,12 @@ note.
 
 The most important remaining items are:
 
-1. continue Stage 2.1 failure-mode coverage for the generic ros2_control plugin wrapper path
-2. decide whether any ros2_control plugin metadata inspection beyond declared type names should be exposed on the
-   shared loader/cache
-3. keep quantity-specific behavior explicit as ros2_control-backed support broadens
+1. extend mixed planning beyond the current parallel split so later grouped stages can depend on earlier affine or
+   grouped results
+2. decide whether the next clean representation should be:
+   - a more general staged `JointMapPlan`
+   - or a distinct mixed execution plan type once true sequencing is needed
+3. continue Stage 2.1 failure-mode coverage for the generic ros2_control plugin wrapper path where useful
 4. avoid reintroducing concrete per-plugin transmission math into `arm_kinematics`
 
 Longer-term direction beyond this focused note:
