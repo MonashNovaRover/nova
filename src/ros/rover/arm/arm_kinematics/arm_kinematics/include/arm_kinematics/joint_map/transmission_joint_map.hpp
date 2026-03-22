@@ -24,6 +24,12 @@ struct CompiledTransmissionStage {
   std::vector<size_t> output_indices{};
   size_t scratch_offset = 0;
   size_t scratch_size = 0;
+
+  CompiledTransmissionStage() = default;
+  CompiledTransmissionStage(CompiledTransmissionStage &&) noexcept = default;
+  CompiledTransmissionStage & operator=(CompiledTransmissionStage &&) noexcept = default;
+  CompiledTransmissionStage(const CompiledTransmissionStage &) = delete;
+  CompiledTransmissionStage & operator=(const CompiledTransmissionStage &) = delete;
 };
 
 struct CompiledTransmissionPlan {
@@ -31,6 +37,12 @@ struct CompiledTransmissionPlan {
   size_t output_count = 0;
   size_t scratch_size = 0;
   std::vector<CompiledTransmissionStage> stages{};
+
+  CompiledTransmissionPlan() = default;
+  CompiledTransmissionPlan(CompiledTransmissionPlan &&) noexcept = default;
+  CompiledTransmissionPlan & operator=(CompiledTransmissionPlan &&) noexcept = default;
+  CompiledTransmissionPlan(const CompiledTransmissionPlan &) = delete;
+  CompiledTransmissionPlan & operator=(const CompiledTransmissionPlan &) = delete;
 };
 
 using CompileTransmissionPlanResult = tl::expected<CompiledTransmissionPlan, std::string>;
@@ -42,7 +54,7 @@ using CompileTransmissionPlanResult = tl::expected<CompiledTransmissionPlan, std
 
 class ARM_KINEMATICS_PUBLIC TransmissionJointMap {
 public:
-  explicit TransmissionJointMap(CompiledTransmissionPlan compiled_plan);
+  explicit TransmissionJointMap(CompiledTransmissionPlan && compiled_plan);
 
   void map(span<const double> inputs, span<float> outputs) const;
 

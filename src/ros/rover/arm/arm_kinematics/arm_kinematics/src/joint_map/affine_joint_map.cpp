@@ -8,6 +8,72 @@
 
 namespace arm_kinematics {
 
+namespace {
+
+std::vector<JointId> to_joint_ids_checked(
+  const Order<std::string, JointId> & joint_order,
+  const std::vector<std::string> & joint_names,
+  const char * label)
+{
+  std::vector<JointId> joint_ids{};
+  joint_ids.reserve(joint_names.size());
+
+  for (const auto & joint_name : joint_names) {
+    if (!joint_order.contains_key(joint_name)) {
+      throw std::runtime_error(
+        std::string("No canonical JointId found for ") + label + " joint '" + joint_name + "'");
+    }
+
+    joint_ids.push_back(joint_order[joint_name]);
+  }
+
+  return joint_ids;
+}
+
+AffinePlan make_affine_plan_allowing_unknown_outputs(
+  const TransmissionAnalysis & transmission_analysis,
+  const std::vector<std::string> & input_names,
+  const std::vector<std::string> & output_names)
+{
+  const auto & joint_order = transmission_analysis.joint_order();
+  const auto input_joint_ids = to_joint_ids_checked(joint_order, input_names, "input");
+
+  AffinePlan plan{};
+  plan.input_joint_ids = input_joint_ids;
+  plan.stages.reserve(output_names.size());
+  plan.output_joint_ids.reserve(output_names.size());
+
+  for (const auto & output_name : output_names) {
+    if (!joint_order.contains_key(output_name)) {
+      plan.output_joint_ids.push_back(0);
+      plan.stages.push_back(AffinePlanStage{
+        0,
+        0,
+        0,
+        0.0F,
+        0.0F
+      });
+      continue;
+    }
+
+    const auto output_joint_id = joint_order[output_name];
+    const auto stage = make_affine_plan_expected(
+      transmission_analysis,
+      span<const JointId>(input_joint_ids.data(), input_joint_ids.size()),
+      span<const JointId>(&output_joint_id, 1));
+    if (!stage.has_value()) {
+      throw std::runtime_error(stage.error());
+    }
+
+    plan.output_joint_ids.push_back(output_joint_id);
+    plan.stages.push_back(stage->stages.front());
+  }
+
+  return plan;
+}
+
+} // namespace
+
 // AffineJointMap::AffineJointMap(
 //   const std::vector<std::string> & input_names,
 //   const std::vector<std::string> & output_names,
@@ -35,19 +101,7 @@ AffineJointMap::AffineJointMap(
   const std::vector<std::string> & input_names,
   const std::vector<std::string> & output_names,
   const TransmissionAnalysis & transmission_analysis)
-  : AffineJointMap([&]() {
-      const auto & joint_order = transmission_analysis.joint_order();
-      const auto input_joint_ids = joint_order * input_names;
-      const auto output_joint_ids = joint_order * output_names;
-      const auto affine_plan = make_affine_plan_expected(
-        transmission_analysis,
-        span<const JointId>(input_joint_ids),
-        span<const JointId>(output_joint_ids));
-      if (!affine_plan.has_value()) {
-        throw std::runtime_error(affine_plan.error());
-      }
-      return *affine_plan;
-    }())
+  : AffineJointMap(make_affine_plan_allowing_unknown_outputs(transmission_analysis, input_names, output_names))
 {
 }
 

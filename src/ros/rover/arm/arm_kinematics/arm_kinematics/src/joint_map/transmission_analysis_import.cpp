@@ -374,6 +374,10 @@ void add_mimic_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const urdf::Model & urdf_model)
 {
+  for (const auto & [joint_name, _] : urdf_model.joints_) {
+    transmission_analysis.ensure_joint_id(joint_name);
+  }
+
   std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> raw_affine_transmissions{};
 
   for (const auto & [joint_name, joint] : urdf_model.joints_) {

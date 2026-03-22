@@ -48,6 +48,15 @@ tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
     [output_joint_id](const TransmissionAnalysis::AffineTransmission & affine_transmission) {
       return affine_transmission.target_joint_id == output_joint_id;
     });
+  if (affine_it == affine_transmissions.end() && input_joint_ids.empty()) {
+    return AffinePlanStage{
+      output_joint_id,
+      output_joint_id,
+      0,
+      0.0F,
+      0.0F
+    };
+  }
   if (affine_it == affine_transmissions.end()) {
     return tl::make_unexpected("No affine plan found for output joint " + std::to_string(output_joint_id));
   }

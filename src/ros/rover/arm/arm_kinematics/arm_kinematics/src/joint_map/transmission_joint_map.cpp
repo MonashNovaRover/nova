@@ -78,20 +78,22 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
       stage.direction,
       span<const JointId>(stage.consumed_joint_ids),
       span<const JointId>(stage.produced_joint_ids));
+    const auto stage_scratch_size = compute->scratch_size();
 
     compiled_plan.stages.push_back(CompiledTransmissionStage{
       std::move(compute),
       std::move(*input_indices),
       std::move(*output_indices),
       compiled_plan.scratch_size,
-      0
+      stage_scratch_size
     });
+    compiled_plan.scratch_size += stage_scratch_size;
   }
 
   return compiled_plan;
 }
 
-TransmissionJointMap::TransmissionJointMap(CompiledTransmissionPlan compiled_plan)
+TransmissionJointMap::TransmissionJointMap(CompiledTransmissionPlan && compiled_plan)
   : compiled_plan_(std::move(compiled_plan))
 {
   workspace_ = make_workspace();

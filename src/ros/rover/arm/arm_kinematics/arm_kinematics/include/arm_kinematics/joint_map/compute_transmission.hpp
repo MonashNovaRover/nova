@@ -21,6 +21,7 @@ public:
     span<float> outputs,
     span<float> scratch) const = 0;
 
+  [[nodiscard]] virtual size_t scratch_size() const noexcept = 0;
   [[nodiscard]] virtual std::unique_ptr<ComputeTransmission> clone() const = 0;
 };
 
