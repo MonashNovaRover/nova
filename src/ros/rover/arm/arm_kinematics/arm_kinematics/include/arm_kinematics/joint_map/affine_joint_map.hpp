@@ -12,6 +12,7 @@
 #include <urdf/model.h>
 
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
+#include "arm_kinematics/joint_map/transmission_plan.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/visibility_control.h"
 
@@ -48,6 +49,11 @@ public:
     const std::vector<std::string> & input_names,
     const std::vector<std::string> & output_names,
     const TransmissionAnalysis & transmission_analysis);
+
+  /**
+   * Constructs an affine runtime map directly from a compiled affine plan.
+   */
+  explicit AffineJointMap(const AffinePlan & affine_plan);
 
   /// Creates an identity affine map for an N-element joint space.
   static AffineJointMap identity(size_t element_count);

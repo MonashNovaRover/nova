@@ -35,31 +35,34 @@ AffineJointMap::AffineJointMap(
   const std::vector<std::string> & input_names,
   const std::vector<std::string> & output_names,
   const TransmissionAnalysis & transmission_analysis)
-  : input_count_(input_names.size()),
-    output_count_(output_names.size())
+  : AffineJointMap([&]() {
+      const auto & joint_order = transmission_analysis.joint_order();
+      const auto input_joint_ids = joint_order * input_names;
+      const auto output_joint_ids = joint_order * output_names;
+      const auto affine_plan = make_affine_plan_expected(
+        transmission_analysis,
+        span<const JointId>(input_joint_ids),
+        span<const JointId>(output_joint_ids));
+      if (!affine_plan.has_value()) {
+        throw std::runtime_error(affine_plan.error());
+      }
+      return *affine_plan;
+    }())
+{
+}
+
+AffineJointMap::AffineJointMap(const AffinePlan & affine_plan)
+  : input_count_(affine_plan.input_joint_ids.size()),
+    output_count_(affine_plan.output_joint_ids.size())
 {
   sources_.reserve(output_count_);
   multipliers_.reserve(output_count_);
   offsets_.reserve(output_count_);
 
-  const auto & joint_order = transmission_analysis.joint_order();
-  const auto input_joint_ids = joint_order * input_names;
-  const auto output_joint_ids = joint_order * output_names;
-
-  for (const auto output_joint_id : output_joint_ids) {
-    float multiplier = 1.0F;
-    float offset = 0.0F;
-
-    const auto source = find_source(
-      input_joint_ids,
-      transmission_analysis.affine_transmissions(),
-      output_joint_id,
-      multiplier,
-      offset);
-
-    sources_.push_back(source);
-    multipliers_.push_back(multiplier);
-    offsets_.push_back(offset);
+  for (const auto & stage : affine_plan.stages) {
+    sources_.push_back(stage.source_input_index);
+    multipliers_.push_back(stage.multiplier);
+    offsets_.push_back(stage.offset);
   }
 }
 

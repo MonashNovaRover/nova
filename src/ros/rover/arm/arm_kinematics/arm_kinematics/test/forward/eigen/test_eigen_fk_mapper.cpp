@@ -584,6 +584,78 @@ TEST(TransmissionAnalysisTests, AffinePlannerComposesAffineTransmissionChains)
   EXPECT_FLOAT_EQ(plan->stages.front().offset, 0.5F);
 }
 
+TEST(TransmissionAnalysisTests, AffineJointMapExecutesCompiledAffinePlan)
+{
+  TransmissionAnalysis analysis{};
+  analysis.add_affine_transmission("driver_joint", "follower_joint", -2.0F, 0.5F);
+
+  const auto & joint_ids = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["driver_joint"], joint_ids["follower_joint"]};
+  const auto plan = arm_kinematics::make_affine_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+
+  ASSERT_TRUE(plan.has_value());
+
+  AffineJointMap map(*plan);
+  std::vector<double> inputs{1.5};
+  std::vector<float> outputs(2);
+  map.map(inputs, outputs);
+
+  ASSERT_EQ(map.input_count(), 1u);
+  ASSERT_EQ(map.output_count(), 2u);
+  EXPECT_NEAR(outputs[0], 1.5, EPSILON);
+  EXPECT_NEAR(outputs[1], -2.5, EPSILON);
+}
+
+TEST(TransmissionAnalysisTests, AffineJointMapExecutesCompiledAffineChainPlan)
+{
+  TransmissionAnalysis analysis{};
+  analysis.add_affine_transmission("driver_joint", "middle_joint", -2.0F, 0.5F);
+  analysis.add_affine_transmission("middle_joint", "follower_joint", 3.0F, -1.0F);
+
+  const auto & joint_ids = analysis.joint_order();
+  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const auto plan = arm_kinematics::make_affine_plan_expected(
+    analysis,
+    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+
+  ASSERT_TRUE(plan.has_value());
+
+  AffineJointMap map(*plan);
+  std::vector<double> inputs{1.5};
+  std::vector<float> outputs(1);
+  map.map(inputs, outputs);
+
+  ASSERT_EQ(map.input_count(), 1u);
+  ASSERT_EQ(map.output_count(), 1u);
+  EXPECT_NEAR(outputs[0], -8.5, EPSILON);
+}
+
+TEST(TransmissionAnalysisTests, AffineJointMapConstructsFromTransmissionAnalysisViaAffinePlanner)
+{
+  TransmissionAnalysis analysis{};
+  analysis.add_affine_transmission("driver_joint", "follower_joint", -2.0F, 0.5F);
+
+  AffineJointMap map(
+    {"driver_joint"},
+    {"driver_joint", "follower_joint"},
+    analysis);
+
+  std::vector<double> inputs{1.5};
+  std::vector<float> outputs(2);
+  map.map(inputs, outputs);
+
+  ASSERT_EQ(map.input_count(), 1u);
+  ASSERT_EQ(map.output_count(), 2u);
+  EXPECT_NEAR(outputs[0], 1.5, EPSILON);
+  EXPECT_NEAR(outputs[1], -2.5, EPSILON);
+}
+
 TEST(JointMapStage2Tests, BuildExpectedReportsPlannedTransmissionRuntimeAsUnimplemented)
 {
   DefaultJointMapBuilder builder{};
