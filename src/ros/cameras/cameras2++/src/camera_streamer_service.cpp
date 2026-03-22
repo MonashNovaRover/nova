@@ -121,6 +121,29 @@ class CameraStreamer : public rclcpp::Node
         }
         RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline_type.c_str(), camera.serial.c_str());
         this->pipelines[camera.serial] = pipeline;
+
+
+
+
+
+
+        std::map<std::string, rclcpp::Parameter> serial_params;
+
+        RCLCPP_INFO(this->get_logger(), "Getting props for %s TESTINGGGGGGGGG", camera.serial.c_str());
+        //props->serial = camera->serial;
+        //props->node = camera->node;
+
+        // override any defaults with params
+        std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera.serial;
+        //streamer_node->get_parameter_or<std::string>((camera_prefix + ".device").c_str(), props->device, props->node); 
+        //streamer_node->get_parameter_or((camera_prefix + ".width").c_str(), props->width, 1280);
+        
+        int width;
+        
+        this->get_parameter_or((camera_prefix + ".width").c_str(), width, 1280); 
+
+        RCLCPP_INFO(this->get_logger(), "Parameter width: %i", width);
+
       }
     }
   }

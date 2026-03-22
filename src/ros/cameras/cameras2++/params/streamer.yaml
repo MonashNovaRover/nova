@@ -13,7 +13,7 @@ camera_streamer:
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264software
         payload_quirk: true
-        width: 1920
+        width: 640
         height: 1080
         framerate: 30
 
