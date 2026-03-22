@@ -318,6 +318,26 @@ public:
   explicit Order(Order<TKey, TValue, OtherStoresInverse> && other) noexcept
     : inverse(std::move(other.inverse.data_), *this), data_(std::move(other.data_)) {}
 
+  Order & operator=(const Order & other) {
+    if (this == &other) {
+      return *this;
+    }
+
+    data_ = other.data_;
+    inverse.data_ = other.inverse.data_;
+    return *this;
+  }
+
+  Order & operator=(Order && other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+
+    data_ = std::move(other.data_);
+    inverse.data_ = std::move(other.inverse.data_);
+    return *this;
+  }
+
   // Forward copy assignment -- only enabled if StoresInverse
   template<bool OtherStoresInverse>
   Order & operator=(const Order<TKey, TValue, OtherStoresInverse> & other) {
