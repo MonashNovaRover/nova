@@ -165,25 +165,7 @@ This is important because:
 
 Introduce a lightweight transmission abstraction owned by `arm_kinematics`, not by ros2_control. ros2_control should shape the design in any way.
 
-Previously, we suggested this conceptual shape:
-
-```cpp
-using JointId = size_t; //< Always prefer
-
-template<typename TJoint>
-struct TransmissionDefinition {
-  std::vector<TJoint> inputs;
-  std::vector<TJoint> outputs;
-
-  using joint_type = TJoint;
-};
-
-using IndexedTransmissionDefinition = TransmissionDefinition<JointId>;
-/// Provided for API convenience. If you ever get a NamedTransmissionDefinition, immediately convert it to an IndexedTransmissionDefinition
-using NamedTransmissionDefinition = TransmissionDefinition<std::string>;
-```
-
-However, this can be dealt with function overloads, and does not need to introduce unnecessary complexity.
+However, this can be dealt with function overloads, and does not need to introduce unnecessary complexity through another class.
 ```
   void add_transmission(
     TransmissionModelId model_id,
@@ -263,6 +245,15 @@ using ModelId = size_t;
 
 class TransmissionAnalysis {
 public:
+  struct TransmissionInstance {
+    ModelId model_id = 0;
+    std::vector<JointId> input_joint_ids;
+    std::vector<JointId> output_joint_ids;
+  
+    std::string name;   //< only used for logging to give info about invalid configurations!
+    // forward and backward support determined by the TransmissionModel
+  };
+
   [[nodiscard]] const Order<std::string, JointId> & joint_ids() const noexcept;
   
   [[nodiscard]] const std::vector<std::unique_ptr<TransmissionModel>> & models() const noexcept;
@@ -287,14 +278,6 @@ public:
   JointId ensure_joint_id(const std::string & name);
   
 private:
-  struct TransmissionInstance {
-    ModelId model_id = 0;
-    std::vector<JointId> input_joint_ids;
-    std::vector<JointId> output_joint_ids;
-  
-    std::string name;   //< only used for logging to give info about invalid configurations!
-    // forward and backward support determined by the TransmissionModel
-  };
   // ...
 };
 ```
@@ -639,7 +622,6 @@ Still defer these beyond Stage 2 if needed:
 ## Recommended Execution Order
 
 1. Introduce `JointQuantity`, lightweight transmission definitions, and `TransmissionModel`.
-2. Introduce templated boundary definitions such as `TransmissionDefinition<TJoint>`, with named and indexed aliases.
 3. Introduce quantity-agnostic `TransmissionAnalysis` with one boundary `Order<std::string, JointId>` and contiguous `JointId`-based internal storage.
 4. Add `RobotModel` support for building and caching the whole-robot default `TransmissionAnalysis`.
 5. Add indexed structural request-planning structures derived from `TransmissionAnalysis`, introducing request-local `Order<>` objects only where actual buffer ordering/permutation needs to be modeled.

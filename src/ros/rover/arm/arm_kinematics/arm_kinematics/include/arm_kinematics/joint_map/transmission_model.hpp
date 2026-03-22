@@ -8,7 +8,6 @@
 #include <memory>
 
 #include "arm_kinematics/joint_map/compute_transmission.hpp"
-#include "arm_kinematics/joint_map/transmission_definition.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/visibility_control.h"
@@ -18,8 +17,6 @@ namespace arm_kinematics {
 class ARM_KINEMATICS_PUBLIC TransmissionModel {
 public:
   virtual ~TransmissionModel() = default;
-
-  [[nodiscard]] virtual const NamedTransmissionDefinition & definition() const noexcept = 0;
 
   [[nodiscard]] virtual bool can_build(
     JointQuantity quantity,

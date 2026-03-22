@@ -350,7 +350,7 @@ public:
   }
 
   [[nodiscard]] bool contains_key(const TKey & idx) const noexcept {
-    return detail::LookupStorage<TKey, TValue>::contains(data_, idx);
+    return detail::LookupStorage<TKey, TValue>::contains_key(data_, idx);
   }
 
   // Iteration over the indices

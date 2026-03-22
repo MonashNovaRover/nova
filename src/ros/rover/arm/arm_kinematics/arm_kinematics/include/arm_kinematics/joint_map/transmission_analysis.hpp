@@ -17,7 +17,7 @@
 namespace arm_kinematics {
 
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
-private:
+public:
   struct TransmissionInstance {
     TransmissionModelId model_id = 0;
     std::vector<JointId> input_joint_ids;
@@ -27,7 +27,6 @@ private:
     // forward and backward support determined by the TransmissionModel
   };
 
-public:
   TransmissionAnalysis() = default;
   TransmissionAnalysis(TransmissionAnalysis &&) noexcept = default;
   TransmissionAnalysis & operator=(TransmissionAnalysis &&) noexcept = default;
@@ -38,12 +37,10 @@ public:
   [[nodiscard]] const std::vector<std::unique_ptr<TransmissionModel>> & models() const noexcept { return models_; }
   TransmissionModelId add_model(std::unique_ptr<TransmissionModel> model);
 
-  // [[nodiscard]] bool empty() const noexcept { return transmissions_.empty(); } //< Use transmissions().empty() -- more explicit as to what is actually empty
   [[nodiscard]] const std::vector<TransmissionInstance> & transmissions() const noexcept { return transmissions_; }
 
   /// Canonical boundary mapping from named joints in descriptions to stable internal JointIds.
   [[nodiscard]] const Order<std::string, JointId> & joint_order() const noexcept { return joint_order_; }
-  // [[nodiscard]] bool contains_joint_id(JointId joint_id) const noexcept; //< Just use joint_order().inverse.contains_key()
   /// provides the JointID from joint_order_, adding it to the end of the order if it is not already present.
   JointId ensure_joint_id(const std::string & name);
 

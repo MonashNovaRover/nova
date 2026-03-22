@@ -25,16 +25,6 @@ struct BoundaryJointIds {
 
 class Ros2ControlTransmissionModel final : public TransmissionModel {
 public:
-  explicit Ros2ControlTransmissionModel(hardware_interface::TransmissionInfo info)
-  : definition_(to_definition(info))
-  {
-  }
-
-  [[nodiscard]] const NamedTransmissionDefinition * named_definition() const noexcept override
-  {
-    return &definition_;
-  }
-
   [[nodiscard]] bool can_build(
     const JointQuantity,
     const PropagationDirection) const noexcept override
@@ -50,29 +40,6 @@ public:
   {
     throw std::logic_error("Ros2ControlTransmissionModel::build() called before transmission runtime support exists");
   }
-
-private:
-  static NamedTransmissionDefinition to_definition(const hardware_interface::TransmissionInfo & info)
-  {
-    NamedTransmissionDefinition definition{};
-    definition.name = info.name;
-    definition.supports_forward = !info.actuators.empty() && !info.joints.empty();
-    definition.supports_reverse = false;
-
-    definition.inputs.reserve(info.actuators.size());
-    for (const auto & actuator : info.actuators) {
-      definition.inputs.push_back(actuator.name);
-    }
-
-    definition.outputs.reserve(info.joints.size());
-    for (const auto & joint : info.joints) {
-      definition.outputs.push_back(joint.name);
-    }
-
-    return definition;
-  }
-
-  NamedTransmissionDefinition definition_{};
 };
 
 std::string to_string(const JointQuantity quantity)
@@ -122,7 +89,7 @@ tl::expected<JointMap, std::string> DefaultJointMapBuilder::build_expected(
     const bool touches_transmission_analysis =
       input_ids.known_count > 0 || output_ids.known_count > 0;
 
-    if (touches_transmission_analysis && !transmission_analysis_.empty()) {
+    if (touches_transmission_analysis && !transmission_analysis_.transmissions().empty()) {
       return tl::make_unexpected(
         "Transmission-backed JointMap build for " + to_string(quantity) +
         " is recognized by the builder, but runtime transmission mapping is not implemented yet");
@@ -193,7 +160,27 @@ DefaultJointMapBuilder & DefaultJointMapBuilder::with_transmissions_dangerous(co
       if (std::string(kTransmissionTag) == ros2_control_child_it->Name()) {
         auto transmission = parse_transmission_from_xml(ros2_control_child_it);
         transmissions_.push_back(transmission);
-        with_transmission_model(std::make_unique<Ros2ControlTransmissionModel>(std::move(transmission)));
+
+        const auto model_id = transmission_analysis_.add_model(std::make_unique<Ros2ControlTransmissionModel>());
+
+        // TODO: Should we not just build std::vector<JointId> instead? We should have access to a TransmissionAnalysis object at this point
+        std::vector<std::string> input_names{};
+        input_names.reserve(transmission.actuators.size());
+        for (const auto & actuator : transmission.actuators) {
+          input_names.emplace_back(actuator.name);
+        }
+
+        std::vector<std::string> output_names{};
+        output_names.reserve(transmission.joints.size());
+        for (const auto & joint : transmission.joints) {
+          output_names.emplace_back(joint.name);
+        }
+
+        transmission_analysis_.add_transmission(
+          model_id,
+          span<const std::string>(input_names),
+          span<const std::string>(output_names),
+          transmission.name);
       }
 
       ros2_control_child_it = ros2_control_child_it->NextSiblingElement();

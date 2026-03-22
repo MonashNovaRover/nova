@@ -40,19 +40,9 @@ namespace {
 
 constexpr double EPSILON = 1e-7;
 
-class TestIndexedTransmissionModel final : public arm_kinematics::TransmissionModel
+class TestTransmissionModel final : public arm_kinematics::TransmissionModel
 {
 public:
-  explicit TestIndexedTransmissionModel(arm_kinematics::IndexedTransmissionDefinition definition)
-  : definition_(std::move(definition))
-  {
-  }
-
-  [[nodiscard]] const arm_kinematics::IndexedTransmissionDefinition * indexed_definition() const noexcept override
-  {
-    return &definition_;
-  }
-
   [[nodiscard]] bool can_build(
     arm_kinematics::JointQuantity,
     arm_kinematics::PropagationDirection) const noexcept override
@@ -66,44 +56,8 @@ public:
     arm_kinematics::span<const arm_kinematics::JointId>,
     arm_kinematics::span<const arm_kinematics::JointId>) const override
   {
-    throw std::logic_error("TestIndexedTransmissionModel::build() should not be called in this test");
+    throw std::logic_error("TestTransmissionModel::build() should not be called in this test");
   }
-
-private:
-  arm_kinematics::IndexedTransmissionDefinition definition_{};
-};
-
-class TestNamedTransmissionModel final : public arm_kinematics::TransmissionModel
-{
-public:
-  explicit TestNamedTransmissionModel(arm_kinematics::NamedTransmissionDefinition definition)
-  : definition_(std::move(definition))
-  {
-  }
-
-  [[nodiscard]] const arm_kinematics::NamedTransmissionDefinition * named_definition() const noexcept override
-  {
-    return &definition_;
-  }
-
-  [[nodiscard]] bool can_build(
-    arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection) const noexcept override
-  {
-    return false;
-  }
-
-  [[nodiscard]] std::unique_ptr<const arm_kinematics::ComputeTransmission> build(
-    arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection,
-    arm_kinematics::span<const arm_kinematics::JointId>,
-    arm_kinematics::span<const arm_kinematics::JointId>) const override
-  {
-    throw std::logic_error("TestNamedTransmissionModel::build() should not be called in this test");
-  }
-
-private:
-  arm_kinematics::NamedTransmissionDefinition definition_{};
 };
 
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
@@ -305,10 +259,11 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
   const TransmissionAnalysis & first = robot_model_->get_transmission_analysis();
   const TransmissionAnalysis & second = robot_model_->get_transmission_analysis();
   const auto & joint_ids = first.joint_order();
+  const auto & transmissions = first.transmissions();
 
   EXPECT_EQ(&first, &second);
   ASSERT_EQ(first.models().size(), 1u);
-  ASSERT_EQ(first.groups().size(), 1u);
+  ASSERT_EQ(transmissions.size(), 1u);
   ASSERT_TRUE(joint_ids.contains_key("motor_joint"));
   ASSERT_TRUE(joint_ids.contains_key("driven_joint"));
 
@@ -317,14 +272,13 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
   EXPECT_EQ(joint_ids.inverse[motor_id], "motor_joint");
   EXPECT_EQ(joint_ids.inverse[driven_id], "driven_joint");
 
-  const auto & group = first.groups().front();
-  ASSERT_EQ(group.model_id, 0u);
-  ASSERT_EQ(group.input_joint_ids.size(), 1u);
-  ASSERT_EQ(group.output_joint_ids.size(), 1u);
-  EXPECT_EQ(group.input_joint_ids.front(), motor_id);
-  EXPECT_EQ(group.output_joint_ids.front(), driven_id);
-  EXPECT_TRUE(group.supports_forward);
-  EXPECT_FALSE(group.supports_reverse);
+  const auto & transmission = transmissions.front();
+  ASSERT_EQ(transmission.model_id, 0u);
+  ASSERT_EQ(transmission.input_joint_ids.size(), 1u);
+  ASSERT_EQ(transmission.output_joint_ids.size(), 1u);
+  EXPECT_EQ(transmission.input_joint_ids.front(), motor_id);
+  EXPECT_EQ(transmission.output_joint_ids.front(), driven_id);
+  EXPECT_EQ(transmission.name, "main_transmission");
 }
 
 TEST_F(TransmissionUrdfTests, BuildExpectedReportsTransmissionRuntimeAsUnimplemented)
@@ -355,36 +309,34 @@ TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdg
   ASSERT_EQ(input_ids.size(), 1u);
   ASSERT_EQ(output_ids.size(), 1u);
 
-  const auto & group = analysis.groups().front();
-  EXPECT_EQ(group.input_joint_ids, input_ids);
-  EXPECT_EQ(group.output_joint_ids, output_ids);
+  const auto & transmission = analysis.transmissions().front();
+  EXPECT_EQ(transmission.input_joint_ids, input_ids);
+  EXPECT_EQ(transmission.output_joint_ids, output_ids);
 }
 
-TEST_F(TransmissionUrdfTests, IndexedTransmissionDefinitionsReuseCanonicalJointIds)
+TEST(TransmissionAnalysisTests, NamedAddTransmissionImmediatelyConvertsToJointIds)
 {
   TransmissionAnalysis analysis{};
-  arm_kinematics::NamedTransmissionDefinition named_definition{};
-  named_definition.name = "named_seed";
-  named_definition.inputs = {"motor_joint"};
-  named_definition.outputs = {"driven_joint"};
-  named_definition.supports_forward = true;
-  analysis.add_model(std::make_unique<TestNamedTransmissionModel>(std::move(named_definition)));
+  const auto model_id = analysis.add_model(std::make_unique<TestTransmissionModel>());
+
+  const std::vector<std::string> inputs{"motor_joint"};
+  const std::vector<std::string> outputs{"driven_joint"};
+  analysis.add_transmission(
+    model_id,
+    arm_kinematics::span<const std::string>(inputs),
+    arm_kinematics::span<const std::string>(outputs),
+    "named_seed");
 
   const auto & joint_ids = analysis.joint_order();
+  ASSERT_TRUE(joint_ids.contains_key("motor_joint"));
+  ASSERT_TRUE(joint_ids.contains_key("driven_joint"));
+  ASSERT_EQ(analysis.transmissions().size(), 1u);
 
-  arm_kinematics::IndexedTransmissionDefinition indexed_definition{};
-  indexed_definition.name = "indexed_passthrough";
-  indexed_definition.inputs = {joint_ids["motor_joint"]};
-  indexed_definition.outputs = {joint_ids["driven_joint"]};
-  indexed_definition.supports_forward = true;
-  analysis.add_model(std::make_unique<TestIndexedTransmissionModel>(std::move(indexed_definition)));
-
-  ASSERT_EQ(analysis.groups().size(), 2u);
-  const auto & indexed_group = analysis.groups().back();
-  EXPECT_EQ(indexed_group.input_joint_ids.size(), 1u);
-  EXPECT_EQ(indexed_group.output_joint_ids.size(), 1u);
-  EXPECT_EQ(indexed_group.input_joint_ids.front(), joint_ids["motor_joint"]);
-  EXPECT_EQ(indexed_group.output_joint_ids.front(), joint_ids["driven_joint"]);
+  const auto & transmission = analysis.transmissions().front();
+  EXPECT_EQ(transmission.model_id, model_id);
+  EXPECT_EQ(transmission.input_joint_ids.front(), joint_ids["motor_joint"]);
+  EXPECT_EQ(transmission.output_joint_ids.front(), joint_ids["driven_joint"]);
+  EXPECT_EQ(transmission.name, "named_seed");
 }
 
 // Small helper for comparing isometries

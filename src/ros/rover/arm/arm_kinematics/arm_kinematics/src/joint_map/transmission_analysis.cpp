@@ -14,15 +14,6 @@ TransmissionModelId TransmissionAnalysis::add_model(std::unique_ptr<Transmission
     throw std::invalid_argument("TransmissionAnalysis::add_model() received a null model");
 
   const auto model_id = models_.size();
-  if (const auto * definition = model->indexed_definition()) {
-    add_indexed_group(*definition, model_id);
-  } else if (const auto * definition = model->named_definition()) {
-    add_named_group(*definition, model_id);
-  } else {
-    throw std::invalid_argument(
-      "TransmissionAnalysis::add_model() received a TransmissionModel without a named or indexed definition");
-  }
-
   models_.push_back(std::move(model));
   return model_id;
 }
@@ -33,25 +24,41 @@ void TransmissionAnalysis::add_transmission(
   std::vector<JointId> && outputs,
   std::string name)
 {
-  // TODO
+  if (model_id >= models_.size()) {
+    throw std::invalid_argument(
+      "TransmissionAnalysis::add_transmission() received a model_id that is not present in models()");
+  }
 
+  transmissions_.push_back(TransmissionInstance{
+    model_id,
+    std::move(inputs),
+    std::move(outputs),
+    std::move(name)
+  });
 }
 
 void TransmissionAnalysis::add_transmission(
   const TransmissionModelId model_id,
-  const span<const std::string> && inputs,
-  const span<const std::string> && outputs,
+  const span<const std::string> inputs,
+  const span<const std::string> outputs,
   std::string name)
 {
-  std::vector<JointId> inputIds;
-  std::vector<JointId> outputIds;
+  std::vector<JointId> input_ids{};
+  input_ids.reserve(inputs.size());
+  for (const auto & input_name : inputs) {
+    input_ids.emplace_back(ensure_joint_id(input_name));
+  }
 
-  // TODO: fill above vectors with ensure_joint_id on inputs and outputs. remember to reserve the correct size.
+  std::vector<JointId> output_ids{};
+  output_ids.reserve(outputs.size());
+  for (const auto & output_name : outputs) {
+    output_ids.emplace_back(ensure_joint_id(output_name));
+  }
 
   add_transmission(
     model_id,
-    std::move(inputIds),
-    std::move(outputIds),
+    std::move(input_ids),
+    std::move(output_ids),
     std::move(name));
 }
 
