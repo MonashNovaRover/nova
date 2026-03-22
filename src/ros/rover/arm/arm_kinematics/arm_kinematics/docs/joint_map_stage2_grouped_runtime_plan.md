@@ -21,26 +21,22 @@ The codebase now has:
 
 What is still missing is the grouped runtime execution side:
 
-- no compiled grouped stage representation
-- no compiled grouped plan representation
-- no grouped runtime `JointMap` implementation
-- no adapter from `TransmissionPlan` to runtime compute stages
+- no validation yet for nonzero scratch layout
+- no proof yet that runtime scratch is reused correctly across calls
+- no support yet for multi-stage grouped plans
+- no support yet for stage-to-stage dataflow beyond the current direct single-stage case
 
-## Next Implementation Step
+## Current Runtime Scope
 
-The next step is to implement the first grouped runtime execution structures independent of `DefaultJointMapBuilder`.
+The codebase now has:
 
-That step should:
+1. `CompiledTransmissionStage`
+2. `CompiledTransmissionPlan`
+3. `TransmissionJointMap`
+4. a compiler from `TransmissionPlan` to `CompiledTransmissionPlan`
+5. scratch sizing via `ComputeTransmission::scratch_size()`
 
-1. define a compiled grouped stage type around `ComputeTransmission`
-2. define a compiled grouped plan type with:
-   - input count
-   - output count
-   - scratch size
-   - compiled stages
-3. define a grouped runtime map type that executes the compiled grouped plan
-4. keep all of this indexed and preallocated
-5. avoid introducing names or `JointQuantity` into runtime execution
+This runtime path is intentionally limited to the current direct single-stage grouped plan case.
 
 ## Design Constraints
 
@@ -51,12 +47,24 @@ That step should:
 - runtime execution should not do string lookup
 - `DefaultJointMapBuilder` should not become the design center for this work
 
+## Next Implementation Step
+
+The next incremental step is to validate the grouped runtime contract before broadening planner scope.
+
+That step should:
+
+1. add a grouped runtime test with nonzero scratch
+2. verify `compile_transmission_plan_expected(...)` assigns:
+   - per-stage `scratch_offset`
+   - per-stage `scratch_size`
+   - total `CompiledTransmissionPlan::scratch_size`
+3. verify `TransmissionJointMap` reuses the owned scratch workspace across repeated calls
+4. keep the implementation limited to the current direct single-stage grouped case
+
 ## Recommended Order
 
-1. add `CompiledTransmissionStage`
-2. add `CompiledTransmissionPlan`
-3. add `TransmissionJointMap`
-4. add a first compiler helper from `TransmissionPlan` to `CompiledTransmissionPlan`
-5. keep the compiler limited to the current direct single-stage grouped plan case
-6. add tests around grouped plan compilation and runtime execution
-7. only later integrate that into the builder
+1. add a test `ComputeTransmission` with nonzero scratch requirements
+2. assert compiled scratch layout in tests
+3. assert runtime execution correctness using scratch-backed compute
+4. only after that, broaden the planner/compiler toward multi-stage grouped execution
+5. keep `DefaultJointMapBuilder` out of that work until the grouped path is structurally complete
