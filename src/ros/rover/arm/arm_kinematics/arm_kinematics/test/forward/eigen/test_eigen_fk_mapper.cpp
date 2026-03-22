@@ -272,6 +272,33 @@ private:
   TransmissionAnalysis second_analysis_{};
 };
 
+class TestAugmentingAnalysisEigenForwardKinematicsPlugin final : public EigenForwardKinematicsPlugin
+{
+public:
+  [[nodiscard]] const TransmissionAnalysis & get_transmission_analysis() const noexcept override
+  {
+    if (!transmission_analysis_) {
+      transmission_analysis_ = std::make_unique<TransmissionAnalysis>(
+        get_robot_model().get_default_transmission_analysis());
+
+      const auto model_id = transmission_analysis_->add_model(
+        std::make_unique<TestRuntimeTransmissionModel>(3.0F, -0.5F));
+      const std::vector<std::string> input_names{"aux_motor_joint"};
+      const std::vector<std::string> output_names{"aux_driven_joint"};
+      transmission_analysis_->add_transmission(
+        model_id,
+        arm_kinematics::span<const std::string>(input_names),
+        arm_kinematics::span<const std::string>(output_names),
+        "plugin_extension");
+    }
+
+    return *transmission_analysis_;
+  }
+
+private:
+  mutable std::unique_ptr<TransmissionAnalysis> transmission_analysis_{};
+};
+
 static void ExpectVectorNear(const Eigen::Vector3f & actual,
                              const Eigen::Vector3f & expected,
                              const char * message = "", double tol = EPSILON)
@@ -759,6 +786,34 @@ TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginRebuildsCached
     {"joint_b"},
     JointQuantity::Position);
   ASSERT_TRUE(result.has_value()) << result.error();
+}
+
+TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginCanAugmentSharedDefaultAnalysis)
+{
+  auto plugin = std::make_shared<TestAugmentingAnalysisEigenForwardKinematicsPlugin>();
+  ASSERT_TRUE(plugin->initialize(*node_, *robot_model_, kinematics_params_));
+
+  const auto default_result = plugin->get_joint_map_builder().build_expected(
+    {"motor_joint"},
+    {"driven_joint"},
+    JointQuantity::Position);
+  ASSERT_TRUE(default_result.has_value()) << default_result.error();
+
+  std::vector<double> default_inputs{1.0};
+  std::vector<float> default_outputs(1, 0.0F);
+  default_result->map(default_inputs, default_outputs);
+  EXPECT_NEAR(default_outputs[0], 0.75F, EPSILON);
+
+  const auto augmented_result = plugin->get_joint_map_builder().build_expected(
+    {"aux_motor_joint"},
+    {"aux_driven_joint"},
+    JointQuantity::Position);
+  ASSERT_TRUE(augmented_result.has_value()) << augmented_result.error();
+
+  std::vector<double> augmented_inputs{2.0};
+  std::vector<float> augmented_outputs(1, 0.0F);
+  augmented_result->map(augmented_inputs, augmented_outputs);
+  EXPECT_NEAR(augmented_outputs[0], 5.5F, EPSILON);
 }
 
 TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdge)

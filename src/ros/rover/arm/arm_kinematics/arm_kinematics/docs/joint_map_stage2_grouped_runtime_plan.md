@@ -29,6 +29,10 @@ The codebase now has:
 - `ForwardKinematicsPlugin` as the authoritative seam for the `TransmissionAnalysis` its builders consume
 - `RobotModel` reduced to a lazy shared default `TransmissionAnalysis` cache
 - builder cache invalidation when an FK plugin switches which `TransmissionAnalysis` object it exposes
+- FK-plugin test coverage for:
+  - reusing the shared default analysis
+  - switching to a different analysis object
+  - augmenting the shared default analysis with plugin-local transmission structure
 
 What is still missing is the grouped runtime execution side:
 
@@ -89,7 +93,6 @@ The most important remaining items are:
 3. decide which additional ros2_control transmission forms should receive real grouped runtime implementations next
 4. decide whether any reusable concrete `TransmissionModel` implementations should be promoted out of import-time
    internals
-5. add plugin-extension coverage where FK plugins augment, rather than only replace, the shared default analysis
 
 Longer-term direction beyond this focused note:
 
