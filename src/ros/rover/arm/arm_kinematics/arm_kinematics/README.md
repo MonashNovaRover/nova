@@ -43,7 +43,14 @@ No single controller should have to opt into all of these systems, and should be
 It maps joint values in the functional programming sense, not like a hashmap.
 
 - It reorders joint values from the order your controller defines into an order that is efficient for the kinematics algorithms.
-- It is also able to apply transmissions and mimic joints. Get this from your FK plugin, as the FK plugin might include addition transmissions.
+- It is also able to apply transmissions and mimic joints. Get this from your FK plugin, as the FK plugin might include additional transmissions.
+
+Maintain this distinction carefully:
+
+- `TransmissionAnalysis` is the semantic owner of transmission structure, including affine transmission relationships derived from mimic joints.
+- `TransmissionModel` is only for grouped non-affine transmission compute that may need quantity-specific build behavior.
+- Mimics should be normalized during analysis into affine transmission relationships, not modeled through `TransmissionModel`.
+- `AffineJointMap` is the fast compiled execution form for reorder and affine transmission cases. It is not where mimic semantics should originate.
 
 ## Setup-Time Work Versus Runtime Work
 
@@ -52,7 +59,7 @@ Always keep structural work out of the real-time path.
 Setup-time work includes:
 
 - parsing the URDF
-- discovering mimic joints
+- discovering mimic joints and normalizing them into affine transmission relationships
 - parsing transmission metadata
 - reducing trees to the requested joints and frames
 - sorting joints and frames into compute order

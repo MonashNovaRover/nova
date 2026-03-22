@@ -78,6 +78,7 @@ Stage 2 covers:
 
 - introducing a robot-wide `TransmissionAnalysis` cache
 - defining indexed joint-to-joint transmission analysis data structures
+- defining affine transmission analysis data for mimic relationships
 - defining quantity-aware build-time selection for position and velocity
 - defining directionality and reversibility rules
 - defining grouped transmission execution semantics
@@ -98,6 +99,7 @@ Stage 2 must not:
 - require ros2_control headers or types inside the core runtime transmission map
 - keep names alive in runtime mapping structures where ids would suffice
 - silently invent a mapping for ambiguous requests
+- force affine transmission or mimic handling through `TransmissionModel`
 
 Ensure:
 - Where a name Order<std::string, id> is present, always immediately convert given named representations to indexed 
@@ -138,6 +140,11 @@ For transmissions, the equivalent should be `TransmissionAnalysis`.
 In the revised design, `TransmissionAnalysis` should capture only structural joint relationships.
 Quantity should not change the cached analysis topology, and is not involved in `TransmissionAnalysis`'s responsibilities.
 It should only affect whether a builder can compile a requested `JointMap` from that topology.
+
+This includes mimic joints.
+Mimic joints should be treated as affine transmissions during setup-time analysis, not as builder-local rewrite rules.
+However, they should not be represented through `TransmissionModel`.
+They should use dedicated affine analysis structures so the planner can still compile the affine fast path directly.
 
 ## Proposed Stage 2 Architecture
 
@@ -225,6 +232,10 @@ Important properties:
 - implementations may share logic between position and velocity where appropriate
 - build products should be returned as `std::unique_ptr` and treated as move-only by default
 
+This interface is for non-affine transmission compute only.
+Affine transmission relationships, including normalized mimic chains, should not be modeled through `TransmissionModel`.
+They should be stored directly in `TransmissionAnalysis` so they can compile to `AffineJointMap` without introducing runtime transmission compute or reversibility policy.
+
 ## 4. `TransmissionAnalysis`
 
 Stage 2 should introduce a reusable robot-wide analysis structure, analogous in intent to `AnalysisTree`.
@@ -233,6 +244,7 @@ Recommended ownership:
 
 - `RobotModel` owns and caches the default `TransmissionAnalysis`
 - `TransmissionAnalysis` owns the normalized transmission models, preferably in a contiguous `std::vector<std::unique_ptr<TransmissionModel>>`
+- `TransmissionAnalysis` also owns normalized affine transmission relationships for mimic joints
 - builders query that cached analysis rather than rebuilding it
 - plugin-specific builders may augment or replace planning policy, but should still be able to reuse the base analysis
 
