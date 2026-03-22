@@ -5,50 +5,105 @@
 #include "arm_kinematics/joint_map/transmission_analysis_import.hpp"
 
 #include <rclcpp/logging.hpp>
-#include <tinyxml2.h>
 
-#include <charconv>
-#include <cmath>
-#include <cstring>
-#include <optional>
-#include <sstream>
+#include <hardware_interface/component_parser.hpp>
+#include <hardware_interface/types/hardware_interface_type_values.hpp>
+#include <transmission_interface/handle.hpp>
+
+#include <memory>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
-
-namespace
-{
-constexpr const auto kRobotTag = "robot";
-constexpr const auto kSDFTag = "sdf";
-constexpr const auto kModelTag = "model";
-constexpr const auto kROS2ControlTag = "ros2_control";
-constexpr const auto kPluginNameTag = "plugin";
-constexpr const auto kParamTag = "param";
-constexpr const auto kActuatorTag = "actuator";
-constexpr const auto kJointTag = "joint";
-constexpr const auto kTransmissionTag = "transmission";
-constexpr const auto kNameAttribute = "name";
-constexpr const auto kRoleAttribute = "role";
-constexpr const auto kReductionAttribute = "mechanical_reduction";
-constexpr const auto kOffsetAttribute = "offset";
-}  // namespace
 
 namespace arm_kinematics {
 
 namespace {
 
-class SimpleTransmissionCompute final : public ComputeTransmission {
+const char * get_interface_name_for_quantity(const JointQuantity quantity)
+{
+  switch (quantity) {
+    case JointQuantity::Position:
+      return hardware_interface::HW_IF_POSITION;
+    case JointQuantity::Velocity:
+      return hardware_interface::HW_IF_VELOCITY;
+  }
+
+  throw std::invalid_argument("Unsupported JointQuantity for ros2_control transmission wrapper");
+}
+
+void configure_ros2_control_transmission_for_quantity(
+  const std::shared_ptr<transmission_interface::Transmission> & transmission,
+  const hardware_interface::TransmissionInfo & transmission_info,
+  const JointQuantity quantity,
+  std::vector<double> & actuator_values,
+  std::vector<double> & joint_values,
+  std::vector<transmission_interface::ActuatorHandle> & actuator_handles,
+  std::vector<transmission_interface::JointHandle> & joint_handles)
+{
+  if (transmission->num_actuators() != transmission_info.actuators.size()) {
+    throw std::runtime_error(
+      "ros2_control transmission '" + transmission_info.name +
+      "' reported an actuator count inconsistent with its TransmissionInfo");
+  }
+  if (transmission->num_joints() != transmission_info.joints.size()) {
+    throw std::runtime_error(
+      "ros2_control transmission '" + transmission_info.name +
+      "' reported a joint count inconsistent with its TransmissionInfo");
+  }
+
+  actuator_values.assign(transmission_info.actuators.size(), 0.0);
+  joint_values.assign(transmission_info.joints.size(), 0.0);
+
+  const auto * interface_name = get_interface_name_for_quantity(quantity);
+
+  actuator_handles.clear();
+  actuator_handles.reserve(transmission_info.actuators.size());
+  for (size_t i = 0; i < transmission_info.actuators.size(); ++i) {
+    actuator_handles.emplace_back(
+      transmission_info.actuators[i].name,
+      interface_name,
+      &actuator_values[i]);
+  }
+
+  joint_handles.clear();
+  joint_handles.reserve(transmission_info.joints.size());
+  for (size_t i = 0; i < transmission_info.joints.size(); ++i) {
+    joint_handles.emplace_back(
+      transmission_info.joints[i].name,
+      interface_name,
+      &joint_values[i]);
+  }
+
+  transmission->configure(joint_handles, actuator_handles);
+}
+
+class Ros2ControlPluginTransmissionCompute final : public ComputeTransmission {
 public:
-  SimpleTransmissionCompute(
-    const float reduction,
-    const float offset,
+  Ros2ControlPluginTransmissionCompute(
+    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
+    hardware_interface::TransmissionInfo transmission_info,
     const JointQuantity quantity,
     const PropagationDirection direction)
-    : reduction_(reduction),
-      offset_(offset),
+    : plugin_loader_(std::move(plugin_loader)),
+      transmission_info_(std::move(transmission_info)),
       quantity_(quantity),
-      direction_(direction)
+      direction_(direction),
+      actuator_values_(transmission_info_.actuators.size(), 0.0),
+      joint_values_(transmission_info_.joints.size(), 0.0)
   {
+    if (!plugin_loader_) {
+      throw std::invalid_argument("Ros2ControlPluginTransmissionCompute received a null plugin loader");
+    }
+
+    transmission_ = plugin_loader_->load(transmission_info_);
+    configure_ros2_control_transmission_for_quantity(
+      transmission_,
+      transmission_info_,
+      quantity_,
+      actuator_values_,
+      joint_values_,
+      actuator_handles_,
+      joint_handles_);
   }
 
   void compute(
@@ -56,20 +111,38 @@ public:
     const span<float> outputs,
     const span<float>) const override
   {
-    if (inputs.size() != 1 || outputs.size() != 1) {
-      throw std::invalid_argument("SimpleTransmissionCompute expects exactly one input and one output");
-    }
-
     if (direction_ == PropagationDirection::Forward) {
-      outputs[0] = quantity_ == JointQuantity::Position ?
-        inputs[0] / reduction_ + offset_ :
-        inputs[0] / reduction_;
+      if (inputs.size() != actuator_values_.size() || outputs.size() != joint_values_.size()) {
+        throw std::invalid_argument(
+          "Ros2ControlPluginTransmissionCompute received a forward request with mismatched input/output sizes");
+      }
+
+      for (size_t i = 0; i < actuator_values_.size(); ++i) {
+        actuator_values_[i] = inputs[i];
+      }
+
+      transmission_->actuator_to_joint();
+
+      for (size_t i = 0; i < joint_values_.size(); ++i) {
+        outputs[i] = static_cast<float>(joint_values_[i]);
+      }
       return;
     }
 
-    outputs[0] = quantity_ == JointQuantity::Position ?
-      (inputs[0] - offset_) * reduction_ :
-      inputs[0] * reduction_;
+    if (inputs.size() != joint_values_.size() || outputs.size() != actuator_values_.size()) {
+      throw std::invalid_argument(
+        "Ros2ControlPluginTransmissionCompute received a reverse request with mismatched input/output sizes");
+    }
+
+    for (size_t i = 0; i < joint_values_.size(); ++i) {
+      joint_values_[i] = inputs[i];
+    }
+
+    transmission_->joint_to_actuator();
+
+    for (size_t i = 0; i < actuator_values_.size(); ++i) {
+      outputs[i] = static_cast<float>(actuator_values_[i]);
+    }
   }
 
   [[nodiscard]] size_t scratch_size() const noexcept override
@@ -79,40 +152,61 @@ public:
 
   [[nodiscard]] std::unique_ptr<ComputeTransmission> clone() const override
   {
-    return std::make_unique<SimpleTransmissionCompute>(
-      reduction_,
-      offset_,
+    return std::make_unique<Ros2ControlPluginTransmissionCompute>(
+      plugin_loader_,
+      transmission_info_,
       quantity_,
       direction_);
   }
 
 private:
-  float reduction_{1.0F};
-  float offset_{0.0F};
+  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader_{};
+  hardware_interface::TransmissionInfo transmission_info_{};
   JointQuantity quantity_{JointQuantity::Position};
   PropagationDirection direction_{PropagationDirection::Forward};
+
+  std::shared_ptr<transmission_interface::Transmission> transmission_{};
+  mutable std::vector<double> actuator_values_{};
+  mutable std::vector<double> joint_values_{};
+  std::vector<transmission_interface::ActuatorHandle> actuator_handles_{};
+  std::vector<transmission_interface::JointHandle> joint_handles_{};
 };
 
-class SimpleTransmissionModel final : public TransmissionModel {
+class Ros2ControlPluginTransmissionModel final : public TransmissionModel {
 public:
-  SimpleTransmissionModel(
-    const float reduction,
-    const float offset)
-    : reduction_(reduction),
-      offset_(offset)
+  Ros2ControlPluginTransmissionModel(
+    hardware_interface::TransmissionInfo transmission_info,
+    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader)
+    : transmission_info_(std::move(transmission_info)),
+      plugin_loader_(std::move(plugin_loader))
   {
+    validate();
   }
 
   [[nodiscard]] std::unique_ptr<TransmissionModel> clone() const override
   {
-    return std::make_unique<SimpleTransmissionModel>(reduction_, offset_);
+    return std::unique_ptr<TransmissionModel>(new Ros2ControlPluginTransmissionModel(
+      transmission_info_,
+      plugin_loader_,
+      is_loadable_,
+      supports_position_,
+      supports_velocity_,
+      actuator_count_,
+      joint_count_));
   }
 
   [[nodiscard]] bool can_build(
     const JointQuantity quantity,
     const PropagationDirection) const noexcept override
   {
-    return quantity == JointQuantity::Position || quantity == JointQuantity::Velocity;
+    switch (quantity) {
+      case JointQuantity::Position:
+        return is_loadable_ && supports_position_;
+      case JointQuantity::Velocity:
+        return is_loadable_ && supports_velocity_;
+    }
+
+    return false;
   }
 
   [[nodiscard]] std::unique_ptr<const ComputeTransmission> build(
@@ -121,250 +215,116 @@ public:
     const span<const JointId> input_joint_ids,
     const span<const JointId> output_joint_ids) const override
   {
-    if (input_joint_ids.size() != 1 || output_joint_ids.size() != 1) {
-      throw std::invalid_argument("SimpleTransmissionModel expects exactly one input and one output joint");
+    if (!can_build(quantity, direction)) {
+      throw std::invalid_argument(
+        "Ros2ControlPluginTransmissionModel::build() called for an unsupported quantity or unloaded plugin type");
     }
 
-    return std::make_unique<SimpleTransmissionCompute>(
-      reduction_,
-      offset_,
+    const auto expected_input_count =
+      direction == PropagationDirection::Forward ? actuator_count_ : joint_count_;
+    const auto expected_output_count =
+      direction == PropagationDirection::Forward ? joint_count_ : actuator_count_;
+
+    if (input_joint_ids.size() != expected_input_count || output_joint_ids.size() != expected_output_count) {
+      throw std::invalid_argument(
+        "Ros2ControlPluginTransmissionModel::build() received input/output counts inconsistent with the transmission");
+    }
+
+    return std::make_unique<Ros2ControlPluginTransmissionCompute>(
+      plugin_loader_,
+      transmission_info_,
       quantity,
       direction);
   }
 
 private:
-  float reduction_{1.0F};
-  float offset_{0.0F};
-};
-
-class UnsupportedRos2ControlTransmissionModel final : public TransmissionModel {
-public:
-  [[nodiscard]] std::unique_ptr<TransmissionModel> clone() const override
+  Ros2ControlPluginTransmissionModel(
+    hardware_interface::TransmissionInfo transmission_info,
+    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
+    const bool is_loadable,
+    const bool supports_position,
+    const bool supports_velocity,
+    const size_t actuator_count,
+    const size_t joint_count)
+    : transmission_info_(std::move(transmission_info)),
+      plugin_loader_(std::move(plugin_loader)),
+      is_loadable_(is_loadable),
+      supports_position_(supports_position),
+      supports_velocity_(supports_velocity),
+      actuator_count_(actuator_count),
+      joint_count_(joint_count)
   {
-    return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
   }
 
-  [[nodiscard]] bool can_build(
-    const JointQuantity,
-    const PropagationDirection) const noexcept override
+  [[nodiscard]] bool supports_quantity(const JointQuantity quantity) const
   {
-    return false;
+    try {
+      auto transmission = plugin_loader_->load(transmission_info_);
+      std::vector<double> actuator_values{};
+      std::vector<double> joint_values{};
+      std::vector<transmission_interface::ActuatorHandle> actuator_handles{};
+      std::vector<transmission_interface::JointHandle> joint_handles{};
+      configure_ros2_control_transmission_for_quantity(
+        transmission,
+        transmission_info_,
+        quantity,
+        actuator_values,
+        joint_values,
+        actuator_handles,
+        joint_handles);
+      actuator_count_ = transmission->num_actuators();
+      joint_count_ = transmission->num_joints();
+      return true;
+    } catch (const std::exception &) {
+      return false;
+    }
   }
 
-  [[nodiscard]] std::unique_ptr<const ComputeTransmission> build(
-    const JointQuantity,
-    const PropagationDirection,
-    span<const JointId>,
-    span<const JointId>) const override
+  void validate()
   {
-    throw std::logic_error("UnsupportedRos2ControlTransmissionModel::build() called before transmission runtime support exists");
-  }
-};
-
-std::unique_ptr<TransmissionModel> make_ros2_control_transmission_model(
-  const hardware_interface::TransmissionInfo & transmission)
-{
-  if (
-    transmission.type == "transmission_interface/SimpleTransmission" &&
-    transmission.actuators.size() == 1 &&
-    transmission.joints.size() == 1)
-  {
-    const auto actuator_reduction = transmission.actuators.front().mechanical_reduction;
-    if (actuator_reduction == 0.0) {
-      return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
+    if (!plugin_loader_) {
+      return;
     }
 
-    const auto reduction = static_cast<float>(
-      transmission.joints.front().mechanical_reduction / actuator_reduction);
-    if (reduction == 0.0F || !std::isfinite(reduction)) {
-      return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
+    if (!plugin_loader_->has_plugin_type(transmission_info_.type)) {
+      return;
     }
 
-    const auto offset =
-      static_cast<float>(
-      transmission.joints.front().offset -
-      transmission.actuators.front().offset / reduction);
-    if (!std::isfinite(offset)) {
-      return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
-    }
-    return std::make_unique<SimpleTransmissionModel>(reduction, offset);
-  }
-
-  return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
-}
-
-std::string get_text_for_element(
-  const tinyxml2::XMLElement * element_it, const std::string &)
-{
-  const auto get_text_output = element_it->GetText();
-  if (!get_text_output)
-    return "";
-  return get_text_output;
-}
-
-std::string get_attribute_value(
-  const tinyxml2::XMLElement * element_it, const char * attribute_name, const std::string & tag_name)
-{
-  const tinyxml2::XMLAttribute * attr = element_it->FindAttribute(attribute_name);
-  if (!attr)
-    throw std::runtime_error(std::string("no attribute ") + attribute_name + " in " + tag_name + " tag");
-  return element_it->Attribute(attribute_name);
-}
-
-std::string get_attribute_value(
-  const tinyxml2::XMLElement * element_it, const char * attribute_name, const char * tag_name)
-{
-  return get_attribute_value(element_it, attribute_name, std::string(tag_name));
-}
-
-namespace impl
-{
-std::optional<double> stod(const std::string & s)
-{
-#if __cplusplus < 202002L
-  std::istringstream stream(s);
-  stream.imbue(std::locale::classic());
-  double result;
-  stream >> result;
-  if (stream.fail() || !stream.eof())
-  {
-    return std::nullopt;
-  }
-  return result;
-#else
-  double result_value;
-  const auto parse_result = std::from_chars(s.data(), s.data() + s.size(), result_value);
-  if (parse_result.ec == std::errc())
-  {
-    return result_value;
-  }
-  return std::nullopt;
-#endif
-}
-}  // namespace impl
-
-double stod(const std::string & s)
-{
-  if (const auto result = impl::stod(s))
-  {
-    return *result;
-  }
-  throw std::invalid_argument("Failed converting string to real number");
-}
-
-double get_parameter_value_or(
-  const tinyxml2::XMLElement * params_it, const char * parameter_name, const double default_value)
-{
-  while (params_it)
-  {
-    try
-    {
-      const auto tag_name = params_it->Name();
-      if (strcmp(tag_name, parameter_name) == 0)
+    try {
+      auto transmission = plugin_loader_->load(transmission_info_);
+      actuator_count_ = transmission->num_actuators();
+      joint_count_ = transmission->num_joints();
+      if (
+        actuator_count_ != transmission_info_.actuators.size() ||
+        joint_count_ != transmission_info_.joints.size())
       {
-        const auto tag_text = params_it->GetText();
-        if (tag_text)
-        {
-          return stod(tag_text);
-        }
+        return;
       }
+
+      supports_position_ = supports_quantity(JointQuantity::Position);
+      supports_velocity_ = supports_quantity(JointQuantity::Velocity);
+      is_loadable_ = supports_position_ || supports_velocity_;
+    } catch (const std::exception &) {
+      is_loadable_ = false;
     }
-    catch (const std::exception &)
-    {
-      return default_value;
-    }
-
-    params_it = params_it->NextSiblingElement();
   }
 
-  return default_value;
-}
-
-std::unordered_map<std::string, std::string> parse_parameters_from_xml(
-  const tinyxml2::XMLElement * params_it)
-{
-  std::unordered_map<std::string, std::string> parameters;
-
-  while (params_it)
-  {
-    const tinyxml2::XMLAttribute * attr = params_it->FindAttribute(kNameAttribute);
-    if (!attr)
-    {
-      throw std::runtime_error("no parameter name attribute set in param tag");
-    }
-    const std::string parameter_name = params_it->Attribute(kNameAttribute);
-    const std::string parameter_value = get_text_for_element(params_it, parameter_name);
-    parameters[parameter_name] = parameter_value;
-
-    params_it = params_it->NextSiblingElement(kParamTag);
-  }
-  return parameters;
-}
-
-hardware_interface::JointInfo parse_transmission_joint_from_xml(const tinyxml2::XMLElement * element_it)
-{
-  hardware_interface::JointInfo joint_info;
-  joint_info.name = get_attribute_value(element_it, kNameAttribute, element_it->Name());
-  joint_info.role = get_attribute_value(element_it, kRoleAttribute, element_it->Name());
-  joint_info.mechanical_reduction =
-    get_parameter_value_or(element_it->FirstChildElement(), kReductionAttribute, 1.0);
-  joint_info.offset =
-    get_parameter_value_or(element_it->FirstChildElement(), kOffsetAttribute, 0.0);
-  return joint_info;
-}
-
-hardware_interface::ActuatorInfo parse_transmission_actuator_from_xml(const tinyxml2::XMLElement * element_it)
-{
-  hardware_interface::ActuatorInfo actuator_info;
-  actuator_info.name = get_attribute_value(element_it, kNameAttribute, element_it->Name());
-  actuator_info.role = get_attribute_value(element_it, kRoleAttribute, element_it->Name());
-  actuator_info.mechanical_reduction =
-    get_parameter_value_or(element_it->FirstChildElement(), kReductionAttribute, 1.0);
-  actuator_info.offset =
-    get_parameter_value_or(element_it->FirstChildElement(), kOffsetAttribute, 0.0);
-  return actuator_info;
-}
-
-hardware_interface::TransmissionInfo parse_transmission_from_xml(const tinyxml2::XMLElement * transmission_it)
-{
-  hardware_interface::TransmissionInfo transmission;
-
-  transmission.name = get_attribute_value(transmission_it, kNameAttribute, transmission_it->Name());
-  const auto * type_it = transmission_it->FirstChildElement(kPluginNameTag);
-  if (!type_it)
-  {
-    throw std::runtime_error("Missing <plugin> tag of <transmission> element in your URDF.");
-  }
-  transmission.type = get_text_for_element(type_it, kPluginNameTag);
-
-  const auto * joint_it = transmission_it->FirstChildElement(kJointTag);
-  while (joint_it)
-  {
-    transmission.joints.push_back(parse_transmission_joint_from_xml(joint_it));
-    joint_it = joint_it->NextSiblingElement(kJointTag);
-  }
-
-  const auto * actuator_it = transmission_it->FirstChildElement(kActuatorTag);
-  while (actuator_it)
-  {
-    transmission.actuators.push_back(parse_transmission_actuator_from_xml(actuator_it));
-    actuator_it = actuator_it->NextSiblingElement(kActuatorTag);
-  }
-
-  const auto * params_it = transmission_it->FirstChildElement(kParamTag);
-  if (params_it)
-  {
-    transmission.parameters = parse_parameters_from_xml(params_it);
-  }
-
-  return transmission;
-}
+  hardware_interface::TransmissionInfo transmission_info_{};
+  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader_{};
+  bool is_loadable_ = false;
+  mutable bool supports_position_ = false;
+  mutable bool supports_velocity_ = false;
+  mutable size_t actuator_count_ = 0;
+  mutable size_t joint_count_ = 0;
+};
 
 void add_ros2_control_transmission_to_analysis(
   TransmissionAnalysis & transmission_analysis,
-  const hardware_interface::TransmissionInfo & transmission)
+  const hardware_interface::TransmissionInfo & transmission,
+  const std::shared_ptr<const Ros2ControlTransmissionPluginLoader> & plugin_loader)
 {
-  const auto model_id = transmission_analysis.add_model(make_ros2_control_transmission_model(transmission));
+  const auto model_id = transmission_analysis.add_model(
+    std::make_unique<Ros2ControlPluginTransmissionModel>(transmission, plugin_loader));
 
   std::vector<std::string> input_names{};
   input_names.reserve(transmission.actuators.size());
@@ -384,10 +344,6 @@ void add_ros2_control_transmission_to_analysis(
     span<const std::string>(output_names),
     transmission.name);
 }
-
-} // namespace
-
-namespace {
 
 enum class MimicVisitState {
   Unvisited,
@@ -445,51 +401,23 @@ TransmissionAnalysis::AffineTransmission normalize_affine_transmission(
 
 std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions_to_analysis_dangerous(
   TransmissionAnalysis & transmission_analysis,
-  const std::string & urdf_string)
+  const std::string & urdf_string,
+  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader)
 {
-  tinyxml2::XMLDocument doc;
-  doc.Parse(urdf_string.c_str());
-  if (doc.Error())
-    throw std::runtime_error(std::string("invalid URDF passed in to robot parser: ") + doc.ErrorStr());
-
-  const tinyxml2::XMLElement * robot_it = doc.RootElement();
-  const tinyxml2::XMLElement * ros2_control_it;
-
-  if (std::string(kRobotTag) == robot_it->Name())
-  {
-    ros2_control_it = robot_it->FirstChildElement(kROS2ControlTag);
+  if (!plugin_loader) {
+    plugin_loader = std::make_shared<Ros2ControlTransmissionPluginLoader>();
   }
-  else if (std::string(kSDFTag) == robot_it->Name())
-  {
-    const tinyxml2::XMLElement * model_it = robot_it->FirstChildElement(kModelTag);
-    ros2_control_it = model_it->FirstChildElement(kROS2ControlTag);
-  }
-  else
-  {
-    throw std::runtime_error(
-      "the robot tag is not root element in URDF or sdf tag is not root element in SDF");
-  }
-
-  if (!ros2_control_it)
-    throw std::runtime_error(std::string("no ") + kROS2ControlTag + " tag");
 
   std::vector<hardware_interface::TransmissionInfo> transmissions{};
-
-  while (ros2_control_it)
-  {
-    const auto * ros2_control_child_it = ros2_control_it->FirstChildElement();
-
-    while (ros2_control_child_it) {
-      if (std::string(kTransmissionTag) == ros2_control_child_it->Name()) {
-        auto transmission = parse_transmission_from_xml(ros2_control_child_it);
-        add_ros2_control_transmission_to_analysis(transmission_analysis, transmission);
-        transmissions.push_back(std::move(transmission));
-      }
-
-      ros2_control_child_it = ros2_control_child_it->NextSiblingElement();
+  for (auto & hardware_info : hardware_interface::parse_control_resources_from_urdf(urdf_string)) {
+    for (auto & transmission : hardware_info.transmissions) {
+      add_ros2_control_transmission_to_analysis(transmission_analysis, transmission, plugin_loader);
+      transmissions.push_back(std::move(transmission));
     }
+  }
 
-    ros2_control_it = ros2_control_it->NextSiblingElement(kROS2ControlTag);
+  if (transmissions.empty()) {
+    throw std::runtime_error("no ros2_control transmissions found");
   }
 
   return transmissions;
@@ -498,14 +426,30 @@ std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions
 std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
+  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
   rclcpp::Logger logger)
 {
   try {
-    return add_ros2_control_transmissions_to_analysis_dangerous(transmission_analysis, urdf_string);
+    return add_ros2_control_transmissions_to_analysis_dangerous(
+      transmission_analysis,
+      urdf_string,
+      std::move(plugin_loader));
   } catch (const std::runtime_error & e) {
     RCLCPP_WARN(logger, "Error trying to add transmissions to TransmissionAnalysis: %s", e.what());
     return {};
   }
+}
+
+std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions_to_analysis(
+  TransmissionAnalysis & transmission_analysis,
+  const std::string & urdf_string,
+  rclcpp::Logger logger)
+{
+  return add_ros2_control_transmissions_to_analysis(
+    transmission_analysis,
+    urdf_string,
+    std::make_shared<Ros2ControlTransmissionPluginLoader>(),
+    logger);
 }
 
 void add_mimic_transmissions_to_analysis(

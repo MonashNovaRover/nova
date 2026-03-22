@@ -12,6 +12,7 @@
 #include <rclcpp/logger.hpp>
 #include <urdf/model.h>
 
+#include "arm_kinematics/joint_map/ros2_control_transmission_plugin_loader.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 #include "arm_kinematics/visibility_control.h"
 
@@ -29,7 +30,9 @@ namespace arm_kinematics {
 [[nodiscard]] ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
 add_ros2_control_transmissions_to_analysis_dangerous(
   TransmissionAnalysis & transmission_analysis,
-  const std::string & urdf_string);
+  const std::string & urdf_string,
+  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader =
+    std::make_shared<Ros2ControlTransmissionPluginLoader>());
 
 /**
  * Parses ros2_control transmission metadata from a URDF string and adds the resulting transmission topology to the
@@ -43,6 +46,13 @@ add_ros2_control_transmissions_to_analysis_dangerous(
  * \param logger The logger to log any caught exceptions to.
  * \returns The parsed ros2_control transmission metadata. Returns an empty vector on failure.
  */
+[[nodiscard]] ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
+add_ros2_control_transmissions_to_analysis(
+  TransmissionAnalysis & transmission_analysis,
+  const std::string & urdf_string,
+  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
+  rclcpp::Logger logger);
+
 [[nodiscard]] ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
 add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,

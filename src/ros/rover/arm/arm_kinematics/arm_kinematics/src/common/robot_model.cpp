@@ -33,11 +33,22 @@ const TransmissionAnalysis & RobotModel::get_default_transmission_analysis() con
     (void)add_ros2_control_transmissions_to_analysis(
       *default_transmission_analysis_,
       get_robot_description(),
+      get_ros2_control_transmission_plugin_loader(),
       rclcpp::get_logger("robot_model"));
   });
 
   assert(default_transmission_analysis_);
   return *default_transmission_analysis_;
+}
+
+std::shared_ptr<const Ros2ControlTransmissionPluginLoader> RobotModel::get_ros2_control_transmission_plugin_loader() const
+{
+  std::call_once(ros2_control_transmission_plugin_loader_flag_, [&] {
+    ros2_control_transmission_plugin_loader_ = std::make_shared<Ros2ControlTransmissionPluginLoader>();
+  });
+
+  assert(ros2_control_transmission_plugin_loader_);
+  return ros2_control_transmission_plugin_loader_;
 }
 
 const AnalysisTree & RobotModel::get_analysis_tree() const {

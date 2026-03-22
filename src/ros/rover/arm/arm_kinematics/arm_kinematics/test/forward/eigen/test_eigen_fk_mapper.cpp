@@ -589,7 +589,16 @@ protected:
           <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
         </joint>
 
-        <ros2_control>
+        <ros2_control name="TransmissionTestSystem" type="system">
+          <hardware>
+            <plugin>mock_components/GenericSystem</plugin>
+          </hardware>
+          <joint name="driven_joint">
+            <command_interface name="position"/>
+            <command_interface name="velocity"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+          </joint>
           <transmission name="main_transmission">
             <plugin>transmission_interface/SimpleTransmission</plugin>
             <joint name="driven_joint" role="joint">
@@ -627,6 +636,123 @@ protected:
   KinematicsParams::SharedPtr kinematics_params_;
 };
 
+class DifferentialTransmissionUrdfTests : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    robot_description_ = R"(
+      <robot name="differential_transmission_robot">
+        <link name="base_link"/>
+        <link name="left_link"/>
+        <link name="right_link"/>
+
+        <joint name="left_joint" type="revolute">
+          <parent link="base_link"/>
+          <child  link="left_link"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <joint name="right_joint" type="revolute">
+          <parent link="base_link"/>
+          <child  link="right_link"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <ros2_control name="DifferentialTransmissionTestSystem" type="system">
+          <hardware>
+            <plugin>mock_components/GenericSystem</plugin>
+          </hardware>
+          <joint name="left_joint">
+            <command_interface name="position"/>
+            <command_interface name="velocity"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+          </joint>
+          <joint name="right_joint">
+            <command_interface name="position"/>
+            <command_interface name="velocity"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+          </joint>
+          <transmission name="diff_transmission">
+            <plugin>transmission_interface/DifferentialTransmission</plugin>
+            <joint name="left_joint" role="joint">
+              <mechanical_reduction>2.0</mechanical_reduction>
+              <offset>0.5</offset>
+            </joint>
+            <joint name="right_joint" role="joint">
+              <mechanical_reduction>4.0</mechanical_reduction>
+              <offset>-0.25</offset>
+            </joint>
+            <actuator name="left_motor" role="actuator">
+              <mechanical_reduction>8.0</mechanical_reduction>
+              <offset>0.0</offset>
+            </actuator>
+            <actuator name="right_motor" role="actuator">
+              <mechanical_reduction>4.0</mechanical_reduction>
+              <offset>0.0</offset>
+            </actuator>
+          </transmission>
+        </ros2_control>
+      </robot>
+    )";
+
+    ASSERT_TRUE(urdf::Model().initString(robot_description_));
+    robot_model_ = std::make_unique<RobotModel>(robot_description_);
+  }
+
+  std::string robot_description_;
+  RobotModel::UniquePtr robot_model_;
+};
+
+class UnknownTransmissionPluginUrdfTests : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    robot_description_ = R"(
+      <robot name="unknown_transmission_plugin_robot">
+        <link name="base_link"/>
+        <link name="driven_link"/>
+
+        <joint name="driven_joint" type="revolute">
+          <parent link="base_link"/>
+          <child  link="driven_link"/>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <axis   xyz="0 0 1"/>
+          <limit  lower="-3.14159" upper="3.14159" effort="10.0" velocity="10.0"/>
+        </joint>
+
+        <ros2_control name="UnknownTransmissionPluginSystem" type="system">
+          <hardware>
+            <plugin>mock_components/GenericSystem</plugin>
+          </hardware>
+          <joint name="driven_joint">
+            <command_interface name="position"/>
+            <state_interface name="position"/>
+          </joint>
+          <transmission name="unknown_transmission">
+            <plugin>transmission_interface/DoesNotExist</plugin>
+            <joint name="driven_joint" role="joint"/>
+            <actuator name="motor_joint" role="actuator"/>
+          </transmission>
+        </ros2_control>
+      </robot>
+    )";
+
+    ASSERT_TRUE(urdf::Model().initString(robot_description_));
+    robot_model_ = std::make_unique<RobotModel>(robot_description_);
+  }
+
+  std::string robot_description_;
+  RobotModel::UniquePtr robot_model_;
+};
+
 TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
 {
   const TransmissionAnalysis & first = robot_model_->get_default_transmission_analysis();
@@ -654,7 +780,43 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
   EXPECT_EQ(transmission.name, "main_transmission");
 }
 
-TEST_F(TransmissionUrdfTests, BuildExpectedBuildsSimpleRos2ControlTransmissionModel)
+TEST_F(TransmissionUrdfTests, RobotModelProvidesSharedRos2ControlTransmissionPluginLoader)
+{
+  const auto first_loader = robot_model_->get_ros2_control_transmission_plugin_loader();
+  const auto second_loader = robot_model_->get_ros2_control_transmission_plugin_loader();
+
+  ASSERT_TRUE(first_loader);
+  EXPECT_EQ(first_loader, second_loader);
+  EXPECT_TRUE(first_loader->has_plugin_type("transmission_interface/SimpleTransmission"));
+  EXPECT_FALSE(first_loader->has_plugin_type("transmission_interface/DoesNotExist"));
+
+  const auto declared_plugin_types = first_loader->get_declared_plugin_types();
+  EXPECT_NE(
+    std::find(
+      declared_plugin_types.begin(),
+      declared_plugin_types.end(),
+      "transmission_interface/SimpleTransmission"),
+    declared_plugin_types.end());
+}
+
+TEST_F(TransmissionUrdfTests, Ros2ControlTransmissionPluginLoaderLoadsTransmissionFromTransmissionInfo)
+{
+  TransmissionAnalysis analysis{};
+  const auto loader = robot_model_->get_ros2_control_transmission_plugin_loader();
+  const auto transmissions = add_ros2_control_transmissions_to_analysis_dangerous(
+    analysis,
+    robot_description_,
+    loader);
+
+  ASSERT_EQ(transmissions.size(), 1u);
+
+  const auto transmission = loader->load(transmissions.front());
+  ASSERT_TRUE(transmission);
+  EXPECT_EQ(transmission->num_actuators(), 1u);
+  EXPECT_EQ(transmission->num_joints(), 1u);
+}
+
+TEST_F(TransmissionUrdfTests, BuildExpectedBuildsRos2ControlPluginTransmissionModel)
 {
   const auto result = TransmissionAnalysisJointMapBuilder(
     robot_model_->get_default_transmission_analysis()).build_expected(
@@ -673,7 +835,7 @@ TEST_F(TransmissionUrdfTests, BuildExpectedBuildsSimpleRos2ControlTransmissionMo
   EXPECT_NEAR(outputs[0], 0.75F, EPSILON);
 }
 
-TEST_F(TransmissionUrdfTests, BuildExpectedBuildsVelocitySimpleRos2ControlTransmissionModel)
+TEST_F(TransmissionUrdfTests, BuildExpectedBuildsVelocityRos2ControlPluginTransmissionModel)
 {
   const auto result = TransmissionAnalysisJointMapBuilder(
     robot_model_->get_default_transmission_analysis()).build_expected(
@@ -688,6 +850,42 @@ TEST_F(TransmissionUrdfTests, BuildExpectedBuildsVelocitySimpleRos2ControlTransm
   result->map(inputs, outputs);
 
   EXPECT_NEAR(outputs[0], 0.5F, EPSILON);
+}
+
+TEST_F(TransmissionUrdfTests, BuildExpectedBuildsReverseRos2ControlPluginTransmissionModel)
+{
+  const auto result = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build_expected(
+    {"driven_joint"},
+    {"motor_joint"},
+    JointQuantity::Position);
+
+  ASSERT_TRUE(result.has_value()) << result.error();
+  ASSERT_EQ(result->input_count(), 1u);
+  ASSERT_EQ(result->output_count(), 1u);
+
+  std::vector<double> inputs{0.75};
+  std::vector<float> outputs(1, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 1.0F, EPSILON);
+}
+
+TEST_F(TransmissionUrdfTests, BuildExpectedBuildsReverseVelocityRos2ControlPluginTransmissionModel)
+{
+  const auto result = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build_expected(
+    {"driven_joint"},
+    {"motor_joint"},
+    JointQuantity::Velocity);
+
+  ASSERT_TRUE(result.has_value()) << result.error();
+
+  std::vector<double> inputs{0.5};
+  std::vector<float> outputs(1, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 1.0F, EPSILON);
 }
 
 TEST_F(TransmissionUrdfTests, TransmissionAnalysisJointMapBuilderBuildsFromSharedAnalysis)
@@ -836,6 +1034,96 @@ TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdg
   const auto & transmission = analysis.transmissions().front();
   EXPECT_EQ(transmission.input_joint_ids, input_ids);
   EXPECT_EQ(transmission.output_joint_ids, output_ids);
+}
+
+TEST_F(UnknownTransmissionPluginUrdfTests, UnknownRos2ControlPluginTypeFailsCleanly)
+{
+  const auto & analysis = robot_model_->get_default_transmission_analysis();
+
+  ASSERT_EQ(analysis.models().size(), 1u);
+  ASSERT_EQ(analysis.transmissions().size(), 1u);
+
+  const auto result = TransmissionAnalysisJointMapBuilder(analysis).build_expected(
+    {"motor_joint"},
+    {"driven_joint"},
+    JointQuantity::Position);
+
+  ASSERT_FALSE(result.has_value());
+  EXPECT_FALSE(result.error().empty());
+}
+
+TEST_F(DifferentialTransmissionUrdfTests, BuildExpectedBuildsDifferentialRos2ControlPluginPositionModel)
+{
+  const auto result = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build_expected(
+    {"left_motor", "right_motor"},
+    {"left_joint", "right_joint"},
+    JointQuantity::Position);
+
+  ASSERT_TRUE(result.has_value()) << result.error();
+  ASSERT_EQ(result->input_count(), 2u);
+  ASSERT_EQ(result->output_count(), 2u);
+
+  std::vector<double> inputs{8.0, 4.0};
+  std::vector<float> outputs(2, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 1.0F, EPSILON);
+  EXPECT_NEAR(outputs[1], -0.25F, EPSILON);
+}
+
+TEST_F(DifferentialTransmissionUrdfTests, BuildExpectedBuildsDifferentialRos2ControlPluginVelocityModel)
+{
+  const auto result = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build_expected(
+    {"left_motor", "right_motor"},
+    {"left_joint", "right_joint"},
+    JointQuantity::Velocity);
+
+  ASSERT_TRUE(result.has_value()) << result.error();
+
+  std::vector<double> inputs{8.0, 4.0};
+  std::vector<float> outputs(2, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 0.5F, EPSILON);
+  EXPECT_NEAR(outputs[1], 0.0F, EPSILON);
+}
+
+TEST_F(DifferentialTransmissionUrdfTests, BuildExpectedBuildsReverseDifferentialRos2ControlPluginPositionModel)
+{
+  const auto result = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build_expected(
+    {"left_joint", "right_joint"},
+    {"left_motor", "right_motor"},
+    JointQuantity::Position);
+
+  ASSERT_TRUE(result.has_value()) << result.error();
+
+  std::vector<double> inputs{1.0, -0.25};
+  std::vector<float> outputs(2, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 8.0F, EPSILON);
+  EXPECT_NEAR(outputs[1], 4.0F, EPSILON);
+}
+
+TEST_F(DifferentialTransmissionUrdfTests, BuildExpectedBuildsReverseDifferentialRos2ControlPluginVelocityModel)
+{
+  const auto result = TransmissionAnalysisJointMapBuilder(
+    robot_model_->get_default_transmission_analysis()).build_expected(
+    {"left_joint", "right_joint"},
+    {"left_motor", "right_motor"},
+    JointQuantity::Velocity);
+
+  ASSERT_TRUE(result.has_value()) << result.error();
+
+  std::vector<double> inputs{0.5, 0.0};
+  std::vector<float> outputs(2, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 8.0F, EPSILON);
+  EXPECT_NEAR(outputs[1], 4.0F, EPSILON);
 }
 
 TEST(TransmissionAnalysisTests, NamedAddTransmissionImmediatelyConvertsToJointIds)

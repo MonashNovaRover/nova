@@ -11,6 +11,7 @@
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/forward/utilities/analysis_tree.hpp"
+#include "arm_kinematics/joint_map/ros2_control_transmission_plugin_loader.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis_import.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 
@@ -40,6 +41,10 @@ public:
   /// Gets the lazily-built shared default transmission analysis derived from the robot description.
   [[nodiscard]] const TransmissionAnalysis & get_default_transmission_analysis() const;
 
+  /// Gets the lazily-built shared ros2_control transmission plugin loader used by the default analysis import path.
+  [[nodiscard]] std::shared_ptr<const Ros2ControlTransmissionPluginLoader>
+  get_ros2_control_transmission_plugin_loader() const;
+
   /// Data structure modelling the tree of joints in the urdf, and how links in the urdf relate to those joints, lazily
   /// evaluated using get_urdf_model() as the constructor input
   [[nodiscard]] const AnalysisTree & get_analysis_tree() const;
@@ -56,6 +61,10 @@ private:
   /// Lazily evaluated shared default transmission analysis.
   mutable std::unique_ptr<TransmissionAnalysis> default_transmission_analysis_ = nullptr;
   mutable std::once_flag default_transmission_analysis_flag_{};
+
+  /// Lazily evaluated shared ros2_control transmission plugin loader.
+  mutable std::shared_ptr<const Ros2ControlTransmissionPluginLoader> ros2_control_transmission_plugin_loader_{};
+  mutable std::once_flag ros2_control_transmission_plugin_loader_flag_{};
 
   /// Lazily evaluated analysis tree
   mutable std::unique_ptr<AnalysisTree> analysis_tree_ = nullptr;

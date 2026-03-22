@@ -24,6 +24,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   pluginlib
   rclcpp
   rcpputils
+  hardware_interface
   tf2
   tf2_msgs
   tf2_geometry_msgs
@@ -58,6 +59,7 @@ add_library(${PROJECT_NAME} SHARED
   src/joint_map/transmission_analysis_joint_map_builder.cpp
   src/joint_map/transmission_analysis.cpp
   src/joint_map/transmission_analysis_import.cpp
+  src/joint_map/ros2_control_transmission_plugin_loader.cpp
   src/joint_map/transmission_joint_map.cpp
   src/joint_map/transmission_plan.cpp
   src/common/kinematics_params.cpp

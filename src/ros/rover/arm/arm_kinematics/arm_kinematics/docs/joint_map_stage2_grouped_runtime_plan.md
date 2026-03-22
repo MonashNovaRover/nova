@@ -19,6 +19,13 @@ The codebase now has:
 - copyable `TransmissionAnalysis` for FK-plugin-local reuse or augmentation
 - grouped planning over cached grouped transmissions in indexed space
 - a working affine planner and affine runtime compilation path
+- generic ros2_control transmission runtime support through:
+  - `Ros2ControlTransmissionPluginLoader`
+  - a generic ros2_control-backed `TransmissionModel`
+  - a generic ros2_control-backed `ComputeTransmission`
+- end-to-end grouped coverage for real ros2_control plugin types including:
+  - `transmission_interface/SimpleTransmission`
+  - `transmission_interface/DifferentialTransmission`
 - grouped compiler validation for:
   - stage topology
   - stage data availability
@@ -83,16 +90,16 @@ The FK-plugin ownership migration is also complete:
 
 ## Next Stage
 
-The next work should come from the broader Stage 2 / transmission-spec documents rather than from this focused grouped
-runtime note.
+The next work should come from the broader Stage 2 / Stage 2.1 documents rather than from this focused grouped runtime
+note.
 
 The most important remaining items are:
 
-1. make quantity-specific build behavior real for concrete transmission models rather than only structurally supported
-2. broaden real transmission-model coverage beyond simple single-input single-output transmissions
-3. decide which additional ros2_control transmission forms should receive real grouped runtime implementations next
-4. decide whether any reusable concrete `TransmissionModel` implementations should be promoted out of import-time
-   internals
+1. continue Stage 2.1 failure-mode coverage for the generic ros2_control plugin wrapper path
+2. decide whether any ros2_control plugin metadata inspection beyond declared type names should be exposed on the
+   shared loader/cache
+3. keep quantity-specific behavior explicit as ros2_control-backed support broadens
+4. avoid reintroducing concrete per-plugin transmission math into `arm_kinematics`
 
 Longer-term direction beyond this focused note:
 
