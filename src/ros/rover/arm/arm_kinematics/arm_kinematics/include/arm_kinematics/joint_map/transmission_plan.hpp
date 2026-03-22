@@ -31,7 +31,7 @@ struct AffinePlan {
 };
 
 struct TransmissionPlanStage {
-  TransmissionGroupId group_id = 0;
+  TransmissionInstanceId transmission_instance_id = 0;
   PropagationDirection direction = PropagationDirection::Forward;
   std::vector<JointId> consumed_joint_ids{};
   std::vector<JointId> produced_joint_ids{};

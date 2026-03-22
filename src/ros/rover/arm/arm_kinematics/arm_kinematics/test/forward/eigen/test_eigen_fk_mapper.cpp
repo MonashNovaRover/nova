@@ -1189,7 +1189,7 @@ TEST(JointMapStage2Tests, DefaultJointMapBuilderBuildsDirectTransmissionPlan)
   ASSERT_EQ(plan.value().input_joint_ids.size(), 1u);
   ASSERT_EQ(plan.value().output_joint_ids.size(), 1u);
   ASSERT_EQ(plan.value().stages.size(), 1u);
-  EXPECT_EQ(plan.value().stages.front().group_id, 0u);
+  EXPECT_EQ(plan.value().stages.front().transmission_instance_id, 0u);
   EXPECT_EQ(plan.value().stages.front().direction, arm_kinematics::PropagationDirection::Forward);
 }
 
@@ -1513,8 +1513,8 @@ TEST(JointMapStage2Tests, BuildsDirectTwoStageTransmissionPlan)
 
   ASSERT_TRUE(plan.has_value());
   ASSERT_EQ(plan->stages.size(), 2u);
-  EXPECT_EQ(plan->stages[0].group_id, 0u);
-  EXPECT_EQ(plan->stages[1].group_id, 1u);
+  EXPECT_EQ(plan->stages[0].transmission_instance_id, 0u);
+  EXPECT_EQ(plan->stages[1].transmission_instance_id, 1u);
   EXPECT_EQ(plan->stages[0].consumed_joint_ids.front(), joint_order["motor_joint"]);
   EXPECT_EQ(plan->stages[0].produced_joint_ids.front(), joint_order["intermediate_joint"]);
   EXPECT_EQ(plan->stages[1].consumed_joint_ids.front(), joint_order["intermediate_joint"]);
@@ -1607,9 +1607,9 @@ TEST(JointMapStage2Tests, BuildsThreeStageTransmissionPlan)
 
   ASSERT_TRUE(plan.has_value());
   ASSERT_EQ(plan->stages.size(), 3u);
-  EXPECT_EQ(plan->stages[0].group_id, 0u);
-  EXPECT_EQ(plan->stages[1].group_id, 1u);
-  EXPECT_EQ(plan->stages[2].group_id, 2u);
+  EXPECT_EQ(plan->stages[0].transmission_instance_id, 0u);
+  EXPECT_EQ(plan->stages[1].transmission_instance_id, 1u);
+  EXPECT_EQ(plan->stages[2].transmission_instance_id, 2u);
   EXPECT_EQ(plan->stages[0].produced_joint_ids.front(), joint_order["joint_a"]);
   EXPECT_EQ(plan->stages[1].produced_joint_ids.front(), joint_order["joint_b"]);
   EXPECT_EQ(plan->stages[2].produced_joint_ids.front(), joint_order["driven_joint"]);

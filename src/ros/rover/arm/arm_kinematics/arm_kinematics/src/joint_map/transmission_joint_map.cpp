@@ -124,11 +124,12 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
 
   const auto & models = analysis.models();
   for (const auto & stage : transmission_plan.stages) {
-    if (stage.group_id >= analysis.transmissions().size()) {
-      return tl::make_unexpected("Transmission plan references a group_id not present in TransmissionAnalysis");
+    if (stage.transmission_instance_id >= analysis.transmissions().size()) {
+      return tl::make_unexpected(
+        "Transmission plan references a transmission_instance_id not present in TransmissionAnalysis");
     }
 
-    const auto & transmission = analysis.transmissions()[stage.group_id];
+    const auto & transmission = analysis.transmissions()[stage.transmission_instance_id];
     if (transmission.model_id >= models.size()) {
       return tl::make_unexpected("Transmission plan references a model_id not present in TransmissionAnalysis");
     }

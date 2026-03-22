@@ -48,7 +48,7 @@ const std::vector<JointId> & produced_joint_ids_for_direction(
 
 std::optional<TransmissionPlanStage> make_direct_stage(
   const TransmissionAnalysis::TransmissionInstance & transmission,
-  const TransmissionGroupId group_id,
+  const TransmissionInstanceId transmission_instance_id,
   const TransmissionModel & model,
   const PropagationDirection direction,
   span<const JointId> requested_inputs,
@@ -69,7 +69,7 @@ std::optional<TransmissionPlanStage> make_direct_stage(
   }
 
   return TransmissionPlanStage{
-    group_id,
+    transmission_instance_id,
     direction,
     consumed_joint_ids,
     produced_joint_ids
@@ -279,8 +279,10 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
       continue;
     }
 
-    for (TransmissionGroupId group_id = 0; group_id < transmissions.size(); ++group_id) {
-      const auto & transmission = transmissions[group_id];
+    for (TransmissionInstanceId transmission_instance_id = 0;
+         transmission_instance_id < transmissions.size();
+         ++transmission_instance_id) {
+      const auto & transmission = transmissions[transmission_instance_id];
       const auto & model = *models[transmission.model_id];
 
       for (const auto direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
@@ -314,7 +316,7 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
 
         auto next_stages = state.stages;
         next_stages.push_back(TransmissionPlanStage{
-          group_id,
+          transmission_instance_id,
           direction,
           consumed_joint_ids,
           produced_joint_ids

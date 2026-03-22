@@ -388,7 +388,7 @@ using JointId = size_t;
 using GroupId = size_t;
 
 struct TransmissionAnalysisEdge {
-  GroupId group_id = 0;
+  TransmissionInstanceId transmission_instance_id = 0;
   PropagationDirection direction;
   std::vector<JointId> consumed_joint_ids;
   std::vector<JointId> produced_joint_ids;
@@ -452,7 +452,7 @@ using JointId = size_t;
 using GroupId = size_t;
 
 struct TransmissionPlanStage {
-  GroupId group_id = 0;
+  TransmissionInstanceId transmission_instance_id = 0;
   PropagationDirection direction;
   std::vector<JointId> consumed_joint_ids;
   std::vector<JointId> produced_joint_ids;
