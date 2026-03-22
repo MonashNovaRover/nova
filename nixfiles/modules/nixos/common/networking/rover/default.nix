@@ -33,6 +33,19 @@ in
     systemd.network = {
       enable = true;
 
+      # rename canable to usbcan0
+      links = {
+        "70-usbcan" = {
+          matchConfig = {
+            Property = "ID_BUS=usb";
+            Type = "can";
+          };
+          linkConfig = {
+            Name = "usbcan0";
+          };
+        };
+      };
+
       networks = {
         # CAN
         "60-can0" = {

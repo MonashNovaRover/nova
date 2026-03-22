@@ -28,20 +28,5 @@
 
     # For easy wifi configuration
     networking.networkmanager.enable = lib.mkDefault true;
-
-    # rename canable to usbcan0
-    systemd.network = {
-      links = {
-        "70-usbcan" = {
-          matchConfig = {
-            Property = "ID_BUS=usb";
-            Type = "can";
-          };
-          linkConfig = {
-            Name = "usbcan0";
-          };
-        };
-      };
-    };
   };
 }
