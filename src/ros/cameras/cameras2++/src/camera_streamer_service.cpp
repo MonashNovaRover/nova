@@ -115,7 +115,7 @@ class CameraStreamer : public rclcpp::Node
 
         // auto start if true
         if (autostart) {
-          this->start_pipeline(pipeline) ;
+          this->start_pipeline(pipeline);
         } else {
           pipeline->gst_pipeline = nullptr;
         }

@@ -14,6 +14,16 @@
  * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1 ! decodebin ! videoconvert ! webrtcsink meta='meta, serial=(string){props->serial}' video-caps={props->video_caps}
  */
 
+static bool is_plugin_available(const std::string& plugin_name) {
+  GstElementFactory* factory = gst_element_factory_find(plugin_name.c_str());
+  if (factory != nullptr) {
+      // We found it! Clean up the reference.
+      gst_object_unref(factory);
+      return true;
+  } 
+  return false;
+}
+
 GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineProperties* props)
 {
   /* 
@@ -410,7 +420,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   streamer_node->get_parameter_or((camera_prefix + ".noise_reduction").c_str(), props->noise_reduction, 256);
   streamer_node->get_parameter_or((camera_prefix + ".threads").c_str(), props->threads, 1);
   streamer_node->get_parameter_or((camera_prefix + ".gop").c_str(), props->gop, 1); // Distance between frames, in seconds
-  streamer_node->get_parameter_or<std::string>((camera_prefix + ".decoder").c_str(), props->decoder, "nvjpegdec");
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".decoder").c_str(), props->decoder, is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec");
 
   return props;
 }
