@@ -545,7 +545,7 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
   EXPECT_EQ(transmission.name, "main_transmission");
 }
 
-TEST_F(TransmissionUrdfTests, BuildExpectedDoesNotClaimGroupedTransmissionSupportYet)
+TEST_F(TransmissionUrdfTests, BuildExpectedRejectsUnsupportedRos2ControlTransmissionModel)
 {
   const auto result = robot_model_->get_joint_map_builder().build_expected(
     {"motor_joint"},
@@ -553,7 +553,7 @@ TEST_F(TransmissionUrdfTests, BuildExpectedDoesNotClaimGroupedTransmissionSuppor
     JointQuantity::Position);
 
   ASSERT_FALSE(result.has_value());
-  EXPECT_NE(result.error().find("No affine plan found"), std::string::npos);
+  EXPECT_NE(result.error().find("No grouped transmission plan found"), std::string::npos);
 }
 
 TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdge)
@@ -1242,10 +1242,10 @@ TEST(TransmissionAnalysisTests, AffinePlannerRejectsAmbiguousAffineTargets)
   EXPECT_NE(plan.error().find("Ambiguous affine plan"), std::string::npos);
 }
 
-TEST(JointMapStage2Tests, BuildExpectedDoesNotClaimGroupedTransmissionSupportYet)
+TEST(JointMapStage2Tests, DefaultJointMapBuilderBuildsAndExecutesGroupedTransmissionMap)
 {
   DefaultJointMapBuilder builder{};
-  builder.with_transmission_model(std::make_unique<TestTransmissionModel>(true, false));
+  builder.with_transmission_model(std::make_unique<TestRuntimeTransmissionModel>(2.0F, 0.25F));
 
   auto & analysis = const_cast<TransmissionAnalysis &>(builder.get_transmission_analysis());
   const std::vector<std::string> input_names{"motor_joint"};
@@ -1258,8 +1258,51 @@ TEST(JointMapStage2Tests, BuildExpectedDoesNotClaimGroupedTransmissionSupportYet
 
   const auto result = builder.build_expected(input_names, output_names, JointQuantity::Position);
 
-  ASSERT_FALSE(result.has_value());
-  EXPECT_NE(result.error().find("No affine plan found"), std::string::npos);
+  ASSERT_TRUE(result.has_value());
+  ASSERT_EQ(result->input_count(), 1u);
+  ASSERT_EQ(result->output_count(), 1u);
+
+  std::vector<double> inputs{1.5};
+  std::vector<float> outputs(1, 0.0F);
+  result->map(inputs, outputs);
+
+  EXPECT_NEAR(outputs[0], 3.25F, EPSILON);
+}
+
+TEST(JointMapStage2Tests, GroupedJointMapCopyRetainsBehavior)
+{
+  DefaultJointMapBuilder builder{};
+  builder.with_transmission_model(std::make_unique<TestRuntimeTransmissionModel>(2.0F, 0.25F));
+
+  auto & analysis = const_cast<TransmissionAnalysis &>(builder.get_transmission_analysis());
+  const std::vector<std::string> input_names{"motor_joint"};
+  const std::vector<std::string> output_names{"driven_joint"};
+  analysis.add_transmission(
+    0,
+    arm_kinematics::span<const std::string>(input_names),
+    arm_kinematics::span<const std::string>(output_names),
+    "direct");
+
+  auto result = builder.build_expected(input_names, output_names, JointQuantity::Position);
+  ASSERT_TRUE(result.has_value());
+
+  JointMap original = *result;
+  JointMap copy = original;
+
+  ASSERT_TRUE(original.valid());
+  ASSERT_TRUE(copy.valid());
+  ASSERT_EQ(copy.input_count(), 1u);
+  ASSERT_EQ(copy.output_count(), 1u);
+
+  std::vector<double> inputs{1.5};
+  std::vector<float> original_outputs(1, 0.0F);
+  std::vector<float> copy_outputs(1, 0.0F);
+
+  original.map(inputs, original_outputs);
+  copy.map(inputs, copy_outputs);
+
+  EXPECT_EQ(original_outputs, copy_outputs);
+  EXPECT_NEAR(copy_outputs[0], 3.25F, EPSILON);
 }
 
 // Small helper for comparing isometries

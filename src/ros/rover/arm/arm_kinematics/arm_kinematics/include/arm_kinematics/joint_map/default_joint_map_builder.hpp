@@ -24,11 +24,11 @@ namespace arm_kinematics {
 /**
  * Default shared builder backed by the robot model's URDF-derived metadata.
  *
- * Stage 1 behavior:
+ * Current behavior:
  *   - gathers mimic-joint affine transmissions from the URDF
  *   - parses ros2_control transmission definitions
  *   - caches a TransmissionAnalysis built from normalized transmission models
- *   - still only succeeds at runtime for AffineJointMap-style requests
+ *   - delegates affine and grouped runtime construction to the underlying planning/compilation helpers
  *
  * This type is the default shared implementation, not the only possible implementation. FK plugins may return a
  * different JointMapBuilder when they need backend-specific mapping behavior.
@@ -40,8 +40,8 @@ public:
   /**
    * Constructs a JointMap that maps input_names to output_names for the requested quantity.
    *
-   * Today this succeeds for affine reorder/mimic cases and reports a build-time error for recognized
-   * transmission-backed requests, since the runtime transmission compute path is not implemented yet.
+   * This builder remains an orchestration layer only. It converts boundary names to canonical JointIds and then
+   * delegates to the affine or grouped planning/compilation path as appropriate.
    */
   [[nodiscard]] tl::expected<JointMap, std::string> build_expected(
     const std::vector<std::string> & input_names,
@@ -82,7 +82,7 @@ public:
   [[nodiscard]] const TransmissionAnalysis & get_transmission_analysis() const noexcept;
 
 private:
-  /// Parsed transmission metadata from ros2_control XML. Parsed for future use, but not consumed in Stage 1 build().
+  /// Parsed transmission metadata from ros2_control XML for future use and diagnostics.
   std::vector<hardware_interface::TransmissionInfo> transmissions_{};
   /// Cached structural transmission analysis derived from registered transmission models.
   TransmissionAnalysis transmission_analysis_{};
