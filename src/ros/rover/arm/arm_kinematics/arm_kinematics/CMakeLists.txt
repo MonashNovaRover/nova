@@ -1,6 +1,24 @@
 cmake_minimum_required(VERSION 3.5)
 project(arm_kinematics LANGUAGES CXX)
 
+# Prefer the active toolchain glibc at runtime. Some ROS/Nix dependency
+# closures add an older glibc path into target RUNPATH, which can leave the
+# binary requesting one loader while resolving libc from another store path.
+execute_process(
+  COMMAND ${CMAKE_CXX_COMPILER} -print-file-name=libc.so.6
+  OUTPUT_VARIABLE ARM_KINEMATICS_TOOLCHAIN_LIBC
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(IS_ABSOLUTE "${ARM_KINEMATICS_TOOLCHAIN_LIBC}")
+  get_filename_component(
+    ARM_KINEMATICS_TOOLCHAIN_GLIBC_DIR
+    "${ARM_KINEMATICS_TOOLCHAIN_LIBC}"
+    DIRECTORY
+  )
+  list(PREPEND CMAKE_BUILD_RPATH "${ARM_KINEMATICS_TOOLCHAIN_GLIBC_DIR}")
+  list(PREPEND CMAKE_INSTALL_RPATH "${ARM_KINEMATICS_TOOLCHAIN_GLIBC_DIR}")
+endif()
+
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   geometry_msgs
   pluginlib

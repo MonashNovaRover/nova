@@ -36,7 +36,102 @@ namespace arm_kinematics {
 
 namespace {
 
-class Ros2ControlTransmissionModel final : public TransmissionModel {
+class SimpleTransmissionCompute final : public ComputeTransmission {
+public:
+  SimpleTransmissionCompute(
+    const float reduction,
+    const float offset,
+    const JointQuantity quantity,
+    const PropagationDirection direction)
+    : reduction_(reduction),
+      offset_(offset),
+      quantity_(quantity),
+      direction_(direction)
+  {
+  }
+
+  void compute(
+    const span<const float> inputs,
+    const span<float> outputs,
+    const span<float>) const override
+  {
+    if (inputs.size() != 1 || outputs.size() != 1) {
+      throw std::invalid_argument("SimpleTransmissionCompute expects exactly one input and one output");
+    }
+
+    if (direction_ == PropagationDirection::Forward) {
+      outputs[0] = quantity_ == JointQuantity::Position ?
+        inputs[0] / reduction_ + offset_ :
+        inputs[0] / reduction_;
+      return;
+    }
+
+    outputs[0] = quantity_ == JointQuantity::Position ?
+      (inputs[0] - offset_) * reduction_ :
+      inputs[0] * reduction_;
+  }
+
+  [[nodiscard]] size_t scratch_size() const noexcept override
+  {
+    return 0;
+  }
+
+  [[nodiscard]] std::unique_ptr<ComputeTransmission> clone() const override
+  {
+    return std::make_unique<SimpleTransmissionCompute>(
+      reduction_,
+      offset_,
+      quantity_,
+      direction_);
+  }
+
+private:
+  float reduction_{1.0F};
+  float offset_{0.0F};
+  JointQuantity quantity_{JointQuantity::Position};
+  PropagationDirection direction_{PropagationDirection::Forward};
+};
+
+class SimpleTransmissionModel final : public TransmissionModel {
+public:
+  SimpleTransmissionModel(
+    const float reduction,
+    const float offset)
+    : reduction_(reduction),
+      offset_(offset)
+  {
+  }
+
+  [[nodiscard]] bool can_build(
+    const JointQuantity quantity,
+    const PropagationDirection) const noexcept override
+  {
+    return quantity == JointQuantity::Position || quantity == JointQuantity::Velocity;
+  }
+
+  [[nodiscard]] std::unique_ptr<const ComputeTransmission> build(
+    const JointQuantity quantity,
+    const PropagationDirection direction,
+    const span<const JointId> input_joint_ids,
+    const span<const JointId> output_joint_ids) const override
+  {
+    if (input_joint_ids.size() != 1 || output_joint_ids.size() != 1) {
+      throw std::invalid_argument("SimpleTransmissionModel expects exactly one input and one output joint");
+    }
+
+    return std::make_unique<SimpleTransmissionCompute>(
+      reduction_,
+      offset_,
+      quantity,
+      direction);
+  }
+
+private:
+  float reduction_{1.0F};
+  float offset_{0.0F};
+};
+
+class UnsupportedRos2ControlTransmissionModel final : public TransmissionModel {
 public:
   [[nodiscard]] bool can_build(
     const JointQuantity,
@@ -51,9 +146,31 @@ public:
     span<const JointId>,
     span<const JointId>) const override
   {
-    throw std::logic_error("Ros2ControlTransmissionModel::build() called before transmission runtime support exists");
+    throw std::logic_error("UnsupportedRos2ControlTransmissionModel::build() called before transmission runtime support exists");
   }
 };
+
+std::unique_ptr<TransmissionModel> make_ros2_control_transmission_model(
+  const hardware_interface::TransmissionInfo & transmission)
+{
+  if (
+    transmission.type == "transmission_interface/SimpleTransmission" &&
+    transmission.actuators.size() == 1 &&
+    transmission.joints.size() == 1)
+  {
+    const auto reduction =
+      static_cast<float>(
+      transmission.joints.front().mechanical_reduction /
+      transmission.actuators.front().mechanical_reduction);
+    const auto offset =
+      static_cast<float>(
+      transmission.joints.front().offset -
+      transmission.actuators.front().offset / reduction);
+    return std::make_unique<SimpleTransmissionModel>(reduction, offset);
+  }
+
+  return std::make_unique<UnsupportedRos2ControlTransmissionModel>();
+}
 
 std::string get_text_for_element(
   const tinyxml2::XMLElement * element_it, const std::string &)
@@ -226,7 +343,7 @@ void add_ros2_control_transmission_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const hardware_interface::TransmissionInfo & transmission)
 {
-  const auto model_id = transmission_analysis.add_model(std::make_unique<Ros2ControlTransmissionModel>());
+  const auto model_id = transmission_analysis.add_model(make_ros2_control_transmission_model(transmission));
 
   std::vector<std::string> input_names{};
   input_names.reserve(transmission.actuators.size());

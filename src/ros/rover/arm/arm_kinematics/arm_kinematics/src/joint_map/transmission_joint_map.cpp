@@ -71,6 +71,29 @@ tl::expected<void, std::string> validate_stage_topology_expected(
 
 } // namespace
 
+CompiledTransmissionStage::CompiledTransmissionStage(const CompiledTransmissionStage & other)
+  : compute(other.compute ? other.compute->clone() : nullptr),
+    input_indices(other.input_indices),
+    output_indices(other.output_indices),
+    scratch_offset(other.scratch_offset),
+    scratch_size(other.scratch_size)
+{
+}
+
+CompiledTransmissionStage & CompiledTransmissionStage::operator=(const CompiledTransmissionStage & other)
+{
+  if (this == &other) {
+    return *this;
+  }
+
+  compute = other.compute ? other.compute->clone() : nullptr;
+  input_indices = other.input_indices;
+  output_indices = other.output_indices;
+  scratch_offset = other.scratch_offset;
+  scratch_size = other.scratch_size;
+  return *this;
+}
+
 CompileTransmissionPlanResult compile_transmission_plan_expected(
   const TransmissionAnalysis & analysis,
   const TransmissionPlan & transmission_plan,
@@ -172,6 +195,23 @@ TransmissionJointMap::TransmissionJointMap(CompiledTransmissionPlan && compiled_
   : compiled_plan_(std::move(compiled_plan))
 {
   workspace_ = make_workspace();
+}
+
+TransmissionJointMap::TransmissionJointMap(const TransmissionJointMap & other)
+  : compiled_plan_(other.compiled_plan_)
+{
+  workspace_ = make_workspace();
+}
+
+TransmissionJointMap & TransmissionJointMap::operator=(const TransmissionJointMap & other)
+{
+  if (this == &other) {
+    return *this;
+  }
+
+  compiled_plan_ = other.compiled_plan_;
+  workspace_ = make_workspace();
+  return *this;
 }
 
 TransmissionJointMap::Workspace TransmissionJointMap::make_workspace() const

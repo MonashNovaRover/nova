@@ -26,10 +26,23 @@ struct CompiledTransmissionStage {
   size_t scratch_size = 0;
 
   CompiledTransmissionStage() = default;
+  CompiledTransmissionStage(
+    std::unique_ptr<const ComputeTransmission> compute,
+    std::vector<size_t> input_indices,
+    std::vector<size_t> output_indices,
+    size_t scratch_offset,
+    size_t scratch_size)
+  : compute(std::move(compute)),
+    input_indices(std::move(input_indices)),
+    output_indices(std::move(output_indices)),
+    scratch_offset(scratch_offset),
+    scratch_size(scratch_size)
+  {
+  }
+  CompiledTransmissionStage(const CompiledTransmissionStage & other);
   CompiledTransmissionStage(CompiledTransmissionStage &&) noexcept = default;
+  CompiledTransmissionStage & operator=(const CompiledTransmissionStage & other);
   CompiledTransmissionStage & operator=(CompiledTransmissionStage &&) noexcept = default;
-  CompiledTransmissionStage(const CompiledTransmissionStage &) = delete;
-  CompiledTransmissionStage & operator=(const CompiledTransmissionStage &) = delete;
 };
 
 struct CompiledTransmissionPlan {
@@ -41,10 +54,10 @@ struct CompiledTransmissionPlan {
   std::vector<CompiledTransmissionStage> stages{};
 
   CompiledTransmissionPlan() = default;
+  CompiledTransmissionPlan(const CompiledTransmissionPlan &) = default;
   CompiledTransmissionPlan(CompiledTransmissionPlan &&) noexcept = default;
+  CompiledTransmissionPlan & operator=(const CompiledTransmissionPlan &) = default;
   CompiledTransmissionPlan & operator=(CompiledTransmissionPlan &&) noexcept = default;
-  CompiledTransmissionPlan(const CompiledTransmissionPlan &) = delete;
-  CompiledTransmissionPlan & operator=(const CompiledTransmissionPlan &) = delete;
 };
 
 using CompileTransmissionPlanResult = tl::expected<CompiledTransmissionPlan, std::string>;
@@ -57,6 +70,10 @@ using CompileTransmissionPlanResult = tl::expected<CompiledTransmissionPlan, std
 class ARM_KINEMATICS_PUBLIC TransmissionJointMap {
 public:
   explicit TransmissionJointMap(CompiledTransmissionPlan && compiled_plan);
+  TransmissionJointMap(const TransmissionJointMap & other);
+  TransmissionJointMap & operator=(const TransmissionJointMap & other);
+  TransmissionJointMap(TransmissionJointMap &&) noexcept = default;
+  TransmissionJointMap & operator=(TransmissionJointMap &&) noexcept = default;
 
   void map(span<const double> inputs, span<float> outputs) const;
 

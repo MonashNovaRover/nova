@@ -23,11 +23,12 @@ The codebase now has:
   - stage data availability
   - unsupported model build directions/quantities
 - grouped ambiguity handling across multiple candidate plans
+- builder-level grouped orchestration through `DefaultJointMapBuilder`
+- builder-level grouped execution and copy-semantics test coverage
 
 What is still missing is the grouped runtime execution side:
 
-- no integration yet back into `DefaultJointMapBuilder`
-- no builder-facing consumption of the completed grouped planner/compiler/runtime path
+- no major grouped runtime execution gap remains in this stage slice
 
 ## Current Runtime Scope
 
@@ -44,6 +45,8 @@ This runtime path now supports:
 - multi-stage grouped plans derived from `TransmissionAnalysis`
 - manually constructed multi-stage grouped plans at compile/runtime level
 - stage-to-stage dataflow through a compiled value buffer
+- builder-produced grouped `JointMap` instances
+- grouped `JointMap` copy semantics through cloned `ComputeTransmission` stages
 
 ## Design Constraints
 
@@ -54,24 +57,20 @@ This runtime path now supports:
 - runtime execution should not do string lookup
 - `DefaultJointMapBuilder` should not become the design center for this work
 
-## Next Implementation Step
+## Status
 
-The next incremental step is to consume the completed grouped planner/compiler/runtime path from the standard builder
-without letting the builder become a semantic owner.
+This grouped runtime plan is now substantially complete.
 
-That step should:
+The reusable grouped planner/compiler/runtime structures exist, and `DefaultJointMapBuilder` is now acting as a thin
+consumer of those structures rather than owning grouped semantics.
 
-1. re-enable grouped orchestration in `DefaultJointMapBuilder`
-2. keep the builder limited to:
-   - boundary name conversion
-   - affine path selection
-   - grouped path selection
-3. make the builder delegate to the grouped planner/compiler/runtime structures without duplicating grouped logic
-4. add end-to-end tests proving builder-produced grouped joint maps execute correctly
+## Next Stage
 
-## Recommended Order
+The next work should come from the broader Stage 2 / transmission-spec documents rather than from this focused grouped
+runtime note.
 
-1. re-enable grouped path selection in `DefaultJointMapBuilder`
-2. keep grouped planning/compilation in the existing free/helper structures
-3. add builder-level grouped execution tests
-4. only after that, consider planner refinements or performance cleanup if needed
+The most important remaining items are:
+
+1. make quantity-specific transmission build behavior real
+2. add the first real lightweight transmission compute/model implementation beyond test doubles
+3. add plugin-specific builder extension coverage using the shared cached analysis
