@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <unordered_map>
+#include <unordered_set>
 #include <stdexcept>
 
 namespace arm_kinematics {
@@ -43,6 +44,31 @@ std::vector<size_t> ensure_value_indices(
   return indices;
 }
 
+tl::expected<void, std::string> validate_stage_topology_expected(
+  const TransmissionAnalysis::TransmissionInstance & transmission,
+  const TransmissionPlanStage & stage)
+{
+  const auto & expected_consumed =
+    stage.direction == PropagationDirection::Forward ?
+    transmission.input_joint_ids :
+    transmission.output_joint_ids;
+  const auto & expected_produced =
+    stage.direction == PropagationDirection::Forward ?
+    transmission.output_joint_ids :
+    transmission.input_joint_ids;
+
+  if (stage.consumed_joint_ids != expected_consumed) {
+    return tl::make_unexpected(
+      "Transmission plan stage consumed joints do not match the referenced transmission topology");
+  }
+  if (stage.produced_joint_ids != expected_produced) {
+    return tl::make_unexpected(
+      "Transmission plan stage produced joints do not match the referenced transmission topology");
+  }
+
+  return {};
+}
+
 } // namespace
 
 CompileTransmissionPlanResult compile_transmission_plan_expected(
@@ -64,8 +90,13 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
     transmission_plan.output_joint_ids.size());
 
   size_t next_value_index = 0;
+  std::unordered_set<JointId> available_joint_ids{};
+  available_joint_ids.reserve(
+    transmission_plan.input_joint_ids.size() +
+    transmission_plan.output_joint_ids.size());
   for (const auto joint_id : transmission_plan.input_joint_ids) {
     ensure_value_index(value_indices, joint_id, next_value_index);
+    available_joint_ids.insert(joint_id);
   }
 
   const auto & models = analysis.models();
@@ -77,6 +108,16 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
     const auto & transmission = analysis.transmissions()[stage.group_id];
     if (transmission.model_id >= models.size()) {
       return tl::make_unexpected("Transmission plan references a model_id not present in TransmissionAnalysis");
+    }
+    const auto stage_topology = validate_stage_topology_expected(transmission, stage);
+    if (!stage_topology.has_value()) {
+      return tl::make_unexpected(stage_topology.error());
+    }
+    for (const auto joint_id : stage.consumed_joint_ids) {
+      if (available_joint_ids.find(joint_id) == available_joint_ids.end()) {
+        return tl::make_unexpected(
+          "Transmission plan stage consumes a joint that is not available from plan inputs or earlier stages");
+      }
     }
 
     const auto input_indices = ensure_value_indices(
@@ -102,6 +143,9 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
       compiled_plan.scratch_size,
       stage_scratch_size
     });
+    for (const auto joint_id : stage.produced_joint_ids) {
+      available_joint_ids.insert(joint_id);
+    }
     compiled_plan.scratch_size += stage_scratch_size;
   }
 

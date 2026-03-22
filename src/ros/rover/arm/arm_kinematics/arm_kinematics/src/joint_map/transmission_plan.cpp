@@ -25,6 +25,54 @@ std::string join_joint_ids(span<const JointId> joint_ids)
   return ss.str();
 }
 
+const std::vector<JointId> & consumed_joint_ids_for_direction(
+  const TransmissionAnalysis::TransmissionInstance & transmission,
+  const PropagationDirection direction)
+{
+  return direction == PropagationDirection::Forward ?
+    transmission.input_joint_ids :
+    transmission.output_joint_ids;
+}
+
+const std::vector<JointId> & produced_joint_ids_for_direction(
+  const TransmissionAnalysis::TransmissionInstance & transmission,
+  const PropagationDirection direction)
+{
+  return direction == PropagationDirection::Forward ?
+    transmission.output_joint_ids :
+    transmission.input_joint_ids;
+}
+
+std::optional<TransmissionPlanStage> make_direct_stage(
+  const TransmissionAnalysis::TransmissionInstance & transmission,
+  const TransmissionGroupId group_id,
+  const TransmissionModel & model,
+  const PropagationDirection direction,
+  span<const JointId> requested_inputs,
+  span<const JointId> requested_outputs,
+  const JointQuantity quantity)
+{
+  const auto & consumed_joint_ids = consumed_joint_ids_for_direction(transmission, direction);
+  const auto & produced_joint_ids = produced_joint_ids_for_direction(transmission, direction);
+
+  if (!model.can_build(quantity, direction)) {
+    return std::nullopt;
+  }
+  if (consumed_joint_ids != std::vector<JointId>(requested_inputs.begin(), requested_inputs.end())) {
+    return std::nullopt;
+  }
+  if (produced_joint_ids != std::vector<JointId>(requested_outputs.begin(), requested_outputs.end())) {
+    return std::nullopt;
+  }
+
+  return TransmissionPlanStage{
+    group_id,
+    direction,
+    consumed_joint_ids,
+    produced_joint_ids
+  };
+}
+
 tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
   const TransmissionAnalysis & analysis,
   const span<const JointId> input_joint_ids,
@@ -123,62 +171,100 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
   const auto & transmissions = analysis.transmissions();
   const auto & models = analysis.models();
 
-  std::optional<TransmissionPlan> plan = std::nullopt;
+  std::optional<TransmissionPlan> direct_plan = std::nullopt;
 
   for (TransmissionGroupId group_id = 0; group_id < transmissions.size(); ++group_id) {
     const auto & transmission = transmissions[group_id];
     const auto & model = *models[transmission.model_id];
 
-    const bool direct_forward =
-      transmission.input_joint_ids == std::vector<JointId>(input_joint_ids.begin(), input_joint_ids.end()) &&
-      transmission.output_joint_ids == std::vector<JointId>(output_joint_ids.begin(), output_joint_ids.end());
-
-    if (direct_forward && model.can_build(quantity, PropagationDirection::Forward)) {
-      if (plan.has_value()) {
-        return tl::make_unexpected("Ambiguous transmission plan: multiple direct forward candidates were found");
+    for (const auto direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
+      const auto direct_stage = make_direct_stage(
+        transmission,
+        group_id,
+        model,
+        direction,
+        input_joint_ids,
+        output_joint_ids,
+        quantity);
+      if (!direct_stage.has_value()) {
+        continue;
       }
 
-      plan = TransmissionPlan{
-        {input_joint_ids.begin(), input_joint_ids.end()},
-        {output_joint_ids.begin(), output_joint_ids.end()},
-        {TransmissionPlanStage{
-          group_id,
-          PropagationDirection::Forward,
-          {input_joint_ids.begin(), input_joint_ids.end()},
-          {output_joint_ids.begin(), output_joint_ids.end()}
-        }}
-      };
-    }
-
-    const bool direct_reverse =
-      transmission.output_joint_ids == std::vector<JointId>(input_joint_ids.begin(), input_joint_ids.end()) &&
-      transmission.input_joint_ids == std::vector<JointId>(output_joint_ids.begin(), output_joint_ids.end());
-
-    if (direct_reverse && model.can_build(quantity, PropagationDirection::Reverse)) {
-      if (plan.has_value()) {
-        return tl::make_unexpected("Ambiguous transmission plan: multiple direct reverse candidates were found");
+      if (direct_plan.has_value()) {
+        return tl::make_unexpected("Ambiguous transmission plan: multiple direct candidates were found");
       }
 
-      plan = TransmissionPlan{
+      direct_plan = TransmissionPlan{
         {input_joint_ids.begin(), input_joint_ids.end()},
         {output_joint_ids.begin(), output_joint_ids.end()},
-        {TransmissionPlanStage{
-          group_id,
-          PropagationDirection::Reverse,
-          {input_joint_ids.begin(), input_joint_ids.end()},
-          {output_joint_ids.begin(), output_joint_ids.end()}
-        }}
+        {*direct_stage}
       };
     }
   }
 
-  if (!plan.has_value()) {
+  if (direct_plan.has_value()) {
+    return *direct_plan;
+  }
+
+  std::optional<TransmissionPlan> two_stage_plan = std::nullopt;
+
+  for (TransmissionGroupId first_group_id = 0; first_group_id < transmissions.size(); ++first_group_id) {
+    const auto & first_transmission = transmissions[first_group_id];
+    const auto & first_model = *models[first_transmission.model_id];
+
+    for (const auto first_direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
+      const auto & intermediate_joint_ids =
+        produced_joint_ids_for_direction(first_transmission, first_direction);
+      const auto first_stage = make_direct_stage(
+        first_transmission,
+        first_group_id,
+        first_model,
+        first_direction,
+        input_joint_ids,
+        span<const JointId>(intermediate_joint_ids),
+        quantity);
+      if (!first_stage.has_value()) {
+        continue;
+      }
+
+      for (TransmissionGroupId second_group_id = 0; second_group_id < transmissions.size(); ++second_group_id) {
+        const auto & second_transmission = transmissions[second_group_id];
+        const auto & second_model = *models[second_transmission.model_id];
+
+        for (const auto second_direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
+          const auto second_stage = make_direct_stage(
+            second_transmission,
+            second_group_id,
+            second_model,
+            second_direction,
+            span<const JointId>(intermediate_joint_ids),
+            output_joint_ids,
+            quantity);
+          if (!second_stage.has_value()) {
+            continue;
+          }
+
+          if (two_stage_plan.has_value()) {
+            return tl::make_unexpected("Ambiguous transmission plan: multiple two-stage candidates were found");
+          }
+
+          two_stage_plan = TransmissionPlan{
+            {input_joint_ids.begin(), input_joint_ids.end()},
+            {output_joint_ids.begin(), output_joint_ids.end()},
+            {*first_stage, *second_stage}
+          };
+        }
+      }
+    }
+  }
+
+  if (!two_stage_plan.has_value()) {
     return tl::make_unexpected(
-      "No direct transmission plan found for inputs [" + join_joint_ids(input_joint_ids) +
+      "No direct or two-stage transmission plan found for inputs [" + join_joint_ids(input_joint_ids) +
       "] and outputs [" + join_joint_ids(output_joint_ids) + "]");
   }
 
-  return *plan;
+  return *two_stage_plan;
 }
 
 } // namespace arm_kinematics

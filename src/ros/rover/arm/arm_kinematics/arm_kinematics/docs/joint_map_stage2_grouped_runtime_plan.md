@@ -21,9 +21,9 @@ The codebase now has:
 
 What is still missing is the grouped runtime execution side:
 
-- no validation yet that each compiled stage respects the cached transmission topology
-- no validation yet that multi-stage grouped plans are topologically executable
-- no planner yet for multi-stage grouped plans
+- no planner yet beyond the current direct and simple two-stage grouped search
+- no general multi-stage grouped search over `TransmissionAnalysis`
+- no integration yet back into `DefaultJointMapBuilder`
 
 ## Current Runtime Scope
 
@@ -54,22 +54,21 @@ What it still does not support is deriving those multi-stage plans automatically
 
 ## Next Implementation Step
 
-The next incremental step is to tighten grouped plan compilation correctness before broadening grouped planning.
+The next incremental step is to finish grouped compiler correctness and planner policy before broadening grouped
+search further.
 
 That step should:
 
-1. validate that each `TransmissionPlanStage` matches the referenced cached transmission topology
-2. validate that each stage consumes only:
-   - plan inputs
-   - or values produced by earlier stages
-3. reject grouped plans that rely on future-stage outputs or unrelated joint ids
-4. add tests for invalid grouped plans
-5. only after that, broaden `make_transmission_plan_expected(...)` toward multi-stage grouped search
+1. make `compile_transmission_plan_expected(...)` reject unsupported stage builds explicitly
+2. return grouped compiler failures through `tl::expected` rather than relying on runtime exceptions
+3. add tests for unsupported grouped-stage compilation failures
+4. decide and document ambiguity policy when both direct and multi-stage grouped candidates exist
+5. only after that, broaden grouped planning beyond the current direct and simple two-stage cases
 
 ## Recommended Order
 
-1. validate stage topology against `TransmissionAnalysis::transmissions()`
-2. validate stage ordering/data availability in `compile_transmission_plan_expected(...)`
-3. add failure tests for malformed grouped plans
-4. then broaden the planner toward real multi-stage grouped plan construction
-5. keep `DefaultJointMapBuilder` out of that work until the grouped path is structurally complete
+1. finish grouped compiler failure semantics
+2. add tests for unsupported build rejection
+3. settle grouped ambiguity policy across direct and multi-stage candidates
+4. then broaden the planner from exact direct match/simple two-stage search to more general indexed grouped search
+5. only after that, adapt `DefaultJointMapBuilder` to consume the completed grouped path
