@@ -75,7 +75,20 @@ struct JointMapPlanError
   std::string message{};
 };
 
-using MakeTransmissionPlanResult = tl::expected<TransmissionPlan, std::string>;
+enum class TransmissionPlanErrorKind
+{
+  NoPlan,
+  Ambiguous,
+  Invalid,
+};
+
+struct TransmissionPlanError
+{
+  TransmissionPlanErrorKind kind = TransmissionPlanErrorKind::NoPlan;
+  std::string message{};
+};
+
+using MakeTransmissionPlanResult = tl::expected<TransmissionPlan, TransmissionPlanError>;
 using MakeAffinePlanResult = tl::expected<AffinePlan, std::string>;
 using MakeJointMapPlanResult = tl::expected<JointMapPlan, JointMapPlanError>;
 

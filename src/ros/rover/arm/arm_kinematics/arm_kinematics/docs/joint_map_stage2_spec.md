@@ -172,6 +172,8 @@ Mixed staged planning must keep the original ambiguity rule:
 - otherwise the request remains ambiguous and must fail at build time
 - recursive mixed-plan search must classify failures structurally rather than by parsing error strings; ambiguity,
   invalid structure, and simple "no plan here" outcomes should remain distinct in the planner result type
+- grouped transmission planning should follow the same rule, keeping ambiguity and no-plan outcomes distinct in its
+  own result type instead of collapsing them into message parsing
 
 ## Proposed Stage 2 Architecture
 

@@ -36,6 +36,14 @@ JointMapPlanError make_joint_map_plan_error(const JointMapPlanErrorKind kind, st
   };
 }
 
+TransmissionPlanError make_transmission_plan_error(const TransmissionPlanErrorKind kind, std::string message)
+{
+  return TransmissionPlanError{
+    kind,
+    std::move(message)
+  };
+}
+
 const std::vector<JointId> & consumed_joint_ids_for_direction(
   const TransmissionAnalysis::TransmissionInstance & transmission,
   const PropagationDirection direction)
@@ -384,7 +392,9 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
 
     if (contains_all_joint_ids(state.available_joint_ids, {output_joint_ids.begin(), output_joint_ids.end()})) {
       if (state_path_counts[current_key] > 1 || plan.has_value()) {
-        return tl::make_unexpected("Ambiguous transmission plan: multiple grouped candidates were found");
+        return tl::make_unexpected(make_transmission_plan_error(
+          TransmissionPlanErrorKind::Ambiguous,
+          "Ambiguous transmission plan: multiple grouped candidates were found"));
       }
 
       plan = TransmissionPlan{
@@ -447,9 +457,10 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
   }
 
   if (!plan.has_value()) {
-    return tl::make_unexpected(
+    return tl::make_unexpected(make_transmission_plan_error(
+      TransmissionPlanErrorKind::NoPlan,
       "No grouped transmission plan found for inputs [" + join_joint_ids(input_joint_ids) +
-      "] and outputs [" + join_joint_ids(output_joint_ids) + "]");
+      "] and outputs [" + join_joint_ids(output_joint_ids) + "]"));
   }
 
   return *plan;
@@ -512,7 +523,7 @@ tl::expected<JointMapPlanStage, std::string> make_single_stage_joint_map_plan_ex
       span<const JointId>(grouped_output_joint_ids),
       quantity);
     if (!transmission_plan.has_value()) {
-      return tl::make_unexpected(transmission_plan.error());
+      return tl::make_unexpected(transmission_plan.error().message);
     }
 
     stage_plan.segments.push_back(JointMapPlanSegment{

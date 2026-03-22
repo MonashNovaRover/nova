@@ -1562,7 +1562,8 @@ TEST(JointMapStage2Tests, RejectsAmbiguousDirectAndTwoStageTransmissionPlans)
     JointQuantity::Position);
 
   ASSERT_FALSE(plan.has_value());
-  EXPECT_NE(plan.error().find("Ambiguous"), std::string::npos);
+  EXPECT_EQ(plan.error().kind, arm_kinematics::TransmissionPlanErrorKind::Ambiguous);
+  EXPECT_NE(plan.error().message.find("Ambiguous"), std::string::npos);
 }
 
 TEST(JointMapStage2Tests, BuildsThreeStageTransmissionPlan)

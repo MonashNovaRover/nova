@@ -143,9 +143,21 @@ The staged ambiguity policy is now:
 - where candidates are structurally equivalent, the lower-cost compute structure should be preferred
 - recursive staged planning now uses a typed `JointMapPlanError` with explicit `NoPlan`, `Ambiguous`, and `Invalid`
   outcomes rather than parsing error strings inside the planner
+- grouped transmission planning now also uses a typed `TransmissionPlanError` with explicit `NoPlan`, `Ambiguous`,
+  and `Invalid` outcomes rather than parsing error strings inside grouped plan search
 
 The next planning gap is broadening that explicit policy beyond the current grouped-prefix versus affine-prefix branch,
 not another ad hoc family ordering rule.
+
+That next step now has a concrete design risk:
+
+- raw `JointMapPlan` stage/segment shape is not a sufficient equivalence test across all competing families
+- cases like a direct single-stage mixed plan versus a staged tail decomposition can be compute-equivalent while still
+  having different raw staged shapes
+- before extending ambiguity detection to those broader branches, the planner will need a canonicalized execution
+  signature that can distinguish:
+  - genuinely conflicting staged interpretations
+  - equivalent compute structures that should collapse to the cheaper execution form
 
 Longer-term direction beyond this focused note:
 
