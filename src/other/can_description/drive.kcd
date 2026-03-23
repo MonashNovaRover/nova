@@ -344,6 +344,8 @@
               <Label name="resolver_zero_failure" value="9"/>
               <Label name="stall_triggered" value="10"/>
               <Label name="over_speed" value="11"/>
+              <Label name="over_acceleration" value="12"/>
+              <Label name="encoder_fault" value="13"/>
             </LabelSet>
           </Signal>
         </MuxGroup>
@@ -802,6 +804,8 @@
               <Label name="resolver_zero_failure" value="9"/>
               <Label name="stall_triggered" value="10"/>
               <Label name="over_speed" value="11"/>
+              <Label name="over_acceleration" value="12"/>
+              <Label name="encoder_fault" value="13"/>
             </LabelSet>
           </Signal>
         </MuxGroup>
@@ -1260,6 +1264,8 @@
               <Label name="resolver_zero_failure" value="9"/>
               <Label name="stall_triggered" value="10"/>
               <Label name="over_speed" value="11"/>
+              <Label name="over_acceleration" value="12"/>
+              <Label name="encoder_fault" value="13"/>
             </LabelSet>
           </Signal>
         </MuxGroup>
@@ -1718,6 +1724,8 @@
               <Label name="resolver_zero_failure" value="9"/>
               <Label name="stall_triggered" value="10"/>
               <Label name="over_speed" value="11"/>
+              <Label name="over_acceleration" value="12"/>
+              <Label name="encoder_fault" value="13"/>
             </LabelSet>
           </Signal>
         </MuxGroup>
@@ -2176,6 +2184,8 @@
               <Label name="resolver_zero_failure" value="9"/>
               <Label name="stall_triggered" value="10"/>
               <Label name="over_speed" value="11"/>
+              <Label name="over_acceleration" value="12"/>
+              <Label name="encoder_fault" value="13"/>
             </LabelSet>
           </Signal>
         </MuxGroup>
@@ -2634,6 +2644,8 @@
               <Label name="resolver_zero_failure" value="9"/>
               <Label name="stall_triggered" value="10"/>
               <Label name="over_speed" value="11"/>
+              <Label name="over_acceleration" value="12"/>
+              <Label name="encoder_fault" value="13"/>
             </LabelSet>
           </Signal>
         </MuxGroup>
@@ -3092,6 +3104,8 @@
               <Label name="resolver_zero_failure" value="9"/>
               <Label name="stall_triggered" value="10"/>
               <Label name="over_speed" value="11"/>
+              <Label name="over_acceleration" value="12"/>
+              <Label name="encoder_fault" value="13"/>
             </LabelSet>
           </Signal>
         </MuxGroup>
@@ -3550,6 +3564,8 @@
               <Label name="resolver_zero_failure" value="9"/>
               <Label name="stall_triggered" value="10"/>
               <Label name="over_speed" value="11"/>
+              <Label name="over_acceleration" value="12"/>
+              <Label name="encoder_fault" value="13"/>
             </LabelSet>
           </Signal>
         </MuxGroup>
