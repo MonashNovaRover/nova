@@ -110,11 +110,8 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera->serial=camera.serial;
         pipeline->camera->node=camera.node;
 
-
         std::map<std::string, rclcpp::Parameter> serial_params;
-        std::string pipeline_type;
-        this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera.serial + ".pipeline_type").c_str(), pipeline_type, "v4l2webrtc");
-        pipeline->pipeline_type = pipeline_type;
+        this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera.serial + ".pipeline_type").c_str(), pipeline->pipeline_type, "v4l2webrtc");
         bool autostart;
         this->get_parameter_or("autostart", autostart, true);
 
@@ -124,7 +121,7 @@ class CameraStreamer : public rclcpp::Node
         } else {
           pipeline->gst_pipeline = nullptr;
         }
-        RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline_type.c_str(), camera.serial.c_str());
+        RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline->pipeline_type.c_str(), camera.serial.c_str());
         this->pipelines[camera.serial] = pipeline;
       }
     }
@@ -149,8 +146,12 @@ class CameraStreamer : public rclcpp::Node
             } else {
             // start pipeline if the gst bin doesn't exist yet
               RCLCPP_INFO(this->get_logger(), "Starting %s", serial.c_str());
+
+              // Check if pipeline changed
+              YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
+              YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][serial];
+              pipeline->pipeline_type = param["pipeline_type"].as<std::string>("v4l2webrtc");
               this->start_pipeline(pipeline);
-              //read_yaml_capsfilter(serial, pipeline);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }
           } else {
@@ -241,45 +242,6 @@ class CameraStreamer : public rclcpp::Node
     */
    std::vector<std::string> ips;
    response->ips = ips;
-  }
-
-  private: void read_yaml_capsfilter(
-    std::string serial,
-    Pipeline* pipeline)
-  {
-    // Load from yaml
-    YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
-    YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][serial];
-
-    std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + serial;
-    std::string mime;
-    int width, height, framerate, brightness,  contrast;
-
-    this->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), mime, "image/jpeg");
-    mime = param["mime"] ? param["mime"].as<std::string>() : mime;
-    this->get_parameter_or((camera_prefix + ".width").c_str(), width, 1280);
-    width = param["width"] ? param["width"].as<int>() : width;
-    this->get_parameter_or((camera_prefix + ".height").c_str(), height, 720);
-    height = param["height"] ? param["height"].as<int>() : height;
-    this->get_parameter_or((camera_prefix + ".framerate").c_str(), framerate, 30);
-    framerate = param["framerate"] ? param["framerate"].as<int>() : framerate;
-    this->get_parameter_or((camera_prefix + ".brightness").c_str(), brightness, 0);
-    brightness = param["brightness"] ? param["brightness"].as<int>() : brightness;
-    this->get_parameter_or((camera_prefix + ".contrast").c_str(), contrast, 0);
-    contrast = param["contrast"] ? param["contrast"].as<int>() : contrast;
-
-    GstElement* filter = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "filter");
-    GstCaps* caps = gst_caps_new_simple(
-        mime.c_str(),
-        "width", G_TYPE_INT, width,
-        "height", G_TYPE_INT, height,
-        "framerate", GST_TYPE_FRACTION, framerate, 1,
-        "brightness", G_TYPE_INT, brightness,
-        "contrast", G_TYPE_INT,  contrast,
-        NULL);
-    g_object_set(G_OBJECT(filter), "caps", caps, NULL);
-    gst_object_unref(filter);
-    gst_caps_unref(caps);
   }
 };
 

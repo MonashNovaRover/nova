@@ -12,7 +12,6 @@ camera_streamer:
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
-        mime: video/x-h264
         payload_quirk: true
         width: 1920
         height: 1080
@@ -22,16 +21,6 @@ camera_streamer:
         pipeline_type: h264software
         width: 1920
         height: 1080
-        framerate: 30
-
-      SYX_Hua_Que_200901010001:
-        pipeline_type: v4l2webrtc
-        width: 1600
-        height: 1200
-        #width: 320
-        #height: 240
-        #mime: video/x-raw
-        mime: image/jpeg
         framerate: 30
 
       brandon-cam:
