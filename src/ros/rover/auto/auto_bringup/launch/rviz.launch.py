@@ -65,7 +65,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='shortened_auto_mount',
-            default_value='True',
+            default_value='False',
             description='Whether to use the shortened auto mount model',
         ),
         DeclareLaunchArgument(

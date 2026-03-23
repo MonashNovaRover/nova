@@ -79,7 +79,12 @@ def block_until_enter_pressed(context, logger):
 
 def launch_setup(context, *args, **kwargs):
     # package directories
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    local = LaunchConfiguration('local')
+
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
 
     livox_driver = LaunchConfiguration('livox_driver')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
@@ -95,9 +100,7 @@ def launch_setup(context, *args, **kwargs):
     uncompress_img = LaunchConfiguration('uncompress_img')
     shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
 
-    img_topic = '/d415/color/image_raw'
-    lid_topic = '/livox/lidar_masked'
-    imu_topic = '/livox/imu'
+    img_topic = "/d415/color/image_raw"
     intrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml'])
     extrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_extrinsics.yaml'])
     output_dir = 'fastlivo2' # relative to ~/.ros
@@ -107,9 +110,6 @@ def launch_setup(context, *args, **kwargs):
         source_file=fastlivo2_params,
         param_rewrites={
             'img_en': str(img_en),
-            'img_topic': img_topic,
-            'lid_topic': lid_topic,
-            'imu_topic': imu_topic,
             'scan_line': '4' if sim.perform(context).lower() == 'false' else '40',
         },
         convert_types=True,
@@ -137,7 +137,7 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    wait_topics = ['/livox/lidar_masked', 'livox/imu']
+    wait_topics = ['/livox/lidar', '/livox/imu']
     if img_en:
         wait_topics.append(img_topic)
     
@@ -377,7 +377,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='shortened_auto_mount',
-            default_value='True',
+            default_value='False',
             description='Use shortened auto mount TFs?',
         ),
         DeclareLaunchArgument(
