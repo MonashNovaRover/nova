@@ -86,7 +86,7 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('auto_bringup')
     )
 
-    livox_driver = LaunchConfiguration('livox_driver')
+    driver = LaunchConfiguration('driver')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     mask = LaunchConfiguration('mask')
@@ -152,7 +152,7 @@ def launch_setup(context, *args, **kwargs):
     return [
         SetParameter(name='use_sim_time', value=sim),
         Node(
-            condition=IfCondition(AndSubstitution(livox_driver, NotSubstitution(sim))),
+            condition=IfCondition(AndSubstitution(driver, NotSubstitution(sim))),
             package='livox_ros_driver2',
             executable='livox_ros_driver2_node',
             name='livox_lidar_publisher',
@@ -321,7 +321,7 @@ def generate_launch_description():
             description='Whether to use local directories instead of the nix store.',
         ),
         DeclareLaunchArgument(
-            name='livox_driver',
+            name='driver',
             default_value='True',
             description='Launch livox_ros_driver2?',
         ),
