@@ -19,26 +19,34 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Don't let networkmanager touch interfaces
-    # we are configuring declaratively my with networkd
-    networking.networkmanager.unmanaged = [
-      netcfg.ethernetInterface
-    ];
+   nova.services.ptpd = {
+     enable = true;
+     interfaceName = "prp0";
+   };
+
+   nova.networking.prp = {
+     enable = true;
+     networkmanager= false;
+     address = builtins.substring 5 12 cfg.ethernetIpAddr;
+   };
 
     systemd.network = {
       enable = true;
 
-      networks = {
-        "30-${netcfg.ethernetInterface}" = {
-          matchConfig.Name = netcfg.ethernetInterface;
-          address = [
-            (cfg.ethernetIpAddr + "/23")
-          ];
-          routes = [
-            { Gateway = "10.0.0.1"; }
-          ];
-
+      # rename canable to usbcan0
+      links = {
+        "70-usbcan" = {
+          matchConfig = {
+            Property = "ID_BUS=usb";
+            Type = "can";
+          };
+          linkConfig = {
+            Name = "usbcan0";
+          };
         };
+      };
+
+      networks = {
         # CAN
         "60-can0" = {
           matchConfig.Name = "can0";
