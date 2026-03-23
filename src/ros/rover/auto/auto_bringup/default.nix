@@ -19,7 +19,6 @@
   image-transport,
   navigation2,
   depthai-ros,
-  ground-segmentation,
   ground-segmentation-ros2,
   nova-behavior-tree,
   nova-object-localisation,
@@ -81,7 +80,6 @@ buildRosPackage rec {
       image-transport
       navigation2
       depthai-ros
-      ground-segmentation
       ground-segmentation-ros2
       nova-behavior-tree
       nova-object-localisation
