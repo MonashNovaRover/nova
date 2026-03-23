@@ -59,4 +59,6 @@ static tl::expected<CollisionManager, const char *> make_collision_manager(
 
 } // arm_kinematics
 
+#include "arm_kinematics/plugin_loader.hpp"
+
 #endif //ARM_KINEMATICS_COLLISION_MANAGER_HPP

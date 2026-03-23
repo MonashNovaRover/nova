@@ -4,8 +4,13 @@
 
 #ifndef ARM_KINEMATICS_KINEMATICS_HPP
 #define ARM_KINEMATICS_KINEMATICS_HPP
+
+#include <optional>
+
 #include "plugin_loader.hpp"
 #include "collision/collision_manager.hpp"
+#include "forward/forward_kinematics_plugin.hpp"
+#include "inverse/inverse_kinematics_plugin.hpp"
 
 namespace arm_kinematics {
 
@@ -19,7 +24,7 @@ struct Kinematics final {
   struct Collision final {
     CollisionManager manager{};
 
-    explicit Collision(PluginLoader::MakeCollisionResult result)
+    explicit Collision(PluginLoader::MakeCollisionResult result) {}
 
     explicit Collision(
       PluginLoader plugin_loader,

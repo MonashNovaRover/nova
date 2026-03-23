@@ -15,9 +15,13 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('teleop_arm'), '"'
     ])
 
-    teleop_params = LaunchConfiguration('teleop_params')
+    controller_param = LaunchConfiguration('controller').perform(context)
+
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
+
+    control_modes_params = PathJoinSubstitution([teleop_arm_dir, 'params', 'control_modes.yaml'])
+    ps5_params = PathJoinSubstitution([teleop_arm_dir, 'params', controller_param + ".yaml"])
 
     return [
         LogInfo(msg=['Using teleop_arm := ', teleop_arm_dir]),
@@ -31,7 +35,8 @@ def launch_setup(context, *args, **kwargs):
 
             # You can add multiple parameter files here:
             parameters=[
-                teleop_params,
+                control_modes_params,
+                ps5_params,
                 {'log_inputs': ParameterValue(log_inputs, value_type=bool)}
             ],
 
@@ -73,7 +78,13 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='teleop_params',
-            default_value=PathJoinSubstitution([teleop_arm_dir, 'params', 'teleop.yaml']),
+            default_value=PathJoinSubstitution([teleop_arm_dir, 'params', 'control_modes.yaml']),
+            description='The main parameter file to use for the teleop_node',
+        ),
+
+        DeclareLaunchArgument(
+            name='controller',
+            default_value="thrustmasters",
             description='The main parameter file to use for the teleop_node',
         ),
         DeclareLaunchArgument(

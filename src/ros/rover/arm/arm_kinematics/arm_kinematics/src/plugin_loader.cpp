@@ -2,10 +2,17 @@
 // Created by Bailey Chessum on 11/16/25.
 //
 
-#include <arm_kinematics/plugin_loader.hpp>
-#include <arm_kinematics/collision/collider_definitions.hpp>
-#include <arm_kinematics/utilities/param_reader.hpp>
-#include <arm_kinematics/utilities/to_eigen.hpp>
+#include "arm_kinematics/plugin_loader.hpp"
+
+#include <pluginlib/class_loader.hpp>
+
+#include "arm_kinematics/collision/collider_definitions.hpp"
+#include "arm_kinematics/collision/discrete_collision_plugin.hpp"
+#include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
+#include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
+#include "arm_kinematics/utilities/param_reader.hpp"
+#include "arm_kinematics/utilities/to_eigen.hpp"
 
 namespace arm_kinematics {
 

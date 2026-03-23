@@ -8,6 +8,9 @@ arm:
       nova_arm_velocity_controller:
         type: nova_arm_controller/NovaArmController
 
+      nova_arm_velocity_controller_funny:
+        type: nova_arm_controller/NovaArmController
+
       nova_arm_position_controller:
         type: nova_arm_controller/NovaArmController
 
@@ -30,6 +33,20 @@ arm:
         - J4
         - J5
         - J6
+      use_position_control: false
+      use_collision_limits: false
+      use_limits: true
+
+  nova_arm_velocity_controller_funny:
+    ros__parameters:
+      topic: "/arm/joint_velocity_command"
+      joint_names:
+        - J1
+        - J2
+        - J3
+        - J4
+        - JYaw
+        - JPitch
       use_position_control: false
       use_collision_limits: false
       use_limits: true
