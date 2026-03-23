@@ -3,11 +3,10 @@
     <xacro:macro name="blcmd_messages" params="
     blcmd_id
     joint_name
-    blcmd_node_id:=${None}
+    blcmd_node_id
     orin_node_id:=0
     ">
         <!-- variables -->
-        <xacro:property name="blcmd_node_id" value="${blcmd_id if blcmd_node_id is None else blcmd_node_id}" lazy_eval="false"/>
 
         <!-- messages sent from orin to blcmd -->
 
