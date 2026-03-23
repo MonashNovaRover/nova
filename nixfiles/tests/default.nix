@@ -10,14 +10,14 @@ let
     node.pkgs = novaPkgs;
     node.pkgsReadOnly = false;
 
-    defaults = { pkgs, ... }: {
+    defaults = { pkgs, lib, ... }: {
       # Protect machines from external influence.
       virtualisation.restrictNetwork = true;
 
       # Manually configure FastDDS.
       # TODO: When https://github.com/eProsima/Fast-DDS/pull/3973 is available,
       # inter-VM interfaces can be whitelisted.
-      environment.sessionVariables.FASTRTPS_DEFAULT_PROFILES_FILE = pkgs.writeText "profiles.xml" ''
+      environment.sessionVariables.FASTRTPS_DEFAULT_PROFILES_FILE = lib.mkDefault (pkgs.writeText "profiles.xml" ''
         <?xml version="1.0" encoding="UTF-8" ?>
         <dds>
             <profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
@@ -39,7 +39,7 @@ let
                 </participant>
             </profiles>
         </dds>
-      '';
+      '');
     };
 
     nodes =
@@ -52,6 +52,8 @@ let
 
           # Lock in the UID for stability in tests.
           users.users.nova.uid = 1000;
+
+          security.sudo.wheelNeedsPassword = false;
 
           # Disable the Nova substituter to avoid providing a password.
           # There is no need for substitutions in the VM anyway: Everything is
@@ -72,7 +74,7 @@ let
 
           # Log in automatically.
           services.getty.autologinUser = config.users.users.nova.name;
-          services.xserver.displayManager.autoLogin = {
+          services.displayManager.autoLogin = {
             enable = true;
             user = config.users.users.nova.name;
           };
@@ -95,8 +97,11 @@ let
             memorySize = lib.mkDefault (2 * 1024); # ROS is not very efficient!
           };
 
-          # Use a similar kernel version to the rover. JetPack 5 uses Linux 5.10.
-          boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_10;
+          # Use a similar kernel version to the rover. JetPack 6 uses Linux 5.15.
+          boot.kernelPackages = pkgs.linuxKernel.packages.linux_5_15;
+          # upstream xone is broken for linux 5.15.
+          peripherals.xone0_4_12.enable = true;
+
         };
 
         base = ({ config, lib, ... }: {
@@ -122,6 +127,23 @@ let
             enable = true;
             wayland.enable = false; # Wayland is not as easy to control remotely as Xorg.
           };
+
+          # Gnome doesn't work with x11 anymore for this
+          # copied from https://github.com/NixOS/nixpkgs/blob/master/nixos/tests/common/x11.nix
+          services.displayManager.defaultSession = lib.mkDefault "none+icewm";
+          services.xserver.windowManager.icewm.enable = true;
+
+          environment.etc = {
+            # Help with OCR
+            "icewm/theme".text = ''
+              Theme="gtk2/default.theme"
+            '';
+            # Remove task bar to avoid non-determinism
+            "icewm/preferences".text = ''
+              ShowTaskBar=0
+            '';
+          };
+
         });
       };
 
