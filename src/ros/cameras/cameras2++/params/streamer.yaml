@@ -24,6 +24,16 @@ camera_streamer:
         height: 1080
         framerate: 30
 
+      SYX_Hua_Que_200901010001:
+        pipeline_type: v4l2webrtc
+        width: 1600
+        height: 1200
+        #width: 320
+        #height: 240
+        #mime: video/x-raw
+        mime: image/jpeg
+        framerate: 30
+
       brandon-cam:
         pipeline_type: h264software
         mime: image/jpeg

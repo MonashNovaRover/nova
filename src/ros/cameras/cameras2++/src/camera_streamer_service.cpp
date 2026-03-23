@@ -150,7 +150,7 @@ class CameraStreamer : public rclcpp::Node
             // start pipeline if the gst bin doesn't exist yet
               RCLCPP_INFO(this->get_logger(), "Starting %s", serial.c_str());
               this->start_pipeline(pipeline);
-              read_yaml_capsfilter(serial, pipeline);
+              //read_yaml_capsfilter(serial, pipeline);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }
           } else {
@@ -252,21 +252,21 @@ class CameraStreamer : public rclcpp::Node
     YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][serial];
 
     std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + serial;
-    std::string mime, src_mime;
-    int width, src_width, height, src_height, framerate, src_framerate, brightness, src_brightness, contrast, src_contrast;
+    std::string mime;
+    int width, height, framerate, brightness,  contrast;
 
-    this->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), src_mime, "image/jpeg");
-    mime = param["mime"] ? param["mime"].as<std::string>() : src_mime;
-    this->get_parameter_or((camera_prefix + ".width").c_str(), src_width, 1280);
-    width = param["width"] ? param["width"].as<int>() : src_width;
-    this->get_parameter_or((camera_prefix + ".height").c_str(), src_height, 720);
-    height = param["height"] ? param["height"].as<int>() : src_height;
-    this->get_parameter_or((camera_prefix + ".framerate").c_str(), src_framerate, 30);
-    framerate = param["framerate"] ? param["framerate"].as<int>() : src_framerate;
-    this->get_parameter_or((camera_prefix + ".brightness").c_str(), src_brightness, 0);
-    brightness = param["brightness"] ? param["brightness"].as<int>() : src_brightness;
-    this->get_parameter_or((camera_prefix + ".contrast").c_str(), src_contrast, 0);
-    contrast = param["contrast"] ? param["contrast"].as<int>() : src_contrast;
+    this->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), mime, "image/jpeg");
+    mime = param["mime"] ? param["mime"].as<std::string>() : mime;
+    this->get_parameter_or((camera_prefix + ".width").c_str(), width, 1280);
+    width = param["width"] ? param["width"].as<int>() : width;
+    this->get_parameter_or((camera_prefix + ".height").c_str(), height, 720);
+    height = param["height"] ? param["height"].as<int>() : height;
+    this->get_parameter_or((camera_prefix + ".framerate").c_str(), framerate, 30);
+    framerate = param["framerate"] ? param["framerate"].as<int>() : framerate;
+    this->get_parameter_or((camera_prefix + ".brightness").c_str(), brightness, 0);
+    brightness = param["brightness"] ? param["brightness"].as<int>() : brightness;
+    this->get_parameter_or((camera_prefix + ".contrast").c_str(), contrast, 0);
+    contrast = param["contrast"] ? param["contrast"].as<int>() : contrast;
 
     GstElement* filter = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "filter");
     GstCaps* caps = gst_caps_new_simple(

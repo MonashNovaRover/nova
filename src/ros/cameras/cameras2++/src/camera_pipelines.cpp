@@ -8,6 +8,9 @@
 
 #include "cameras/pipeline.hpp"
 
+#include <yaml-cpp/yaml.h>
+
+
 /*
  * V4l camera to webrtc pipeline
  * converts any v4l source to raw video and then encodes a format for webrtc
@@ -17,7 +20,6 @@
 static bool is_plugin_available(const std::string& plugin_name) {
   GstElementFactory* factory = gst_element_factory_find(plugin_name.c_str());
   if (factory != nullptr) {
-      // We found it! Clean up the reference.
       gst_object_unref(factory);
       return true;
   } 
@@ -136,20 +138,38 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   props->serial = camera->serial;
   props->node = camera->node;
 
+  YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
+  YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
+
+  //this->get_parameter_or((camera_prefix + ".width").c_str(), width, 1280);
+  //width = param["width"] ? param["width"].as<int>() : width;
+
   // override any defaults with params
   std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
-  streamer_node->get_parameter_or<std::string>((camera_prefix + ".device").c_str(), props->device, props->node); 
-  streamer_node->get_parameter_or((camera_prefix + ".width").c_str(), props->width, 1280); 
-  streamer_node->get_parameter_or((camera_prefix + ".height").c_str(), props->height, 720); 
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".device").c_str(), props->device, props->node);
+  props->device = param["device"] ? param["device"].as<std::string>() : props->device;
+  streamer_node->get_parameter_or((camera_prefix + ".width").c_str(), props->width, 1280);
+  props->width = param["width"] ? param["width"].as<int>() : props->width;
+  streamer_node->get_parameter_or((camera_prefix + ".height").c_str(), props->height, 720);
+  props->height = param["height"] ? param["height"].as<int>() : props->height;
   streamer_node->get_parameter_or((camera_prefix + ".framerate").c_str(), props->framerate, 30);
-  streamer_node->get_parameter_or((camera_prefix + ".brightness").c_str(), props->brightness, 0); 
+  props->framerate = param["framerate"] ? param["framerate"].as<int>() : props->framerate;
+  streamer_node->get_parameter_or((camera_prefix + ".brightness").c_str(), props->brightness, 0);
+  props->brightness = param["brightness"] ? param["brightness"].as<int>() : props->brightness;
   streamer_node->get_parameter_or((camera_prefix + ".contrast").c_str(), props->contrast, 0);
-  streamer_node->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), props->mime, "image/jpeg"); 
+  props->contrast = param["contrast"] ? param["contrast"].as<int>() : props->contrast;
+  streamer_node->get_parameter_or<std::string>((camera_prefix + ".mime").c_str(), props->mime, "image/jpeg");
+  props->mime = param["mime"] ? param["mime"].as<std::string>() : props->mime;
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".congestion_control").c_str(), props->congestion_control, "gcc");
-  streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false); 
-  streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false); 
+  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : props->congestion_control;
+  streamer_node->get_parameter_or((camera_prefix + ".do_fec").c_str(), props->do_fec, false);
+  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : props->do_fec;
+  streamer_node->get_parameter_or((camera_prefix + ".do_retransmission").c_str(), props->do_retransmission, false);
+  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : props->do_retransmission;
   streamer_node->get_parameter_or((camera_prefix + ".show_clock").c_str(), props->show_clock, false);
+  props->show_clock = param["show_clock"] ? param["show_clock"].as<bool>() : props->show_clock;
   streamer_node->get_parameter_or<std::string>((camera_prefix + ".video_caps").c_str(), props->video_caps, "video/x-h264,profile=constrained-baseline");
+  props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : props->video_caps;
 
   return props;
 }
