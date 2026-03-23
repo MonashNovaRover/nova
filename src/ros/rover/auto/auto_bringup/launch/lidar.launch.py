@@ -377,7 +377,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='shortened_auto_mount',
-            default_value='False',
+            default_value='True',
             description='Use shortened auto mount TFs?',
         ),
         DeclareLaunchArgument(

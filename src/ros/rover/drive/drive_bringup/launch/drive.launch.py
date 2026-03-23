@@ -50,7 +50,7 @@ def launch_setup(context, *args, **kwargs):
     rviz = LaunchConfiguration('rviz')
     
     # auto-specific arguments
-    angle = LaunchConfiguration('angle')
+    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
     
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
@@ -116,7 +116,7 @@ def launch_setup(context, *args, **kwargs):
                             condition=IfCondition(auto),
                             launch_description_source=PythonLaunchDescriptionSource(
                                 PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                            launch_arguments={'model': model, 'angle': angle}.items(),
+                            launch_arguments={'model': model, 'shortened_auto_mount': shortened_auto_mount}.items(),
                         ),
                         IncludeLaunchDescription(
                             condition=UnlessCondition(auto),
@@ -163,7 +163,12 @@ def generate_launch_description():
         FindPackageShare('rover_description')
     )
 
-    declared_arguments = [   
+    declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='auto',
             default_value='False',
@@ -196,9 +201,9 @@ def generate_launch_description():
         # This parameter is passed to the auto_bringup urdf.launch.py file
         # and is only relevant if auto is true
         DeclareLaunchArgument(
-            name='angle', 
-            default_value='15',
-            description='Angle (in degrees) at which the camera is mounted',
+            name='shortened_auto_mount',
+            default_value='True',
+            description='Use shortened auto mount TFs?',
         ),
 
         DeclareLaunchArgument(
