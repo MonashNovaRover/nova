@@ -20,14 +20,14 @@
 
 	<Bus name="can0" baudrate="250000">
 
-		<xacro:blcmd_messages blcmd_id="1" joint_name="flw"/>
-		<xacro:blcmd_messages blcmd_id="2" joint_name="blw"/>
-		<xacro:blcmd_messages blcmd_id="3" joint_name="brw"/>
-		<xacro:blcmd_messages blcmd_id="4" joint_name="frw"/>
-		<xacro:blcmd_messages blcmd_id="5" joint_name="flp"/>
-		<xacro:blcmd_messages blcmd_id="6" joint_name="blp"/>
-		<xacro:blcmd_messages blcmd_id="7" joint_name="brp"/>
-		<xacro:blcmd_messages blcmd_id="8" joint_name="frp"/>
+		<xacro:blcmd_messages blcmd_id="1" blcmd_node_id="1" joint_name="flw"/>
+		<xacro:blcmd_messages blcmd_id="2" blcmd_node_id="2" joint_name="blw"/>
+		<xacro:blcmd_messages blcmd_id="3" blcmd_node_id="3" joint_name="brw"/>
+		<xacro:blcmd_messages blcmd_id="4" blcmd_node_id="4" joint_name="frw"/>
+		<xacro:blcmd_messages blcmd_id="5" blcmd_node_id="5" joint_name="flp"/>
+		<xacro:blcmd_messages blcmd_id="6" blcmd_node_id="6" joint_name="blp"/>
+		<xacro:blcmd_messages blcmd_id="7" blcmd_node_id="7" joint_name="brp"/>
+		<xacro:blcmd_messages blcmd_id="8" blcmd_node_id="8" joint_name="frp"/>
 
 	</Bus>
 </NetworkDefinition>

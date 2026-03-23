@@ -17,6 +17,7 @@
   <Node id="7" name="back_right_pivot"/>
   <Node id="8" name="front_right_pivot"/>
   <Bus baudrate="250000" name="can0">
+    <!-- variables -->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x010" name="flw_all_stop">
       <Producer>
@@ -477,6 +478,7 @@
         </MuxGroup>
       </Multiplex>
     </Message>
+    <!-- variables -->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x020" name="blw_all_stop">
       <Producer>
@@ -937,6 +939,7 @@
         </MuxGroup>
       </Multiplex>
     </Message>
+    <!-- variables -->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x030" name="brw_all_stop">
       <Producer>
@@ -1397,6 +1400,7 @@
         </MuxGroup>
       </Multiplex>
     </Message>
+    <!-- variables -->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x040" name="frw_all_stop">
       <Producer>
@@ -1857,6 +1861,7 @@
         </MuxGroup>
       </Multiplex>
     </Message>
+    <!-- variables -->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x050" name="flp_all_stop">
       <Producer>
@@ -2317,6 +2322,7 @@
         </MuxGroup>
       </Multiplex>
     </Message>
+    <!-- variables -->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x060" name="blp_all_stop">
       <Producer>
@@ -2777,6 +2783,7 @@
         </MuxGroup>
       </Multiplex>
     </Message>
+    <!-- variables -->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x070" name="brp_all_stop">
       <Producer>
@@ -3237,6 +3244,7 @@
         </MuxGroup>
       </Multiplex>
     </Message>
+    <!-- variables -->
     <!-- messages sent from orin to blcmd -->
     <Message id="0x080" name="frp_all_stop">
       <Producer>
