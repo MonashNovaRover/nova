@@ -48,7 +48,6 @@
   demo-nodes-cpp,
   pcl,
   pcl-ros,
-  rclcpp-components,
 }:
 
 buildRosPackage rec {
@@ -109,8 +108,7 @@ buildRosPackage rec {
       fast-livo2
       fast-calib
       demo-nodes-cpp
-      pcl-ros
-      rclcpp-components;
+      pcl-ros;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
