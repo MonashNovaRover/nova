@@ -8,6 +8,9 @@
 export enum RosService {
   NULL_SERVICE = "",
 
+  // Drive Related
+  TELEOP_DRIVE_SET_PARAMS = "/teleop_drive_joy_node/set_parameters",
+
   // Arm Related
   READ_RFID = "/electronics/rfid/read",
   START_AUTO_TYPING = '/type_sequence/start',

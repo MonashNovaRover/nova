@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <map>
 #include <functional>
+#include <optional>
 
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joy.hpp>
@@ -37,6 +38,7 @@
 #include <rcl_interfaces/srv/set_parameters.hpp>
 #include <controller_manager_msgs/srv/switch_controller.hpp>
 #include <drive_interfaces/msg/drive_info.hpp>
+#include <blcmd_interfaces/msg/blcmd_log.hpp>
 
 #include "teleop_drive_joy_parameters.hpp"
 
@@ -102,6 +104,18 @@ inline uint8_t mode_to_drive_info(const DriveMode mode)
   }
 }
 
+struct AxisCallback
+{
+  // callback should run if axis value is between start and end (both inclusive)
+  // (if any empty, then inf and -inf respectively)
+  // note: current implementation means, for each axis in axis_callbacks_,
+  // only the first callback which has current axis value in [start, end] is called
+  std::optional<double> start;
+  std::optional<double> end;
+
+  std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> callback;
+};
+
 /**
  * @class TeleopDriveJoy
  * @brief Class for handling joystick input and publishing drive commands.
@@ -143,6 +157,11 @@ private:
   void initialize_params();
 
   /**
+   * @brief Updates parameters for the TeleopDriveJoy node.
+   */
+  void update_params();
+
+  /**
    * @brief Initializes the ros2 interfaces for the TeleopDriveJoy node.
    */
   void initialize_interfaces();
@@ -163,6 +182,12 @@ private:
    * @param joy_msg Shared pointer to the joystick message.
    */
   void handle_button_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
+
+  /**
+   * @brief Handles axis callbacks.
+   * @param joy_msg Shared pointer to the joystick message.
+   */
+  void handle_axis_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg);
 
   /**
    * @brief Sends a Drive Command based on joystick input.
@@ -203,12 +228,24 @@ private:
    */
   void joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg);
 
+  /**
+  * @brief Callback function for blcmd log messages.
+  * @param blcmd_log_msg Shared pointer to the log message.
+  */
+  void blcmd_log_callback(const blcmd_interfaces::msg::BLCMDLog::SharedPtr blcmd_log_msg);
+
+  /**
+  * @brief Activates lock if any autolock threshold has been breached
+  */
+  void apply_autolock();
+
   // Member variables
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
   rclcpp::Publisher<drive_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub_;
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joy_sub_;
   rclcpp::Publisher<sensor_msgs::msg::JoyFeedback>::SharedPtr joy_feedback_pub_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
+  rclcpp::Subscription<blcmd_interfaces::msg::BLCMDLog>::SharedPtr blcmd_log_sub_;
 
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     switch_controller_client_;
@@ -220,13 +257,20 @@ private:
   std::shared_ptr<ParamListener> param_listener_;
   rclcpp::TimerBase::SharedPtr connection_timer_;
 
+  std::map<int, int> blcmd_error_count_ {};
+  std::map<int, rclcpp::Time> blcmd_times_start_error_ {};
+  std::map<int, rclcpp::Time> blcmd_times_last_error_ {};
+  bool autolock_override_trigger;
+
   Params params_;
   bool sent_lock_msg_;
   bool locked_;
+  uint8_t locked_reason_;
   DriveMode drive_mode_;
   double speed_;  // Linear Speed Multiplier that can be incremented
   std::map<int, rclcpp::Time> last_button_press_time_;
   std::map<int, std::function<void(const sensor_msgs::msg::Joy::SharedPtr)>> button_callbacks_;
+  std::map<int, std::vector<AxisCallback>> axis_callbacks_;
   bool handbrake_pressed_;
   bool autonomous_mode_;
   bool connected_;
