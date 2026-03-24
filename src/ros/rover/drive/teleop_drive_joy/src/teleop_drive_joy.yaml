@@ -22,6 +22,41 @@ teleop_drive_joy:
     type: string
     default_value: "/drive/joy/set_feedback"
     description: "Output topic for game pad feedback (e.g. rumble)"
+  blcmd_log_topic:
+    type: string
+    default_value: "/drive/blcmd_log"
+    description: "Topic where log messages related to drive are published (e.g. blcmd errors)"
+
+  autolock_enable:
+    type: bool
+    default_value: true
+    description: "Enable automatic locking of controls if there are persistent blcmd errors"
+  # meeting ANY autolock threshold will trigger autolock
+  autolock_threshold_error_count:
+    type: int
+    default_value: 0
+    description: "Number of (blcmd) errors received (since last autolock) required to trigger autolock (0 to disable)"
+  autolock_threshold_error_duration:
+    type: int
+    default_value: 2250
+    description: "Minimum duration (in milliseconds) that (blcmd) errors must remain continuously active for to trigger autolock (0 to disable)"
+  autolock_error_active_duration:
+    type: int
+    default_value: 500
+    description: "Duration (in milliseconds) that (blcmd) errors remain 'active' for after receiving it"
+  autolock_override:
+    type: bool
+    default_value: false
+    description: "Toggleable override for autolock (set via service call or command)"
+
+  lock_on_gamepad_disconnected:
+    type: bool
+    default_value: true
+    description: "Enable gamepad locking when it is disconnected from the laptop"
+  gamepad_connection_timeout:
+    type: int
+    default_value: 2000
+    description: "Gamepad is considered disconnected after this many milliseconds since receiving the last joy message"
 
   rumble_enable:
     type: bool
@@ -167,10 +202,10 @@ teleop_drive_joy:
     default_value: 11
     description: "Increase speed on a coarse scale"
 
-  axis_hold_position:
+  axis_override_autolock:
     type: int
     default_value: 4
-    description: "NOT IMPLEMENTED: Hold position (for Holonomic Drive)"
+    description: "Prevents autolock from activating while held down"
   axis_handbrake:
     type: int
     default_value: 5

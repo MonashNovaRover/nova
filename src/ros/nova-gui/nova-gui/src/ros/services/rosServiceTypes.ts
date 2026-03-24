@@ -36,7 +36,9 @@ import {
   IRosScienceInterfacesSetPositionRequest,
   IRosScienceInterfacesSetPositionResponse,
   IRosScienceInterfacesPowerCycleRequest, 
-  IRosScienceInterfacesPowerCycleResponse
+  IRosScienceInterfacesPowerCycleResponse,
+  IRosRclInterfacesSetParametersRequest,
+  IRosRclInterfacesSetParametersResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -49,6 +51,12 @@ interface EmptyMessage {}
 
 export interface RosServiceInterface {
   [RosService.NULL_SERVICE]: RosServiceMessage<EmptyMessage, EmptyMessage>;
+
+  // Drive Related
+  [RosService.TELEOP_DRIVE_SET_PARAMS]: RosServiceMessage<
+    IRosRclInterfacesSetParametersRequest,
+    IRosRclInterfacesSetParametersResponse
+  >;
 
   // Arm related
   [RosService.READ_RFID]: RosServiceMessage<
