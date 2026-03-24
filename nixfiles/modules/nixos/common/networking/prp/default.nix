@@ -26,35 +26,36 @@ in {
     # don't let the ros dds use vlan9 and vlan5
     # builtin transport is for shm within the same computer which we want enabled still
     # but we don't use builtin udp as we modify udp to filter to the interface we want
-    environment.sessionVariables = {
-      FASTDDS_BUILTIN_TRANSPORTS = "SHM";
-      FASTRTPS_DEFAULT_PROFILES_FILE = pkgs.writeTextFile {
-        name = "fastdds_prp.xml";
-        text = ''
-<?xml version="1.0" encoding="UTF-8" ?>
-<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
-    <transport_descriptors>
-        <transport_descriptor>
-            <transport_id>CustomUDPTransport</transport_id>
-            <type>UDPv4</type>
-            <interfaceWhiteList>
-                 <interface>prp0</interface>
-            </interfaceWhiteList>
-        </transport_descriptor>
-    </transport_descriptors>
-
-    <participant profile_name="CustomTransportParticipant" is_default_profile="true">
-        <rtps>
-            <userTransports>
-                <transport_id>CustomUDPTransport</transport_id>
-            </userTransports>
-            <useBuiltinTransports>true</useBuiltinTransports>
-        </rtps>
-    </participant>
-</profiles>
-        '';
-      };
-    };
+    # XXX SHM doesn't work? but it was fine in my vm tests? :(
+    #environment.sessionVariables = {
+    #  FASTDDS_BUILTIN_TRANSPORTS = "SHM";
+    #  FASTRTPS_DEFAULT_PROFILES_FILE = pkgs.writeTextFile {
+    #    name = "fastdds_prp.xml";
+    #    text = ''
+#<?xml version="1.0" encoding="UTF-8" ?>
+#<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+#    <transport_descriptors>
+#        <transport_descriptor>
+#            <transport_id>CustomUDPTransport</transport_id>
+#            <type>UDPv4</type>
+#            <interfaceWhiteList>
+#                 <interface>prp0</interface>
+#            </interfaceWhiteList>
+#        </transport_descriptor>
+#    </transport_descriptors>
+#
+#    <participant profile_name="CustomTransportParticipant" is_default_profile="true">
+#        <rtps>
+#            <userTransports>
+#                <transport_id>CustomUDPTransport</transport_id>
+#            </userTransports>
+#            <useBuiltinTransports>true</useBuiltinTransports>
+#        </rtps>
+#    </participant>
+#</profiles>
+#        '';
+#      };
+#    };
 
 
 
@@ -192,14 +193,14 @@ in {
         "30-PRP-B-${netcfg.secondaryEthernetInterface}" = {
           matchConfig.Name = netcfg.secondaryEthernetInterface;
           networkConfig = {
-            VLAN = "vlan9";
+            #VLAN = "vlan9";
             Bridge = "br0";
           };
         };
         "30-PRP-A-${netcfg.ethernetInterface}" = {
           matchConfig.Name = netcfg.ethernetInterface;
           networkConfig = {
-            VLAN = "vlan5";
+            #VLAN = "vlan5";
           };
         };
       };
