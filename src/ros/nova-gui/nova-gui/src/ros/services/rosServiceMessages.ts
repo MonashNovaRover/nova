@@ -3,6 +3,9 @@ import { RosService } from "./rosService";
 export const rosServiceMessages = {
   [RosService.NULL_SERVICE]: "",
 
+  // Drive Related
+  [RosService.TELEOP_DRIVE_SET_PARAMS]: "rcl_interfaces/srv/SetParameters",
+
   // Arm Related
   [RosService.READ_RFID]: "std_srvs/srv/Trigger",
   [RosService.START_AUTO_TYPING]: "arm_interfaces/srv/TypeSequence",

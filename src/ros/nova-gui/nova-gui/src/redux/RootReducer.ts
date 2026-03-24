@@ -47,9 +47,11 @@ export const reduxStores = {
       drive_mode: 0,
       multiplier: 1,
       locked: false,
+      locked_reason: 1,
       autonomous_mode: false,
       connected: false,
       handbrake: false,
+      override_autolock: false,
     }
   ),
   driveTelemetryStore: createBifrostStore(
@@ -90,6 +92,12 @@ export const reduxStores = {
       position: [],
       velocity: [],
       effort: [],
+    }
+  ),
+  driveTeleopSetParamResponseStore: createBifrostStore(
+    { service: RosService.TELEOP_DRIVE_SET_PARAMS },
+    {
+      results: [],
     }
   ),
 
