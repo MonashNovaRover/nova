@@ -421,6 +421,17 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
 //  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profiles["do_fec"].as<bool>(false);
 //  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profiles["do_retransmission"].as<bool>(false);
 //  props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : profiles["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
+//
+//  props->device = param["device"].as<std::string>(props->node);
+//  props->width = param["width"].as<int>(1280);
+//  props->height = param["height"].as<int>(720);
+//  props->framerate = param["framerate"].as<int>(30);
+//  props->brightness = param["brightness"].as<int>(0);
+//  props->contrast = param["contrast"].as<int>(0);
+//  props->congestion_control = param["congestion_control"].as<std::string>("gcc");
+//  props->do_fec = param["do_fec"].as<bool>(false);
+//  props->do_retransmission = param["do_retransmission"].as<bool>(false);
+//  props->video_caps = param["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
 
   // override any defaults with params
   std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
@@ -430,19 +441,18 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->framerate = param["framerate"].as<int>(30);
   props->brightness = param["brightness"].as<int>(0);
   props->contrast = param["contrast"].as<int>(0);
-  props->mime = param["mime"].as<std::string>("image/jpeg");
   props->congestion_control = param["congestion_control"].as<std::string>("gcc");
   props->do_fec = param["do_fec"].as<bool>(false);
   props->do_retransmission = param["do_retransmission"].as<bool>(false);
   props->video_caps = param["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
-  props->bitrate = param["bitrate"].as<int>(8192);
-  props->tune = param["tune"].as<std::string>("zerolatency");
-  props->speed_preset = param["speed_preset"].as<std::string>("ultrafast");
-  props->me = param["me"].as<std::string>("dia");
-  props->subme = param["subme"].as<int>(1);
-  props->noise_reduction = param["noise_reduction"].as<int>(256);
-  props->threads = param["threads"].as<int>(1);
-  props->gop = param["gop"].as<int>(1); // Distance between frames, in seconds. Max 10
+  props->bitrate = param["bitrate"] ? param["bitrate"].as<int>() : profile["bitrate"].as<int>(8192);
+  props->tune = param["tune"] ? param["tune"].as<std::string>() : profile["tune"].as<std::string>("zerolatency");
+  props->speed_preset = param["speed_preset"] ? param["speed_preset"].as<std::string>() : profile["speed_preset"].as<std::string>("ultrafast");
+  props->me = param["me"] ? param["me"].as<std::string>() : profile["me"].as<std::string>("dia");
+  props->subme = param["subme"] ? param["subme"].as<int>() : profile["subme"].as<int>(1);
+  props->noise_reduction = param["noise_reduction"] ? param["noise_reduction"].as<int>() : profile["noise_reduction"].as<int>(256);
+  props->threads = param["threads"] ? param["threads"].as<int>() : profile["threads"].as<int>(1);
+  props->gop = param["gop"] ? param["gop"].as<int>() : profile["gop"].as<int>(1); // Distance between frames, in seconds. Max 10
   props->decoder = param["decoder"].as<std::string>(is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec");
 
   return props;
