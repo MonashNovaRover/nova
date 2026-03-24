@@ -19,9 +19,7 @@ struct v4lProperties
   int contrast;
   std::string device;
   std::string mime;
-  std::string v4l2_controls;
-
-  bool crop43;
+  std::string io_mode;
 };
 
 struct webRTCProperties

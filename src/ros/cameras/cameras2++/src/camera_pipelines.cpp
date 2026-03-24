@@ -54,7 +54,15 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
   
   // set element properties
-  g_object_set(source, "device", props->device.c_str(), NULL);
+  g_object_set(source,
+      "device", props->device.c_str(),
+      "io-mode", (
+        props->io_mode == "rw" ? 1 :
+        props->io_mode == "mmap" ? 2 :
+        props->io_mode == "userptr" ? 3 :
+        props->io_mode == "dmabuf" ? 4 :
+        props->io_mode == "dmabuf-import" ? 5 :0),
+      NULL);
 
   GstCaps *caps = gst_caps_new_simple(
       props->mime.c_str(),
@@ -141,21 +149,23 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   // Read yaml file
   YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
   YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
+  YAML::Node profile = config["camera_streamer"]["ros__parameters"]["profiles"][param["profile"].as<std::string>("default")];
 
   // override any defaults with params
   std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
-  props->device = param["device"].as<std::string>(props->node);
-  props->width = param["width"].as<int>(1280);
-  props->height = param["height"].as<int>(720);
-  props->framerate = param["framerate"].as<int>(30);
-  props->brightness = param["brightness"].as<int>(0);
-  props->contrast = param["contrast"].as<int>(0);
-  props->mime = param["mime"].as<std::string>("image/jpeg");
-  props->congestion_control = param["congestion_control"].as<std::string>("gcc");
-  props->do_fec = param["do_fec"].as<bool>(false);
-  props->do_retransmission = param["do_retransmission"].as<bool>(false);
-  props->show_clock = param["show_clock"].as<bool>(false);
-  props->video_caps = param["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
+  props->device = param["device"] ? param["device"].as<std::string>() : profile["device"].as<std::string>(props->node);
+  props->width = param["width"] ? param["width"].as<int>() : profile["width"].as<int>(1280);
+  props->height = param["height"] ? param["height"].as<int>() : profile["height"].as<int>(720);
+  props->framerate = param["framerate"] ? param["framerate"].as<int>() : profile["framerate"].as<int>(30);
+  props->brightness = param["brightness"] ? param["brightness"].as<int>() : profile["brightness"].as<int>(0);
+  props->contrast = param["contrast"] ? param["contrast"].as<int>() : profile["contrast"].as<int>(0);
+  props->mime = param["mime"] ? param["mime"].as<std::string>() : profile["mime"].as<std::string>("image/jpeg");
+  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profile["congestion_control"].as<std::string>("gcc");
+  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profile["do_fec"].as<bool>(false);
+  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profile["do_retransmission"].as<bool>(false);
+  props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : profile["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
+  props->show_clock = param["show_clock"] ? param["show_clock"].as<bool>() : profile["show_clock"].as<bool>(false);
+  props->io_mode = param["io_mode"] ? param["io_mode"].as<std::string>() : profile["io_mode"].as<std::string>("mmap");
 
   return props;
 }
@@ -177,7 +187,10 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
       return nullptr;
   }
   RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
-  g_object_set(source, "device", props->device.c_str(), NULL);
+  g_object_set(source,
+      "device", props->device.c_str(),
+      "io-mode", 4,
+      NULL);
 
   GstCaps *caps = gst_caps_new_simple(
       "video/x-h264",
@@ -191,8 +204,9 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
 
-  GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
-  GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
+  GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL);
+  const char *video_codec = "video/x-h264";
+  GstCaps *webrtc_caps = gst_caps_from_string(video_codec);
   g_object_set(webrtc,
       "do-fec", props->do_fec,
       "do-retransmission", props->do_retransmission,
@@ -258,20 +272,20 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   // Read yaml file
   YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
   YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
+  YAML::Node profile = config["camera_streamer"]["ros__parameters"]["profiles"][param["profile"].as<std::string>("default")];
 
   // override any defaults with params
   std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
-  props->device = param["device"].as<std::string>(props->node);
-  props->width = param["width"].as<int>(1280);
-  props->height = param["height"].as<int>(720);
-  props->framerate = param["framerate"].as<int>(30);
-  props->brightness = param["brightness"].as<int>(0);
-  props->contrast = param["contrast"].as<int>(0);
-  props->congestion_control = param["congestion_control"].as<std::string>("gcc");
-  props->do_fec = param["do_fec"].as<bool>(false);
-  props->do_retransmission = param["do_retransmission"].as<bool>(false);
-  props->video_caps = param["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
-  props->payload_quirk = param["payload_quirk"].as<bool>(false);
+  props->device = param["device"] ? param["device"].as<std::string>() : profile["device"].as<std::string>(props->node);
+  props->width = param["width"] ? param["width"].as<int>() : profile["width"].as<int>(1280);
+  props->height = param["height"] ? param["height"].as<int>() : profile["height"].as<int>(720);
+  props->framerate = param["framerate"] ? param["framerate"].as<int>() : profile["framerate"].as<int>(30);
+  props->brightness = param["brightness"] ? param["brightness"].as<int>() : profile["brightness"].as<int>(0);
+  props->contrast = param["contrast"] ? param["contrast"].as<int>() : profile["contrast"].as<int>(0);
+  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profile["congestion_control"].as<std::string>("gcc");
+  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profile["do_fec"].as<bool>(false);
+  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profile["do_retransmission"].as<bool>(false);
+  props->payload_quirk = param["payload_quirk"] ? param["payload_quirk"].as<bool>() : profile["payload_quirk"].as<bool>(false);
 
   return props;
 }
@@ -296,11 +310,15 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   }
   RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
 
-  g_object_set(source, "device", props->device.c_str(), NULL);
-  if (!props->v4l2_controls.empty()) {
-    g_object_set(source, "extra_controls", props->v4l2_controls.c_str(), NULL);
-  }
-
+  g_object_set(source,
+      "device", props->device.c_str(),
+      "io-mode", (
+        props->io_mode == "rw" ? 1 :
+        props->io_mode == "mmap" ? 2 :
+        props->io_mode == "userptr" ? 3 :
+        props->io_mode == "dmabuf" ? 4 :
+        props->io_mode == "dmabuf-import" ? 5 :0),
+      NULL);
 
   GstCaps *caps = gst_caps_new_simple(
       props->mime.c_str(),
@@ -411,40 +429,19 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->serial = camera->serial;
   props->node = camera->node;
 
-//  props->device = param["device"] ? param["device"].as<std::string>() : profiles["device"].as<std::string>(props->node);
-//  props->width = param["width"] ? param["width"].as<int>() : profiles["width"].as<int>(1280);
-//  props->height = param["height"] ? param["height"].as<int>() : profiles["height"].as<int>(720);
-//  props->framerate = param["framerate"] ? param["framerate"].as<int>() : profiles["framerate"].as<int>(30);
-//  props->brightness = param["brightness"] ? param["brightness"].as<int>() : profiles["brightness"].as<int>(0);
-//  props->contrast = param["contrast"] ? param["contrast"].as<int>() : profiles["contrast"].as<int>(0);
-//  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profiles["congestion_control"].as<std::string>("gcc");
-//  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profiles["do_fec"].as<bool>(false);
-//  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profiles["do_retransmission"].as<bool>(false);
-//  props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : profiles["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
-//
-//  props->device = param["device"].as<std::string>(props->node);
-//  props->width = param["width"].as<int>(1280);
-//  props->height = param["height"].as<int>(720);
-//  props->framerate = param["framerate"].as<int>(30);
-//  props->brightness = param["brightness"].as<int>(0);
-//  props->contrast = param["contrast"].as<int>(0);
-//  props->congestion_control = param["congestion_control"].as<std::string>("gcc");
-//  props->do_fec = param["do_fec"].as<bool>(false);
-//  props->do_retransmission = param["do_retransmission"].as<bool>(false);
-//  props->video_caps = param["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
-
   // override any defaults with params
   std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
-  props->device = param["device"].as<std::string>(props->node);
+  props->device = param["device"] ? param["device"].as<std::string>() : profile["device"].as<std::string>(props->node);
   props->width = param["width"] ? param["width"].as<int>() : profile["width"].as<int>(1280);
-  props->height = param["height"] ? param["height"].as<int>() : profile["height"].as<int>(1280);
-  props->framerate = param["framerate"].as<int>(30);
-  props->brightness = param["brightness"].as<int>(0);
-  props->contrast = param["contrast"].as<int>(0);
-  props->congestion_control = param["congestion_control"].as<std::string>("gcc");
-  props->do_fec = param["do_fec"].as<bool>(false);
-  props->do_retransmission = param["do_retransmission"].as<bool>(false);
-  props->video_caps = param["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
+  props->height = param["height"] ? param["height"].as<int>() : profile["height"].as<int>(720);
+  props->framerate = param["framerate"] ? param["framerate"].as<int>() : profile["framerate"].as<int>(30);
+  props->brightness = param["brightness"] ? param["brightness"].as<int>() : profile["brightness"].as<int>(0);
+  props->contrast = param["contrast"] ? param["contrast"].as<int>() : profile["contrast"].as<int>(0);
+  props->mime = param["mime"] ? param["mime"].as<std::string>() : profile["mime"].as<std::string>("image/jpeg");
+  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profile["congestion_control"].as<std::string>("gcc");
+  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profile["do_fec"].as<bool>(false);
+  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profile["do_retransmission"].as<bool>(false);
+  props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : profile["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
   props->bitrate = param["bitrate"] ? param["bitrate"].as<int>() : profile["bitrate"].as<int>(8192);
   props->tune = param["tune"] ? param["tune"].as<std::string>() : profile["tune"].as<std::string>("zerolatency");
   props->speed_preset = param["speed_preset"] ? param["speed_preset"].as<std::string>() : profile["speed_preset"].as<std::string>("ultrafast");
@@ -453,7 +450,8 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->noise_reduction = param["noise_reduction"] ? param["noise_reduction"].as<int>() : profile["noise_reduction"].as<int>(256);
   props->threads = param["threads"] ? param["threads"].as<int>() : profile["threads"].as<int>(1);
   props->gop = param["gop"] ? param["gop"].as<int>() : profile["gop"].as<int>(1); // Distance between frames, in seconds. Max 10
-  props->decoder = param["decoder"].as<std::string>(is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec");
+  props->decoder = param["decoder"] ? param["decoder"].as<std::string>() : profile["decoder"].as<std::string>(is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec");
+  props->io_mode = param["io_mode"] ? param["io_mode"].as<std::string>() : profile["io_mode"].as<std::string>("mmap");
 
   return props;
 }

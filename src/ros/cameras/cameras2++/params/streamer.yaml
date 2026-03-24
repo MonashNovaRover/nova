@@ -4,21 +4,16 @@ camera_streamer:
     serial_pipelines:
       # Waveshare
       openaicam_openaicam_2505121128:
-        pipeline_type: v4l2webrtc
-        #profile: super
+        pipeline_type: h264software
+        profile: super
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
-        payload_quirk: true
-        width: 1920
-        height: 1080
-        framerate: 30
+        profile: gc2093
 
       HZ_USB_Camera_20220301104:
         pipeline_type: h264software
-        width: 1920
-        height: 1080
-        framerate: 30
+        profile: super  
 
       # Development cameras
       brandon-cam:
@@ -106,4 +101,10 @@ camera_streamer:
         width: 1920
         height: 1080
         framerate: 30
+
+      gc2093:
+        width: 1920
+        height: 1080
+        framerate: 30
+        payload_quirk: true
 
