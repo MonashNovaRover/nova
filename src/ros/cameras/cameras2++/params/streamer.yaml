@@ -1,14 +1,11 @@
 camera_streamer:
   ros__parameters:
     autostart: true
-
     serial_pipelines:
       # Waveshare
       openaicam_openaicam_2505121128:
-        pipeline_type: h264software
-        width: 1920
-        height: 1080
-        framerate: 30
+        pipeline_type: v4l2webrtc
+        #profile: super
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
@@ -23,12 +20,10 @@ camera_streamer:
         height: 1080
         framerate: 30
 
+      # Development cameras
       brandon-cam:
         pipeline_type: h264software
-        mime: image/jpeg
-        width: 1920
-        height: 1080
-        framerate: 30
+        profile: super
 
       anthony-cam:
         pipeline_type: h264passthrough
@@ -92,3 +87,23 @@ camera_streamer:
         meta: Arm - Finger
       arm_end_side:
         meta: Arm - Side
+
+    profiles:
+      default:
+        mime: image/jpeg
+        width: 1280
+        height: 720
+        framerate: 30
+
+      snail:
+        mime: image/jpeg
+        width: 640
+        height: 480
+        framerate: 30
+
+      super:
+        mime: image/jpeg
+        width: 1920
+        height: 1080
+        framerate: 30
+

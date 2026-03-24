@@ -20,6 +20,8 @@ struct v4lProperties
   std::string device;
   std::string mime;
   std::string v4l2_controls;
+
+  bool crop43;
 };
 
 struct webRTCProperties
@@ -59,6 +61,7 @@ struct Pipeline
   Properties* props;
   std::string pipeline_type;
   camera_msgs::msg::Camera* camera;
+  std::string profile;
 };
 
 struct v4l2webrtcPipelineProperties : Properties, v4lProperties, webRTCProperties, clockProperties {};

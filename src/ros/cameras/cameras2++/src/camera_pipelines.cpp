@@ -405,16 +405,28 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   // Read yaml file
   YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
   YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
+  YAML::Node profile = config["camera_streamer"]["ros__parameters"]["profiles"][param["profile"].as<std::string>("default")];
 
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
 
+//  props->device = param["device"] ? param["device"].as<std::string>() : profiles["device"].as<std::string>(props->node);
+//  props->width = param["width"] ? param["width"].as<int>() : profiles["width"].as<int>(1280);
+//  props->height = param["height"] ? param["height"].as<int>() : profiles["height"].as<int>(720);
+//  props->framerate = param["framerate"] ? param["framerate"].as<int>() : profiles["framerate"].as<int>(30);
+//  props->brightness = param["brightness"] ? param["brightness"].as<int>() : profiles["brightness"].as<int>(0);
+//  props->contrast = param["contrast"] ? param["contrast"].as<int>() : profiles["contrast"].as<int>(0);
+//  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profiles["congestion_control"].as<std::string>("gcc");
+//  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profiles["do_fec"].as<bool>(false);
+//  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profiles["do_retransmission"].as<bool>(false);
+//  props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : profiles["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
+
   // override any defaults with params
   std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
   props->device = param["device"].as<std::string>(props->node);
-  props->width = param["width"].as<int>(1280);
-  props->height = param["height"].as<int>(720);
+  props->width = param["width"] ? param["width"].as<int>() : profile["width"].as<int>(1280);
+  props->height = param["height"] ? param["height"].as<int>() : profile["height"].as<int>(1280);
   props->framerate = param["framerate"].as<int>(30);
   props->brightness = param["brightness"].as<int>(0);
   props->contrast = param["contrast"].as<int>(0);
