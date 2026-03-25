@@ -47,6 +47,7 @@
   demo-nodes-cpp,
   pcl,
   pcl-ros,
+  direct-visual-lidar-calibration
 }:
 
 buildRosPackage rec {
@@ -106,7 +107,8 @@ buildRosPackage rec {
       fast-livo2
       fast-calib
       demo-nodes-cpp
-      pcl-ros;
+      pcl-ros
+      direct-visual-lidar-calibration;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
