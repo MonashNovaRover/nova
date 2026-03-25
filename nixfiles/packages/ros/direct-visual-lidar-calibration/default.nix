@@ -15,6 +15,8 @@
   cv-bridge,
   glfw,
   assimp,
+  libpcap,
+  libusb1,
 }:
 
 buildRosPackage {
@@ -52,5 +54,7 @@ buildRosPackage {
     cv-bridge
     glfw
     assimp
+    libpcap
+    libusb1
   ];
 }
