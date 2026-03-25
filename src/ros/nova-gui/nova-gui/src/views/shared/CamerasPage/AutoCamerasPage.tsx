@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button, Card, CardProps } from "@nextui-org/react";
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { CameraView } from "./CameraPageConstants";
@@ -8,6 +8,18 @@ import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
+import { useSortable } from "@dnd-kit/react/sortable";
+import { UniqueIdentifier } from "@dnd-kit/core";
+
+export interface SortableProps extends CardProps {
+  sortId: UniqueIdentifier,
+  index: number
+}
+
+const Sortable = (props: SortableProps) => {
+  const {ref} = useSortable({id: props.sortId, index: props.index});
+  return <Card ref={ref} {...props}/>
+}
 
 /**
  * TODO: remove
@@ -86,11 +98,13 @@ export const CameraPage = (props: CameraPageProps) => {
       {
         <div className="grid grid-cols-3 gap-3">
           {views[selectedTab].cameraSerials.map((serial, i) => (
-            <SerialMappedCameraComponent
-              cameraSerial={serial}
-              key={i}
-              autostart={allCamsOn}
-            />
+            <Sortable key={"sort"+i} sortId={i} index={i}>
+              <SerialMappedCameraComponent
+                cameraSerial={serial}
+                key={i}
+                autostart={allCamsOn}
+              />
+            </Sortable>
           ))}
         </div>
       }
