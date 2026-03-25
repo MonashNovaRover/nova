@@ -6,7 +6,7 @@
         <RateController hz="1.0">
           <Sequence name="ComputeAndSmoothPathThroughPoses">
             <ReactiveSequence>
-              <RemoveNearbyInCollisionGoals input_goals="{goals}" max_distance_threshold="3" global_frame="map" robot_base_frame="base_link" cost_threshold="99.0" output_goals="{goals}"/>
+              <RemoveNearbyInCollisionGoals input_goals="{goals}" max_distance_threshold="5" global_frame="map" robot_base_frame="base_link" cost_threshold="99.0" output_goals="{goals}"/>
               <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
               <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
             </ReactiveSequence>

@@ -241,7 +241,8 @@ bool RemoveNearbyInCollisionGoalsAction::is_cell_free(const GridCell &cell, cons
         return true; // treat out-of-bounds cells as free
     }
     int index = cell.y * (*grid).info.width + cell.x;
-    return (*grid).data[index] <= cost_threshold_;
+    RCLCPP_INFO(node_->get_logger(), "Cost of cell is %d", (*grid).data[index]);
+    return (*grid).data[index] < cost_threshold_;
 }
 
 /**
