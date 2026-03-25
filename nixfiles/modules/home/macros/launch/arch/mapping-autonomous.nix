@@ -29,6 +29,8 @@ let
       {name = "Base:Rviz"; platform=base; cmd="./ros2 launch auto_bringup rviz.launch.py";}
       {name = "Base:Teleop"; platform=base; cmd="./ros2 launch drive_bringup teleop.launch.py";} # this is just in case operator needs to take over
       # @Felicity to fill out for gui cameras
+      {name = "Rover:GUI"; platform=base; cmd="gui-shell --command \"gui-run\"";}
+      {name = "Rover:GUI Rosbridge"; platform=base; cmd="gui-rosbridge";}
     ];
     post = post-shell;
   };
