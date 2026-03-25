@@ -1,4 +1,4 @@
-import { Button, Card, CardProps } from "@nextui-org/react";
+import { Button, Card, CardProps, CardHeader } from "@nextui-org/react";
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { CameraView } from "./CameraPageConstants";
@@ -10,15 +10,30 @@ import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCa
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { UniqueIdentifier } from "@dnd-kit/core";
+import {Table as TableIcon} from "react-feather";
 
 export interface SortableProps extends CardProps {
   sortId: UniqueIdentifier,
-  index: number
+  index: number,
 }
 
 const Sortable = (props: SortableProps) => {
-  const {ref} = useSortable({id: props.sortId, index: props.index});
-  return <Card ref={ref} {...props}/>
+  const {ref, handleRef} = useSortable({id: props.sortId, index: props.index});
+  const [isHovered, setIsHovered] = useState(false);
+
+  return <Card ref={ref} 
+    onMouseEnter={()=>setIsHovered(true)} 
+    onMouseLeave={()=>setIsHovered(false)}
+    {...props}>
+      <CardHeader className="absolute z-1 top-0">
+        {isHovered &&
+          <Button className="z-50" isIconOnly size="sm" ref={handleRef}>
+            <TableIcon size="15px"/>
+          </Button>
+        }
+      </CardHeader>
+      {props.children}
+    </Card>
 }
 
 /**
