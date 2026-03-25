@@ -123,6 +123,7 @@ class CameraStreamer : public rclcpp::Node
         }
         RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline->pipeline_type.c_str(), camera.serial.c_str());
         this->pipelines[camera.serial] = pipeline;
+        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_READY);
       }
     }
   }
@@ -165,7 +166,7 @@ class CameraStreamer : public rclcpp::Node
         for (std::string serial : request->serials) {
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             Pipeline* pipeline = pipelines[serial];
-            gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
+            gst_element_set_state(pipeline->gst_pipeline, GST_STATE_READY);
             gst_object_unref(pipeline->gst_pipeline);
             pipeline->gst_pipeline = nullptr;
             RCLCPP_INFO(this->get_logger(), "Stopping %s", serial.c_str());

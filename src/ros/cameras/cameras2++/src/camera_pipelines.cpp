@@ -19,6 +19,10 @@ static bool is_plugin_available(const std::string& plugin_name) {
   return false;
 }
 
+static int crop43(const int width, const int height) {
+  return (width-(height*4/3))/2;
+};
+
 /*
  * V4l camera to webrtc pipeline
  * converts any v4l source to raw video and then encodes a format for webrtc
@@ -232,7 +236,7 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
     GstElement* depayload = gst_element_factory_make("rtph264depay", "depayloader");
     g_object_set(payload,
         "aggregate-mode", 1,
-        "config-interval", 1,
+        "config-interval", -1,
         NULL);
     gst_bin_add_many(GST_BIN(gst_pipeline), payload, depayload, NULL);
     ret = gst_element_link(filter, payload) ? ret : false;
@@ -388,18 +392,46 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   bool ret = true;
 
   ret = gst_element_link(source, filter) ? ret : false;
+  const int crop_width = crop43(props->width, props->height);
+
 
   if (props->mime == "image/jpeg") {
     // Convert to hardware decoding if possible
     GstElement* decode = gst_element_factory_make(props->decoder.c_str(), "decoder");
     gst_bin_add(GST_BIN(gst_pipeline), decode);
-    ret = gst_element_link(filter, decode) ? ret : false;
-    ret = gst_element_link(decode, encode) ? ret : false;
+
+    if (crop_width > 0 && props->crop43) {
+      GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
+      gst_bin_add(GST_BIN(gst_pipeline), cropper);
+      g_object_set(cropper,
+        "left", crop_width,
+        "right", crop_width,
+        NULL);
+      ret = gst_element_link(filter, decode) ? ret : false;
+      ret = gst_element_link(decode, cropper) ? ret : false;
+      ret = gst_element_link(cropper, encode) ? ret : false;
+    } else {
+      ret = gst_element_link(filter, decode) ? ret : false;
+      ret = gst_element_link(decode, encode) ? ret : false;
+    }
   } else {
     GstElement* convert = gst_element_factory_make("videoconvert", "converter");
     gst_bin_add(GST_BIN(gst_pipeline), convert);
-    ret = gst_element_link(filter, convert) ? ret : false;
-    ret = gst_element_link(convert, encode) ? ret : false;
+
+    if (crop_width > 0 && props->crop43) {
+      GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
+      gst_bin_add(GST_BIN(gst_pipeline), cropper);
+      g_object_set(cropper,
+        "left", crop_width,
+        "right", crop_width,
+        NULL);
+      ret = gst_element_link(filter, convert) ? ret : false;
+      ret = gst_element_link(convert, cropper) ? ret : false;
+      ret = gst_element_link(cropper, encode) ? ret : false;
+    } else {
+      ret = gst_element_link(filter, convert) ? ret : false;
+      ret = gst_element_link(convert, encode) ? ret : false;
+    }
   }
   ret = gst_element_link(encode, webrtc) ? ret : false;
   if (!ret) {
@@ -441,6 +473,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profile["congestion_control"].as<std::string>("gcc");
   props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profile["do_fec"].as<bool>(false);
   props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profile["do_retransmission"].as<bool>(false);
+  props->crop43 = param["crop43"] ? param["crop43"].as<bool>() : profile["crop43"].as<bool>(false);
   props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : profile["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
   props->bitrate = param["bitrate"] ? param["bitrate"].as<int>() : profile["bitrate"].as<int>(8192);
   props->tune = param["tune"] ? param["tune"].as<std::string>() : profile["tune"].as<std::string>("zerolatency");

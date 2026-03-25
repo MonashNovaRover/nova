@@ -20,6 +20,7 @@ struct v4lProperties
   std::string device;
   std::string mime;
   std::string io_mode;
+  bool crop43;
 };
 
 struct webRTCProperties

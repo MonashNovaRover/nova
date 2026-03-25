@@ -6,6 +6,8 @@ camera_streamer:
       openaicam_openaicam_2505121128:
         pipeline_type: h264software
         profile: super
+        decoder: jpegdec
+        crop43: true
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
@@ -25,7 +27,6 @@ camera_streamer:
         width: 1920
         height: 1080
         framerate: 30
-
 
       # Mast
       mast_backward:
@@ -89,6 +90,7 @@ camera_streamer:
         width: 1280
         height: 720
         framerate: 30
+        me: hex
 
       snail:
         mime: image/jpeg
@@ -101,6 +103,8 @@ camera_streamer:
         width: 1920
         height: 1080
         framerate: 30
+        speed_preset: superfast
+        me: hex
 
       gc2093:
         width: 1920
