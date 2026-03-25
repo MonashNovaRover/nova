@@ -181,6 +181,7 @@ class BLCMDStatusMonitor(Node):
         msg_id = 0x00B | (blcmd_id << 4)
 
         def deferred_reset():
+            self.get_logger().info(f'Resetting drive BLCMD {blcmd_id} due to errors received')
             self.bus.send(
                 jcan.Frame(id=msg_id, data=[])
             )
