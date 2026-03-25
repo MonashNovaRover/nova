@@ -119,7 +119,11 @@ class BLCMDStatusMonitor(Node):
         self.max_resets = self.declare_parameter("max_resets", 5).value # set to 0 for no limit
         self.reset_timeout = self.declare_parameter("reset_timeout", 5).value # in seconds; set to 0 for no timeout
         self.auto_reset_drive_blmcd_ids = self.declare_parameter("auto_reset_drive_blmcd_ids", [1, 2, 3, 4]).value # which drive blcmds are allowed to be reset (by id)
+        if self.auto_reset_drive_blmcd_ids is None:
+            self.auto_reset_drive_blmcd_ids = []
         self.auto_reset_pivot_blmcd_ids = self.declare_parameter("auto_reset_pivot_blmcd_ids", []).value # which pivot blcmds are allowed to be reset (by id)
+        if self.auto_reset_pivot_blmcd_ids is None:
+            self.auto_reset_pivot_blmcd_ids = []
 
         self.blcmd_zero_response_timeout = self.declare_parameter("blcmd_zero_response_timeout", 3).value # in seconds (only used for pivots)
 

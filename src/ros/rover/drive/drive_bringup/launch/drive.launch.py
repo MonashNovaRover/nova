@@ -125,14 +125,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen', 
                     emulate_tty=True,
                     ros_arguments=['--log-level', log_level],
-                    parameters=[
-                        { "enable_auto_blcmd_reset" : IfElseSubstitution(
-                            condition=auto,
-                            if_value="true",
-                            else_value="false",
-                        ),
-                        }
-                    ]
+                    parameters=[params]
                 ),
                 IncludeLaunchDescription(
                     launch_description_source=PythonLaunchDescriptionSource(
