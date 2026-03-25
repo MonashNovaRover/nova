@@ -32,6 +32,7 @@ import URCGazeboView from "../views/urc/URCGazebo.tsx";
 import HomePageView from "../views/shared/HomePageView.tsx";
 import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../utils/NavigationRoutes.tsx";
 import PageNotFoundView from "../views/shared/PageNotFound.tsx";
+import {TestCameraPage} from "../views/test/TestCamerasView/CamerasPage.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -170,6 +171,10 @@ export const testRoutes: RouteObject[] = [
   {
     path: "/test/overlay",
     element: <TestOverlayView/>
+  },
+  {
+    path: "/test/cameras",
+    element: <TestCameraPage/>
   },
 ];
 
