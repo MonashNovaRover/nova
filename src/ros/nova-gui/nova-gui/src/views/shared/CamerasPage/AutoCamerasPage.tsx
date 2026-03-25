@@ -97,8 +97,11 @@ export const CameraPage = (props: CameraPageProps) => {
 
       {
         <div className="grid grid-cols-3 gap-3">
-          {views[selectedTab].cameraSerials.map((serial, i) => (
-            <Sortable key={"sort"+i} sortId={i} index={i}>
+          {[...new Set(views.flatMap((el)=>el.cameraSerials))].map((serial, i) => (
+            <Sortable 
+              key={"sort"+i} sortId={i} index={i} className={
+              views[selectedTab].cameraSerials.includes(serial) ? "" : "hidden"
+            }>
               <SerialMappedCameraComponent
                 cameraSerial={serial}
                 key={i}
