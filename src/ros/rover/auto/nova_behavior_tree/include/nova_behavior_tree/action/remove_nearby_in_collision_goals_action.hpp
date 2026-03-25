@@ -102,10 +102,11 @@ public:
   static BT::PortsList providedPorts()
   {
     return {
-        BT::InputPort<double>("max_distance_threshold", 5.0, "Maximum radius (m) for a goal to be considered for removal"),
+        BT::InputPort<double>("max_distance_threshold", 2.0, "Maximum radius (m) for a goal to be considered for removal"),
         BT::InputPort<Goals>("input_goals", "Original goals to remove if in collision"),
         BT::InputPort<std::string>("global_frame", "Global reference frame"),
         BT::InputPort<std::string>("robot_base_frame", "robot base frame"),
+        BT::InputPort<double>("cost_threshold", 99.0, "Cost threshold for considering a goal in collision"),
         BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals removed"),
       };
   }
@@ -131,6 +132,7 @@ private:
   std::shared_ptr<tf2_ros::Buffer> tf_;
   double transform_tolerance_;
   double max_distance_threshold_;
+  double cost_threshold_;
   Goals input_goals_;
 
   bool initialized_ = false;

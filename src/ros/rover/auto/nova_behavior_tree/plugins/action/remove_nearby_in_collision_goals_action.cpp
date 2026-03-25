@@ -61,6 +61,7 @@ void RemoveNearbyInCollisionGoalsAction::initialize()
 
   // Get input params
   getInput("max_distance_threshold", max_distance_threshold_);
+  getInput("cost_threshold", cost_threshold_);
 
   // Subscribe to local and global costmaps' occupancy grids
   local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
@@ -138,6 +139,47 @@ inline BT::NodeStatus RemoveNearbyInCollisionGoalsAction::tick()
   return BT::NodeStatus::FAILURE;
 }
 
+
+bool RemoveNearbyInCollisionGoalsAction::remove_goals()
+{
+  // Get the current pose of the rover
+  geometry_msgs::msg::PoseStamped current_pose;
+  
+  if (!nav2_util::getCurrentPose(current_pose, *tf_, global_frame_, robot_base_frame_, transform_tolerance_))
+  {
+    RCLCPP_WARN(node_->get_logger(), "Current robot pose is not available.");
+    return false;
+  }
+  
+  Goals output_goals_;
+  for (size_t i=0; i < input_goals_.size(); i++)
+  {
+    Goal goal = input_goals_[i];
+    
+    // Keep goal if it is outside max distance to consider for removal
+    const double dist = euclidean_distance(current_pose, goal);
+    if (dist > max_distance_threshold_)
+    {
+      output_goals_.push_back(goal);
+    } 
+    
+    // Otherwise check if costmap where goal is at is too high
+    else 
+    {
+      if (!is_goal_in_collision(goal))
+      {
+        output_goals_.push_back(goal);
+      }
+      else 
+      {
+        RCLCPP_INFO(node_->get_logger(), "RemoveNearbyInCollisionGoals goal %zu is within distance threshold and above cost threshold, removing", i);
+      }
+    }
+  }
+  setOutput("output_goals", output_goals_);
+  return true;
+}
+
 void RemoveNearbyInCollisionGoalsAction::wait_for_occu_grids()
 {
     // measure time to initialize
@@ -172,46 +214,6 @@ bool RemoveNearbyInCollisionGoalsAction::is_goal_in_collision(const PoseStamped 
     return !is_cell_free(global_cell);
 }
 
-bool RemoveNearbyInCollisionGoalsAction::remove_goals()
-{
-  // Get the current pose of the rover
-  geometry_msgs::msg::PoseStamped current_pose;
-
-  if (!nav2_util::getCurrentPose(current_pose, *tf_, global_frame_, robot_base_frame_, transform_tolerance_))
-  {
-    RCLCPP_WARN(node_->get_logger(), "Current robot pose is not available.");
-    return false;
-  }
-
-  Goals output_goals_;
-  for (size_t i=0; i < input_goals_.size(); i++)
-  {
-    Goal goal = input_goals_[i];
-
-    // Keep goal if it is outside max distance to consider for removal
-    const double dist = euclidean_distance(current_pose, goal);
-    if (dist > max_distance_threshold_)
-    {
-      output_goals_.push_back(goal);
-    } 
-
-    // Otherwise remove goal if it is inside an obstacle
-    else 
-    {
-      if (!is_goal_in_collision(goal))
-      {
-        output_goals_.push_back(goal);
-      }
-      else 
-      {
-        RCLCPP_INFO(node_->get_logger(), "RemoveNearbyInCollisionGoals goal %zu is within threshold and in collision, removing", i);
-      }
-    }
-  }
-  setOutput("output_goals", output_goals_);
-  return true;
-}
-
 /** Methods from SnapInCollisionGoals */
  
 /**
@@ -239,7 +241,7 @@ bool RemoveNearbyInCollisionGoalsAction::is_cell_free(const GridCell &cell, cons
         return true; // treat out-of-bounds cells as free
     }
     int index = cell.y * (*grid).info.width + cell.x;
-    return (*grid).data[index] <= 0;
+    return (*grid).data[index] <= cost_threshold_;
 }
 
 /**
