@@ -1,4 +1,4 @@
-import { Button, Card, CardProps, CardHeader } from "@nextui-org/react";
+import { Button, Card, CardProps, CardHeader, Input } from "@nextui-org/react";
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { CameraView } from "./CameraPageConstants";
@@ -60,10 +60,12 @@ export const CameraPage = (props: CameraPageProps) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
 
+  const [gridSize, setGridSize] = useState(3);
+
   return (
     <div className="p-3 flex flex-col gap-0">
       <div className="flex flex-row justify-between items-center gap-32 pl-1 mb-3">
-        <div className="flex flex-row gap-3 items-center">
+        <div className="flex flex-row gap-3 items-center w-50">
           {!allCamsOn ? (
             <Button
               size="md"
@@ -77,13 +79,19 @@ export const CameraPage = (props: CameraPageProps) => {
             <Button
               size="md"
               color="danger"
+              className="w-28"
               onPress={() => setAllCamsOn(false)}
             >
               <Square size="15px" fill="white" /> Stop All
             </Button>
           )}
+          <div className="flex flex-row w-14 h-10 gap-2">
+              <Input min={1} type="number" defaultValue="3" onChange={(e)=>setGridSize(+e.target.value)}/>
+              <div className="absolute pointer-events-none">
+                <span className="relative text-[0.7rem] inset-x-[0.3rem] inset-y-[-0.5rem]"># of Cols:</span>
+              </div>
+          </div>
         </div>
-
         <SegmentedPicker
           selectedIndex={selectedTab}
           onIndexChange={setSelectedTab}
@@ -111,7 +119,7 @@ export const CameraPage = (props: CameraPageProps) => {
       </div>
 
       {
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid grid-cols-${gridSize} gap-3`}>
           {[...new Set(views.flatMap((el)=>el.cameraSerials))].map((serial, i) => (
             <Sortable 
               key={"sort"+i} sortId={i} index={i} className={
