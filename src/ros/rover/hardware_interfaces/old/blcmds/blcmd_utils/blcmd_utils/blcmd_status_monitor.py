@@ -24,6 +24,7 @@ from rclpy.node import Node
 from rclpy.time import Time
 from rclpy.duration import Duration
 import jcan
+from collections.abc import Callable
 
 # import custom messages
 from blcmd_interfaces.msg import BLCMDStatus, BLCMDStatusArray, BLCMDLog
@@ -113,6 +114,21 @@ class BLCMDStatusMonitor(Node):
         # see gateDriver.c in blcmd firmware
         self.gate_driver_registers = []
 
+        # parameters for auto blcmd reset feature
+        self.enable_auto_blcmd_reset = self.declare_parameter("enable_auto_blcmd_reset", False).value
+        self.max_resets = self.declare_parameter("max_resets", 5).value # set to 0 for no limit
+        self.reset_timeout = self.declare_parameter("reset_timeout", 5).value # in seconds; set to 0 for no timeout
+        self.auto_reset_drive_blmcd_ids = self.declare_parameter("auto_reset_drive_blmcd_ids", [1, 2, 3, 4]).value
+        self.auto_reset_pivot_blmcd_ids = self.declare_parameter("auto_reset_pivot_blmcd_ids", []).value
+
+        # keep track of when blcmd was last reset and total number of resets sent
+        self.blcmd_reset_times = {}
+        self.blcmd_reset_count = {}
+
+        # list of functions to call after bus.spin()
+        # workaround required due to inability to call bus.send in a can callback
+        self.deferred_functions: list[Callable[[], None]] = []
+
         #create reset_time variable to prevent multiple resets in a short time
         self.reset_time = self.get_clock().now()
 
@@ -125,11 +141,18 @@ class BLCMDStatusMonitor(Node):
             self.bus.add_callback(0x400 | (i + 1) << 4, self.get_callback(i))
 
         #create timers
-        self.can_spin_timer = self.create_timer(0.01, self.bus.spin)
+        self.run_callbacks_timer = self.create_timer(0.01, self.run_callbacks)
         self.publish_status_timer = self.create_timer(self.publish_status_period, self.publish_blcmd_status)
 
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
+
+    def run_callbacks(self):
+        self.bus.spin()
+
+        for function in self.deferred_functions:
+            function()
+        self.deferred_functions = []
 
     def reset(self,req,res):
         """
@@ -149,10 +172,63 @@ class BLCMDStatusMonitor(Node):
             elif req.type == BLCMDReset.Request.RESOLVER:
                 self.get_logger().info(f'Reset resolver on BLCMD {req.id}')
             res.success = True
-        except :
-            self.get_logger().error('BLCMD Reset or Resolver Reset Failed');
+        except:
+            self.get_logger().error('BLCMD Reset or Resolver Reset Failed')
             res.success = False
         return res
+
+    def reset_drive_blcmd(self, blcmd_id: int):
+        msg_id = 0x00B | (blcmd_id << 4)
+
+        def deferred_reset():
+            self.bus.send(
+                jcan.Frame(id=msg_id, data=[])
+            )
+
+        self.deferred_functions.append(deferred_reset)
+
+    def reset_pivot_blcmd(self, blcmd_id: int):
+        raise NotImplementedError
+
+    # only run when an error from blcmd is detected
+    def auto_blcmd_reset(self, blcmd_id: int):
+        # check if auto blcmd reset is disabled
+        if not self.enable_auto_blcmd_reset:
+            return
+
+        # check if this is a blcmd id we can reset
+        if (blcmd_id not in self.auto_reset_drive_blmcd_ids
+          and blcmd_id not in self.auto_reset_pivot_blmcd_ids):
+            return
+
+        now = self.get_clock().now()
+
+        # check if it's too soon to send another reset (in timeout)
+        if (self.reset_timeout > 0
+          and blcmd_id in self.blcmd_reset_times
+          and (now - self.blcmd_reset_times[blcmd_id]) < Duration(seconds=self.reset_timeout)):
+            return
+
+        # check if we can't send more (reached max_resets)
+        if (self.max_resets > 0
+          and blcmd_id in self.blcmd_reset_count
+          and self.blcmd_reset_count[blcmd_id] >= self.max_resets):
+            return
+
+        # all checks passed, send reset now
+
+        # update counts and times
+        self.blcmd_reset_times[blcmd_id] = now
+        if blcmd_id not in self.blcmd_reset_count:
+            self.blcmd_reset_count[blcmd_id] = 1
+        else:
+            self.blcmd_reset_count[blcmd_id] += 1
+
+
+        if blcmd_id in self.auto_reset_pivot_blmcd_ids:
+            self.reset_pivot_blcmd(blcmd_id)
+        else:
+            self.reset_drive_blcmd(blcmd_id)
 
     def output_rate_limited(self, blcmd: int, output_message: str) -> bool:
         output_id = (blcmd, output_message)
@@ -212,6 +288,9 @@ class BLCMDStatusMonitor(Node):
                   and hasattr(blcmd_status, self.BLCMD_STATUS_ERROR_ATTRS[error_id])):
                     setattr(blcmd_status, self.BLCMD_STATUS_ERROR_ATTRS[error_id], True)
                     self.error_times[blcmd][error_id] = self.get_clock().now()
+
+                # attempt to reset blcmd automatically
+                self.auto_blcmd_reset(blcmd + 1)
 
             # warnings
             elif frame.data[0] == 1:
