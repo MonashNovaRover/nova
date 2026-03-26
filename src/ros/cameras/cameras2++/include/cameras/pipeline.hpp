@@ -27,13 +27,9 @@ struct capsProperties
   int width;
 };
 
-struct webRTCProperties
+struct h264passthroughProperties
 {
-  std::string congestion_control;
-  std::string video_caps;
-
-  bool do_fec;
-  bool do_retransmission;
+  bool payload_quirk;
 };
 
 struct x264encProperties
@@ -58,6 +54,15 @@ struct vpXencProperties
   int gop;
 };
 
+struct webRTCProperties
+{
+  std::string congestion_control;
+  std::string video_caps;
+
+  bool do_fec;
+  bool do_retransmission;
+};
+
 struct decodeProperties
 {
   std::string decoder;
@@ -66,11 +71,6 @@ struct decodeProperties
 struct cropProperties
 {
   bool crop43;
-};
-
-struct h264passthroughProperties
-{
-  bool payload_quirk;
 };
 
 struct clockProperties

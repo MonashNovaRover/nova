@@ -76,6 +76,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   GstElement* cropper = props->crop43 ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
   GstElement* clock = props->show_clock ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
+
   if (!gst_pipeline || !source || !filter || !decode || !convert || (props->crop43 && !cropper) || (props->show_clock && !clock) || !webrtc 
       ) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
@@ -179,7 +180,7 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   */
 
   // 0. Initialize constants
-  v4l2webrtcPipelineProperties* props = new v4l2webrtcPipelineProperties; 
+  v4l2webrtcPipelineProperties* props = new v4l2webrtcPipelineProperties;
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
@@ -223,6 +224,7 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
 
   props->do_fec = prop_default(param, profile, "do_fec", false);
   props->do_retransmission = prop_default(param, profile, "do_retransmission", false);
+
   return props;
 }
 
@@ -233,19 +235,25 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
  */
 GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroughPipelineProperties* props)
 {
+  // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
+  GstElement* payload = (props->payload_quirk) ? gst_element_factory_make("rtph264pay", "payloader") : nullptr;
+  GstElement* depayload = (props->payload_quirk) ? gst_element_factory_make("rtph264depay", "depayloader") : nullptr;
+  GstElement* parse = !(props->payload) ? gst_element_factory_make("h264parse", "parser") : nullptr;
 
-  if (!gst_pipeline || !source || !filter || !webrtc) {
+  if (!gst_pipeline || !source || !filter || !webrtc || (props->payload_quirk && !payload) || (props->payload_quirk && !depayload) || (!(props->payload_quirk) && !parse)) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
   RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
+
+  // 2. Set element properties
   g_object_set(source,
       "device", props->device.c_str(),
-      "io-mode", 4,
+      "io-mode", 4, // dmabuf
       NULL);
 
   GstCaps *caps = gst_caps_new_simple(
@@ -259,6 +267,21 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
       NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
+
+  if (props->payload_quirk) {
+      // Apply patch for gc2093
+      g_object_set(payload,
+        "aggregate-mode", 1,
+        "config-interval", -1,
+        NULL);
+  }
+
+  if (!(props->payload_quirk)) {
+      g_object_set(parse,
+        "config-interval",
+        -1,
+        NULL);
+  }
 
   GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL);
   const char *video_codec = "video/x-h264";
@@ -276,35 +299,20 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
       NULL);
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
-    
+
+  // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, webrtc, NULL);
+  if (props->payload_quirk) gst_bin_add_many(GST_BIN(gst_pipeline), payload, depayload, NULL);
 
-  bool ret = true;
+  if (!link_elements(streamer_node, source, filter, props->serial)) return nullptr;
 
-  ret = gst_element_link(source, filter) ? ret : false;
   if (props->payload_quirk) {
-    // Apply patch for gc2093
-    GstElement* payload = gst_element_factory_make("rtph264pay", "payloader");
-    GstElement* depayload = gst_element_factory_make("rtph264depay", "depayloader");
-    g_object_set(payload,
-        "aggregate-mode", 1,
-        "config-interval", -1,
-        NULL);
-    gst_bin_add_many(GST_BIN(gst_pipeline), payload, depayload, NULL);
-    ret = gst_element_link(filter, payload) ? ret : false;
-    ret = gst_element_link(payload, depayload) ? ret : false;
-    ret = gst_element_link(depayload, webrtc) ? ret: false;
+    if (!link_elements(streamer_node, filter, payload, props->serial)) return nullptr;
+    if (!link_elements(streamer_node, payload, depayload, props->serial)) return nullptr;
+    if (!link_elements(streamer_node, depayload, webrtc, props->serial)) return nullptr;
   } else {
-    GstElement* parse = gst_element_factory_make("h264parse", "parser");
-    gst_bin_add(GST_BIN(gst_pipeline), parse);
-    g_object_set(parse, "config-interval", -1, NULL);
-    ret = gst_element_link(filter, parse) ? ret : false;
-    ret = gst_element_link(parse, webrtc) ? ret : false;
-  }
-
-  if (!ret) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link elements of pipeline for %s", props->serial.c_str());
-      return nullptr;
+    if (!link_elements(streamer_node, filter, parse, props->serial)) return nullptr;
+    if (!link_elements(streamer_node, parse, webrtc, props->serial)) return nullptr;
   }
 
   return gst_pipeline;
@@ -317,31 +325,38 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
 
 h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
-  h264passthroughPipelineProperties* props = new h264passthroughPipelineProperties; 
-
-  std::map<std::string, rclcpp::Parameter> serial_params;
-
+  // 0. Initialize constants
+  h264passthroughPipelineProperties* props = new h264passthroughPipelineProperties;
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
+  const std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
 
-  // Read yaml file
+  // 1. Read yaml file
   YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
   YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
-  YAML::Node profile = config["camera_streamer"]["ros__parameters"]["profiles"][param["profile"].as<std::string>("default")];
+  YAML::Node profile = config["camera_streamer"]["ros__parameters"][std::string(PROFILE_PREFIX)][param["profile"].as<std::string>("default")];
 
-  // override any defaults with params
-  std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
-  props->device = param["device"] ? param["device"].as<std::string>() : profile["device"].as<std::string>(props->node);
-  props->width = param["width"] ? param["width"].as<int>() : profile["width"].as<int>(1280);
-  props->height = param["height"] ? param["height"].as<int>() : profile["height"].as<int>(720);
-  props->framerate = param["framerate"] ? param["framerate"].as<int>() : profile["framerate"].as<int>(30);
-  props->brightness = param["brightness"] ? param["brightness"].as<int>() : profile["brightness"].as<int>(0);
-  props->contrast = param["contrast"] ? param["contrast"].as<int>() : profile["contrast"].as<int>(0);
-  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profile["congestion_control"].as<std::string>("gcc");
-  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profile["do_fec"].as<bool>(false);
-  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profile["do_retransmission"].as<bool>(false);
-  props->payload_quirk = param["payload_quirk"] ? param["payload_quirk"].as<bool>() : profile["payload_quirk"].as<bool>(false);
+  // 3. Define default properties
+  std::string default_string;
+
+  // source
+  default_string = props->node;
+  props->device = prop_default(param, profile, "device", default_string);
+
+  // filter
+  props->brightness = prop_default(param, profile, "brightness", 0);
+  props->contrast = prop_default(param, profile, "contrast", 0);
+  props->framerate = prop_default(param, profile, "framerate", 30);
+  props->height = prop_default(param, profile, "height", 720);
+  props->width = prop_default(param, profile, "width", 1280);
+
+  // webrtc
+  default_string = props->node;
+  props->congestion_control = prop_default(param, profile, "congestion_control", default_string);
+
+  props->do_fec = prop_default(param, profile, "do_fec", false);
+  props->do_retransmission = prop_default(param, profile, "do_retransmission", false);
 
   return props;
 }
