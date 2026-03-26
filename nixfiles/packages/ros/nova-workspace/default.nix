@@ -56,6 +56,7 @@
 , nova-strafe-drive-controller ? throw "nova-strafe-drive-controller is needed, but not available!"
 , nova-diff-drive-controller ? throw "nova-diff-drive-controller is needed, but not available!"
 , nova-teleop-drive-joy ? throw "nova-teleop-drive-joy is needed, but not available!"
+, nova-drive-utils ? throw "nova-drive-utils is needed, but not available!"
 , nova-teleop-arm-joy ? throw "nova-teleop-arm-joy is needed, but not available!"
 , nova-gazebo ? throw "nova-gazebo is needed, but not available!"
 , nova-python-control ? throw "python-control is needed, but not available!"
@@ -106,6 +107,7 @@
       nova-strafe-drive-controller
       nova-diff-drive-controller
       nova-teleop-drive-joy
+      nova-drive-utils
       nova-teleop-arm-joy
       nova-gui
       nova-drive
