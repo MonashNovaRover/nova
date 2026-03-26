@@ -23,11 +23,16 @@ camera_streamer:
 
       # Development cameras
       brandon-cam:
-        pipeline_type: h264software
+        #pipeline_type: h264software
         #pipeline_type: vpXsoftware
-        #pipeline_type: v4l2webrtc
+        pipeline_type: v4l2webrtc
+        #device: /dev/video2
         #crop43: true
         profile: super
+        #width: 640
+        #height: 360
+        #framerate: 15
+        #mime: video/x-raw
         speed_preset: ultrafast
         me: dia
 

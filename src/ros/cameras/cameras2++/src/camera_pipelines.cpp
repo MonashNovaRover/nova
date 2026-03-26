@@ -21,7 +21,27 @@ static bool is_plugin_available(const std::string& plugin_name) {
 
 static int crop43(const int width, const int height) {
   return (width-(height*4/3))/2;
-};
+}
+
+static bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, std::string serial) {
+   if (!gst_element_link(first_element, second_element)) {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link %s to %s for %s", gst_object_get_name(GST_OBJECT(first_element)), gst_object_get_name(GST_OBJECT(second_element)), serial.c_str());
+      return false;
+   }
+   return true;
+}
+
+static std::string prop_default(YAML::Node param, YAML::Node profile, std::string name, std::string default_value){
+    return param[name] ? param[name].as<std::string>() : profile[name].as<std::string>(default_value);
+}
+
+static int prop_default(YAML::Node param, YAML::Node profile, std::string name, int default_value){
+    return param[name] ? param[name].as<int>() : profile[name].as<int>(default_value);
+}
+
+static bool prop_default(YAML::Node param, YAML::Node profile, std::string name, bool default_value){
+    return param[name] ? param[name].as<bool>() : profile[name].as<bool>(default_value);
+}
 
 /*
  * V4l camera to webrtc pipeline
@@ -40,24 +60,30 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
      @return GstElement* pointer to the created GStreamer pipeline
   */
 
-  // create the elements
+  // 0. Initialize constants
+  // Disable crop43 if it is already 4:3
+  const int crop_width = crop43(props->width, props->height);
+  if (crop_width == 0) {
+      props->crop43 = false;
+  }
+
+  // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* filter = gst_element_factory_make("capsfilter", "filter");
-  GstElement* decode = gst_element_factory_make("decodebin", "decoder");
+  GstElement* decode = gst_element_factory_make("decodebin3", "decoder");
   GstElement* convert = gst_element_factory_make("videoconvert", "converter");
-  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
+  GstElement* cropper = props->crop43 ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
   GstElement* clock = props->show_clock ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
-
-  if (!gst_pipeline || !source || !filter || !decode || !convert || !webrtc
-      || (props->show_clock && !clock) 
+  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
+  if (!gst_pipeline || !source || !filter || !decode || !convert || (props->crop43 && !cropper) || (props->show_clock && !clock) || !webrtc 
       ) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
   RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
-  
-  // set element properties
+
+  // 2. Set element properties
   g_object_set(source,
       "device", props->device.c_str(),
       "io-mode", (
@@ -79,6 +105,13 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
 
+  if (props->crop43) {
+      g_object_set(cropper,
+        "left", crop_width,
+        "right", crop_width,
+        NULL);
+  }
+
   GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
   GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
   g_object_set(webrtc,
@@ -87,16 +120,17 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       "congestion-control", (
         props->congestion_control == "disabled" ? 0 :
         props->congestion_control == "homegrown" ? 1 :
-        props->congestion_control == "gcc" ? 2 : -1),
+        props->congestion_control == "gcc" ? 2 : 2),
       "meta", meta,
       "video-caps", webrtc_caps,
       NULL);
   gst_caps_unref(webrtc_caps);
   gst_structure_free(meta);
 
-  // add elements to pipeline and link
+  // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, decode, convert, webrtc, NULL);
-  const int crop_width = crop43(props->width, props->height);
+  if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), clock);
+  if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
 
   g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
       GstElement* convert = static_cast<GstElement*>(user_data);
@@ -107,40 +141,24 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       if (sink_pad) gst_object_unref(sink_pad);
   }), convert);
 
-  //g_signal_connect(webrtc, "encoder-setup", G_CALLBACK(encoder_setup), NULL);
+  // 4. Link elements
+  if (!link_elements(streamer_node, source, filter, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, filter, decode, props->serial)) return nullptr;
 
-  bool ret = true;
-
-  ret = gst_element_link(source, filter) ? ret : false;
-  ret = gst_element_link(filter, decode) ? ret : false;
-
-  if (crop_width > 0 && props->crop43) {
-      GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
-      gst_bin_add(GST_BIN(gst_pipeline), cropper);
-      g_object_set(cropper,
-        "left", crop_width,
-        "right", crop_width,
-        NULL);
-      if (props->show_clock) {
-        gst_bin_add(GST_BIN(gst_pipeline), clock);
-        ret = gst_element_link(convert, cropper) ? ret : false;
-        ret = gst_element_link(cropper, clock) ? ret : false;
-        ret = gst_element_link(clock, webrtc) ? ret : false;
-      } else {
-        ret = gst_element_link(convert, cropper) ? ret : false;
-        ret = gst_element_link(cropper, webrtc) ? ret : false;
-      }
-  } else if (props->show_clock) {
-      gst_bin_add(GST_BIN(gst_pipeline), clock);
-      ret = gst_element_link(convert, clock) ? ret : false;
-      ret = gst_element_link(clock, webrtc) ? ret : false;
-  } else {
-      ret = gst_element_link(convert, webrtc) ? ret : false;
-  }
-
-  if (!ret) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link elements of pipeline for %s", props->serial.c_str());
-      return nullptr;
+  if (props->crop43 && props->show_clock) {
+      if (!link_elements(streamer_node, convert, cropper, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, cropper, clock, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, clock, webrtc, props->serial)) return nullptr;
+  } else
+  if (props->crop43) {
+      if (!link_elements(streamer_node, convert, cropper, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, cropper, webrtc, props->serial)) return nullptr;
+  } else
+  if (props->show_clock) {
+      if (!link_elements(streamer_node, convert, clock, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, clock, webrtc, props->serial)) return nullptr;  } 
+  else {
+      if (!link_elements(streamer_node, convert, webrtc, props->serial)) return nullptr;
   }
 
   return gst_pipeline;
@@ -159,36 +177,52 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
     @param camera pointer to the camera message containing at least the serial and node for the camera
     @return pointer to a v4l2webrtcPipelineProperties struct containing the properties for the pipeline
   */
+
+  // 0. Initialize constants
   v4l2webrtcPipelineProperties* props = new v4l2webrtcPipelineProperties; 
-
-  std::map<std::string, rclcpp::Parameter> serial_params;
-
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
+  const std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
 
-  // Read yaml file
+  // 1. Read yaml file
   YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
   YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
-  YAML::Node profile = config["camera_streamer"]["ros__parameters"]["profiles"][param["profile"].as<std::string>("default")];
+  YAML::Node profile = config["camera_streamer"]["ros__parameters"][std::string(PROFILE_PREFIX)][param["profile"].as<std::string>("default")];
 
-  // override any defaults with params
-  std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
-  props->device = param["device"] ? param["device"].as<std::string>() : profile["device"].as<std::string>(props->node);
-  props->width = param["width"] ? param["width"].as<int>() : profile["width"].as<int>(1280);
-  props->height = param["height"] ? param["height"].as<int>() : profile["height"].as<int>(720);
-  props->framerate = param["framerate"] ? param["framerate"].as<int>() : profile["framerate"].as<int>(30);
-  props->brightness = param["brightness"] ? param["brightness"].as<int>() : profile["brightness"].as<int>(0);
-  props->contrast = param["contrast"] ? param["contrast"].as<int>() : profile["contrast"].as<int>(0);
-  props->mime = param["mime"] ? param["mime"].as<std::string>() : profile["mime"].as<std::string>("image/jpeg");
-  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profile["congestion_control"].as<std::string>("gcc");
-  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profile["do_fec"].as<bool>(false);
-  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profile["do_retransmission"].as<bool>(false);
-  props->crop43 = param["crop43"] ? param["crop43"].as<bool>() : profile["crop43"].as<bool>(false);
-  props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : profile["video_caps"].as<std::string>("video/x-h264,profile=constrained-baseline");
-  props->show_clock = param["show_clock"] ? param["show_clock"].as<bool>() : profile["show_clock"].as<bool>(false);
-  props->io_mode = param["io_mode"] ? param["io_mode"].as<std::string>() : profile["io_mode"].as<std::string>("mmap");
+  // 3. Define default properties
+  std::string default_string;
 
+  // source
+  default_string = props->node;
+  props->device = prop_default(param, profile, "device", default_string);
+  default_string = "mmap";
+  props->io_mode = prop_default(param, profile, "io_mode", default_string);
+
+  // filter
+  default_string = "image/jpeg";
+  props->mime = prop_default(param, profile, "mime", default_string);
+
+  props->brightness = prop_default(param, profile, "brightness", 0);
+  props->contrast = prop_default(param, profile, "contrast", 0);
+  props->framerate = prop_default(param, profile, "framerate", 30);
+  props->height = prop_default(param, profile, "height", 720);
+  props->width = prop_default(param, profile, "width", 1280);
+
+  // cropper
+  props->crop43 = prop_default(param, profile, "crop43", false);
+
+  // clock
+  props->show_clock = prop_default(param, profile, "show_clock", false);
+
+  // webrtc
+  default_string = props->node;
+  props->congestion_control = prop_default(param, profile, "congestion_control", default_string);
+  default_string = "video/x-h264,profile=constrained-baseline";
+  props->video_caps = prop_default(param, profile, "video_caps", default_string);
+
+  props->do_fec = prop_default(param, profile, "do_fec", false);
+  props->do_retransmission = prop_default(param, profile, "do_retransmission", false);
   return props;
 }
 
