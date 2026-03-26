@@ -92,7 +92,11 @@ class CameraStreamer : public rclcpp::Node
       auto props = get_h264software_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = h264software_pipeline(this, props);
-    } 
+    } else if (pipeline->pipeline_type == "vpXsoftware") {
+      auto props = get_vpXsoftware_pipeline_properties(this, pipeline->camera);
+      pipeline->props = props;
+      pipeline->gst_pipeline = vpXsoftware_pipeline(this, props);
+    }  
   }
 
   private: void topic_callback(const camera_msgs::msg::Cameras msg)

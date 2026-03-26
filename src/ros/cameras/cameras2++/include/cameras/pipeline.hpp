@@ -31,11 +31,6 @@ struct webRTCProperties
   std::string congestion_control;
 };
 
-struct h264passthroughProperties
-{
-  bool payload_quirk;
-};
-
 struct x264encProperties
 {
   std::string tune;
@@ -46,7 +41,27 @@ struct x264encProperties
   int bitrate;
   int noise_reduction;
   int gop;
+};
+
+struct vpXencProperties
+{
+  int deadline;
+  int cpu_used;
+  std::string end_usage;
+  int threads;
+  int bitrate;
+  int gop;
+};
+
+struct decodeProperties
+{
   std::string decoder;
+};
+
+
+struct h264passthroughProperties
+{
+  bool payload_quirk;
 };
 
 struct clockProperties
@@ -71,6 +86,10 @@ struct h264passthroughPipelineProperties : Properties, v4lProperties, webRTCProp
 h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, h264passthroughPipelineProperties* props);
 
-struct h264softwarePipelineProperties : Properties, v4lProperties, webRTCProperties, x264encProperties {};
+struct h264softwarePipelineProperties : Properties, v4lProperties, webRTCProperties, x264encProperties, decodeProperties {};
 h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* h264software_pipeline(rclcpp::Node* log_node, h264softwarePipelineProperties* props);
+
+struct vpXsoftwarePipelineProperties : Properties, v4lProperties, webRTCProperties, vpXencProperties, decodeProperties {};
+vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
+GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, vpXsoftwarePipelineProperties* props);

@@ -15,14 +15,18 @@ camera_streamer:
 
       HZ_USB_Camera_20220301104:
         pipeline_type: h264software
-        profile: super  
+        profile: super
+
+      Microsoft_Microsoft®_LifeCam_HD-3000:
+        pipeline_type: h264software
+        profile: default
 
       # Development cameras
       brandon-cam:
-        #pipeline_type: h264software
-        pipeline_type: v4l2webrtc
-        crop43: true
-        show_clock: true
+        pipeline_type: h264software
+        #pipeline_type: vpXsoftware
+        #pipeline_type: v4l2webrtc
+        #crop43: true
         profile: super
         speed_preset: ultrafast
         me: dia
@@ -95,21 +99,20 @@ camera_streamer:
         width: 1280
         height: 720
         framerate: 30
-        me: hex
+        bitrate: 2048
 
       snail:
         mime: image/jpeg
         width: 640
         height: 480
         framerate: 30
+        bitrate: 1024
 
       super:
         mime: image/jpeg
         width: 1920
         height: 1080
         framerate: 30
-        speed_preset: superfast
-        me: hex
 
       gc2093:
         width: 1920

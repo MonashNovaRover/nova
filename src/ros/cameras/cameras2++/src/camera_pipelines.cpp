@@ -507,3 +507,174 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   return props;
 }
 
+/*
+ * V4l camera (any) decoded then encoded into vpXenc
+ * Enforces alignment from vpX v4l camera and feeds directly to webrtc 
+ * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-h264
+ */
+
+GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelineProperties* props)
+{
+  GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
+  GstElement* source = gst_element_factory_make("v4l2src", "video-source");
+  GstElement* filter = gst_element_factory_make("capsfilter", "filter");
+  GstElement* encode = (props->video_caps == "video/x-vp9") ? gst_element_factory_make("vp9enc", "encoder") : gst_element_factory_make("vp8enc", "encoder");
+  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
+
+  if (!gst_pipeline || !source || !filter || !encode || !webrtc) {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
+      return nullptr;
+  }
+  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
+
+  g_object_set(source,
+      "device", props->device.c_str(),
+      "io-mode", (
+        props->io_mode == "rw" ? 1 :
+        props->io_mode == "mmap" ? 2 :
+        props->io_mode == "userptr" ? 3 :
+        props->io_mode == "dmabuf" ? 4 :
+        props->io_mode == "dmabuf-import" ? 5 :0),
+      NULL);
+
+  GstCaps *caps = gst_caps_new_simple(
+      props->mime.c_str(),
+      "width", G_TYPE_INT, props->width,
+      "height", G_TYPE_INT, props->height,
+      "framerate", GST_TYPE_FRACTION, props->framerate, 1,
+      "brightness", G_TYPE_INT, props->brightness,
+      "contrast", G_TYPE_INT,  props->contrast,
+      NULL);
+  g_object_set(filter, "caps", caps, NULL); 
+  gst_caps_unref(caps);
+
+  g_object_set(encode,
+      "deadline", props->deadline, // 1 for lowest latency
+      "cpu-used", props->cpu_used, // Fastest -16, 16 Slowest 
+      "end-usage", (
+        props->end_usage == "vbr" ? 0:
+        props->end_usage == "cbr" ? 1:
+        props->end_usage == "cq" ? 2:
+        1), // mode, constant bitrate best
+      "threads", props->threads, // 1 is best for cpu and compression ratio
+      "target-bitrate", props->bitrate*1000,
+      "keyframe-max-dist", props->gop*props->framerate, // Largest GOP
+      "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP
+      NULL);
+
+  GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
+  GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
+  g_object_set(webrtc,
+      "do-fec", props->do_fec,
+      "do-retransmission", props->do_retransmission,
+      "congestion-control", (
+        props->congestion_control == "disabled" ? 0 :
+        props->congestion_control == "homegrown" ? 1 :
+        props->congestion_control == "gcc" ? 2 :
+        2),
+      "meta", meta,
+      "video-caps", webrtc_caps,
+      NULL);
+  gst_caps_unref(webrtc_caps);
+  gst_structure_free(meta);
+
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, encode, webrtc, NULL);
+  const int crop_width = crop43(props->width, props->height);
+
+  bool ret = true;
+
+  ret = gst_element_link(source, filter) ? ret : false;
+
+
+  if (props->mime == "image/jpeg") {
+    // Convert to hardware decoding if possible
+    GstElement* decode = gst_element_factory_make(props->decoder.c_str(), "decoder");
+    gst_bin_add(GST_BIN(gst_pipeline), decode);
+
+    if (crop_width > 0 && props->crop43) {
+      GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
+      gst_bin_add(GST_BIN(gst_pipeline), cropper);
+      g_object_set(cropper,
+        "left", crop_width,
+        "right", crop_width,
+        NULL);
+      ret = gst_element_link(filter, decode) ? ret : false;
+      ret = gst_element_link(decode, cropper) ? ret : false;
+      ret = gst_element_link(cropper, encode) ? ret : false;
+    } else {
+      ret = gst_element_link(filter, decode) ? ret : false;
+      ret = gst_element_link(decode, encode) ? ret : false;
+    }
+  } else {
+    GstElement* convert = gst_element_factory_make("videoconvert", "converter");
+    gst_bin_add(GST_BIN(gst_pipeline), convert);
+
+    if (crop_width > 0 && props->crop43) {
+      GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
+      gst_bin_add(GST_BIN(gst_pipeline), cropper);
+      g_object_set(cropper,
+        "left", crop_width,
+        "right", crop_width,
+        NULL);
+      ret = gst_element_link(filter, convert) ? ret : false;
+      ret = gst_element_link(convert, cropper) ? ret : false;
+      ret = gst_element_link(cropper, encode) ? ret : false;
+    } else {
+      ret = gst_element_link(filter, convert) ? ret : false;
+      ret = gst_element_link(convert, encode) ? ret : false;
+    }
+  }
+  ret = gst_element_link(encode, webrtc) ? ret : false;
+  if (!ret) {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link elements of pipeline for %s", props->serial.c_str());
+      return nullptr;
+  }
+  return gst_pipeline;
+}
+
+
+/*
+ * Retrieve ros2 parameters for h264software pipeline or sets defaults
+*/
+
+vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+{
+  vpXsoftwarePipelineProperties* props = new vpXsoftwarePipelineProperties;
+
+  std::map<std::string, rclcpp::Parameter> serial_params;
+
+  // Read yaml file
+  YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
+  YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
+  YAML::Node profile = config["camera_streamer"]["ros__parameters"]["profiles"][param["profile"].as<std::string>("default")];
+
+  RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
+  props->serial = camera->serial;
+  props->node = camera->node;
+
+  // override any defaults with params
+  std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
+  props->device = param["device"] ? param["device"].as<std::string>() : profile["device"].as<std::string>(props->node);
+  props->width = param["width"] ? param["width"].as<int>() : profile["width"].as<int>(1280);
+  props->height = param["height"] ? param["height"].as<int>() : profile["height"].as<int>(720);
+  props->framerate = param["framerate"] ? param["framerate"].as<int>() : profile["framerate"].as<int>(30);
+  props->brightness = param["brightness"] ? param["brightness"].as<int>() : profile["brightness"].as<int>(0);
+  props->contrast = param["contrast"] ? param["contrast"].as<int>() : profile["contrast"].as<int>(0);
+  props->mime = param["mime"] ? param["mime"].as<std::string>() : profile["mime"].as<std::string>("image/jpeg");
+  props->congestion_control = param["congestion_control"] ? param["congestion_control"].as<std::string>() : profile["congestion_control"].as<std::string>("gcc");
+  props->do_fec = param["do_fec"] ? param["do_fec"].as<bool>() : profile["do_fec"].as<bool>(false);
+  props->do_retransmission = param["do_retransmission"] ? param["do_retransmission"].as<bool>() : profile["do_retransmission"].as<bool>(false);
+  props->crop43 = param["crop43"] ? param["crop43"].as<bool>() : profile["crop43"].as<bool>(false);
+  props->video_caps = param["video_caps"] ? param["video_caps"].as<std::string>() : profile["video_caps"].as<std::string>("video/x-vp8");
+  props->deadline = param["deadline"] ? param["deadline"].as<int>() : profile["deadline"].as<int>(1);
+  props->cpu_used = param["cpu_used"] ? param["cpu_used"].as<int>() : profile["cpu_used"].as<int>(16);
+  props->end_usage = param["end_usage"] ? param["end_usage"].as<std::string>() : profile["end_usage"].as<std::string>("cbr");
+  props->threads = param["threads"] ? param["threads"].as<int>() : profile["threads"].as<int>(1);
+  props->bitrate = param["bitrate"] ? param["bitrate"].as<int>() : profile["bitrate"].as<int>(4096);
+  props->gop = param["gop"] ? param["gop"].as<int>() : profile["gop"].as<int>(1);
+  props->decoder = param["decoder"] ? param["decoder"].as<std::string>() : profile["decoder"].as<std::string>(is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec");
+  props->io_mode = param["io_mode"] ? param["io_mode"].as<std::string>() : profile["io_mode"].as<std::string>("mmap");
+
+  return props;
+}
+
