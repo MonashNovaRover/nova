@@ -17,7 +17,6 @@ EDITED BY:  Kabilan Velmurugan Sujatha, Bailey
 from pathlib import Path
 import zipfile
 import subprocess
-from logging import Logger
 from os.path import expanduser
 
 from launch import LaunchDescription

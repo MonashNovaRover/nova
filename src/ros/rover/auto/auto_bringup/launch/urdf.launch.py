@@ -26,7 +26,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
 
-from os.path import expanduser
+from os.path import expanduser, exists
 
 def launch_setup(context, *args, **kwargs):
     # package directories
@@ -81,10 +81,6 @@ def generate_launch_description():
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
         FindPackageShare('rover_description')
     )
-    auto_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
-        FindPackageShare('auto_bringup')
-    )
 
     declared_arguments = [
         DeclareLaunchArgument(
@@ -124,8 +120,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
             name='rviz_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
-            description='Full path to the RViz config file to use',
+            default_value='everything',
+            description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
         ),
     ]
 

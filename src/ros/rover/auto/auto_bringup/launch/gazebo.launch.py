@@ -29,7 +29,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
-from os.path import expanduser
+from os.path import expanduser, exists
 
 def launch_setup(context, *args, **kwargs):
     # package directories
@@ -67,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
-    
+
     # comp defaults
     if comp == 'arch':
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
@@ -191,8 +191,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
             name='rviz_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
-            description='Full path to the RViz config file to use',
+            default_value='everything',
+            description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
         ),
         DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
