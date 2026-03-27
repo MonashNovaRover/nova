@@ -125,6 +125,7 @@ def launch_setup(context, *args, **kwargs):
                     output='screen', 
                     emulate_tty=True,
                     ros_arguments=['--log-level', log_level],
+                    parameters=[params]
                 ),
                 IncludeLaunchDescription(
                     launch_description_source=PythonLaunchDescriptionSource(
