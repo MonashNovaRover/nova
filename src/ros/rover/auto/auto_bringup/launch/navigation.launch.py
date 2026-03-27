@@ -62,8 +62,14 @@ def launch_setup(context, *args, **kwargs):
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
 
+    # Substitute params for each node with launch params
+    substitution_params = {
+        'use_sim_time': gazebo,
+        'autostart': autostart,
+    }
     # Combine all params from sim, substitution, and nav2 directory
     nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in os.listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
+    nav2_params.append(substitution_params)
     if mppi:
         mppi_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_mppi', mppi_config + '.yaml'])
         if os.path.exists(mppi_params.perform(context)):
@@ -85,8 +91,6 @@ def launch_setup(context, *args, **kwargs):
                   ('/tf_static', 'tf_static')]
     
     return [
-        SetParameter(name='use_sim_time', value=gazebo),
-        SetParameter(name='autostart', value=autostart),
         GroupAction(
             actions=[
                 Node(
