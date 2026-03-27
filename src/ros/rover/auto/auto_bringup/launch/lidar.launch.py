@@ -99,7 +99,7 @@ def launch_setup(context, *args, **kwargs):
     uncompress_img = LaunchConfiguration('uncompress_img')
     shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
 
-    img_topic = "/d415/color/image_raw"
+    img_topic = '/d415/color/image_raw'
     intrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml'])
     extrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_extrinsics.yaml'])
     output_dir = 'fastlivo2' # relative to ~/.ros
@@ -109,6 +109,7 @@ def launch_setup(context, *args, **kwargs):
         source_file=fastlivo2_params,
         param_rewrites={
             'img_en': str(img_en),
+            'img_topic': img_topic,
             'scan_line': '4' if sim.perform(context).lower() == 'false' else '40',
         },
         convert_types=True,
