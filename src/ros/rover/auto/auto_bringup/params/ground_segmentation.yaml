@@ -31,8 +31,8 @@ ground_segmentation:
     minX: -10.0
     maxY:  10.0
     minY: -10.0
-    maxZ:  10.0
-    minZ: -10.0
+    maxZ:  0.25
+    minZ:  0.01
     downsample: false
     downsample_resolution: 0.1
     lidar_to_ground: -0.940
@@ -42,8 +42,8 @@ ground_segmentation:
     cellSizeX: 1.0
     cellSizeY: 1.0
     cellSizeZ: 10.0
-    cellSizeZPhase2: 1.0
-    slopeThresholdDegrees: 45.0
+    cellSizeZPhase2: 0.05
+    slopeThresholdDegrees: 135.0
     groundInlierThreshold: 0.2
     centroidSearchRadius: 5.0
     use_imu_orientation: true
