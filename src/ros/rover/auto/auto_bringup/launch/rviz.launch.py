@@ -13,7 +13,7 @@ def launch_setup(context, *args, **kwargs):
     local = LaunchConfiguration('local')
 
     auto_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser('~'), '/nova/src/ros/rover/auto/auto_bringup']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
     )
 
@@ -50,7 +50,7 @@ def generate_launch_description():
     local = LaunchConfiguration('local')
 
     rover_description_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser('~'), '/nova/src/ros/rover/rover_description']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/rover_description']),
         FindPackageShare('rover_description')
     )
 
