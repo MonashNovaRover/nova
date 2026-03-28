@@ -36,22 +36,6 @@ export const CameraPage = (props: CameraPageProps) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
 
-  let initialized = useRef(false)
-  useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
-      setInterval(
-        () => {
-          const i = Math.floor(Math.random() * inspirationalMessages.length)
-          const msg = inspirationalMessages[i]
-          toast.custom(msg.message, msg.options)
-        }
-        , 59000
-      )
-    }
-  }, []);
-
-
   return (
     <div className="p-3 flex flex-col gap-0">
       <div className="flex flex-row justify-between items-center gap-32 pl-1 mb-3">

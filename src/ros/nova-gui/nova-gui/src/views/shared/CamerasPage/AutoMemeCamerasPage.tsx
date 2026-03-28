@@ -2,7 +2,7 @@ import { Button } from "@nextui-org/react";
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { CameraView } from "./CameraPageConstants";
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { CameraControlPanelModal } from "../../../components/cameras/CameraComponent/components/CamerasControlPanelModal";
 import ArucoTagCameraComponent from "../../../components/cameras/CameraComponent/special/ArucoTagCameraComponent.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
@@ -11,6 +11,8 @@ import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDr
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import { driveCams } from "./CameraPageConstants.tsx";
 import set_task from "../../../livesplit.ts"
+import { toast } from "react-hot-toast";
+import {inspirationalMessages} from "./InspirationalQuotes.tsx";
 
 /**
  * TODO: remove
@@ -36,6 +38,21 @@ export const MemeCameraPage = (props: MemeCameraPageProps) => {
   const [selectedTab, setSelectedTab] = useState(0);
 
 const NON_VIDEO_SERIALS = new Set<string>(driveCams);
+
+  let initialized = useRef(false)
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      setInterval(
+        () => {
+          const i = Math.floor(Math.random() * inspirationalMessages.length)
+          const msg = inspirationalMessages[i]
+          toast.custom(msg.message, msg.options)
+        }
+        , 58000
+      )
+    }
+  }, []);
 
   return (
     <div className="p-3 flex flex-col gap-0">
