@@ -19,7 +19,7 @@
   image-transport,
   navigation2,
   depthai-ros,
-  rtabmap-ros,
+  ground-segmentation-ros2,
   nova-behavior-tree,
   nova-object-localisation,
   nova-costmap-2d,
@@ -46,6 +46,8 @@
   fast-calib,
   demo-nodes-cpp,
   pcl,
+  pcl-ros,
+  direct-visual-lidar-calibration
 }:
 
 buildRosPackage rec {
@@ -79,7 +81,7 @@ buildRosPackage rec {
       image-transport
       navigation2
       depthai-ros
-      rtabmap-ros
+      ground-segmentation-ros2
       nova-behavior-tree
       nova-object-localisation
       nova-costmap-2d
@@ -104,7 +106,9 @@ buildRosPackage rec {
       usb-cam
       fast-livo2
       fast-calib
-      demo-nodes-cpp;
+      demo-nodes-cpp
+      pcl-ros
+      direct-visual-lidar-calibration;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,

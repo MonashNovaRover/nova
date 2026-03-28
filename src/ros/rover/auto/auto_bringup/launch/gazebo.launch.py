@@ -8,7 +8,6 @@ gazebo simulation environment.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INCLUDED LAUNCH FILES:
 - drive.launch.py
-- oak.launch.py
 - urdf.launch.py
 - gz_sim.launch.py
 
@@ -21,18 +20,33 @@ CREATION:	27/04/2023
 EDITED:     05/01/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
+
 from launch import LaunchDescription
 from launch.conditions import IfCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+from os.path import expanduser, exists
+
 def launch_setup(context, *args, **kwargs):
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    nova_gazebo_dir = FindPackageShare('nova_gazebo')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
+    # package directories
+    local = LaunchConfiguration('local')
+
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+    nova_gazebo_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/simulations/nova_gazebo']),
+        FindPackageShare('nova_gazebo')
+    )
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
     ros_gz_sim_dir = FindPackageShare('ros_gz_sim')
 
     comp = LaunchConfiguration('comp').perform(context).lower()
@@ -53,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
     world = LaunchConfiguration('world')
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
-    
+
     # comp defaults
     if comp == 'arch':
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
@@ -77,7 +91,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
-            launch_arguments={'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
+            launch_arguments={'urdf': 'False', 'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
@@ -113,11 +127,27 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
+    local = LaunchConfiguration('local')
+    
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
+    rover_description_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
+        FindPackageShare('rover_description')
+    )
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='comp',
             default_value='arch',
@@ -161,8 +191,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
             name='rviz_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
-            description='Full path to the RViz config file to use',
+            default_value='everything',
+            description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
         ),
         DeclareLaunchArgument(name='x', default_value='-3.0', description='x_pose'),
         DeclareLaunchArgument(name='y', default_value='-2.0', description='y_pose'),
