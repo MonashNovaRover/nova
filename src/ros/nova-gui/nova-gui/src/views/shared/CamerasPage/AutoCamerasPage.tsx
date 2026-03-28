@@ -8,6 +8,7 @@ import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
+import set_task from "../../../livesplit.ts"
 
 /**
  * TODO: remove
@@ -42,7 +43,10 @@ export const CameraPage = (props: CameraPageProps) => {
               size="md"
               color="primary"
               className="w-28"
-              onPress={() => setAllCamsOn(true)}
+              onPress={() => {
+                setAllCamsOn(true)
+                set_task("cameras");
+              }}
             >
               <Play size="15px" fill="white" /> Start All
             </Button>
