@@ -8,6 +8,7 @@ export enum ARCCompModes {
   ARC_EXCAVATION_AND_CONSTRUCTION = "excavation-construction",
   ARC_SPACE_RESOURCES = "space-resources",
   ARC_AUTONOMOUS = "autonomous",
+  ARC_OTHER = "other"
 }
 
 export enum URCCompModes {
@@ -26,7 +27,7 @@ export enum CameraSerials {
   SCIENCE_COMBINED = "science_combined",
 
   MAST_FISHEYE = "mast_fisheye",
-  MAST_DOWN = "mast_down",
+  MAST_DOWN = "Framework_Laptop_Webcam_Module__2nd_Gen__FRANJBCHA15224020A",
   MAST_FORWARD = "mast_forward",
   MAST_BACKWARD = "mast_backward",
   MAST_ARM_STOW = "mast_arm_stow",
@@ -95,7 +96,7 @@ const urcScienceCams = [
   CameraSerials.SCIENCE_GIMBAL,
 ]
 
-const driveCams = [
+export const driveCams = [
   CameraSerials.WHEEL_TELEMETRY,
   CameraSerials.DRIVE_TELEMETRY,
   CameraSerials.DRIVE_CONTROL,
@@ -192,6 +193,17 @@ export const autonomous_views: CameraView[] = [
   },
 ];
 
+export const other_views: CameraView[] = [
+  {
+    cameraSerials: [...mastCams, ...driveCams],
+    viewTitle: "All Cams",
+  },
+  {
+    cameraSerials: mastCams,
+    viewTitle: "Mast Cams",
+  },
+];
+
 export const urc_autonomous_views: CameraView[] = [
   {
     cameraSerials: [...mastCams, ...driveCams, ...autoCams],
@@ -210,7 +222,7 @@ export const urc_science_views: CameraView[] = [
     viewTitle: "All Cams",
   },
   {
-    cameraSerials:  mastCams,
+    cameraSerials: mastCams,
     viewTitle: "Mast Cams",
   },
   {
@@ -224,7 +236,7 @@ export const arcCameraSetup = {
   [ARCCompModes.ARC_EXCAVATION_AND_CONSTRUCTION]: excavation_and_construction_views,
   [ARCCompModes.ARC_SPACE_RESOURCES]: space_resources_views,
   [ARCCompModes.ARC_AUTONOMOUS]: autonomous_views,
- 
+  [ARCCompModes.ARC_OTHER]: other_views,
 };
 
 export const urcCameraSetup = {

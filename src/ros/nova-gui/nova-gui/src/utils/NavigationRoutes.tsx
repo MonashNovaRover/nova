@@ -210,12 +210,12 @@ export const arcNavigationData: NavigationInterface = {
   ],
   ["Autonomous"]: [
     {
-      title: "Dashboard",
+      title: "Boring",
       route: "/arc/autonomous",
       icon: <Home />,
     },
     {
-      title: "Cameras",
+      title: "Fun",
       route: "/arc/cameras/autonomous",
       icon: <Camera />,
     },

@@ -1,6 +1,7 @@
 import { RouteObject } from "react-router-dom";
 import ARCExcavationConstructionView from "../views/arc/ARCEscavationConstructionView";
 import ARCAutonomousView from "../views/arc/ARCMappingAutonomous";
+import ARCMemeAutonomousView from "../views/arc/ARCMemeAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
 import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
 import ARCBaseView from "../views/arc/ARCBaseView";
@@ -57,6 +58,10 @@ export const arcRoutes: RouteObject[] = [
   {
     path: "/arc/excavation-construction",
     element: <ARCExcavationConstructionView />,
+  },
+  {
+    path: "/arc/cameras/autonomous",
+    element: <ARCMemeAutonomousView />,
   },
   {
     path: "/arc/autonomous",
