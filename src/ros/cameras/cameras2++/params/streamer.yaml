@@ -23,18 +23,20 @@ camera_streamer:
 
       # Development cameras
       brandon-cam:
-        #pipeline_type: h264software
+        pipeline_type: h264software
         #pipeline_type: vpXsoftware
-        pipeline_type: v4l2webrtc
+        #pipeline_type: v4l2webrtc
         #device: /dev/video2
-        #crop43: true
-        profile: super
-        #width: 640
-        #height: 360
+        crop43: true
+        #show_clock: true
+        # profile: super
+        width: 1280
+        height: 720
+        framerate: 30
         #framerate: 15
         #mime: video/x-raw
-        speed_preset: ultrafast
-        me: dia
+        #speed_preset: ultrafast
+        #me: dia
 
       anthony-cam:
         pipeline_type: h264passthrough
@@ -124,4 +126,5 @@ camera_streamer:
         height: 1080
         framerate: 30
         payload_quirk: true
+        noise_reduction: 1024
 

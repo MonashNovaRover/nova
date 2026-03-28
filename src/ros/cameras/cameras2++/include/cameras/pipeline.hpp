@@ -34,24 +34,26 @@ struct h264passthroughProperties
 
 struct x264encProperties
 {
-  std::string tune;
-  std::string speed_preset;
   std::string me;
+  std::string speed_preset;
+  std::string tune;
+
+  int bitrate;
+  int gop;
+  int noise_reduction;
   int subme;
   int threads;
-  int bitrate;
-  int noise_reduction;
-  int gop;
 };
 
 struct vpXencProperties
 {
-  int deadline;
-  int cpu_used;
   std::string end_usage;
-  int threads;
+
   int bitrate;
+  int cpu_used;
+  int deadline;
   int gop;
+  int threads;
 };
 
 struct webRTCProperties
