@@ -2,6 +2,7 @@ import { useRef, useEffect, RefObject } from "react";
 import toast from "react-hot-toast";
 import BaileyWaving from "../../../../assets/meme/bailey.gif";
 import Terry from "../../../../assets/meme/terry.gif";
+import Stegosaurus from "../../../../assets/meme/stegosaurus.gif";
 import Meatman from "../../../../assets/meme/meatman.jpg";
 import AR from "js-aruco2";
 import task_split from "../../../../livesplit.ts"
@@ -18,7 +19,7 @@ export function useArucoTagDetection(videoRef: RefObject<HTMLVideoElement | null
 
     AR.AR.DICTIONARIES.ARCh = {
       nBits: 16,
-      tau: 2,
+      tau: 3,
       codeList: [[181,50],[15,154],[51,45],[153,70],[84,158],[121,205]]
     };
 
@@ -68,7 +69,12 @@ export function useArucoTagDetection(videoRef: RefObject<HTMLVideoElement | null
                 task_split("camera_1");
                 break;
               case 2:
-                toast("tag 2 safety conscious stegosaurus", {...toastProps, id: "tag2"});
+                toast(
+                  <span>
+                    TAG 2!!
+                    <img src={Stegosaurus} width="200" height="200" />
+                  </span>,
+                  {...toastProps, id: "tag2"});
                 task_split("camera_2");
                 break;
               case 3:
@@ -82,7 +88,14 @@ export function useArucoTagDetection(videoRef: RefObject<HTMLVideoElement | null
                 task_split("camera_3");
                 break;
               case 4:
-                toast("tag 4 boat & moon", {...toastProps, id: "tag4"});
+                toast.error(
+                  <span>
+                    Tag 4.
+                    <br/>
+                    <b>Activate NixOS</b>
+                    <br/>
+                    Go to Settings to activate NixOS
+                  </span>, {...toastProps, id: "tag4"});
                 task_split("camera_4");
                 break;
               case 5:
