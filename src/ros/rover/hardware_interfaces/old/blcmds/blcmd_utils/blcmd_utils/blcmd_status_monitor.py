@@ -145,6 +145,9 @@ class BLCMDStatusMonitor(Node):
         self.bus = jcan.Bus()
         self.bus.set_id_filter_mask(0x400, 0xF00)
 
+        #initialise zero positions
+        self.pivot_zeros = dict.fromkeys(self.auto_reset_pivot_blmcd_ids, None)
+
         #add callbacks for each blcmd
         for i in range(self.num_blcmds):
             self.bus.add_callback(0x400 | (i + 1) << 4, self.get_callback(i))
@@ -156,6 +159,12 @@ class BLCMDStatusMonitor(Node):
 
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
+
+        #request all zero positons
+        for pivot_id in self.auto_reset_pivot_blmcd_ids:
+            self.bus.send(
+                jcan.Frame(id=0x009 | pivot_id << 4, data=[0xf])
+            )
 
     def run_callbacks(self):
         self.bus.spin()
@@ -203,7 +212,7 @@ class BLCMDStatusMonitor(Node):
         # WARNING: This process is based off firmware electrical has written for arm (they should adapt this feature for pivot firmware)
 
         def deferred_reset():
-            self.get_logger().info(f'Resetting pivot BLCMD {blcmd_id} due to errors received (getting current zero position, response not guaranteed)')
+            self.get_logger().info(f'Resetting pivot BLCMD {blcmd_id} due to errors received (patched by Will and Terry)')
 
             # keep track of when the last request was made
             self.blcmd_pivot_reset_times[blcmd_id] = self.get_clock().now()
@@ -222,6 +231,11 @@ class BLCMDStatusMonitor(Node):
         def callback(frame):
             now = self.get_clock().now()
 
+            # save all pivot zeros on startup
+            if self.pivot_zeros[blcmd_id] is None:
+                self.pivot_zeros[blcmd_id] = frame.data[1:3]
+                return
+
             # don't do anything if there wasn't a recent enough request for pivot zero
             if (blcmd_id not in self.blcmd_pivot_reset_times
               or self.blcmd_pivot_reset_times[blcmd_id] is None
@@ -234,8 +248,6 @@ class BLCMDStatusMonitor(Node):
 
             self.get_logger().info(f'Response received for BLCMD zero position, resetting pivot BLCMD {blcmd_id}')
 
-            zero_position = frame.data[1:3]
-
             def deferred_reset():
 
                 # reset pivot blcmd
@@ -247,7 +259,7 @@ class BLCMDStatusMonitor(Node):
                 self.bus.send(
                     jcan.Frame(id=0x00A | (blcmd_id << 4), data=[
                         0xf,
-                        *zero_position
+                        *self.pivot_zeros[blcmd_id]
                     ])
                 )
 
