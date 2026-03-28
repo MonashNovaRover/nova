@@ -187,6 +187,7 @@ in
           launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
           oak-gui = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
+          start-arch = "~/Builds/master/bin/ros2 run nova_utils start_auto_arch.py";
 
           # GPS
           launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
