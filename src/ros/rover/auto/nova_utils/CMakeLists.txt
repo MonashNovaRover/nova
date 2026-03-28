@@ -54,6 +54,7 @@ install(PROGRAMS
   scripts/save_waypoint.py
   scripts/service_listener.py
   scripts/start_auto_2.py
+  scripts/start_auto_arch.py
   scripts/start_auto.py
   scripts/test_start_auto.py
   scripts/topic_waiter.py

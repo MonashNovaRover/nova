@@ -33,18 +33,10 @@ buildRosPackage {
   version = "0.0.0";
 
   src = fetchgit {
-    url = "https://github.com/Robotic-Developer-Road/FAST-LIVO2";
-    rev = "837b7bbc1431cb04cf936528e52c83c835efba8e";
-    hash = "sha256-Dqqs2njlVrUVbzYeUgGp07F0335ntSJPkAvgDhUcH4A=";
+    url = "https://github.com/MonashNovaRover/FAST-LIVO2";
+    rev = "3be14ccf5cb01719a26ac7f4ff3a8f3d73184a66";
+    hash = "sha256-imUKD7Ofo701Y3QibjzE8k+iHm/g6lzZVSYTsjCN51g=";
   };
-
-  patches = [
-    ./patches/lru_memory.patch
-    ./patches/memory_bug.patch
-    ./patches/pc2_for_livox.patch
-    ./patches/pcd_save_dir.patch
-    ./patches/remove_mimalloc.patch
-  ];
 
   buildType = "ament_cmake";
   nativeBuildInputs = [ 

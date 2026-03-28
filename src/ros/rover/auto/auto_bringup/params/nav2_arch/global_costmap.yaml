@@ -5,7 +5,7 @@ global_costmap:
       publish_frequency: 3.0
       global_frame: map
       robot_base_frame: base_link
-      use_sim_time: True
+      use_sim_time: False
       # [x, y], where x is length and y is width
       # local_costmap footprint * 1.2
       footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
@@ -13,19 +13,18 @@ global_costmap:
       track_unknown_space: false
       always_send_full_costmap: True # SnapInCollisionGoals needs this to work
       plugins: ["static_layer", "denoise_layer", "inflation_layer"]
+      
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+        map_topic: /static_map
+
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
         minimal_group_size: 3
         group_connectivity_type: 8
-      rtabmap_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
-        map_topic: /map
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
-        map_topic: /static_map
+      
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 4.0

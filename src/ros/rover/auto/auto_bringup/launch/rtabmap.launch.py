@@ -1,6 +1,6 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, RegisterEventHandler, GroupAction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -34,6 +34,7 @@ def launch_setup(context, *args, **kwargs):
     pitch = LaunchConfiguration('pitch').perform(context)
     yaw = LaunchConfiguration('yaw').perform(context)
     core = LaunchConfiguration('core')
+    obstacles_detection = LaunchConfiguration('obstacles_detection')
     rtabmap_viz = LaunchConfiguration('rtabmap_viz')
     rtabmap_params = LaunchConfiguration('rtabmap_params').perform(context)
 
@@ -47,14 +48,6 @@ def launch_setup(context, *args, **kwargs):
 
     nodes = [
         OpaqueFunction(function=delete_rtabmap_db),
-        Node(
-            package='pcl_ros',
-            executable='filter_voxel_grid_node',
-            name='voxel_grid_filter',
-            parameters=[{'leaf_size': 0.05}],
-            remappings=[('input', '/livox/lidar'),
-                        ('output', '/livox/lidar_filtered')],
-        ),
         ComposableNodeContainer(
             condition=IfCondition(core),
             name='rtabmap_mapping_container',
@@ -110,18 +103,31 @@ def launch_setup(context, *args, **kwargs):
                 ),
             ],
         ),
-         Node(
-             package='rtabmap_util',
-             executable='obstacles_detection',
-             name='rtabmap_obstacles_detection',
-             output='screen',
-             parameters=[rtabmap_params],
-             remappings=[
-                 ('cloud','/livox/lidar_filtered'),
-                 ('obstacles','/livox/lidar/obstacles'),
-                 ('ground', '/livox/lidar/ground'),
-             ],
-         ),
+        GroupAction(
+            condition=IfCondition(obstacles_detection),
+            actions=[
+                Node(
+                    package='pcl_ros',
+                    executable='filter_voxel_grid_node',
+                    name='voxel_grid_filter',
+                    parameters=[{'leaf_size': 0.05}],
+                    remappings=[('input', '/livox/lidar'),
+                                ('output', '/livox/lidar_filtered')],
+                ),
+                Node(
+                    package='rtabmap_util',
+                    executable='obstacles_detection',
+                    name='rtabmap_obstacles_detection',
+                    output='screen',
+                    parameters=[rtabmap_params],
+                    remappings=[
+                        ('cloud','/livox/lidar_filtered'),
+                        ('obstacles','/livox/lidar/obstacles'),
+                        ('ground', '/livox/lidar/ground'),
+                    ],
+                ),
+            ]
+        ),
         Node(
             condition=IfCondition(rtabmap_viz),
             package='rtabmap_viz',
@@ -162,6 +168,7 @@ def generate_launch_description():
         DeclareLaunchArgument(name='front_name', default_value='oak'),
         DeclareLaunchArgument(name='back_name', default_value='bootie'),
         DeclareLaunchArgument(name='core', default_value='True'),
+        DeclareLaunchArgument(name='obstacles_detection', default_value='False'),
         DeclareLaunchArgument(name='rtabmap_viz', default_value='False'),
         DeclareLaunchArgument(name='gazebo', default_value='False'),
         DeclareLaunchArgument(name='x', default_value='0.0'),

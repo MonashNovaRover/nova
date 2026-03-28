@@ -4,18 +4,22 @@
       <PipelineSequence name="NavigateWithReplanning">
         <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
         <RateController hz="1.0">
-          <Sequence name="ComputeAndSmoothPath">
-            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+          <Sequence name="ComputeAndSmoothPathThroughPoses">
+            <ReactiveSequence>
+              <RemoveNearbyInCollisionGoals input_goals="{goals}" max_distance_threshold="2" global_frame="map" robot_base_frame="base_link" cost_threshold="99.0" output_goals="{goals}"/>
+              <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
+              <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
+            </ReactiveSequence>
             <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" smoother_id="savitzky_golay_smoother"/>
           </Sequence>
         </RateController>
-        <FollowPath path="{path}" controller_id="RotationShimMPPI"/>
+        <FollowPath path="{path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
       </PipelineSequence>
       <ReactiveFallback name="RecoveryFallback">
         <GoalUpdated/>
         <Sequence name="ClearingActions">
-          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
           <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
         </Sequence>
       </ReactiveFallback>
     </RecoveryNode>

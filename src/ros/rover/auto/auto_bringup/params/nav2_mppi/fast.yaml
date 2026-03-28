@@ -26,26 +26,29 @@ controller_server:
       vx_std: 0.3   # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
       vy_std: 0.2   # only used in Omni motion model
       wz_std: 0.6   # similar to vx_std, higher values allow trajectories with higher rotation
-      vx_max: 0.3   # max linear velocity, ~3.6 km/h
-      vx_min: -0.21 # vx_max * 0.7
+      vx_max: 0.7   # max linear velocity, ~3.6 km/h
+      vx_min: -0.49 # vx_max * 0.7
       vy_max: 0.5   # only used in Omni motion model
       wz_max: 0.78  # max angular velocity (rad/s), ~90 degrees/s
       ax_max: 4.0   # max linear acceleration. going lower gives preference to rotational trajectories
-      ax_min: -4.0
+      ax_min: -4.0 
+      ay_max: 3.0   # only used in Omni motion model
+      ay_min: -3.0  # only used in Omni motion model
       az_max: 4.0   # max angular acceleration
       temperature: 0.3
-      prune_distance: 1.7       # slightly longer than prediction horizon
+      prune_distance: 3.2       # slightly longer than prediction horizon
+      visualize: true
       GoalCritic:
-        threshold_to_consider: 1.2 # prediction horizon
+        threshold_to_consider: 2.8 # prediction horizon
       # The Cost Critic incentivizes navigating away from obstacles and critical collisions
       # Setting the weight too high will cause the robot to stop upon reaching an obstacle
       # instead of trying to navigate around it.
       PathAlignCritic:
-        offset_from_furthest: 8 # prediction horizon / path_resolution / 3.0
+        offset_from_furthest: 19 # prediction horizon / path_resolution / 3.0
       PathFollowCritic:
-        threshold_to_consider: 1.2 # prediction horizon
+        threshold_to_consider: 2.8 # prediction horizon
       PathAngleCritic:
-        offset_from_furthest: 4 # ~PathAlignCritic.offset_from_furthest / 2.0 (not thoroughly tuned)
+        offset_from_furthest: 9 # ~PathAlignCritic.offset_from_furthest / 2.0 (not thoroughly tuned)
 
 local_costmap:
   local_costmap:
@@ -60,7 +63,7 @@ velocity_smoother:
     # Angular velocity and acceleration limits are more strict than in MPPI.
     # This is to allow MPPI to plan more aggressive trajectories while still
     # ensuring the controller can follow them accurately.
-    max_velocity: [0.3, 0.0, 0.52]
-    min_velocity: [-0.21, 0.0, -0.52]
+    max_velocity: [0.7, 0.0, 0.52]
+    min_velocity: [-0.49, 0.0, -0.52]
     max_accel: [4.0, 0.0, 4.0]
     max_decel: [-4.0, 0.0, -4.0]

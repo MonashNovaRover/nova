@@ -45,8 +45,9 @@ in
       shellAliases = lib.mkMerge [
         pkgs.nova.nova.config.shellAliases
         rec {
-          # Poweroff
+          # System
           off = "sudo poweroff";
+          kfc = "can stop can0";
 
           # Nix CLI shortcuts
           nova-build = "nom-build ${cfg.nixfileDir}";
@@ -176,12 +177,16 @@ in
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
           launch-auto-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
           launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak.launch.py";
+          launch-realsense = "~/Builds/master/bin/ros2 launch auto_bringup realsense.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
+          launch-lidar = "~/Builds/master/bin/ros2 launch auto_bringup lidar.launch.py";
           launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
+          launch-auto-urdf = "~/Builds/master/bin/ros2 launch auto_bringup urdf.launch.py";
           launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
           oak-gui = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
+          scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
 
           # GPS
           launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
