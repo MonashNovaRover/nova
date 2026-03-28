@@ -4,6 +4,7 @@ import BaileyWaving from "../../../../assets/meme/bailey.gif";
 import Terry from "../../../../assets/meme/terry.gif";
 import Meatman from "../../../../assets/meme/meatman.jpg";
 import AR from "js-aruco2";
+import task_split from "../../../../livesplit.ts"
 
 export function useArucoTagDetection(videoRef: RefObject<HTMLVideoElement | null>) {
   // https://stackoverflow.com/questions/60618844/useeffect-is-called-twice-even-if-an-empty-array-is-used-as-an-argument
@@ -54,6 +55,7 @@ export function useArucoTagDetection(videoRef: RefObject<HTMLVideoElement | null
                   </span>,
                   {...toastProps, id: "tag0"}
                 );
+                task_split("camera_0");
                 break;
               case 1:
                 toast(
@@ -63,9 +65,11 @@ export function useArucoTagDetection(videoRef: RefObject<HTMLVideoElement | null
                   </span>,
                   {...toastProps, id: "tag1"}
                 );
+                task_split("camera_1");
                 break;
               case 2:
                 toast("tag 2 safety conscious stegosaurus", {...toastProps, id: "tag2"});
+                task_split("camera_2");
                 break;
               case 3:
                 toast(
@@ -75,12 +79,15 @@ export function useArucoTagDetection(videoRef: RefObject<HTMLVideoElement | null
                   </span>,
                   {...toastProps, id: "tag3"}
                 );
+                task_split("camera_3");
                 break;
               case 4:
                 toast("tag 4 boat & moon", {...toastProps, id: "tag4"});
+                task_split("camera_4");
                 break;
               case 5:
                 toast("tag 5 ???", {...toastProps, id: "tag5"});
+                task_split("camera_5");
                 break;
             }
           });
