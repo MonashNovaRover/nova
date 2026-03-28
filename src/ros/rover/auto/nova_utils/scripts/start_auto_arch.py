@@ -24,7 +24,7 @@ EDITED:		24/03/2026
 TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-import rclpy
+import rclpy,json,os,time,yaml
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from rclpy.client import Client
@@ -35,20 +35,17 @@ from geometry_msgs.msg import PoseStamped, Point
 from nav2_msgs.action import NavigateThroughPoses
 from action_msgs.msg import GoalStatus
 from visualization_msgs.msg import Marker, MarkerArray
-import json
-import os
-import time
 
 
 class WaypointNavigator(Node):
     def __init__(self):
         super().__init__('waypoint_navigator')
 
-        self.file_path = self.declare_parameter(
-            name='file_path', 
-            value=os.path.expanduser('~/nova/src/ros/rover/auto/auto_bringup/params/waypoints.json'), 
+        self.filepath = self.declare_parameter(
+            name='filepath', 
+            value=os.path.expanduser('~/nova/src/ros/rover/auto/auto_bringup/params/waypoints.yaml'), 
         ).value
-        self.waypoints = self.load_json_waypoints()
+        self.waypoints = self.load_yaml_waypoints()
         self.blackboard = dict() # Dictionary to store blackboard data
         self.goal_handle = None
 
@@ -61,7 +58,7 @@ class WaypointNavigator(Node):
         self.get_logger().info('✅ Action service /navigate_through_poses available!')
 
         # Save waypoints
-        self.sub_blackboard = self.create_subscription(String, '/blackboard', self.blackboard_callback, QoSPresetProfiles.SENSOR_DATA.value)
+        self.sub_blackboard = self.create_subscription(String, '/blackboard', self.blackboard_yaml_callback, QoSPresetProfiles.SENSOR_DATA.value)
         self.get_logger().info('✅ Subscriber /blackboard created!')
 
         # Start navigation
@@ -83,7 +80,7 @@ class WaypointNavigator(Node):
         if self.goal_handle.status == GoalStatus.STATUS_ABORTED:
             self.get_logger().info('❌ Navigation aborted detected by timer callback!')
             self.get_logger().info('🚀 Sending waypoints to restart navigation')
-            self.waypoints = self.load_json_waypoints()
+            self.waypoints = self.load_yaml_waypoints()
             self.send_goal_async()
 
     def send_goal_async(self):
@@ -120,11 +117,11 @@ class WaypointNavigator(Node):
 
     def load_json_waypoints(self):
         '''Loads waypoints from JSON file and converts them into PoseStamped messages.'''
-        if not os.path.exists(self.file_path):
-            self.get_logger().error(f'❌ Waypoints file not found: {self.file_path}')
+        if not os.path.exists(self.filepath):
+            self.get_logger().error(f'❌ Waypoints file not found: {self.filepath}')
             return None
 
-        with open(self.file_path, 'r') as f:
+        with open(self.filepath, 'r') as f:
             data = json.load(f)
 
         waypoints_data = data.get('waypoints', [])
@@ -145,11 +142,41 @@ class WaypointNavigator(Node):
             goal.pose.orientation.z = wp['orientation']['z']
             goal.pose.orientation.w = wp['orientation']['w']
             waypoints.append(goal)
-            self.get_logger().info(f'📍 Loaded Waypoint {idx+1}: ({goal.pose.position.x}, {goal.pose.position.y})')
+            self.get_logger().info(f'📍 Loaded Waypoint {idx+1}: ({goal.pose.position.x:.2f}, {goal.pose.position.y:.2f})')
 
         return waypoints
 
-    def blackboard_callback(self, msg):
+    def load_yaml_waypoints(self):
+        '''Loads waypoints from YAML file and converts them into PoseStamped messages.'''
+        if not os.path.exists(self.filepath):
+            self.get_logger().error(f'❌ Waypoints file not found: {self.filepath}')
+            return None
+
+        with open(self.filepath, 'r') as f:
+            data = yaml.load(f, yaml.Loader)
+
+        waypoints_data = data.get('waypoints', [])
+        if not waypoints_data:
+            self.get_logger().warn('⚠️ No waypoints found in the YAML file.')
+            return None
+        waypoints = []
+        for idx, wp in enumerate(waypoints_data):
+            print(wp, type(wp))
+            goal = PoseStamped()
+            goal.header.frame_id = 'map'
+            goal.header.stamp = self.get_clock().now().to_msg()
+            goal.pose.position.x = waypoints_data[wp]['pose'][0]
+            goal.pose.position.y = waypoints_data[wp]['pose'][1]
+            goal.pose.position.z = waypoints_data[wp]['pose'][2]
+            goal.pose.orientation.x = waypoints_data[wp]['orientation'][0]
+            goal.pose.orientation.y = waypoints_data[wp]['orientation'][1]
+            goal.pose.orientation.z = waypoints_data[wp]['orientation'][2]
+            goal.pose.orientation.w = waypoints_data[wp]['orientation'][3]
+            waypoints.append(goal)
+            self.get_logger().info(f'📍 Loaded Waypoint {idx+1}: ({goal.pose.position.x:.2f}, {goal.pose.position.y:.2f})')
+        return waypoints
+
+    def blackboard_json_callback(self, msg):
         '''
         Saves the blackboard data to a dictionary and extracts waypoints, saving them.
         Also publishes the status seen in the blackboard to the status topic.
@@ -180,13 +207,52 @@ class WaypointNavigator(Node):
             return None
 
         if waypoints:
-            self.save_waypoints(waypoints)
+            self.save_json_waypoints(waypoints)
 
-    def save_waypoints(self, waypoints):
+    def blackboard_yaml_callback(self, msg):
+        '''
+        Saves the blackboard data to a dictionary and extracts waypoints, saving them.
+        Also publishes the status seen in the blackboard to the status topic.
+        '''
+        for entry in msg.data.strip().split('\n'):
+            key, value = entry.split(': ', 1)
+            self.blackboard[key] = value
+
+        waypoints = {}
+        try:
+            string_goals = self.blackboard["goals"].split('\n')[0].split('(')[1:]
+            for i in range(len(string_goals)):
+                coords = string_goals[i].split(')')[0].split(', ')
+                pos_x = float(coords[0])
+                pos_y = float(coords[1])
+                pos_z = float(coords[2])
+                ori_x = float(coords[3])
+                ori_y = float(coords[4])
+                ori_z = float(coords[5])
+                ori_w = float(coords[6])
+                waypoints[f'waypoint{i}'] = {
+                    'pose': [pos_x, pos_y, pos_z],
+                    'orientation': [ori_x, ori_y, ori_z, ori_w]
+                }
+            
+        except Exception as e:
+            self.get_logger().warn(f'Error in extracting waypoints: {e}')
+            return None
+
+        if waypoints:
+            self.save_yaml_waypoints(waypoints)
+
+    def save_json_waypoints(self, waypoints):
         ''' Saves the extracted waypoints to a JSON file. '''
-        with open(self.file_path, 'w') as f:
+        with open(self.filepath, 'w') as f:
             json.dump({'waypoints': waypoints}, f, indent=2)
-        self.get_logger().info(f'📁 Waypoints saved to: {self.file_path}')
+        self.get_logger().info(f'📁 Waypoints saved to: {self.filepath}')
+
+    def save_yaml_waypoints(self, waypoints):
+        ''' Saves the extracted waypoints to a YAML file. '''
+        with open(self.filepath, 'w') as f:
+            yaml.dump({'waypoints': waypoints}, f, indent=2)
+        self.get_logger().info(f'📁 Waypoints saved to: {self.filepath}')
 
     def publish_waypoint_markers(self):
         '''Publishes waypoints as markers to RViz for visualization. Currently not used.'''
