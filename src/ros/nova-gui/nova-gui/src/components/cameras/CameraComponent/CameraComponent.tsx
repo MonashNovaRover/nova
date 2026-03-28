@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
   Spinner,
 } from "@nextui-org/react";
+import AR from "js-aruco2";
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Camera as CameraIcon, Settings } from "react-feather";
 import { CameraInfoModal } from "./components/CameraInfoModal.tsx";
@@ -143,7 +144,37 @@ export const CameraComponent = (props: CameraComponentProps) => {
       "rel=noopener noreferrer"
     );
 
+AR.AR.DICTIONARIES.ARCh = {
+  nBits: 16,
+  tau: 1,
+  codeList: [[181,50],[15,154],[51,45],[153,70],[84,158],[121,205]]
+};
+
+  const detector = new AR.AR.Detector({
+    dictionaryName: 'ARCh'
+  });
+
+
   const takeScreenshot = useCallback(async () => {
+    if (videoRef.current && window) { const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.drawImage(video, 0, 0);
+
+        const imageData = context.getImageData(0,0, canvas.width, canvas.height);
+        const markers = detector.detect(imageData);
+        const ids = markers.map((x)=> x.id);
+        if (ids.length != 0) {
+          toast(ids);
+        }
+      }
+    }
+  }, [videoRef, cameraSerial, currentSite, cameraName, getScreenshotName]);
+
+  const takeScreenshot2 = useCallback(async () => {
     if (videoRef.current && window) {
       const video = videoRef.current;
       const canvas = document.createElement("canvas");
