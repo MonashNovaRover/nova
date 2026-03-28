@@ -1,7 +1,7 @@
 import { BaseCameraComponentProps, CameraComponent } from "../CameraComponent.tsx";
 import { FC } from "react";
 import CameraVideo, { CameraVideoProps } from "../components/CameraVideo.tsx";
-import { useArucoTagDetection } from "../hooks/useArucoTagDetection.ts";
+import { useArucoTagDetection } from "../hooks/useArucoTagDetection.tsx";
 
 const ArucoTagCameraComponent: FC<BaseCameraComponentProps> = (props) => {
     const cameraVideo = ({ videoRef, filters }: CameraVideoProps) => {

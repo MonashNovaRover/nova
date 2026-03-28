@@ -27,7 +27,7 @@ export enum CameraSerials {
   SCIENCE_COMBINED = "science_combined",
 
   MAST_FISHEYE = "mast_fisheye",
-  MAST_DOWN = "Framework_Laptop_Webcam_Module__2nd_Gen__FRANJBCHA15224020A",
+  MAST_DOWN = "mast_down",
   MAST_FORWARD = "mast_forward",
   MAST_BACKWARD = "mast_backward",
   MAST_ARM_STOW = "mast_arm_stow",
