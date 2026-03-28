@@ -1,14 +1,16 @@
-import { Button } from "@nextui-org/react";
+import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
 import { Play, Square } from "react-feather";
 import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { CameraView } from "./CameraPageConstants";
-import { useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { CameraControlPanelModal } from "../../../components/cameras/CameraComponent/components/CamerasControlPanelModal";
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
 import set_task from "../../../livesplit.ts"
+import { toast } from "react-hot-toast";
+import {inspirationalMessages} from "./InspirationalQuotes.tsx";
 
 /**
  * TODO: remove
@@ -33,6 +35,22 @@ export const CameraPage = (props: CameraPageProps) => {
   const [allCamsOn, setAllCamsOn] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState(0);
+
+  let initialized = useRef(false)
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      setInterval(
+        () => {
+          const i = Math.floor(Math.random() * inspirationalMessages.length)
+          const msg = inspirationalMessages[i]
+          toast.custom(msg.message, msg.options)
+        }
+        , 59000
+      )
+    }
+  }, []);
+
 
   return (
     <div className="p-3 flex flex-col gap-0">
