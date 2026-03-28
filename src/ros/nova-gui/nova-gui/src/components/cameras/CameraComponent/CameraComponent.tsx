@@ -144,9 +144,11 @@ export const CameraComponent = (props: CameraComponentProps) => {
       "rel=noopener noreferrer"
     );
 
+
+  useEffect(() => {
 AR.AR.DICTIONARIES.ARCh = {
   nBits: 16,
-  tau: 1,
+  tau: 2,
   codeList: [[181,50],[15,154],[51,45],[153,70],[84,158],[121,205]]
 };
 
@@ -155,13 +157,13 @@ AR.AR.DICTIONARIES.ARCh = {
   });
 
 
-  const takeScreenshot = useCallback(async () => {
+  const interval = setInterval(async () => {
     if (videoRef.current && window) { const video = videoRef.current;
       const canvas = document.createElement("canvas");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const context = canvas.getContext("2d");
-      if (context) {
+      if (context && canvas.width && canvas.height) {
         context.drawImage(video, 0, 0);
 
         const imageData = context.getImageData(0,0, canvas.width, canvas.height);
@@ -172,9 +174,11 @@ AR.AR.DICTIONARIES.ARCh = {
         }
       }
     }
-  }, [videoRef, cameraSerial, currentSite, cameraName, getScreenshotName]);
+    return () => clearInterval(interval);
+  }, 1000);
+  }, []);
 
-  const takeScreenshot2 = useCallback(async () => {
+  const takeScreenshot = useCallback(async () => {
     if (videoRef.current && window) {
       const video = videoRef.current;
       const canvas = document.createElement("canvas");
