@@ -39,12 +39,18 @@
 # occupied_thresh: 0.65
 # free_thresh: 0.196  
 
-#2025 comp
-image: ../maps/COMPMAP.png     
-resolution: 0.100000
-origin: [-7.637181, -10.487444, 0]
+# 2025 comp
+# image: ../maps/COMPMAP.png     
+# resolution: 0.100000
+# origin: [-7.637181, -10.487444, 0]
+# negate: 0
+# occupied_thresh: 0.65
+# free_thresh: 0.196 
+
+# 2026 ARCh Comp
+image: ../maps/ARCh_2026_COMP_MAP.png     
+resolution: 0.03 # 30 m / 1000 pixels
+origin: [-3.0, -17.0, 0]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196 
-
-#
