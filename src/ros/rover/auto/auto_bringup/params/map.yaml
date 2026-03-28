@@ -50,7 +50,7 @@
 # 2026 ARCh Comp
 image: ../maps/ARCh_2026_COMP_MAP_WITH_ROCKS.png     
 resolution: 0.12 # 30 m / 250 pixels
-origin: [-3.0, -17.0, 0]
+origin: [-3.63, -16.5185, 0]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196 
