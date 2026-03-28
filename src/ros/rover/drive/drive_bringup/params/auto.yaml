@@ -143,7 +143,7 @@ blcmd_status_monitor:
     max_resets: 5
     reset_timeout: 5
     auto_reset_drive_blmcd_ids: [1, 2, 3, 4]
-    auto_reset_pivot_blmcd_ids: []
+    auto_reset_pivot_blmcd_ids: [5, 6, 7, 8]
 
     blcmd_zero_response_timeout: 3
     canbus: can0

@@ -121,7 +121,7 @@ class BLCMDStatusMonitor(Node):
         self.auto_reset_drive_blmcd_ids = self.declare_parameter("auto_reset_drive_blmcd_ids", [1, 2, 3, 4]).value # which drive blcmds are allowed to be reset (by id)
         if self.auto_reset_drive_blmcd_ids is None:
             self.auto_reset_drive_blmcd_ids = []
-        self.auto_reset_pivot_blmcd_ids = self.declare_parameter("auto_reset_pivot_blmcd_ids", []).value # which pivot blcmds are allowed to be reset (by id)
+        self.auto_reset_pivot_blmcd_ids = self.declare_parameter("auto_reset_pivot_blmcd_ids", [5, 6, 7, 8]).value # which pivot blcmds are allowed to be reset (by id)
         if self.auto_reset_pivot_blmcd_ids is None:
             self.auto_reset_pivot_blmcd_ids = []
 
