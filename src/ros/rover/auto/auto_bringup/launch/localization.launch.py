@@ -30,14 +30,20 @@ EDITED BY: Taaj Street, Kabilan Velmurugan
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+from os.path import expanduser
+
 def launch_setup(context, *args, **kwargs):
     # package directories
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    local = LaunchConfiguration('local')
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
 
     comp = LaunchConfiguration('comp').perform(context).lower()
 
@@ -114,9 +120,12 @@ def launch_setup(context, *args, **kwargs):
     ]
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='comp',
             default_value='arch',

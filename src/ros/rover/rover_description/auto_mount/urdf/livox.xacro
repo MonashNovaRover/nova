@@ -23,7 +23,7 @@
                 <ray>
                     <scan>
                         <horizontal>
-                            <samples>720</samples>      <!-- MID-360 0.5° resolution -->
+                            <samples>500</samples>      <!-- MID-360 0.5° resolution -->
                             <resolution>1.0</resolution>
                             <!-- MID-360 HFOV = 360° -->
                             <min_angle>-3.14156</min_angle>

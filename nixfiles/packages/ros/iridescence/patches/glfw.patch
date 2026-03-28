@@ -1,0 +1,10 @@
+--- a/src/guik/imgui_application.cpp
++++ b/src/guik/imgui_application.cpp
+@@ -43,6 +43,7 @@
+ bool Application::init(const Eigen::Vector2i& size, const char* glsl_version, bool background, const std::string& title) {
+   glfwSetErrorCallback([](int err, const char* desc) { std::cerr << bold_red << "glfw error " << err << ": " << desc << reset << std::endl; });
++  glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+   if (!glfwInit()) {
+     std::cerr << bold_red << "failed to initialize GLFW" << reset << std::endl;
+     return false;
+   }
