@@ -10,6 +10,7 @@ import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCa
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import { driveCams } from "./CameraPageConstants.tsx";
+import set_task from "../../../livesplit.ts"
 
 /**
  * TODO: remove
@@ -45,7 +46,10 @@ const NON_VIDEO_SERIALS = new Set<string>(driveCams);
               size="md"
               color="primary"
               className="w-28"
-              onPress={() => setAllCamsOn(true)}
+              onPress={() => {
+                setAllCamsOn(true)
+                set_task("cameras");
+              }}
             >
               <Play size="15px" fill="white" /> Start All
             </Button>
