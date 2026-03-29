@@ -12,10 +12,8 @@ camera_streamer:
         profile: gc2093
 
       HZ_USB_Camera_20220301104:
-        #pipeline_type: h264software
-        pipeline_type: v4l2webrtc
+        pipeline_type: h264software
         profile: ov5693
-        decoder: jpegdec
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         pipeline_type: vpXsoftware
