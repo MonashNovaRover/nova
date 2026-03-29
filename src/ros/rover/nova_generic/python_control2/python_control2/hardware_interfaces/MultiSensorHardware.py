@@ -24,14 +24,12 @@ class MultiSensorHardware(HardwareInterface):
 
     def __init__(self, contexts: Contexts,
                  can_id: int = 0,
-                 interpret_data_list: [Callable[[bytes], Any]] = [lambda x: int.from_bytes(x)],
+                 interpret_data_list: list[Callable[[bytes], Any]] = [lambda x: int.from_bytes(x)],
                  hardware_names: list[str] = ["hardware"],
                  hardware_units: list[str] = ["values"],
-                 initial_values: [Any] = [0]
+                 initial_values: list[Any] = [0]
                  ):
-        """ Constructor for GenericSensorHardware
-        Creates state interface "name/unit"
-
+        """ 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         :param can_id: CAN ID of messages from the sensor
         :param interpret_data_list: List of functions, one per channel, that each extract a single value from the raw CAN frame bytes (e.g. parse bytes 0-1 as a scaled int for temp1).
