@@ -4,39 +4,27 @@ camera_streamer:
     serial_pipelines:
       # Waveshare
       openaicam_openaicam_2505121128:
-        pipeline_type: h264software
-        profile: super
-        decoder: jpegdec
-        crop43: true
+        pipeline_type: vpXsoftware
+        profile: ov2735
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
         profile: gc2093
 
       HZ_USB_Camera_20220301104:
-        pipeline_type: h264software
-        profile: super
+        #pipeline_type: h264software
+        pipeline_type: v4l2webrtc
+        profile: ov5693
+        decoder: jpegdec
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
-        pipeline_type: h264software
+        pipeline_type: vpXsoftware
         profile: default
 
       # Development cameras
       brandon-cam:
         pipeline_type: h264software
-        #pipeline_type: vpXsoftware
-        #pipeline_type: v4l2webrtc
-        #device: /dev/video2
-        crop43: true
-        #show_clock: true
-        # profile: super
-        width: 1280
-        height: 720
-        framerate: 30
-        #framerate: 15
-        #mime: video/x-raw
-        #speed_preset: ultrafast
-        #me: dia
+        profile: super
 
       anthony-cam:
         pipeline_type: h264passthrough
@@ -46,16 +34,11 @@ camera_streamer:
 
       # Mast
       mast_backward:
-        meta: Mast - Backwards
+        meta : Mast - Backwards
       mast_arm_stow:
         meta: Mast - Arm Stow
         pipeline_type: h264passthrough
-        mime: video/x-h264
-        payload_quirk: true
-        width: 1920
-        height: 1080
-        framerate: 30
-
+        profile: gc2093
       mast_down:
         meta: Mast - Down
       mast_forward:
@@ -88,7 +71,7 @@ camera_streamer:
       #  autostart: false
 
       # Arm
-      arm_gimbal:
+      arm_gi [mbal:
         meta: Arm - Gimbal
       arm_end_forward:
         meta: Arm - Forward
@@ -125,6 +108,17 @@ camera_streamer:
         width: 1920
         height: 1080
         framerate: 30
-        payload_quirk: true
         noise_reduction: 1024
 
+      ov2735:
+        width: 1920
+        height: 1080
+        framerate: 30
+        noise_reduction: 128
+
+      ov5693:
+        width: 1920
+        height: 1080
+        framerate: 30
+        noise_reduction: 256
+        extra_controls: "controls, focus_automatic_continous=0, focus_absolute=67"

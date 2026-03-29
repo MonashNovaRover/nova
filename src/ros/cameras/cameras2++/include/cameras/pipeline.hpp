@@ -13,6 +13,7 @@ struct Properties
 struct v4lProperties
 {
   std::string device;
+  std::string extra_controls;
   std::string io_mode;
 };
 
@@ -97,10 +98,10 @@ struct h264passthroughPipelineProperties : Properties, v4lProperties, capsProper
 h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, h264passthroughPipelineProperties* props);
 
-struct h264softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, x264encProperties, cropProperties, decodeProperties {};
+struct h264softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, x264encProperties, cropProperties, clockProperties, decodeProperties {};
 h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* h264software_pipeline(rclcpp::Node* log_node, h264softwarePipelineProperties* props);
 
-struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, vpXencProperties, cropProperties, decodeProperties {};
+struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, vpXencProperties, cropProperties, clockProperties, decodeProperties {};
 vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, vpXsoftwarePipelineProperties* props);
