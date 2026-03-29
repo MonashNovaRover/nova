@@ -107,11 +107,6 @@ class URCBMESensorController(Controller):
         for sensor_name, sensor_unit in self.sensors:
             self.sensor_last_readings[f"{sensor_name}/{sensor_unit}"] = self.sensor_states[f"{sensor_name}/{sensor_unit}"].value
             
-        readings_str = ", ".join(
-        f"{sensor_name}/{sensor_unit}: {self.sensor_last_readings[f'{sensor_name}/{sensor_unit}']}"
-        for sensor_name, sensor_unit in self.sensors
-        )
-        print(f"[Sensor Readings] {readings_str}")
 
 
     def publish_data(self):
