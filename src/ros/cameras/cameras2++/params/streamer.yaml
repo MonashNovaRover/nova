@@ -119,4 +119,5 @@ camera_streamer:
         height: 1080
         framerate: 30
         noise_reduction: 256
-        extra_controls: "controls, focus_automatic_continous=0, focus_absolute=67"
+        brightness: 256
+

@@ -13,7 +13,6 @@ struct Properties
 struct v4lProperties
 {
   std::string device;
-  std::string extra_controls;
   std::string io_mode;
 };
 

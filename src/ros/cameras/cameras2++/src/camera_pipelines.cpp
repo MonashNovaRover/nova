@@ -95,12 +95,6 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
         props->io_mode == "dmabuf-import" ? 5 :0),
       NULL);
 
-  if (!(props->extra_controls.empty())) {
-      g_object_set(source,
-        "extra-controls", props->extra_controls.c_str(),
-        NULL);
-  }
-
   GstCaps *caps = gst_caps_new_simple(
       props->mime.c_str(),
       "width", G_TYPE_INT, props->width,
@@ -203,8 +197,6 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   // source
   default_string = props->node;
   props->device = prop_default(param, profile, "device", default_string);
-  default_string = "";
-  props->extra_controls = prop_default(param, profile, "extra_controls", default_string);
   default_string = "mmap";
   props->io_mode = prop_default(param, profile, "io_mode", default_string);
 
@@ -414,12 +406,6 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
         props->io_mode == "dmabuf-import" ? 5 :0),
       NULL);
 
-  if (!(props->extra_controls.empty())) {
-      g_object_set(source,
-        "extra-controls", props->extra_controls.c_str(),
-        NULL);
-  }
-
   GstCaps *caps = gst_caps_new_simple(
       props->mime.c_str(),
       "width", G_TYPE_INT, props->width,
@@ -556,8 +542,6 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   // source
   default_string = props->node;
   props->device = prop_default(param, profile, "device", default_string);
-  default_string = "";
-  props->extra_controls = prop_default(param, profile, "extra_controls", default_string);
   default_string = "mmap";
   props->io_mode = prop_default(param, profile, "io_mode", default_string);
 
@@ -649,12 +633,6 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
         props->io_mode == "dmabuf" ? 4 :
         props->io_mode == "dmabuf-import" ? 5 :0),
       NULL);
-
-  if (!(props->extra_controls.empty())) {
-      g_object_set(source,
-        "extra-controls", props->extra_controls.c_str(),
-        NULL);
-  }
 
   GstCaps *caps = gst_caps_new_simple(
       props->mime.c_str(),
@@ -797,8 +775,6 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   // source
   default_string = props->node;
   props->device = prop_default(param, profile, "device", default_string);
-  default_string = "";
-  props->extra_controls = prop_default(param, profile, "extra_controls", default_string);
   default_string = "mmap";
   props->io_mode = prop_default(param, profile, "io_mode", default_string);
 

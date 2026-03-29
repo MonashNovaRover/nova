@@ -12,6 +12,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include <gst/gst.h>
+#include <stdlib.h>
 
 #include <camera_msgs/srv/camera_operation.hpp>
 #include <camera_msgs/srv/get_camera_stream_stats.hpp>
