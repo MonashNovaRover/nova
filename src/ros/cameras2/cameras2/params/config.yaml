@@ -29,7 +29,6 @@ camera_streamer:
         framerate: 30
         show_clock: false
 
-
       # Mast
       mast_backward:
         meta:
