@@ -94,6 +94,8 @@ class URCBMESensorController(Controller):
         for sensor in self.sensors:
             sensor_name, sensor_unit = sensor
             self.sensor_states[f"{sensor_name}/{sensor_unit}"] = state_interfaces[f"{sensor_name}/{sensor_unit}"]
+        self.publisher_timer = self.node.create_timer(1 / 10, self.publish_data)
+        return True
 
 
     def on_update(self, now: float, period: float):
@@ -111,8 +113,8 @@ class URCBMESensorController(Controller):
 
     def publish_data(self):
         msg = BMESensor()
-        msg.temperature = float(self.sensor_last_readings[f"{BME_TEMP_NAME}/temperature"] / self.BME_TEMP_FACTOR)
-        msg.humidity = float(self.sensor_last_readings[f"{BME_HUMIDITY_NAME}/humidity"] / self.BME_HUMIDITY_FACTOR)
+        msg.temperature = float(self.sensor_last_readings[f"{BME_TEMP_NAME}/temperature"] / BME_TEMP_FACTOR)
+        msg.humidity = float(self.sensor_last_readings[f"{BME_HUMIDITY_NAME}/humidity"] / BME_HUMIDITY_FACTOR)
         msg.pressure = int(self.sensor_last_readings[f"{BME_PRESSURE_NAME}/pressure"])
         msg.altitude = int(self.sensor_last_readings[f"{BME_ALTITUDE_NAME}/altitude"])
         self.bme_publisher.publish(msg)
