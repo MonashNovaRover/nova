@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<insert purpose here>
+Controller for the URC BME Sensors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: URCBMESensorController
 TOPICS:
-  - publisher: <topic> [<msg type>]
-SERVICES:
-	- service: <service> [<srv type>]
+  - publisher: /science/bme_sensor [BMESensor]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 STATE INTERFACES:
-  - <sensors>/<unit>  
+  - [<sensors>/<unit>]          [readings]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Yahya Muayyiduddin
