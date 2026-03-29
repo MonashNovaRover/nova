@@ -161,6 +161,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='urc_bme_sensor',
+            package='science',
+            executable='urc_bme_sensor.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        )
 
         # launch CAN bus
         IncludeLaunchDescription(

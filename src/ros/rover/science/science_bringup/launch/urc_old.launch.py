@@ -105,7 +105,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         Node(
             package='science',
-            executable='urc_bme_sensor.py',
+            executable='urc_bme_sensor_old.py',
             output='screen',
             emulate_tty=True,
         ),
