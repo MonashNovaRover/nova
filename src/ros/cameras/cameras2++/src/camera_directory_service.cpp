@@ -61,7 +61,7 @@ class CameraDirectory : public rclcpp::Node
   std::vector<std::string> blacklist;
   std::unordered_map<std::string, std::string> serial_remaps;
   std::string platform;
-  std::string payload;
+  std::string task;
   std::unordered_map<std::string, std::string> serial_overrides;
   std::unordered_map<std::string, std::string> camera_map;
   size_t last_device_count;
@@ -76,10 +76,10 @@ class CameraDirectory : public rclcpp::Node
     }
 
     platform = this->get_parameter_or<std::string>("platform", "");
-    payload = this->get_parameter_or<std::string>("payload", "");
-    if (platform.empty() || payload.empty()) {
+    task = this->get_parameter_or<std::string>("task", "");
+    if (platform.empty() || task.empty()) {
       if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
-      if (payload.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"payload\" is empty");
+      if (task.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"task\" is empty");
       RCLCPP_WARN(this->get_logger(), "Skipping serial_overrides...");
 
     } else {
@@ -111,9 +111,9 @@ class CameraDirectory : public rclcpp::Node
         }
       }
 
-      // load payload specific serial overrides
+      // load task specific serial overrides
       std::map<std::string, rclcpp::Parameter> path_params;
-      this->get_parameters("serial_overrides.payload_paths." + payload, path_params);
+      this->get_parameters("serial_overrides.task_paths." + task, path_params);
       for (const auto& override : path_params) {
         std::string root;
         std::string path;
@@ -123,9 +123,9 @@ class CameraDirectory : public rclcpp::Node
           root = root_map[path_map[override.first].first];
         } else {
           // no default override found, assume yaml in the following form:
-          // payload_name:
+          // task_name:
           //   path: remap
-          // this will become "payload_name.path: remap" after get_parameters()
+          // this will become "task_name.path: remap" after get_parameters()
           int pos = override.first.find(".");
           path = override.first.substr(pos+1);
           root = root_map[override.first.substr(0, pos)];

@@ -41,7 +41,7 @@ camera_directory:
           '3:1.0': payload_3
           '4:1.0': payload_4
       
-      payload_paths:
+      task_paths:
         science-arc:
           payload_3: science_gimbal_cam     # science hub port 1
           payload_2: science_kiln           # science hub port 2
@@ -51,7 +51,8 @@ camera_directory:
           payload_1: science_gimbal_cam
           payload_2: science_microscope
           payload_3: science_spectroscope
-          '4.1:1.0': science_cuvettes
+          payload:
+            '4.1:1.0': science_cuvettes
         arm:
           payload_1: arm_end_finger
           payload_2: arm_end_side
@@ -62,7 +63,15 @@ camera_directory:
           payload_3: ec_forklift_down       # ec hub 2
           payload_2: ec_forklift_forward    # ec hub 3
           payload_1: ec_scraper_leg         # ec hub 4
-
+        
+        example:
+          payload_2: science_kiln
+          mast_arm_stow: science_microscope
+          payload:
+            '4.1:1.2': science_cuvettes
+          mast:
+            '1:1.0': bellycam
+            '2:1.0': jared
     # examples of serial remaps
     # serial_remaps:
       # 046d_HD_Pro_Webcam_C920_D113139F: anthony-cam
