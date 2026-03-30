@@ -27,6 +27,11 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
+                name='local',
+                default_value='False',
+                description='Whether to use local directories instead of the nix store.',
+            ),
+            DeclareLaunchArgument(
                 "param_dir",
                 default_value=PathJoinSubstitution([cameras_dir, "params"]),
                 description="The path to the directory holding camera parameter files.",
@@ -62,7 +67,7 @@ def generate_launch_description():
             Node(
                 package="cameras",
                 executable="camera_streamer_service",
-                parameters=streamer_params,
+                parameters=[streamer_params],
             ),
         ]
     )
