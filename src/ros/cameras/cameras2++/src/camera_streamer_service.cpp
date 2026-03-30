@@ -114,6 +114,7 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera = new camera_msgs::msg::Camera;
         pipeline->camera->serial=camera.serial;
         pipeline->camera->node=camera.node;
+        pipeline->camera->original_serial=camera.original_serial;
 
         std::map<std::string, rclcpp::Parameter> serial_params;
         this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera.serial + ".pipeline_type").c_str(), pipeline->pipeline_type, "v4l2webrtc");
@@ -154,9 +155,7 @@ class CameraStreamer : public rclcpp::Node
               RCLCPP_INFO(this->get_logger(), "Starting %s", serial.c_str());
 
               // Check if pipeline changed
-              YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
-              YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][serial];
-              pipeline->pipeline_type = param["pipeline_type"].as<std::string>("v4l2webrtc");
+              this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + ".pipeline_type").c_str(), pipeline->pipeline_type, "v4l2webrtc");
               this->start_pipeline(pipeline);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }

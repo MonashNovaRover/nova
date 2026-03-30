@@ -31,6 +31,18 @@ static bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element
    return true;
 }
 
+static std::string set_property(rclcpp::Node* streamer_node, std::string serial, std::string element, std::string default_value){
+    if (!(streamer_node->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), element))) {
+      return element;
+    } else if (!(streamer_node->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + serial + "." + element).c_str(), element))) {
+      return element;
+    } else if (!(streamer_node->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + serial + "." + element).c_str(), element))) {
+      return element;
+    } else {
+      return default_value;
+    }
+}
+
 static std::string prop_default(YAML::Node param, YAML::Node profile, std::string name, std::string default_value){
     return param[name] ? param[name].as<std::string>() : profile[name].as<std::string>(default_value);
 }
@@ -196,7 +208,8 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
 
   // source
   default_string = props->node;
-  props->device = prop_default(param, profile, "device", default_string);
+  props->device = set_property(streamer_node, camera->serial, "device", props->node);
+  //props->device = prop_default(param, profile, "device", default_string);
   default_string = "mmap";
   props->io_mode = prop_default(param, profile, "io_mode", default_string);
 

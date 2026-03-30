@@ -2,7 +2,7 @@
 #include <gst/gst.h>
 #define PIPELINE_PREFIX     "serial_pipelines"
 #define PROFILE_PREFIX     "profiles"
-
+#define DEFAULT_PREFIX     "defaults"
 
 struct Properties
 {
@@ -87,6 +87,7 @@ struct Pipeline
   std::string pipeline_type;
   camera_msgs::msg::Camera* camera;
   std::string profile;
+  std::string original_serial;
 };
 
 struct v4l2webrtcPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cropProperties, clockProperties {};
