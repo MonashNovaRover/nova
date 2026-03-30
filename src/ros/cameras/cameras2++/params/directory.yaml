@@ -1,11 +1,18 @@
 camera_directory:
   ros__parameters:
     blacklist:
-      # The RealSense cameras expose many video device nodes, all with the same serial number and USB device path. This is incompatible with the design of the camera_directory node.
+      # These serials will not be broadcasted by the directory server
+      
+      # The RealSense cameras expose many video device nodes, all with the same serial number and USB device path. 
+      # This is incompatible with the current design of the camera_directory node. But could be fixed in the future...
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455_210523060485
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455 # Jetson TX2 does not see the serial number??
+
     serial_overrides:
+      # cameras at the specified root.path combo will have their serials overridden as specified by the platform and task passed to the directory node
       platform_roots:
+        # the root for each platform which generally will change depending on which usb slot of the device the usb hub is plugged into
+        # the root can be specified by passing the "platform" parameter to the directory node
         aftershock_laptop:
           "pci-0000:00:14.0-usb-0:9": mast    # USB slot on left of computer - right slot.
           "pci-0000:00:14.0-usb-0:4": payload # USB slot on left of computer - left slot.
@@ -30,6 +37,9 @@ camera_directory:
           "platform-3530000.xhci-usb-0:2": mast
 
       default_paths:
+        # by default these paths on the usb hub will be remapped to the following serials.
+        # these default serials can be overridden in tasks
+        # the path corresponds to the slot on a usb hub
         mast:
           '1:1.0': mast_arm_stow
           '2:1.0': mast_down
@@ -42,6 +52,9 @@ camera_directory:
           '4:1.0': payload_4
       
       task_paths:
+        # the set of overrides can be selected by setting the "task" parameter
+        # if a non-default path is needed, it can be specified in its named root followed by the path.
+        # Take a look at example for the possible override methods
         science-arc:
           payload_3: science_gimbal_cam     # science hub port 1
           payload_2: science_kiln           # science hub port 2
@@ -67,12 +80,12 @@ camera_directory:
         example:
           payload_2: science_kiln
           mast_arm_stow: science_microscope
-          payload:
-            '4.1:1.2': science_cuvettes
+          'payload.4.1:1.2': science_cuvettes
           mast:
             '1:1.0': bellycam
-            '2:1.0': jared
-    # examples of serial remaps
-    # serial_remaps:
-      # 046d_HD_Pro_Webcam_C920_D113139F: anthony-cam
-      # SunplusIT_Inc_ACER_FHD_User_Facing_01.00.00: brandon-cam
+            '2:1.0': jared_left_eye
+
+    serial_remaps:
+      # serial_remaps can be used to override a camera serial into another serial in the directory message and is typically used in testing
+      # this doesn't interact with serial_overrides at all
+      example_webcam_serial: anthony-cam

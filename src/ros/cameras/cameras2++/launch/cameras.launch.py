@@ -2,44 +2,44 @@ from functools import reduce
 
 from launch import LaunchDescription, Substitution, SomeSubstitutionsType
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, IfElseSubstitution
 from launch.utilities import normalize_to_list_of_substitutions
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+from os.path import expanduser
+
 
 def generate_launch_description():
-    param_dir = LaunchConfiguration("param_dir")
-    platform = LaunchConfiguration("platform")
-    payload = LaunchConfiguration("payload")
-    port = LaunchConfiguration("port")
+    local = LaunchConfiguration('local')
 
-    node_parameters = [
-        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "directory.yaml"])),
-        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "streamer.yaml"])),
-        _substitute_if_not_empty(param_dir, PathJoinSubstitution([param_dir, "platform", platform, "core.yaml"])),
-        _substitute_if_not_empties(
-            (param_dir, payload),
-            PathJoinSubstitution([param_dir, "platform", platform, "payload", _cat_substitutions([payload, ".yaml"])]),
-        ),
-    ]
+    cameras_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/cameras/cameras2++']),
+        FindPackageShare('cameras')
+    )
+    params = LaunchConfiguration("param_dir")
+    directory_params = PathJoinSubstitution([params, "directory.yaml"])
+    streamer_params = PathJoinSubstitution([params, "streamer.yaml"])
+    platform = LaunchConfiguration("platform")
+    task = LaunchConfiguration("task")
+    port = LaunchConfiguration("port")
 
     return LaunchDescription(
         [
             DeclareLaunchArgument(
                 "param_dir",
-                default_value=PathJoinSubstitution([FindPackageShare("cameras"), "params"]),
+                default_value=PathJoinSubstitution([cameras_dir, "params"]),
                 description="The path to the directory holding camera parameter files.",
             ),
             DeclareLaunchArgument(
                 "platform",
                 default_value="",
-                description="The target platform.",
+                description="The platform type. Used for specifying serial overrides for Camera Directory Node",
             ),
             DeclareLaunchArgument(
-                "payload",
+                "task",
                 default_value="",
-                description="The payload type.",
+                description="The task type. Used for specifying serial overrides for Camera Directory Node",
             ),
             DeclareLaunchArgument(
                 "port",
@@ -57,32 +57,12 @@ def generate_launch_description():
             Node(
                 package="cameras",
                 executable="camera_directory_service",
-                parameters=node_parameters,
+                parameters=[{'platform': platform, 'task': task}, directory_params],
             ),
             Node(
                 package="cameras",
                 executable="camera_streamer_service",
-                parameters=node_parameters,
+                parameters=streamer_params,
             ),
         ]
-    )
-
-
-def _cat_substitutions(substitutions: SomeSubstitutionsType) -> Substitution:
-    return PythonExpression(["'", *normalize_to_list_of_substitutions(substitutions), "'"])
-
-
-def _substitute_if_not_empty(
-    value: str | Substitution,
-    substitution: str | Substitution,
-) -> Substitution:
-    # https://github.com/ros2/launch/issues/290#issuecomment-520643662
-    return PythonExpression(["'", substitution, "'", "if '' != '", value, "' else ''"])
-
-
-def _substitute_if_not_empties(values: SomeSubstitutionsType, substitution: str | Substitution) -> Substitution:
-    return reduce(
-        lambda result, value: _substitute_if_not_empty(value, result),
-        reversed(normalize_to_list_of_substitutions(values)),
-        substitution,
     )
