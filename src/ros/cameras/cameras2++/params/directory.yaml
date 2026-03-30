@@ -35,6 +35,8 @@ camera_directory:
           "platform-3530000.xhci-usb-0:3": payload
         tx2_dev_board:
           "platform-3530000.xhci-usb-0:2": mast
+        anthony_wsl:
+          "platform-vhci_hcd": mast
 
       default_paths:
         # by default these paths on the usb hub will be remapped to the following serials.

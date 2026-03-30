@@ -79,37 +79,47 @@ class CameraDirectory : public rclcpp::Node
 
     platform = this->get_parameter_or<std::string>("platform", "");
     task = this->get_parameter_or<std::string>("task", "");
-    if (platform.empty() || task.empty()) {
-      if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
-      if (task.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"task\" is empty");
-      RCLCPP_WARN(this->get_logger(), "Skipping serial_overrides...");
+    if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
+      else RCLCPP_INFO(this->get_logger(), "Using platform root from %s", platform.c_str());
+    if (task.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"task\" is empty");
+      else RCLCPP_INFO(this->get_logger(), "Using task serials from %s", task.c_str());
 
+    if (platform.empty()) {
+      RCLCPP_WARN(this->get_logger(), "Skipping serial_overrides...");
     } else {
       std::map<std::string, std::pair<std::string, std::string>> path_map;
       std::map<std::string, std::string> root_map;
-
-      // load default payload-bus path remaps 
-      std::map<std::string, rclcpp::Parameter> default_payloads;
-      this->get_parameters("serial_overrides.platform_roots", default_payloads);
-      for (const auto& default_kv: default_payloads) {
-        std::map<std::string, rclcpp::Parameter> default_payload_paths;
-        this->get_parameters("serial_overrides.platform_roots." + default_kv.first, default_payload_paths);
-        for (const auto& path_kv: default_payload_paths) {
-          path_map[path_kv.second.as_string()] = {default_kv.first, path_kv.first};
-        }
-      }
       
       // load platform specific root remap
       std::map<std::string, rclcpp::Parameter> platform_roots;
       this->get_parameters("serial_overrides.platform_roots", platform_roots);
       for (const auto& platform_kv: platform_roots) {
-        if (platform_kv.first == platform) {
+        std::string platform_name = platform_kv.first.substr(0, platform_kv.first.find('.'));
+        if (platform_name == platform) {
           std::map<std::string, rclcpp::Parameter> platform_root_map;
-          this->get_parameters("serial_overrides.platform_roots."+ platform, platform_root_map);
+          this->get_parameters("serial_overrides.platform_roots."+ platform_name, platform_root_map);
           for (const auto& root_kv: platform_root_map) {
             root_map[root_kv.second.as_string()] = root_kv.first;
+            // e.g mast: "platform-3530000.xhci-0:1"
           }
           break;
+        }
+      }
+
+      // load default payload-bus path remaps 
+      std::map<std::string, rclcpp::Parameter> default_payloads;
+      this->get_parameters("serial_overrides.default_paths", default_payloads);
+      for (const auto& default_kv: default_payloads) {
+        std::string payload_name = default_kv.first.substr(0, default_kv.first.find('.'));
+        std::map<std::string, rclcpp::Parameter> default_payload_paths;
+        this->get_parameters("serial_overrides.default_paths." + payload_name, default_payload_paths);
+        for (const auto& path_kv: default_payload_paths) {
+          path_map[path_kv.second.as_string()] = {payload_name, path_kv.first};
+          // e.g payload_1: {mast, 1:1.0}
+
+          // Add defaults to serial overrides first
+          std::string key = root_map[payload_name] + "." + path_kv.first;
+          serial_overrides[key] = path_kv.second.as_string();
         }
       }
 
