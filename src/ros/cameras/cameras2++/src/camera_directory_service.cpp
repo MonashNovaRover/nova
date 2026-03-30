@@ -14,7 +14,6 @@
 #include <camera_msgs/msg/cameras.hpp>
 
 #include "cameras/cameras.hpp"
-#include "cameras/directory_parameters.hpp"
 
 using namespace std::placeholders;
 
@@ -48,7 +47,6 @@ class CameraDirectory : public rclcpp::Node
     service_ = this->create_service<std_srvs::srv::Empty>(SERVICE_DISCOVERY, std::bind(&CameraDirectory::service_callback, this, _1, _2));
     
     // setup parameters
-    param_listener = std::make_shared<camera_directory_service::ParamListener>(get_node_parameters_interface());
     this->get_configuration();
 
     // publish once
@@ -59,7 +57,6 @@ class CameraDirectory : public rclcpp::Node
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<camera_msgs::msg::Cameras>::SharedPtr publisher_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
-  std::shared_ptr<camera_directory_service::ParamListener> param_listener;
   std::vector<std::string> blacklist;
   std::unordered_map<std::string, std::string> serial_remaps;
   std::unordered_map<std::string, std::string> serial_overrides;
@@ -68,8 +65,7 @@ class CameraDirectory : public rclcpp::Node
 
   private: void get_configuration()
   {
-    camera_directory_service::Params params = param_listener->get_params();
-
+    blacklist = this->get_parameter("blacklist").as_string_array();
     std::map<std::string, rclcpp::Parameter> serial_remaps_parameters;
     this->get_parameters("serial_remaps", serial_remaps_parameters);
     for (const auto& kv: serial_remaps_parameters) {
@@ -105,6 +101,8 @@ class CameraDirectory : public rclcpp::Node
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     std::unordered_map<std::string, std::string> new_camera_map;
     for (V4lDevice device : devices) {
+      // if device is in blacklist, skip
+      if (std::find(blacklist.begin(), blacklist.end(), device.serial) != blacklist.end()) continue;
 
       // get final serial with remaps and overrides
       std::string serial = device.serial;
