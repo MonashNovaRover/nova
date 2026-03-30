@@ -15,6 +15,7 @@
 #include <camera_msgs/msg/cameras.hpp>
 
 #include "cameras/cameras.hpp"
+#include "cameras/colors.hpp"
 
 using namespace std::placeholders;
 
@@ -65,6 +66,7 @@ class CameraDirectory : public rclcpp::Node
   std::unordered_map<std::string, std::string> serial_overrides;
   std::unordered_map<std::string, std::string> camera_map;
   size_t last_device_count;
+  bool pretty_print_cameras = true; // pretty print cameras first time run
 
   private: void get_configuration()
   {
@@ -141,6 +143,9 @@ class CameraDirectory : public rclcpp::Node
     /*
       Add each camera to a cameras message and publish their final serial and dev node.    
     */
+    std::stringstream log;
+    log << C_MODE << "Detected Cameras:" << C_RESET;
+
     auto message = camera_msgs::msg::Cameras();
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     std::unordered_map<std::string, std::string> new_camera_map;
@@ -162,12 +167,32 @@ class CameraDirectory : public rclcpp::Node
       camera.node = device.devname;
       message.cameras.push_back(camera);
 
+      // Prettify camera serial and info
+      if (pretty_print_cameras)
+      {
+        log << "\n  - " << C_TITLE << serial << C_RESET;
+        if (serial != device.serial)
+        {
+          log << C_QUIET " remapped from " << device.serial << C_RESET;
+        }
+        log << C_QUIET " located at " << device.path << C_RESET;
+      };
+
       // check if new camera or serial changed
       if (camera_map.find(serial) == camera_map.end())
       {
         new_camera_map[serial] = device.devname;
-        if (serial != device.serial) RCLCPP_INFO(this->get_logger(), "New device found: %s at %s serial remapped to: %s", device.serial.c_str(), device.path.c_str(), serial.c_str());
-        else RCLCPP_INFO(this->get_logger(), "New device found: %s at %s", serial.c_str(), device.path.c_str());
+        if (!pretty_print_cameras)
+        {
+          std::stringstream log_new;
+          log_new << "New camera detected: " << C_TITLE << serial << C_RESET;
+          if (serial != device.serial)
+          {
+            log_new << C_QUIET << " remapped from " << device.serial << C_RESET;
+          }
+          log_new << C_QUIET << " located at " << device.path << C_RESET;
+          RCLCPP_INFO(this->get_logger(), "%s", log_new.str().c_str());
+        }
         camera_map = new_camera_map;
       }
     }
@@ -177,6 +202,13 @@ class CameraDirectory : public rclcpp::Node
       camera_map = new_camera_map;
     }
     publisher_->publish(message);
+
+    // Pretty print cameras first time running
+    if (pretty_print_cameras)
+    {
+      RCLCPP_INFO(this->get_logger(), "%s\n", log.str().c_str());
+      pretty_print_cameras = false;
+    }
   }
 
   private: void service_callback(
