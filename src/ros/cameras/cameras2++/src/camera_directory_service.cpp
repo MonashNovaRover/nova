@@ -6,6 +6,7 @@
 #include <vector>
 #include <chrono>
 #include <unordered_map>
+#include <utility>
 #include <systemd/sd-device.h>
 
 #include "rclcpp/rclcpp.hpp"
@@ -59,6 +60,8 @@ class CameraDirectory : public rclcpp::Node
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
   std::vector<std::string> blacklist;
   std::unordered_map<std::string, std::string> serial_remaps;
+  std::string platform;
+  std::string payload;
   std::unordered_map<std::string, std::string> serial_overrides;
   std::unordered_map<std::string, std::string> camera_map;
   size_t last_device_count;
@@ -72,23 +75,64 @@ class CameraDirectory : public rclcpp::Node
       serial_remaps[kv.first] = kv.second.as_string();
     }
 
-    std::map<std::string, rclcpp::Parameter> serial_overrides_roots_parameters;
-    this->get_parameters("serial_overrides.roots", serial_overrides_roots_parameters);
-    std::unordered_map<std::string, std::string> serial_override_roots;
-    for (const auto& kv : serial_overrides_roots_parameters) {
-        const std::string& root = kv.first;
-        const std::string& name = kv.second.as_string();
+    platform = this->get_parameter_or<std::string>("platform", "");
+    payload = this->get_parameter_or<std::string>("payload", "");
+    if (platform.empty() || payload.empty()) {
+      if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
+      if (payload.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"payload\" is empty");
+      RCLCPP_WARN(this->get_logger(), "Skipping serial_overrides...");
 
-        std::string param_prefix = "serial_overrides.paths." + name;
-        std::map<std::string, rclcpp::Parameter> path_params;
-        this->get_parameters(param_prefix, path_params);
+    } else {
+      std::map<std::string, std::pair<std::string, std::string>> path_map;
+      std::map<std::string, std::string> root_map;
 
-        for (const auto& path_pair : path_params) {
-            const std::string& path = path_pair.first;
-            const std::string& serial = path_pair.second.as_string();
-            std::string key = root + "." + path;
-            serial_overrides[key] = serial;
+      // load default payload-bus path remaps 
+      std::map<std::string, rclcpp::Parameter> default_payloads;
+      this->get_parameters("serial_overrides.platform_roots", default_payloads);
+      for (const auto& default_kv: default_payloads) {
+        std::map<std::string, rclcpp::Parameter> default_payload_paths;
+        this->get_parameters("serial_overrides.platform_roots." + default_kv.first, default_payload_paths);
+        for (const auto& path_kv: default_payload_paths) {
+          path_map[path_kv.second.as_string()] = {default_kv.first, path_kv.first};
         }
+      }
+      
+      // load platform specific root remap
+      std::map<std::string, rclcpp::Parameter> platform_roots;
+      this->get_parameters("serial_overrides.platform_roots", platform_roots);
+      for (const auto& platform_kv: platform_roots) {
+        if (platform_kv.first == platform) {
+          std::map<std::string, rclcpp::Parameter> platform_root_map;
+          this->get_parameters("serial_overrides.platform_roots."+ platform, platform_root_map);
+          for (const auto& root_kv: platform_root_map) {
+            root_map[root_kv.second.as_string()] = root_kv.first;
+          }
+          break;
+        }
+      }
+
+      // load payload specific serial overrides
+      std::map<std::string, rclcpp::Parameter> path_params;
+      this->get_parameters("serial_overrides.payload_paths." + payload, path_params);
+      for (const auto& override : path_params) {
+        std::string root;
+        std::string path;
+        if (path_map.find(override.first) != path_map.end()){
+          // existing default override found
+          path = path_map[override.first].second;
+          root = root_map[path_map[override.first].first];
+        } else {
+          // no default override found, assume yaml in the following form:
+          // payload_name:
+          //   path: remap
+          // this will become "payload_name.path: remap" after get_parameters()
+          int pos = override.first.find(".");
+          path = override.first.substr(pos+1);
+          root = root_map[override.first.substr(0, pos)];
+        }
+        std::string key = root + "." + path;
+        serial_overrides[key] = override.second.as_string();
+      }
     }
   }
 

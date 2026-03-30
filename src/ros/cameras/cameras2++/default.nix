@@ -1,7 +1,6 @@
 { lib
 , ament-cmake
 , buildRosPackage
-, generate-parameter-library
 , gobject-introspection
 , gst_all_1
 , gst-bridge
@@ -36,7 +35,6 @@ buildRosPackage {
     rclcpp
     std-msgs
     std-srvs
-    generate-parameter-library
     systemd
     nova-camera-msgs
     
