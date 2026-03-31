@@ -14,6 +14,13 @@ export default {
       },    
       colors: {
         292929: "#292929",
+        // primary: "#F770AD",
+        primary: "#AD2D67",
+        // secondary: "#AD2D67",
+        secondary: "#F770AD",
+        success: "#2ac776",
+        warning: "#FFC902",
+        danger: "#DD1353"
         // TODO: Fix issues with different modes
         // light: {
         //   primary: "#FFFFFF",
