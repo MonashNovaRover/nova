@@ -5,19 +5,15 @@ camera_streamer:
       # Waveshare
       openaicam_openaicam_2505121128:
         pipeline_type: vpXsoftware
-        profile: ov2735
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
-        profile: gc2093
 
       HZ_USB_Camera_20220301104:
         pipeline_type: h264software
-        profile: ov5693
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         pipeline_type: vpXsoftware
-        profile: default
 
       # Development cameras
       brandon-cam:
@@ -69,7 +65,7 @@ camera_streamer:
       #  autostart: false
 
       # Arm
-      arm_gi [mbal:
+      arm_gimbal:
         meta: Arm - Gimbal
       arm_end_forward:
         meta: Arm - Forward
@@ -102,22 +98,33 @@ camera_streamer:
         height: 1080
         framerate: 30
 
-      gc2093:
-        width: 1920
-        height: 1080
-        framerate: 30
-        noise_reduction: 1024
-
-      ov2735:
+    defaults:
+      openaicam_openaicam_2505121128:
+        pipeline_type: vpXsoftware
         width: 1920
         height: 1080
         framerate: 30
         noise_reduction: 128
 
-      ov5693:
+      webcamvendor_SK_series1_20220325JWGD2093:
+        pipeline_type: h264passthrough        
+        width: 1920
+        height: 1080
+        framerate: 30
+        noise_reduction: 1024
+
+      HZ_USB_Camera_20220301104:
+        pipeline_type: h264software
         width: 1920
         height: 1080
         framerate: 30
         noise_reduction: 256
         brightness: 256
+
+      Microsoft_Microsoft®_LifeCam_HD-3000:
+        pipeline_type: vpXsoftware
+        width: 800
+        height: 600
+        framerate: 30
+        noise_reduction: 128
 

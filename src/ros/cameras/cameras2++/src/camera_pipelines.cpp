@@ -8,9 +8,7 @@
 
 #include "cameras/pipeline.hpp"
 
-#include <yaml-cpp/yaml.h>
-
-static bool is_plugin_available(const std::string& plugin_name) {
+bool is_plugin_available(const std::string& plugin_name) {
   GstElementFactory* factory = gst_element_factory_find(plugin_name.c_str());
   if (factory != nullptr) {
       gst_object_unref(factory);
@@ -19,11 +17,11 @@ static bool is_plugin_available(const std::string& plugin_name) {
   return false;
 }
 
-static int crop43(const int width, const int height) {
+int crop43(const int width, const int height) {
   return (width-(height*4/3))/2;
 }
 
-static bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, std::string serial) {
+bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, const std::string serial) {
    if (!gst_element_link(first_element, second_element)) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not link %s to %s for %s", gst_object_get_name(GST_OBJECT(first_element)), gst_object_get_name(GST_OBJECT(second_element)), serial.c_str());
       return false;
@@ -31,28 +29,28 @@ static bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element
    return true;
 }
 
-static std::string set_property(rclcpp::Node* streamer_node, std::string serial, std::string element, std::string default_value){
-    if (!(streamer_node->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), element))) {
-      return element;
-    } else if (!(streamer_node->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + serial + "." + element).c_str(), element))) {
-      return element;
-    } else if (!(streamer_node->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + serial + "." + element).c_str(), element))) {
-      return element;
-    } else {
-      return default_value;
-    }
+std::string set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, std::string value){
+    // Get property
+    streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
+    streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
+    streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
+    return value;
 }
 
-static std::string prop_default(YAML::Node param, YAML::Node profile, std::string name, std::string default_value){
-    return param[name] ? param[name].as<std::string>() : profile[name].as<std::string>(default_value);
+int set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, int value){
+    // Get property
+    streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
+    streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
+    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
+    return value;
 }
 
-static int prop_default(YAML::Node param, YAML::Node profile, std::string name, int default_value){
-    return param[name] ? param[name].as<int>() : profile[name].as<int>(default_value);
-}
-
-static bool prop_default(YAML::Node param, YAML::Node profile, std::string name, bool default_value){
-    return param[name] ? param[name].as<bool>() : profile[name].as<bool>(default_value);
+bool set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, bool value){
+    // Get property
+    streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
+    streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
+    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
+    return value;
 }
 
 /*
@@ -196,47 +194,44 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
-  const std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
+  props->original_serial = camera->original_serial;
 
-  // 1. Read yaml file
-  YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
-  YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
-  YAML::Node profile = config["camera_streamer"]["ros__parameters"][std::string(PROFILE_PREFIX)][param["profile"].as<std::string>("default")];
+  // Get profile
+  std::string profile;
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "default"); 
 
-  // 2. Define default properties
+  // 1. Define default properties
   std::string default_string;
 
   // source
-  default_string = props->node;
-  props->device = set_property(streamer_node, camera->serial, "device", props->node);
-  //props->device = prop_default(param, profile, "device", default_string);
+  props->device = set_property(streamer_node, camera->serial, profile, camera->original_serial, "device", props->node);
   default_string = "mmap";
-  props->io_mode = prop_default(param, profile, "io_mode", default_string);
+  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
 
   // filter
   default_string = "image/jpeg";
-  props->mime = prop_default(param, profile, "mime", default_string);
+  props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
 
-  props->brightness = prop_default(param, profile, "brightness", 0);
-  props->contrast = prop_default(param, profile, "contrast", 0);
-  props->framerate = prop_default(param, profile, "framerate", 30);
-  props->height = prop_default(param, profile, "height", 720);
-  props->width = prop_default(param, profile, "width", 1280);
+  props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
+  props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
+  props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
+  props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
   // cropper
-  props->crop43 = prop_default(param, profile, "crop43", false);
+  props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", false);
 
   // clock
-  props->show_clock = prop_default(param, profile, "show_clock", false);
+  props->show_clock = set_property(streamer_node, camera->serial, profile, camera->original_serial, "show_clock", false);
 
   // webrtc
-  default_string = props->node;
-  props->congestion_control = prop_default(param, profile, "congestion_control", default_string);
+  default_string = "gcc";
+  props->congestion_control = set_property(streamer_node, camera->serial, profile, camera->original_serial, "congestion_control", default_string);
   default_string = "video/x-h264,profile=constrained-baseline";
-  props->video_caps = prop_default(param, profile, "video_caps", default_string);
+  props->video_caps = set_property(streamer_node, camera->serial, profile, camera->original_serial, "video_caps", default_string);
 
-  props->do_fec = prop_default(param, profile, "do_fec", false);
-  props->do_retransmission = prop_default(param, profile, "do_retransmission", false);
+  props->do_fec = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_fec", false);
+  props->do_retransmission = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_retransmission", false);
 
   return props;
 }
@@ -343,33 +338,37 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
-  const std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
+  props->original_serial = camera->original_serial;
 
-  // 1. Read yaml file
-  YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
-  YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
-  YAML::Node profile = config["camera_streamer"]["ros__parameters"][std::string(PROFILE_PREFIX)][param["profile"].as<std::string>("default")];
+  // Get profile
+  std::string profile;
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "default"); 
 
-  // 2. Define default properties
+  // 1. Define default properties
   std::string default_string;
 
   // source
-  default_string = props->node;
-  props->device = prop_default(param, profile, "device", default_string);
+  props->device = set_property(streamer_node, camera->serial, profile, camera->original_serial, "device", props->node);
 
   // filter
-  props->brightness = prop_default(param, profile, "brightness", 0);
-  props->contrast = prop_default(param, profile, "contrast", 0);
-  props->framerate = prop_default(param, profile, "framerate", 30);
-  props->height = prop_default(param, profile, "height", 720);
-  props->width = prop_default(param, profile, "width", 1280);
+  default_string = "image/jpeg";
+  props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
+
+  props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
+  props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
+  props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
+  props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
+
+  // payloader
+  props->payload_quirk = set_property(streamer_node, camera->serial, profile, camera->original_serial, "payload_qurik", false);
 
   // webrtc
-  default_string = props->node;
-  props->congestion_control = prop_default(param, profile, "congestion_control", default_string);
+  default_string = "gcc";
+  props->congestion_control = set_property(streamer_node, camera->serial, profile, camera->original_serial, "congestion_control", default_string);
 
-  props->do_fec = prop_default(param, profile, "do_fec", false);
-  props->do_retransmission = prop_default(param, profile, "do_retransmission", false);
+  props->do_fec = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_fec", false);
+  props->do_retransmission = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_retransmission", false);
 
   return props;
 }
@@ -542,64 +541,62 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
-  const std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
+  props->original_serial = camera->original_serial;
 
-  // 1. Read yaml file
-  YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
-  YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
-  YAML::Node profile = config["camera_streamer"]["ros__parameters"][std::string(PROFILE_PREFIX)][param["profile"].as<std::string>("default")];
+  // Get profile
+  std::string profile;
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "default"); 
 
-  // 2. Define default properties
+  // 1. Define default properties
   std::string default_string;
 
   // source
-  default_string = props->node;
-  props->device = prop_default(param, profile, "device", default_string);
+  props->device = set_property(streamer_node, camera->serial, profile, camera->original_serial, "device", props->node);
   default_string = "mmap";
-  props->io_mode = prop_default(param, profile, "io_mode", default_string);
+  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
 
   // filter
   default_string = "image/jpeg";
-  props->mime = prop_default(param, profile, "mime", default_string);
+  props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
 
-  props->brightness = prop_default(param, profile, "brightness", 0);
-  props->contrast = prop_default(param, profile, "contrast", 0);
-  props->framerate = prop_default(param, profile, "framerate", 30);
-  props->height = prop_default(param, profile, "height", 720);
-  props->width = prop_default(param, profile, "width", 1280);
+  props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
+  props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
+  props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
+  props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
-  // decode
-  default_string = (is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec");
-  props->decoder = prop_default(param, profile, "decoder", default_string);
+  // decoder
+  default_string = is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec";
+  props->decoder = set_property(streamer_node, camera->serial, profile, camera->original_serial, "decoder", default_string);
 
   // cropper
-  props->crop43 = prop_default(param, profile, "crop43", false);
+  props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", false);
 
   // clock
-  props->show_clock = prop_default(param, profile, "show_clock", false);
+  props->show_clock = set_property(streamer_node, camera->serial, profile, camera->original_serial, "show_clock", false);
 
   // encode
   default_string = "dia";
-  props->me = prop_default(param, profile, "me", default_string);
+  props->me = set_property(streamer_node, camera->serial, profile, camera->original_serial, "me", default_string);
   default_string = "ultrafast";
-  props->speed_preset = prop_default(param, profile, "speed_preset", default_string);
+  props->speed_preset = set_property(streamer_node, camera->serial, profile, camera->original_serial, "speed_preset", default_string);
   default_string = "zerolatency";
-  props->tune = prop_default(param, profile, "tune", default_string);
+  props->tune = set_property(streamer_node, camera->serial, profile, camera->original_serial, "tune", default_string);
 
-  props->bitrate = prop_default(param, profile, "bitrate", 4096);
-  props->gop = prop_default(param, profile, "gop", 1);
-  props->noise_reduction = prop_default(param, profile, "noise_reduction", 256);
-  props->subme = prop_default(param, profile, "subme", 1);
-  props->threads = prop_default(param, profile, "threads", 1);
+  props->bitrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "bitrate", 4096);
+  props->gop = set_property(streamer_node, camera->serial, profile, camera->original_serial, "gop", 1);
+  props->noise_reduction = set_property(streamer_node, camera->serial, profile, camera->original_serial, "noise_reduction", 256);
+  props->subme = set_property(streamer_node, camera->serial, profile, camera->original_serial, "subme", 1);
+  props->threads = set_property(streamer_node, camera->serial, profile, camera->original_serial, "threads", 1);
 
   // webrtc
-  default_string = props->node;
-  props->congestion_control = prop_default(param, profile, "congestion_control", default_string);
+  default_string = "gcc";
+  props->congestion_control = set_property(streamer_node, camera->serial, profile, camera->original_serial, "congestion_control", default_string);
   default_string = "video/x-h264,profile=constrained-baseline";
-  props->video_caps = prop_default(param, profile, "video_caps", default_string);
+  props->video_caps = set_property(streamer_node, camera->serial, profile, camera->original_serial, "video_caps", default_string);
 
-  props->do_fec = prop_default(param, profile, "do_fec", false);
-  props->do_retransmission = prop_default(param, profile, "do_retransmission", false);
+  props->do_fec = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_fec", false);
+  props->do_retransmission = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_retransmission", false);
 
   return props;
 }
@@ -775,60 +772,58 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
-  const std::string camera_prefix = std::string(PIPELINE_PREFIX) + "." + camera->serial;
+  props->original_serial = camera->original_serial;
 
-  // 1. Read yaml file
-  YAML::Node config = YAML::LoadFile("/home/nova/nova/src/ros/cameras/cameras2++/params/streamer.yaml");
-  YAML::Node param = config["camera_streamer"]["ros__parameters"][std::string(PIPELINE_PREFIX)][camera->serial];
-  YAML::Node profile = config["camera_streamer"]["ros__parameters"][std::string(PROFILE_PREFIX)][param["profile"].as<std::string>("default")];
+  // Get profile
+  std::string profile;
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "default"); 
 
-  // 2. Define default properties
+  // 1. Define default properties
   std::string default_string;
 
   // source
-  default_string = props->node;
-  props->device = prop_default(param, profile, "device", default_string);
+  props->device = set_property(streamer_node, camera->serial, profile, camera->original_serial, "device", props->node);
   default_string = "mmap";
-  props->io_mode = prop_default(param, profile, "io_mode", default_string);
+  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
 
   // filter
   default_string = "image/jpeg";
-  props->mime = prop_default(param, profile, "mime", default_string);
+  props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
 
-  props->brightness = prop_default(param, profile, "brightness", 0);
-  props->contrast = prop_default(param, profile, "contrast", 0);
-  props->framerate = prop_default(param, profile, "framerate", 30);
-  props->height = prop_default(param, profile, "height", 720);
-  props->width = prop_default(param, profile, "width", 1280);
+  props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
+  props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
+  props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
+  props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
-  // decode
-  default_string = (is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec");
-  props->decoder = prop_default(param, profile, "decoder", default_string);
+  // decoder
+  default_string = is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec";
+  props->decoder = set_property(streamer_node, camera->serial, profile, camera->original_serial, "decoder", default_string);
 
   // cropper
-  props->crop43 = prop_default(param, profile, "crop43", false);
+  props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", false);
 
   // clock
-  props->show_clock = prop_default(param, profile, "show_clock", false);
+  props->show_clock = set_property(streamer_node, camera->serial, profile, camera->original_serial, "show_clock", false);
 
   // encode
   default_string = "cbr";
-  props->end_usage = prop_default(param, profile, "end_usage", default_string);
+  props->end_usage = set_property(streamer_node, camera->serial, profile, camera->original_serial, "end_usage", default_string);
 
-  props->bitrate = prop_default(param, profile, "bitrate", 4096);
-  props->cpu_used = prop_default(param, profile, "cpu_used", 16);
-  props->deadline = prop_default(param, profile, "deadline", 1);
-  props->gop = prop_default(param, profile, "gop", 1);
-  props->threads = prop_default(param, profile, "threads", 1);
+  props->bitrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "bitrate", 4096);
+  props->cpu_used = set_property(streamer_node, camera->serial, profile, camera->original_serial, "cpu_used", 16);
+  props->deadline = set_property(streamer_node, camera->serial, profile, camera->original_serial, "deadline", 1);
+  props->gop = set_property(streamer_node, camera->serial, profile, camera->original_serial, "gop", 1);
+  props->threads = set_property(streamer_node, camera->serial, profile, camera->original_serial, "threads", 1);
 
   // webrtc
-  default_string = props->node;
-  props->congestion_control = prop_default(param, profile, "congestion_control", default_string);
+  default_string = "gcc";
+  props->congestion_control = set_property(streamer_node, camera->serial, profile, camera->original_serial, "congestion_control", default_string);
   default_string = "video/x-vp8";
-  props->video_caps = prop_default(param, profile, "video_caps", default_string);
+  props->video_caps = set_property(streamer_node, camera->serial, profile, camera->original_serial, "video_caps", default_string);
 
-  props->do_fec = prop_default(param, profile, "do_fec", false);
-  props->do_retransmission = prop_default(param, profile, "do_retransmission", false);
+  props->do_fec = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_fec", false);
+  props->do_retransmission = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_retransmission", false);
 
   return props;
 }

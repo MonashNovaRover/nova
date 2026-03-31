@@ -8,6 +8,7 @@ struct Properties
 {
   std::string serial;
   std::string node;
+  std::string original_serial;
 };
 
 struct v4lProperties

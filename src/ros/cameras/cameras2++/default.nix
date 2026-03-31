@@ -14,7 +14,6 @@
 , sysprof
 , v4l-utils
 , wrapGAppsNoGuiHook
-, yaml-cpp
 }:
 
 buildRosPackage {
@@ -51,7 +50,6 @@ buildRosPackage {
     libnice                   # needed for webrtc
     v4l-utils                 # v4l2-ctl
     gst-bridge                # ros-gst-bridge/rosimagesrc
-    yaml-cpp                  # reading config file in runtime
   ];
 
   postInstall = ''

@@ -23,8 +23,6 @@
 #include "cameras/cameras.hpp"
 #include "cameras/pipeline.hpp"
 
-#include <yaml-cpp/yaml.h>
-
 using namespace std::placeholders;
 
 
@@ -118,6 +116,7 @@ class CameraStreamer : public rclcpp::Node
 
         std::map<std::string, rclcpp::Parameter> serial_params;
         this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera.serial + ".pipeline_type").c_str(), pipeline->pipeline_type, "v4l2webrtc");
+        this->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera.original_serial + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type);
         bool autostart;
         this->get_parameter_or("autostart", autostart, true);
 
