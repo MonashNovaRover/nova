@@ -70,7 +70,7 @@ class CameraDirectory : public rclcpp::Node
 
   private: void get_configuration()
   {
-    blacklist = this->get_parameter("blacklist").as_string_array();
+    blacklist = this->get_parameter_or<std::vector<std::string>>("blacklist", std::vector<std::string>());
     std::map<std::string, rclcpp::Parameter> serial_remaps_parameters;
     this->get_parameters("serial_remaps", serial_remaps_parameters);
     for (const auto& kv: serial_remaps_parameters) {
