@@ -35,8 +35,6 @@ camera_directory:
           "platform-3530000.xhci-usb-0:3": payload
         tx2_dev_board:
           "platform-3530000.xhci-usb-0:2": mast
-        anthony_wsl:
-          "platform-vhci_hcd": mast
 
       default_paths:
         # by default these paths on the usb hub will be remapped to the following serials.
@@ -52,7 +50,7 @@ camera_directory:
           '2:1.0': payload_2
           '3:1.0': payload_3
           '4:1.0': payload_4
-      
+
       task_paths:
         # the set of overrides can be selected by setting the "task" parameter
         # if a non-default path is needed, it can be specified in its named root followed by the path.
@@ -78,7 +76,7 @@ camera_directory:
           payload_3: ec_forklift_down       # ec hub 2
           payload_2: ec_forklift_forward    # ec hub 3
           payload_1: ec_scraper_leg         # ec hub 4
-        
+
         example:
           payload_2: science_kiln
           mast_arm_stow: science_microscope
