@@ -307,9 +307,8 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   gst_structure_free(meta);
 
   // 3. Add elements to pipeline
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, webrtc, NULL);
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, parse, webrtc, NULL);
   if (props->payload_quirk) gst_bin_add_many(GST_BIN(gst_pipeline), payload, depayload, NULL);
-  if (!(props->payload_quirk)) gst_bin_add(GST_BIN(gst_pipeline), parse);
 
   // 4. Link elements
   if (!link_elements(streamer_node, source, filter, props->serial)) return nullptr;
@@ -361,7 +360,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
   // payloader
-  props->payload_quirk = set_property(streamer_node, camera->serial, profile, camera->original_serial, "payload_qurik", false);
+  props->payload_quirk = set_property(streamer_node, camera->serial, profile, camera->original_serial, "payload_quirk", false);
 
   // webrtc
   default_string = "gcc";
