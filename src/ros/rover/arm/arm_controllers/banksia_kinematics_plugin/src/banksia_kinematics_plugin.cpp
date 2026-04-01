@@ -15,18 +15,95 @@ AUTHORS:    Arbab Ahmed, Bailey Chessum
 #include "rclcpp/logging.hpp"
 #include "tf2/LinearMath/Scalar.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include <moveit/robot_model/robot_model.h>
-#include <moveit/robot_state/robot_state.h>
+#include <moveit/robot_model/robot_model.hpp>
+#include <moveit/robot_state/robot_state.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
+#include <Eigen/Geometry>
+#include <Eigen/src/Core/MatrixBase.h>
 
-namespace
-{
-  /// The inverse of the global orientation the kinematics origin frame wants to rotate to for a roll,pitch,yaw of 0,0,0
-  // To find this value, set the rotation quat to 0,0,0,1. Ensure both the arm kinematics origin and endeffector
-  // kinematics frames have the z axis up and x axis facing drive forward when in the zero position. Run rviz, and enter
-  // IK mode from the zero position. Enter the rotation of the endeffector_kinematics frame after this.
-  const auto ENDEFFECTOR_BASIS_INVERSE = tf2::Matrix3x3(tf2::Quaternion(0.5, -0.5, 0.5, 0.5)).inverse();
-} // namespace
+// backport this :(
+// This function is Mozilla Public License v. 2.0
+// it is not in eigen 3.4.1, only in 5.0.0+
+namespace Eigen {
+inline Vector3d canonicalEulerAngles(Matrix3d coeff,
+    Index a0, Index a1, Index a2) {
+  /* Implemented from Graphics Gems IV */
+
+  Vector3d res;
+#define Index int
+#define Scalar double
+
+  const Index odd = ((a0 + 1) % 3 == a1) ? 0 : 1;
+  const Index i = a0;
+  const Index j = (a0 + 1 + odd) % 3;
+  const Index k = (a0 + 2 - odd) % 3;
+
+  if (a0 == a2) {
+    // Proper Euler angles (same first and last axis).
+    // The i, j, k indices enable addressing the input matrix as the XYX archetype matrix (see Graphics Gems IV),
+    // where e.g. coeff(k, i) means third column, first row in the XYX archetype matrix:
+    //  c2      s2s1              s2c1
+    //  s2s3   -c2s1s3 + c1c3    -c2c1s3 - s1c3
+    // -s2c3    c2s1c3 + c1s3     c2c1c3 - s1s3
+
+    // Note: s2 is always positive.
+    Scalar s2 = hypot(coeff(j, i), coeff(k, i));
+    if (odd) {
+      res[0] = atan2(coeff(j, i), coeff(k, i));
+      // s2 is always positive, so res[1] will be within the canonical [0, pi] range
+      res[1] = atan2(s2, coeff(i, i));
+    } else {
+      // In the !odd case, signs of all three angles are flipped at the very end. To keep the solution within the
+      // canonical range, we flip the solution and make res[1] always negative here (since s2 is always positive,
+      // -atan2(s2, c2) will always be negative). The final flip at the end due to !odd will thus make res[1] positive
+      // and canonical. NB: in the general case, there are two correct solutions, but only one is canonical. For proper
+      // Euler angles, flipping from one solution to the other involves flipping the sign of the second angle res[1] and
+      // adding/subtracting pi to the first and third angles. The addition/subtraction of pi to the first angle res[0]
+      // is handled here by flipping the signs of arguments to atan2, while the calculation of the third angle does not
+      // need special adjustment since it uses the adjusted res[0] as the input and produces a correct result.
+      res[0] = atan2(-coeff(j, i), -coeff(k, i));
+      res[1] = -atan2(s2, coeff(i, i));
+    }
+
+    // With a=(0,1,0), we have i=0; j=1; k=2, and after computing the first two angles,
+    // we can compute their respective rotation, and apply its inverse to M. Since the result must
+    // be a rotation around x, we have:
+    //
+    //  c2  s1.s2 c1.s2                   1  0   0
+    //  0   c1    -s1       *    M    =   0  c3  s3
+    //  -s2 s1.c2 c1.c2                   0 -s3  c3
+    //
+    //  Thus:  m11.c1 - m21.s1 = c3  &   m12.c1 - m22.s1 = s3
+
+    Scalar s1 = numext::sin(res.coeff(0));
+    Scalar c1 = numext::cos(res.coeff(0));
+    res[2] = atan2(c1 * coeff(j, k) - s1 * coeff(k, k), c1 * coeff(j, j) - s1 * coeff(k, j));
+  } else {
+    // Tait-Bryan angles (all three axes are different; typically used for yaw-pitch-roll calculations).
+    // The i, j, k indices enable addressing the input matrix as the XYZ archetype matrix (see Graphics Gems IV),
+    // where e.g. coeff(k, i) means third column, first row in the XYZ archetype matrix:
+    //  c2c3    s2s1c3 - c1s3     s2c1c3 + s1s3
+    //  c2s3    s2s1s3 + c1c3     s2c1s3 - s1c3
+    // -s2      c2s1              c2c1
+
+    res[0] = atan2(coeff(j, k), coeff(k, k));
+
+    Scalar c2 = hypot(coeff(i, i), coeff(i, j));
+    // c2 is always positive, so the following atan2 will always return a result in the correct canonical middle angle
+    // range [-pi/2, pi/2]
+    res[1] = atan2(-coeff(i, k), c2);
+
+    Scalar s1 = numext::sin(res.coeff(0));
+    Scalar c1 = numext::cos(res.coeff(0));
+    res[2] = atan2(s1 * coeff(k, i) - c1 * coeff(j, i), c1 * coeff(j, j) - s1 * coeff(k, j));
+  }
+  if (!odd) {
+    res = -res;
+  }
+
+  return res;
+}
+}
 
 namespace banksia_kinematics_plugin
 {
@@ -52,7 +129,7 @@ namespace banksia_kinematics_plugin
     }
 
     // TODO: Calculate from the given RobotModel
-    link_lengths_ = {0.5, 0.41799975417, 0.417};
+    link_lengths_ = {0.5, 0.640277, 0.2225};
 
     return true;
   }
@@ -60,22 +137,29 @@ namespace banksia_kinematics_plugin
 
   // TODO: remember to add something for the effector pose
   std::array<double, 6> BanksiaKinematicsPlugin::calculate_ik(tf2::Transform pose, std::array<double, 3> lengths) const {
+    auto logger = node_.lock()->get_logger();
     auto origin = pose.getOrigin();
     auto x = origin.getX();
     auto y = origin.getY();
     auto z = origin.getZ();
 
-    tf2::Matrix3x3 rotated_basis = pose.getBasis() * ENDEFFECTOR_BASIS_INVERSE;
+    tf2::Matrix3x3 rotated_basis = pose.getBasis();
 
     double l1r = lengths[0];
     double l2r = lengths[1];
     double l3 = lengths[2];
+    
 
     Eigen::Matrix3d rxyz {
       {rotated_basis[0][0], rotated_basis[0][1], rotated_basis[0][2]},
       {rotated_basis[1][0], rotated_basis[1][1], rotated_basis[1][2]},
       {rotated_basis[2][0], rotated_basis[2][1], rotated_basis[2][2]}
     };  // rxyz orientation matrix
+    //Eigen::Matrix3d rxyz {
+    //  {1, 0, 0},
+    //  {0, 1, 0},
+    //  {0, 0, 1}
+    //};  // rxyz orientation matrix
 
     Eigen::Matrix4d t07r = Eigen::Matrix4d::Zero();
     t07r.topLeftCorner<3,3>() = rxyz;
@@ -85,7 +169,15 @@ namespace banksia_kinematics_plugin
     t07r(1, 3) = y;
     t07r(2, 3) = z;
 
-    Eigen::Matrix4d t67 { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, l3}, {0, 0, 0, 1} };
+
+    RCLCPP_WARN(logger, "IK TARGET");
+    RCLCPP_WARN(logger, "[%4.2f %4.2f %4.2f %4.2f;", t07r(0,0), t07r(0,1), t07r(0,2), t07r(0,3));
+    RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f;", t07r(1,0), t07r(1,1), t07r(1,2), t07r(1,3));
+    RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f;", t07r(2,0), t07r(2,1), t07r(2,2), t07r(2,3));
+    RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f]", t07r(3,0), t07r(3,1), t07r(3,2), t07r(3,3));
+
+    // need two dh transforms to get x of end effector frame pointing forwards
+    Eigen::Matrix4d t67 = sub_dh(M_PI/2, 0, 0, M_PI/2) * sub_dh(M_PI/2, l3, 0, 0);
     Eigen::Matrix4d t0_wrist = t07r * t67.inverse();
 
     double wrist_x = t0_wrist(0, 3);
@@ -96,8 +188,8 @@ namespace banksia_kinematics_plugin
     double l = sqrt(pow(wrist_x, 2) + pow(wrist_y, 2));
     double j3a = acos((pow(l, 2) + pow(wrist_z, 2) - pow(l1r, 2) - pow(l2r, 2)) / (2 * l1r * l2r));
     double j3b = -j3a; // expands to -acos((l^2+wrist_z^2-L1r^2-L2r^2)/(2*L1r*L2r)) as per keenan's notes
-    double j3ao = j3a + M_PI / 2;
-    double j3bo = j3b + M_PI / 2;
+    double j3ao = -j3a - M_PI / 2;
+    double j3bo = -j3b - M_PI / 2;
 
     double k1a = l1r + l2r * cos(j3a);
     double k2a = l2r * sin(j3a);
@@ -106,24 +198,35 @@ namespace banksia_kinematics_plugin
 
     double j2a = atan2(wrist_z, l) - atan2(k2a, k1a);
     double j2b = atan2(wrist_z, l) - atan2(k2b, k1b);
-    double j2ao = j2a - M_PI / 2;
-    double j2bo = j2b - M_PI / 2;
+    double j2ao = -j2a;
+    double j2bo = -j2b;
 
     Eigen::Matrix4d t01 = sub_dh(0, 0, 0, j1);
-    Eigen::Matrix4d t12 = sub_dh(M_PI / 2, 0, 0, j2bo + M_PI / 2);
-    Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo - M_PI / 2);
+    Eigen::Matrix4d t12 = sub_dh(-M_PI / 2, 0, 0, j2bo);
+    Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo);
     Eigen::Matrix4d t02 = t01 * t12;
     Eigen::Matrix4d t03_wrist = t02 * t23;
     Eigen::Matrix3d r03_wrist = t03_wrist.topLeftCorner<3, 3>(); // R03_wrist = T03_wrist(1:3,1:3); in matlab
     Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>(); // see above
     Eigen::Matrix3d r37r = r03_wrist.inverse() * r07r;
 
-    double j4 = atan2(r37r(1, 2), r37r(0, 2));
-    double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
-    double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
+    
+    // I don't know why we have to roll the rows of the matrix by one.
+    Eigen::Vector3i indicies = {1,2,0};
+    Eigen::Matrix3d r37r_shifted = r37r(indicies,Eigen::all);
+ 
+    // rx, ry, rx
+    // once we have eigen 5.0.0+ this can be done properly.
+    Eigen::Vector3d rpr = Eigen::canonicalEulerAngles(r37r_shifted,0,1,0);
 
-    // Needs to be in the same order as when they get put in a joint group
-    std::array<double, 6> new_joints = { j1, j2bo, -j4, j5, j6, j3bo + j2bo };
+    double j4 = rpr(0);
+    double j5 = rpr(1) - M_PI/2;
+    double j6 = rpr(2);
+
+    // Needs to be in the same order as when they get put in a joint group ???
+    std::array<double, 6> new_joints = { j1, j2bo+M_PI/2, j4, j5, j6, j3bo + j2bo + M_PI/2 };
+    RCLCPP_WARN(logger, "IK SOLUTION");
+    RCLCPP_WARN(logger, "%4.2f %4.2f %4.2f %4.2f %4.2f %4.2f", j1, j2bo+M_PI/2, j3bo + j2bo + M_PI/2, j4, j5, j6);
     return new_joints;
   }
 
