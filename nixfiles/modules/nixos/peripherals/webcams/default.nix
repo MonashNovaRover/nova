@@ -12,6 +12,7 @@ in
       options uvcvideo \
         nodrop=1 \
         timeout=5000 \
+        mjpeg_bpp=1 \
         quirks=${toString (builtins.foldl' builtins.bitOr 0 [
           128 # UVC_QUIRK_FIX_BANDWIDTH
         ])}
