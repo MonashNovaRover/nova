@@ -1,55 +1,92 @@
 camera_directory:
   ros__parameters:
     blacklist:
-      # The RealSense cameras expose many video device nodes, all with the same serial number and USB device path.
-      # This is incompatible with the design of the camera_directory node.
+      # These serials will not be broadcasted by the directory server
+      
+      # The RealSense cameras expose many video device nodes, all with the same serial number and USB device path. 
+      # This is incompatible with the current design of the camera_directory node. But could be fixed in the future...
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455_210523060485
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455 # Jetson TX2 does not see the serial number??
+
     serial_overrides:
-      paths:
+      # cameras at the specified root.path combo will have their serials overridden as specified by the platform and task passed to the directory node
+      platform_roots:
+        # the root for each platform which generally will change depending on which usb slot of the device the usb hub is plugged into
+        # the root can be specified by passing the "platform" parameter to the directory node
+        aftershock_laptop:
+          "pci-0000:00:14.0-usb-0:9": mast    # USB slot on left of computer - right slot.
+          "pci-0000:00:14.0-usb-0:4": payload # USB slot on left of computer - left slot.
+        intel_laptop:
+          "pci-0000:00:14.0-usb-0:1": mast
+          "pci-0000:00:14.0-usb-0:2": payload
+        orin:
+          "platform-3610000.usb-usb-0:3": mast
+          "platform-3610000.usb-usb-0:2": payload
+        orin_dev_board:
+          "platform-3610000.xhci-usb-0:2.1": mast
+          "platform-3610000.xhci-usb-0:2.2": payload 
+          # Expected USB slots:
+          # -------------------------------------
+          # ---- | Mast hub     |      | --------
+          # HDMI | Payload hub  |      | ETHERNET
+          # -------------------------------------
+        rover:
+          "platform-3530000.xhci-usb-0:1": mast
+          "platform-3530000.xhci-usb-0:3": payload
+        tx2_dev_board:
+          "platform-3530000.xhci-usb-0:2": mast
+
+      default_paths:
+        # by default these paths on the usb hub will be remapped to the following serials.
+        # these default serials can be overridden in tasks
+        # the path corresponds to the slot on a usb hub
         mast:
           '1:1.0': mast_arm_stow
           '2:1.0': mast_down
           '3:1.0': mast_forward
           '4:1.0': mast_backward
-        science:
-          '1:1.0': science_spectrometer_top
-          '2:1.0': science_spectrometer_side
-          '4.1:1.0': science_microscope
-          '4.2:1.0': science_backward
-          '4.3:1.0': science_shotglass
-          '4.4:1.0': science_rock_flipper
-          '3:1.0': science_gantry
-        science-urc:
-          '1:1.0': science_gimbal_cam
-          '2:1.0': science_microscope
-          '3:1.0': science_spectroscope
-          '4.1:1.0': science_cuvettes
-        science_urc_mast:
-          '1:1.0': mast_arm_stow
-          '2:1.0': mast_down
-          '3:1.0': mast_forward
-          '4:1.0': mast_backward
+        payload:
+          '1:1.0': payload_1
+          '2:1.0': payload_2
+          '3:1.0': payload_3
+          '4:1.0': payload_4
+
+      task_paths:
+        # the set of overrides can be selected by setting the "task" parameter
+        # if a non-default path is needed, it can be specified in its named root followed by the path.
+        # Take a look at example for the possible override methods
         science-arc:
-          '3:1.0': science_gimbal_cam     # science hub port 1
-          '2:1.0': science_kiln           # science hub port 2
-          '1:1.0': science_kiln_bottom    # science hub port 3
-          '4:1.0': science_microscope     # science hub port 4  
-        arm_es:
-          '1:1.0': arm_end_finger
-          '2:1.0': arm_end_side
-          '3:1.0': arm_end_periscope
-          '4:1.0': arm_end_top
+          payload_3: science_gimbal_cam     # science hub port 1
+          payload_2: science_kiln           # science hub port 2
+          payload_1: science_kiln_bottom    # science hub port 3
+          payload_4: science_microscope     # science hub port 4  
+        science-urc:
+          payload_1: science_gimbal_cam
+          payload_2: science_microscope
+          payload_3: science_spectroscope
+          payload:
+            '4.1:1.0': science_cuvettes
         arm:
-          '1:1.0': arm_end_finger
-          '2:1.0': arm_end_side
-          '3:1.0': arm_end_periscope
-          '4:1.0': arm_end_top
+          payload_1: arm_end_finger
+          payload_2: arm_end_side
+          payload_3: arm_end_periscope
+          payload_4: arm_end_top
         ec:
-          '4:1.0': ec_scraper             # ec hub 1 -> camera in USB position 1 as labeled on the E&C CAMS USB Hub
-          '3:1.0': ec_forklift_down       # ec hub 2
-          '2:1.0': ec_forklift_forward    # ec hub 3
-          '1:1.0': ec_scraper_leg         # ec hub 4
+          payload_4: ec_scraper             # ec hub 1 -> camera in USB position 1 as labeled on the E&C CAMS USB Hub
+          payload_3: ec_forklift_down       # ec hub 2
+          payload_2: ec_forklift_forward    # ec hub 3
+          payload_1: ec_scraper_leg         # ec hub 4
+
+        example:
+          payload_2: science_kiln
+          mast_arm_stow: science_microscope
+          'payload.4.1:1.2': science_cuvettes
+          mast:
+            '1:1.0': bellycam
+            '2:1.0': jared_left_eye
+
     serial_remaps:
-      046d_HD_Pro_Webcam_C920_D113139F: anthony-cam
-      SunplusIT_Inc_ACER_FHD_User_Facing_01.00.00: brandon-cam
+      # serial_remaps can be used to override a camera serial into another serial in the directory message and is typically used in testing
+      # a serial remap occurs after an override, so you can essentially rename an override! 
+      # These are global overrides and will occur irrespective of platform and task.
+      example_webcam_serial: anthony-cam

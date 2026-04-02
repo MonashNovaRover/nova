@@ -6,6 +6,7 @@
 #include <vector>
 #include <chrono>
 #include <unordered_map>
+#include <utility>
 #include <systemd/sd-device.h>
 
 #include "rclcpp/rclcpp.hpp"
@@ -14,7 +15,7 @@
 #include <camera_msgs/msg/cameras.hpp>
 
 #include "cameras/cameras.hpp"
-#include "cameras/directory_parameters.hpp"
+#include "cameras/colors.hpp"
 
 using namespace std::placeholders;
 
@@ -48,7 +49,6 @@ class CameraDirectory : public rclcpp::Node
     service_ = this->create_service<std_srvs::srv::Empty>(SERVICE_DISCOVERY, std::bind(&CameraDirectory::service_callback, this, _1, _2));
     
     // setup parameters
-    param_listener = std::make_shared<camera_directory_service::ParamListener>(get_node_parameters_interface());
     this->get_configuration();
 
     // publish once
@@ -59,40 +59,92 @@ class CameraDirectory : public rclcpp::Node
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<camera_msgs::msg::Cameras>::SharedPtr publisher_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service_;
-  std::shared_ptr<camera_directory_service::ParamListener> param_listener;
   std::vector<std::string> blacklist;
   std::unordered_map<std::string, std::string> serial_remaps;
+  std::string platform;
+  std::string task;
   std::unordered_map<std::string, std::string> serial_overrides;
   std::unordered_map<std::string, std::string> camera_map;
   size_t last_device_count;
+  bool pretty_print_cameras = true; // pretty print cameras first time run
 
   private: void get_configuration()
   {
-    camera_directory_service::Params params = param_listener->get_params();
-
+    blacklist = this->get_parameter_or<std::vector<std::string>>("blacklist", std::vector<std::string>());
     std::map<std::string, rclcpp::Parameter> serial_remaps_parameters;
     this->get_parameters("serial_remaps", serial_remaps_parameters);
     for (const auto& kv: serial_remaps_parameters) {
       serial_remaps[kv.first] = kv.second.as_string();
     }
 
-    std::map<std::string, rclcpp::Parameter> serial_overrides_roots_parameters;
-    this->get_parameters("serial_overrides.roots", serial_overrides_roots_parameters);
-    std::unordered_map<std::string, std::string> serial_override_roots;
-    for (const auto& kv : serial_overrides_roots_parameters) {
-        const std::string& root = kv.first;
-        const std::string& name = kv.second.as_string();
+    platform = this->get_parameter_or<std::string>("platform", "");
+    task = this->get_parameter_or<std::string>("task", "");
+    if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
+      else RCLCPP_INFO(this->get_logger(), "Using platform root from %s", platform.c_str());
+    if (task.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"task\" is empty");
+      else RCLCPP_INFO(this->get_logger(), "Using task serials from %s", task.c_str());
 
-        std::string param_prefix = "serial_overrides.paths." + name;
-        std::map<std::string, rclcpp::Parameter> path_params;
-        this->get_parameters(param_prefix, path_params);
-
-        for (const auto& path_pair : path_params) {
-            const std::string& path = path_pair.first;
-            const std::string& serial = path_pair.second.as_string();
-            std::string key = root + "." + path;
-            serial_overrides[key] = serial;
+    if (platform.empty()) {
+      RCLCPP_WARN(this->get_logger(), "Skipping serial_overrides...");
+    } else {
+      std::map<std::string, std::pair<std::string, std::string>> path_map;
+      std::map<std::string, std::string> root_map;
+      
+      // load platform specific root remap
+      std::map<std::string, rclcpp::Parameter> platform_roots;
+      this->get_parameters("serial_overrides.platform_roots", platform_roots);
+      for (const auto& platform_kv: platform_roots) {
+        std::string platform_name = platform_kv.first.substr(0, platform_kv.first.find('.'));
+        if (platform_name == platform) {
+          std::map<std::string, rclcpp::Parameter> platform_root_map;
+          this->get_parameters("serial_overrides.platform_roots."+ platform_name, platform_root_map);
+          for (const auto& root_kv: platform_root_map) {
+            root_map[root_kv.second.as_string()] = root_kv.first;
+            // e.g mast: "platform-3530000.xhci-0:1"
+          }
+          break;
         }
+      }
+
+      // load default payload-bus path remaps 
+      std::map<std::string, rclcpp::Parameter> default_payloads;
+      this->get_parameters("serial_overrides.default_paths", default_payloads);
+      for (const auto& default_kv: default_payloads) {
+        std::string payload_name = default_kv.first.substr(0, default_kv.first.find('.'));
+        std::map<std::string, rclcpp::Parameter> default_payload_paths;
+        this->get_parameters("serial_overrides.default_paths." + payload_name, default_payload_paths);
+        for (const auto& path_kv: default_payload_paths) {
+          path_map[path_kv.second.as_string()] = {payload_name, path_kv.first};
+          // e.g payload_1: {mast, 1:1.0}
+
+          // Add defaults to serial overrides first
+          std::string key = root_map[payload_name] + "." + path_kv.first;
+          serial_overrides[key] = path_kv.second.as_string();
+        }
+      }
+
+      // load task specific serial overrides
+      std::map<std::string, rclcpp::Parameter> path_params;
+      this->get_parameters("serial_overrides.task_paths." + task, path_params);
+      for (const auto& override : path_params) {
+        std::string root;
+        std::string path;
+        if (path_map.find(override.first) != path_map.end()){
+          // existing default override found
+          path = path_map[override.first].second;
+          root = root_map[path_map[override.first].first];
+        } else {
+          // no default override found, assume yaml in the following form:
+          // task_name:
+          //   path: remap
+          // this will become "task_name.path: remap" after get_parameters()
+          int pos = override.first.find(".");
+          path = override.first.substr(pos+1);
+          root = root_map[override.first.substr(0, pos)];
+        }
+        std::string key = root + "." + path;
+        serial_overrides[key] = override.second.as_string();
+      }
     }
   }
 
@@ -101,10 +153,15 @@ class CameraDirectory : public rclcpp::Node
     /*
       Add each camera to a cameras message and publish their final serial and dev node.    
     */
+    std::stringstream log;
+    log << C_MODE << "Detected Cameras:" << C_RESET;
+
     auto message = camera_msgs::msg::Cameras();
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     std::unordered_map<std::string, std::string> new_camera_map;
     for (V4lDevice device : devices) {
+      // if device is in blacklist, skip
+      if (std::find(blacklist.begin(), blacklist.end(), device.serial) != blacklist.end()) continue;
 
       // get final serial with remaps and overrides
       std::string serial = device.serial;
@@ -120,12 +177,32 @@ class CameraDirectory : public rclcpp::Node
       camera.node = device.devname;
       message.cameras.push_back(camera);
 
+      // Prettify camera serial and info
+      if (pretty_print_cameras)
+      {
+        log << "\n  - " << C_TITLE << serial << C_RESET;
+        if (serial != device.serial)
+        {
+          log << C_QUIET " remapped from " << device.serial << C_RESET;
+        }
+        log << C_QUIET " located at " << device.path << C_RESET;
+      };
+
       // check if new camera or serial changed
       if (camera_map.find(serial) == camera_map.end())
       {
         new_camera_map[serial] = device.devname;
-        if (serial != device.serial) RCLCPP_INFO(this->get_logger(), "New device found: %s serial remapped to: %s", device.serial.c_str(), serial.c_str());
-        else RCLCPP_INFO(this->get_logger(), "New device found: %s", serial.c_str());
+        if (!pretty_print_cameras)
+        {
+          std::stringstream log_new;
+          log_new << "New camera detected: " << C_TITLE << serial << C_RESET;
+          if (serial != device.serial)
+          {
+            log_new << C_QUIET << " remapped from " << device.serial << C_RESET;
+          }
+          log_new << C_QUIET << " located at " << device.path << C_RESET;
+          RCLCPP_INFO(this->get_logger(), "%s", log_new.str().c_str());
+        }
         camera_map = new_camera_map;
       }
     }
@@ -135,6 +212,13 @@ class CameraDirectory : public rclcpp::Node
       camera_map = new_camera_map;
     }
     publisher_->publish(message);
+
+    // Pretty print cameras first time running
+    if (pretty_print_cameras)
+    {
+      RCLCPP_INFO(this->get_logger(), "%s\n", log.str().c_str());
+      pretty_print_cameras = false;
+    }
   }
 
   private: void service_callback(
