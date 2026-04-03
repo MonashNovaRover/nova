@@ -150,18 +150,12 @@ namespace banksia_kinematics_plugin
     double l1r = lengths[0];
     double l2r = lengths[1];
     double l3 = lengths[2];
-    
 
     Eigen::Matrix3d rxyz {
       {rotated_basis[0][0], rotated_basis[0][1], rotated_basis[0][2]},
       {rotated_basis[1][0], rotated_basis[1][1], rotated_basis[1][2]},
       {rotated_basis[2][0], rotated_basis[2][1], rotated_basis[2][2]}
     };  // rxyz orientation matrix
-    //Eigen::Matrix3d rxyz {
-    //  {1, 0, 0},
-    //  {0, 1, 0},
-    //  {0, 0, 1}
-    //};  // rxyz orientation matrix
 
     Eigen::Matrix4d t07r = Eigen::Matrix4d::Zero();
     t07r.topLeftCorner<3,3>() = rxyz;
@@ -172,13 +166,11 @@ namespace banksia_kinematics_plugin
     t07r(2, 3) = z;
 
 
-#ifdef DEBUG
-    RCLCPP_WARN(logger, "IK TARGET");
-    RCLCPP_WARN(logger, "[%4.2f %4.2f %4.2f %4.2f;", t07r(0,0), t07r(0,1), t07r(0,2), t07r(0,3));
-    RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f;", t07r(1,0), t07r(1,1), t07r(1,2), t07r(1,3));
-    RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f;", t07r(2,0), t07r(2,1), t07r(2,2), t07r(2,3));
-    RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f]", t07r(3,0), t07r(3,1), t07r(3,2), t07r(3,3));
-#endif // DEBUG
+    RCLCPP_DEBUG(logger, "IK TARGET");
+    RCLCPP_DEBUG(logger, "[%4.2f %4.2f %4.2f %4.2f;", t07r(0,0), t07r(0,1), t07r(0,2), t07r(0,3));
+    RCLCPP_DEBUG(logger, " %4.2f %4.2f %4.2f %4.2f;", t07r(1,0), t07r(1,1), t07r(1,2), t07r(1,3));
+    RCLCPP_DEBUG(logger, " %4.2f %4.2f %4.2f %4.2f;", t07r(2,0), t07r(2,1), t07r(2,2), t07r(2,3));
+    RCLCPP_DEBUG(logger, " %4.2f %4.2f %4.2f %4.2f]", t07r(3,0), t07r(3,1), t07r(3,2), t07r(3,3));
 
     // need two dh transforms to get x of end effector frame pointing forwards
     Eigen::Matrix4d t67 = sub_dh(M_PI/2, 0, 0, M_PI/2) * sub_dh(M_PI/2, l3, 0, 0);
@@ -229,10 +221,8 @@ namespace banksia_kinematics_plugin
 
     // Needs to be in the same order as when they get put in a joint group ???
     std::array<double, 6> new_joints = { j1, j2bo+M_PI/2, j4, j5, j6, j3bo + j2bo + M_PI/2 };
-#ifdef DEBUG
-    RCLCPP_WARN(logger, "IK SOLUTION");
-    RCLCPP_WARN(logger, "%4.2f %4.2f %4.2f %4.2f %4.2f %4.2f", j1, j2bo+M_PI/2, j3bo + j2bo + M_PI/2, j4, j5, j6);
-#endif // DEBUG
+    RCLCPP_DEBUG(logger, "IK SOLUTION");
+    RCLCPP_DEBUG(logger, "%4.2f %4.2f %4.2f %4.2f %4.2f %4.2f", j1, j2bo+M_PI/2, j3bo + j2bo + M_PI/2, j4, j5, j6);
     return new_joints;
   }
 
