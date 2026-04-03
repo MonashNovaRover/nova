@@ -104,8 +104,8 @@ camera_streamer:
 
       HZ_USB_Camera_20220301104:
         pipeline_type: h264software
-        width: 1280
-        height: 720
+        width: 1024
+        height: 768
         framerate: 30
         noise_reduction: 256
         brightness: 256

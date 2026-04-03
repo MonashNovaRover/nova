@@ -65,7 +65,7 @@ class CameraStreamer : public rclcpp::Node
 
     subscription_ = this->create_subscription<camera_msgs::msg::Cameras>(
       TOPIC_CAMERAS, discover_qos, std::bind(&CameraStreamer::topic_callback, this, _1));
-    RCLCPP_INFO(this->get_logger(), "Cameras2++ Streamer Running...");
+    RCLCPP_INFO(this->get_logger(), "Cameras3 Streamer Running...");
   }
 
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
