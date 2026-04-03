@@ -14,7 +14,7 @@ def generate_launch_description():
     local = LaunchConfiguration('local')
 
     cameras_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/cameras/cameras2++']),
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/cameras/cameras3']),
         FindPackageShare('cameras')
     )
     params = LaunchConfiguration("param_dir")

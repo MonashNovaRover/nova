@@ -33,7 +33,7 @@ std::string set_property(rclcpp::Node* streamer_node, const std::string serial, 
     // Get property
     streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
     streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
-    //streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
+    streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
     return value;
 }
 
@@ -41,7 +41,7 @@ int set_property(rclcpp::Node* streamer_node, const std::string serial, const st
     // Get property
     streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
     streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
-    //streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
+    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
     return value;
 }
 
@@ -49,7 +49,7 @@ bool set_property(rclcpp::Node* streamer_node, const std::string serial, const s
     // Get property
     streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
     streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
-    //streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
+    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value); 
     return value;
 }
 
@@ -194,7 +194,7 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
-  //props->original_serial = camera->original_serial;
+  props->original_serial = camera->original_serial;
 
   // Get profile
   std::string profile;
@@ -337,7 +337,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
-  //props->original_serial = camera->original_serial;
+  props->original_serial = camera->original_serial;
 
   // Get profile
   std::string profile;
@@ -540,7 +540,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
-  //props->original_serial = camera->original_serial;
+  props->original_serial = camera->original_serial;
 
   // Get profile
   std::string profile;
@@ -771,7 +771,7 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
-  //props->original_serial = camera->original_serial;
+  props->original_serial = camera->original_serial;
 
   // Get profile
   std::string profile;
