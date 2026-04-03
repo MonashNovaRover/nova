@@ -89,13 +89,13 @@ camera_streamer:
       # Waveshare
       openaicam_openaicam_2505121128:
         pipeline_type: vpXsoftware
-        width: 1920
-        height: 1080
+        width: 1280
+        height: 720
         framerate: 30
         noise_reduction: 128
 
       webcamvendor_SK_series1_20220325JWGD2093:
-        pipeline_type: vpXsoftware
+        pipeline_type: h264passthrough
         width: 1920
         height: 1080
         framerate: 30
@@ -104,12 +104,11 @@ camera_streamer:
 
       HZ_USB_Camera_20220301104:
         pipeline_type: h264software
-        width: 1920
-        height: 1080
+        width: 1280
+        height: 720
         framerate: 30
         noise_reduction: 256
         brightness: 256
-        decoder: jpegdec
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         pipeline_type: vpXsoftware
