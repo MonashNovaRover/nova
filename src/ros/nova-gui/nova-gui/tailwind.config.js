@@ -18,7 +18,7 @@ export default {
         secondary: "#F770AD",
         success: "#2ac776",
         warning: "#FFC902",
-        danger: "#DD1353"
+        danger: "#FF4D00"
         // TODO: Fix issues with different modes
         // light: {
         //   primary: "#FFFFFF",

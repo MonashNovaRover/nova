@@ -20,7 +20,7 @@ import AutosizedGLCanvas from "../../../components/shared/components/AutosizedGL
 import GLProgramDrawMode from "../../../hooks/webgl/program/GLProgramDrawMode.ts";
 import useImageTexture from "../../../hooks/webgl/program/sampler/useImageTexture.ts";
 import ImageSRC from "../../../assets/arm-image.png";
-import SecondImageSRC from "../../../assets/rover-top-down-dark.png";
+import SecondImageSRC from "../../../assets/rover-top-down.png";
 import MonkeysImageSRC from "../../../assets/equirectangular.png";
 import NovaImageSRC from "../../../assets/nova-logo.png";
 import useProgramRenderEffect from "../../../hooks/webgl/program/useProgramRenderEffect.ts";

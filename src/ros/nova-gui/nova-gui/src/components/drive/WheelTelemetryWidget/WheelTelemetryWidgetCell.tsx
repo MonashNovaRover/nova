@@ -5,7 +5,6 @@ import {
 } from "@nextui-org/react";
 import React, {ReactNode} from "react";
 import '../DriveModeWidget/DriveWidget.css';
-import './WheelTelemetryWidget.css';
 import { SubCardLabel } from "../../shared/components/Labels.tsx";
 import { OverlayedProgress } from "../../shared/components/OverlayedProgress/OverlayedProgress.tsx";
 

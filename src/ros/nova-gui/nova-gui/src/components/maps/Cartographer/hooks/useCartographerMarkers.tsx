@@ -3,7 +3,7 @@ import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
-import roverIcon from "../../../../assets/rover-top-down-dark.png";
+import roverIcon from "../../../../assets/rover-top-down.png";
 import novaLogo from "../../../../assets/nova-logo.png";
 import { useEffect, useState } from "react";
 import { MapInteractionMode } from "../../../../redux/models/CartographerState.ts";
