@@ -170,11 +170,13 @@ namespace banksia_kinematics_plugin
     t07r(2, 3) = z;
 
 
+#ifdef DEBUG
     RCLCPP_WARN(logger, "IK TARGET");
     RCLCPP_WARN(logger, "[%4.2f %4.2f %4.2f %4.2f;", t07r(0,0), t07r(0,1), t07r(0,2), t07r(0,3));
     RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f;", t07r(1,0), t07r(1,1), t07r(1,2), t07r(1,3));
     RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f;", t07r(2,0), t07r(2,1), t07r(2,2), t07r(2,3));
     RCLCPP_WARN(logger, " %4.2f %4.2f %4.2f %4.2f]", t07r(3,0), t07r(3,1), t07r(3,2), t07r(3,3));
+#endif // DEBUG
 
     // need two dh transforms to get x of end effector frame pointing forwards
     Eigen::Matrix4d t67 = sub_dh(M_PI/2, 0, 0, M_PI/2) * sub_dh(M_PI/2, l3, 0, 0);
@@ -215,18 +217,20 @@ namespace banksia_kinematics_plugin
     Eigen::Vector3i indicies = {1,2,0};
     Eigen::Matrix3d r37r_shifted = r37r(indicies,Eigen::all);
  
-    // rx, ry, rx
+    // rotate about x, y, x in that order
     // once we have eigen 5.0.0+ this can be done properly.
     Eigen::Vector3d rpr = Eigen::canonicalEulerAngles(r37r_shifted,0,1,0);
 
-    double j4 = rpr(0);
+    double j4 = -rpr(0); // ???
     double j5 = rpr(1) - M_PI/2;
-    double j6 = rpr(2);
+    double j6 = rpr(2); // we made the axis in the urdf -z not z as a bodge
 
     // Needs to be in the same order as when they get put in a joint group ???
     std::array<double, 6> new_joints = { j1, j2bo+M_PI/2, j4, j5, j6, j3bo + j2bo + M_PI/2 };
+#ifdef DEBUG
     RCLCPP_WARN(logger, "IK SOLUTION");
     RCLCPP_WARN(logger, "%4.2f %4.2f %4.2f %4.2f %4.2f %4.2f", j1, j2bo+M_PI/2, j3bo + j2bo + M_PI/2, j4, j5, j6);
+#endif // DEBUG
     return new_joints;
   }
 
