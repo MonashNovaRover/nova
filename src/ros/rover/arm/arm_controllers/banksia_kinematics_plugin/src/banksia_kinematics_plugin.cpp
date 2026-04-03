@@ -129,7 +129,9 @@ namespace banksia_kinematics_plugin
     }
 
     // TODO: Calculate from the given RobotModel
-    link_lengths_ = {0.5, 0.640277, 0.2225};
+    // These are based on URDF not physical arm. Increase end effector length because
+    // it seems to overshoot?
+    link_lengths_ = {0.5052, 0.6193, 0.2225+0.021040};
 
     return true;
   }
