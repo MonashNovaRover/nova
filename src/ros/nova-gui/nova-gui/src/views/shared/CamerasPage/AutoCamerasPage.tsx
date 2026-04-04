@@ -87,7 +87,7 @@ export const CameraPage = (props: CameraPageProps) => {
       {
         <div className="grid grid-cols-3 gap-3">
           <YoloProvider>
-            {views[selectedTab].cameraSerials.map((serial, i) => (
+            {views[selectedTab].cameraSerials.slice(0,4).map((serial, i) => (
               <YoloCameraComponent
                 cameraSerial={serial}
                 key={i}
