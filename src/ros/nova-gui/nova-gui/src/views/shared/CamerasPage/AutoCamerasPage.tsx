@@ -4,10 +4,11 @@ import { useCameraStreamer } from "../../../components/cameras/CameraComponent/h
 import { CameraView } from "./CameraPageConstants";
 import { useState } from "react";
 import { CameraControlPanelModal } from "../../../components/cameras/CameraComponent/components/CamerasControlPanelModal";
-import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
+import YoloCameraComponent from "../../../components/auto/ObjectDetection/YoloCameraComponent.tsx";
+import {YoloProvider} from "../../../components/auto/ObjectDetection/YoloProvider.tsx";
 
 /**
  * TODO: remove
@@ -85,13 +86,15 @@ export const CameraPage = (props: CameraPageProps) => {
 
       {
         <div className="grid grid-cols-3 gap-3">
-          {views[selectedTab].cameraSerials.map((serial, i) => (
-            <SerialMappedCameraComponent
-              cameraSerial={serial}
-              key={i}
-              autostart={allCamsOn}
-            />
-          ))}
+          <YoloProvider>
+            {views[selectedTab].cameraSerials.map((serial, i) => (
+              <YoloCameraComponent
+                cameraSerial={serial}
+                key={i}
+                autostart={allCamsOn}
+              />
+            ))}
+          </YoloProvider>
         </div>
       }
 
