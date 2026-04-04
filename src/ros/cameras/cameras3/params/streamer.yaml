@@ -1,6 +1,6 @@
 camera_streamer:
   ros__parameters:
-    autostart: true
+    autostart: false
     serial_pipelines:
       Microsoft_Microsoft®_LifeCam_HD-3000:
         pipeline_type: vpXsoftware
@@ -17,8 +17,6 @@ camera_streamer:
         meta : Mast - Backwards
       mast_arm_stow:
         meta: Mast - Arm Stow
-        pipeline_type: h264passthrough
-        profile: gc2093
       mast_down:
         meta: Mast - Down
       mast_forward:
