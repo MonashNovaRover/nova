@@ -99,26 +99,38 @@ arm:
           has_position_limits: true
           max_position: 1.57
           min_position: -1.57
+          has_velocity_limits: true
+          max_velocity: 0.2
         j2:
           has_position_limits: true
           max_position: 2.35
           min_position: -1.6364
+          has_velocity_limits: true
+          max_velocity: 0.2
         j3:
           has_position_limits: true
           max_position: 2.9
           min_position: -0.6535
+          has_velocity_limits: true
+          max_velocity: 0.2
         j4:
           has_position_limits: true
           max_position: 3.14
           min_position: -3.14
+          has_velocity_limits: true
+          max_velocity: 0.4
         j5: # wrist pitch
           has_position_limits: true
           max_position: -0.1153
           min_position: -2.44
+          has_velocity_limits: true
+          max_velocity: 0.4
         j6: # wrist roll
           has_position_limits: true
           max_position: 6.0
           min_position: -6.0
+          has_velocity_limits: true
+          max_velocity: 0.4
     
   nova_end_effector_velocity_controller:
     ros__parameters:

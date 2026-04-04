@@ -211,13 +211,39 @@ namespace banksia_kinematics_plugin
     Eigen::Vector3i indicies = {1,2,0};
     Eigen::Matrix3d r37r_shifted = r37r(indicies,Eigen::all);
  
-    // rotate about x, y, x in that order
+
+    // when converting the required wrist rotation to intrinsic roll pitch roll euler angles
+    // there are multiple solutions. 2 axies have 360 degrees of rotation, and one has 180 degrees
+    // of rotation. We can choose if the 180 degree one is roll1 or pitch (but not roll2).
+    // "canonical" euler angles have the 2nd axis (pitch in this case) going 0-180. eigen also has
+    // a function for it to be the first axis (roll1).
+//#define CANONICAL_ANGLES
+
+#ifdef CANONICAL_ANGLES
     // once we have eigen 5.0.0+ this can be done properly.
+    // will return in range [-pi:pi]x[0:pi]x[-pi:pi]
     Eigen::Vector3d rpr = Eigen::canonicalEulerAngles(r37r_shifted,0,1,0);
+#else
+    // returns in range [0:pi]x[-pi:pi]x[-pi:pi]
+    // trying this instead so j4 moves less
+    Eigen::Vector3d rpr = r37r_shifted.eulerAngles(0,1,0);
+#endif
+
+
 
     double j4 = -rpr(0); // ???
     double j5 = rpr(1) - M_PI/2;
-    double j6 = rpr(2); // we made the axis in the urdf -z not z as a bodge
+    double j6 = rpr(2);
+
+#ifndef CANONICAL_ANGLES
+    // move j4's range from [-pi:0] to [-pi/2:pi/2]
+    // if we rotate j4 180 degrees because of this, j5 and j6 need inverting too
+    if (j4 < -M_PI/2) {
+      j4 = j4 + M_PI;
+      j5 = -rpr(1)-M_PI/2;
+      j6 = j6 + (j6 < 0 ? M_PI : - M_PI);
+    }
+#endif
 
     // Needs to be in the same order as when they get put in a joint group ???
     std::array<double, 6> new_joints = { j1, j2bo+M_PI/2, j4, j5, j6, j3bo + j2bo + M_PI/2 };
