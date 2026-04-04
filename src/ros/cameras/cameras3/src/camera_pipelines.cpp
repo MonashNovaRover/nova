@@ -459,8 +459,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->io_mode = 4; // dmabuf
 
   // filter
-  default_string = "image/jpeg";
-  props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
+  props->mime = "video/x-h264";
 
   props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
   props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
