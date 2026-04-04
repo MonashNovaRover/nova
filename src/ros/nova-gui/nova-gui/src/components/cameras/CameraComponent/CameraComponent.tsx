@@ -22,6 +22,7 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import { CameraProfileEvents, emitCameraFiltersReadyEvent } from "../../../utils/cameraProfileEvents.ts";
 import { CameraProfilesState } from "../../../redux/models/CameraProfilesState.ts";
+import useWebcam from "../../../hooks/webgl/program/sampler/useWebcam.ts";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -63,18 +64,18 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const {
-    streamingState,
-    sendSessionStartMessage,
-    isCameraOnline,
-    closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
   // const {
   //   streamingState,
   //   sendSessionStartMessage,
   //   isCameraOnline,
   //   closeSession,
-  // } = useWebcam(videoRef);
+  // } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
+  const {
+    streamingState,
+    sendSessionStartMessage,
+    isCameraOnline,
+    closeSession,
+  } = useWebcam(videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const [currentSite, _] = useGenericStore<Site>("currentSite");
