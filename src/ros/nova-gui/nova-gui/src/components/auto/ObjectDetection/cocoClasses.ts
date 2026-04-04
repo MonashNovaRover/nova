@@ -1,3 +1,4 @@
+// COCO class labels aligned to model class indices.
 const cocoClasses = [
   "person",
   "bicycle",
