@@ -1,26 +1,15 @@
-import React, {
-  createContext,
-  useContext,
-  useRef,
-  useState,
-} from "react";
-
-import {
-  useYoloDetection,
-  Detection,
-} from "./useYoloDetection";
+import React, {createContext, useContext, useRef, useState,} from "react";
+import {useYoloDetection, Detection,} from "./useYoloDetection";
 
 interface YoloContextValue {
   registerVideoRef: (
     ref: React.RefObject<HTMLVideoElement>
   ) => number;
   detections: Detection[][];
+  inputSize: number;
 }
 
-const YoloContext =
-  createContext<YoloContextValue | null>(
-    null
-  );
+const YoloContext = createContext<YoloContextValue | null>(null);
 
 export function YoloProvider({
                                children,
@@ -32,8 +21,7 @@ export function YoloProvider({
       React.RefObject<HTMLVideoElement>[]
     >([]);
 
-  const [refsReady, setRefsReady] =
-    useState<boolean>(false);
+  const [refsReady, setRefsReady] = useState<boolean>(false);
 
   const registerVideoRef = (
     ref: React.RefObject<HTMLVideoElement>
@@ -50,6 +38,7 @@ export function YoloProvider({
       videoRefs.current,
       modelPath:
         "/models/yolo26n.onnx",
+      inputSize: 640,
     });
 
   return (
@@ -57,6 +46,7 @@ export function YoloProvider({
       value={{
         registerVideoRef,
         detections,
+        inputSize: 640,
       }}
     >
       {children}
