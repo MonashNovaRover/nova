@@ -11,12 +11,18 @@ ort.env.wasm.wasmPaths = import.meta.env.DEV
   : "/ort/";
 
 export interface Detection {
+  // Class index in the model's label set.
   classId: number;
+  // Confidence score after combining objectness and class score.
   score: number;
   box: {
+    // Top-left corner x in model input pixel space.
     x: number;
+    // Top-left corner y in model input pixel space.
     y: number;
+    // Box width in model input pixels.
     width: number;
+    // Box height in model input pixels.
     height: number;
   };
 }
