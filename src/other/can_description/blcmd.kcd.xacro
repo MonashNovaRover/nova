@@ -17,8 +17,6 @@
     telemetry_packet_1_effort_intercept:=0
     telemetry_packet_3_resolver_position_slope:=1
     telemetry_packet_3_resolver_position_intercept:=0
-    telemetry_packet_3_resolver_velocity_slope:=1
-    telemetry_packet_3_resolver_velocity_intercept:=0
     ">
         <!-- variables -->
 
@@ -285,7 +283,7 @@
             </Signal>
             <Signal name="resolver_velocity" offset="16" length="16" endianess="big">
                 <xacro:consumer_orin/>
-                <Value type="signed" slope="${telemetry_packet_3_resolver_velocity_slope}" intercept="${telemetry_packet_3_resolver_velocity_intercept}"/>
+                <Value type="signed"/>
             </Signal>
         </Message>
 
