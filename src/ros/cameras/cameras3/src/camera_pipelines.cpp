@@ -129,8 +129,8 @@ void set_convert(GstElement* convert, auto props) {
 void set_crop43(GstElement* cropper, auto props, const int crop_width) {
     if (props->crop43) {
         g_object_set(cropper,
-            "left", crop_width,
-            "right", crop_width,
+            "left", crop_width/props->downscale,
+            "right", crop_width/props->downscale,
           NULL);
     }
 }
