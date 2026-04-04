@@ -126,16 +126,12 @@ in
           launch-theta-orin = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
 
           # Cameras
-          launch-cameras = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params'";
-          launch-cameras3 = " ~/Builds/cameras3/bin/ros2 launch cameras cameras.launch.py platform:=orin param_dir:=/home/nova/nova/src/ros/cameras/cameras3/params";
-          launch-cameras-all = "${launch-cameras} autostart:=true";
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
 
-          # Temporary aliases (remove when a better solution has been implemented)
-          cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
-          cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
-          cameras-ec = "~/Builds/cameras2legacyarm/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params payload:=arm";
-          cameras3-orin = " ~/Builds/cameras3/bin/ros2 launch cameras cameras.launch.py platform:=orin param_dir:=/home/nova/nova/src/ros/cameras/cameras3/params";
+          cameras = "~/Builds/master/bin/ros2 launch cameras cameras.launch.py platform:=orin param_dir:=/home/nova/nova/src/ros/cameras/cameras3/params";
+          cameras3 = "~/Builds/master/bin/ros2 launch cameras cameras.launch.py platform:=orin param_dir:=/home/nova/nova/src/ros/cameras/cameras3/params";
+          cameras2 = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
+          cameras2-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
           nix-enable = "sudo systemctl enable nix-daemon.service";
           nix-start = "sudo systemctl start nix-daemon.service";
 
