@@ -1,4 +1,5 @@
-# Cameras 2++
+# Cameras 3
+## Anthony's Part
 Rewrite of Cameras 2 in c++, works the same as cameras 2
 Split into two parts:
 
@@ -53,3 +54,10 @@ Workflow:\
 `cd src/ros/cameras/cameras2++`\
 `code .`
 Now you can start editing :)
+
+## Credits
+Anthony had written majority of the backbone of Cameras2++, until it hit feature parity with Cameras2 and implementing the new streamer.yaml format.
+Brandon added majority of custom pipelines and bug fixes, extending cameras2++ into cameras3.
+Orlando discovered the patch for gc2093's payload quirk.
+Josh provided Cameras2 as a basis of what the cameras codebase should be.
+

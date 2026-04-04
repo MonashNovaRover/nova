@@ -29,7 +29,6 @@ pkg_check_modules(GSTREAMERMM REQUIRED gstreamermm-1.0)
 include_directories(${GSTREAMERMM_INCLUDE_DIRS})
 link_directories(${GSTREAMERMM_LIB_DIRS})
 
-
 include_directories(
   include
 )

@@ -1,0 +1,117 @@
+camera_streamer:
+  ros__parameters:
+    autostart: false
+    serial_pipelines:
+      Microsoft_Microsoft®_LifeCam_HD-3000:
+        pipeline_type: vpXsoftware
+
+      # Development cameras
+      anthony-cam:
+        pipeline_type: h264passthrough
+        width: 1920
+        height: 1080
+        framerate: 30
+
+      # Mast
+      mast_backward:
+        meta : Mast - Backwards
+      mast_arm_stow:
+        meta: Mast - Arm Stow
+      mast_down:
+        meta: Mast - Down
+      mast_forward:
+        meta: Mast - Forwards
+
+      # Science
+      science_microscope:
+        mime: video/x-raw
+        width: 640
+        framerate: 25
+        show_clock: false
+        meta: Science - Microscope
+        #    rotation: 180
+      science_gantry:
+        meta: Science - Gantry
+        #    rotation: 180
+      science_spectrometer_top:
+        meta: Science - Spectrometer (Top)
+      science_spectrometer_side:
+        meta: Science - Spectrometer (Side)
+        #    rotation: 180
+      science_backward:
+        meta: Science - Butt
+        #    rotation: 180
+      science_shotglass:
+        meta: Science - Shotglass
+      science_rock_flipper:
+        meta: Science - Rock flipper
+      #science_spectroscope:
+      #  autostart: false
+
+      # Arm
+      arm_gimbal:
+        meta: Arm - Gimbal
+      arm_end_forward:
+        meta: Arm - Forward
+        #    mirrorX: true
+      arm_end_top:
+        meta: Arm - Top
+      arm_end_finger:
+        meta: Arm - Finger
+      arm_end_side:
+        meta: Arm - Side
+
+    profiles:
+      default:
+        mime: image/jpeg
+        width: 1280
+        height: 720
+        framerate: 30
+        bitrate: 2048
+
+      snail:
+        mime: image/jpeg
+        width: 640
+        height: 480
+        framerate: 30
+        bitrate: 1024
+
+      super:
+        mime: image/jpeg
+        width: 1920
+        height: 1080
+        framerate: 30
+
+    defaults:
+
+      # Waveshare
+      openaicam_openaicam_2505121128:
+        pipeline_type: vpXsoftware
+        width: 1280
+        height: 720
+        framerate: 30
+        noise_reduction: 128
+
+      webcamvendor_SK_series1_20220325JWGD2093:
+        pipeline_type: h264passthrough
+        width: 1920
+        height: 1080
+        framerate: 30
+        noise_reduction: 1024
+        payload_quirk: true
+
+      HZ_USB_Camera_20220301104:
+        pipeline_type: h264software
+        width: 1024
+        height: 768
+        framerate: 30
+        noise_reduction: 256
+        brightness: 256
+
+      Microsoft_Microsoft®_LifeCam_HD-3000:
+        pipeline_type: vpXsoftware
+        width: 800
+        height: 600
+        framerate: 30
+        noise_reduction: 128
+
