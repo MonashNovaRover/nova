@@ -22,6 +22,7 @@ import DriveControlCameraComponent
   from "../../../components/cameras/CameraComponent/special/DriveControlCameraComponent.tsx";
 import ScienceCombinedCameraComponent
   from "../../../components/cameras/CameraComponent/special/ScienceCombinedCameraComponent.tsx";
+import YoloCameraComponent from "../../../components/auto/ObjectDetection/YoloCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
@@ -36,6 +37,10 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.SCIENCE_MICROSCOPE]: MicroscopeScaleOverlayedCameraComponent,
   [CameraSerials.SCIENCE_POWER_CYCLE]: PowerCycleCameraComponent,
   [CameraSerials.SCIENCE_COMBINED]: ScienceCombinedCameraComponent,
+  [CameraSerials.AUTO_FORWARD]: YoloCameraComponent,
+  [CameraSerials.AUTO_RIGHT]: YoloCameraComponent,
+  [CameraSerials.AUTO_LEFT]: YoloCameraComponent,
+  [CameraSerials.AUTO_BEHIND]: YoloCameraComponent,
 }
 
 /// Function that used the above map to get the component for a specified camera serial

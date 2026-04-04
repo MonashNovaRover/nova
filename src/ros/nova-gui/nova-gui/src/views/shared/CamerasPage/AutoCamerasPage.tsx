@@ -9,19 +9,22 @@ import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCa
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
 import YoloCameraComponent from "../../../components/auto/ObjectDetection/YoloCameraComponent.tsx";
 import {YoloProvider} from "../../../components/auto/ObjectDetection/YoloProvider.tsx";
+import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 
 /**
  * TODO: remove
  *
  * This is a temp copy of CamerasPage.tsx meant only for the 2026 ARCh autonomous task,
  * the only change is having 3 instead of 4 columns of cameras.
+ *
+ * It has also been extended to provide the YOLO provider context to the 2026 YOLO camera components.
  */
 
 export interface CameraPageProps {
   views: CameraView[];
 }
 
-export const CameraPage = (props: CameraPageProps) => {
+export const AutoCameraPage = (props: CameraPageProps) => {
   const { views } = props;
   const [controlPanelOpen, setControlPanelOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -85,10 +88,10 @@ export const CameraPage = (props: CameraPageProps) => {
       </div>
 
       {
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <YoloProvider>
-            {views[selectedTab].cameraSerials.slice(0,1).map((serial, i) => (
-              <YoloCameraComponent
+            {views[selectedTab].cameraSerials.map((serial, i) => (
+              <SerialMappedCameraComponent
                 cameraSerial={serial}
                 key={i}
                 autostart={allCamsOn}
