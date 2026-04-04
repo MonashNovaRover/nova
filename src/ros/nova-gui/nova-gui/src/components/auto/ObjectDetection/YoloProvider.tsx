@@ -7,24 +7,36 @@ import React, {
 
 import {
   useYoloDetection,
+  Detection,
 } from "./useYoloDetection";
 
+interface YoloContextValue {
+  registerVideoRef: (
+    ref: React.RefObject<HTMLVideoElement>
+  ) => number;
+  detections: Detection[][];
+}
+
 const YoloContext =
-  createContext<any>(null);
+  createContext<YoloContextValue | null>(
+    null
+  );
 
 export function YoloProvider({
                                children,
-                             }) {
+                             }: {
+  children: React.ReactNode;
+}) {
   const videoRefs =
     useRef<
       React.RefObject<HTMLVideoElement>[]
     >([]);
 
   const [refsReady, setRefsReady] =
-    useState(false);
+    useState<boolean>(false);
 
   const registerVideoRef = (
-    ref
+    ref: React.RefObject<HTMLVideoElement>
   ) => {
     videoRefs.current.push(ref);
     setRefsReady(true);
@@ -53,5 +65,11 @@ export function YoloProvider({
 }
 
 export function useYoloContext() {
-  return useContext(YoloContext);
+  const context = useContext(YoloContext);
+  if (!context) {
+    throw new Error(
+      "useYoloContext must be used within YoloProvider"
+    );
+  }
+  return context;
 }
