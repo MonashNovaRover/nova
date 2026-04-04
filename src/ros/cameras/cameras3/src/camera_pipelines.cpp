@@ -67,7 +67,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
 {
   /* 
      This creates a v4l2src to webrtc pipeline with the following structure:
-     v4l2src ! capsfilter ! decodebin -> videoconvert ! (clockoverlay) ! webrtcsink
+     v4l2src ! capsfilter ! decodebin3 ! videoconvertscale ! scalefilter ! (clockoverlay) ! webrtcsink
      @param streamer_node pointer to the ros2 streamer node
      @param props pointer to the pipeline properties
      @return GstElement* pointer to the created GStreamer pipeline
@@ -83,14 +83,15 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
-  GstElement* filter = gst_element_factory_make("capsfilter", "filter");
+  GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
   GstElement* decode = gst_element_factory_make("decodebin3", "decoder");
-  GstElement* convert = gst_element_factory_make("videoconvert", "converter");
+  GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
+  GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* clock = props->show_clock ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
   GstElement* cropper = props->crop43 ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
-  if (!gst_pipeline || !source || !filter || !decode || !convert || (props->show_clock && !clock) || (props->crop43 && !cropper) || !webrtc 
+  if (!gst_pipeline || !source || !srcfilter || !decode || !convert || !scalefilter || (props->show_clock && !clock) || (props->crop43 && !cropper) || !webrtc 
       ) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
@@ -105,7 +106,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
         props->io_mode == "mmap" ? 2 :
         props->io_mode == "userptr" ? 3 :
         props->io_mode == "dmabuf" ? 4 :
-        props->io_mode == "dmabuf-import" ? 5 :0),
+        props->io_mode == "dmabuf-import" ? 5 : 0),
       NULL);
 
   GstCaps *caps = gst_caps_new_simple(
@@ -116,8 +117,46 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       "brightness", G_TYPE_INT, props->brightness,
       "contrast", G_TYPE_INT,  props->contrast,
       NULL);
-  g_object_set(filter, "caps", caps, NULL);
+  g_object_set(srcfilter, "caps", caps, NULL);
   gst_caps_unref(caps);
+
+  g_object_set(convert,
+      "chroma-resampler", (
+        props->chroma_resampler == "nearest" ? 0 :
+        props->chroma_resampler == "linear" ? 1 :
+        props->chroma_resampler == "cubic" ? 2 :
+        props->chroma_resampler == "sinc" ? 3 : 
+        props->chroma_resampler == "lanczos" ? 4 : 0),
+      "dither", (
+        props->dither == "none" ? 0 :
+        props->dither == "verterr" ? 1 :
+        props->dither == "floyd-steinberg" ? 2 :
+        props->dither == "sierra-lite" ? 3 : 
+        props->dither == "bayer" ? 4 : 4),
+      "method", (
+        props->method == "nearest-neighbour" ? 0 :
+        props->method == "bilinear" ? 1 :
+        props->method == "4-tap" ? 2 :
+        props->method == "lanczos" ? 3 : 
+        props->method == "bilinear2" ? 4 :
+        props->method == "sinc" ? 5 :
+        props->method == "hermite" ? 6 :
+        props->method == "spline" ? 7 :
+        props->method == "catrom" ? 8 : 
+        props->method == "mitchell" ? 9 : 0),
+      NULL);
+
+//  GstCaps *caps2 = gst_caps_new_simple(
+//      props->mime.c_str(),
+//      "format", G_TYPE_STRING, "",
+//      "width", G_TYPE_INT, props->width,
+//      "height", G_TYPE_INT, props->height,
+//      "framerate", GST_TYPE_FRACTION, props->framerate, 1,
+//      "brightness", G_TYPE_INT, props->brightness,
+//      "contrast", G_TYPE_INT,  props->contrast,
+//      NULL);
+//  g_object_set(scalefilter, "caps", caps2, NULL);
+//  gst_caps_unref(caps2);
 
   if (props->crop43) {
       g_object_set(cropper,
@@ -142,9 +181,13 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   gst_structure_free(meta);
 
   // 3. Add elements to pipeline
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, filter, decode, convert, webrtc, NULL);
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, scalefilter, webrtc, NULL);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
+
+  // 4. Link elements
+  if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, srcfilter, decode, props->serial)) return nullptr;
 
   g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
       GstElement* convert = static_cast<GstElement*>(user_data);
@@ -154,10 +197,6 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       }
       if (sink_pad) gst_object_unref(sink_pad);
   }), convert);
-
-  // 4. Link elements
-  if (!link_elements(streamer_node, source, filter, props->serial)) return nullptr;
-  if (!link_elements(streamer_node, filter, decode, props->serial)) return nullptr;
 
   if (props->crop43 && props->show_clock) {
       if (!link_elements(streamer_node, convert, cropper, props->serial)) return nullptr;
@@ -209,7 +248,7 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   // source
   props->device = set_property(streamer_node, camera->serial, profile, camera->original_serial, "device", props->node);
   default_string = "mmap";
-  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
+  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", default_string);
 
   // filter
   default_string = "image/jpeg";
@@ -220,6 +259,14 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
   props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
   props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
+
+  // convert
+  default_string = "nearest";
+  props->chroma_resampler = set_property(streamer_node, camera->serial, profile, camera->original_serial, "chroma_resampler", default_string);
+  default_string = "bayer";
+  props->dither = set_property(streamer_node, camera->serial, profile, camera->original_serial, "dither", default_string);
+  default_string = "nearest-neighbour";
+  props->method = set_property(streamer_node, camera->serial, profile, camera->original_serial, "method", default_string);
 
   // cropper
   props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", false);

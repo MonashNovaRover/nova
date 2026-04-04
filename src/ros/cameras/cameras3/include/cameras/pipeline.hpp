@@ -71,6 +71,15 @@ struct decodeProperties
   std::string decoder;
 };
 
+struct scaleProperties
+{
+  std::string chroma_resampler;
+  std::string dither;
+  std::string method;
+
+  int downscale;
+};
+
 struct cropProperties
 {
   bool crop43;
@@ -91,7 +100,7 @@ struct Pipeline
   std::string original_serial;
 };
 
-struct v4l2webrtcPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cropProperties, clockProperties {};
+struct v4l2webrtcPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, scaleProperties, cropProperties, clockProperties {};
 v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProperties* props);
 
@@ -99,10 +108,10 @@ struct h264passthroughPipelineProperties : Properties, v4lProperties, capsProper
 h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, h264passthroughPipelineProperties* props);
 
-struct h264softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, x264encProperties, cropProperties, clockProperties, decodeProperties {};
+struct h264softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, x264encProperties, scaleProperties, cropProperties, clockProperties, decodeProperties {};
 h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* h264software_pipeline(rclcpp::Node* log_node, h264softwarePipelineProperties* props);
 
-struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, vpXencProperties, cropProperties, clockProperties, decodeProperties {};
+struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, vpXencProperties, scaleProperties, cropProperties, clockProperties, decodeProperties {};
 vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, vpXsoftwarePipelineProperties* props);
