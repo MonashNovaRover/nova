@@ -23,6 +23,7 @@ export default function YoloOverlayCanvas({
     canvas.width = video.videoWidth;
 
     canvas.height = video.videoHeight;
+    console.log(detections, video.videoWidth, video.videoHeight)
 
     const ctx = canvas.getContext("2d");
 

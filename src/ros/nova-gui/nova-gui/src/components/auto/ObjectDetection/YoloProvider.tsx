@@ -49,7 +49,7 @@ export function YoloProvider({
       videoRefs:
       videoRefs.current,
       modelPath:
-        "/models/urc-object-detection.onnx",
+        "/models/yolo26n.onnx",
     });
 
   return (

@@ -37,6 +37,7 @@ interface Props {
 
 let session: ort.InferenceSession | null = null;
 let expectedBatch: number | null = null;
+let hasLoggedOutputInfo = false;
 
 const offscreenCanvases: OffscreenCanvas[] = [];
 const contexts: OffscreenCanvasRenderingContext2D[] = [];
@@ -220,12 +221,18 @@ export function useYoloDetection({
 
       const [
         ,
-        channels,
         boxes,
+        channels,
       ] = output.dims;
 
-      const stride =
-        channels * boxes;
+      if (!hasLoggedOutputInfo) {
+        hasLoggedOutputInfo = true;
+        console.log("YOLO output.dims", output.dims);
+        console.log(
+          "YOLO sample raw values (first 8)",
+          Array.from(data.slice(0, 8))
+        );
+      }
 
       for (
         let b = 0;
@@ -235,104 +242,40 @@ export function useYoloDetection({
         const detectionsPerCamera: Detection[] =
           [];
 
-        const offset = b * stride;
+        const offset =
+          b * boxes * channels;
 
         for (
           let i = 0;
           i < boxes;
           i++
         ) {
-          const x =
-            data[
-            offset +
-            0 * boxes +
-            i
-              ];
+          const base =
+            offset + i * channels;
+          const x1 = data[base + 0];
+          const y1 = data[base + 1];
+          const x2 = data[base + 2];
+          const y2 = data[base + 3];
+          const score = data[base + 4];
+          const classId = data[base + 5];
 
-          const y =
-            data[
-            offset +
-            1 * boxes +
-            i
-              ];
-
-          const w =
-            data[
-            offset +
-            2 * boxes +
-            i
-              ];
-
-          const h =
-            data[
-            offset +
-            3 * boxes +
-            i
-              ];
-
-          const obj =
-            data[
-            offset +
-            4 * boxes +
-            i
-              ];
-
-          if (
-            obj <
-            scoreThreshold
-          )
-            continue;
-
-          let bestClass = 0;
-          let bestScore = 0;
-
-          for (
-            let c = 5;
-            c < channels;
-            c++
-          ) {
-            const score =
-              data[
-              offset +
-              c * boxes +
-              i
-                ];
-
-            if (
-              score >
-              bestScore
-            ) {
-              bestScore = score;
-              bestClass = c - 5;
-            }
-          }
-
-          const confidence =
-            obj * bestScore;
-
-          if (
-            confidence <
-            scoreThreshold
-          )
-            continue;
+          if (score < scoreThreshold) continue;
 
           detectionsPerCamera.push(
             {
               classId:
-              bestClass,
+              Math.round(classId),
               score:
-              confidence,
+              score,
               box: {
                 x:
-                  (x - w / 2) *
-                  inputSize,
+                  x1,
                 y:
-                  (y - h / 2) *
-                  inputSize,
+                  y1,
                 width:
-                  w * inputSize,
+                  x2 - x1,
                 height:
-                  h * inputSize,
+                  y2 - y1,
               },
             }
           );
