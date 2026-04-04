@@ -8,15 +8,6 @@
 
 #include "cameras/pipeline.hpp"
 
-bool is_plugin_available(const std::string& plugin_name) {
-  GstElementFactory* factory = gst_element_factory_find(plugin_name.c_str());
-  if (factory != nullptr) {
-      gst_object_unref(factory);
-      return true;
-  } 
-  return false;
-}
-
 int crop43(const int width, const int height) {
   return (width-(height*4/3))/2;
 }
@@ -604,7 +595,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
   // decoder
-  default_string = is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec";
+  default_string = "jpegdec";
   props->decoder = set_property(streamer_node, camera->serial, profile, camera->original_serial, "decoder", default_string);
 
   // convert
@@ -770,7 +761,7 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
   // decoder
-  default_string = is_plugin_available("nvjpegdec") ? "nvjpegdec" : "jpegdec";
+  default_string = "jpegdec";
   props->decoder = set_property(streamer_node, camera->serial, profile, camera->original_serial, "decoder", default_string);
 
   // convert
