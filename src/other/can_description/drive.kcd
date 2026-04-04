@@ -120,6 +120,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
       </Signal>
     </Message>
@@ -148,6 +149,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -215,6 +217,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -408,6 +416,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -475,6 +484,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -581,6 +596,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
       </Signal>
     </Message>
@@ -609,6 +625,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -676,6 +693,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -869,6 +892,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -936,6 +960,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -1042,6 +1072,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
       </Signal>
     </Message>
@@ -1070,6 +1101,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -1137,6 +1169,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -1330,6 +1368,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -1397,6 +1436,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -1503,6 +1548,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
       </Signal>
     </Message>
@@ -1531,6 +1577,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -1598,6 +1645,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -1791,6 +1844,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -1858,6 +1912,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -1964,6 +2024,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
       </Signal>
     </Message>
@@ -1992,6 +2053,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -2059,6 +2121,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -2252,6 +2320,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -2319,6 +2388,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -2425,6 +2500,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
       </Signal>
     </Message>
@@ -2453,6 +2529,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -2520,6 +2597,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -2713,6 +2796,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -2780,6 +2864,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -2886,6 +2976,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
       </Signal>
     </Message>
@@ -2914,6 +3005,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -2981,6 +3073,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -3174,6 +3272,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -3241,6 +3340,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -3347,6 +3452,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
       </Signal>
     </Message>
@@ -3375,6 +3481,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -3442,6 +3549,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>
@@ -3635,6 +3748,7 @@
           <Label name="telemetry_packet_2_speed" value="12"/>
           <Label name="telemetry_packet_3_speed" value="13"/>
           <Label name="telemetry_packet_4_speed" value="14"/>
+          <Label name="zero_offset" value="15"/>
         </LabelSet>
         <!-- signals for has_resolver -->
         <MuxGroup count="0">
@@ -3702,6 +3816,12 @@
         </MuxGroup>
         <MuxGroup count="14">
           <Signal endianess="big" length="8" name="speed" offset="8"/>
+        </MuxGroup>
+        <!-- signals for zero_offset -->
+        <MuxGroup count="15">
+          <Signal endianess="big" length="16" name="position" offset="8">
+            <Value type="signed"/>
+          </Signal>
         </MuxGroup>
       </Multiplex>
     </Message>

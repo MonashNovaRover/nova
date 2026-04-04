@@ -112,6 +112,7 @@
                 <Label name="telemetry_packet_2_speed" value="12"/>
                 <Label name="telemetry_packet_3_speed" value="13"/>
                 <Label name="telemetry_packet_4_speed" value="14"/>
+                <Label name="zero_offset" value="15"/>
             </LabelSet>
         </xacro:macro>
 
@@ -209,6 +210,13 @@
                     </MuxGroup>
                     <MuxGroup count="14">
                         <Signal name="speed" offset="8" length="8" endianess="big"/>
+                    </MuxGroup>
+
+                    <!-- signals for zero_offset -->
+                    <MuxGroup count="15">
+                        <Signal name="position" offset="8" length="16" endianess="big">
+                            <Value type="signed"/>
+                        </Signal>
                     </MuxGroup>
                 </Multiplex>
             </Message>
