@@ -5,7 +5,7 @@ import {BaseCameraComponentProps, CameraComponent} from "../../cameras/CameraCom
 import CameraVideo, {CameraVideoProps} from "../../cameras/CameraComponent/components/CameraVideo.tsx";
 
 function YoloVideoLayer({videoRef, filters}: CameraVideoProps) {
-  const {registerVideoRef, detections} = useYoloContext();
+  const {registerVideoRef, detections, inputSize} = useYoloContext();
   const [cameraIndex, setCameraIndex] = useState<number | null>(null);
   const registeredRef = useRef(false);
 
@@ -29,6 +29,7 @@ function YoloVideoLayer({videoRef, filters}: CameraVideoProps) {
       <YoloOverlayCanvas
         detections={cameraDetections}
         videoRef={videoRef}
+        modelInputSize={inputSize}
       />
     </>
   );
