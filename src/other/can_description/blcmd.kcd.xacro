@@ -5,6 +5,20 @@
     joint_name
     blcmd_node_id
     orin_node_id:=0
+    drive_at_speed_intercept:=0
+    drive_at_speed_slope:=1
+    drive_to_position_intercept:=0
+    drive_to_position_slope:=1
+    drive_at_current_intercept:=0
+    drive_at_current_slope:=1
+    telemetry_packet_1_velocity_slope:=1
+    telemetry_packet_1_velocity_intercept:=0
+    telemetry_packet_1_effort_slope:=1
+    telemetry_packet_1_effort_intercept:=0
+    telemetry_packet_3_resolver_position_slope:=1
+    telemetry_packet_3_resolver_position_intercept:=0
+    telemetry_packet_3_resolver_velocity_slope:=1
+    telemetry_packet_3_resolver_velocity_intercept:=0
     ">
         <!-- variables -->
 
@@ -38,7 +52,7 @@
             <xacro:producer_orin/>
             <Signal name="velocity" offset="0" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
-                <Value type="signed"/>
+                <Value type="signed" slope="${drive_at_speed_slope}" intercept="${drive_at_speed_intercept}"/>
             </Signal>
         </Message>
 
@@ -46,7 +60,7 @@
             <xacro:producer_orin/>
             <Signal name="position" offset="0" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
-                <Value type="signed"/>
+                <Value type="signed" slope="${drive_to_position_slope}" intercept="${drive_to_position_intercept}"/>
             </Signal>
         </Message>
 
@@ -54,7 +68,7 @@
             <xacro:producer_orin/>
             <Signal name="effort" offset="0" length="16" endianess="big">
                 <xacro:consumer_blcmd/>
-                <Value type="signed"/>
+                <Value type="signed" slope="${drive_at_current_slope}" intercept="${drive_at_current_intercept}"/>
             </Signal>
         </Message>
 
@@ -235,11 +249,11 @@
             <xacro:producer_blcmd/>
             <Signal name="velocity" offset="0" length="16" endianess="big">
                 <xacro:consumer_orin/>
-                <Value type="signed"/>
+                <Value type="signed" slope="${telemetry_packet_1_velocity_slope}" intercept="${telemetry_packet_1_velocity_intercept}"/>
             </Signal>
             <Signal name="q_current" offset="16" length="16" endianess="big">
                 <xacro:consumer_orin/>
-                <Value type="signed"/>
+                <Value type="signed" slope="${telemetry_packet_1_effort_slope}" intercept="${telemetry_packet_1_effort_intercept}"/>
             </Signal>
         </Message>
 
@@ -259,11 +273,11 @@
             <xacro:producer_blcmd/>
             <Signal name="resolver_position" offset="0" length="16" endianess="big">
                 <xacro:consumer_orin/>
-                <Value type="signed"/>
+                <Value type="signed" slope="${telemetry_packet_3_resolver_position_slope}" intercept="${telemetry_packet_3_resolver_position_intercept}"/>
             </Signal>
             <Signal name="resolver_velocity" offset="16" length="16" endianess="big">
                 <xacro:consumer_orin/>
-                <Value type="signed"/>
+                <Value type="signed" slope="${telemetry_packet_3_resolver_velocity_slope}" intercept="${telemetry_packet_3_resolver_velocity_intercept}"/>
             </Signal>
         </Message>
 
