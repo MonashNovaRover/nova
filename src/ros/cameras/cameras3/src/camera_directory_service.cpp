@@ -175,6 +175,7 @@ class CameraDirectory : public rclcpp::Node
       auto camera = camera_msgs::msg::Camera();
       camera.serial = serial;
       camera.node = device.devname;
+      camera.original_serial = device.serial;
       message.cameras.push_back(camera);
 
       // Prettify camera serial and info
