@@ -23,7 +23,7 @@ export default function YoloOverlayCanvas({
 
     if (!canvas || !video) return;
 
-    console.log(detections, video.videoWidth, video.videoHeight);
+    // console.log(detections, video.videoWidth, video.videoHeight);
 
     const ctx = canvas.getContext("2d");
 
