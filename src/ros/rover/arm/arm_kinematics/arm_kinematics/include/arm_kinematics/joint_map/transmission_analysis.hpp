@@ -13,25 +13,26 @@
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/order.hpp"
 #include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/joint_map/state_interface_definition.hpp"
 
 namespace arm_kinematics {
 
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
   struct AffineTransmission {
-    // The joint written to by this affine transmission
-    JointId target_joint_id = 0;
+    // The joint state interface written to by this affine transmission
+    StateInterfaceId target_id = 0;
 
-    // The joint read by this affine transmission
-    JointId source_joint_id = 0;
+    // The joint state interface read by this affine transmission
+    StateInterfaceId source_id = 0;
     float multiplier = 1.0F;
     float offset = 0.0F;
   };
 
   struct TransmissionInstance {
     TransmissionModelId model_id = 0;
-    std::vector<JointId> input_joint_ids;
-    std::vector<JointId> output_joint_ids;
+    std::vector<StateInterfaceId> input_ids;
+    std::vector<StateInterfaceId> output_ids;
 
     std::string name;   //< only used for logging to give info about invalid configurations!
     // forward and backward support determined by the TransmissionModel
@@ -49,20 +50,33 @@ public:
 
   [[nodiscard]] const std::vector<TransmissionInstance> & transmissions() const noexcept { return transmissions_; }
   /// a.k.a. mimic joints
-  [[nodiscard]] const std::vector<AffineTransmission> & affine_transmissions() const noexcept
-  {
+  [[nodiscard]] const std::vector<AffineTransmission> & affine_transmissions() const noexcept {
     return affine_transmissions_;
   }
 
   /// Canonical boundary mapping from named joints in descriptions to stable internal JointIds.
-  [[nodiscard]] const Order<std::string, JointId> & joint_order() const noexcept { return joint_order_; }
+  [[nodiscard]] const Order<std::string, JointId> & joint_order() const noexcept {
+    return joint_order_;
+  }
+  /// Canonical boundary mapping from named joints in descriptions to stable internal JointIds.
+  [[nodiscard]] const Order<StateInterfaceDefinition, StateInterfaceId> & state_interface_order() const noexcept {
+    return state_interface_order_;
+  }
+
   /// provides the JointID from joint_order_, adding it to the end of the order if it is not already present.
   JointId ensure_joint_id(const std::string & name);
+  StateInterfaceId ensure_state_interface_id(const StateInterfaceDefinition& definition);
+  StateInterfaceId ensure_state_interface_id(const NamedStateInterfaceDefinition & definition) {
+    return ensure_state_interface_id(StateInterfaceDefinition{
+      ensure_joint_id(definition.joint_name),
+      definition.interface_id
+    });
+  }
 
   void add_transmission(
     TransmissionModelId model_id,
-    std::vector<JointId> && inputs,
-    std::vector<JointId> && outputs,
+    std::vector<StateInterfaceId> && inputs,
+    std::vector<StateInterfaceId> && outputs,
     std::string name = "unnamed");
   /// Convenience overload, which calls the above overload that uses JointID
   void add_transmission(
@@ -78,10 +92,11 @@ public:
    * transmission relationships.
    */
   void add_affine_transmission(
-    JointId source_joint_id,
-    JointId target_joint_id,
+    StateInterfaceId source_joint_id,
+    StateInterfaceId target_joint_id,
     float multiplier = 1.0f,
     float offset = 0.0f);
+
   /**
    * Adds one affine transmission relationship to the cached analysis.
    *
@@ -98,7 +113,11 @@ private:
   std::vector<std::unique_ptr<TransmissionModel>> models_{};
   std::vector<AffineTransmission> affine_transmissions_{};
   std::vector<TransmissionInstance> transmissions_{};
+
+  /// Joint name  -->  JointId
   Order<std::string, JointId> joint_order_{};
+  /// JointId + "position"/"velocity"/"effort"/etc  -->  StateInterfaceId
+  Order<StateInterfaceDefinition, StateInterfaceId> state_interface_order_{};
 };
 
 } // namespace arm_kinematics

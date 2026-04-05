@@ -39,7 +39,6 @@ using arm_kinematics::DefaultJointMapBuilder;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
 using arm_kinematics::RobotModel;
-using arm_kinematics::JointQuantity;
 using arm_kinematics::TransmissionAnalysis;
 using arm_kinematics::TransmissionAnalysisJointMapBuilder;
 
@@ -50,45 +49,21 @@ constexpr double EPSILON = 1e-7;
 class TestTransmissionModel final : public arm_kinematics::TransmissionModel
 {
 public:
-  explicit TestTransmissionModel(
-    const bool supports_forward = false,
-    const bool supports_reverse = false)
-  : supports_forward_(supports_forward),
-    supports_reverse_(supports_reverse)
+  explicit TestTransmissionModel()
   {
   }
 
   [[nodiscard]] std::unique_ptr<arm_kinematics::TransmissionModel> clone() const override
   {
-    return std::make_unique<TestTransmissionModel>(supports_forward_, supports_reverse_);
-  }
-
-  [[nodiscard]] bool can_build(
-    arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection direction) const noexcept override
-  {
-    switch (direction) {
-      case arm_kinematics::PropagationDirection::Forward:
-        return supports_forward_;
-      case arm_kinematics::PropagationDirection::Reverse:
-        return supports_reverse_;
-    }
-
-    return false;
+    return std::make_unique<TestTransmissionModel>();
   }
 
   [[nodiscard]] std::unique_ptr<const arm_kinematics::ComputeTransmission> build(
-    arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection,
-    arm_kinematics::span<const arm_kinematics::JointId>,
-    arm_kinematics::span<const arm_kinematics::JointId>) const override
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>,
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>) const override
   {
     throw std::logic_error("TestTransmissionModel::build() should not be called in this test");
   }
-
-private:
-  bool supports_forward_ = false;
-  bool supports_reverse_ = false;
 };
 
 class TestComputeTransmission final : public arm_kinematics::ComputeTransmission
@@ -137,18 +112,9 @@ public:
     return std::make_unique<TestRuntimeTransmissionModel>(multiplier_, offset_);
   }
 
-  [[nodiscard]] bool can_build(
-    arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection direction) const noexcept override
-  {
-    return direction == arm_kinematics::PropagationDirection::Forward;
-  }
-
   [[nodiscard]] std::unique_ptr<const arm_kinematics::ComputeTransmission> build(
-    arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection,
-    arm_kinematics::span<const arm_kinematics::JointId>,
-    arm_kinematics::span<const arm_kinematics::JointId>) const override
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>,
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>) const override
   {
     return std::make_unique<TestComputeTransmission>(multiplier_, offset_);
   }
@@ -203,18 +169,9 @@ public:
     return std::make_unique<TestScratchTransmissionModel>(offset_);
   }
 
-  [[nodiscard]] bool can_build(
-    arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection direction) const noexcept override
-  {
-    return direction == arm_kinematics::PropagationDirection::Forward;
-  }
-
   [[nodiscard]] std::unique_ptr<const arm_kinematics::ComputeTransmission> build(
-    arm_kinematics::JointQuantity,
-    arm_kinematics::PropagationDirection,
-    arm_kinematics::span<const arm_kinematics::JointId>,
-    arm_kinematics::span<const arm_kinematics::JointId>) const override
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>,
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>) const override
   {
     return std::make_unique<TestScratchComputeTransmission>(offset_);
   }
@@ -459,7 +416,7 @@ TEST_F(MimicUrdfTests, DefaultJointMapBuilderMatchesRobotModelBuilder)
 TEST_F(MimicUrdfTests, RobotModelCachesMimicsAsAffineTransmissions)
 {
   const auto & analysis = robot_model_->get_default_transmission_analysis();
-  const auto & joint_ids = analysis.joint_order();
+  const auto & joint_ids = analysis.state_interface_order();
   const auto & affine_transmissions = analysis.affine_transmissions();
 
   ASSERT_EQ(affine_transmissions.size(), 1u);
@@ -467,8 +424,8 @@ TEST_F(MimicUrdfTests, RobotModelCachesMimicsAsAffineTransmissions)
   ASSERT_TRUE(joint_ids.contains_key("follower_joint"));
 
   const auto & affine_transmission = affine_transmissions.front();
-  EXPECT_EQ(affine_transmission.source_joint_id, joint_ids["driver_joint"]);
-  EXPECT_EQ(affine_transmission.target_joint_id, joint_ids["follower_joint"]);
+  EXPECT_EQ(affine_transmission.source_id, joint_ids["driver_joint"]);
+  EXPECT_EQ(affine_transmission.target_id, joint_ids["follower_joint"]);
   EXPECT_FLOAT_EQ(affine_transmission.multiplier, -2.0F);
   EXPECT_FLOAT_EQ(affine_transmission.offset, 0.5F);
 }
@@ -516,7 +473,7 @@ TEST(TransmissionAnalysisTests, MimicChainsNormalizeToSingleAffineTransmission)
   TransmissionAnalysis analysis{};
   add_mimic_transmissions_to_analysis(analysis, urdf_model);
 
-  const auto & joint_ids = analysis.joint_order();
+  const auto & joint_ids = analysis.state_interface_order();
   const auto & affine_transmissions = analysis.affine_transmissions();
 
   ASSERT_EQ(affine_transmissions.size(), 2u);
@@ -525,11 +482,11 @@ TEST(TransmissionAnalysisTests, MimicChainsNormalizeToSingleAffineTransmission)
     affine_transmissions.begin(),
     affine_transmissions.end(),
     [&joint_ids](const TransmissionAnalysis::AffineTransmission & affine_transmission) {
-      return affine_transmission.target_joint_id == joint_ids["follower_joint"];
+      return affine_transmission.target_id == joint_ids["follower_joint"];
     });
 
   ASSERT_NE(follower_it, affine_transmissions.end());
-  EXPECT_EQ(follower_it->source_joint_id, joint_ids["driver_joint"]);
+  EXPECT_EQ(follower_it->source_id, joint_ids["driver_joint"]);
   EXPECT_FLOAT_EQ(follower_it->multiplier, -6.0F);
   EXPECT_FLOAT_EQ(follower_it->offset, 0.5F);
 }
@@ -558,7 +515,7 @@ TEST(TransmissionAnalysisTests, MimicImportCreatesCanonicalIdForUndefinedSourceJ
   TransmissionAnalysis analysis{};
   add_mimic_transmissions_to_analysis(analysis, urdf_model);
 
-  const auto & joint_ids = analysis.joint_order();
+  const auto & joint_ids = analysis.state_interface_order();
   const auto & affine_transmissions = analysis.affine_transmissions();
 
   ASSERT_TRUE(joint_ids.contains_key("undefined_driver_joint"));
@@ -566,8 +523,8 @@ TEST(TransmissionAnalysisTests, MimicImportCreatesCanonicalIdForUndefinedSourceJ
   ASSERT_EQ(affine_transmissions.size(), 1u);
 
   const auto & affine_transmission = affine_transmissions.front();
-  EXPECT_EQ(affine_transmission.source_joint_id, joint_ids["undefined_driver_joint"]);
-  EXPECT_EQ(affine_transmission.target_joint_id, joint_ids["follower_joint"]);
+  EXPECT_EQ(affine_transmission.source_id, joint_ids["undefined_driver_joint"]);
+  EXPECT_EQ(affine_transmission.target_id, joint_ids["follower_joint"]);
   EXPECT_FLOAT_EQ(affine_transmission.multiplier, 2.0F);
   EXPECT_FLOAT_EQ(affine_transmission.offset, 1.0F);
 }
@@ -758,7 +715,7 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
 {
   const TransmissionAnalysis & first = robot_model_->get_default_transmission_analysis();
   const TransmissionAnalysis & second = robot_model_->get_default_transmission_analysis();
-  const auto & joint_ids = first.joint_order();
+  const auto & joint_ids = first.state_interface_order();
   const auto & transmissions = first.transmissions();
 
   EXPECT_EQ(&first, &second);
@@ -774,10 +731,10 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
 
   const auto & transmission = transmissions.front();
   ASSERT_EQ(transmission.model_id, 0u);
-  ASSERT_EQ(transmission.input_joint_ids.size(), 1u);
-  ASSERT_EQ(transmission.output_joint_ids.size(), 1u);
-  EXPECT_EQ(transmission.input_joint_ids.front(), motor_id);
-  EXPECT_EQ(transmission.output_joint_ids.front(), driven_id);
+  ASSERT_EQ(transmission.input_ids.size(), 1u);
+  ASSERT_EQ(transmission.output_ids.size(), 1u);
+  EXPECT_EQ(transmission.input_ids.front(), motor_id);
+  EXPECT_EQ(transmission.output_ids.front(), driven_id);
   EXPECT_EQ(transmission.name, "main_transmission");
 }
 
@@ -1018,7 +975,7 @@ TEST_F(TransmissionUrdfPluginBuilderTests, ForwardKinematicsPluginCanAugmentShar
 TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdge)
 {
   const auto & analysis = robot_model_->get_default_transmission_analysis();
-  const auto & joint_ids = analysis.joint_order();
+  const auto & joint_ids = analysis.state_interface_order();
 
   ASSERT_TRUE(joint_ids.contains_key("motor_joint"));
   ASSERT_TRUE(joint_ids.contains_key("driven_joint"));
@@ -1033,8 +990,8 @@ TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdg
   ASSERT_EQ(output_ids.size(), 1u);
 
   const auto & transmission = analysis.transmissions().front();
-  EXPECT_EQ(transmission.input_joint_ids, input_ids);
-  EXPECT_EQ(transmission.output_joint_ids, output_ids);
+  EXPECT_EQ(transmission.input_ids, input_ids);
+  EXPECT_EQ(transmission.output_ids, output_ids);
 }
 
 TEST_F(UnknownTransmissionPluginUrdfTests, UnknownRos2ControlPluginTypeFailsCleanly)
@@ -1140,15 +1097,15 @@ TEST(TransmissionAnalysisTests, NamedAddTransmissionImmediatelyConvertsToJointId
     arm_kinematics::span<const std::string>(outputs),
     "named_seed");
 
-  const auto & joint_ids = analysis.joint_order();
+  const auto & joint_ids = analysis.state_interface_order();
   ASSERT_TRUE(joint_ids.contains_key("motor_joint"));
   ASSERT_TRUE(joint_ids.contains_key("driven_joint"));
   ASSERT_EQ(analysis.transmissions().size(), 1u);
 
   const auto & transmission = analysis.transmissions().front();
   EXPECT_EQ(transmission.model_id, model_id);
-  EXPECT_EQ(transmission.input_joint_ids.front(), joint_ids["motor_joint"]);
-  EXPECT_EQ(transmission.output_joint_ids.front(), joint_ids["driven_joint"]);
+  EXPECT_EQ(transmission.input_ids.front(), joint_ids["motor_joint"]);
+  EXPECT_EQ(transmission.output_ids.front(), joint_ids["driven_joint"]);
   EXPECT_EQ(transmission.name, "named_seed");
 }
 
@@ -1158,7 +1115,7 @@ TEST(TransmissionAnalysisTests, IndexedAddTransmissionRejectsUnknownJointIds)
   const auto model_id = analysis.add_model(std::make_unique<TestTransmissionModel>());
 
   EXPECT_THROW(
-    analysis.add_transmission(model_id, std::vector<arm_kinematics::JointId>{0}, std::vector<arm_kinematics::JointId>{1}),
+    analysis.add_transmission(model_id, std::vector<arm_kinematics::StateInterfaceId>{0}, std::vector<arm_kinematics::StateInterfaceId>{1}),
     std::invalid_argument);
 }
 
@@ -1176,13 +1133,13 @@ TEST(JointMapStage2Tests, DefaultJointMapBuilderBuildsDirectTransmissionPlan)
     arm_kinematics::span<const std::string>(output_names),
     "direct");
 
-  const auto & joint_order = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  const auto & joint_order = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_order["driven_joint"]};
   const auto plan = arm_kinematics::make_transmission_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(plan.has_value());
@@ -1206,13 +1163,13 @@ TEST(JointMapStage2Tests, CompilesAndExecutesDirectGroupedTransmissionPlan)
     arm_kinematics::span<const std::string>(output_names),
     "direct");
 
-  const auto & joint_order = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  const auto & joint_order = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_order["driven_joint"]};
   const auto plan = arm_kinematics::make_transmission_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(plan.has_value());
@@ -1248,13 +1205,13 @@ TEST(JointMapStage2Tests, CompiledGroupedTransmissionPlanTracksNonzeroScratchLay
     arm_kinematics::span<const std::string>(output_names),
     "scratch_direct");
 
-  const auto & joint_order = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  const auto & joint_order = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_order["driven_joint"]};
   auto plan = arm_kinematics::make_transmission_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(plan.has_value());
@@ -1304,7 +1261,7 @@ TEST(JointMapStage2Tests, CompilesAndExecutesManualTwoStageGroupedTransmissionPl
     arm_kinematics::span<const std::string>(second_output_names),
     "second_stage");
 
-  const auto & joint_order = analysis.joint_order();
+  const auto & joint_order = analysis.state_interface_order();
   const auto motor_joint_id = joint_order["motor_joint"];
   const auto intermediate_joint_id = joint_order["intermediate_joint"];
   const auto driven_joint_id = joint_order["driven_joint"];
@@ -1365,7 +1322,7 @@ TEST(JointMapStage2Tests, CompileTransmissionPlanRejectsStageWithWrongTopology)
     arm_kinematics::span<const std::string>(output_names),
     "direct");
 
-  const auto & joint_order = analysis.joint_order();
+  const auto & joint_order = analysis.state_interface_order();
   const auto motor_joint_id = joint_order["motor_joint"];
   const auto driven_joint_id = joint_order["driven_joint"];
 
@@ -1411,7 +1368,7 @@ TEST(JointMapStage2Tests, CompileTransmissionPlanRejectsStageThatConsumesFutureO
     arm_kinematics::span<const std::string>(second_output_names),
     "second_stage");
 
-  const auto & joint_order = analysis.joint_order();
+  const auto & joint_order = analysis.state_interface_order();
   const auto motor_joint_id = joint_order["motor_joint"];
   const auto intermediate_joint_id = joint_order["intermediate_joint"];
   const auto driven_joint_id = joint_order["driven_joint"];
@@ -1456,7 +1413,7 @@ TEST(JointMapStage2Tests, CompileTransmissionPlanRejectsUnsupportedStageBuild)
     arm_kinematics::span<const std::string>(output_names),
     "direct");
 
-  const auto & joint_order = analysis.joint_order();
+  const auto & joint_order = analysis.state_interface_order();
   const auto motor_joint_id = joint_order["motor_joint"];
   const auto driven_joint_id = joint_order["driven_joint"];
 
@@ -1502,13 +1459,13 @@ TEST(JointMapStage2Tests, BuildsDirectTwoStageTransmissionPlan)
     arm_kinematics::span<const std::string>(second_output_names),
     "second_stage");
 
-  const auto & joint_order = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  const auto & joint_order = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_order["driven_joint"]};
   const auto plan = arm_kinematics::make_transmission_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(plan.has_value());
@@ -1552,13 +1509,13 @@ TEST(JointMapStage2Tests, RejectsAmbiguousDirectAndTwoStageTransmissionPlans)
     arm_kinematics::span<const std::string>(second_output_names),
     "second_stage");
 
-  const auto & joint_order = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  const auto & joint_order = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_order["driven_joint"]};
   const auto plan = arm_kinematics::make_transmission_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_FALSE(plan.has_value());
@@ -1597,13 +1554,13 @@ TEST(JointMapStage2Tests, BuildsThreeStageTransmissionPlan)
     arm_kinematics::span<const std::string>(third_output_names),
     "third_stage");
 
-  const auto & joint_order = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_order["motor_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_order["driven_joint"]};
+  const auto & joint_order = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_order["motor_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_order["driven_joint"]};
   const auto plan = arm_kinematics::make_transmission_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(plan.has_value());
@@ -1621,12 +1578,12 @@ TEST(TransmissionAnalysisTests, AffinePlannerBuildsIdentityPlanForDirectInputJoi
   TransmissionAnalysis analysis{};
   const auto input_joint_id = analysis.ensure_joint_id("input_joint");
 
-  const std::vector<arm_kinematics::JointId> input_ids{input_joint_id};
-  const std::vector<arm_kinematics::JointId> output_ids{input_joint_id};
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{input_joint_id};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{input_joint_id};
   const auto plan = arm_kinematics::make_affine_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids));
 
   ASSERT_TRUE(plan.has_value());
   ASSERT_EQ(plan->stages.size(), 1u);
@@ -1642,13 +1599,13 @@ TEST(TransmissionAnalysisTests, AffinePlannerBuildsPlanForMimicDerivedAffineTran
   TransmissionAnalysis analysis{};
   analysis.add_affine_transmission("driver_joint", "follower_joint", -2.0F, 0.5F);
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["follower_joint"]};
   const auto plan = arm_kinematics::make_affine_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids));
 
   ASSERT_TRUE(plan.has_value());
   ASSERT_EQ(plan->stages.size(), 1u);
@@ -1665,13 +1622,13 @@ TEST(TransmissionAnalysisTests, AffinePlannerComposesAffineTransmissionChains)
   analysis.add_affine_transmission("driver_joint", "middle_joint", -2.0F, 0.5F);
   analysis.add_affine_transmission("middle_joint", "follower_joint", 3.0F, -1.0F);
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["follower_joint"]};
   const auto plan = arm_kinematics::make_affine_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids));
 
   ASSERT_TRUE(plan.has_value());
   ASSERT_EQ(plan->stages.size(), 1u);
@@ -1687,13 +1644,13 @@ TEST(TransmissionAnalysisTests, AffineJointMapExecutesCompiledAffinePlan)
   TransmissionAnalysis analysis{};
   analysis.add_affine_transmission("driver_joint", "follower_joint", -2.0F, 0.5F);
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["driver_joint"], joint_ids["follower_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["driver_joint"], joint_ids["follower_joint"]};
   const auto plan = arm_kinematics::make_affine_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids));
 
   ASSERT_TRUE(plan.has_value());
 
@@ -1714,13 +1671,13 @@ TEST(TransmissionAnalysisTests, AffineJointMapExecutesCompiledAffineChainPlan)
   analysis.add_affine_transmission("driver_joint", "middle_joint", -2.0F, 0.5F);
   analysis.add_affine_transmission("middle_joint", "follower_joint", 3.0F, -1.0F);
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["follower_joint"]};
   const auto plan = arm_kinematics::make_affine_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids));
 
   ASSERT_TRUE(plan.has_value());
 
@@ -1760,12 +1717,12 @@ TEST(TransmissionAnalysisTests, AffinePlannerRejectsUnresolvedOutputJoint)
   const auto input_joint_id = analysis.ensure_joint_id("input_joint");
   const auto output_joint_id = analysis.ensure_joint_id("unresolved_output_joint");
 
-  const std::vector<arm_kinematics::JointId> input_ids{input_joint_id};
-  const std::vector<arm_kinematics::JointId> output_ids{output_joint_id};
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{input_joint_id};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{output_joint_id};
   const auto plan = arm_kinematics::make_affine_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids));
 
   ASSERT_FALSE(plan.has_value());
   EXPECT_NE(plan.error().find("No affine plan found"), std::string::npos);
@@ -1777,16 +1734,16 @@ TEST(TransmissionAnalysisTests, AffinePlannerRejectsAmbiguousAffineTargets)
   analysis.add_affine_transmission("driver_a_joint", "follower_joint", 2.0F, 0.0F);
   analysis.add_affine_transmission("driver_b_joint", "follower_joint", 3.0F, 0.0F);
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{
     joint_ids["driver_a_joint"],
     joint_ids["driver_b_joint"]
   };
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["follower_joint"]};
   const auto plan = arm_kinematics::make_affine_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids));
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids));
 
   ASSERT_FALSE(plan.has_value());
   EXPECT_NE(plan.error().find("Ambiguous affine plan"), std::string::npos);
@@ -1869,20 +1826,20 @@ TEST(JointMapStage2Tests, BuildsParallelAffineAndGroupedJointMapPlan)
     arm_kinematics::span<const std::string>(grouped_outputs),
     "grouped");
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{
     joint_ids["motor_joint"],
     joint_ids["driver_joint"]
   };
-  const std::vector<arm_kinematics::JointId> output_ids{
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{
     joint_ids["driven_joint"],
     joint_ids["follower_joint"]
   };
 
   const auto joint_map_plan = arm_kinematics::make_joint_map_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(joint_map_plan.has_value()) << joint_map_plan.error().message;
@@ -1939,14 +1896,14 @@ TEST(JointMapStage2Tests, BuildsStagedGroupedThenAffineJointMapPlan)
     arm_kinematics::span<const std::string>(grouped_outputs),
     "grouped");
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["motor_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["follower_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["motor_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["follower_joint"]};
 
   const auto joint_map_plan = arm_kinematics::make_joint_map_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(joint_map_plan.has_value()) << joint_map_plan.error().message;
@@ -2002,14 +1959,14 @@ TEST(JointMapStage2Tests, BuildsStagedAffineThenGroupedJointMapPlan)
     arm_kinematics::span<const std::string>(grouped_outputs),
     "grouped");
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["driven_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["driven_joint"]};
 
   const auto joint_map_plan = arm_kinematics::make_joint_map_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(joint_map_plan.has_value()) << joint_map_plan.error().message;
@@ -2065,14 +2022,14 @@ TEST(JointMapStage2Tests, BuildsThreeStageAffineGroupedAffineJointMapPlan)
     arm_kinematics::span<const std::string>(grouped_outputs),
     "grouped");
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["driver_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["final_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["driver_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["final_joint"]};
 
   const auto joint_map_plan = arm_kinematics::make_joint_map_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(joint_map_plan.has_value()) << joint_map_plan.error().message;
@@ -2140,14 +2097,14 @@ TEST(JointMapStage2Tests, BuildsThreeStageGroupedAffineGroupedJointMapPlan)
     arm_kinematics::span<const std::string>(second_grouped_outputs),
     "second_grouped");
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["motor_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["final_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["motor_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["final_joint"]};
 
   const auto joint_map_plan = arm_kinematics::make_joint_map_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_TRUE(joint_map_plan.has_value()) << joint_map_plan.error().message;
@@ -2232,14 +2189,14 @@ TEST(JointMapStage2Tests, RejectsAmbiguousAffinePrefixAndGroupedPrefixJointMapPl
     arm_kinematics::span<const std::string>(third_grouped_outputs),
     "grouped_suffix");
 
-  const auto & joint_ids = analysis.joint_order();
-  const std::vector<arm_kinematics::JointId> input_ids{joint_ids["input_joint"]};
-  const std::vector<arm_kinematics::JointId> output_ids{joint_ids["output_joint"]};
+  const auto & joint_ids = analysis.state_interface_order();
+  const std::vector<arm_kinematics::StateInterfaceId> input_ids{joint_ids["input_joint"]};
+  const std::vector<arm_kinematics::StateInterfaceId> output_ids{joint_ids["output_joint"]};
 
   const auto joint_map_plan = arm_kinematics::make_joint_map_plan_expected(
     analysis,
-    arm_kinematics::span<const arm_kinematics::JointId>(input_ids),
-    arm_kinematics::span<const arm_kinematics::JointId>(output_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(input_ids),
+    arm_kinematics::span<const arm_kinematics::StateInterfaceId>(output_ids),
     JointQuantity::Position);
 
   ASSERT_FALSE(joint_map_plan.has_value());
@@ -2254,19 +2211,19 @@ TEST(JointMapStage2Tests, CompileJointMapPlanSupportsSingleSegmentWithNonIdentit
   analysis.ensure_joint_id("joint_b");
 
   arm_kinematics::AffinePlan affine_plan{};
-  affine_plan.input_joint_ids = {analysis.joint_order()["joint_a"], analysis.joint_order()["joint_b"]};
-  affine_plan.output_joint_ids = {analysis.joint_order()["joint_a"], analysis.joint_order()["joint_b"]};
+  affine_plan.input_joint_ids = {analysis.state_interface_order()["joint_a"], analysis.state_interface_order()["joint_b"]};
+  affine_plan.output_joint_ids = {analysis.state_interface_order()["joint_a"], analysis.state_interface_order()["joint_b"]};
   affine_plan.stages = {
     arm_kinematics::AffinePlanStage{
-      analysis.joint_order()["joint_a"],
-      analysis.joint_order()["joint_a"],
+      analysis.state_interface_order()["joint_a"],
+      analysis.state_interface_order()["joint_a"],
       0,
       1.0F,
       0.0F
     },
     arm_kinematics::AffinePlanStage{
-      analysis.joint_order()["joint_b"],
-      analysis.joint_order()["joint_b"],
+      analysis.state_interface_order()["joint_b"],
+      analysis.state_interface_order()["joint_b"],
       1,
       1.0F,
       0.0F
@@ -2275,7 +2232,7 @@ TEST(JointMapStage2Tests, CompileJointMapPlanSupportsSingleSegmentWithNonIdentit
 
   arm_kinematics::JointMapPlan joint_map_plan{};
   joint_map_plan.input_joint_ids = affine_plan.input_joint_ids;
-  joint_map_plan.output_joint_ids = {analysis.joint_order()["joint_b"], analysis.joint_order()["joint_a"]};
+  joint_map_plan.output_joint_ids = {analysis.state_interface_order()["joint_b"], analysis.state_interface_order()["joint_a"]};
   joint_map_plan.stages.push_back(arm_kinematics::JointMapPlanStage{
     joint_map_plan.input_joint_ids,
     joint_map_plan.output_joint_ids,

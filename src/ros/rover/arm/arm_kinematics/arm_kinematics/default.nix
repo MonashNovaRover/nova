@@ -15,6 +15,7 @@
 , ament-cmake-gtest
 , ament-lint-auto
 , transmission-interface
+, hardware-interface
 , fcl
 , kdl-parser
 }:
@@ -50,6 +51,7 @@ buildRosPackage rec {
     tf2-eigen
     orocos-kdl
     transmission-interface
+    hardware-interface
     fcl
     kdl-parser
   ];
@@ -66,6 +68,7 @@ buildRosPackage rec {
     tf2-eigen
     orocos-kdl
     transmission-interface
+    hardware-interface
   ];
 
 #  doCheck = true;

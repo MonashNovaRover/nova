@@ -195,35 +195,21 @@ public:
       joint_count_));
   }
 
-  [[nodiscard]] bool can_build(
-    const JointQuantity quantity,
-    const PropagationDirection) const noexcept override
-  {
-    switch (quantity) {
-      case JointQuantity::Position:
-        return is_loadable_ && supports_position_;
-      case JointQuantity::Velocity:
-        return is_loadable_ && supports_velocity_;
-    }
-
-    return false;
-  }
-
   [[nodiscard]] std::unique_ptr<const ComputeTransmission> build(
-    const JointQuantity quantity,
-    const PropagationDirection direction,
-    const span<const JointId> input_joint_ids,
-    const span<const JointId> output_joint_ids) const override
+    const span<const StateInterfaceId> input_joint_ids,
+    const span<const StateInterfaceId> output_joint_ids) const override
   {
-    if (!can_build(quantity, direction)) {
+    if (!is_loadable_) {
       throw std::invalid_argument(
         "Ros2ControlPluginTransmissionModel::build() called for an unsupported quantity or unloaded plugin type");
     }
 
+    const auto inferred_direction = infer_direction(input_joint_ids.size(), output_joint_ids.size());
+    const auto inferred_quantity = infer_quantity();
     const auto expected_input_count =
-      direction == PropagationDirection::Forward ? actuator_count_ : joint_count_;
+      inferred_direction == PropagationDirection::Forward ? actuator_count_ : joint_count_;
     const auto expected_output_count =
-      direction == PropagationDirection::Forward ? joint_count_ : actuator_count_;
+      inferred_direction == PropagationDirection::Forward ? joint_count_ : actuator_count_;
 
     if (input_joint_ids.size() != expected_input_count || output_joint_ids.size() != expected_output_count) {
       throw std::invalid_argument(
@@ -233,8 +219,8 @@ public:
     return std::make_unique<Ros2ControlPluginTransmissionCompute>(
       plugin_loader_,
       transmission_info_,
-      quantity,
-      direction);
+      inferred_quantity,
+      inferred_direction);
   }
 
 private:
@@ -352,10 +338,10 @@ enum class MimicVisitState {
 };
 
 TransmissionAnalysis::AffineTransmission normalize_affine_transmission(
-  const JointId target_joint_id,
-  const std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> & raw_affine_transmissions,
-  std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> & normalized_affine_transmissions,
-  std::unordered_map<JointId, MimicVisitState> & visit_states)
+  const StateInterfaceId target_joint_id,
+  const std::unordered_map<StateInterfaceId, TransmissionAnalysis::AffineTransmission> & raw_affine_transmissions,
+  std::unordered_map<StateInterfaceId, TransmissionAnalysis::AffineTransmission> & normalized_affine_transmissions,
+  std::unordered_map<StateInterfaceId, MimicVisitState> & visit_states)
 {
   const auto normalized_it = normalized_affine_transmissions.find(target_joint_id);
   if (normalized_it != normalized_affine_transmissions.end()) {
@@ -380,14 +366,14 @@ TransmissionAnalysis::AffineTransmission normalize_affine_transmission(
   visit_states[target_joint_id] = MimicVisitState::Visiting;
 
   const auto normalized_source = normalize_affine_transmission(
-    raw_it->second.source_joint_id,
+    raw_it->second.source_id,
     raw_affine_transmissions,
     normalized_affine_transmissions,
     visit_states);
 
   const auto normalized = TransmissionAnalysis::AffineTransmission{
     target_joint_id,
-    normalized_source.source_joint_id,
+    normalized_source.source_id,
     normalized_source.multiplier * raw_it->second.multiplier,
     normalized_source.offset * raw_it->second.multiplier + raw_it->second.offset
   };
@@ -460,7 +446,7 @@ void add_mimic_transmissions_to_analysis(
     transmission_analysis.ensure_joint_id(joint_name);
   }
 
-  std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> raw_affine_transmissions{};
+  std::unordered_map<StateInterfaceId, TransmissionAnalysis::AffineTransmission> raw_affine_transmissions{};
 
   for (const auto & [joint_name, joint] : urdf_model.joints_) {
     if (!joint->mimic) {
@@ -477,8 +463,8 @@ void add_mimic_transmissions_to_analysis(
     };
   }
 
-  std::unordered_map<JointId, TransmissionAnalysis::AffineTransmission> normalized_affine_transmissions{};
-  std::unordered_map<JointId, MimicVisitState> visit_states{};
+  std::unordered_map<StateInterfaceId, TransmissionAnalysis::AffineTransmission> normalized_affine_transmissions{};
+  std::unordered_map<StateInterfaceId, MimicVisitState> visit_states{};
 
   for (const auto & [target_joint_id, _] : raw_affine_transmissions) {
     const auto normalized = normalize_affine_transmission(
@@ -488,8 +474,8 @@ void add_mimic_transmissions_to_analysis(
       visit_states);
 
     transmission_analysis.add_affine_transmission(
-      normalized.source_joint_id,
-      normalized.target_joint_id,
+      normalized.source_id,
+      normalized.target_id,
       normalized.multiplier,
       normalized.offset);
   }

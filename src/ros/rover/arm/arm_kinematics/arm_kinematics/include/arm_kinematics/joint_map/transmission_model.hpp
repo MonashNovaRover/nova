@@ -20,15 +20,9 @@ public:
 
   [[nodiscard]] virtual std::unique_ptr<TransmissionModel> clone() const = 0;
 
-  [[nodiscard]] virtual bool can_build(
-    JointQuantity quantity,
-    PropagationDirection direction) const noexcept = 0;
-
   [[nodiscard]] virtual std::unique_ptr<const ComputeTransmission> build(
-    JointQuantity quantity,
-    PropagationDirection direction,
-    span<const JointId> input_joint_ids,
-    span<const JointId> output_joint_ids) const = 0;
+    span<const StateInterfaceId> input_joint_ids,
+    span<const StateInterfaceId> output_joint_ids) const = 0;
 };
 
 } // namespace arm_kinematics

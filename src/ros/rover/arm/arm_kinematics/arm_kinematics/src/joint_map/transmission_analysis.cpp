@@ -11,7 +11,7 @@ namespace arm_kinematics {
 TransmissionAnalysis::TransmissionAnalysis(const TransmissionAnalysis & other)
   : affine_transmissions_(other.affine_transmissions_),
     transmissions_(other.transmissions_),
-    joint_order_(other.joint_order_)
+    state_interface_order_(other.state_interface_order_)
 {
   models_.reserve(other.models_.size());
   for (const auto & model : other.models_) {
@@ -33,7 +33,7 @@ TransmissionAnalysis & TransmissionAnalysis::operator=(const TransmissionAnalysi
 
   affine_transmissions_ = other.affine_transmissions_;
   transmissions_ = other.transmissions_;
-  joint_order_ = other.joint_order_;
+  state_interface_order_ = other.state_interface_order_;
   return *this;
 }
 
@@ -49,8 +49,8 @@ TransmissionModelId TransmissionAnalysis::add_model(std::unique_ptr<Transmission
 
 void TransmissionAnalysis::add_transmission(
   const TransmissionModelId model_id,
-  std::vector<JointId> && inputs,
-  std::vector<JointId> && outputs,
+  std::vector<StateInterfaceId> && inputs,
+  std::vector<StateInterfaceId> && outputs,
   std::string name)
 {
   if (model_id >= models_.size()) {
@@ -58,7 +58,7 @@ void TransmissionAnalysis::add_transmission(
       "TransmissionAnalysis::add_transmission() received a model_id that is not present in models()");
   }
 
-  const auto max_joint_id = joint_order_.inverse.size();
+  const auto max_joint_id = state_interface_order_.inverse.size();
   for (const auto joint_id : inputs) {
     if (joint_id >= max_joint_id) {
       throw std::invalid_argument(
@@ -86,13 +86,13 @@ void TransmissionAnalysis::add_transmission(
   const span<const std::string> outputs,
   std::string name)
 {
-  std::vector<JointId> input_ids{};
+  std::vector<StateInterfaceId> input_ids{};
   input_ids.reserve(inputs.size());
   for (const auto & input_name : inputs) {
     input_ids.emplace_back(ensure_joint_id(input_name));
   }
 
-  std::vector<JointId> output_ids{};
+  std::vector<StateInterfaceId> output_ids{};
   output_ids.reserve(outputs.size());
   for (const auto & output_name : outputs) {
     output_ids.emplace_back(ensure_joint_id(output_name));
@@ -107,21 +107,21 @@ void TransmissionAnalysis::add_transmission(
 
 JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
 {
-  if (joint_order_.contains_key(name))
-    return joint_order_[name];
+  return joint_order_.ensure(name);
+}
 
-  const auto id = joint_order_.inverse.size();
-  joint_order_[name] = id;
-  return id;
+StateInterfaceId TransmissionAnalysis::ensure_state_interface_id(const StateInterfaceDefinition & definition)
+{
+  return state_interface_order_.ensure(definition);
 }
 
 void TransmissionAnalysis::add_affine_transmission(
-  const JointId source_joint_id,
-  const JointId target_joint_id,
+  const StateInterfaceId source_joint_id,
+  const StateInterfaceId target_joint_id,
   const float multiplier,
   const float offset)
 {
-  const auto max_joint_id = joint_order_.inverse.size();
+  const auto max_joint_id = state_interface_order_.inverse.size();
   if (source_joint_id >= max_joint_id) {
     throw std::invalid_argument(
       "TransmissionAnalysis::add_affine_transmission() received a source JointId not present in joint_order()");

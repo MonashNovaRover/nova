@@ -13,16 +13,16 @@ namespace arm_kinematics {
 namespace {
 
 struct ResolvedOutputJointIds {
-  std::vector<JointId> known_joint_ids{};
+  std::vector<StateInterfaceId> known_joint_ids{};
   std::vector<size_t> unknown_output_indices{};
 };
 
-std::vector<JointId> to_joint_ids_expected(
-  const Order<std::string, JointId> & joint_order,
+std::vector<StateInterfaceId> to_joint_ids_expected(
+  const Order<std::string, StateInterfaceId> & joint_order,
   const std::vector<std::string> & joint_names,
   const char * label)
 {
-  std::vector<JointId> joint_ids{};
+  std::vector<StateInterfaceId> joint_ids{};
   joint_ids.reserve(joint_names.size());
 
   for (const auto & joint_name : joint_names) {
@@ -38,7 +38,7 @@ std::vector<JointId> to_joint_ids_expected(
 }
 
 ResolvedOutputJointIds resolve_output_joint_ids(
-  const Order<std::string, JointId> & joint_order,
+  const Order<std::string, StateInterfaceId> & joint_order,
   const std::vector<std::string> & output_names)
 {
   ResolvedOutputJointIds resolved{};
@@ -59,7 +59,7 @@ ResolvedOutputJointIds resolve_output_joint_ids(
 }
 
 JointMapPlanSegment make_zero_affine_segment(
-  const std::vector<JointId> & stage_input_joint_ids,
+  const std::vector<StateInterfaceId> & stage_input_joint_ids,
   std::vector<size_t> output_indices)
 {
   AffinePlan zero_plan{};
@@ -91,7 +91,7 @@ tl::expected<JointMap, std::string> TransmissionAnalysisJointMapBuilder::build_e
   const JointQuantity quantity) const
 {
   try {
-    const auto & joint_order = transmission_analysis_.joint_order();
+    const auto & joint_order = transmission_analysis_.state_interface_order();
     const auto input_joint_ids = to_joint_ids_expected(joint_order, input_names, "input");
     const auto resolved_output_joint_ids = resolve_output_joint_ids(joint_order, output_names);
 
@@ -99,8 +99,8 @@ tl::expected<JointMap, std::string> TransmissionAnalysisJointMapBuilder::build_e
     if (!resolved_output_joint_ids.known_joint_ids.empty()) {
       const auto known_joint_map_plan = make_joint_map_plan_expected(
         transmission_analysis_,
-        span<const JointId>(input_joint_ids),
-        span<const JointId>(resolved_output_joint_ids.known_joint_ids),
+        span<const StateInterfaceId>(input_joint_ids),
+        span<const StateInterfaceId>(resolved_output_joint_ids.known_joint_ids),
         quantity);
       if (!known_joint_map_plan.has_value()) {
         return tl::make_unexpected(known_joint_map_plan.error().message);

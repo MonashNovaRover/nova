@@ -15,7 +15,7 @@ namespace arm_kinematics {
 
 namespace {
 
-std::string join_joint_ids(span<const JointId> joint_ids)
+std::string join_joint_ids(span<const StateInterfaceId> joint_ids)
 {
   std::ostringstream ss;
   auto first = true;
@@ -44,43 +44,39 @@ TransmissionPlanError make_transmission_plan_error(const TransmissionPlanErrorKi
   };
 }
 
-const std::vector<JointId> & consumed_joint_ids_for_direction(
+const std::vector<StateInterfaceId> & consumed_joint_ids_for_direction(
   const TransmissionAnalysis::TransmissionInstance & transmission,
   const PropagationDirection direction)
 {
   return direction == PropagationDirection::Forward ?
-    transmission.input_joint_ids :
-    transmission.output_joint_ids;
+    transmission.input_ids :
+    transmission.output_ids;
 }
 
-const std::vector<JointId> & produced_joint_ids_for_direction(
+const std::vector<StateInterfaceId> & produced_joint_ids_for_direction(
   const TransmissionAnalysis::TransmissionInstance & transmission,
   const PropagationDirection direction)
 {
   return direction == PropagationDirection::Forward ?
-    transmission.output_joint_ids :
-    transmission.input_joint_ids;
+    transmission.output_ids :
+    transmission.input_ids;
 }
 
 std::optional<TransmissionPlanStage> make_direct_stage(
   const TransmissionAnalysis::TransmissionInstance & transmission,
   const TransmissionInstanceId transmission_instance_id,
-  const TransmissionModel & model,
   const PropagationDirection direction,
-  span<const JointId> requested_inputs,
-  span<const JointId> requested_outputs,
-  const JointQuantity quantity)
+  span<const StateInterfaceId> requested_inputs,
+  span<const StateInterfaceId> requested_outputs,
+  const JointQuantity)
 {
   const auto & consumed_joint_ids = consumed_joint_ids_for_direction(transmission, direction);
   const auto & produced_joint_ids = produced_joint_ids_for_direction(transmission, direction);
 
-  if (!model.can_build(quantity, direction)) {
+  if (consumed_joint_ids != std::vector<StateInterfaceId>(requested_inputs.begin(), requested_inputs.end())) {
     return std::nullopt;
   }
-  if (consumed_joint_ids != std::vector<JointId>(requested_inputs.begin(), requested_inputs.end())) {
-    return std::nullopt;
-  }
-  if (produced_joint_ids != std::vector<JointId>(requested_outputs.begin(), requested_outputs.end())) {
+  if (produced_joint_ids != std::vector<StateInterfaceId>(requested_outputs.begin(), requested_outputs.end())) {
     return std::nullopt;
   }
 
@@ -93,22 +89,22 @@ std::optional<TransmissionPlanStage> make_direct_stage(
 }
 
 bool contains_all_joint_ids(
-  const std::vector<JointId> & available_joint_ids,
-  const std::vector<JointId> & required_joint_ids)
+  const std::vector<StateInterfaceId> & available_joint_ids,
+  const std::vector<StateInterfaceId> & required_joint_ids)
 {
   return std::all_of(
     required_joint_ids.begin(),
     required_joint_ids.end(),
-    [&available_joint_ids](const JointId joint_id) {
+    [&available_joint_ids](const StateInterfaceId joint_id) {
       return std::find(available_joint_ids.begin(), available_joint_ids.end(), joint_id) != available_joint_ids.end();
     });
 }
 
-std::vector<JointId> merge_joint_ids(
-  const std::vector<JointId> & available_joint_ids,
-  const std::vector<JointId> & produced_joint_ids)
+std::vector<StateInterfaceId> merge_joint_ids(
+  const std::vector<StateInterfaceId> & available_joint_ids,
+  const std::vector<StateInterfaceId> & produced_joint_ids)
 {
-  std::vector<JointId> merged_joint_ids = available_joint_ids;
+  std::vector<StateInterfaceId> merged_joint_ids = available_joint_ids;
 
   for (const auto joint_id : produced_joint_ids) {
     if (std::find(merged_joint_ids.begin(), merged_joint_ids.end(), joint_id) == merged_joint_ids.end()) {
@@ -120,31 +116,31 @@ std::vector<JointId> merge_joint_ids(
   return merged_joint_ids;
 }
 
-std::string join_joint_ids(const std::vector<JointId> & joint_ids)
+std::string join_joint_ids(const std::vector<StateInterfaceId> & joint_ids)
 {
-  return join_joint_ids(span<const JointId>(joint_ids));
+  return join_joint_ids(span<const StateInterfaceId>(joint_ids));
 }
 
-std::string available_joint_ids_key(const std::vector<JointId> & joint_ids)
+std::string available_joint_ids_key(const std::vector<StateInterfaceId> & joint_ids)
 {
   return join_joint_ids(joint_ids);
 }
 
 tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
   const TransmissionAnalysis & analysis,
-  span<const JointId> input_joint_ids,
-  JointId output_joint_id);
+  span<const StateInterfaceId> input_joint_ids,
+  StateInterfaceId output_joint_id);
 
-tl::expected<JointId, std::string> find_affine_root_source_joint_id_expected(
+tl::expected<StateInterfaceId, std::string> find_affine_root_source_joint_id_expected(
   const TransmissionAnalysis & analysis,
-  const JointId output_joint_id)
+  const StateInterfaceId output_joint_id)
 {
   const auto & affine_transmissions = analysis.affine_transmissions();
   const auto affine_it = std::find_if(
     affine_transmissions.begin(),
     affine_transmissions.end(),
     [output_joint_id](const TransmissionAnalysis::AffineTransmission & affine_transmission) {
-      return affine_transmission.target_joint_id == output_joint_id;
+      return affine_transmission.target_id == output_joint_id;
     });
   if (affine_it == affine_transmissions.end()) {
     return output_joint_id;
@@ -154,21 +150,21 @@ tl::expected<JointId, std::string> find_affine_root_source_joint_id_expected(
     std::next(affine_it),
     affine_transmissions.end(),
     [output_joint_id](const TransmissionAnalysis::AffineTransmission & affine_transmission) {
-      return affine_transmission.target_joint_id == output_joint_id;
+      return affine_transmission.target_id == output_joint_id;
     });
   if (duplicate_affine_it != affine_transmissions.end()) {
     return tl::make_unexpected(
       "Ambiguous affine plan: multiple affine transmissions target joint " + std::to_string(output_joint_id));
   }
 
-  return find_affine_root_source_joint_id_expected(analysis, affine_it->source_joint_id);
+  return find_affine_root_source_joint_id_expected(analysis, affine_it->source_id);
 }
 
-tl::expected<std::vector<JointId>, std::string> collect_affine_closure_joint_ids_expected(
+tl::expected<std::vector<StateInterfaceId>, std::string> collect_affine_closure_joint_ids_expected(
   const TransmissionAnalysis & analysis,
-  const span<const JointId> input_joint_ids)
+  const span<const StateInterfaceId> input_joint_ids)
 {
-  std::vector<JointId> closure_joint_ids{input_joint_ids.begin(), input_joint_ids.end()};
+  std::vector<StateInterfaceId> closure_joint_ids{input_joint_ids.begin(), input_joint_ids.end()};
   std::sort(closure_joint_ids.begin(), closure_joint_ids.end());
 
   bool changed = true;
@@ -178,8 +174,8 @@ tl::expected<std::vector<JointId>, std::string> collect_affine_closure_joint_ids
     for (const auto & affine_transmission : analysis.affine_transmissions()) {
       const auto affine_stage = make_affine_plan_stage_expected(
         analysis,
-        span<const JointId>(closure_joint_ids),
-        affine_transmission.target_joint_id);
+        span<const StateInterfaceId>(closure_joint_ids),
+        affine_transmission.target_id);
       if (!affine_stage.has_value()) {
         continue;
       }
@@ -187,11 +183,11 @@ tl::expected<std::vector<JointId>, std::string> collect_affine_closure_joint_ids
       if (std::find(
         closure_joint_ids.begin(),
         closure_joint_ids.end(),
-        affine_transmission.target_joint_id) != closure_joint_ids.end()) {
+        affine_transmission.target_id) != closure_joint_ids.end()) {
         continue;
       }
 
-      closure_joint_ids.push_back(affine_transmission.target_joint_id);
+      closure_joint_ids.push_back(affine_transmission.target_id);
       std::sort(closure_joint_ids.begin(), closure_joint_ids.end());
       changed = true;
     }
@@ -202,8 +198,8 @@ tl::expected<std::vector<JointId>, std::string> collect_affine_closure_joint_ids
 
 tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
   const TransmissionAnalysis & analysis,
-  const span<const JointId> input_joint_ids,
-  const JointId output_joint_id)
+  const span<const StateInterfaceId> input_joint_ids,
+  const StateInterfaceId output_joint_id)
 {
   const auto input_it = std::find(input_joint_ids.begin(), input_joint_ids.end(), output_joint_id);
   if (input_it != input_joint_ids.end()) {
@@ -221,7 +217,7 @@ tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
     affine_transmissions.begin(),
     affine_transmissions.end(),
     [output_joint_id](const TransmissionAnalysis::AffineTransmission & affine_transmission) {
-      return affine_transmission.target_joint_id == output_joint_id;
+      return affine_transmission.target_id == output_joint_id;
     });
   if (affine_it == affine_transmissions.end() && input_joint_ids.empty()) {
     return AffinePlanStage{
@@ -240,14 +236,14 @@ tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
     std::next(affine_it),
     affine_transmissions.end(),
     [output_joint_id](const TransmissionAnalysis::AffineTransmission & affine_transmission) {
-      return affine_transmission.target_joint_id == output_joint_id;
+      return affine_transmission.target_id == output_joint_id;
     });
   if (duplicate_affine_it != affine_transmissions.end()) {
     return tl::make_unexpected(
       "Ambiguous affine plan: multiple affine transmissions target joint " + std::to_string(output_joint_id));
   }
 
-  const auto source_stage = make_affine_plan_stage_expected(analysis, input_joint_ids, affine_it->source_joint_id);
+  const auto source_stage = make_affine_plan_stage_expected(analysis, input_joint_ids, affine_it->source_id);
   if (!source_stage.has_value()) {
     return tl::make_unexpected(source_stage.error());
   }
@@ -262,8 +258,8 @@ tl::expected<AffinePlanStage, std::string> make_affine_plan_stage_expected(
 }
 
 JointMapPlanStage make_grouped_prefix_stage(
-  const std::vector<JointId> & input_joint_ids,
-  const std::vector<JointId> & output_joint_ids,
+  const std::vector<StateInterfaceId> & input_joint_ids,
+  const std::vector<StateInterfaceId> & output_joint_ids,
   const TransmissionPlanStage & grouped_stage)
 {
   JointMapPlanStage stage{
@@ -272,7 +268,7 @@ JointMapPlanStage make_grouped_prefix_stage(
     {}
   };
 
-  std::vector<JointId> identity_output_joint_ids{};
+  std::vector<StateInterfaceId> identity_output_joint_ids{};
   std::vector<size_t> identity_output_indices{};
   identity_output_joint_ids.reserve(input_joint_ids.size());
   identity_output_indices.reserve(input_joint_ids.size());
@@ -332,8 +328,8 @@ JointMapPlanStage make_grouped_prefix_stage(
 
 MakeAffinePlanResult make_affine_plan_expected(
   const TransmissionAnalysis & analysis,
-  const span<const JointId> input_joint_ids,
-  const span<const JointId> output_joint_ids)
+  const span<const StateInterfaceId> input_joint_ids,
+  const span<const StateInterfaceId> output_joint_ids)
 {
   AffinePlan plan{
     {input_joint_ids.begin(), input_joint_ids.end()},
@@ -358,14 +354,14 @@ MakeAffinePlanResult make_affine_plan_expected(
 
 MakeTransmissionPlanResult make_transmission_plan_expected(
   const TransmissionAnalysis & analysis,
-  const span<const JointId> input_joint_ids,
-  const span<const JointId> output_joint_ids,
+  const span<const StateInterfaceId> input_joint_ids,
+  const span<const StateInterfaceId> output_joint_ids,
   const JointQuantity quantity)
 {
   const auto & transmissions = analysis.transmissions();
-  const auto & models = analysis.models();
+  (void)quantity;
   struct SearchState {
-    std::vector<JointId> available_joint_ids{};
+    std::vector<StateInterfaceId> available_joint_ids{};
     std::vector<TransmissionPlanStage> stages{};
   };
 
@@ -409,13 +405,8 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
          transmission_instance_id < transmissions.size();
          ++transmission_instance_id) {
       const auto & transmission = transmissions[transmission_instance_id];
-      const auto & model = *models[transmission.model_id];
 
       for (const auto direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
-        if (!model.can_build(quantity, direction)) {
-          continue;
-        }
-
         const auto & consumed_joint_ids = consumed_joint_ids_for_direction(transmission, direction);
         const auto & produced_joint_ids = produced_joint_ids_for_direction(transmission, direction);
         if (!contains_all_joint_ids(state.available_joint_ids, consumed_joint_ids)) {
@@ -468,13 +459,13 @@ MakeTransmissionPlanResult make_transmission_plan_expected(
 
 tl::expected<JointMapPlanStage, std::string> make_single_stage_joint_map_plan_expected(
   const TransmissionAnalysis & analysis,
-  const span<const JointId> input_joint_ids,
-  const span<const JointId> output_joint_ids,
+  const span<const StateInterfaceId> input_joint_ids,
+  const span<const StateInterfaceId> output_joint_ids,
   const JointQuantity quantity)
 {
-  std::vector<JointId> affine_output_joint_ids{};
+  std::vector<StateInterfaceId> affine_output_joint_ids{};
   std::vector<size_t> affine_output_indices{};
-  std::vector<JointId> grouped_output_joint_ids{};
+  std::vector<StateInterfaceId> grouped_output_joint_ids{};
   std::vector<size_t> grouped_output_indices{};
 
   affine_output_joint_ids.reserve(output_joint_ids.size());
@@ -505,7 +496,7 @@ tl::expected<JointMapPlanStage, std::string> make_single_stage_joint_map_plan_ex
     const auto affine_plan = make_affine_plan_expected(
       analysis,
       input_joint_ids,
-      span<const JointId>(affine_output_joint_ids));
+      span<const StateInterfaceId>(affine_output_joint_ids));
     if (!affine_plan.has_value()) {
       return tl::make_unexpected(affine_plan.error());
     }
@@ -520,7 +511,7 @@ tl::expected<JointMapPlanStage, std::string> make_single_stage_joint_map_plan_ex
     const auto transmission_plan = make_transmission_plan_expected(
       analysis,
       input_joint_ids,
-      span<const JointId>(grouped_output_joint_ids),
+      span<const StateInterfaceId>(grouped_output_joint_ids),
       quantity);
     if (!transmission_plan.has_value()) {
       return tl::make_unexpected(transmission_plan.error().message);
@@ -629,8 +620,8 @@ void append_joint_map_plan_stages(
 
 MakeJointMapPlanResult make_joint_map_plan_expected(
   const TransmissionAnalysis & analysis,
-  const span<const JointId> input_joint_ids,
-  const span<const JointId> output_joint_ids,
+  const span<const StateInterfaceId> input_joint_ids,
+  const span<const StateInterfaceId> output_joint_ids,
   const JointQuantity quantity)
 {
   const auto single_stage_plan = make_single_stage_joint_map_plan_expected(
@@ -649,20 +640,15 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
   std::optional<JointMapPlan> grouped_prefix_plan = std::nullopt;
   {
     const auto & transmissions = analysis.transmissions();
-    const auto & models = analysis.models();
-    std::vector<JointId> current_input_joint_ids{input_joint_ids.begin(), input_joint_ids.end()};
+    std::vector<StateInterfaceId> current_input_joint_ids{input_joint_ids.begin(), input_joint_ids.end()};
     std::sort(current_input_joint_ids.begin(), current_input_joint_ids.end());
 
     for (TransmissionInstanceId transmission_instance_id = 0;
          transmission_instance_id < transmissions.size();
          ++transmission_instance_id) {
       const auto & transmission = transmissions[transmission_instance_id];
-      const auto & model = *models[transmission.model_id];
 
       for (const auto direction : {PropagationDirection::Forward, PropagationDirection::Reverse}) {
-        if (!model.can_build(quantity, direction)) {
-          continue;
-        }
 
         const auto & consumed_joint_ids = consumed_joint_ids_for_direction(transmission, direction);
         const auto & produced_joint_ids = produced_joint_ids_for_direction(transmission, direction);
@@ -677,7 +663,7 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
 
         const auto suffix_plan = make_joint_map_plan_expected(
           analysis,
-          span<const JointId>(next_available_joint_ids),
+          span<const StateInterfaceId>(next_available_joint_ids),
           output_joint_ids,
           quantity);
         if (!suffix_plan.has_value()) {
@@ -722,11 +708,11 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
   }
 
   std::optional<JointMapPlan> affine_prefix_plan_candidate = std::nullopt;
-  if (*affine_closure_joint_ids != std::vector<JointId>(input_joint_ids.begin(), input_joint_ids.end())) {
+  if (*affine_closure_joint_ids != std::vector<StateInterfaceId>(input_joint_ids.begin(), input_joint_ids.end())) {
     const auto affine_prefix_plan = make_affine_plan_expected(
       analysis,
       input_joint_ids,
-      span<const JointId>(*affine_closure_joint_ids));
+      span<const StateInterfaceId>(*affine_closure_joint_ids));
     if (!affine_prefix_plan.has_value()) {
       return tl::make_unexpected(make_joint_map_plan_error(
         JointMapPlanErrorKind::Invalid,
@@ -735,7 +721,7 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
 
     const auto second_stage_plan = make_joint_map_plan_expected(
       analysis,
-      span<const JointId>(*affine_closure_joint_ids),
+      span<const StateInterfaceId>(*affine_closure_joint_ids),
       output_joint_ids,
       quantity);
     if (!second_stage_plan.has_value()) {
@@ -784,7 +770,7 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
     return *affine_prefix_plan_candidate;
   }
 
-  std::vector<JointId> final_affine_input_joint_ids{};
+  std::vector<StateInterfaceId> final_affine_input_joint_ids{};
   final_affine_input_joint_ids.reserve(output_joint_ids.size());
   for (const auto output_joint_id : output_joint_ids) {
     const auto root_source_joint_id = find_affine_root_source_joint_id_expected(analysis, output_joint_id);
@@ -802,11 +788,11 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
     }
   }
 
-  if (final_affine_input_joint_ids != std::vector<JointId>(output_joint_ids.begin(), output_joint_ids.end())) {
+  if (final_affine_input_joint_ids != std::vector<StateInterfaceId>(output_joint_ids.begin(), output_joint_ids.end())) {
     const auto first_stage_plan = make_joint_map_plan_expected(
       analysis,
       input_joint_ids,
-      span<const JointId>(final_affine_input_joint_ids),
+      span<const StateInterfaceId>(final_affine_input_joint_ids),
       quantity);
     if (!first_stage_plan.has_value()) {
       if (first_stage_plan.error().kind == JointMapPlanErrorKind::Ambiguous) {
@@ -815,7 +801,7 @@ MakeJointMapPlanResult make_joint_map_plan_expected(
     } else {
       const auto final_affine_plan = make_affine_plan_expected(
         analysis,
-        span<const JointId>(final_affine_input_joint_ids),
+        span<const StateInterfaceId>(final_affine_input_joint_ids),
         output_joint_ids);
       if (!final_affine_plan.has_value()) {
         return tl::make_unexpected(make_joint_map_plan_error(

@@ -14,8 +14,8 @@ namespace arm_kinematics {
 namespace {
 
 size_t ensure_value_index(
-  std::unordered_map<JointId, size_t> & value_indices,
-  const JointId joint_id,
+  std::unordered_map<StateInterfaceId, size_t> & value_indices,
+  const StateInterfaceId joint_id,
   size_t & next_value_index)
 {
   const auto it = value_indices.find(joint_id);
@@ -30,8 +30,8 @@ size_t ensure_value_index(
 }
 
 std::vector<size_t> ensure_value_indices(
-  std::unordered_map<JointId, size_t> & value_indices,
-  span<const JointId> joint_ids,
+  std::unordered_map<StateInterfaceId, size_t> & value_indices,
+  span<const StateInterfaceId> joint_ids,
   size_t & next_value_index)
 {
   std::vector<size_t> indices{};
@@ -50,12 +50,12 @@ tl::expected<void, std::string> validate_stage_topology_expected(
 {
   const auto & expected_consumed =
     stage.direction == PropagationDirection::Forward ?
-    transmission.input_joint_ids :
-    transmission.output_joint_ids;
+    transmission.input_ids :
+    transmission.output_ids;
   const auto & expected_produced =
     stage.direction == PropagationDirection::Forward ?
-    transmission.output_joint_ids :
-    transmission.input_joint_ids;
+    transmission.output_ids :
+    transmission.input_ids;
 
   if (stage.consumed_joint_ids != expected_consumed) {
     return tl::make_unexpected(
@@ -99,6 +99,7 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
   const TransmissionPlan & transmission_plan,
   const JointQuantity quantity)
 {
+  (void)quantity;
   CompiledTransmissionPlan compiled_plan{};
   compiled_plan.input_count = transmission_plan.input_joint_ids.size();
   compiled_plan.output_count = transmission_plan.output_joint_ids.size();
@@ -107,13 +108,13 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
   compiled_plan.output_value_indices.reserve(transmission_plan.output_joint_ids.size());
   compiled_plan.stages.reserve(transmission_plan.stages.size());
 
-  std::unordered_map<JointId, size_t> value_indices{};
+  std::unordered_map<StateInterfaceId, size_t> value_indices{};
   value_indices.reserve(
     transmission_plan.input_joint_ids.size() +
     transmission_plan.output_joint_ids.size());
 
   size_t next_value_index = 0;
-  std::unordered_set<JointId> available_joint_ids{};
+  std::unordered_set<StateInterfaceId> available_joint_ids{};
   available_joint_ids.reserve(
     transmission_plan.input_joint_ids.size() +
     transmission_plan.output_joint_ids.size());
@@ -146,23 +147,16 @@ CompileTransmissionPlanResult compile_transmission_plan_expected(
 
     const auto input_indices = ensure_value_indices(
       value_indices,
-      span<const JointId>(stage.consumed_joint_ids),
+      span<const StateInterfaceId>(stage.consumed_joint_ids),
       next_value_index);
     const auto output_indices = ensure_value_indices(
       value_indices,
-      span<const JointId>(stage.produced_joint_ids),
+      span<const StateInterfaceId>(stage.produced_joint_ids),
       next_value_index);
 
-    if (!models[transmission.model_id]->can_build(quantity, stage.direction)) {
-      return tl::make_unexpected(
-        "Transmission plan stage references a transmission model that cannot build the requested direction/quantity");
-    }
-
     auto compute = models[transmission.model_id]->build(
-      quantity,
-      stage.direction,
-      span<const JointId>(stage.consumed_joint_ids),
-      span<const JointId>(stage.produced_joint_ids));
+      span<const StateInterfaceId>(stage.consumed_joint_ids),
+      span<const StateInterfaceId>(stage.produced_joint_ids));
     const auto stage_scratch_size = compute->scratch_size();
 
     compiled_plan.stages.push_back(CompiledTransmissionStage{

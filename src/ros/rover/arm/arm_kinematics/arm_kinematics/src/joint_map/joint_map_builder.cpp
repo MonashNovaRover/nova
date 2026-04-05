@@ -9,10 +9,10 @@
 namespace arm_kinematics {
 
 JointMap JointMapBuilder::build(
-  const std::vector<std::string> & input_names,
-  const std::vector<std::string> & output_names) const
+  const std::vector<StateInterfaceDefinition> & input_names,
+  const std::vector<StateInterfaceDefinition> & output_names) const
 {
-  auto built = build_expected(input_names, output_names, JointQuantity::Position);
+  auto built = build_expected(input_names, output_names);
   if (!built)
     throw std::runtime_error(built.error());
 

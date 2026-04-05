@@ -17,29 +17,28 @@
 namespace arm_kinematics {
 
 struct AffinePlanStage {
-  JointId source_joint_id = 0;
-  JointId target_joint_id = 0;
+  StateInterfaceId source_joint_id = 0;
+  StateInterfaceId target_joint_id = 0;
   size_t source_input_index = 0;
   float multiplier = 1.0F;
   float offset = 0.0F;
 };
 
 struct AffinePlan {
-  std::vector<JointId> input_joint_ids{};
-  std::vector<JointId> output_joint_ids{};
+  std::vector<StateInterfaceId> input_joint_ids{};
+  std::vector<StateInterfaceId> output_joint_ids{};
   std::vector<AffinePlanStage> stages{};
 };
 
 struct TransmissionPlanStage {
   TransmissionInstanceId transmission_instance_id = 0;
-  PropagationDirection direction = PropagationDirection::Forward;
-  std::vector<JointId> consumed_joint_ids{};
-  std::vector<JointId> produced_joint_ids{};
+  std::vector<StateInterfaceId> consumed_joint_ids{};
+  std::vector<StateInterfaceId> produced_joint_ids{};
 };
 
 struct TransmissionPlan {
-  std::vector<JointId> input_joint_ids{};
-  std::vector<JointId> output_joint_ids{};
+  std::vector<StateInterfaceId> input_joint_ids{};
+  std::vector<StateInterfaceId> output_joint_ids{};
   std::vector<TransmissionPlanStage> stages{};
 };
 
@@ -51,14 +50,14 @@ struct JointMapPlanSegment {
 };
 
 struct JointMapPlanStage {
-  std::vector<JointId> input_joint_ids{};
-  std::vector<JointId> output_joint_ids{};
+  std::vector<StateInterfaceId> input_joint_ids{};
+  std::vector<StateInterfaceId> output_joint_ids{};
   std::vector<JointMapPlanSegment> segments{};
 };
 
 struct JointMapPlan {
-  std::vector<JointId> input_joint_ids{};
-  std::vector<JointId> output_joint_ids{};
+  std::vector<StateInterfaceId> input_joint_ids{};
+  std::vector<StateInterfaceId> output_joint_ids{};
   std::vector<JointMapPlanStage> stages{};
 };
 
@@ -94,19 +93,19 @@ using MakeJointMapPlanResult = tl::expected<JointMapPlan, JointMapPlanError>;
 
 [[nodiscard]] MakeAffinePlanResult make_affine_plan_expected(
   const TransmissionAnalysis & analysis,
-  span<const JointId> input_joint_ids,
-  span<const JointId> output_joint_ids);
+  span<const StateInterfaceId> input_joint_ids,
+  span<const StateInterfaceId> output_joint_ids);
 
 [[nodiscard]] MakeTransmissionPlanResult make_transmission_plan_expected(
   const TransmissionAnalysis & analysis,
-  span<const JointId> input_joint_ids,
-  span<const JointId> output_joint_ids,
+  span<const StateInterfaceId> input_joint_ids,
+  span<const StateInterfaceId> output_joint_ids,
   JointQuantity quantity);
 
 [[nodiscard]] MakeJointMapPlanResult make_joint_map_plan_expected(
   const TransmissionAnalysis & analysis,
-  span<const JointId> input_joint_ids,
-  span<const JointId> output_joint_ids,
+  span<const StateInterfaceId> input_joint_ids,
+  span<const StateInterfaceId> output_joint_ids,
   JointQuantity quantity);
 
 } // namespace arm_kinematics

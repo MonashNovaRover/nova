@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "state_interface_definition.hpp"
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/expected.hpp"
@@ -34,9 +35,8 @@ public:
    * \warning Not real-time safe.
    */
   [[nodiscard]] virtual tl::expected<JointMap, std::string> build_expected(
-    const std::vector<std::string> & input_names,
-    const std::vector<std::string> & output_names,
-    JointQuantity quantity) const = 0;
+    const std::vector<StateInterfaceDefinition> & input_names,
+    const std::vector<StateInterfaceDefinition> & output_names) const = 0;
 
   /**
    * Compatibility wrapper that builds a position JointMap or throws on failure.
@@ -44,8 +44,8 @@ public:
    * \warning Not real-time safe.
    */
   [[nodiscard]] JointMap build(
-    const std::vector<std::string> & input_names,
-    const std::vector<std::string> & output_names) const;
+    const std::vector<StateInterfaceDefinition> & input_names,
+    const std::vector<StateInterfaceDefinition> & output_names) const;
 };
 
 } // arm_kinematics

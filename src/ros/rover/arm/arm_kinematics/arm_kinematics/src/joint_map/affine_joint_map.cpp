@@ -10,12 +10,12 @@ namespace arm_kinematics {
 
 namespace {
 
-std::vector<JointId> to_joint_ids_checked(
-  const Order<std::string, JointId> & joint_order,
+std::vector<StateInterfaceId> to_joint_ids_checked(
+  const Order<std::string, StateInterfaceId> & joint_order,
   const std::vector<std::string> & joint_names,
   const char * label)
 {
-  std::vector<JointId> joint_ids{};
+  std::vector<StateInterfaceId> joint_ids{};
   joint_ids.reserve(joint_names.size());
 
   for (const auto & joint_name : joint_names) {
@@ -35,7 +35,7 @@ AffinePlan make_affine_plan_allowing_unknown_outputs(
   const std::vector<std::string> & input_names,
   const std::vector<std::string> & output_names)
 {
-  const auto & joint_order = transmission_analysis.joint_order();
+  const auto & joint_order = transmission_analysis.state_interface_order();
   const auto input_joint_ids = to_joint_ids_checked(joint_order, input_names, "input");
 
   AffinePlan plan{};
@@ -59,8 +59,8 @@ AffinePlan make_affine_plan_allowing_unknown_outputs(
     const auto output_joint_id = joint_order[output_name];
     const auto stage = make_affine_plan_expected(
       transmission_analysis,
-      span<const JointId>(input_joint_ids.data(), input_joint_ids.size()),
-      span<const JointId>(&output_joint_id, 1));
+      span<const StateInterfaceId>(input_joint_ids.data(), input_joint_ids.size()),
+      span<const StateInterfaceId>(&output_joint_id, 1));
     if (!stage.has_value()) {
       throw std::runtime_error(stage.error());
     }
