@@ -7,7 +7,6 @@ import { CameraControlPanelModal } from "../../../components/cameras/CameraCompo
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
 import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
-import YoloCameraComponent from "../../../components/auto/ObjectDetection/YoloCameraComponent.tsx";
 import {YoloProvider} from "../../../components/auto/ObjectDetection/YoloProvider.tsx";
 import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
 

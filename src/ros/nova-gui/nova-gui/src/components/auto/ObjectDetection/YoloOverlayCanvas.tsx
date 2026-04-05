@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+import { ActiveYoloConfig } from "./YoloConfig";
 import { Detection } from "./useYoloDetection";
-import cocoClasses from "./cocoClasses";
 import AutosizedCanvas from "../../shared/components/AutosizedCanvas/AutosizedCanvas.tsx";
 
 export default function YoloOverlayCanvas({
@@ -9,11 +9,13 @@ export default function YoloOverlayCanvas({
   modelInputSize,
 }: {
   detections: Detection[];
-  videoRef: React.RefObject<HTMLVideoElement>;
+  // React refs are null until mounted; reflect that in the type.
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   modelInputSize: number;
 }) {
   // Canvas overlay that draws detections in video space.
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // AutosizedCanvas expects a non-null ref object; React assigns .current post-mount.
+  const canvasRef = useRef<HTMLCanvasElement>(null!);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -76,7 +78,7 @@ export default function YoloOverlayCanvas({
       ctx.strokeRect(x, y, width, height);
 
       // Create label
-      const className = cocoClasses[d.classId] ?? `#${d.classId}`;
+      const className = ActiveYoloConfig.classNames[d.classId] ?? `#${d.classId}`;
       const label = `${className} ${Math.round(d.score * 100)}%`;
       const textX = x;
       const textY = Math.max(y - 14, 0);
