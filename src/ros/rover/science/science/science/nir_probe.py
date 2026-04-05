@@ -82,8 +82,8 @@ class NIRProbeController(Controller):
         self.sensor_state = state_interfaces[f"NIR_Sensors/data"] 
         self.take_reading_command = self.node.create_service(TakeNIRProbeReading, self.command_service, self.take_reading_callback)
         self.nir_data_publisher = self.node.create_publisher(NIRProbeData, self.data_topic, 5)
-        self.logger.info(f"{"NIR_Sensors/data" in state_interfaces}")
-        self.logger.info(f"{self.name} controller configured")
+        self.logger.debug(f"{"NIR_Sensors/data" in state_interfaces}")
+        self.logger.debug(f"{self.name} controller configured")
         return True
 
     def on_update(self, now: float, period: float):
@@ -128,8 +128,6 @@ def calculate_photodiodes(data: bytes) -> list[int, int]:
         return [PD1_reading, PD2_reading]
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("nir_probe")

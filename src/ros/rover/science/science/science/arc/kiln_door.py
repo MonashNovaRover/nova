@@ -90,8 +90,6 @@ class KilnDoorController(Controller):
         return (axis +1)/2
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("kiln_door")

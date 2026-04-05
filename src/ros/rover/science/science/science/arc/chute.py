@@ -22,8 +22,6 @@ from teleop_python_utils import Inputs
 
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("chute")

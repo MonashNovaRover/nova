@@ -67,7 +67,7 @@ class EffortCommandController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting {self.hardware_name}/effort")
+        self.logger.debug(f"Getting {self.hardware_name}/effort")
         self.effort_cmd = command_interfaces[f"{self.hardware_name}/effort"]
 
         # Create status publisher

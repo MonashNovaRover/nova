@@ -69,10 +69,10 @@ class ScimbalCamController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting tilt/position")
+        self.logger.debug(f"Getting tilt/position")
         self.tilt_cmd = command_interfaces["tilt/position"]
 
-        self.logger.info(f"Getting pan/position")
+        self.logger.debug(f"Getting pan/position")
         self.pan_cmd = command_interfaces["pan/position"]
 
         # Initialise value to starting angle
@@ -120,8 +120,6 @@ class ScimbalCamController(Controller):
 
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("scimbal_cam")

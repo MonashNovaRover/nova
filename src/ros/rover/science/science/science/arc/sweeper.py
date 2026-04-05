@@ -56,7 +56,7 @@ class SweeperController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting sweep/effort")
+        self.logger.debug(f"Getting sweep/effort")
         self.sweep_cmd = command_interfaces["sweep/effort"]
 
     def on_update(self, now: float, period: float):
@@ -76,8 +76,6 @@ class SweeperController(Controller):
         return (self.speed_axis.value + 1) / 2
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("sweeper")

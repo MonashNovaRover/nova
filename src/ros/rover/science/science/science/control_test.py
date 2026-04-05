@@ -74,8 +74,6 @@ class TestHardware(HardwareInterface):
 
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("control_test")
