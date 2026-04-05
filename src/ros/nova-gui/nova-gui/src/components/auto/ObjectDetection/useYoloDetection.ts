@@ -206,8 +206,7 @@ export function useYoloDetection({
               if (video.currentTime === last) return false;
               lastTimes.set(video, video.currentTime);
               return true;
-            })
-            .slice(0, 1);
+            });
 
           if (videosToUse.length === 0) {
             await new Promise((r) => setTimeout(r, intervalMs));
@@ -221,19 +220,49 @@ export function useYoloDetection({
           }
           if (runPerVideo) {
             const parsedAll: Detection[][] = [];
+            let preprocessMs = 0;
+            let runMs = 0;
+            let postMs = 0;
+            const totalStart = performance.now();
             for (const video of videosToUse) {
+              const t0 = performance.now();
               const tensor = preprocessBatch([video]);
+              const t1 = performance.now();
               // Feed key must match model input name; use the resolved inputName.
               const output = await sess.run({ [inputName]: tensor });
+              const t2 = performance.now();
               parsedAll.push(...postprocess(Object.values(output)[0], 1));
+              const t3 = performance.now();
+              preprocessMs += t1 - t0;
+              runMs += t2 - t1;
+              postMs += t3 - t2;
             }
+            const totalMs = performance.now() - totalStart;
+            console.log("YOLO timings (per-video)", {
+              batch: videosToUse.length,
+              preprocessMs: Math.round(preprocessMs),
+              runMs: Math.round(runMs),
+              postMs: Math.round(postMs),
+              totalMs: Math.round(totalMs),
+            });
             setDetections(parsedAll);
           } else {
+            const t0 = performance.now();
             const tensor = preprocessBatch(videosToUse);
+            const t1 = performance.now();
             try {
               // Feed key must match model input name; use the resolved inputName.
               const output = await sess.run({ [inputName]: tensor });
+              const t2 = performance.now();
               const parsed = postprocess(Object.values(output)[0], videosToUse.length);
+              const t3 = performance.now();
+              console.log("YOLO timings (batch)", {
+                batch: videosToUse.length,
+                preprocessMs: Math.round(t1 - t0),
+                runMs: Math.round(t2 - t1),
+                postMs: Math.round(t3 - t2),
+                totalMs: Math.round(t3 - t0),
+              });
               const now = performance.now();
               // Throttle state updates to reduce UI churn.
               if (now - lastUpdate >= minUpdateIntervalMs) {

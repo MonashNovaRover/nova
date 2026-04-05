@@ -99,4 +99,4 @@ export const CocoConfig : YOLOConfig = {
 }
 
 // Active YOLO config: switch this to change the model/labels, then reload the page.
-export const ActiveYoloConfig: YOLOConfig = URCYOLOConfig;
+export const ActiveYoloConfig: YOLOConfig = CocoConfig;
