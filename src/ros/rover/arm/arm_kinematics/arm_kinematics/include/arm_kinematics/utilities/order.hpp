@@ -41,8 +41,11 @@ struct LookupStorage {
   }
 };
 
+template<typename TKey>
+inline constexpr bool is_contiguous_lookup_key_v = std::is_integral_v<TKey> || std::is_enum_v<TKey>;
+
 template<typename TKey, typename TValue>
-struct LookupStorage<TKey, TValue, std::enable_if_t<std::is_integral_v<TKey> || std::is_enum_v<TKey>>> {
+struct LookupStorage<TKey, TValue, std::enable_if_t<is_contiguous_lookup_key_v<TKey>>> {
   using type = std::vector<TValue>;
 
   static type make_sized(const size_t size) {
@@ -70,9 +73,23 @@ struct LookupStorage<TKey, TValue, std::enable_if_t<std::is_integral_v<TKey> || 
   }
 };
 
-template<typename TValue>
-struct LookupStorage<std::string, TValue, void> {
-  using type = std::unordered_map<std::string, TValue>;
+template <typename T, typename = void>
+struct is_hashable : std::false_type {};
+
+template <typename T>
+struct is_hashable<T, std::void_t<decltype(std::hash<T>{}(std::declval<T>()))>>
+  : std::true_type {};
+
+template <typename T, typename = void>
+struct is_eq_comparable : std::false_type {};
+
+template <typename T>
+struct is_eq_comparable<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+  : std::true_type {};
+
+template<typename TKey, typename TValue>
+struct LookupStorage<TKey, TValue, std::enable_if_t<!is_contiguous_lookup_key_v<TKey> && is_hashable<TKey>::value && is_eq_comparable<TKey>::value>> {
+  using type = std::unordered_map<TKey, TValue>;
 
   static type make_sized(const size_t size) {
     type container;
@@ -80,25 +97,23 @@ struct LookupStorage<std::string, TValue, void> {
     return container;
   }
 
-  static void set(type & container, const std::string & key, const TValue & value) {
+  static void set(type & container, const TKey & key, const TValue & value) {
     container[key] = value;
   }
 
-  static TValue & at(type & container, const std::string & key) {
+  static TValue & at(type & container, const TKey & key) {
     return container.at(key);
   }
 
-  static const TValue & at(const type & container, const std::string & key) {
+  static const TValue & at(const type & container, const TKey & key) {
     return container.at(key);
   }
 
-  static bool contains_key(const type & container, const std::string & key) {
+  static bool contains_key(const type & container, const TKey & key) {
     return container.find(key) != container.end();
   }
 };
 
-template<typename TKey>
-inline constexpr bool is_contiguous_lookup_key_v = std::is_integral_v<TKey> || std::is_enum_v<TKey>;
 
 template<typename TContainer, bool IsContiguous>
 struct ReverseIteratorType;
