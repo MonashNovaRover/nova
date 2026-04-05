@@ -389,6 +389,42 @@ public:
     return detail::LookupStorage<TKey, TValue>::contains_key(data_, idx);
   }
 
+  /**
+   * For orders into contiguous lookup arrays (e.g. Order<std::string, size_t>), returns the value for the given TKey
+   * if it exists in the order, otherwise sets the value for the given TKey to the size of the number of elements.
+   *
+   * Use this when you want to just make some conversion from an expensive lookup type to some sequential order.
+   *
+   * @param idx The key to get or set a default value for
+   * @return the value for idx if it already exists, otherwise sets the value for idx as the number of previous elements
+   * in the order, and returns that.
+   */
+  template<bool B = detail::is_contiguous_lookup_key_v<TValue>, std::enable_if_t<B, int> = 0>
+  [[nodiscard]] reference ensure(const TKey & idx) noexcept
+  {
+    if (contains_key(idx))
+      return (*this)[idx];
+
+    const auto value = inverse.size();
+    set(idx, value);
+    return (*this)[idx];
+  }
+
+  /**
+   * Gets the value for idx, otherwise sets the value to default_value
+   * @param idx The key to get or set a default value for
+   * @param default_value The value to set for idx if idx has no previous value set
+   * @return The value at idx
+   */
+  [[nodiscard]] reference ensure(const TKey & idx, const value_type & default_value) noexcept
+  {
+    if (contains_key(idx))
+      return (*this)[idx];
+
+    set(idx, default_value);
+    return (*this)[idx];
+  }
+
   // Iteration over the indices
   template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   iterator begin() noexcept { return {*this, 0}; }
