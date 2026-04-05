@@ -25,7 +25,8 @@ export interface Detection {
 }
 
 interface Props {
-  videoRefs: React.RefObject<HTMLVideoElement>[];
+  // React refs are nullable until mount.
+  videoRefs: React.RefObject<HTMLVideoElement | null>[];
   modelPath: string;
   inputSize?: number;
   intervalMs?: number;
@@ -34,6 +35,7 @@ interface Props {
 
 let session: ort.InferenceSession | null = null;
 let expectedBatch: number | null = null;
+let inputName: string | null = null;
 let hasLoggedOutputInfo = false;
 
 // Reuse offscreen canvases to avoid per-frame allocations.
@@ -77,11 +79,14 @@ export function useYoloDetection({
           }
         }
 
-        // Determine expected batch size from model input metadata.
+        // onnxruntime-web exposes input metadata as an array; use inputNames for the feed key.
         const inputMeta = session.inputMetadata;
-        const firstKey = inputMeta.images ? "images" : Object.keys(inputMeta)[0];
-        const dims = inputMeta[firstKey]?.dimensions;
-        expectedBatch = typeof dims?.[0] === "number" ? dims[0] : null;
+        inputName = session.inputNames[0] ?? null;
+        // inputMetadata is a union; only tensor metadata has a shape we can read.
+        const firstMeta = inputMeta[0];
+        const shape =
+          firstMeta && "shape" in firstMeta ? firstMeta.shape : undefined;
+        expectedBatch = typeof shape?.[0] === "number" ? shape[0] : null;
       }
 
       return session;
@@ -211,18 +216,23 @@ export function useYoloDetection({
 
           // Some models accept only batch=1 even if multiple videos are present.
           const runPerVideo = expectedBatch === 1 && videosToUse.length > 1;
+          if (!inputName) {
+            throw new Error("YOLO model input name unavailable.");
+          }
           if (runPerVideo) {
             const parsedAll: Detection[][] = [];
             for (const video of videosToUse) {
               const tensor = preprocessBatch([video]);
-              const output = await sess.run({ images: tensor });
+              // Feed key must match model input name; use the resolved inputName.
+              const output = await sess.run({ [inputName]: tensor });
               parsedAll.push(...postprocess(Object.values(output)[0], 1));
             }
             setDetections(parsedAll);
           } else {
             const tensor = preprocessBatch(videosToUse);
             try {
-              const output = await sess.run({ images: tensor });
+              // Feed key must match model input name; use the resolved inputName.
+              const output = await sess.run({ [inputName]: tensor });
               const parsed = postprocess(Object.values(output)[0], videosToUse.length);
               const now = performance.now();
               // Throttle state updates to reduce UI churn.
@@ -237,7 +247,8 @@ export function useYoloDetection({
                 const parsedAll: Detection[][] = [];
                 for (const video of videosToUse) {
                   const singleTensor = preprocessBatch([video]);
-                  const output = await sess.run({ images: singleTensor });
+                  // Feed key must match model input name; use the resolved inputName.
+                  const output = await sess.run({ [inputName]: singleTensor });
                   parsedAll.push(...postprocess(Object.values(output)[0], 1));
                 }
                 const now = performance.now();

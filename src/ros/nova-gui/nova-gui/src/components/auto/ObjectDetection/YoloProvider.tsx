@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useRef, useState } from "react";
+import React, { createContext, useContext, useRef } from "react";
+import { ActiveYoloConfig } from "./YoloConfig";
 import { Detection, useYoloDetection } from "./useYoloDetection";
 
 interface YoloContextValue {
-  registerVideoRef: (ref: React.RefObject<HTMLVideoElement>) => number;
+  // Accept nullable refs since React sets .current after mount.
+  registerVideoRef: (ref: React.RefObject<HTMLVideoElement | null>) => number;
   detections: Detection[][];
   inputSize: number;
 }
@@ -11,14 +13,11 @@ const YoloContext = createContext<YoloContextValue | null>(null);
 
 export function YoloProvider({ children }: { children: React.ReactNode }) {
   // Collect video refs from all mounted camera layers.
-  const videoRefs = useRef<React.RefObject<HTMLVideoElement>[]>([]);
+  const videoRefs = useRef<React.RefObject<HTMLVideoElement | null>[]>([]);
 
-  const [refsReady, setRefsReady] = useState<boolean>(false);
-
-  const registerVideoRef = (ref: React.RefObject<HTMLVideoElement>) => {
+  const registerVideoRef = (ref: React.RefObject<HTMLVideoElement | null>) => {
     // Register in order and return the index for lookup.
     videoRefs.current.push(ref);
-    setRefsReady(true);
 
     return videoRefs.current.length - 1;
   };
@@ -26,7 +25,7 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
   // Run detection whenever refs are available.
   const detections = useYoloDetection({
     videoRefs: videoRefs.current,
-    modelPath: "/models/yolo26n.onnx",
+    modelPath: `/models/${ActiveYoloConfig.modelName}`,
     inputSize: 640,
   });
 
