@@ -2,10 +2,12 @@ import * as ort from "onnxruntime-web";
 
 // In dev, serve ORT loaders from /src/components/auto/ObjectDetection/ort so Vite can module-load them.
 // In build, serve from /public/ort (copied to dist as-is).
+// Configure ORT WASM loader paths so the worker can fetch runtime files in dev/prod.
 ort.env.wasm.wasmPaths = import.meta.env.DEV
   ? "/src/components/auto/ObjectDetection/ort/"
   : "/ort/";
 
+// Minimal detection shape sent back to the main thread.
 interface Detection {
   classId: number;
   score: number;
@@ -17,6 +19,7 @@ interface Detection {
   };
 }
 
+// Init message sets model path, input size, threshold, and provider preference.
 type InitMessage = {
   type: "init";
   modelPath: string;
@@ -25,6 +28,7 @@ type InitMessage = {
   useWebGPU: boolean;
 };
 
+// Frame message carries a batch of ImageBitmaps for inference.
 type FrameMessage = {
   type: "frame";
   batchId: number;
@@ -33,6 +37,7 @@ type FrameMessage = {
 
 type WorkerMessage = InitMessage | FrameMessage;
 
+// Result message returns detections plus optional timing stats.
 type ResultMessage = {
   type: "result";
   batchId: number;
@@ -47,8 +52,10 @@ type ResultMessage = {
   };
 };
 
+// Error message allows the main thread to surface worker failures.
 type ErrorMessage = { type: "error"; message: string };
 
+// Session and model metadata live in the worker for off-thread inference.
 let session: ort.InferenceSession | null = null;
 let inputName: string | null = null;
 let expectedBatch: number | null = null;
@@ -56,9 +63,11 @@ let inputSize = 640;
 let scoreThreshold = 0.4;
 let hasLoggedOutputInfo = false;
 
+// Reuse offscreen canvases to avoid allocations per frame.
 const offscreenCanvases: OffscreenCanvas[] = [];
 const contexts: OffscreenCanvasRenderingContext2D[] = [];
 
+// Ensure we have enough offscreen canvases/contexts for the batch size.
 function ensureOffscreen(batch: number) {
   while (offscreenCanvases.length < batch) {
     const canvas = new OffscreenCanvas(inputSize, inputSize);
@@ -68,6 +77,7 @@ function ensureOffscreen(batch: number) {
   }
 }
 
+// Convert ImageBitmaps to a NCHW float32 tensor in model input space.
 function preprocessBatch(frames: ImageBitmap[]) {
   const batch = frames.length;
 
@@ -77,12 +87,14 @@ function preprocessBatch(frames: ImageBitmap[]) {
 
   frames.forEach((frame, batchIndex) => {
     const ctx = contexts[batchIndex];
+    // Draw the frame into the input buffer and read pixels.
     ctx.drawImage(frame, 0, 0, inputSize, inputSize);
 
     const image = ctx.getImageData(0, 0, inputSize, inputSize);
     const offset = batchIndex * 3 * inputSize * inputSize;
     const planeSize = inputSize * inputSize;
 
+    // Convert RGBA -> planar RGB in [0, 1].
     for (let i = 0; i < planeSize; i++) {
       const base = offset + i;
       const pixel = i * 4;
@@ -91,12 +103,14 @@ function preprocessBatch(frames: ImageBitmap[]) {
       tensorData[base + 2 * planeSize] = image.data[pixel + 2] / 255;
     }
 
+    // Release the bitmap once pixels are copied.
     frame.close();
   });
 
   return new ort.Tensor("float32", tensorData, [batch, 3, inputSize, inputSize]);
 }
 
+// Parse model output into Detection[][] per camera index.
 function postprocess(output: ort.Tensor, batchSize: number): Detection[][] {
   const results: Detection[][] = [];
   const data = output.data as Float32Array;
@@ -141,6 +155,7 @@ function postprocess(output: ort.Tensor, batchSize: number): Detection[][] {
   return results;
 }
 
+// Initialize the ORT session and read model input metadata.
 async function initSession({ modelPath, useWebGPU }: InitMessage) {
   const providers = useWebGPU ? ["webgpu", "wasm"] : ["wasm"];
   try {
@@ -166,10 +181,12 @@ async function initSession({ modelPath, useWebGPU }: InitMessage) {
   expectedBatch = typeof shape?.[0] === "number" ? shape[0] : null;
 }
 
+// Worker entrypoint: init session or run a batch of frames.
 self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
   try {
     if (event.data.type === "init") {
       const { modelPath, inputSize: size, scoreThreshold: threshold, useWebGPU } = event.data;
+      // Persist configuration in the worker.
       inputSize = size;
       scoreThreshold = threshold;
       await initSession({ modelPath, inputSize: size, scoreThreshold: threshold, useWebGPU });

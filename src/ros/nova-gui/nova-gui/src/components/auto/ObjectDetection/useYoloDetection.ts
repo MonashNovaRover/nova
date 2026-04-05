@@ -26,6 +26,7 @@ interface Props {
   scoreThreshold?: number;
 }
 
+// Worker init message configures model and runtime settings.
 type WorkerInitMessage = {
   type: "init";
   modelPath: string;
@@ -34,12 +35,14 @@ type WorkerInitMessage = {
   useWebGPU: boolean;
 };
 
+// Worker frame message delivers a batch of ImageBitmaps to process.
 type WorkerFrameMessage = {
   type: "frame";
   batchId: number;
   frames: ImageBitmap[];
 };
 
+// Worker result message returns detections and optional timing stats.
 type WorkerResultMessage = {
   type: "result";
   batchId: number;
@@ -54,6 +57,7 @@ type WorkerResultMessage = {
   };
 };
 
+// Worker error message surfaces failures back to the UI.
 type WorkerErrorMessage = { type: "error"; message: string };
 
 type WorkerMessage = WorkerResultMessage | WorkerErrorMessage;
@@ -66,8 +70,11 @@ export function useYoloDetection({
   scoreThreshold = 0.4,
 }: Props) {
   const [detections, setDetections] = useState<Detection[][]>([]);
+  // Worker runs inference off the main thread.
   const workerRef = useRef<Worker | null>(null);
+  // Prevent concurrent batches while a worker request is in flight.
   const inFlightRef = useRef(false);
+  // Incrementing id for batches (useful for debugging or ordering).
   const batchIdRef = useRef(0);
 
   useEffect(() => {
@@ -77,11 +84,13 @@ export function useYoloDetection({
     // Track the last decoded frame per video to skip duplicates.
     const lastTimes = new WeakMap<HTMLVideoElement, number>();
 
+    // Spin up the worker module for YOLO inference.
     const worker = new Worker(new URL("./yoloWorker.ts", import.meta.url), {
       type: "module",
     });
     workerRef.current = worker;
 
+    // Initialize the worker with model/runtime settings.
     const initMessage: WorkerInitMessage = {
       type: "init",
       modelPath,
@@ -91,6 +100,7 @@ export function useYoloDetection({
     };
     worker.postMessage(initMessage);
 
+    // Handle worker responses and update UI state.
     worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       if (!running) return;
       if (event.data.type === "result") {
@@ -106,6 +116,7 @@ export function useYoloDetection({
       }
     };
 
+    // Capture frames on an interval and send them to the worker.
     async function loop() {
       while (running) {
         if (!workerRef.current || inFlightRef.current) {
@@ -113,9 +124,11 @@ export function useYoloDetection({
           continue;
         }
 
+        // Resolve refs to live video elements.
         const videos = videoRefs.map((r) => r.current).filter(Boolean) as HTMLVideoElement[];
 
         if (videos.length === videoRefs.length) {
+          // Only process videos with a decoded frame that has advanced.
           const videosToUse = videos
             .filter((video) => video.readyState >= 2)
             .filter((video) => {
@@ -133,8 +146,10 @@ export function useYoloDetection({
           try {
             inFlightRef.current = true;
             const batchId = batchIdRef.current++;
+            // Capture ImageBitmaps for transfer to the worker.
             const frames = await Promise.all(videosToUse.map((video) => createImageBitmap(video)));
             const frameMessage: WorkerFrameMessage = { type: "frame", batchId, frames };
+            // Transfer ownership of ImageBitmaps to avoid copies.
             workerRef.current.postMessage(frameMessage, frames);
           } catch (error) {
             inFlightRef.current = false;
