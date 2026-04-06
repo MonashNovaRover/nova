@@ -1,13 +1,19 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-<Description>
+URC launch file for science payload
+
+[NEW] version - use teleop science with this.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODES:
-  - file/path      [name_name]
+  - science/nir_probe_publisher.py      [nir_probe_publisher]
+  - science/chute.py                    [chute]
+  - science/auger.py                    [auger]
+  - science/analysis_arm.py             [c_beam]
+  - science/scimbal_cam.py              [scimbal_cam]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-CREATED:    <insert date>
-EDITED:     <insert date>
-EDITED BY:  <insert authors>
+CREATED:    05/04/26
+EDITED:     05/04/26
+EDITED BY:  Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from launch import LaunchDescription
@@ -26,17 +32,97 @@ def launch_setup(context, *args, **kwargs):
 
     science_params = LaunchConfiguration('science_params')
 
+
     return [
+        # Analysis Arm - Nodes for components on the analysis arm
+        # Node(
+        #     name='analysis_arm',
+        #     package='science',
+        #     executable='analysis_arm_stepper.py',
+        #     output='screen',
+        #     emulate_tty=True,
+        #     parameters=[
+        #         science_params,
+        #     ],
+        # ),
         Node(
-            name='example',
+            name='time_of_flight_sensor',
             package='science',
-            executable='example.py',
+            executable='time_of_flight.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
+        Node(
+            name='nir_probe',
+            package='science',
+            executable='nir_probe.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[science_params],
+        ),
+
+        # CBeam - Nodes for components on the CBeam
+        Node(
+            name='auger_left',
+            package='science',
+            executable='auger.py',
             output='screen',
             emulate_tty=True,
             parameters=[
                 science_params,
             ],
         ),
+        Node(
+            name='auger_right',
+            package='science',
+            executable='auger.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='cbeam',
+            package='science',
+            executable='cbeam.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+
+
+        # Science Belly - Nodes for components in the belly
+
+
+        # Misc - Nodes for misc components
+        Node(
+            name='scimbal_cam',
+            package='science',
+            executable='scimbal_cam.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='power_cycle',
+            package='science',
+            executable='power_cycle.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+
+        # launch CAN bus
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(
                 PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
@@ -65,7 +151,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='science_params',
-            default_value=PathJoinSubstitution([science_bringup_dir, 'params', 'science.yaml']),
+            default_value=PathJoinSubstitution([science_bringup_dir, 'params', 'urc.yaml']),
             description='The main parameter file to use for the science nodes',
         ),
     ]

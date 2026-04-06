@@ -20,8 +20,6 @@ from python_control2.controllers import EffortCommandController
 from python_control2.hardware_interfaces import QCMDHardware
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("water_pump")

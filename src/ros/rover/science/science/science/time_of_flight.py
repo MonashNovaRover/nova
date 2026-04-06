@@ -110,8 +110,6 @@ class TimeOfFlightController(Controller):
         return response
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("time_of_flight")

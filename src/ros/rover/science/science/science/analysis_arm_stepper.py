@@ -103,12 +103,12 @@ class AnalysisArmController(Controller):
         """
         # Save references to interfaces
         # Command interfaces
-        self.logger.info(f"Getting command interfaces: {self.hardware_name}/effort and {self.hardware_name}/position")
+        self.logger.debug(f"Getting command interfaces: {self.hardware_name}/effort and {self.hardware_name}/position")
         self.actuation_effort_cmd = command_interfaces[f"{self.hardware_name}/effort"]
         self.actuation_position_cmd = command_interfaces[f"{self.hardware_name}/position"]
 
         # State interfaces
-        self.logger.info(f"Getting state interfaces: {self.hardware_name}/position and distance/position")
+        self.logger.debug(f"Getting state interfaces: {self.hardware_name}/position and distance/position")
         self.actuation_position_state = state_interfaces[f"{self.hardware_name}/position"]
 
     def on_update(self, now: float, period: float):
@@ -192,8 +192,6 @@ class AnalysisArmController(Controller):
 
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("analysis_arm")
