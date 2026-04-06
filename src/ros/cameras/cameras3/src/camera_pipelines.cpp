@@ -20,30 +20,39 @@ bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstEl
    return true;
 }
 
-std::string set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, std::string value){
+std::string set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const std::string default_value){
     // Get property
-    streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value);
+    std::string value;
+    streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
+    if (value != default_value) return value;
     if (profile != "NULL")
-      streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
-    streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
+      streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
+      if (value != default_value) return value;
+    streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     return value;
 }
 
-int set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, int value){
+int set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const int default_value){
     // Get property
-    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value);
+    int value;
+    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
+    if (value != default_value) return value;
     if (profile != "NULL")
-      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
-    streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
+      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
+      if (value != default_value) return value;
+    streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     return value;
 }
 
-bool set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, bool value){
+bool set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const bool default_value){
     // Get property
-    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, value);
+    bool value;
+    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
+    if (value != default_value) return value;
     if (profile != "NULL")
-      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, value);
-    streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, value);
+      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
+      if (value != default_value) return value;
+    streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     return value;
 }
 
@@ -65,7 +74,7 @@ void set_srcfilter(GstElement* srcfilter, auto props) {
         props->mime.c_str(),
         "width", G_TYPE_INT, props->width,
         "height", G_TYPE_INT, props->height,
-        "framerate", GST_TYPE_FRACTION, props->framerate, 1,
+        "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator,
         "brightness", G_TYPE_INT, props->brightness,
         "contrast", G_TYPE_INT,  props->contrast,
         NULL);
@@ -78,7 +87,7 @@ void set_scalefilter(GstElement* scalefilter, auto props) {
         "video/x-raw",
         "width", G_TYPE_INT, props->width/props->downscale,
         "height", G_TYPE_INT, props->height/props->downscale,
-        "framerate", GST_TYPE_FRACTION, props->framerate, 1,
+        "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator,
         "brightness", G_TYPE_INT, props->brightness,
         "contrast", G_TYPE_INT,  props->contrast,
         NULL);
@@ -185,7 +194,7 @@ void set_x264(GstElement* encode, h264softwarePipelineProperties* props) {
         "threads", props->threads, // 1 is best for cpu and compression ratio
         "bitrate", props->bitrate,
         "noise-reduction", props->noise_reduction,
-        "key-int-max", props->gop*props->framerate, // Largest GOP
+        "key-int-max", props->gop*(props->framerate/props->framerate_denominator), // Largest GOP
         "vbv-buf-capacity", props->gop*1000,        // Buffer size for GOP
         "b-adapt", false, // Do not allow b frames
         "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
@@ -203,7 +212,7 @@ void set_vpXenc(GstElement* encode, vpXsoftwarePipelineProperties* props) {
             1), // mode, constant bitrate best
         "threads", props->threads, // 1 is best for cpu and compression ratio
         "target-bitrate", props->bitrate*1000,
-        "keyframe-max-dist", props->gop*props->framerate, // Largest GOP
+        "keyframe-max-dist", props->gop*(props->framerate/props->framerate_denominator), // Largest GOP
         "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP
         NULL);
 }
@@ -256,7 +265,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
+  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
 
   // 2. Set element properties
   set_source(source, props);
@@ -345,6 +354,7 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
   props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
   props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
+  props->framerate_denominator = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
   props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
@@ -397,7 +407,7 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
+  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
 
   // 2. Set element properties
   set_source(source, props);
@@ -455,6 +465,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
   props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
   props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
+  props->framerate_denominator = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
   props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
@@ -505,7 +516,7 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
+  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
   
   // 2. Set element properties
   set_source(source, props);
@@ -591,6 +602,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
   props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
   props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
+  props->framerate_denominator = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
   props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 
@@ -673,7 +685,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate);
+  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
   
   // 2. Set element properties
   set_source(source, props);
@@ -757,6 +769,7 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
   props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
   props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
+  props->framerate_denominator = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
   props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
 

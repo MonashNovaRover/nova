@@ -25,6 +25,7 @@ struct capsProperties
   int contrast;
   int height;
   int framerate;
+  int framerate_denominator;
   int width;
 };
 

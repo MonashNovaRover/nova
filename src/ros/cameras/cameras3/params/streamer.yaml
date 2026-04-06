@@ -115,3 +115,11 @@ camera_streamer:
         framerate: 30
         noise_reduction: 128
 
+      Theta-Z1-Example:
+        pipeline_type: h264passthrough
+        width: 3840
+        height: 1920
+        framerate: 30000
+        framerate_denominator: 1001
+        noise_reduction: 256
+
