@@ -82,6 +82,8 @@ add_library(${PROJECT_NAME} SHARED
   src/common/robot_model.cpp
   src/plugins/inverse/banksia_ik_plugin.cpp
   src/kinematics.cpp
+  include/arm_kinematics/joint_map/TransmissionSubgraph.cpp
+  include/arm_kinematics/joint_map/TransmissionSubgraph.hpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
