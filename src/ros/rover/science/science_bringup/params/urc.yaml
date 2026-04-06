@@ -1,10 +1,123 @@
 # ==========================================================
 # Monash Nova Rover
-# science – Default Parameter File
+# URC Science – Default Parameter File
 # ==========================================================
 
-# TODO
+# Analysis Arm - Nodes for components on the analysis arm
 
-example:
+time_of_flight_sensor:
   ros__parameters:
-    example_param: 0
+    can_bus: "can1"
+    update_rate: 3
+    controllers:
+      controller:
+        minimum_range: 10
+        maximum_range: 100
+    hardware:
+      tof_sensor:
+        can_id: 0x4E1
+        unit: "distance"
+
+nir_probe:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        update_rate: 5
+        photodiode_sensors: ["PD1", "PD2"]
+        hardware_name: "NIR_Probe"
+        command_service: "/science/take_nir_probe_reading"
+        data_topic: "/science/nir_probe_data"
+    hardware:
+      NIR_Probe_take_reading:
+        can_id: 0x0E9
+      NIR_Sensors:
+        can_id: 0x4E2
+        unit: "data"
+        initial_value: [0,0]
+
+
+# CBeam - Nodes for components on the CBeam
+
+auger_left:
+  ros__parameters:
+    can_bus: "can1"
+    active: true
+    active_button: "activate_auger_left"
+    inactive_button_pool: [ "activate_auger_right" ]
+    hardware:
+      actuation:
+        can_id: 0x031
+        max_effort: 1.0
+        reversed: false
+      drill:
+        can_id: 0x041
+        max_effort: 0.9
+        reversed: false
+
+auger_right:
+  ros__parameters:
+    can_bus: "can1"
+    active: true
+    active_button: "activate_auger_right"
+    inactive_button_pool: [ "activate_auger_left" ]
+    hardware:
+      actuation:
+        can_id: 0x031
+        max_effort: 1.0
+        reversed: false
+      drill:
+        can_id: 0x041
+        max_effort: 0.9
+        reversed: false
+
+cbeam:
+  ros__parameters:
+    can_bus: "can1"
+    active: false
+    active_button: "activate_cbeam"
+    inactive_button_pool: [ "activate_analysis_arm" ]
+    controllers:
+      controller:
+        actuation_axis: "cbeam_actuation"
+    hardware:
+      actuation:
+        can_id: 0x042
+        max_effort: 1.0
+        reversed: false
+
+kiln:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        command_service: "/science/kiln_command"
+        data_topic: "/science/kiln_data"
+        temp_sensors: [ "kiln_sensor", "condenser_sensor" ]
+        heaters: [ "left_heater", "right_heater" ]
+    hardware:
+      kiln_sensor:
+        can_id: 0x4E1
+        unit: "temperature"
+      left_heater:
+        can_id: 0x0C1
+        max_effort: 1.0
+        reversed: false
+      right_heater:
+        can_id: 0x0D2
+        max_effort: 1.0
+        reversed: false
+
+# Misc - Nodes for misc components
+scimbal_cam:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    hardware:
+      pan:
+        can_id: 0x0E0
+        angular_limit: 360.0
+      tilt:
+        can_id: 0x0E1
+        angular_limit: 90.0

@@ -60,7 +60,7 @@ class ActuateController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting {self.hardware_name}/effort")
+        self.logger.debug(f"Getting {self.hardware_name}/effort")
         self.actuation_cmd = command_interfaces[f"{self.hardware_name}/effort"]
 
     def on_update(self, now: float, period: float):
