@@ -81,10 +81,10 @@ class HeaterController(Controller):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-        self.logger.info(f"Getting {[h + "/effort" for h in self.heaters]} command interfaces")
+        self.logger.debug(f"Getting {[h + "/effort" for h in self.heaters]} command interfaces")
         self.heater_cmds = [command_interfaces[h + "/effort"] for h in self.heaters]
 
-        self.logger.info("Getting temp_sensors/temperature state interface")
+        self.logger.debug("Getting temp_sensors/temperature state interface")
         self.temp_sensors_state = state_interfaces["temp_sensors/temperature"]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
@@ -92,7 +92,7 @@ class HeaterController(Controller):
 
         self.kiln_command_service = self.node.create_service(KilnCommand, self.command_service, self.kiln_command_callback)
 
-        self.logger.info(f"HeaterController {self.name} configured")
+        self.logger.debug(f"HeaterController {self.name} configured")
 
         return True
 

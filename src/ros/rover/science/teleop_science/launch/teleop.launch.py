@@ -15,7 +15,7 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('teleop_science'), '"'
     ])
 
-    teleop_params = LaunchConfiguration('teleop_params')
+    # teleop_params = LaunchConfiguration('teleop_params')
     log_inputs = LaunchConfiguration('log_inputs')
     log_level = LaunchConfiguration('log_level').perform(context)
     joysticks = LaunchConfiguration('joysticks').perform(context)
@@ -25,6 +25,8 @@ def launch_setup(context, *args, **kwargs):
         '"joysticks.config.yaml" if "', joysticks, '".lower() == "true" else "game_controller.config.yaml"'
     ])
     input_params = PathJoinSubstitution([teleop_science_dir, 'params', comp, input_param_file])
+
+    teleop_params = PathJoinSubstitution([teleop_science_dir, 'params', comp, "teleop.yaml"])
 
     return [
         LogInfo(msg=['Using teleop_science := ', teleop_science_dir]),
@@ -118,18 +120,13 @@ def generate_launch_description():
             description='The log level to use for the teleop_node',
         ),
         DeclareLaunchArgument(
-            name='teleop_params',
-            default_value=PathJoinSubstitution([teleop_science_dir, 'params', 'arc/teleop.yaml']),
-            description='The main parameter file to use for the teleop_node',
-        ),
-        DeclareLaunchArgument(
             name='joysticks',
             default_value="True",
             description='Whether to use joystick inputs or game controller joy source',
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value="arc",
+            default_value="urc",
             description='What comp we are launching teleop for, options are "arc" or "urc"',
         ),
         DeclareLaunchArgument(
