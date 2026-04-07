@@ -23,6 +23,7 @@ struct capsProperties
 
   int brightness;
   int contrast;
+  int downrate;
   int height;
   int framerate;
   int framerate_denominator;

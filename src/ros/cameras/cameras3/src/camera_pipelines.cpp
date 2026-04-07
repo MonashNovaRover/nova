@@ -74,7 +74,7 @@ void set_srcfilter(GstElement* srcfilter, auto props) {
         props->mime.c_str(),
         "width", G_TYPE_INT, props->width,
         "height", G_TYPE_INT, props->height,
-        "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator,
+        "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
         "brightness", G_TYPE_INT, props->brightness,
         "contrast", G_TYPE_INT,  props->contrast,
         NULL);
@@ -87,7 +87,7 @@ void set_scalefilter(GstElement* scalefilter, auto props) {
         "video/x-raw",
         "width", G_TYPE_INT, props->width/props->downscale,
         "height", G_TYPE_INT, props->height/props->downscale,
-        "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator,
+        "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
         "brightness", G_TYPE_INT, props->brightness,
         "contrast", G_TYPE_INT,  props->contrast,
         NULL);
@@ -253,6 +253,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
+  GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rater") : nullptr;
   GstElement* decode = gst_element_factory_make("decodebin3", "decoder");
   GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
@@ -260,7 +261,8 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   GstElement* cropper = props->crop43 ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
-  if (!gst_pipeline || !source || !srcfilter || !decode || !convert || !scalefilter || (props->show_clock && !clock) || (props->crop43 && !cropper) || !webrtc 
+
+  if (!gst_pipeline || !source || (props->downrate > 1 && !rate) || !srcfilter || !decode || !convert || !scalefilter || (props->show_clock && !clock) || (props->crop43 && !cropper) || !webrtc 
       ) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
@@ -277,11 +279,21 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, scalefilter, webrtc, NULL);
+  if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
 
   // 4. Link elements
-  if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
+  
+  // Change fps
+  if (props->downrate > 1) {
+    if (!link_elements(streamer_node, source, rate, props->serial)) return nullptr;
+    if (!link_elements(streamer_node, rate, srcfilter, props->serial)) return nullptr;
+  } else {
+    if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
+  }
+
+  // Convert to raw
   if (!link_elements(streamer_node, srcfilter, decode, props->serial)) return nullptr;
 
   g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
@@ -295,6 +307,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
 
   if (!link_elements(streamer_node, convert, scalefilter, props->serial)) return nullptr;
 
+  // Enable crop and/or clock
   if (props->crop43 && props->show_clock) {
       if (!link_elements(streamer_node, scalefilter, cropper, props->serial)) return nullptr;
       if (!link_elements(streamer_node, cropper, clock, props->serial)) return nullptr;
@@ -368,6 +381,9 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
 
   // scale
   props->downscale = set_property(streamer_node, camera->serial, profile, camera->original_serial, "downscale", 1);
+
+  // rate
+  props->downrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "downrate", 1);
 
   // cropper
   props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", false);
@@ -459,6 +475,9 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->device = set_property(streamer_node, camera->serial, profile, camera->original_serial, "device", props->node);
   props->io_mode = 4; // dmabuf
 
+  // rate
+  props->downrate = 1; // Do not change framerate
+
   // filter
   props->mime = "video/x-h264";
 
@@ -501,17 +520,18 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
+  GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rater") : nullptr;
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
+  GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
   GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
+  GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
+  GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
   GstElement* encode = gst_element_factory_make("x264enc", "encoder");
   GstElement* parse = gst_element_factory_make("h264parse", "parser");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
-  GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
-  GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
-  GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
 
-  if (!gst_pipeline || !source || !srcfilter || !convert || !scalefilter || !encode || !parse || (props->show_clock && !clock) || (props->crop43 && !cropper) || (props->mime == "image/jpeg" && !decode) || !parse || !webrtc) {
+  if (!gst_pipeline || !source || (props->downrate > 1 && !rate) || !srcfilter || (props->mime == "image/jpeg" && !decode) || !convert || !scalefilter || (props->show_clock && !clock) || (props->crop43 && !cropper) || !encode || !parse || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
@@ -529,12 +549,20 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, parse, webrtc, NULL);
+  if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
 
   // 4. Link elements
-  if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
+
+  // Change fps
+  if (props->downrate > 1) {
+    if (!link_elements(streamer_node, source, rate, props->serial)) return nullptr;
+    if (!link_elements(streamer_node, rate, srcfilter, props->serial)) return nullptr;
+  } else {
+    if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
+  }
 
   // Convert to raw
   if (props->mime == "image/jpeg") {
@@ -618,6 +646,9 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   // scale
   props->downscale = set_property(streamer_node, camera->serial, profile, camera->original_serial, "downscale", 1);
 
+  // rate
+  props->downrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "downrate", 1);
+
   // cropper
   props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", false);
 
@@ -668,17 +699,17 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
+  GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videoconvertscale", "rate") : nullptr;
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
+  GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
   GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* encode = (props->video_caps == "video/x-vp9") ? gst_element_factory_make("vp9enc", "encoder") : gst_element_factory_make("vp8enc", "encoder");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
   GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
-  GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
 
-
-  if (!gst_pipeline || !source || !srcfilter || !convert || !scalefilter || !encode || (props->show_clock && !clock) || (props->crop43 && !cropper) || (props->mime == "image/jpeg" && !decode) || !webrtc) {
+  if (!gst_pipeline || !source || (props->downrate > 1 && !rate) || !srcfilter || (props->mime == "image/jpeg" && !decode) || !convert || !scalefilter  || (props->show_clock && !clock) || (props->crop43 && !cropper) || !encode || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
@@ -698,9 +729,18 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
+  if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
 
   // 4. Link elements
-  if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
+  
+  // Change fps
+  if (props->downrate > 1) {
+    if (!link_elements(streamer_node, source, rate, props->serial)) return nullptr;    
+    if (!link_elements(streamer_node, rate, srcfilter, props->serial)) return nullptr;
+
+  } else {
+    if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
+  }
 
   // Convert to raw
   if (props->mime == "image/jpeg") {
@@ -783,6 +823,9 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
 
   // scale
   props->downscale = set_property(streamer_node, camera->serial, profile, camera->original_serial, "downscale", 1);
+
+  // rate
+  props->downrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "downrate", 1);
 
   // cropper
   props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", false);
