@@ -131,7 +131,7 @@ in
           cameras3 = "~/Builds/master/bin/ros2 launch cameras cameras.launch.py platform:=orin param_dir:=/home/nova/nova/src/ros/cameras/cameras3/params";
           cameras2 = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
           cameras2-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
-          cameras-orin ="echo 'DEPRECATED - Please use cameras instead for cameras operation'";
+          cameras-orin ="echo 'DEPRECATED - Please use cameras instead for cameras operation, or cameras2-legacy for old camera stack'";
           cameras = "${cameras3}";
           nix-enable = "sudo systemctl enable nix-daemon.service";
           nix-start = "sudo systemctl start nix-daemon.service";
