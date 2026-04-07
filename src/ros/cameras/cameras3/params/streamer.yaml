@@ -89,6 +89,7 @@ camera_streamer:
         pipeline_type: vpXsoftware
         width: 1280
         height: 720
+        crop43: true
         framerate: 30
         noise_reduction: 128
 

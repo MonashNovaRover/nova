@@ -129,8 +129,8 @@ void set_convert(GstElement* convert, auto props) {
 void set_crop43(GstElement* cropper, auto props, const int crop_width) {
     if (props->crop43) {
         g_object_set(cropper,
-            "left", crop_width/props->downscale,
-            "right", crop_width/props->downscale,
+          "left", crop_width/props->downscale,
+          "right", crop_width/props->downscale,
           NULL);
     }
 }
@@ -220,9 +220,9 @@ void set_vpXenc(GstElement* encode, vpXsoftwarePipelineProperties* props) {
 
 void set_h264parse(GstElement* parse, const int interval = -1) {
     g_object_set(parse,
-    "config-interval",
-    interval,
-    NULL);
+        "config-interval",
+        interval,
+        NULL);
 }
 
 /*
@@ -511,8 +511,7 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
 
-
-  if (!gst_pipeline || !source || !srcfilter || !convert || !scalefilter || !encode || (props->show_clock && !clock) || (props->crop43 && !cropper) || (props->mime == "video/x-raw" && !convert) || (props->mime == "image/jpeg" && !decode) || !parse || !webrtc) {
+  if (!gst_pipeline || !source || !srcfilter || !convert || !scalefilter || !encode || !parse || (props->show_clock && !clock) || (props->crop43 && !cropper) || (props->mime == "image/jpeg" && !decode) || !parse || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
@@ -532,7 +531,6 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, parse, webrtc, NULL);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
-  if (props->mime == "video/x-raw") gst_bin_add(GST_BIN(gst_pipeline), convert);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
 
   // 4. Link elements
@@ -568,7 +566,6 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
 
   return gst_pipeline;
 }
-
 
 /*
  * Retrieve ros2 parameters for h264software pipeline or sets defaults
@@ -681,7 +678,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
 
 
-  if (!gst_pipeline || !source || !srcfilter || !convert || !scalefilter || !encode || (props->show_clock && !clock) || (props->crop43 && !cropper) || (props->mime == "video/x-raw" && !convert) || (props->mime == "image/jpeg" && !decode) || !webrtc) {
+  if (!gst_pipeline || !source || !srcfilter || !convert || !scalefilter || !encode || (props->show_clock && !clock) || (props->crop43 && !cropper) || (props->mime == "image/jpeg" && !decode) || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
@@ -700,7 +697,6 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, webrtc, NULL);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
-  if (props->mime == "video/x-raw") gst_bin_add(GST_BIN(gst_pipeline), convert);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
 
   // 4. Link elements
