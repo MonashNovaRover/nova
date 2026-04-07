@@ -115,7 +115,7 @@ camera_streamer:
         framerate: 30
         noise_reduction: 128
 
-      Theta-Z1-Example:
+      Ricoh_Company__Ltd._RICOH_THETA_Z1_34122798:
         pipeline_type: h264passthrough
         width: 3840
         height: 1920
