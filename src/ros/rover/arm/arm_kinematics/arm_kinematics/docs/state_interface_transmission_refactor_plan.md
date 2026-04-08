@@ -32,21 +32,46 @@ The goal of this plan: complete the migration cleanly, finalize `TransmissionSub
 
 Direction is inherent: this instance reads `input_ids` and writes `output_ids`. A transmission that should support both directions is registered as **two** `TransmissionInstance`s pointing to the appropriate `TransmissionModel`(s).
 
-### `AffineTransmission` — REVERT to joint-level
+### `AffineTransmission` — joint-level, stored per-joint as a flat relation
 The current state-interface form is a step in the wrong direction. A mimic relationship is intrinsically a joint-to-joint invariant (one joint mirrors another), and applies uniformly across whatever interfaces (position, velocity, …) the planner happens to need — but the *projection rule* depends on the interface type.
 
 ```cpp
 struct AffineTransmission {
-  JointId source_joint_id;
+  JointId source_joint_id;   // by invariant: == affine_parent_[target_joint_id]
   JointId target_joint_id;
-  float multiplier;   // must be non-zero — see precondition below
+  float multiplier;          // composed flat from source to target — see below
   float offset;
 };
 ```
 
+**Storage shape (the key insight):** `affine_transmissions_` is **indexed by `JointId`** — one entry per joint, accessed via `affine_transmission_of(j)`. Each entry is the **already-composed flat relation** of that joint to its current affine-group root:
+
+- `target_joint_id == j` (the joint this entry is for)
+- `source_joint_id == affine_parent_[j]` (the joint's current root)
+- `joint_value(j) = multiplier · joint_value(source_joint_id) + offset`
+- For root joints, the entry is the identity `(source=self, m=1, o=0)`.
+
+`add_affine_transmission(source, target, m, o)` composes the new edge into this flat form **eagerly at the time of the call**. It walks the affected group's member list once, updating every member's stored relation to be expressed in terms of the new (winning) root. This means:
+
+1. The planner reads the (m, o) between any two joints in the same affine group as an O(1) lookup of two flat per-joint relations and a tiny algebraic step — no chain walking, no recursion, no per-query composition.
+2. The planner never has to do the recursive `find_source`-style chain composition that the old `AffineJointMap` did at runtime.
+3. Reads are pure (no path compression, no mutation), so the analysis is safe for concurrent reads.
+4. **Affine compute is fundamentally SIMD-friendly.** At runtime an affine joint map is the inner loop `output[i] = input[sources[i]] * multipliers[i] + offsets[i]` — a tight, vectorizable kernel that `AffineJointMap::map()` already drives through `#pragma omp simd`. Builders are required to consolidate all affine producers within a `CompositeJointMap` stage into a single `AffineJointMap` segment so this kernel actually runs over many outputs at once, rather than degenerating into one tiny one-output affine compute step per joint. See the "Affine batching is a hard requirement" note under `DefaultJointMapBuilder` behavior.
+
 **Precondition: `multiplier != 0`**, validated on `add_affine_transmission`. Allowing `multiplier == 0` would model `target = offset` (a constant value with no actual link to `source`) — that isn't really a mimic relationship and doesn't belong in `AffineTransmission`. Joints that are always at a constant value are handled by a different mechanism (the future default-value-source seam — a JointMapBuilder strategy listed in "Open items" that supplies fallback values for missing inputs, or the caller supplies the value as an input directly). With `multiplier != 0`, every affine relationship is guaranteed bidirectional, which keeps the affine-group semantics clean (see next).
 
-`TransmissionSubgraph` is responsible for projecting these joint-level affine relationships onto the specific interface(s) required by a given build request, using the projection rules described next.
+**Precondition: `source_joint_id != target_joint_id`**, validated on `add_affine_transmission`. Self-loops are degenerate and always a user error.
+
+**Composition arithmetic.** When `add_affine_transmission(source, target, m, o)` is called:
+- `T_source = affine_transmission_of(source)` and `T_target = affine_transmission_of(target)` are the existing per-joint flats
+- The new edge says `target = m · source + o`. Substituting source's flat (`source = T_source.m · R_s + T_source.o`):
+  - `target_new = (m · T_source.m) · R_s + (m · T_source.o + o)` from the winner root `R_s = T_source.source_joint_id`
+- Equating with the old `target = T_target.m · R_t + T_target.o` gives the loser-to-winner transformation:
+  - `R_t = (target_new_m / T_target.m) · R_s + ((target_new_o − T_target.o) / T_target.m)`
+- Every member j of the loser's old group has its stored relation rewritten by substituting this transformation: `m_j_new = m_j · M`, `o_j_new = m_j · O + o_j`, source = winner.
+- The redundant case (winner root == loser root) is a no-op, debug-asserted to be numerically consistent within tolerance with the existing entry.
+
+`TransmissionSubgraph` is responsible for projecting these joint-level flat relations onto the specific interface(s) required by a given build request, using the projection rules described next.
 
 ### `AffineProjectionRule` (new) and the projection registry on `TransmissionAnalysis`
 Different interfaces project an affine joint-level relationship differently:
@@ -111,27 +136,35 @@ Unchanged: `compute(inputs, outputs, scratch)`.
 
 ### `TransmissionAnalysis` (cleanup)
 - **Knows nothing about URDF, ros2_control, or mimic joints** — purely a typed graph data structure.
-- Holds: joint order, state-interface order, models, transmissions (state-interface-edged), affine transmissions (joint-edged after the revert above), the `InterfaceId → AffineProjectionRule` registry as `std::unordered_map<InterfaceId, AffineProjectionRule>` (using `InterfaceId`'s existing FNV1a hash; `Order<>` is the wrong tool here — no stable internal IDs are needed), and the **affine group** index (see below).
+- Holds: joint order, state-interface order, models, transmissions (state-interface-edged), per-joint flat affine relations (`affine_transmissions_` indexed by `JointId`, see the `AffineTransmission` section above), the `InterfaceId → AffineProjectionRule` registry as `std::unordered_map<InterfaceId, AffineProjectionRule>` (using `InterfaceId`'s existing FNV1a hash; `Order<>` is the wrong tool here — no stable internal IDs are needed), and the **affine group** index (see below).
 - Maintains an **inverse index** from `StateInterfaceId → vector<TransmissionInstanceId>` of transmissions whose `output_ids` contain that interface. Built incrementally as `add_transmission` is called. Lets the subgraph algorithm answer "who produces X?" in expected O(1) instead of O(num_transmissions × num_outputs).
-- API stays close to current shape; remove the `StateInterfaceId` overload of `add_affine_transmission` and replace with the joint-level form. Add `set_affine_projection_rule(InterfaceId, AffineProjectionRule)` and `affine_projection_rule(InterfaceId) const → const AffineProjectionRule *` (returns `nullptr` if no rule registered).
-- `TransmissionAnalysis` is **append-only** — there is no remove API for transmissions, affine transmissions, models, or projection rules. The inverse transmission index and the union-find affine group index can therefore be maintained incrementally without ever needing to handle removals.
+- API:
+  - `add_affine_transmission(JointId source, JointId target, float m, float o)` — joint-level edge. Composes into the per-joint flat relations and updates the affine group index.
+  - `affine_transmission_of(JointId) const → const AffineTransmission &` — O(1) lookup of a joint's current flat relation to its root.
+  - `affine_root_of(JointId) const → JointId` — O(1) lookup of a joint's current root.
+  - `affine_group_members(JointId root) const → span<const JointId>` — members of an affine group, by root.
+  - `set_affine_projection_rule(InterfaceId, AffineProjectionRule)` and `affine_projection_rule(InterfaceId) const → const AffineProjectionRule *` (returns `nullptr` if no rule registered).
+- `TransmissionAnalysis` is **append-only** — there is no remove API for transmissions, affine transmissions, models, or projection rules. The inverse transmission index and the eagerly-flattened affine group index can therefore be maintained incrementally without ever needing to handle removals.
 - **Duplicate output state interfaces are allowed** in `TransmissionInstance::output_ids` (and in builder requests). Asking for the same value in multiple places is a legitimate use case and is not an error.
 
 ### Affine group queries (root-joint identification)
-Connected components of the joint graph induced by `analysis.affine_transmissions()` are first-class. Because `multiplier != 0` is enforced, every edge is bidirectional and each component has the property that **defining any single joint in the group defines all of them** (with composed `(m, o)` derived by walking edges).
+Connected components of the joint graph induced by `add_affine_transmission` calls are first-class. Because `multiplier != 0` is enforced, every relation is bidirectional and each component has the property that **defining any single joint in the group defines all of them** (the (m, o) between any two joints in the group is computed in O(1) from their per-joint flat relations to the shared root).
 
-Groups are identified by their **root joint** — the union-find representative — which is itself a valid `JointId` and can be named in error messages. Every joint is in a group (possibly a trivial group of one, where the root is the joint itself), so no sentinel id is needed.
+Groups are identified by their **root joint**, which is itself a valid `JointId` and can be named in error messages. Every joint is in a group (possibly a trivial group of one, where the root is the joint itself), so no sentinel id is needed. The "root" has a directional meaning: it is the source-side joint at the end of the affine chain, the joint everything else ultimately derives from. `add_affine_transmission(source, target, …)` always makes `source`'s current root win the merge.
 
 ```cpp
 // On TransmissionAnalysis:
-// Returns the root joint of the affine group containing j. If j has no affine
-// relationships, returns j itself.
+// Returns the root joint of the affine group containing j (O(1), single array lookup).
+// If j has no affine relationships, returns j itself.
 [[nodiscard]] JointId affine_root_of(JointId j) const noexcept;
 // All members of the group whose root is `root`. Always contains at least `root`.
 [[nodiscard]] span<const JointId> affine_group_members(JointId root) const noexcept;
+// Returns the per-joint flat relation: joint_value(j) = m · joint_value(root) + o.
+// Root joints have the identity entry (m=1, o=0). O(1) lookup.
+[[nodiscard]] const AffineTransmission & affine_transmission_of(JointId j) const noexcept;
 ```
 
-The index is maintained incrementally by union-find as `add_affine_transmission` is called — each new edge merges two groups. This makes both the subgraph algorithm and the missing-input resolution helper much simpler and more efficient than walking edges on demand.
+The index is maintained eagerly as `add_affine_transmission` is called — each new edge composes into the per-joint flat relations and updates every affected member's stored entry in a single pass. The tree is kept maximally flat: every joint's parent always points directly at its current root, so `affine_root_of` is a single array lookup with no walking and no path compression. This makes both the subgraph algorithm and the missing-input resolution helper much simpler than walking edges on demand — they just read the already-composed flat (m, o) from `affine_transmission_of`.
 
 ---
 
@@ -161,8 +194,13 @@ namespace producers {
     size_t input_index;        // position in the request's inputs span
   };
   struct AffineProjection {
-    StateInterfaceId source;   // the known interface providing the value
-    float multiplier;          // composed across the chain, with the projection rule applied
+    StateInterfaceId source;   // the known leaf interface providing the value (always
+                               // resolves to producers::Input or producers::Transmission
+                               // in one producer_of() step — never another AffineProjection)
+    float multiplier;          // already-composed interface-space coefficient from source to
+                               // this output, computed in O(1) at planning time from the
+                               // analysis's per-joint flat affine relations and the projection
+                               // rule for this interface id
     float offset;
   };
   struct Transmission {
@@ -248,7 +286,7 @@ public:
 };
 ```
 
-**Builder note on chained producers.** A `producers::AffineProjection` carries a `source` `StateInterfaceId` that is itself produced by *something* — usually a requested input, but possibly the output of a transmission earlier in the topological order. Builders consuming `producer_of()` results must `producer_of(source)` to find the actual data location. The recursion always terminates at `producers::Input` or `producers::Transmission`.
+**Builder note on AffineProjection source.** A `producers::AffineProjection` carries a `source` `StateInterfaceId` that is **guaranteed to resolve to a leaf in one step** — either `producers::Input` or `producers::Transmission`. The algorithm enforces this by always picking a known interface whose producer is already a leaf when emitting an affine projection candidate. There is no chain to walk; `producer_of(source)` always returns a leaf, never another `AffineProjection`. The `multiplier` and `offset` carried in the `AffineProjection` are the already-composed interface-space coefficients from the leaf source directly to the projected interface, made cheap by the per-joint flat storage in `TransmissionAnalysis::affine_transmissions_`.
 
 The subgraph deliberately does **not** expose an "ordered execution stages" method. Builders are responsible for emitting their own staging by walking the subgraph through these queries — the subgraph is a pure analysis utility, not a planning pipeline.
 
@@ -274,7 +312,14 @@ The algorithm runs in two distinct phases: first compute the full reachable set 
 1. **Initialize.** `known = initial_inputs`. `needed = initial_outputs \ initial_inputs`. Walk `initial_inputs` in order; for each interface, if it does not yet have a producer assigned, record `producers::Input{input_index}` where `input_index` is its position in the span. **First occurrence wins** — if the same interface appears twice in `initial_inputs`, the second occurrence is ignored for producer assignment (but both positions exist in `requested_inputs()`). Interfaces that appear in both `initial_inputs` and `initial_outputs` are therefore handled correctly: they go into `known` with their `Input` producer and never enter `needed`.
 2. **Compute reachability fixed point.** Iterate until no new interfaces are added to `known`:
    - For every `TransmissionInstance T` in `analysis_.transmissions()`: if every interface in `T.input_ids` is in `known`, then every interface in `T.output_ids` becomes derivable. For each output interface, **if it does NOT already have an `Input` producer, record `T` as one of its candidate producers.** (Input producers are exclusive — see Invariants.)
-   - For every joint `J` whose `(J, I)` is in `known` and whose `I` has a registered `AffineProjectionRule`: every other joint `J'` in `analysis.affine_group_members(analysis.affine_root_of(J))` has `(J', I)` derivable via affine projection. The composed `(multiplier, offset)` is built by walking the affine edges from `J` to `J'` (typically a short BFS within the joint group; the chain composition rule for two edges (m1, o1) and (m2, o2) is `(m1·m2, m2·o1 + o2)`) and then applying the projection rule (`multiplier_scale`, `offset_scale`, and the `reverse_direction` source/target swap). **If `(J', I)` does not already have an `Input` producer**, record this as a candidate producer for it.
+   - For every joint `J` whose `(J, I)` is in `known` and whose `I` has a registered `AffineProjectionRule`: every other joint `J'` in `analysis.affine_group_members(analysis.affine_root_of(J))` has `(J', I)` derivable via affine projection. The interface-space `(multiplier, offset)` from `(J, I)` to `(J', I)` is computed in **O(1)** by reading both joints' pre-composed flat relations from the analysis and a single algebraic step:
+     - `T_J = analysis.affine_transmission_of(J)` — flat: `J = T_J.m · root + T_J.o`
+     - `T_J' = analysis.affine_transmission_of(J')` — flat: `J' = T_J'.m · root + T_J'.o`
+     - Joint-space relation `J' = m_joint · J + o_joint` where `m_joint = T_J'.m / T_J.m` and `o_joint = T_J'.o − m_joint · T_J.o`
+     - Then apply the projection rule for `I` (`multiplier_scale`, `offset_scale`, `reverse_direction` source/target swap) to get the interface-space `(m, o)` the planner records.
+     - No chain walking, no recursion, no per-query composition — `add_affine_transmission` did all the chain composition eagerly when the edges were added.
+   - When picking the affine source for `(J', I)`, prefer a known interface whose producer is **already a leaf** (`Input` or `Transmission`), so the resulting `producers::AffineProjection` always sources directly from a leaf. This is straightforward: when iterating known interfaces in the group, take the first one that resolves to a leaf via `producer_of()`.
+   - **If `(J', I)` does not already have an `Input` producer**, record this affine projection as a candidate producer for it.
    - Add newly-derivable interfaces to `known`. Note: a newly-derivable interface is added to `known` regardless of whether it has 1 or more candidate producers — its "knownness" propagates downstream so the full reach is still computed.
 3. **Classify each interface in the converged candidate set.** A single pass:
    - 0 candidates → not produced (will only matter if it's a needed output).
@@ -393,11 +438,15 @@ Behavior of `build_expected`:
 - Construct a `TransmissionSubgraph` from `(analysis_, inputs, outputs)`.
 - If `subgraph.is_ambiguous()`: return failure with `kind = Ambiguous` and `ambiguous_interfaces` populated from `subgraph.ambiguous_interfaces()`. The message names each ambiguous interface and its candidate producers. **Ambiguity wins over unreachability**: if both occur in the same plan, the user fixes the ambiguity first and retries, then sees the unreachable-outputs error on the second attempt. The `unreachable_outputs` field is left empty in the `Ambiguous` case.
 - If `!subgraph.is_complete()` (and not ambiguous): return failure with `kind = MissingInputs`, `unreachable_outputs` populated from `subgraph.unreachable_outputs()`, and resolution hints from `compute_missing_input_resolutions(subgraph)`.
-- Otherwise: walk the subgraph (using `producer_of()` for each requested output, plus `selected_transmissions()` in topological order for staging) and emit a `JointMap` directly. For `producers::AffineProjection`, recursively call `producer_of(source)` to find the underlying data location (an `Input` or a `Transmission` output). The builder constructs the appropriate concrete runtime type:
-  - Pure-affine plan (no transmissions selected) → `AffineJointMap`.
+- Otherwise: walk the subgraph (using `producer_of()` for each requested output, plus `selected_transmissions()` in topological order for staging) and emit a `JointMap` directly. For `producers::AffineProjection`, call `producer_of(source)` once to find the underlying data location — by invariant the result is always a leaf (`Input` or `Transmission`), no further recursion needed. The `(multiplier, offset)` carried in the `AffineProjection` is the final interface-space coefficient and can be used directly. The builder constructs the appropriate concrete runtime type:
+  - Pure-affine plan (no transmissions selected) → a single `AffineJointMap`.
   - Single transmission, no affine stages → a transmission-backed joint map directly.
   - Mixed → `CompositeJointMap` over affine + transmission segments.
   - The builder is free to extract sub-helpers as needed; this is normal code, not a single inline function.
+
+**Affine batching is a hard requirement, not an optimization.** Affine producers are essentially `output[i] = m[i] * input[src[i]] + o[i]` — a tight, vectorizable inner loop, exactly what `AffineJointMap::map()` already runs through `#pragma omp simd`. Whenever the builder emits a `CompositeJointMap`, it must **batch every output that is sourced from a `producers::Input` or `producers::AffineProjection` (with a leaf source) into a single `AffineJointMap` segment**, rather than producing one tiny one-element affine compute step per output. The same goes for outputs that are direct input pass-throughs (`producers::Input`) — they fold into the same `AffineJointMap` as identity rows (`m=1`, `o=0`, `src=input_index`).
+
+Concretely: while walking the subgraph's outputs in order, the builder collects three parallel arrays — `sources[]` (input index of the leaf data), `multipliers[]`, `offsets[]` — for every output whose producer is `Input` or `AffineProjection`. Outputs whose producer is `Transmission` (a block compute that produces multiple values together) interrupt the collection: they emit a `TransmissionJointMap` segment, then the builder resumes collecting affine outputs into a fresh `AffineJointMap` segment after the transmission. The end state is a `CompositeJointMap` of alternating affine and transmission segments, where every affine segment is one contiguous SIMD-friendly compute that handles as many outputs as possible in a single `map()` call. A degenerate case where the entire request is affine collapses to a single `AffineJointMap` directly (no `CompositeJointMap` wrapper needed).
 
 Error messages should report exactly what is missing, and what would need to be supplied to resolve the issue (if multiple possible resolutions exist, this should be clearly communicated in error messaging).
 
@@ -425,9 +474,11 @@ The legacy `make_*_plan_expected` helper functions and the intermediate `JointMa
 **Files:** `include/arm_kinematics/joint_map/composite_joint_map.hpp` + cpp
 - Remove the `compile_joint_map_plan_expected` API entirely.
 - `CompositeJointMap` keeps its existing run-time shape (a sequence of segment joint maps over output index ranges), but is now constructed directly from the segments the builder emits — no intermediate plan struct.
+- Note: by the affine-batching rule (see `DefaultJointMapBuilder` behavior), every affine segment that the builder hands to `CompositeJointMap` is one consolidated `AffineJointMap` covering as many outputs as possible — never one segment per output. `CompositeJointMap` itself doesn't enforce this; it just handles whatever segment list it's given. The batching is the builder's responsibility.
 
 **Files:** `include/arm_kinematics/joint_map/affine_joint_map.hpp` + cpp
-- No structural change. Verify it still compiles after the joint-level `AffineTransmission` revert. The builder constructs `AffineJointMap` directly from sources/multipliers/offsets it computes from the subgraph.
+- No structural change. Verify it still compiles after the joint-level `AffineTransmission` revert. The builder constructs `AffineJointMap` directly from `(sources[], multipliers[], offsets[])` arrays it computes from the subgraph in a single pass.
+- The runtime `map()` is the SIMD-friendly hot loop (`#pragma omp simd` over `output[i] = input[sources[i]] * multipliers[i] + offsets[i]`) — keeping the affine compute consolidated into one `AffineJointMap` per stage is essential for the planner to actually exploit this. See the affine batching note in the `DefaultJointMapBuilder` behavior section.
 
 ---
 
@@ -565,9 +616,14 @@ This is a real interface change for the FK plugin. It is intentionally in scope 
     - non-Input ambiguity (Transmission vs AffineProjection) is still reported
     - non-ambiguous interfaces in an otherwise-ambiguous plan still return their unique producer
   - `TransmissionAnalysis` affine group tests:
-    - isolated joint → `affine_root_of(j) == j`, `affine_group_members(j)` is `[j]`
-    - chain of mimics A → B → C → all share the same root; members list contains all three
+    - isolated joint → `affine_root_of(j) == j`, `affine_group_members(j)` is `[j]`, `affine_transmission_of(j)` is the identity entry `(source=j, m=1, o=0)`
+    - chain of mimics A → B → C → all share the same root (A); `affine_transmission_of(B)` and `affine_transmission_of(C)` give the **already-composed** flat (m, o) directly from A; no walking required
+    - chain composition correctness across orderings: adding edges A→B→C in order vs B→C then A→B produces the same final per-joint flat relations for B and C
+    - merging two non-trivial groups via a non-root edge: every member of the loser's group has its stored relation correctly recomposed in terms of the new (winner) root
     - `multiplier == 0` is rejected by `add_affine_transmission`
+    - `source == target` (self-loop) is rejected
+    - redundant consistent edge is silently no-op (winner == loser branch, debug-asserted to be within tolerance)
+    - redundant inconsistent edge trips the debug assert (in debug builds only)
   - `compute_missing_input_resolutions` unit tests:
     - subgraph with no unreachable outputs → empty resolutions
     - one unreachable output with one producing transmission → one transmission alternative
@@ -581,6 +637,8 @@ This is a real interface change for the FK plugin. It is intentionally in scope 
     - returns rich `JointMapBuildError` with `Ambiguous` when multiple viable producers exist
     - successfully emits an `AffineJointMap` for a pure-affine request
     - successfully emits a `CompositeJointMap` for a mixed affine + transmission request
+    - **affine batching**: when the request has many affine outputs (e.g. 10 mimic joints + 1 transmission), the resulting `CompositeJointMap` contains a small number of segments — one consolidated `AffineJointMap` per "between transmissions" stretch — not one segment per output. Verifiable by walking the emitted segments and asserting each affine segment's `output_count() > 1` when there are multiple affine outputs in the same stage.
+    - **affine + input pass-through fold**: when some outputs are direct input pass-throughs and others are affine projections, both kinds end up in the same `AffineJointMap` segment (input pass-throughs as identity rows `m=1, o=0`).
 
 Existing tests are split out of `test_eigen_fk_mapper.cpp` into focused files as part of this work.
 
