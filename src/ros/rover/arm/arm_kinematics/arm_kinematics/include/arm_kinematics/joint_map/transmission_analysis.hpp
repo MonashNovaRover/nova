@@ -212,25 +212,22 @@ private:
 
   /// Inverse transmission index: state_interface_id → list of TransmissionInstanceIds whose
   /// `output_ids` contain that state interface. Indexed by StateInterfaceId (dense).
+  ///
+  /// **Invariant:** `producers_index_.size() == state_interface_order_.inverse.size()`.
+  /// Maintained atomically by `ensure_state_interface_id` (the only entry point that grows the
+  /// state interface set). `add_transmission` then appends to the relevant per-output entries.
   std::vector<std::vector<TransmissionInstanceId>> producers_index_{};
 
-  /// Union-find for affine groups, indexed by JointId. Invariant: every JointId in `joint_order_`
-  /// has a corresponding entry in `affine_parent_` and `affine_group_members_storage_`.
+  /// Union-find for affine groups, indexed by JointId.
+  ///
+  /// **Invariant:** `affine_parent_.size() == affine_group_members_storage_.size() == joint_order_.inverse.size()`.
+  /// Maintained atomically by `ensure_joint_id` (the only entry point that grows the joint set).
+  ///
   /// `affine_parent_[j]` is the parent of `j` in the union-find tree (with path compression).
   /// `affine_group_members_storage_[root]` is the materialized member list for that root; for
-  /// non-root joints the entry is empty.
+  /// non-root joints the entry is empty (members are migrated into the winning root on union).
   mutable std::vector<JointId> affine_parent_{};
   std::vector<std::vector<JointId>> affine_group_members_storage_{};
-
-  // Internal helpers
-
-  /// Ensure that the per-joint indices (`affine_parent_`, `affine_group_members_storage_`) have
-  /// entries for every joint currently in `joint_order_`. New joints are initialized as their
-  /// own root with a singleton group.
-  void ensure_affine_group_capacity_for_all_joints();
-
-  /// Ensure that the inverse-index storage covers all current state interfaces.
-  void ensure_producers_index_capacity_for_all_state_interfaces();
 
   /// Internal find with path compression.
   JointId affine_find(JointId j) const noexcept;

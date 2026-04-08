@@ -94,15 +94,27 @@ TransmissionModelId TransmissionAnalysis::add_model(std::unique_ptr<Transmission
 
 JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
 {
+  // Detect insertion vs. existing-key lookup, so we can grow the per-joint side data
+  // atomically with the ordering. Order::ensure is "look up or insert" — without the
+  // pre-check we'd have to scan to find what's new, which leaks the invariant.
+  const bool was_present = joint_order_.contains_key(name);
   const JointId id = joint_order_.ensure(name);
-  ensure_affine_group_capacity_for_all_joints();
+  if (!was_present) {
+    // New joint: initialize as its own affine root with a singleton member list.
+    affine_parent_.push_back(id);
+    affine_group_members_storage_.push_back({id});
+  }
   return id;
 }
 
 StateInterfaceId TransmissionAnalysis::ensure_state_interface_id(const StateInterfaceDefinition & definition)
 {
+  const bool was_present = state_interface_order_.contains_key(definition);
   const StateInterfaceId id = state_interface_order_.ensure(definition);
-  ensure_producers_index_capacity_for_all_state_interfaces();
+  if (!was_present) {
+    // New state interface: empty producer list until some transmission writes to it.
+    producers_index_.emplace_back();
+  }
   return id;
 }
 
@@ -149,12 +161,11 @@ void TransmissionAnalysis::add_transmission(
     std::move(name)
   });
 
-  // Maintain the inverse index. Duplicates in outputs_for_index are intentionally allowed
-  // (per spec) — but we should still only register the instance once per output to keep
-  // the index minimal. Use a small dedup set.
-  ensure_producers_index_capacity_for_all_state_interfaces();
-  for (size_t i = 0; i < outputs_for_index.size(); ++i) {
-    const StateInterfaceId sid = outputs_for_index[i];
+  // Maintain the inverse index. The producers_index_ is guaranteed sized to match
+  // state_interface_order_ by ensure_state_interface_id; we just append to per-output
+  // lists here. Duplicates in outputs_for_index are intentionally allowed (per spec) —
+  // but we still only register the instance once per output to keep the index minimal.
+  for (const StateInterfaceId sid : outputs_for_index) {
     auto & producers = producers_index_[sid];
     if (std::find(producers.begin(), producers.end(), instance_id) == producers.end()) {
       producers.push_back(instance_id);
@@ -197,8 +208,9 @@ void TransmissionAnalysis::add_affine_transmission(
     offset
   });
 
-  // Maintain the union-find affine group index.
-  ensure_affine_group_capacity_for_all_joints();
+  // Maintain the union-find affine group index. Both joint ids are guaranteed to have
+  // entries in affine_parent_/affine_group_members_storage_ because the joint_count check
+  // above implies they were added via ensure_joint_id.
   const JointId root_a = affine_find(source_joint_id);
   const JointId root_b = affine_find(target_joint_id);
   if (root_a != root_b) {
@@ -253,19 +265,15 @@ const AffineProjectionRule * TransmissionAnalysis::affine_projection_rule(const 
 
 JointId TransmissionAnalysis::affine_root_of(const JointId j) const noexcept
 {
-  if (j >= affine_parent_.size()) {
-    // Joint isn't tracked in the union-find yet (e.g. it was added directly to joint_order_
-    // without going through ensure_joint_id). Treat it as its own trivial root.
-    return j;
-  }
+  // Precondition: `j` is a valid JointId previously returned by ensure_joint_id, so
+  // affine_parent_[j] is guaranteed to exist by invariant.
   return affine_find(j);
 }
 
 span<const JointId> TransmissionAnalysis::affine_group_members(const JointId root) const noexcept
 {
-  if (root >= affine_group_members_storage_.size()) {
-    return {};
-  }
+  // Precondition: `root` is a valid JointId previously returned by ensure_joint_id (or
+  // affine_root_of), so affine_group_members_storage_[root] is guaranteed to exist.
   return affine_group_members_storage_[root];
 }
 
@@ -291,38 +299,10 @@ JointId TransmissionAnalysis::affine_find(JointId j) const noexcept
 
 span<const TransmissionInstanceId> TransmissionAnalysis::producing_transmissions(const StateInterfaceId state_interface_id) const noexcept
 {
-  if (state_interface_id >= producers_index_.size()) {
-    return {};
-  }
+  // Precondition: `state_interface_id` is a valid id previously returned by
+  // ensure_state_interface_id, so producers_index_[state_interface_id] is guaranteed
+  // to exist by invariant.
   return producers_index_[state_interface_id];
-}
-
-// ---------------------------------------------------------------------------
-// Capacity helpers
-// ---------------------------------------------------------------------------
-
-void TransmissionAnalysis::ensure_affine_group_capacity_for_all_joints()
-{
-  const auto joint_count = joint_order_.inverse.size();
-  const auto current = affine_parent_.size();
-  if (current >= joint_count) {
-    return;
-  }
-  affine_parent_.resize(joint_count);
-  affine_group_members_storage_.resize(joint_count);
-  // Initialize new joints as their own root with a singleton member list.
-  for (auto j = current; j < joint_count; ++j) {
-    affine_parent_[j] = static_cast<JointId>(j);
-    affine_group_members_storage_[j].push_back(static_cast<JointId>(j));
-  }
-}
-
-void TransmissionAnalysis::ensure_producers_index_capacity_for_all_state_interfaces()
-{
-  const auto sid_count = state_interface_order_.inverse.size();
-  if (producers_index_.size() < sid_count) {
-    producers_index_.resize(sid_count);
-  }
 }
 
 } // namespace arm_kinematics
