@@ -33,10 +33,11 @@ const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = (prop
     sequenceBifrost.syncWithTopic();
   }, [sequenceBifrost]);
 
+  const [sequence, setSequence] = useState([""]);
   const onInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSequence(event.target.value.replace(/\s+/g, ' ').trim().split(" ")) // split string by spaces
   }, [])
-  const [sequence, setSequence] = useState([""]);
+ 
 
 
   return (
