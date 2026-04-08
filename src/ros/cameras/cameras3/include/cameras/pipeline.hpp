@@ -37,14 +37,12 @@ struct h264passthroughProperties
 
 struct x264encProperties
 {
-  std::string me;
   std::string speed_preset;
   std::string tune;
 
   int bitrate;
   int gop;
   int noise_reduction;
-  int subme;
   int threads;
 };
 

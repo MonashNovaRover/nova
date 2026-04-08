@@ -183,14 +183,6 @@ void set_x264(GstElement* encode, h264softwarePipelineProperties* props) {
             props->speed_preset == "veryslow" ? 9:
             props->speed_preset == "placebo" ? 10:
             1), // ultrafast 
-        "me", (
-            props->me == "dia" ? 0:
-            props->me == "hex" ? 1:
-            props->me == "umh" ? 2:
-            props->me == "esa" ? 3:
-            props->me == "tesa" ? 4:
-            0), // dia, faster
-        "subme", props->subme, // Subpixel motion blur
         "threads", props->threads, // 1 is best for cpu and compression ratio
         "bitrate", props->bitrate,
         "noise-reduction", props->noise_reduction,
@@ -656,8 +648,6 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->show_clock = set_property(streamer_node, camera->serial, profile, camera->original_serial, "show_clock", false);
 
   // encode
-  default_string = "dia";
-  props->me = set_property(streamer_node, camera->serial, profile, camera->original_serial, "me", default_string);
   default_string = "ultrafast";
   props->speed_preset = set_property(streamer_node, camera->serial, profile, camera->original_serial, "speed_preset", default_string);
   default_string = "zerolatency";
@@ -666,7 +656,6 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->bitrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "bitrate", 4096);
   props->gop = set_property(streamer_node, camera->serial, profile, camera->original_serial, "gop", 1);
   props->noise_reduction = set_property(streamer_node, camera->serial, profile, camera->original_serial, "noise_reduction", 256);
-  props->subme = set_property(streamer_node, camera->serial, profile, camera->original_serial, "subme", 1);
   props->threads = set_property(streamer_node, camera->serial, profile, camera->original_serial, "threads", 1);
 
   // webrtc
