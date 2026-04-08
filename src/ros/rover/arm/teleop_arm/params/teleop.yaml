@@ -151,18 +151,18 @@ task_space_mode:
     # Values to multiply inputs with.
     scale:
       linear:
-        all: 0.125
+        all: 0.05
       angular:
-        all: 0.785398163395
+        all: 0.3
 
     # Prevent velocities larger than the specified values from being emitted
     limits:
       linear:
-        all: 0.1
+        all: 0.025
         normalized: true
         scale_with_speed: true
       angular:
-        all: 0.2
+        all: 0.05
         normalized: true
         scale_with_speed: true
 
