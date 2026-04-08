@@ -44,7 +44,7 @@ struct AffineTransmission {
 };
 ```
 
-**Precondition: `multiplier != 0`**, validated on `add_affine_transmission`. Allowing `multiplier == 0` would model `target = offset` (a constant value with no actual link to `source`) — that isn't really a mimic relationship and doesn't belong in `AffineTransmission`. Joints that are always at a constant value are handled by a different mechanism (the future default-value-source seam, or by the caller supplying the value as an input directly). With `multiplier != 0`, every affine relationship is guaranteed bidirectional, which keeps the equivalence-class semantics in `TransmissionSubgraph` clean.
+**Precondition: `multiplier != 0`**, validated on `add_affine_transmission`. Allowing `multiplier == 0` would model `target = offset` (a constant value with no actual link to `source`) — that isn't really a mimic relationship and doesn't belong in `AffineTransmission`. Joints that are always at a constant value are handled by a different mechanism (the future default-value-source seam — a JointMapBuilder strategy listed in "Open items" that supplies fallback values for missing inputs, or the caller supplies the value as an input directly). With `multiplier != 0`, every affine relationship is guaranteed bidirectional, which keeps the affine-group semantics clean (see next).
 
 `TransmissionSubgraph` is responsible for projecting these joint-level affine relationships onto the specific interface(s) required by a given build request, using the projection rules described next.
 
@@ -98,9 +98,26 @@ Unchanged: `compute(inputs, outputs, scratch)`.
 
 ### `TransmissionAnalysis` (cleanup)
 - **Knows nothing about URDF, ros2_control, or mimic joints** — purely a typed graph data structure.
-- Holds: joint order, state-interface order, models, transmissions (state-interface-edged), affine transmissions (joint-edged after the revert above), and the `InterfaceId → AffineProjectionRule` registry as `std::unordered_map<InterfaceId, AffineProjectionRule>` (using `InterfaceId`'s existing FNV1a hash; `Order<>` is the wrong tool here — no stable internal IDs are needed).
+- Holds: joint order, state-interface order, models, transmissions (state-interface-edged), affine transmissions (joint-edged after the revert above), the `InterfaceId → AffineProjectionRule` registry as `std::unordered_map<InterfaceId, AffineProjectionRule>` (using `InterfaceId`'s existing FNV1a hash; `Order<>` is the wrong tool here — no stable internal IDs are needed), and the **affine group** index (see below).
+- Maintains an **inverse index** from `StateInterfaceId → vector<TransmissionInstanceId>` of transmissions whose `output_ids` contain that interface. Built incrementally as `add_transmission` is called. Lets the subgraph algorithm answer "who produces X?" in expected O(1) instead of O(num_transmissions × num_outputs).
 - API stays close to current shape; remove the `StateInterfaceId` overload of `add_affine_transmission` and replace with the joint-level form. Add `set_affine_projection_rule(InterfaceId, AffineProjectionRule)` and a corresponding query.
 - **Duplicate output state interfaces are allowed** in `TransmissionInstance::output_ids` (and in builder requests). Asking for the same value in multiple places is a legitimate use case and is not an error.
+
+### Affine group queries (root-joint identification)
+Connected components of the joint graph induced by `analysis.affine_transmissions()` are first-class. Because `multiplier != 0` is enforced, every edge is bidirectional and each component has the property that **defining any single joint in the group defines all of them** (with composed `(m, o)` derived by walking edges).
+
+Groups are identified by their **root joint** — the union-find representative — which is itself a valid `JointId` and can be named in error messages. Every joint is in a group (possibly a trivial group of one, where the root is the joint itself), so no sentinel id is needed.
+
+```cpp
+// On TransmissionAnalysis:
+// Returns the root joint of the affine group containing j. If j has no affine
+// relationships, returns j itself.
+[[nodiscard]] JointId affine_root_of(JointId j) const noexcept;
+// All members of the group whose root is `root`. Always contains at least `root`.
+[[nodiscard]] span<const JointId> affine_group_members(JointId root) const noexcept;
+```
+
+The index is maintained incrementally by union-find as `add_affine_transmission` is called — each new edge merges two groups. This makes both the subgraph algorithm and the missing-input resolution helper much simpler and more efficient than walking edges on demand.
 
 ---
 
@@ -114,10 +131,12 @@ A reusable, unopinionated, mutable data structure that captures the relevant sub
 - `const TransmissionAnalysis & analysis_` (held by reference)
 - Working set of **known** state interfaces (initially the requested inputs)
 - Working set of **needed** state interfaces (initially the requested outputs)
-- Per-interface **affine equivalence groups**: for each `InterfaceId` actually relevant to this subgraph, the set of joint equivalence classes closed under `analysis.affine_transmissions()` — materialized lazily as the planner walks
-- Set of **selected** `TransmissionInstanceId`s with their consumed/produced state interfaces
-- Set of **pruned** transmissions (e.g., transmissions whose only output is now already known)
-- Optional: cached topological order of selected transmissions
+- Per-output **producer assignment**: `unordered_map<StateInterfaceId, StateInterfaceProducer>` populated as the algorithm runs; backs `producer_of()` in O(1)
+- Topologically-ordered list of **selected** `TransmissionInstanceId`s
+- Set of **ambiguous** state interfaces (each with its competing candidates)
+- Cached list of **missing inputs** — needed interfaces with no viable producer
+
+(Affine groups themselves live on `TransmissionAnalysis`; the subgraph just looks them up by `JointId`. Per-interface "affine equivalence groups" are not stored separately on the subgraph — the joint-level groups plus the per-interface projection rules cover the same information without duplication.)
 
 ### Public surface (proposed)
 ```cpp
@@ -157,22 +176,32 @@ public:
   void add_output(StateInterfaceId);
 
   // Queries (analysis-only — no execution-ordering output).
-  bool is_complete() const noexcept;                          // all needed outputs derivable
-  bool is_ambiguous() const noexcept;                         // see Invariants
+  bool is_complete() const noexcept;                          // all needed outputs derivable AND not ambiguous
+  bool is_ambiguous() const noexcept;                         // any needed interface has multiple viable producers
   span<const StateInterfaceId> missing_inputs() const noexcept;
   span<const StateInterfaceId> known_inputs() const noexcept;
   span<const StateInterfaceId> needed_outputs() const noexcept;
+  // All ambiguous interfaces with their competing candidates, accumulated across the
+  // full algorithm pass — not just the first one encountered.
+  struct AmbiguousInterface {
+    StateInterfaceId interface;
+    std::vector<StateInterfaceProducer> candidates;
+  };
+  span<const AmbiguousInterface> ambiguous_interfaces() const noexcept;
+
   // Returned in topological order: if transmission B consumes any output of
   // transmission A, A appears before B. Builders rely on this for emission.
   span<const TransmissionInstanceId> selected_transmissions() const noexcept;
 
   bool produces(StateInterfaceId) const noexcept;
   // The principal builder query: how is this state interface produced in the plan?
-  // O(1) lookup. Returns std::monostate if the interface is missing or unrequested.
+  // O(1) lookup. Returns std::monostate if the interface is missing, ambiguous,
+  // or unrequested. Builders should check is_ambiguous() before walking outputs.
   StateInterfaceProducer producer_of(StateInterfaceId) const noexcept;
-  // (more queries as needed by builders / tests)
 };
 ```
+
+**Builder note on chained producers.** A `producers::AffineProjection` carries a `source` `StateInterfaceId` that is itself produced by *something* — usually a requested input, but possibly the output of a transmission earlier in the topological order. Builders consuming `producer_of()` results must `producer_of(source)` to find the actual data location. The recursion always terminates at `producers::Input` or `producers::Transmission`.
 
 The subgraph deliberately does **not** expose an "ordered execution stages" method. Builders are responsible for emitting their own staging by walking the subgraph through these queries — the subgraph is a pure analysis utility, not a planning pipeline.
 
@@ -182,20 +211,28 @@ Algorithm execution timing (eager-in-constructor vs lazy-on-first-query) is an *
 - Never holds dangling references — all `JointId`/`StateInterfaceId`/`TransmissionInstanceId` values exist in `analysis_`.
 - Selected transmissions form a DAG (no cycles).
 - `selected_transmissions()` is returned in topological order — dependencies before dependents.
-- **Ambiguity is surfaced via a query, never silently resolved.** When multiple producers are available for one needed state interface, `is_ambiguous()` becomes true and `is_complete()` returns false. The subgraph does not pick a winner; the builder reports ambiguity to the user.
-- `known_inputs ∩ missing_inputs == ∅`.
-- `add_input` of an interface that was missing moves it to known and prunes its previous producer if and only if the producer is no longer needed by any other path.
+- **Ambiguity is accumulated and surfaced via a query, never silently resolved.** The algorithm continues past ambiguous interfaces, marking each one with its competing candidates, and exposes the full set via `ambiguous_interfaces()`. `is_complete()` requires both `!is_ambiguous()` and an empty `missing_inputs()`.
+- For ambiguous interfaces, `producer_of()` returns `std::monostate`. Non-ambiguous interfaces in the same plan still return their unique producer.
+- `known_inputs ∩ missing_inputs == ∅`. If an interface appears in both `initial_inputs` and `initial_outputs`, it is treated as known (produced by `producers::Input`) and removed from needed.
+- `add_input` of an interface that was missing moves it to known, recomputes affected reachability, and may resolve a previous ambiguity (by making one competing path no longer needed) or unblock previously-missing interfaces.
 
 ### Algorithm sketch
-1. Initialize known = initial_inputs, needed = initial_outputs.
-2. **Backward pass.** For each needed interface `I` not yet known:
-   - **Direct transmission:** find every `TransmissionInstance` in `analysis_.transmissions()` whose `output_ids` contains `I`. Each is a candidate producer. Push the candidate's `input_ids` into needed.
-   - **Affine projection:** look up the `AffineProjectionRule` for `I.interface_id` in the analysis registry. If no rule exists, skip — affine cannot satisfy this interface. If a rule exists, walk the connected component of `I.joint_id` in the undirected graph induced by `analysis_.affine_transmissions()` (multiplier is guaranteed non-zero, so every edge is bidirectional). For each joint `J` in the component whose corresponding state interface `(J, I.interface_id)` is in known, the projection is a candidate producer for `I`. The composed `(multiplier, offset)` is built by chaining the per-edge `(m, o)` along the path from `J` to `I.joint_id` and then applying the projection rule (`use_reciprocal_multiplier`, `multiplier_scale`, `offset_scale`, and `reverse_direction` swap if applicable).
-3. If a needed interface has more than one candidate producer (across direct transmissions and affine projections combined), set the ambiguous flag and stop.
-4. Otherwise commit each unique candidate as the producer for its interface (recording the choice for `producer_of()` in O(1)). For selected transmissions, push their `input_ids` into needed.
-5. Repeat steps 2–4 until either (a) needed is empty (`is_complete() == true`), (b) `is_ambiguous() == true`, or (c) no progress can be made on any remaining needed interface (the residue becomes `missing_inputs()`).
-6. **Topological emission.** `selected_transmissions()` is sorted such that any transmission's inputs are produced (transitively) before it.
-7. `add_input` triggers an incremental forward pass: a newly-known interface may unlock transmissions whose remaining inputs were already known. `add_output` triggers an incremental backward pass on the new interface.
+The algorithm is a **forward fixed-point** over viable producers, not a naive backward walk. A transmission is only a *candidate* producer for one of its outputs once **all of its inputs are themselves derivable** — otherwise it cannot run, so it cannot disambiguate or block other paths.
+
+1. **Initialize.** `known = initial_inputs ∪ (initial_outputs ∩ initial_inputs)`. `needed = initial_outputs \ known`. For each interface that started in both, record `producers::Input{input_index}`.
+2. **Compute viable transmissions and affine reach.** Iterate to a fixed point:
+   - For every `TransmissionInstance T` in `analysis_.transmissions()`: if every interface in `T.input_ids` is in known, then every interface in `T.output_ids` becomes derivable from `T`.
+   - For every joint `J` whose `(J, I)` is in known and whose `I` has a registered `AffineProjectionRule`: every other joint `J'` in `analysis.affine_group_members(analysis.affine_root_of(J))` has `(J', I)` derivable via affine projection. The composed `(multiplier, offset)` is built by walking the affine edges from `J` to `J'` and applying the projection rule (`use_reciprocal_multiplier`, `multiplier_scale`, `offset_scale`, and the `reverse_direction` source/target swap).
+   - Each newly-derivable interface is added to known. Continue until no new interfaces are added.
+   - **For each newly-derivable interface, count its viable producers.** A "viable producer" is a viable transmission or an affine projection whose source is known. If the count is 1, record that single producer in the producer-assignment map. If the count is > 1, record the interface as ambiguous (with the full candidate list) — but the algorithm does not stop. The interface is still considered known for the purpose of unblocking downstream transmissions, so the full graph reachability is still computed.
+3. **Classify needed outputs.**
+   - In known and not ambiguous → `producer_of()` returns the recorded producer; the output is satisfied.
+   - In known and ambiguous → contributes to `ambiguous_interfaces()`; `producer_of()` returns `monostate`.
+   - Not in known → contributes to `missing_inputs()`.
+4. **Topological emission.** `selected_transmissions()` collects every transmission that produces at least one (non-ambiguous) needed output, transitively. Sort topologically: if `T2`'s inputs depend on any of `T1`'s outputs, `T1` precedes `T2`. (The dependency graph is a DAG by construction — every transmission's inputs are derivable from a strict subset of `known` at the time it became viable.)
+5. **Mutation.** `add_input(I)` adds `I` to known, then re-runs the fixed point from step 2. Newly-viable transmissions and previously-ambiguous interfaces may resolve. `add_output(I)` adds `I` to needed and re-classifies.
+
+This formulation has the nice property that "viability" is a fixed point — we never have to undo a candidate decision because of input unreachability. Ambiguity is detected accurately (only between *actually viable* paths) and is accumulated across the entire pass.
 
 ### Why not a snapshot/freeze API
 The user's intent is that `TransmissionSubgraph` is a building block — a strongly-invariant utility that anything in the construction pipeline can hold and query, not a pipeline stage with its own lifecycle. Pass it by `const &` to anything that needs read-only views.
@@ -226,36 +263,71 @@ public:
 struct JointMapBuildError {
   enum class Kind {
     MissingInputs,  // needed outputs are not derivable from the given inputs
-    Ambiguous,      // multiple producers exist for one needed interface
+    Ambiguous,      // one or more needed interfaces have multiple viable producers
     Invalid,        // request is malformed (unknown interface ids, etc.)
   };
   Kind kind = Kind::MissingInputs;
   std::string message;
-  std::vector<StateInterfaceId> missing_inputs;        // populated when kind == MissingInputs
-  std::vector<MissingInputResolution> resolutions;     // optional rich-error hints; may be empty
+
+  // Populated when kind == MissingInputs.
+  std::vector<StateInterfaceId> missing_inputs;
+  std::vector<MissingInputResolution> resolutions;     // rich hints; may be empty
+
+  // Populated when kind == Ambiguous (mirrors TransmissionSubgraph::AmbiguousInterface).
+  std::vector<TransmissionSubgraph::AmbiguousInterface> ambiguous_interfaces;
 };
 
 // Reusable, self-contained helper — not a member of subgraph or builder.
 // Lives somewhere like include/arm_kinematics/joint_map/missing_input_resolution.hpp.
 struct MissingInputResolution {
   StateInterfaceId missing;
-  std::vector<std::vector<StateInterfaceId>> alternative_input_sets;
+
+  // Each entry is a set of state interfaces that — if all supplied — would unblock
+  // the missing interface via one specific transmission. Empty if no transmission
+  // path exists.
+  std::vector<std::vector<StateInterfaceId>> transmission_alternatives;
+
+  // If the missing interface lives in a non-trivial affine group AND has a registered
+  // projection rule, this is the root joint of that group. The user resolves the
+  // missing interface by supplying any single (joint_in_group, missing.interface_id)
+  // where joint_in_group is any joint reported by analysis.affine_group_members(affine_root).
+  // If no affine resolution exists, affine_root is std::nullopt.
+  std::optional<JointId> affine_root;
 };
+
 [[nodiscard]] std::vector<MissingInputResolution> compute_missing_input_resolutions(
-  const TransmissionAnalysis & analysis,
-  span<const StateInterfaceId> missing_inputs);
+  const TransmissionSubgraph & subgraph);
 ```
+
+The helper takes the subgraph (not just the analysis) so it can:
+- Use `subgraph.known_inputs()` to filter out trivially-already-supplied alternatives.
+- Surface only the alternatives that would actually unblock progress in the current request context.
+- Reach into both the transmission inverse index and the affine group index on the underlying analysis.
 
 Note: **duplicate output state interfaces are allowed in builder requests** (asking for the same value in two output positions is legitimate) and never raise `Invalid`.
 
 ### `DefaultJointMapBuilder`
 This is the **only** concrete builder in this refactor. The legacy `TransmissionAnalysisJointMapBuilder` is deleted — the previous distinction was an artifact of preserving the old implementation alongside a new one, and no longer applies once everything flows through `TransmissionSubgraph`.
 
-Behavior:
-- Construct a `TransmissionSubgraph` from the request.
-- If `subgraph.is_ambiguous()`: return failure with `kind = Ambiguous` and a message identifying the ambiguous interfaces and their candidate producers.
-- If `!subgraph.is_complete()` (and not ambiguous): return failure with `kind = MissingInputs`, the missing interfaces, and resolution hints from `compute_missing_input_resolutions(analysis, subgraph.missing_inputs())`.
-- Otherwise: walk the subgraph (using `producer_of()` for each requested output, plus `selected_transmissions()` in topological order for staging) and emit a `JointMap` directly. The builder constructs the appropriate concrete runtime type:
+```cpp
+class DefaultJointMapBuilder : public JointMapBuilder {
+public:
+  explicit DefaultJointMapBuilder(const TransmissionAnalysis & analysis);
+
+  [[nodiscard]] tl::expected<JointMap, JointMapBuildError> build_expected(
+    span<const StateInterfaceId> inputs,
+    span<const StateInterfaceId> outputs) const override;
+
+private:
+  const TransmissionAnalysis & analysis_;
+};
+```
+
+Behavior of `build_expected`:
+- Construct a `TransmissionSubgraph` from `(analysis_, inputs, outputs)`.
+- If `subgraph.is_ambiguous()`: return failure with `kind = Ambiguous` and `ambiguous_interfaces` populated from `subgraph.ambiguous_interfaces()`. The message names each ambiguous interface and its candidate producers.
+- If `!subgraph.is_complete()` (and not ambiguous): return failure with `kind = MissingInputs`, the missing interfaces, and resolution hints from `compute_missing_input_resolutions(subgraph)`.
+- Otherwise: walk the subgraph (using `producer_of()` for each requested output, plus `selected_transmissions()` in topological order for staging) and emit a `JointMap` directly. For `producers::AffineProjection`, recursively call `producer_of(source)` to find the underlying data location (an `Input` or a `Transmission` output). The builder constructs the appropriate concrete runtime type:
   - Pure-affine plan (no transmissions selected) → `AffineJointMap`.
   - Single transmission, no affine stages → a transmission-backed joint map directly.
   - Mixed → `CompositeJointMap` over affine + transmission segments.
@@ -379,15 +451,30 @@ Critical principle (from the user): `TransmissionAnalysis` must never know about
     - completable plan that requires affine projection through mimic joints (position rule)
     - completable plan that requires affine projection with the offset dropped (velocity rule)
     - completable plan that requires affine projection with reversed direction (effort rule)
+    - viability filtering: a transmission with unreachable inputs is **not** counted as a candidate, even if its outputs are needed
     - missing-inputs reporting when outputs are unreachable
     - `add_input` unblocks a previously-incomplete plan
+    - `add_input` resolves a previously-ambiguous interface
     - mixed-quantity transmission (position-in / effort-out)
-    - ambiguity reporting when multiple producers exist for one needed interface
+    - ambiguity accumulation: multiple ambiguous interfaces in one pass are all reported
+    - non-ambiguous interfaces in an otherwise-ambiguous plan still return their unique producer
+  - `TransmissionAnalysis` affine group tests:
+    - isolated joint → `affine_root_of(j) == j`, `affine_group_members(j)` is `[j]`
+    - chain of mimics A → B → C → all share the same root; members list contains all three
+    - `multiplier == 0` is rejected by `add_affine_transmission`
   - `compute_missing_input_resolutions` unit tests:
     - empty missing list → empty resolutions
-    - single missing interface with one producing transmission → one resolution with that transmission's input set
-    - missing interface with multiple producing transmissions → one resolution with multiple alternative input sets
-  - `DefaultJointMapBuilder` returns rich `JointMapBuildError` when inputs are missing, including resolution hints.
+    - single missing interface with one producing transmission → one transmission alternative
+    - single missing interface with multiple producing transmissions → multiple transmission alternatives
+    - missing interface in a non-trivial affine group with a registered rule → `affine_root` populated
+    - missing interface in a trivial affine group → `affine_root == nullopt`
+    - missing interface whose interface id has no projection rule → no affine resolution offered
+    - already-supplied alternatives are filtered out
+  - `DefaultJointMapBuilder` end-to-end:
+    - returns rich `JointMapBuildError` with `MissingInputs` when inputs are missing, including resolution hints
+    - returns rich `JointMapBuildError` with `Ambiguous` when multiple viable producers exist
+    - successfully emits an `AffineJointMap` for a pure-affine request
+    - successfully emits a `CompositeJointMap` for a mixed affine + transmission request
 
 Existing tests are split out of `test_eigen_fk_mapper.cpp` into focused files as part of this work.
 
