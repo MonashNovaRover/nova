@@ -112,6 +112,13 @@ JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
 
 StateInterfaceId TransmissionAnalysis::ensure_state_interface_id(const StateInterfaceDefinition & definition)
 {
+  // Precondition: the joint id inside the definition must already be present in joint_order_.
+  // The NamedStateInterfaceDefinition overload guarantees this by calling ensure_joint_id first;
+  // callers of the raw StateInterfaceDefinition overload are responsible for the same.
+  assert(definition.joint_id < joint_order_.inverse.size() &&
+         "ensure_state_interface_id: definition.joint_id is not present in joint_order() — "
+         "did you obtain it from ensure_joint_id?");
+
   const bool was_present = state_interface_order_.contains_key(definition);
   const StateInterfaceId id = state_interface_order_.ensure(definition);
   if (!was_present) {

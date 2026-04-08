@@ -41,7 +41,10 @@ struct StateInterfaceDefinition {
 
   bool operator==(const StateInterfaceDefinition & other) const noexcept
   {
-    return joint_id == other.joint_id && interface_id.hash == other.interface_id.hash;
+    // Delegate to InterfaceId::operator==, which checks hash first (fast) and then name
+    // (collision-safe). Comparing only the hash here would be unsound — two distinct interface
+    // names could in principle collide on FNV1a-64 (vanishingly unlikely, but still incorrect).
+    return joint_id == other.joint_id && interface_id == other.interface_id;
   }
 };
 
