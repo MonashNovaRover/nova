@@ -37,6 +37,29 @@ class ARM_KINEMATICS_PUBLIC AffineJointMap {
 public:
   AffineJointMap() = default;
 
+  /**
+   * Direct constructor. Each output `i` is computed as:
+   * \code
+   *   outputs[i] = multipliers[i] * inputs[sources[i]] + offsets[i]
+   * \endcode
+   *
+   * \param sources    Per-output index into the input vector. Length defines the output count.
+   *                   Each entry must be `< input_count`.
+   * \param multipliers  Same length as `sources`.
+   * \param offsets    Same length as `sources`.
+   * \param input_count  The size of the input vector this map will be called with at runtime.
+   *                     May be larger than `max(sources)+1` (the map only reads the slots
+   *                     referenced in `sources`).
+   *
+   * Throws `std::invalid_argument` if the parallel vectors are not the same length, or if any
+   * source index is `>= input_count`.
+   */
+  AffineJointMap(
+    std::vector<size_t> sources,
+    std::vector<float> multipliers,
+    std::vector<float> offsets,
+    size_t input_count);
+
   /// Creates an identity affine map for an N-element joint space.
   static AffineJointMap identity(size_t element_count);
 

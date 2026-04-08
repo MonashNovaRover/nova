@@ -5,8 +5,33 @@
 #include "arm_kinematics/joint_map/affine_joint_map.hpp"
 
 #include <cassert>
+#include <stdexcept>
+#include <utility>
 
 namespace arm_kinematics {
+
+AffineJointMap::AffineJointMap(
+  std::vector<size_t> sources,
+  std::vector<float> multipliers,
+  std::vector<float> offsets,
+  const size_t input_count)
+  : sources_(std::move(sources)),
+    multipliers_(std::move(multipliers)),
+    offsets_(std::move(offsets)),
+    input_count_(input_count),
+    output_count_(sources_.size())
+{
+  if (multipliers_.size() != output_count_ || offsets_.size() != output_count_) {
+    throw std::invalid_argument(
+      "AffineJointMap: sources, multipliers, and offsets must have the same length");
+  }
+  for (const auto src : sources_) {
+    if (src >= input_count_) {
+      throw std::invalid_argument(
+        "AffineJointMap: source index out of range for the declared input_count");
+    }
+  }
+}
 
 AffineJointMap AffineJointMap::identity(const size_t element_count)
 {

@@ -4,44 +4,76 @@
 
 #include "arm_kinematics/joint_map/composite_joint_map.hpp"
 
-#include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 namespace arm_kinematics {
 
-CompositeJointMap::CompositeJointMap(std::vector<CompositeJointMapSegment> segments)
-  : segments_(std::move(segments))
+CompositeJointMap::CompositeJointMap(
+  const size_t input_count,
+  const size_t output_count,
+  const size_t scratch_size,
+  std::vector<std::pair<size_t, size_t>> input_seeds,
+  std::vector<CompositeJointMapStage> stages,
+  std::vector<std::pair<size_t, size_t>> final_output_gather)
+  : input_count_(input_count),
+    output_count_(output_count),
+    scratch_size_(scratch_size),
+    input_seeds_(std::move(input_seeds)),
+    stages_(std::move(stages)),
+    final_output_gather_(std::move(final_output_gather))
 {
-  if (segments_.empty()) {
-    return;
-  }
-
-  input_count_ = segments_.front().joint_map.input_count();
-  std::vector<bool> output_index_seen{};
-  for (const auto & segment : segments_) {
-    if (!segment.joint_map.valid()) {
-      throw std::invalid_argument("CompositeJointMap received an invalid JointMap segment");
-    }
-    if (segment.joint_map.input_count() != input_count_) {
-      throw std::invalid_argument("CompositeJointMap segment input counts must all match");
-    }
-    if (segment.joint_map.output_count() != segment.output_indices.size()) {
+  // Validate input seeds.
+  for (const auto & [in_slot, scratch_slot] : input_seeds_) {
+    if (in_slot >= input_count_) {
       throw std::invalid_argument(
-        "CompositeJointMap segment output indices must match the segment JointMap output count");
+        "CompositeJointMap: input_seeds entry has input_slot out of range");
     }
-
-    for (const auto output_index : segment.output_indices) {
-      output_count_ = std::max(output_count_, output_index + 1);
+    if (scratch_slot >= scratch_size_) {
+      throw std::invalid_argument(
+        "CompositeJointMap: input_seeds entry has scratch_slot out of range");
     }
   }
 
-  output_index_seen.assign(output_count_, false);
-  for (const auto & segment : segments_) {
-    for (const auto output_index : segment.output_indices) {
-      if (output_index_seen[output_index]) {
-        throw std::invalid_argument("CompositeJointMap received duplicate output indices across segments");
+  // Validate stages.
+  for (const auto & stage : stages_) {
+    if (!stage.segment.valid()) {
+      throw std::invalid_argument("CompositeJointMap: stage has an invalid segment");
+    }
+    if (stage.segment.input_count() != scratch_size_) {
+      throw std::invalid_argument(
+        "CompositeJointMap: stage segment input_count must equal the composite's scratch_size");
+    }
+    const size_t out_count = stage.segment.output_count();
+    if (stage.scratch_scatter.size() != out_count ||
+        stage.output_scatter.size() != out_count)
+    {
+      throw std::invalid_argument(
+        "CompositeJointMap: stage scratter vectors must match the segment output count");
+    }
+    for (const auto & opt_slot : stage.scratch_scatter) {
+      if (opt_slot.has_value() && *opt_slot >= scratch_size_) {
+        throw std::invalid_argument(
+          "CompositeJointMap: stage scratch_scatter slot out of range");
       }
-      output_index_seen[output_index] = true;
+    }
+    for (const auto & opt_slot : stage.output_scatter) {
+      if (opt_slot.has_value() && *opt_slot >= output_count_) {
+        throw std::invalid_argument(
+          "CompositeJointMap: stage output_scatter slot out of range");
+      }
+    }
+  }
+
+  // Validate final output gather.
+  for (const auto & [scratch_slot, out_slot] : final_output_gather_) {
+    if (scratch_slot >= scratch_size_) {
+      throw std::invalid_argument(
+        "CompositeJointMap: final_output_gather entry has scratch_slot out of range");
+    }
+    if (out_slot >= output_count_) {
+      throw std::invalid_argument(
+        "CompositeJointMap: final_output_gather entry has output_slot out of range");
     }
   }
 
@@ -50,14 +82,13 @@ CompositeJointMap::CompositeJointMap(std::vector<CompositeJointMapSegment> segme
 
 CompositeJointMap::Workspace CompositeJointMap::make_workspace() const
 {
-  Workspace workspace{};
-  workspace.segment_outputs.reserve(segments_.size());
-
-  for (const auto & segment : segments_) {
-    workspace.segment_outputs.emplace_back(segment.joint_map.output_count(), 0.0F);
+  Workspace ws{};
+  ws.scratch.assign(scratch_size_, 0.0F);
+  ws.stage_outputs.reserve(stages_.size());
+  for (const auto & stage : stages_) {
+    ws.stage_outputs.emplace_back(stage.segment.output_count(), 0.0F);
   }
-
-  return workspace;
+  return ws;
 }
 
 void CompositeJointMap::map(const span<const float> inputs, const span<float> outputs) const
@@ -69,88 +100,33 @@ void CompositeJointMap::map(const span<const float> inputs, const span<float> ou
     throw std::invalid_argument("CompositeJointMap::map() received outputs with the wrong size");
   }
 
-  for (size_t i = 0; i < segments_.size(); ++i) {
-    auto & segment_outputs = workspace_.segment_outputs[i];
-    segments_[i].joint_map.map(inputs, segment_outputs);
-
-    for (size_t output_i = 0; output_i < segments_[i].output_indices.size(); ++output_i) {
-      outputs[segments_[i].output_indices[output_i]] = segment_outputs[output_i];
-    }
-  }
-}
-
-StagedJointMap::StagedJointMap(std::vector<JointMap> stages)
-  : stages_(std::move(stages))
-{
-  if (stages_.empty()) {
-    return;
+  // Phase 1: seed scratch from inputs.
+  for (const auto & [in_slot, scratch_slot] : input_seeds_) {
+    workspace_.scratch[scratch_slot] = inputs[in_slot];
   }
 
-  input_count_ = stages_.front().input_count();
-  output_count_ = stages_.back().output_count();
-
-  for (size_t i = 0; i < stages_.size(); ++i) {
-    if (!stages_[i].valid()) {
-      throw std::invalid_argument("StagedJointMap received an invalid stage");
-    }
-
-    if (i + 1 < stages_.size() && stages_[i].output_count() != stages_[i + 1].input_count()) {
-      throw std::invalid_argument("StagedJointMap stages must chain through matching output/input counts");
-    }
-  }
-
-  workspace_ = make_workspace();
-}
-
-StagedJointMap::Workspace StagedJointMap::make_workspace() const
-{
-  Workspace workspace{};
-  if (!stages_.empty()) {
-    workspace.stage_inputs.reserve(stages_.size() - 1);
-  }
-  workspace.stage_outputs.reserve(stages_.size());
+  // Phase 2: run each stage and scatter its outputs.
   for (size_t i = 0; i < stages_.size(); ++i) {
     const auto & stage = stages_[i];
-    workspace.stage_outputs.emplace_back(stage.output_count(), 0.0F);
-    if (i + 1 < stages_.size()) {
-    workspace.stage_inputs.emplace_back(stages_[i + 1].input_count(), 0.0F);
+    auto & stage_out = workspace_.stage_outputs[i];
+    stage.segment.map(
+      span<const float>(workspace_.scratch.data(), workspace_.scratch.size()),
+      span<float>(stage_out.data(), stage_out.size()));
+
+    for (size_t j = 0; j < stage_out.size(); ++j) {
+      if (const auto & slot = stage.scratch_scatter[j]; slot.has_value()) {
+        workspace_.scratch[*slot] = stage_out[j];
+      }
+      if (const auto & slot = stage.output_scatter[j]; slot.has_value()) {
+        outputs[*slot] = stage_out[j];
+      }
     }
   }
-  return workspace;
+
+  // Phase 3: final gather (used for direct passthroughs and similar).
+  for (const auto & [scratch_slot, out_slot] : final_output_gather_) {
+    outputs[out_slot] = workspace_.scratch[scratch_slot];
+  }
 }
-
-void StagedJointMap::map(const span<const float> inputs, const span<float> outputs) const
-{
-  if (inputs.size() != input_count_) {
-    throw std::invalid_argument("StagedJointMap::map() received inputs with the wrong size");
-  }
-  if (outputs.size() != output_count_) {
-    throw std::invalid_argument("StagedJointMap::map() received outputs with the wrong size");
-  }
-
-  if (stages_.empty()) {
-    return;
-  }
-
-  stages_.front().map(inputs, workspace_.stage_outputs.front());
-  for (size_t i = 1; i < stages_.size(); ++i) {
-    auto & stage_inputs = workspace_.stage_inputs[i - 1];
-    const auto & previous_outputs = workspace_.stage_outputs[i - 1];
-    for (size_t j = 0; j < previous_outputs.size(); ++j) {
-      stage_inputs[j] = previous_outputs[j];
-    }
-
-    stages_[i].map(
-      span<const float>(stage_inputs.data(), stage_inputs.size()),
-      workspace_.stage_outputs[i]);
-  }
-
-  const auto & final_outputs = workspace_.stage_outputs.back();
-  std::copy(final_outputs.begin(), final_outputs.end(), outputs.begin());
-}
-
-// NOTE: The legacy `compile_joint_map_plan_expected` and `compile_joint_map_plan_stage_expected`
-// helpers have been removed in step 2 of the state-interface refactor. The new direct
-// construction path (driven by JointMapBlueprint segments) will be added in step 5 / step 6.
 
 } // namespace arm_kinematics

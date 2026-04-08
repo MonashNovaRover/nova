@@ -64,6 +64,7 @@ add_library(${PROJECT_NAME} SHARED
   src/joint_map/transmission_joint_map.cpp
   src/joint_map/transmission_reachability.cpp
   src/joint_map/joint_map_blueprint.cpp
+  src/joint_map/materialize_joint_map.cpp
   src/common/kinematics_params.cpp
   src/common/kinematics_base.cpp
   src/forward/forward_kinematics_plugin.cpp
@@ -106,6 +107,7 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/joint_map/test_transmission_analysis.cpp
   test/joint_map/test_transmission_reachability.cpp
   test/joint_map/test_joint_map_blueprint.cpp
+  test/joint_map/test_materialize_joint_map.cpp
   test/main.cpp
 )
 #if(NIX_DO_CHECK)
