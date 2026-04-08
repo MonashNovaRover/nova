@@ -5,6 +5,7 @@
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <stdexcept>
 #include <utility>
 
@@ -151,9 +152,6 @@ void TransmissionAnalysis::add_transmission(
 
   const TransmissionInstanceId instance_id = transmissions_.size();
 
-  // Snapshot output ids before the move so we can update the inverse index after.
-  const std::vector<StateInterfaceId> outputs_for_index = outputs;
-
   transmissions_.push_back(TransmissionInstance{
     model_id,
     std::move(inputs),
@@ -163,9 +161,11 @@ void TransmissionAnalysis::add_transmission(
 
   // Maintain the inverse index. The producers_index_ is guaranteed sized to match
   // state_interface_order_ by ensure_state_interface_id; we just append to per-output
-  // lists here. Duplicates in outputs_for_index are intentionally allowed (per spec) —
-  // but we still only register the instance once per output to keep the index minimal.
-  for (const StateInterfaceId sid : outputs_for_index) {
+  // lists here. Duplicate ids in output_ids are intentionally allowed (per spec) — but
+  // we still only register the instance once per output to keep the index minimal.
+  // Iterate over the just-pushed instance's output_ids directly to avoid copying.
+  const auto & new_outputs = transmissions_.back().output_ids;
+  for (const StateInterfaceId sid : new_outputs) {
     auto & producers = producers_index_[sid];
     if (std::find(producers.begin(), producers.end(), instance_id) == producers.end()) {
       producers.push_back(instance_id);
@@ -189,6 +189,13 @@ void TransmissionAnalysis::add_affine_transmission(
       "do not represent real mimic relationships and break bidirectional affine-group semantics. "
       "Joints that are always at a constant value should be supplied as inputs directly or via the "
       "default-value-source mechanism.");
+  }
+
+  if (source_joint_id == target_joint_id) {
+    throw std::invalid_argument(
+      "TransmissionAnalysis::add_affine_transmission() received source_joint_id == target_joint_id. "
+      "Self-loops are degenerate (they collapse to a constant for m != 1, or a contradiction for "
+      "m == 1, o != 0) and are always a user error.");
   }
 
   const auto joint_count = joint_order_.inverse.size();
@@ -224,7 +231,8 @@ void TransmissionAnalysis::add_affine_transmission(
     auto & loser_members = affine_group_members_storage_[loser];
     winner_members.insert(winner_members.end(), loser_members.begin(), loser_members.end());
     loser_members.clear();
-    loser_members.shrink_to_fit();
+    // Note: deliberately not calling shrink_to_fit() — typical group sizes are tiny and
+    // releasing the small allocation isn't worth the allocator churn.
   }
 }
 
@@ -247,7 +255,7 @@ void TransmissionAnalysis::add_affine_transmission(
 
 void TransmissionAnalysis::set_affine_projection_rule(InterfaceId interface_id, AffineProjectionRule rule)
 {
-  projection_rules_[std::move(interface_id)] = rule;
+  projection_rules_[std::move(interface_id)] = std::move(rule);
 }
 
 const AffineProjectionRule * TransmissionAnalysis::affine_projection_rule(const InterfaceId & interface_id) const noexcept
@@ -267,13 +275,18 @@ JointId TransmissionAnalysis::affine_root_of(const JointId j) const noexcept
 {
   // Precondition: `j` is a valid JointId previously returned by ensure_joint_id, so
   // affine_parent_[j] is guaranteed to exist by invariant.
+  assert(j < affine_parent_.size() && "affine_root_of: JointId out of range — was it returned by ensure_joint_id?");
   return affine_find(j);
 }
 
 span<const JointId> TransmissionAnalysis::affine_group_members(const JointId root) const noexcept
 {
-  // Precondition: `root` is a valid JointId previously returned by ensure_joint_id (or
-  // affine_root_of), so affine_group_members_storage_[root] is guaranteed to exist.
+  // Preconditions: `root` is a valid JointId AND it is actually the root of its affine group.
+  // Passing a non-root member silently returns an empty span (the members live on the root entry,
+  // not on each member entry), so we assert in debug builds. Use affine_root_of(j) first if you
+  // only have an arbitrary group member.
+  assert(root < affine_group_members_storage_.size() && "affine_group_members: JointId out of range");
+  assert(affine_parent_[root] == root && "affine_group_members: argument is not a root joint — call affine_root_of() first");
   return affine_group_members_storage_[root];
 }
 
@@ -302,6 +315,7 @@ span<const TransmissionInstanceId> TransmissionAnalysis::producing_transmissions
   // Precondition: `state_interface_id` is a valid id previously returned by
   // ensure_state_interface_id, so producers_index_[state_interface_id] is guaranteed
   // to exist by invariant.
+  assert(state_interface_id < producers_index_.size() && "producing_transmissions: StateInterfaceId out of range — was it returned by ensure_state_interface_id?");
   return producers_index_[state_interface_id];
 }
 

@@ -39,6 +39,13 @@ namespace arm_kinematics {
  *
  * `TransmissionAnalysis` knows nothing about URDF, ros2_control, or mimic joints. It is purely a
  * typed graph of joints, state interfaces, and the relationships between them.
+ *
+ * \note **Not thread-safe.** Even read-only queries may mutate internal state (`affine_root_of`
+ * performs path compression). All access must be externally synchronized.
+ *
+ * \note Mutating operations (`add_transmission`, `add_affine_transmission`, `ensure_*`) are not
+ * strong-exception-safe: if an internal index update throws (e.g. OOM), partial state is left in
+ * place. Realistically OOM in setup code is fatal anyway.
  */
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
@@ -141,11 +148,14 @@ public:
   /**
    * Adds one joint-level affine transmission (mimic) to the analysis.
    *
-   * \warning This API does not validate cycles between affine transmissions. Callers must not add
-   * cyclic affine transmission relationships.
+   * \warning This API does not validate cycles between affine transmissions across multiple edges.
+   * Callers must not add cyclic affine transmission relationships.
    *
    * \pre `multiplier != 0`. Zero multipliers don't represent real mimic relationships and break
    * bidirectional affine-group semantics. Throws `std::invalid_argument` on violation.
+   * \pre `source_joint_id != target_joint_id`. Self-loops are degenerate (they collapse to a
+   * constant or a contradiction depending on multiplier) and are always a user error. Throws
+   * `std::invalid_argument` on violation.
    */
   void add_affine_transmission(
     JointId source_joint_id,
@@ -178,10 +188,17 @@ public:
 
   /// Returns the root joint of the affine group containing `j`. If `j` has no affine relationships,
   /// returns `j` itself (every joint is in a group, possibly trivial).
+  ///
+  /// \pre `j` is a valid `JointId` previously returned by `ensure_joint_id` (debug-asserted).
   [[nodiscard]] JointId affine_root_of(JointId j) const noexcept;
 
   /// All members of the affine group whose root is `root`. Always contains at least `root`.
   /// The returned span is invalidated by any subsequent `add_affine_transmission` call.
+  ///
+  /// \pre `root` must actually be a root joint, as returned by `affine_root_of` (debug-asserted).
+  /// Passing a non-root joint is a precondition violation; the result is unspecified in release
+  /// builds and asserts in debug builds. Use `affine_group_members(affine_root_of(j))` if you only
+  /// have an arbitrary member.
   [[nodiscard]] span<const JointId> affine_group_members(JointId root) const noexcept;
 
   // ---------------------------------------------------------------------------
@@ -193,6 +210,9 @@ public:
   /// "who produces X?" in expected O(1).
   ///
   /// The returned span is invalidated by any subsequent `add_transmission` call.
+  ///
+  /// \pre `state_interface_id` is a valid id previously returned by `ensure_state_interface_id`
+  /// (debug-asserted).
   [[nodiscard]] span<const TransmissionInstanceId> producing_transmissions(StateInterfaceId state_interface_id) const noexcept;
 
 private:
