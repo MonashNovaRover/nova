@@ -39,10 +39,12 @@ The current state-interface form is a step in the wrong direction. A mimic relat
 struct AffineTransmission {
   JointId source_joint_id;
   JointId target_joint_id;
-  float multiplier;
+  float multiplier;   // must be non-zero — see precondition below
   float offset;
 };
 ```
+
+**Precondition: `multiplier != 0`**, validated on `add_affine_transmission`. Allowing `multiplier == 0` would model `target = offset` (a constant value with no actual link to `source`) — that isn't really a mimic relationship and doesn't belong in `AffineTransmission`. Joints that are always at a constant value are handled by a different mechanism (the future default-value-source seam, or by the caller supplying the value as an input directly). With `multiplier != 0`, every affine relationship is guaranteed bidirectional, which keeps the equivalence-class semantics in `TransmissionSubgraph` clean.
 
 `TransmissionSubgraph` is responsible for projecting these joint-level affine relationships onto the specific interface(s) required by a given build request, using the projection rules described next.
 
@@ -96,8 +98,9 @@ Unchanged: `compute(inputs, outputs, scratch)`.
 
 ### `TransmissionAnalysis` (cleanup)
 - **Knows nothing about URDF, ros2_control, or mimic joints** — purely a typed graph data structure.
-- Holds: joint order, state-interface order, models, transmissions (state-interface-edged), affine transmissions (joint-edged after the revert above), and the `InterfaceId → AffineProjectionRule` registry.
+- Holds: joint order, state-interface order, models, transmissions (state-interface-edged), affine transmissions (joint-edged after the revert above), and the `InterfaceId → AffineProjectionRule` registry as `std::unordered_map<InterfaceId, AffineProjectionRule>` (using `InterfaceId`'s existing FNV1a hash; `Order<>` is the wrong tool here — no stable internal IDs are needed).
 - API stays close to current shape; remove the `StateInterfaceId` overload of `add_affine_transmission` and replace with the joint-level form. Add `set_affine_projection_rule(InterfaceId, AffineProjectionRule)` and a corresponding query.
+- **Duplicate output state interfaces are allowed** in `TransmissionInstance::output_ids` (and in builder requests). Asking for the same value in multiple places is a legitimate use case and is not an error.
 
 ---
 
@@ -118,6 +121,29 @@ A reusable, unopinionated, mutable data structure that captures the relevant sub
 
 ### Public surface (proposed)
 ```cpp
+// What produces a given StateInterfaceId in the current plan?
+// Each alternative carries only the data relevant to its case.
+namespace producers {
+  struct Input {
+    size_t input_index;        // position in the request's inputs span
+  };
+  struct AffineProjection {
+    StateInterfaceId source;   // the known interface providing the value
+    float multiplier;          // composed across the chain, with the projection rule applied
+    float offset;
+  };
+  struct Transmission {
+    TransmissionInstanceId transmission;
+  };
+}
+// std::monostate represents "not produced" (interface is missing or unrequested).
+using StateInterfaceProducer = std::variant<
+  std::monostate,
+  producers::Input,
+  producers::AffineProjection,
+  producers::Transmission
+>;
+
 class TransmissionSubgraph {
 public:
   TransmissionSubgraph(
@@ -132,40 +158,44 @@ public:
 
   // Queries (analysis-only — no execution-ordering output).
   bool is_complete() const noexcept;                          // all needed outputs derivable
+  bool is_ambiguous() const noexcept;                         // see Invariants
   span<const StateInterfaceId> missing_inputs() const noexcept;
   span<const StateInterfaceId> known_inputs() const noexcept;
   span<const StateInterfaceId> needed_outputs() const noexcept;
+  // Returned in topological order: if transmission B consumes any output of
+  // transmission A, A appears before B. Builders rely on this for emission.
   span<const TransmissionInstanceId> selected_transmissions() const noexcept;
 
   bool produces(StateInterfaceId) const noexcept;
-  // For each selected TransmissionInstance, what interfaces does the
-  // subgraph consume from / produce into it (in this plan)?
-  span<const StateInterfaceId> consumed_by(TransmissionInstanceId) const noexcept;
-  span<const StateInterfaceId> produced_by(TransmissionInstanceId) const noexcept;
-  // Affine projection participants for a given interface — the joint
-  // equivalence classes closed under affine_transmissions, projected via
-  // the AffineProjectionRule registered for this interface.
-  span<const JointId> affine_class(InterfaceId, JointId representative) const noexcept;
+  // The principal builder query: how is this state interface produced in the plan?
+  // O(1) lookup. Returns std::monostate if the interface is missing or unrequested.
+  StateInterfaceProducer producer_of(StateInterfaceId) const noexcept;
   // (more queries as needed by builders / tests)
 };
 ```
 
 The subgraph deliberately does **not** expose an "ordered execution stages" method. Builders are responsible for emitting their own staging by walking the subgraph through these queries — the subgraph is a pure analysis utility, not a planning pipeline.
 
+Algorithm execution timing (eager-in-constructor vs lazy-on-first-query) is an **implementation detail**. The plan does not prescribe one — pick whichever is most efficient at implementation time. The strong invariants below must hold immediately after any mutation regardless.
+
 ### Invariants
 - Never holds dangling references — all `JointId`/`StateInterfaceId`/`TransmissionInstanceId` values exist in `analysis_`.
 - Selected transmissions form a DAG (no cycles).
-- Each currently-needed state interface has at most one chosen producer (when a second producer is found, the subgraph either picks deterministically or marks the request ambiguous — surfaced via a query).
+- `selected_transmissions()` is returned in topological order — dependencies before dependents.
+- **Ambiguity is surfaced via a query, never silently resolved.** When multiple producers are available for one needed state interface, `is_ambiguous()` becomes true and `is_complete()` returns false. The subgraph does not pick a winner; the builder reports ambiguity to the user.
 - `known_inputs ∩ missing_inputs == ∅`.
 - `add_input` of an interface that was missing moves it to known and prunes its previous producer if and only if the producer is no longer needed by any other path.
 
 ### Algorithm sketch
 1. Initialize known = initial_inputs, needed = initial_outputs.
-2. For each needed interface not yet known: walk backward through `analysis_.transmissions()` to find candidates whose `output_ids` intersect needed.
-3. For each candidate transmission, push its `input_ids` into needed (unless already known).
-4. Within a single `InterfaceId`, materialize the affine equivalence group projected from `analysis_.affine_transmissions()`: a missing interface that lives in the same group as a known interface is satisfiable via an affine stage.
-5. Repeat until needed is empty (complete) or no progress is possible (missing_inputs is non-empty).
-6. `add_input` triggers a forward pass: a newly-known interface may unlock transmissions whose all-but-this-input were already known.
+2. **Backward pass.** For each needed interface `I` not yet known:
+   - **Direct transmission:** find every `TransmissionInstance` in `analysis_.transmissions()` whose `output_ids` contains `I`. Each is a candidate producer. Push the candidate's `input_ids` into needed.
+   - **Affine projection:** look up the `AffineProjectionRule` for `I.interface_id` in the analysis registry. If no rule exists, skip — affine cannot satisfy this interface. If a rule exists, walk the connected component of `I.joint_id` in the undirected graph induced by `analysis_.affine_transmissions()` (multiplier is guaranteed non-zero, so every edge is bidirectional). For each joint `J` in the component whose corresponding state interface `(J, I.interface_id)` is in known, the projection is a candidate producer for `I`. The composed `(multiplier, offset)` is built by chaining the per-edge `(m, o)` along the path from `J` to `I.joint_id` and then applying the projection rule (`use_reciprocal_multiplier`, `multiplier_scale`, `offset_scale`, and `reverse_direction` swap if applicable).
+3. If a needed interface has more than one candidate producer (across direct transmissions and affine projections combined), set the ambiguous flag and stop.
+4. Otherwise commit each unique candidate as the producer for its interface (recording the choice for `producer_of()` in O(1)). For selected transmissions, push their `input_ids` into needed.
+5. Repeat steps 2–4 until either (a) needed is empty (`is_complete() == true`), (b) `is_ambiguous() == true`, or (c) no progress can be made on any remaining needed interface (the residue becomes `missing_inputs()`).
+6. **Topological emission.** `selected_transmissions()` is sorted such that any transmission's inputs are produced (transitively) before it.
+7. `add_input` triggers an incremental forward pass: a newly-known interface may unlock transmissions whose remaining inputs were already known. `add_output` triggers an incremental backward pass on the new interface.
 
 ### Why not a snapshot/freeze API
 The user's intent is that `TransmissionSubgraph` is a building block — a strongly-invariant utility that anything in the construction pipeline can hold and query, not a pipeline stage with its own lifecycle. Pass it by `const &` to anything that needs read-only views.
@@ -194,8 +224,12 @@ public:
 ### `JointMapBuildError`
 ```cpp
 struct JointMapBuildError {
-  enum class Kind { NoPlan, Ambiguous, Invalid, MissingInputs };
-  Kind kind = Kind::NoPlan;
+  enum class Kind {
+    MissingInputs,  // needed outputs are not derivable from the given inputs
+    Ambiguous,      // multiple producers exist for one needed interface
+    Invalid,        // request is malformed (unknown interface ids, etc.)
+  };
+  Kind kind = Kind::MissingInputs;
   std::string message;
   std::vector<StateInterfaceId> missing_inputs;        // populated when kind == MissingInputs
   std::vector<MissingInputResolution> resolutions;     // optional rich-error hints; may be empty
@@ -212,27 +246,31 @@ struct MissingInputResolution {
   span<const StateInterfaceId> missing_inputs);
 ```
 
-### `DefaultJointMapBuilder` (and `TransmissionAnalysisJointMapBuilder`)
+Note: **duplicate output state interfaces are allowed in builder requests** (asking for the same value in two output positions is legitimate) and never raise `Invalid`.
+
+### `DefaultJointMapBuilder`
+This is the **only** concrete builder in this refactor. The legacy `TransmissionAnalysisJointMapBuilder` is deleted — the previous distinction was an artifact of preserving the old implementation alongside a new one, and no longer applies once everything flows through `TransmissionSubgraph`.
+
+Behavior:
 - Construct a `TransmissionSubgraph` from the request.
-- If `!subgraph.is_complete()`: return failure with `kind = MissingInputs`, the missing interfaces, and resolution hints from `compute_missing_input_resolutions(analysis, subgraph.missing_inputs())`.
-- Otherwise: walk the subgraph (using its query API) and emit a `JointMap` directly. The builder constructs the appropriate concrete runtime type:
+- If `subgraph.is_ambiguous()`: return failure with `kind = Ambiguous` and a message identifying the ambiguous interfaces and their candidate producers.
+- If `!subgraph.is_complete()` (and not ambiguous): return failure with `kind = MissingInputs`, the missing interfaces, and resolution hints from `compute_missing_input_resolutions(analysis, subgraph.missing_inputs())`.
+- Otherwise: walk the subgraph (using `producer_of()` for each requested output, plus `selected_transmissions()` in topological order for staging) and emit a `JointMap` directly. The builder constructs the appropriate concrete runtime type:
   - Pure-affine plan (no transmissions selected) → `AffineJointMap`.
   - Single transmission, no affine stages → a transmission-backed joint map directly.
   - Mixed → `CompositeJointMap` over affine + transmission segments.
   - The builder is free to extract sub-helpers as needed; this is normal code, not a single inline function.
-
-`DefaultJointMapBuilder` and `TransmissionAnalysisJointMapBuilder` likely collapse into a single class once the only flow goes through `TransmissionSubgraph`. Decide during step 5 of the execution order; if both survive, the distinction must be documented.
 
 Error messages should report exactly what is missing, and what would need to be supplied to resolve the issue (if multiple possible resolutions exist, this should be clearly communicated in error messaging).
 
 In a correctly-configured robot, missing inputs only happen when the user has forgotten to expose required state interfaces in their ros2_control setup — it is a configuration error, not a recoverable runtime case. The builder fails loudly so the user can see exactly what they need to fix. A future addition will be controller-side helpers that automatically derive the required state interface set from a `JointMap`'s declared inputs and request them through the controller's interface configuration, so users never have to manually figure out the requirements by reading errors and editing config.
 
 ### Custom builders (future)
-A specialized FK plugin builder can wrap the default and either:
-- Supply default values for interfaces in `subgraph.missing_inputs()` (perhaps via a small "default value source" interface) before extracting `ordered_stages`, or
-- ~~Re-export the missing list to upstream ros2_control controller code so the controller can request the additional state interfaces.~~ //< not possible, as required interfaces need to be already defined.
+FK plugins can subclass `JointMapBuilder` to provide alternative behaviors. The two anticipated extensions, neither of which is in scope for this refactor:
+- A builder that supplies **default values** for interfaces in `subgraph.missing_inputs()` via a small "default value source" interface, then constructs the `JointMap` as if those values had been provided as inputs.
+- A builder that emits a richer error report tailored to a specific FK plugin's domain.
 
-This plan does **not** implement these strategies — it just leaves the seam clean.
+The seam is clean: subclass `JointMapBuilder`, hold a reference to the analysis, build a `TransmissionSubgraph`, and react to its queries however the strategy requires.
 
 ---
 
@@ -274,7 +312,7 @@ Critical principle (from the user): `TransmissionAnalysis` must never know about
 ### URDF importer (lives outside `TransmissionAnalysis`)
 - Parses URDF and ros2_control transmission XML.
 - For each ros2_control transmission, instantiates the plugin via the loader, probes its supported combinations, and registers one `TransmissionInstance` per supported (direction × quantity) combination — each pointing at the same `Ros2ControlPluginTransmissionModel` (one model per ros2_control transmission, shared across the up-to-4 instances).
-- Mimic joints become `TransmissionAnalysis::add_affine_transmission(JointId, JointId, multiplier, offset)` calls. The importer also registers `AffineProjectionRule` entries for the interface ids it expects affine propagation to apply to (typically `"position"`, `"velocity"`, possibly `"effort"`). The importer is the only place that knows mimic joints exist.
+- Mimic joints become `TransmissionAnalysis::add_affine_transmission(JointId, JointId, multiplier, offset)` calls. The importer is the only place that knows mimic joints exist. It does **not** need to register `AffineProjectionRule` entries for `"position"`/`"velocity"`/`"effort"`/`"acceleration"` — `TransmissionAnalysis` populates those defaults on construction. The importer only registers projection rules when overriding a default or adding a custom interface id.
 
 ---
 
@@ -290,22 +328,24 @@ Critical principle (from the user): `TransmissionAnalysis` must never know about
 
 **Delete:**
 - `include/arm_kinematics/joint_map/transmission_plan.hpp` and `src/joint_map/transmission_plan.cpp` — entirely.
+- `include/arm_kinematics/joint_map/transmission_analysis_joint_map_builder.hpp` and `src/joint_map/transmission_analysis_joint_map_builder.cpp` — collapsed into `DefaultJointMapBuilder`.
 
 **Modify substantially:**
-- `include/arm_kinematics/joint_map/transmission_analysis.hpp/.cpp` — revert `AffineTransmission` to `JointId`-edged; add `AffineProjectionRule` storage and accessors
+- `include/arm_kinematics/joint_map/transmission_analysis.hpp/.cpp` — revert `AffineTransmission` to `JointId`-edged; add `AffineProjectionRule` storage and accessors; populate defaults in constructor
 - `include/arm_kinematics/joint_map/transmission_subgraph.hpp/.cpp` — flesh out fields, invariants, queries, algorithm
 - `include/arm_kinematics/joint_map/transmission_joint_map.hpp/.cpp` — remove `compile_transmission_plan_expected`; replace with direct constructor / factory the builder calls
 - `include/arm_kinematics/joint_map/composite_joint_map.hpp/.cpp` — remove `compile_joint_map_plan_expected`; constructor builds segments directly
 - `include/arm_kinematics/joint_map/joint_map_builder.hpp` — finalize canonical signature (StateInterfaceId-based); define `JointMapBuildError`
-- `include/arm_kinematics/joint_map/default_joint_map_builder.hpp/.cpp` — use `TransmissionSubgraph`; fail-loudly-with-rich-error strategy
-- `include/arm_kinematics/joint_map/transmission_analysis_joint_map_builder.hpp/.cpp` — same; consider collapsing into `DefaultJointMapBuilder`
-- `src/joint_map/transmission_analysis_import.cpp` — drop `JointQuantity`/`PropagationDirection` internals; restructure `Ros2ControlPluginTransmission*` to load plugin once at import and dispatch from state interface ids; route mimic joints to joint-level `add_affine_transmission`; register affine projection rules
+- `include/arm_kinematics/joint_map/default_joint_map_builder.hpp/.cpp` — use `TransmissionSubgraph`; fail-loudly-with-rich-error strategy; absorb any unique behavior previously in `TransmissionAnalysisJointMapBuilder`
+- `src/joint_map/transmission_analysis_import.cpp` — drop `JointQuantity`/`PropagationDirection` internals; restructure `Ros2ControlPluginTransmission*` to load plugin once at import and dispatch from state interface ids; route mimic joints to joint-level `add_affine_transmission`
+- `CMakeLists.txt` — remove deleted source files; add new `transmission_subgraph.cpp` and `missing_input_resolution.cpp`; register the new `test/joint_map/` test directory and the split eigen FK test files
 
 **New:**
 - `include/arm_kinematics/joint_map/missing_input_resolution.hpp` + cpp — reusable, self-contained `compute_missing_input_resolutions(analysis, missing_inputs)` helper used by builders to populate `JointMapBuildError::resolutions`.
 
 **Tests:**
 - Split `test/forward/eigen/test_eigen_fk_mapper.cpp` into focused files (e.g. `test_eigen_fk_reorder.cpp`, `test_eigen_fk_mimic.cpp`, `test_eigen_fk_transmission.cpp`). Update all sites to the new API; remove all `JointQuantity` / `PropagationDirection` references.
+- Create new `test/joint_map/` directory (does not exist yet — current test tree only has `test/forward/eigen/`, `test/collision/fcl/`, `test/main.cpp`). Register it in CMake.
 - New `test/joint_map/test_transmission_subgraph.cpp` (no FK dependency) — unit tests for the subgraph against synthetic `TransmissionAnalysis` instances.
 - New `test/joint_map/test_missing_input_resolution.cpp` — unit tests for the resolution helper.
 
@@ -314,13 +354,13 @@ Critical principle (from the user): `TransmissionAnalysis` must never know about
 ## Suggested execution order
 
 1. **TransmissionAnalysis cleanup.** Revert `AffineTransmission` to `JointId` form. Add `AffineProjectionRule` struct + the `InterfaceId → AffineProjectionRule` registry on `TransmissionAnalysis` (with set/query API). Confirm `transmission_analysis.hpp` knows nothing about URDF / mimic / ros2_control.
-2. **Delete legacy plan scaffolding.** Delete `transmission_plan.hpp/.cpp`. Delete the `compile_*_plan_expected` APIs from `transmission_joint_map` and `composite_joint_map`. Strip every remaining reference to `JointQuantity` / `PropagationDirection` from headers and impls. The codebase is intentionally non-compiling between this step and step 5; that's fine.
+2. **Delete legacy plan scaffolding.** Delete `transmission_plan.hpp/.cpp` and `transmission_analysis_joint_map_builder.hpp/.cpp`. Delete the `compile_*_plan_expected` APIs from `transmission_joint_map` and `composite_joint_map`. Strip every remaining reference to `JointQuantity` / `PropagationDirection` from headers and impls. Update CMakeLists.txt to remove the deleted source files. The codebase is intentionally non-compiling between this step and step 6; that's fine.
 3. **Define `JointMapBuilder` shape.** Finalize the canonical `build_expected(span<const StateInterfaceId>, span<const StateInterfaceId>)` signature. Define `JointMapBuildError` and the `MissingInputResolution` helper header (impl can stub for now).
 4. **Build out `TransmissionSubgraph`.** Fields, invariants, algorithm, queries. The subgraph reads `AffineProjectionRule`s from analysis when projecting affine relationships per interface. Add focused unit tests in `test/joint_map/test_transmission_subgraph.cpp` against synthetic `TransmissionAnalysis` instances — no FK dependency.
 5. **Reconnect runtime joint maps.** Give `TransmissionJointMap` and `CompositeJointMap` direct constructors / factories the builder can call without any plan struct intermediary.
-6. **Rewire `DefaultJointMapBuilder`** (and decide whether `TransmissionAnalysisJointMapBuilder` collapses into it) to construct a `TransmissionSubgraph`, fail loudly with rich error on incomplete plans (using `compute_missing_input_resolutions`), and otherwise emit a `JointMap` directly by walking the subgraph. Codebase compiles again from this step on.
-7. **Restructure ros2_control wrappers.** `Ros2ControlPluginTransmissionModel` loads its plugin once at import; `Compute` holds preallocated handles. Move mimic import to use joint-level `add_affine_transmission` and register the `AffineProjectionRule`s for `"position"` / `"velocity"` / etc.
-8. **Test split + updates.** Split `test_eigen_fk_mapper.cpp` into focused files. Update all call sites to the new API. Add `test_missing_input_resolution.cpp`.
+6. **Rewire `DefaultJointMapBuilder`.** Construct a `TransmissionSubgraph`, fail loudly with rich error on ambiguous or incomplete plans (using `compute_missing_input_resolutions`), and otherwise emit a `JointMap` directly by walking the subgraph (`producer_of()` per output, `selected_transmissions()` in topological order for staging). Codebase compiles again from this step on.
+7. **Restructure ros2_control wrappers.** `Ros2ControlPluginTransmissionModel` loads its plugin once at import; `Compute` holds preallocated handles. Move mimic import to use joint-level `add_affine_transmission`. The default position/velocity/effort/acceleration projection rules are already populated by `TransmissionAnalysis`'s constructor — the importer does not need to register them.
+8. **Test split + updates.** Create `test/joint_map/` directory. Split `test_eigen_fk_mapper.cpp` into focused files. Update all call sites to the new API. Add `test_transmission_subgraph.cpp` and `test_missing_input_resolution.cpp`. Update CMakeLists.txt.
 9. **Build, run all tests.**
 
 ---
@@ -358,5 +398,5 @@ Existing tests are split out of `test_eigen_fk_mapper.cpp` into focused files as
 - `NamedStateInterfaceDefinition` convenience overloads on `JointMapBuilder` (deferred — canonical `StateInterfaceId` API only for now).
 - Default-value-supplying joint map builder strategies (the seam exists; no concrete implementation).
 - ros2_control controller helpers for sourcing missing state interfaces (acknowledged use case; future work).
-- Ambiguity resolution policies in `TransmissionSubgraph` beyond "first wins" / "report ambiguous" (refine with concrete tests as they appear. Do try to report ambiguity).
+- Ambiguity *resolution* policies (e.g. "prefer transmission X over Y when both are valid"). The current design always reports ambiguity rather than picking a winner — the user must remove the ambiguity from their setup. Smarter resolution can be added later as a builder-level concern, not a subgraph-level one.
 
