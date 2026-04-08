@@ -66,9 +66,9 @@ thrustmaster_left:
         # Task space
         linear:
           x:
-            from: "l_ax_stick_x"
-          y:
             from: "l_ax_stick_y"
+          y:
+            from: "l_ax_stick_x"
         angular:
           x:
             from: "l_ax_stick_twist"
