@@ -108,6 +108,7 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/joint_map/test_transmission_reachability.cpp
   test/joint_map/test_joint_map_blueprint.cpp
   test/joint_map/test_materialize_joint_map.cpp
+  test/joint_map/test_default_joint_map_builder.cpp
   test/main.cpp
 )
 #if(NIX_DO_CHECK)

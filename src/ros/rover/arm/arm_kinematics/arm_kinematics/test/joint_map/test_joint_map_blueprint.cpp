@@ -155,6 +155,60 @@ TEST_F(JointMapBlueprintTest, Diagnose_UnreachableOutput_ReportedInUnreachableLi
   EXPECT_TRUE(diag.ambiguous_outputs.empty());
 }
 
+TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmbiguousIsTainted)
+{
+  // T1: a → x;  T2: a → x  (x is ambiguous)
+  // T3: x → y                  (y depends on x; the transitive walk should taint y)
+  // Inputs: {a}, Outputs: {y}
+  // Expected: y in ambiguous_outputs, x in relevant_ambiguities, no unreachable.
+  ensure_joints(analysis_, {"j_a", "j_x", "j_y"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+  const auto y = ensure_state(analysis_, "j_y", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a}, {x}, "T1");
+  analysis_.add_transmission(model_id, {a}, {x}, "T2");
+  analysis_.add_transmission(model_id, {x}, {y}, "T3");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{a});
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{y});
+
+  EXPECT_TRUE(diag.unreachable.empty());
+  ASSERT_EQ(diag.ambiguous_outputs.size(), 1u);
+  EXPECT_EQ(diag.ambiguous_outputs[0], y);
+  ASSERT_EQ(diag.relevant_ambiguities.size(), 1u);
+  EXPECT_EQ(diag.relevant_ambiguities[0].interface, x);
+}
+
+TEST_F(JointMapBlueprintTest, Diagnose_UnrelatedAmbiguity_DoesNotAffectRequest)
+{
+  // T1: a → x;  T2: a → x  (x is ambiguous, but unused)
+  // T3: a → z                  (z is unique, no dependency on x)
+  // Inputs: {a}, Outputs: {z}
+  // Expected: empty diagnosis. The x-ambiguity is unrelated to the request.
+  ensure_joints(analysis_, {"j_a", "j_x", "j_z"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  ensure_state(analysis_, "j_x", InterfaceId{"position"});
+  const auto z = ensure_state(analysis_, "j_z", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  const auto x_id = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+  analysis_.add_transmission(model_id, {a}, {x_id}, "T1");
+  analysis_.add_transmission(model_id, {a}, {x_id}, "T2");
+  analysis_.add_transmission(model_id, {a}, {z}, "T3");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{a});
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{z});
+
+  EXPECT_TRUE(reach.is_ambiguous());  // x is ambiguous in the reachability
+  EXPECT_TRUE(diag.unreachable.empty());
+  EXPECT_TRUE(diag.ambiguous_outputs.empty());  // ...but z is fine
+  EXPECT_TRUE(diag.relevant_ambiguities.empty());
+}
+
 TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
 {
   ensure_joints(analysis_, {"j_a", "j_x"});
@@ -172,6 +226,8 @@ TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
   EXPECT_TRUE(diag.unreachable.empty());
   ASSERT_EQ(diag.ambiguous_outputs.size(), 1u);
   EXPECT_EQ(diag.ambiguous_outputs[0], x);
+  ASSERT_EQ(diag.relevant_ambiguities.size(), 1u);
+  EXPECT_EQ(diag.relevant_ambiguities[0].interface, x);
 }
 
 // ===========================================================================

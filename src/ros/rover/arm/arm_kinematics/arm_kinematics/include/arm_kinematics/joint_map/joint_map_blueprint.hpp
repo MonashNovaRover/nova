@@ -144,9 +144,15 @@ private:
  *    `TransmissionStage` is always emitted (even if no transmission outputs are directly
  *    requested) because downstream segments may need its outputs.
  *
- * \pre Every output in `ordered_outputs` must have a unique non-`monostate` producer in `reach`.
- *      Caller must run `diagnose_missing_outputs` first and only call this function if the
- *      diagnosis is empty (and `reach.is_ambiguous()` is false). Asserts in debug builds.
+ * \pre Every output in `ordered_outputs` must be safely producible — its producer chain
+ *      (transitively, through transmission inputs and affine projection sources) must not
+ *      touch any ambiguous interface in the reachability. Caller must run
+ *      `diagnose_missing_outputs` first and only call this function when the diagnosis's
+ *      `unreachable` and `ambiguous_outputs` are both empty.
+ *
+ *      Unrelated ambiguities elsewhere in the reachability are allowed — only the requested
+ *      outputs' chains matter. Violating this precondition asserts in debug builds; release
+ *      behaviour is unspecified (likely a throw from the materializer).
  */
 [[nodiscard]] JointMapBlueprint plan_joint_map(
   const TransmissionReachability & reach,

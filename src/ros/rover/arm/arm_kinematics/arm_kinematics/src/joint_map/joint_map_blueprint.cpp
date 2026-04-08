@@ -147,7 +147,11 @@ JointMapBlueprint plan_joint_map(
 {
   // Caller's contract: every output is producible (non-monostate) and the reachability is
   // unambiguous. Sanity check in debug.
-  assert(!reach.is_ambiguous() && "plan_joint_map: caller passed an ambiguous reachability");
+  // Note: we deliberately do NOT assert !reach.is_ambiguous() here — unrelated ambiguities are
+  // permitted. The per-output `producer_of(out) == monostate` check inside the bucketing loop
+  // (line ~209) catches the cases that actually matter (a requested output that's directly
+  // ambiguous or unreachable). The transitive ambiguity-poison case must be filtered out by
+  // the caller via `diagnose_missing_outputs` before calling this function.
 
   JointMapBlueprint blueprint{};
   {

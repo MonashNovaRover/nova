@@ -8,12 +8,11 @@
 #include <optional>
 #include <vector>
 
+#include "arm_kinematics/joint_map/transmission_reachability.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 
 namespace arm_kinematics {
-
-class TransmissionReachability;  // forward declaration; full def in transmission_reachability.hpp
 
 /**
  * One way to resolve a single missing (unreachable) state interface in a request. The builder
@@ -39,16 +38,31 @@ struct MissingInputResolution {
 
 /**
  * Diagnosis of a request against a `TransmissionReachability`: which needed outputs are
- * unreachable, which are ambiguous, and (optionally) what the user could supply to fix them.
+ * unreachable, which are ambiguous (directly or via transitive ambiguity poison), the relevant
+ * ambiguity reports, and (optionally) what the user could supply to fix the unreachable
+ * outputs.
  *
  * Builders should treat the request as buildable iff `unreachable.empty() && ambiguous_outputs.empty()`.
+ *
+ * **Transitive ambiguity poison**: an output may have a non-`monostate` producer in the
+ * reachability while still being unsafe to plan, because somewhere in its producer chain
+ * (transmission inputs, affine projection sources) lies an ambiguous interface. This diagnosis
+ * walks each requested output's producer chain and reports any output whose chain depends on
+ * an ambiguous interface as `ambiguous_outputs`. The relevant ambiguity reports — only those
+ * actually depended on by some requested output — are surfaced in `relevant_ambiguities`.
+ * Unrelated ambiguities elsewhere in the reachability are intentionally ignored.
  */
 struct MissingOutputDiagnosis {
   /// Outputs that have no producer in the reachability (neither leaf, transmission, nor affine).
   std::vector<StateInterfaceId> unreachable;
-  /// Outputs whose producer is ambiguous in the reachability — sliced from
-  /// `reachability.ambiguities()` and intersected with `needed_outputs`.
+  /// Outputs that cannot be safely produced because they (or their transitive producer chain)
+  /// depend on at least one ambiguous interface in the reachability. Includes both directly
+  /// ambiguous outputs and outputs whose producer chains transitively touch an ambiguity.
   std::vector<StateInterfaceId> ambiguous_outputs;
+  /// The subset of `reach.ambiguities()` whose interfaces are transitively depended on by at
+  /// least one requested output. Builders surface these to the user; unrelated ambiguities are
+  /// not reported.
+  std::vector<TransmissionReachability::AmbiguousInterface> relevant_ambiguities;
   /// Resolution hints for each entry in `unreachable`. Same length as `unreachable`. Empty in the
   /// stub implementation; populated for real once `compute_missing_input_resolutions` is wired up.
   std::vector<MissingInputResolution> resolutions;
