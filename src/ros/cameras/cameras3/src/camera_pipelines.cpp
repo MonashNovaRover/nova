@@ -194,7 +194,7 @@ void set_x264(GstElement* encode, h264softwarePipelineProperties* props) {
         "threads", props->threads, // 1 is best for cpu and compression ratio
         "bitrate", props->bitrate,
         "noise-reduction", props->noise_reduction,
-        "key-int-max", props->gop*props->framerate/props->framerate_denominator/props->downrate, // Largest GOP
+        "key-int-max", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
         "vbv-buf-capacity", props->gop*1000,        // Buffer size for GOP
         "b-adapt", false, // Do not allow b frames
         "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
@@ -212,7 +212,7 @@ void set_vpXenc(GstElement* encode, vpXsoftwarePipelineProperties* props) {
             1), // mode, constant bitrate best
         "threads", props->threads, // 1 is best for cpu and compression ratio
         "target-bitrate", props->bitrate*1000,
-        "keyframe-max-dist", props->gop*props->framerate/props->framerate_denominator/props->downrate, // Largest GOP
+        "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
         "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP
         NULL);
 }
