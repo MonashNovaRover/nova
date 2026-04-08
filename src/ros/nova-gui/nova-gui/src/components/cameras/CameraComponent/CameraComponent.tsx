@@ -197,10 +197,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
     };
   }, []);
 
-  const cameraVideo = props.cameraVideoComponent?.({videoRef, filters}) ?? (
-    <CameraVideo videoRef={videoRef} filters={filters} />
-  )
-
+  const VideoComponent = props.cameraVideoComponent;
+  const cameraVideo = VideoComponent
+    ? <VideoComponent videoRef={videoRef} filters={filters} />
+    : <CameraVideo videoRef={videoRef} filters={filters} />;
   return (
     <Card className={` aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
       <CameraInfoModal
