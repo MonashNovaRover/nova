@@ -169,7 +169,8 @@ namespace producers {
     TransmissionInstanceId transmission;
   };
 }
-// std::monostate represents "not produced" (interface is missing or unrequested).
+// std::monostate represents "not produced" (interface is unreachable, ambiguous,
+// or out-of-scope — see producer_of() doc below).
 using StateInterfaceProducer = std::variant<
   std::monostate,
   producers::Input,
@@ -221,7 +222,9 @@ public:
 
   // The principal builder query: how is this state interface produced in the plan?
   // O(1) lookup. Returns std::monostate if the interface is unreachable, ambiguous,
-  // or unrequested. Builders should check is_ambiguous() before walking outputs.
+  // or out-of-scope (not in derivable_interfaces() — i.e. an interface from the
+  // analysis that the algorithm never even considered for this request). Builders
+  // should check is_ambiguous() before walking outputs.
   StateInterfaceProducer producer_of(StateInterfaceId) const noexcept;
 
   // Each entry: an interface that was added via add_input() and which had
@@ -231,6 +234,12 @@ public:
   // Only populated when add_input() actually overrode something; empty for
   // initial_inputs (which are exclusive without warning, since they were
   // declared at construction time).
+  //
+  // Note: a discarded Transmission candidate in this list does NOT mean the
+  // transmission is unselected entirely. It only means the transmission is no
+  // longer the chosen producer FOR THIS interface. The same transmission may
+  // still be selected (and appear in selected_transmissions()) because it
+  // produces other needed outputs.
   struct InputOverride {
     StateInterfaceId interface;
     std::vector<StateInterfaceProducer> discarded_candidates;
@@ -253,15 +262,16 @@ Algorithm execution timing (eager-in-constructor vs lazy-on-first-query) is an *
 - For ambiguous interfaces, `producer_of()` returns `std::monostate`. Non-ambiguous interfaces in the same plan still return their unique producer.
 - **`Input` producers are exclusive.** Any interface that the user supplied (either in `initial_inputs` or via `add_input`) has exactly one producer: `producers::Input{...}`. The algorithm never records competing `Transmission` or `AffineProjection` candidates for an interface that already has an `Input` producer. This honors the user's explicit declaration of authority over a value — providing it as input means "use this exact value, don't try to derive it." Non-Input ambiguity (Transmission vs AffineProjection candidates competing for the same non-user-supplied interface) is still reported as ambiguous; only `Input` wins implicitly.
 - `derivable_interfaces() ∩ unreachable_outputs() == ∅`. If an interface appears in both `initial_inputs` and `initial_outputs`, it is treated as known (produced by `producers::Input`) and never appears in `unreachable_outputs()`.
-- `add_input(I)` always wins over any pre-existing producer for `I`. If `I` previously had an `AffineProjection` or `Transmission` producer (or was ambiguous between several), those candidates are discarded and `I`'s producer becomes `producers::Input{...}`. Any downstream reachability is then recomputed.
-  - Because `add_input` after construction is a less obviously-intentional act than passing the interface in the constructor, the subgraph records each such override in an "input override" log accessible via a query (see below). Builders can surface these as warnings to the user.
+- `add_input(I)` always wins over any pre-existing producer for `I` **on its first occurrence**. If `I` is not yet in the effective input list and the snapshot of `producer_of(I)` taken before the call held an `AffineProjection` or `Transmission` producer (or was ambiguous between several), those candidates are discarded and `I`'s producer becomes `producers::Input{...}`; the discarded candidates are appended to the input-override log.
+  - On subsequent `add_input(I)` calls (i.e. when `I` is already in the effective input list), the call appends a duplicate entry to `requested_inputs()` but does not change `producer_of(I)` and does not append to the override log. This matches the "duplicates allowed" semantics of `initial_inputs`.
+  - Because `add_input` after construction is a less obviously-intentional act than passing the interface in the constructor, the subgraph records each first-occurrence override in an "input override" log accessible via a query (see below). Builders can surface these as warnings to the user.
 
 ### Algorithm sketch
 The algorithm is a **forward fixed-point** over viable producers, not a naive backward walk. A transmission is only a *candidate* producer for one of its outputs once **all of its inputs are themselves derivable** — otherwise it cannot run, so it cannot disambiguate or block other paths.
 
 The algorithm runs in two distinct phases: first compute the full reachable set (no candidate counting), then in a single pass over the converged set, count candidates per interface and classify each one. Doing the counting only after convergence is essential — an interface that has 1 candidate at iteration N can gain a 2nd candidate at iteration N+5 once another transmission becomes viable, so any in-loop ambiguity verdict would be wrong.
 
-1. **Initialize.** `known = initial_inputs`. `needed = initial_outputs \ initial_inputs`. For each interface in `initial_inputs`, record `producers::Input{input_index}` where `input_index` is its position in the span. (Interfaces that appear in both `initial_inputs` and `initial_outputs` are therefore handled correctly: they go into `known` with their `Input` producer, and never enter `needed`.)
+1. **Initialize.** `known = initial_inputs`. `needed = initial_outputs \ initial_inputs`. Walk `initial_inputs` in order; for each interface, if it does not yet have a producer assigned, record `producers::Input{input_index}` where `input_index` is its position in the span. **First occurrence wins** — if the same interface appears twice in `initial_inputs`, the second occurrence is ignored for producer assignment (but both positions exist in `requested_inputs()`). Interfaces that appear in both `initial_inputs` and `initial_outputs` are therefore handled correctly: they go into `known` with their `Input` producer and never enter `needed`.
 2. **Compute reachability fixed point.** Iterate until no new interfaces are added to `known`:
    - For every `TransmissionInstance T` in `analysis_.transmissions()`: if every interface in `T.input_ids` is in `known`, then every interface in `T.output_ids` becomes derivable. For each output interface, **if it does NOT already have an `Input` producer, record `T` as one of its candidate producers.** (Input producers are exclusive — see Invariants.)
    - For every joint `J` whose `(J, I)` is in `known` and whose `I` has a registered `AffineProjectionRule`: every other joint `J'` in `analysis.affine_group_members(analysis.affine_root_of(J))` has `(J', I)` derivable via affine projection. The composed `(multiplier, offset)` is built by walking the affine edges from `J` to `J'` (typically a short BFS within the joint group; the chain composition rule for two edges (m1, o1) and (m2, o2) is `(m1·m2, m2·o1 + o2)`) and then applying the projection rule (`multiplier_scale`, `offset_scale`, and the `reverse_direction` source/target swap). **If `(J', I)` does not already have an `Input` producer**, record this as a candidate producer for it.
@@ -275,9 +285,16 @@ The algorithm runs in two distinct phases: first compute the full reachable set 
    - In `known` and ambiguous → contributes to `ambiguous_interfaces()`; `producer_of()` returns `monostate`.
    - Not in `known` → contributes to `unreachable_outputs()`.
 5. **Topological emission.** `selected_transmissions()` is built by tracing back from every needed output that has a unique `Transmission` or `AffineProjection` producer (recursively, via `producer_of(source)` for affine chains), collecting every `TransmissionInstance` encountered. This set is then sorted such that `T1` precedes `T2` whenever any input of `T2` is produced by `T1`. The dependency graph is a DAG by construction — every transmission's inputs are derivable from a strict subset of `known` at the time it first became viable.
-6. **Mutation.** `add_input(I)` appends `I` to the subgraph's effective input list (with index `effective_inputs.size()` before insertion — see note below) and forcibly assigns `I`'s producer to `producers::Input{...}`. **If `I` previously had any non-Input candidates** (Transmission or AffineProjection), those candidates are discarded and the `(I, discarded_candidates)` pair is appended to the input-override log accessible via `input_overrides()`. The fixed point then re-runs from step 2 — newly-viable transmissions may now produce other interfaces, and previously-ambiguous interfaces that depended on `I`'s old non-Input producer may resolve. `add_output(I)` adds `I` to `needed` and re-classifies.
+6. **Mutation.** `add_input(I)` always appends `I` to the subgraph's effective input list (with the new index `effective_inputs.size()` before insertion). The producer assignment then follows "first occurrence wins":
+   - **If `I` was not previously in the effective input list**: take a snapshot of `producer_of(I)` *before* the change. Forcibly assign `producer_of(I) = producers::Input{new_index}`. If the snapshot held one or more non-Input candidates (a single Transmission/AffineProjection or an ambiguous set of them), append `(I, snapshot_candidates)` to the input-override log accessible via `input_overrides()`.
+   - **If `I` was already in the effective input list** (whether via `initial_inputs` or a previous `add_input`): the duplicate entry exists in `requested_inputs()` but `producer_of(I)` is unchanged (still points at the original `Input{first_index}`). No override log entry is added. This matches the "duplicates allowed" semantics of `initial_inputs`.
+   - In either case, the fixed point then re-runs from step 2. Newly-viable transmissions may now produce other interfaces, and previously-ambiguous interfaces that depended on `I`'s old non-Input producer may resolve.
+
+   `add_output(I)` adds `I` to `needed` and re-classifies.
 
 This formulation has the nice property that "viability" is a fixed point — we never have to undo a candidate decision because of input unreachability. Ambiguity is detected accurately (only between *actually viable* paths) and is accumulated across the entire pass.
+
+**Side-effect outputs of selected transmissions.** A `TransmissionInstance` is a block: it produces *all* of its `output_ids` in a single `compute()` call, not on a per-output basis. So if transmission `T` is selected because the user asked for output `K` (one of T's outputs), and `T`'s other outputs include some interface `I` that the user supplied directly as input, the runtime will still execute `T` and `T` will compute a value for `I`. That computed value is silently discarded — `producer_of(I) == Input{...}` means the JointMap writes the user's `I` value into the output position, not `T`'s side-effect value. This is semantically correct (the user's authority over `I` wins) and unavoidable given block-transmission semantics; it is not a missed optimization to flag.
 
 **`add_input` and `producers::Input::input_index`.** The subgraph maintains an effective input list that starts as a copy of the constructor's `initial_inputs` span and grows by one each time `add_input` is called. The `input_index` field of `producers::Input` is the position in this effective list — so original inputs use indices `[0, initial_inputs.size())` and added inputs use `initial_inputs.size()` and beyond, in the order they were added. Builders that intend to materialize a `JointMap` from a subgraph that has been mutated must be aware that input indices past the original span size refer to interfaces the builder wasn't told about at request time; in practice this means most builders should not call `add_input` on a subgraph they intend to materialize — `add_input` is most useful for analysis tools, tests, and builder strategies that know how to source the extra values themselves.
 
@@ -540,6 +557,9 @@ This is a real interface change for the FK plugin. It is intentionally in scope 
     - **Input wins over derived producers**: user supplies (A.position) and (B.position) where B mimics A — both are produced by `Input` (no false ambiguity from the affine projection)
     - **Input wins over Transmission**: user supplies an interface that is also produced by some transmission — the transmission is not selected for that interface
     - **`input_overrides()` is empty for initial inputs** but populated for overrides via `add_input`
+    - **`add_input` with a duplicate interface** (already in `initial_inputs` or previously added): `requested_inputs()` shows the duplicate, `producer_of()` still points at the original index, no `input_overrides()` entry
+    - **Duplicate interface in `initial_inputs`**: same first-occurrence-wins behavior — the second position exists in `requested_inputs()` but `producer_of()` points at the first
+    - **Side-effect output**: a transmission `T` produces both K and I; user supplies a, b, I and asks for K; T is selected for K; the JointMap correctly outputs the user's I value, not T's computed I
     - mixed-quantity transmission (position-in / effort-out)
     - ambiguity accumulation: multiple ambiguous interfaces in one pass are all reported
     - non-Input ambiguity (Transmission vs AffineProjection) is still reported
