@@ -80,6 +80,19 @@ using StateInterfaceProducer = std::variant<
  *
  * \note Read-only queries are pure reads — no internal mutation. Safe for concurrent reads
  * from multiple threads as long as no thread is mutating.
+ *
+ * \note **Ambiguity-poison limitation.** When an interface is ambiguous (≥2 viable producers),
+ * the algorithm still propagates its derivability to downstream transmissions — a transmission
+ * whose input is ambiguous will still record its outputs as candidates and may end up with a
+ * committed `producer_of()` entry. Those downstream commits are **internally inconsistent**:
+ * their inputs cannot actually be computed at runtime because the upstream is ambiguous. This
+ * inconsistency is **masked** by `is_complete()`: any plan that contains an ambiguous interface
+ * returns `is_complete() == false`, so consumers (builders) refuse to emit a `JointMap` and the
+ * user sees the upstream `Ambiguous` error first. **Builders MUST gate `producer_of()` walks
+ * behind an `is_complete()` check** (or equivalently both `!is_ambiguous()` and
+ * `unreachable_outputs().empty()`). This is a deliberate simplicity trade-off — propagating
+ * ambiguity poison correctly would require multiple fixed-point passes, and the masking
+ * already gives users the right error.
  */
 class TransmissionSubgraph {
 public:
@@ -190,8 +203,14 @@ public:
   /// The principal builder query: how is this state interface produced in the plan?
   ///
   /// O(1) lookup. Returns `std::monostate` if the interface is unreachable, ambiguous, or
-  /// out-of-scope (not in `derivable_interfaces()`). Builders should check `is_ambiguous()`
-  /// before walking outputs.
+  /// out-of-scope (not in `derivable_interfaces()`).
+  ///
+  /// \warning When `is_ambiguous()` is true, this method may return non-`monostate` values for
+  /// interfaces whose producers transitively depend on ambiguous upstream interfaces. Those
+  /// values are internally inconsistent — the upstream cannot actually be computed at runtime —
+  /// and must not be used to emit a runtime `JointMap`. **Always gate `producer_of()` walks
+  /// behind an `is_complete()` check.** See the class-level "Ambiguity-poison limitation" note
+  /// for the rationale.
   [[nodiscard]] StateInterfaceProducer producer_of(StateInterfaceId interface) const noexcept;
 
   /// Each entry: an interface that was added via `add_input()` and which had pre-existing
@@ -215,10 +234,17 @@ private:
   void emit_selected_transmissions();
 
   // Helper: derives the interface-space (m, o) from the source joint's interface to the target
-  // joint's interface using the per-joint flat relations stored on the analysis. Both joints
-  // must be in the same affine group, the interface id must have a registered projection rule,
-  // and the multipliers must be non-zero (guaranteed by add_affine_transmission).
-  // Result is in interface-space, after applying the projection rule's transformations.
+  // joint's interface using the per-joint flat relations stored on the analysis.
+  //
+  // The interface id is **implicit** — it's encoded by the choice of `rule`, since the algorithm
+  // calls this once per (source_joint, target_joint, interface_id) triple while iterating an
+  // affine group. The joint-level math (m_joint = T_tgt.m / T_src.m, o_joint = T_tgt.o − m_joint·T_src.o)
+  // is interface-agnostic and only depends on the per-joint flats stored on the analysis. The
+  // rule then transforms the joint-level result into interface-space (multiplier_scale,
+  // offset_scale, reverse_direction).
+  //
+  // \pre Both joints must be in the same affine group (same `affine_root_of`).
+  // \pre All multipliers in the chain must be non-zero — guaranteed by `add_affine_transmission`.
   struct AffineProjectionCoefficients {
     float multiplier = 1.0F;
     float offset = 0.0F;
@@ -265,8 +291,9 @@ private:
   /// Topologically-sorted transmission instances that are needed for the plan.
   std::vector<TransmissionInstanceId> selected_transmissions_{};
 
-  /// Sticky log of input_overrides events, accumulated across mutation calls. Cleared only
-  /// when the constructor runs (i.e. survives `add_input` / `add_output` calls).
+  /// Sticky log of input_overrides events. Default-initialized empty by the constructor;
+  /// accumulated across mutation calls (never explicitly cleared by `run_fixed_point`, so it
+  /// survives `add_input` / `add_output` calls).
   std::vector<InputOverride> input_overrides_{};
 
   /// Sticky log of redundant equivalent inputs, recomputed each fixed-point pass.

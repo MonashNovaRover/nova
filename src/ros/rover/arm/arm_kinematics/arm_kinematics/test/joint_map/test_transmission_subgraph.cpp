@@ -708,3 +708,183 @@ TEST_F(TransmissionSubgraphTest, SelectedTransmissions_TopologicallySorted)
   EXPECT_EQ(subgraph.selected_transmissions()[0], t1);
   EXPECT_EQ(subgraph.selected_transmissions()[1], t2);
 }
+
+TEST_F(TransmissionSubgraphTest, SelectedTransmissions_DiamondDependencies_PartialOrderRespected)
+{
+  // Diamond:
+  //   T1: a → b
+  //   T2: a → c
+  //   T3: b, c → d
+  // Request: inputs={a}, outputs={d}. All three needed; T3 must come last.
+  // T1 and T2 may be in either relative order.
+  ensure_joints(analysis_, {"j_a", "j_b", "j_c", "j_d"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
+  const auto c = ensure_state(analysis_, "j_c", InterfaceId{"position"});
+  const auto d = ensure_state(analysis_, "j_d", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  const TransmissionInstanceId t1 = 0;
+  const TransmissionInstanceId t2 = 1;
+  const TransmissionInstanceId t3 = 2;
+  analysis_.add_transmission(model_id, {a}, {b}, "T1");
+  analysis_.add_transmission(model_id, {a}, {c}, "T2");
+  analysis_.add_transmission(model_id, {b, c}, {d}, "T3");
+
+  TransmissionSubgraph subgraph(
+    analysis_, std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{d});
+
+  EXPECT_TRUE(subgraph.is_complete());
+  const auto selected = subgraph.selected_transmissions();
+  ASSERT_EQ(selected.size(), 3u);
+
+  // Determine positions of each transmission in the order.
+  auto pos_of = [&](TransmissionInstanceId target) -> std::size_t {
+    for (std::size_t i = 0; i < selected.size(); ++i) {
+      if (selected[i] == target) return i;
+    }
+    return static_cast<std::size_t>(-1);
+  };
+  const auto p1 = pos_of(t1);
+  const auto p2 = pos_of(t2);
+  const auto p3 = pos_of(t3);
+  ASSERT_NE(p1, static_cast<std::size_t>(-1));
+  ASSERT_NE(p2, static_cast<std::size_t>(-1));
+  ASSERT_NE(p3, static_cast<std::size_t>(-1));
+  EXPECT_LT(p1, p3);
+  EXPECT_LT(p2, p3);
+}
+
+// ===========================================================================
+// Affine projection sourced from a transmission output (leaf-source invariant)
+// ===========================================================================
+
+TEST_F(TransmissionSubgraphTest, AffineProjection_SourcedFromTransmissionOutput_ResolvesToLeaf)
+{
+  // T: a → x.position. Mimic edge x → y (y mimics x with multiplier 2).
+  // Request: inputs={a}, outputs={x.position, y.position}.
+  // Expected: T selected; producer_of(x) is Transmission{T}; producer_of(y) is
+  // AffineProjection sourced from x.position which itself resolves to a Transmission leaf
+  // in one producer_of() step.
+  const auto joints = ensure_joints(analysis_, {"j_a", "j_x", "j_y"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto x_pos = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+  const auto y_pos = ensure_state(analysis_, "j_y", InterfaceId{"position"});
+
+  // y mimics x with m=2, o=0.
+  analysis_.add_affine_transmission(joints[1], joints[2], 2.0F, 0.0F);
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a}, {x_pos}, "T");
+
+  TransmissionSubgraph subgraph(
+    analysis_,
+    std::vector<StateInterfaceId>{a},
+    std::vector<StateInterfaceId>{x_pos, y_pos});
+
+  EXPECT_TRUE(subgraph.is_complete());
+
+  // x is produced by the transmission.
+  const auto x_producer = as_transmission(subgraph.producer_of(x_pos));
+  ASSERT_TRUE(x_producer.has_value());
+
+  // y is produced by an AffineProjection sourced from x.
+  const auto y_producer = as_affine(subgraph.producer_of(y_pos));
+  ASSERT_TRUE(y_producer.has_value());
+  EXPECT_EQ(y_producer->source, x_pos);
+  EXPECT_TRUE(approx_equal(y_producer->multiplier, 2.0F));
+  EXPECT_TRUE(approx_equal(y_producer->offset, 0.0F));
+
+  // The AffineProjection's source resolves to a Transmission leaf in one producer_of() step
+  // (verifies the leaf-source invariant: never another AffineProjection).
+  ASSERT_TRUE(as_transmission(subgraph.producer_of(y_producer->source)).has_value());
+}
+
+// ===========================================================================
+// add_input on a previously-ambiguous interface
+// ===========================================================================
+
+TEST_F(TransmissionSubgraphTest, AddInput_OnPreviouslyAmbiguousInterface_DiscardsAllCandidates)
+{
+  // Two transmissions T1: a → x and T2: a → x. x is ambiguous.
+  // After add_input(x), x becomes Input and both candidates are recorded as discarded.
+  ensure_joints(analysis_, {"j_a", "j_x"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a}, {x}, "T1");
+  analysis_.add_transmission(model_id, {a}, {x}, "T2");
+
+  TransmissionSubgraph subgraph(
+    analysis_, std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{x});
+
+  // Before: x is ambiguous.
+  EXPECT_FALSE(subgraph.is_complete());
+  EXPECT_TRUE(subgraph.is_ambiguous());
+  ASSERT_EQ(subgraph.ambiguous_interfaces().size(), 1u);
+  EXPECT_EQ(subgraph.ambiguous_interfaces()[0].interface, x);
+  EXPECT_EQ(subgraph.ambiguous_interfaces()[0].candidates.size(), 2u);
+
+  // Override x by adding it as an input.
+  subgraph.add_input(x);
+
+  // After: x is now Input, no longer ambiguous, plan is complete.
+  EXPECT_TRUE(subgraph.is_complete());
+  EXPECT_FALSE(subgraph.is_ambiguous());
+  ASSERT_TRUE(as_input(subgraph.producer_of(x)).has_value());
+
+  // input_overrides records the discard with both transmission candidates.
+  ASSERT_EQ(subgraph.input_overrides().size(), 1u);
+  const auto override_entry = subgraph.input_overrides()[0];
+  EXPECT_EQ(override_entry.interface, x);
+  ASSERT_EQ(override_entry.discarded_candidates.size(), 2u);
+  // Both discarded candidates are Transmission producers.
+  EXPECT_TRUE(as_transmission(override_entry.discarded_candidates[0]).has_value());
+  EXPECT_TRUE(as_transmission(override_entry.discarded_candidates[1]).has_value());
+}
+
+// ===========================================================================
+// Non-input ambiguity: Transmission vs AffineProjection
+// ===========================================================================
+
+TEST_F(TransmissionSubgraphTest, NonInputAmbiguity_TransmissionVsAffineProjection_IsReported)
+{
+  // Mimic A → B (B = 2A). Transmission T: x → B.position.
+  // Inputs: {A.position, x}. Outputs: {B.position}.
+  // B.position has two viable producers: AffineProjection from A.position and Transmission T.
+  // The algorithm should refuse to pick a winner and report B.position as ambiguous.
+  const auto joints = ensure_joints(analysis_, {"j_a", "j_b", "j_x"});
+  const auto a_pos = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
+  const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+
+  // B = 2A.
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {x}, {b_pos}, "T");
+
+  TransmissionSubgraph subgraph(
+    analysis_,
+    std::vector<StateInterfaceId>{a_pos, x},
+    std::vector<StateInterfaceId>{b_pos});
+
+  EXPECT_FALSE(subgraph.is_complete());
+  EXPECT_TRUE(subgraph.is_ambiguous());
+  ASSERT_EQ(subgraph.ambiguous_interfaces().size(), 1u);
+
+  const auto amb = subgraph.ambiguous_interfaces()[0];
+  EXPECT_EQ(amb.interface, b_pos);
+  ASSERT_EQ(amb.candidates.size(), 2u);
+
+  // One candidate should be a Transmission, the other an AffineProjection (in any order).
+  bool saw_transmission = false;
+  bool saw_affine = false;
+  for (const auto & candidate : amb.candidates) {
+    if (as_transmission(candidate).has_value()) saw_transmission = true;
+    if (as_affine(candidate).has_value()) saw_affine = true;
+  }
+  EXPECT_TRUE(saw_transmission);
+  EXPECT_TRUE(saw_affine);
+}

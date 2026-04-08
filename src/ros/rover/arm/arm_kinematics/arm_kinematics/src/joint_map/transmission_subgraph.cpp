@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -142,7 +143,7 @@ span<const StateInterfaceId> TransmissionSubgraph::unreachable_outputs() const n
 
 span<const TransmissionSubgraph::AmbiguousInterface> TransmissionSubgraph::ambiguous_interfaces() const noexcept
 {
-  return {ambiguous_interfaces_.data(), ambiguous_interfaces_.size()};
+  return ambiguous_interfaces_;
 }
 
 span<const TransmissionInstanceId> TransmissionSubgraph::selected_transmissions() const noexcept
@@ -167,7 +168,7 @@ StateInterfaceProducer TransmissionSubgraph::producer_of(const StateInterfaceId 
 
 span<const TransmissionSubgraph::InputOverride> TransmissionSubgraph::input_overrides() const noexcept
 {
-  return {input_overrides_.data(), input_overrides_.size()};
+  return input_overrides_;
 }
 
 span<const StateInterfaceId> TransmissionSubgraph::redundant_equivalent_inputs() const noexcept
@@ -351,7 +352,10 @@ void TransmissionSubgraph::run_fixed_point()
     //
     // Snapshot the derivable list to avoid iterator invalidation if we add to it during the pass.
     const auto derivable_snapshot = derivable_interfaces_;
-    std::unordered_set<std::size_t> processed_groups;  // hash of (root, interface_hash)
+    // Dedup (group root, interface id hash) processing within this iteration. We use a
+    // std::set<std::pair> so two distinct (root, interface) pairs cannot collide on a single
+    // size_t hash and accidentally skip one.
+    std::set<std::pair<JointId, std::size_t>> processed_groups;
     for (const StateInterfaceId sid : derivable_snapshot) {
       const auto & defn = resolve_state_interface(analysis_, sid);
       const AffineProjectionRule * rule = analysis_.affine_projection_rule(defn.interface_id);
@@ -363,15 +367,23 @@ void TransmissionSubgraph::run_fixed_point()
       if (group_members.size() <= 1) {
         continue;  // Trivial group, nothing to project to.
       }
-      // Dedup group + interface processing within this iteration.
-      const std::size_t group_key = std::hash<std::size_t>{}(static_cast<std::size_t>(root)) ^
-                                    (defn.interface_id.hash << 1);
-      if (!processed_groups.insert(group_key).second) {
+      if (!processed_groups.insert({root, defn.interface_id.hash}).second) {
         continue;
       }
 
       // Find the lowest-JointId leaf in the group whose (joint, interface_id) is currently
       // derivable AND whose producer is a leaf (Input or Transmission).
+      //
+      // A member counts as a leaf source if either:
+      //   (a) it has an Input or Transmission entry already committed in producer_assignment_
+      //       (Input is committed in phase 1; Transmissions only become committed in phase 3,
+      //       so during the fixed-point loop only Inputs land here), OR
+      //   (b) it has exactly one Transmission candidate in `candidates` and is not yet committed
+      //       — this lets affine projections chain off transmission outputs during the loop. If
+      //       a second transmission later joins the candidate set, the member becomes ambiguous,
+      //       producer_of() returns monostate, and the AffineProjection.source pointer dangles
+      //       from the consumer's perspective — this is the same ambiguity-poison case the class
+      //       doc warns about, masked by is_complete().
       JointId source_joint = std::numeric_limits<JointId>::max();
       bool found_leaf_source = false;
       // Track all leaf-Input candidates so we can populate redundant_equivalent_inputs_.
@@ -387,19 +399,29 @@ void TransmissionSubgraph::run_fixed_point()
         if (member_sid >= derivable_membership_.size() || !derivable_membership_[member_sid]) {
           continue;
         }
+        bool is_leaf_source = false;
+        bool is_input_leaf = false;
         const auto pa_it = producer_assignment_.find(member_sid);
-        if (pa_it == producer_assignment_.end()) {
-          continue;  // derivable but not yet committed to a producer — could be a candidate, not a leaf
+        if (pa_it != producer_assignment_.end() && is_leaf_producer(pa_it->second)) {
+          is_leaf_source = true;
+          is_input_leaf = is_input_producer(pa_it->second);
+        } else if (pa_it == producer_assignment_.end()) {
+          // Not yet committed — check candidates for a unique Transmission candidate.
+          const auto cand_it = candidates.find(member_sid);
+          if (cand_it != candidates.end() && cand_it->second.size() == 1 &&
+              std::holds_alternative<producers::Transmission>(cand_it->second.front()))
+          {
+            is_leaf_source = true;
+          }
         }
-        if (!is_leaf_producer(pa_it->second)) {
+        if (!is_leaf_source) {
           continue;
         }
-        // This is a leaf in the group.
         if (member < source_joint) {
           source_joint = member;
           found_leaf_source = true;
         }
-        if (is_input_producer(pa_it->second)) {
+        if (is_input_leaf) {
           leaf_input_joints_in_group.push_back(member);
         }
       }
@@ -622,9 +644,12 @@ void TransmissionSubgraph::emit_selected_transmissions()
       }
     }
   }
-  // Note: if there's a cycle, some transmissions won't be emitted. By construction (each
-  // transmission becomes viable strictly after its inputs are derivable), this shouldn't
-  // happen, but we don't currently assert against it.
+  // By construction the dependency graph is a DAG (each transmission becomes viable strictly
+  // after its inputs are derivable, so a cycle would require a transmission's input to be
+  // produced by a transmission that depends on it — impossible). Catch any future bugs that
+  // might break this property loudly in debug builds.
+  assert(selected_transmissions_.size() == selected_set.size() &&
+         "topological sort produced a partial order — cycle in selected transmissions?");
 }
 
 }  // namespace arm_kinematics
