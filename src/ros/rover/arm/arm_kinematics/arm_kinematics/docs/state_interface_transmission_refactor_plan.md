@@ -223,6 +223,19 @@ public:
   // O(1) lookup. Returns std::monostate if the interface is unreachable, ambiguous,
   // or unrequested. Builders should check is_ambiguous() before walking outputs.
   StateInterfaceProducer producer_of(StateInterfaceId) const noexcept;
+
+  // Each entry: an interface that was added via add_input() and which had
+  // pre-existing non-Input candidate producers that the override discarded.
+  // Builders can surface these as warnings ("you supplied X explicitly, but the
+  // analysis says X is also derivable via transmission Y — using your value").
+  // Only populated when add_input() actually overrode something; empty for
+  // initial_inputs (which are exclusive without warning, since they were
+  // declared at construction time).
+  struct InputOverride {
+    StateInterfaceId interface;
+    std::vector<StateInterfaceProducer> discarded_candidates;
+  };
+  span<const InputOverride> input_overrides() const noexcept;
 };
 ```
 
@@ -238,8 +251,10 @@ Algorithm execution timing (eager-in-constructor vs lazy-on-first-query) is an *
 - `selected_transmissions()` is returned in topological order — dependencies before dependents.
 - **Ambiguity is accumulated and surfaced via a query, never silently resolved.** The algorithm continues past ambiguous interfaces, marking each one with its competing candidates, and exposes the full set via `ambiguous_interfaces()`. `is_complete()` requires both `!is_ambiguous()` and an empty `unreachable_outputs()`.
 - For ambiguous interfaces, `producer_of()` returns `std::monostate`. Non-ambiguous interfaces in the same plan still return their unique producer.
+- **`Input` producers are exclusive.** Any interface that the user supplied (either in `initial_inputs` or via `add_input`) has exactly one producer: `producers::Input{...}`. The algorithm never records competing `Transmission` or `AffineProjection` candidates for an interface that already has an `Input` producer. This honors the user's explicit declaration of authority over a value — providing it as input means "use this exact value, don't try to derive it." Non-Input ambiguity (Transmission vs AffineProjection candidates competing for the same non-user-supplied interface) is still reported as ambiguous; only `Input` wins implicitly.
 - `derivable_interfaces() ∩ unreachable_outputs() == ∅`. If an interface appears in both `initial_inputs` and `initial_outputs`, it is treated as known (produced by `producers::Input`) and never appears in `unreachable_outputs()`.
-- `add_input` of an interface that was previously unreachable moves it to known, recomputes affected reachability, and may resolve a previous ambiguity (by making one competing path no longer needed) or unblock previously-unreachable outputs downstream.
+- `add_input(I)` always wins over any pre-existing producer for `I`. If `I` previously had an `AffineProjection` or `Transmission` producer (or was ambiguous between several), those candidates are discarded and `I`'s producer becomes `producers::Input{...}`. Any downstream reachability is then recomputed.
+  - Because `add_input` after construction is a less obviously-intentional act than passing the interface in the constructor, the subgraph records each such override in an "input override" log accessible via a query (see below). Builders can surface these as warnings to the user.
 
 ### Algorithm sketch
 The algorithm is a **forward fixed-point** over viable producers, not a naive backward walk. A transmission is only a *candidate* producer for one of its outputs once **all of its inputs are themselves derivable** — otherwise it cannot run, so it cannot disambiguate or block other paths.
@@ -248,8 +263,8 @@ The algorithm runs in two distinct phases: first compute the full reachable set 
 
 1. **Initialize.** `known = initial_inputs`. `needed = initial_outputs \ initial_inputs`. For each interface in `initial_inputs`, record `producers::Input{input_index}` where `input_index` is its position in the span. (Interfaces that appear in both `initial_inputs` and `initial_outputs` are therefore handled correctly: they go into `known` with their `Input` producer, and never enter `needed`.)
 2. **Compute reachability fixed point.** Iterate until no new interfaces are added to `known`:
-   - For every `TransmissionInstance T` in `analysis_.transmissions()`: if every interface in `T.input_ids` is in `known`, then every interface in `T.output_ids` becomes derivable. Record `T` as one of the candidate producers for each of those output interfaces.
-   - For every joint `J` whose `(J, I)` is in `known` and whose `I` has a registered `AffineProjectionRule`: every other joint `J'` in `analysis.affine_group_members(analysis.affine_root_of(J))` has `(J', I)` derivable via affine projection. The composed `(multiplier, offset)` is built by walking the affine edges from `J` to `J'` (typically a short BFS within the joint group; the chain composition rule for two edges (m1, o1) and (m2, o2) is `(m1·m2, m2·o1 + o2)`) and then applying the projection rule (`multiplier_scale`, `offset_scale`, and the `reverse_direction` source/target swap). Record this as a candidate producer for `(J', I)`.
+   - For every `TransmissionInstance T` in `analysis_.transmissions()`: if every interface in `T.input_ids` is in `known`, then every interface in `T.output_ids` becomes derivable. For each output interface, **if it does NOT already have an `Input` producer, record `T` as one of its candidate producers.** (Input producers are exclusive — see Invariants.)
+   - For every joint `J` whose `(J, I)` is in `known` and whose `I` has a registered `AffineProjectionRule`: every other joint `J'` in `analysis.affine_group_members(analysis.affine_root_of(J))` has `(J', I)` derivable via affine projection. The composed `(multiplier, offset)` is built by walking the affine edges from `J` to `J'` (typically a short BFS within the joint group; the chain composition rule for two edges (m1, o1) and (m2, o2) is `(m1·m2, m2·o1 + o2)`) and then applying the projection rule (`multiplier_scale`, `offset_scale`, and the `reverse_direction` source/target swap). **If `(J', I)` does not already have an `Input` producer**, record this as a candidate producer for it.
    - Add newly-derivable interfaces to `known`. Note: a newly-derivable interface is added to `known` regardless of whether it has 1 or more candidate producers — its "knownness" propagates downstream so the full reach is still computed.
 3. **Classify each interface in the converged candidate set.** A single pass:
    - 0 candidates → not produced (will only matter if it's a needed output).
@@ -260,7 +275,7 @@ The algorithm runs in two distinct phases: first compute the full reachable set 
    - In `known` and ambiguous → contributes to `ambiguous_interfaces()`; `producer_of()` returns `monostate`.
    - Not in `known` → contributes to `unreachable_outputs()`.
 5. **Topological emission.** `selected_transmissions()` is built by tracing back from every needed output that has a unique `Transmission` or `AffineProjection` producer (recursively, via `producer_of(source)` for affine chains), collecting every `TransmissionInstance` encountered. This set is then sorted such that `T1` precedes `T2` whenever any input of `T2` is produced by `T1`. The dependency graph is a DAG by construction — every transmission's inputs are derivable from a strict subset of `known` at the time it first became viable.
-6. **Mutation.** `add_input(I)` appends `I` to the subgraph's effective input list (with index `effective_inputs.size()` before insertion — see note below), then re-runs the fixed point from step 2. Newly-viable transmissions and previously-ambiguous interfaces may resolve. `add_output(I)` adds `I` to `needed` and re-classifies.
+6. **Mutation.** `add_input(I)` appends `I` to the subgraph's effective input list (with index `effective_inputs.size()` before insertion — see note below) and forcibly assigns `I`'s producer to `producers::Input{...}`. **If `I` previously had any non-Input candidates** (Transmission or AffineProjection), those candidates are discarded and the `(I, discarded_candidates)` pair is appended to the input-override log accessible via `input_overrides()`. The fixed point then re-runs from step 2 — newly-viable transmissions may now produce other interfaces, and previously-ambiguous interfaces that depended on `I`'s old non-Input producer may resolve. `add_output(I)` adds `I` to `needed` and re-classifies.
 
 This formulation has the nice property that "viability" is a fixed point — we never have to undo a candidate decision because of input unreachability. Ambiguity is detected accurately (only between *actually viable* paths) and is accumulated across the entire pass.
 
@@ -406,20 +421,21 @@ The legacy `make_*_plan_expected` helper functions and the intermediate `JointMa
 Critical principle (from the user): `TransmissionAnalysis` must never know about ros2_control. The wrappers go through the **same** `TransmissionModel` / `ComputeTransmission` mechanisms as any other transmission. No special path.
 
 ### `Ros2ControlPluginTransmissionModel`
-- Implements `TransmissionModel`. Owns the loaded `transmission_interface::Transmission` plugin instance.
-- Loaded **once at import time**: the URDF importer instantiates the plugin so it can probe which (direction × quantity) combinations the plugin actually supports, and registers `TransmissionInstance` entries accordingly. The plugin instance stays loaded for the lifetime of the model — it is the model.
-- `build(input_ids, output_ids)` creates a `Ros2ControlPluginTransmissionCompute` that holds preallocated handle storage and references the model's plugin instance. The model decides what plugin call to dispatch to from the input/output state interface ids alone — no quantity / direction fields.
+- Implements `TransmissionModel`. Holds the metadata needed to instantiate the underlying `transmission_interface::Transmission` plugin (the loader handle, the parsed transmission XML, the joint/actuator role mapping, and a small bitset of supported `(direction × quantity)` combinations discovered at import time).
+- Does **not** hold a long-lived `Transmission` instance. The plugin is instantiated once at import for capability probing (then discarded), and again per `build()` call to produce a fresh `ComputeTransmission`.
+- `build(input_ids, output_ids)` instantiates a fresh ros2_control plugin via the loader, configures it for the specific `(direction, quantity)` combination implied by the input/output state interfaces, and wraps the configured `Transmission` (along with its handles) in a `Ros2ControlPluginTransmissionCompute`. The combination is guaranteed supported because the importer only registered `TransmissionInstance`s for combinations that passed probing — but the model can `assert` against its supported-bitset for safety.
 - Drop all internal `JointQuantity` / `PropagationDirection` fields.
 
 ### `Ros2ControlPluginTransmissionCompute`
-- Owns its preallocated handle storage; references the plugin instance owned by the model.
+- Owns the freshly-instantiated `transmission_interface::Transmission` plugin and its preallocated handle storage. Lifetime is independent — once `build()` returns, this object is fully self-contained.
 - `compute(inputs, outputs, scratch)`: copy inputs into handles, call the plugin, copy outputs out. Allocation-free.
 
 ### URDF importer (lives outside `TransmissionAnalysis`)
 - Parses URDF and ros2_control transmission XML.
-- For each ros2_control transmission, instantiates the plugin via the loader and **probes its supported combinations** by trying to `configure()` it with dummy actuator/joint handles for each of the (direction × quantity) combinations: actuator→joint position, joint→actuator position, actuator→joint velocity, joint→actuator velocity. Combinations where `configure()` succeeds (no exception, no error return) are considered supported. For each supported combination, register one `TransmissionInstance` pointing at the same `Ros2ControlPluginTransmissionModel` (one model per ros2_control transmission, shared across the up-to-4 instances).
-  - The probe only needs to verify configurability, not run a compute step. Dummy handles can hold throwaway storage.
-  - If probing turns out to be expensive or fragile in practice, a fallback heuristic is to consult the plugin's class name against a small known-table; for unknown classes, register all 4 combinations and let the user discover unsupported ones at runtime. The implementer should pick whichever proves more practical once they hit real plugin types.
+- For each ros2_control transmission, **probes supported combinations**: instantiate a throwaway `Transmission` plugin, allocate one-shot dummy storage (a small block of `double`s for actuator/joint values), and try to `configure()` the throwaway with dummy `ActuatorHandle`/`JointHandle`s pointing into that storage for each of the (direction × quantity) combinations: actuator→joint position, joint→actuator position, actuator→joint velocity, joint→actuator velocity. Combinations where `configure()` succeeds (no exception, no error return) are recorded as supported in a bitset on the `Ros2ControlPluginTransmissionModel`. The throwaway `Transmission` and its dummy storage are discarded immediately after probing — the model holds only the loader handle, the parsed XML, the role mapping, and the supported bitset.
+- For each supported combination, register one `TransmissionInstance` in the `TransmissionAnalysis` pointing at the same `Ros2ControlPluginTransmissionModel` (one model per ros2_control transmission, shared across the up-to-4 instances).
+- At joint-map build time, `Ros2ControlPluginTransmissionModel::build()` instantiates a *fresh* `Transmission` (loaded again via the loader), configures it for the requested combination, and hands ownership to the resulting `Ros2ControlPluginTransmissionCompute`. The plugin is therefore loaded twice: once at import for capability probing (then discarded), and once per `build()` call for actual compute use.
+- If probing turns out to be expensive or fragile in practice, a fallback heuristic is to consult the plugin's class name against a small known-table; for unknown classes, optimistically register all 4 combinations and let `build()` failure surface the unsupported ones at JointMap construction time. The implementer should pick whichever proves more practical once they hit real plugin types.
 - Mimic joints become `TransmissionAnalysis::add_affine_transmission(JointId, JointId, multiplier, offset)` calls. The importer is the only place that knows mimic joints exist. It does **not** need to register `AffineProjectionRule` entries for `"position"`/`"velocity"`/`"acceleration"` — `TransmissionAnalysis` populates those defaults on construction. The importer only registers projection rules when overriding a default or adding a custom interface id (e.g. opting into the `"effort"` rule for a robot whose mimic joints really do reflect a physical coupling).
 
 ---
@@ -441,6 +457,11 @@ The Eigen FK plugin currently consumes `JointMapBuilder` via `EigenForwardKinema
 - `src/common/robot_model.cpp` (and corresponding header) — `get_joint_map_builder()` constructs and returns a `DefaultJointMapBuilder` over the robot's `TransmissionAnalysis`.
 
 This is a real interface change for the FK plugin. It is intentionally in scope for this refactor (rather than deferred to a follow-up) so that the codebase compiles as a whole at the end.
+
+**IK and collision plugins are not affected.** Verified by grepping for `JointMap`/`joint_map` references:
+- `src/plugins/inverse/banksia_ik_plugin.cpp` only mentions `joint_map` in a comment (no actual code dependency).
+- The collision plugin sources don't reference `JointMap` at all.
+- `test/collision/fcl/test_fcl_collision_plugin.cpp` has unused `#include`s and `using` declarations for `JointMap`/`JointMapBuilder` that should be cleaned up — they don't actually exercise any joint map code, but the includes will pull in the new headers and the `using` declarations are dead.
 
 ---
 
@@ -478,6 +499,7 @@ This is a real interface change for the FK plugin. It is intentionally in scope 
 - Create new `test/joint_map/` directory (does not exist yet — current test tree only has `test/forward/eigen/`, `test/collision/fcl/`, `test/main.cpp`). Register it in CMake.
 - New `test/joint_map/test_transmission_subgraph.cpp` (no FK dependency) — unit tests for the subgraph against synthetic `TransmissionAnalysis` instances.
 - New `test/joint_map/test_missing_input_resolution.cpp` — unit tests for the resolution helper.
+- `test/collision/fcl/test_fcl_collision_plugin.cpp` — remove the dead `#include`s for `joint_map.hpp` / `joint_map_builder.hpp` and the corresponding unused `using` declarations. The test does not exercise any joint map code; the includes are stale.
 
 ---
 
@@ -514,9 +536,13 @@ This is a real interface change for the FK plugin. It is intentionally in scope 
     - viability filtering: a transmission with unreachable inputs is **not** counted as a candidate, even if its outputs are needed
     - unreachable-outputs reporting when needed outputs cannot be derived
     - `add_input` unblocks a previously-incomplete plan
-    - `add_input` resolves a previously-ambiguous interface
+    - `add_input` resolves a previously-ambiguous interface (and records the override in `input_overrides()`)
+    - **Input wins over derived producers**: user supplies (A.position) and (B.position) where B mimics A — both are produced by `Input` (no false ambiguity from the affine projection)
+    - **Input wins over Transmission**: user supplies an interface that is also produced by some transmission — the transmission is not selected for that interface
+    - **`input_overrides()` is empty for initial inputs** but populated for overrides via `add_input`
     - mixed-quantity transmission (position-in / effort-out)
     - ambiguity accumulation: multiple ambiguous interfaces in one pass are all reported
+    - non-Input ambiguity (Transmission vs AffineProjection) is still reported
     - non-ambiguous interfaces in an otherwise-ambiguous plan still return their unique producer
   - `TransmissionAnalysis` affine group tests:
     - isolated joint → `affine_root_of(j) == j`, `affine_group_members(j)` is `[j]`
