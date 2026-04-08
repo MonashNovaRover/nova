@@ -83,6 +83,7 @@ export const CartographerGoalModal: React.FC<{
     );
   };
 
+  // idk how to fix this linting error cause i dont get what this is meant to do @Felicity
   useEffect(() => {
     setItems(points.map((point) => ({ ...point, selected: false })));
   }, [isOpen, points]);
