@@ -5,7 +5,7 @@
 // This file is intentionally minimal during step 2 of the state-interface refactor.
 // The legacy plan-based build_expected and the with_* setup methods have been deleted.
 // Step 6 will add the new build_expected implementation that constructs a
-// TransmissionSubgraph and walks it to emit a runtime JointMap.
+// TransmissionReachability + JointMapBlueprint and walks it to emit a runtime JointMap.
 
 #include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
 

@@ -10,7 +10,7 @@
 
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/missing_input_resolution.hpp"
-#include "arm_kinematics/joint_map/transmission_subgraph.hpp"
+#include "arm_kinematics/joint_map/transmission_reachability.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/expected.hpp"
 #include "arm_kinematics/utilities/span.hpp"
@@ -26,7 +26,7 @@ namespace arm_kinematics {
  *   `unreachable_outputs` lists which outputs failed; `resolutions` carries actionable hints
  *   from `compute_missing_input_resolutions`.
  * - **Ambiguous:** one or more requested outputs have multiple viable producers and the
- *   subgraph algorithm refuses to silently pick a winner. `ambiguous_interfaces` lists each
+ *   reachability algorithm refuses to silently pick a winner. `ambiguous_interfaces` lists each
  *   conflict with its competing producers.
  *
  * **Ambiguity wins over unreachability** when both occur in the same plan: `kind == Ambiguous`
@@ -58,7 +58,7 @@ struct JointMapBuildError {
   /// Populated when `kind == Ambiguous`. Each entry is one ambiguous interface in the plan with
   /// the full list of competing candidate producers. Accumulated across the entire algorithm
   /// pass — every ambiguous interface is reported, not just the first one encountered.
-  std::vector<TransmissionSubgraph::AmbiguousInterface> ambiguous_interfaces{};
+  std::vector<TransmissionReachability::AmbiguousInterface> ambiguous_interfaces{};
 };
 
 /**
@@ -66,8 +66,9 @@ struct JointMapBuildError {
  *
  * A builder is responsible for translating a request — "given these inputs, produce these
  * outputs" — into a runtime `JointMap` that performs the mapping at compute time. The default
- * implementation (`DefaultJointMapBuilder`) walks a `TransmissionSubgraph` to plan and emit the
- * runtime joint map, but FK plugins may return specialized builders from
+ * implementation (`DefaultJointMapBuilder`) constructs a `TransmissionReachability` and a
+ * `JointMapBlueprint` to plan and emit the runtime joint map, but FK plugins may return
+ * specialized builders from
  * `ForwardKinematicsPlugin::get_joint_map_builder()` to express backend-specific mapping
  * policies (e.g. supplying default values for missing inputs, applying custom transformations,
  * etc.).

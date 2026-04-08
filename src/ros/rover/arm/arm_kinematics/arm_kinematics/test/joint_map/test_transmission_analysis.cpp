@@ -1,7 +1,7 @@
 //
 // Created by Bailey Chessum on 8/4/26.
 //
-// Direct unit tests for TransmissionAnalysis, independent of TransmissionSubgraph.
+// Direct unit tests for TransmissionAnalysis, independent of TransmissionReachability.
 // Focus is on the per-joint flat affine relations, the affine group union-find, the
 // inverse producing-transmissions index, and the projection rule registry.
 //

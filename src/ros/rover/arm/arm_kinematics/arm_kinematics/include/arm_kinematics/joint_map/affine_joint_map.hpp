@@ -31,7 +31,7 @@ namespace arm_kinematics {
  * been deleted (they depended on the legacy plan structs). The runtime `map()` / `identity()` / data
  * members survive — they don't reference deleted types. Step 5 / step 6 will add a new direct
  * constructor that the builder calls with the resolved sources/multipliers/offsets after walking a
- * `TransmissionSubgraph`.
+ * `JointMapBlueprint`.
  */
 class ARM_KINEMATICS_PUBLIC AffineJointMap {
 public:

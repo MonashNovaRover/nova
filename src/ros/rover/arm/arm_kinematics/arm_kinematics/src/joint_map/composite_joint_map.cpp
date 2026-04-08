@@ -151,6 +151,6 @@ void StagedJointMap::map(const span<const float> inputs, const span<float> outpu
 
 // NOTE: The legacy `compile_joint_map_plan_expected` and `compile_joint_map_plan_stage_expected`
 // helpers have been removed in step 2 of the state-interface refactor. The new direct
-// construction path that walks a TransmissionSubgraph will be added in step 5 / step 6.
+// construction path (driven by JointMapBlueprint segments) will be added in step 5 / step 6.
 
 } // namespace arm_kinematics

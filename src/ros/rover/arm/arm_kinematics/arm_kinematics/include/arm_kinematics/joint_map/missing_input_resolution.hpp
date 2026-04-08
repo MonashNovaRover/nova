@@ -9,20 +9,16 @@
 #include <vector>
 
 #include "arm_kinematics/joint_map/transmission_types.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 
 namespace arm_kinematics {
 
-class TransmissionSubgraph;  // forward declaration; full def in transmission_subgraph.hpp
+class TransmissionReachability;  // forward declaration; full def in transmission_reachability.hpp
 
 /**
- * One way to resolve a single missing (unreachable) state interface in a `TransmissionSubgraph`'s
- * plan. The builder packages a vector of these into `JointMapBuildError::resolutions` so the user
- * sees actionable suggestions for unblocking the build.
- *
- * \note Constructed by `compute_missing_input_resolutions(const TransmissionSubgraph &)` — the
- * helper takes the subgraph rather than the analysis directly so it can use
- * `subgraph.requested_inputs()` to filter out trivially-already-supplied alternatives, and reach
- * into both the transmission inverse index and the affine group index on the underlying analysis.
+ * One way to resolve a single missing (unreachable) state interface in a request. The builder
+ * packages a vector of these into `JointMapBuildError::resolutions` so the user sees actionable
+ * suggestions for unblocking the build.
  */
 struct MissingInputResolution {
   /// The unreachable state interface this entry is for.
@@ -42,25 +38,49 @@ struct MissingInputResolution {
 };
 
 /**
- * Computes resolution hints for the unreachable outputs in a `TransmissionSubgraph`.
+ * Diagnosis of a request against a `TransmissionReachability`: which needed outputs are
+ * unreachable, which are ambiguous, and (optionally) what the user could supply to fix them.
  *
- * Returns one `MissingInputResolution` per interface in `subgraph.unreachable_outputs()`,
- * enumerating both transmission-based and affine-group-based resolution paths. Returns an empty
- * vector if the subgraph has no unreachable outputs.
+ * Builders should treat the request as buildable iff `unreachable.empty() && ambiguous_outputs.empty()`.
+ */
+struct MissingOutputDiagnosis {
+  /// Outputs that have no producer in the reachability (neither leaf, transmission, nor affine).
+  std::vector<StateInterfaceId> unreachable;
+  /// Outputs whose producer is ambiguous in the reachability — sliced from
+  /// `reachability.ambiguities()` and intersected with `needed_outputs`.
+  std::vector<StateInterfaceId> ambiguous_outputs;
+  /// Resolution hints for each entry in `unreachable`. Same length as `unreachable`. Empty in the
+  /// stub implementation; populated for real once `compute_missing_input_resolutions` is wired up.
+  std::vector<MissingInputResolution> resolutions;
+};
+
+/**
+ * Walks `needed_outputs` against `reach`, classifying each output as satisfied, unreachable, or
+ * ambiguous, and packaging the unreachable/ambiguous slices into a diagnosis. Cheap O(N) — does
+ * not run the resolution algorithm itself.
  *
- * The helper takes the subgraph (not just the analysis) so it can:
- * - Use `subgraph.requested_inputs()` to filter out trivially-already-supplied alternatives.
- * - Surface only the alternatives that would actually unblock progress in the current request
- *   context.
- * - Reach into both the transmission inverse index and the affine group index on the underlying
- *   analysis.
+ * Pure function; safe for concurrent use.
+ */
+[[nodiscard]] MissingOutputDiagnosis diagnose_missing_outputs(
+  const TransmissionReachability & reach,
+  span<const StateInterfaceId> needed_outputs);
+
+/**
+ * Computes resolution hints for the given missing interfaces against `reach`. Returns one
+ * `MissingInputResolution` per entry in `missing`, in the same order, enumerating both
+ * transmission-based and affine-group-based resolution paths.
  *
- * \note Stub implementation in step 3 of the state-interface refactor — returns an empty vector
- * regardless of input. Step 6 will give it the real algorithm when `DefaultJointMapBuilder` needs
- * it for rich error reporting.
+ * The function takes the reachability (not just the analysis) so it can use
+ * `reach.inputs()` to filter out trivially-already-supplied alternatives, and reach into the
+ * transmission inverse index and the affine group index on the underlying analysis.
+ *
+ * \note Stub implementation — returns one default-constructed entry per missing interface. The
+ * real algorithm is deferred to step 6 when `DefaultJointMapBuilder` needs it for rich error
+ * reporting.
  */
 [[nodiscard]] std::vector<MissingInputResolution> compute_missing_input_resolutions(
-  const TransmissionSubgraph & subgraph);
+  const TransmissionReachability & reach,
+  span<const StateInterfaceId> missing);
 
 }  // namespace arm_kinematics
 

@@ -19,8 +19,9 @@ namespace arm_kinematics {
  *
  * Step 3 of the refactor will finalize the new `JointMapBuilder` virtual signature
  * (taking `span<const StateInterfaceId>` and returning `tl::expected<JointMap, JointMapBuildError>`).
- * Step 6 will give this class its real implementation, which constructs a `TransmissionSubgraph`
- * from the request and walks it to emit a runtime `JointMap`.
+ * Step 6 will give this class its real implementation, which constructs a `TransmissionReachability`
+ * from the request, runs `diagnose_missing_outputs` against it, and (on success) walks a
+ * `JointMapBlueprint` to emit a runtime `JointMap`.
  */
 class ARM_KINEMATICS_PUBLIC DefaultJointMapBuilder {
 public:

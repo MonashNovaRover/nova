@@ -17,7 +17,7 @@ namespace arm_kinematics {
  * `CompiledTransmissionPlan` / `CompiledTransmissionStage` machinery and the
  * `compile_transmission_plan_expected` helper have been deleted; the new direct
  * constructor / factory that takes `unique_ptr<const ComputeTransmission>` instances
- * (built by walking a `TransmissionSubgraph`) will be added in step 5. Until then this
+ * (built by walking a `JointMapBlueprint`) will be added in step 5. Until then this
  * class has no usable construction path.
  */
 class ARM_KINEMATICS_PUBLIC TransmissionJointMap {

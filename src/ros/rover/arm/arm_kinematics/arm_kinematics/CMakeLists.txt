@@ -62,7 +62,8 @@ add_library(${PROJECT_NAME} SHARED
   src/joint_map/transmission_analysis_import.cpp
   src/joint_map/ros2_control_transmission_plugin_loader.cpp
   src/joint_map/transmission_joint_map.cpp
-  src/joint_map/transmission_subgraph.cpp
+  src/joint_map/transmission_reachability.cpp
+  src/joint_map/joint_map_blueprint.cpp
   src/common/kinematics_params.cpp
   src/common/kinematics_base.cpp
   src/forward/forward_kinematics_plugin.cpp
@@ -103,7 +104,8 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_fcl_collision_plugin.cpp
   test/forward/eigen/test_eigen_fk_mapper.cpp
   test/joint_map/test_transmission_analysis.cpp
-  test/joint_map/test_transmission_subgraph.cpp
+  test/joint_map/test_transmission_reachability.cpp
+  test/joint_map/test_joint_map_blueprint.cpp
   test/main.cpp
 )
 #if(NIX_DO_CHECK)

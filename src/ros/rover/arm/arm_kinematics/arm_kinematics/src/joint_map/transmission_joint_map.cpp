@@ -6,7 +6,7 @@
 // The legacy CompiledTransmissionPlan / CompiledTransmissionStage machinery and the
 // compile_transmission_plan_expected helper have been deleted. Step 5 will add the
 // new direct construction path that takes ComputeTransmission instances built by
-// walking a TransmissionSubgraph, along with the runtime map() implementation.
+// walking a JointMapBlueprint, along with the runtime map() implementation.
 
 #include "arm_kinematics/joint_map/transmission_joint_map.hpp"
 
