@@ -50,10 +50,10 @@ namespace arm_kinematics {
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
   struct AffineTransmission {
-    /// The joint written to by this affine transmission.
-    JointId target_joint_id = 0;
     /// The joint read by this affine transmission.
     JointId source_joint_id = 0;
+    /// The joint written to by this affine transmission.
+    JointId target_joint_id = 0;
     /// Must be non-zero (validated on add). m=0 would model `target = offset` (a constant) which
     /// isn't really a mimic relationship and breaks bidirectional affine-group semantics.
     float multiplier = 1.0F;
@@ -135,10 +135,12 @@ public:
   // add_transmission
   // ---------------------------------------------------------------------------
 
+  /// Adds a transmission instance to the analysis. Parameters are taken by value to support
+  /// both lvalue and rvalue arguments uniformly; the function moves them into storage.
   void add_transmission(
     TransmissionModelId model_id,
-    std::vector<StateInterfaceId> && inputs,
-    std::vector<StateInterfaceId> && outputs,
+    std::vector<StateInterfaceId> inputs,
+    std::vector<StateInterfaceId> outputs,
     std::string name = "unnamed");
 
   // ---------------------------------------------------------------------------

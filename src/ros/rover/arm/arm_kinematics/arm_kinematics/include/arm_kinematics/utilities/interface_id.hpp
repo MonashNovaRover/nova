@@ -18,37 +18,41 @@ namespace arm_kinematics {
 /**
  * Identifier for a state interface type (e.g. "position", "velocity", "effort").
  *
- * Stores both the human-readable name and a precomputed FNV1a hash. The hash is used
+ * Stores both a precomputed FNV1a hash and the human-readable name. The hash is used
  * for fast equality and unordered-map keying; the name is preserved so that error
  * messages and debug output can refer to the interface by its real name rather than
  * an opaque integer.
  *
- * String literal constructors are constexpr-friendly via hash_interface(), so
- * `InterfaceId{"position"}` produces a stable hash at compile time even though the
- * std::string member must be initialized at runtime.
+ * \note Field order is `hash` then `name` deliberately, so that constructors taking
+ * a `std::string` value can compute the hash from the source argument before moving
+ * it into `name` — order-independent semantics regardless of how the initializer list
+ * is written. (C++ initializes fields in declaration order, not init-list order.)
  */
 struct InterfaceId {
-  std::string name;
   std::size_t hash;
+  std::string name;
 
   InterfaceId() noexcept
-    : name{}, hash{hash_interface(std::string_view{})}
+    : hash{hash_interface(std::string_view{})}, name{}
   {
   }
 
   template <std::size_t N>
   InterfaceId(const char (&literal)[N])
-    : name{literal, N - 1}, hash{hash_interface(literal)}
+    : hash{hash_interface(literal)}, name{literal, N - 1}
   {
   }
 
   InterfaceId(std::string_view value)
-    : name{value}, hash{hash_interface(value)}
+    : hash{hash_interface(value)}, name{value}
   {
   }
 
   InterfaceId(std::string value)
-    : name{std::move(value)}, hash{hash_interface(name)}
+    // Compute hash from `value` (still valid), then move it into `name`. Order-safe
+    // because `hash` is declared first, so it's initialized first regardless of how
+    // we list the initializers below.
+    : hash{hash_interface(value)}, name{std::move(value)}
   {
   }
 

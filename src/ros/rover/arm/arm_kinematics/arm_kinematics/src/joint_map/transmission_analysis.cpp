@@ -45,9 +45,10 @@ TransmissionAnalysis::TransmissionAnalysis(const TransmissionAnalysis & other)
     affine_parent_(other.affine_parent_),
     affine_group_members_storage_(other.affine_group_members_storage_)
 {
+  // add_model() rejects nullptr, so models_ never holds nulls.
   models_.reserve(other.models_.size());
   for (const auto & model : other.models_) {
-    models_.push_back(model ? model->clone() : nullptr);
+    models_.push_back(model->clone());
   }
 }
 
@@ -57,10 +58,11 @@ TransmissionAnalysis & TransmissionAnalysis::operator=(const TransmissionAnalysi
     return *this;
   }
 
+  // add_model() rejects nullptr, so models_ never holds nulls.
   models_.clear();
   models_.reserve(other.models_.size());
   for (const auto & model : other.models_) {
-    models_.push_back(model ? model->clone() : nullptr);
+    models_.push_back(model->clone());
   }
 
   affine_transmissions_ = other.affine_transmissions_;
@@ -125,8 +127,8 @@ StateInterfaceId TransmissionAnalysis::ensure_state_interface_id(const StateInte
 
 void TransmissionAnalysis::add_transmission(
   const TransmissionModelId model_id,
-  std::vector<StateInterfaceId> && inputs,
-  std::vector<StateInterfaceId> && outputs,
+  std::vector<StateInterfaceId> inputs,
+  std::vector<StateInterfaceId> outputs,
   std::string name)
 {
   if (model_id >= models_.size()) {
@@ -209,8 +211,8 @@ void TransmissionAnalysis::add_affine_transmission(
   }
 
   affine_transmissions_.push_back(AffineTransmission{
-    target_joint_id,
     source_joint_id,
+    target_joint_id,
     multiplier,
     offset
   });
