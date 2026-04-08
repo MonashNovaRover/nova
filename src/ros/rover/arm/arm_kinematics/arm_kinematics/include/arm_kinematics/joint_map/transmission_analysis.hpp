@@ -28,20 +28,26 @@ namespace arm_kinematics {
  * - The set of joints (named, with stable internal `JointId`s)
  * - The set of state interfaces (joint + interface type, with stable `StateInterfaceId`s)
  * - `TransmissionModel`s and `TransmissionInstance`s (state-interface-edged)
- * - `AffineTransmission`s (joint-edged — represent mimic-like relationships)
+ * - The current flat affine relation of each joint to its affine-group root, stored per-joint
+ *   as an `AffineTransmission` and accessed via `affine_transmission_of(j)`. New edges added via
+ *   `add_affine_transmission` are composed eagerly into these flat relations at the time of the
+ *   call (the loser group's member list is walked and every member's stored relation is updated).
  * - The `InterfaceId → AffineProjectionRule` registry (with safe defaults for position, velocity,
  *   acceleration; effort is opt-in only)
  * - An inverse index from `StateInterfaceId → producing TransmissionInstanceIds`
- * - A union-find affine group index keyed by joint
+ * - An eagerly-flattened affine group index keyed by joint (every joint's parent always points
+ *   directly at its current group root, so `affine_root_of` is an O(1) array lookup with no
+ *   walking or path compression)
  *
  * `TransmissionAnalysis` is **append-only** — there is no remove API. The inverse and affine-group
- * indices are maintained incrementally as `add_transmission` / `add_affine_transmission` are called.
+ * indices, and the per-joint flat affine relations, are maintained incrementally as
+ * `add_transmission` / `add_affine_transmission` are called.
  *
  * `TransmissionAnalysis` knows nothing about URDF, ros2_control, or mimic joints. It is purely a
  * typed graph of joints, state interfaces, and the relationships between them.
  *
- * \note **Not thread-safe.** Even read-only queries may mutate internal state (`affine_root_of`
- * performs path compression). All access must be externally synchronized.
+ * \note Read-only queries are pure reads — no internal mutation, no path compression. The class
+ * is therefore safe for concurrent reads from multiple threads as long as no thread is mutating.
  *
  * \note Mutating operations (`add_transmission`, `add_affine_transmission`, `ensure_*`) are not
  * strong-exception-safe: if an internal index update throws (e.g. OOM), partial state is left in
@@ -49,14 +55,32 @@ namespace arm_kinematics {
  */
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
+  /**
+   * The current flat affine relationship of one joint to its affine group's root.
+   *
+   * Storage invariant: there is exactly one `AffineTransmission` per joint, indexed by `JointId`,
+   * accessed via `affine_transmission_of(j)`. For each entry:
+   * - `target_joint_id == j` (the joint this entry is for)
+   * - `source_joint_id == affine_parent_[j]` (the joint's current root)
+   * - `joint_value(j) = multiplier * joint_value(source_joint_id) + offset`
+   * - For root joints (parent == self), the entry is the identity `(m=1, o=0)`.
+   *
+   * `add_affine_transmission` composes new edges into this flat form eagerly at the time of the
+   * call, walking the affected group's member list to update every member's stored relation. The
+   * planner then gets the (m, o) between any two joints in a group as an O(1) operation rather
+   * than having to walk a chain.
+   */
   struct AffineTransmission {
-    /// The joint read by this affine transmission.
+    /// The joint read by this affine transmission. By invariant, this is `target_joint_id`'s
+    /// current affine root (= `affine_parent_[target_joint_id]`).
     JointId source_joint_id = 0;
     /// The joint written to by this affine transmission.
     JointId target_joint_id = 0;
-    /// Must be non-zero (validated on add). m=0 would model `target = offset` (a constant) which
-    /// isn't really a mimic relationship and breaks bidirectional affine-group semantics.
+    /// The composed multiplier from source to target. For non-root joints this is the product of
+    /// every edge multiplier along the chain from the original source to the target. For root
+    /// joints (entry's `source_joint_id == target_joint_id`) this is `1`.
     float multiplier = 1.0F;
+    /// The composed offset. For root joints this is `0`.
     float offset = 0.0F;
   };
 
@@ -97,11 +121,17 @@ public:
     return transmissions_;
   }
 
-  /// a.k.a. mimic joints, or any joint-level affine relationship.
-  [[nodiscard]] const std::vector<AffineTransmission> & affine_transmissions() const noexcept
-  {
-    return affine_transmissions_;
-  }
+  /**
+   * Returns the current flat affine relationship of `j` to its affine group's root, in O(1).
+   *
+   * For root joints, returns the identity entry (m=1, o=0). For non-root joints, returns the
+   * composed flat (m, o) such that `joint_value(j) = m * joint_value(root) + o`. Use
+   * `affine_root_of(j)` to get the root joint id, or read it directly from the returned entry's
+   * `source_joint_id` field.
+   *
+   * \pre `j` is a valid `JointId` previously returned by `ensure_joint_id` (debug-asserted).
+   */
+  [[nodiscard]] const AffineTransmission & affine_transmission_of(JointId j) const noexcept;
 
   // ---------------------------------------------------------------------------
   // Orderings
@@ -185,7 +215,7 @@ public:
   [[nodiscard]] const AffineProjectionRule * affine_projection_rule(const InterfaceId & interface_id) const noexcept;
 
   // ---------------------------------------------------------------------------
-  // Affine group queries (union-find)
+  // Affine group queries
   // ---------------------------------------------------------------------------
 
   /// Returns the root joint of the affine group containing `j`. If `j` has no affine relationships,
@@ -220,6 +250,10 @@ public:
 private:
   // Owned data
   std::vector<std::unique_ptr<TransmissionModel>> models_{};
+  /// Indexed by `JointId` (one entry per joint). See `AffineTransmission`'s doc comment for the
+  /// per-entry invariant. Maintained eagerly by `ensure_joint_id` (which appends an identity entry
+  /// for the new joint) and `add_affine_transmission` (which composes the new edge into the
+  /// existing flat relations and walks the affected group's member list to update them all).
   std::vector<AffineTransmission> affine_transmissions_{};
   std::vector<TransmissionInstance> transmissions_{};
 
@@ -240,19 +274,23 @@ private:
   /// state interface set). `add_transmission` then appends to the relevant per-output entries.
   std::vector<std::vector<TransmissionInstanceId>> producers_index_{};
 
-  /// Union-find for affine groups, indexed by JointId.
+  /// Affine group index, indexed by JointId.
   ///
-  /// **Invariant:** `affine_parent_.size() == affine_group_members_storage_.size() == joint_order_.inverse.size()`.
-  /// Maintained atomically by `ensure_joint_id` (the only entry point that grows the joint set).
-  ///
-  /// `affine_parent_[j]` is the parent of `j` in the union-find tree (with path compression).
-  /// `affine_group_members_storage_[root]` is the materialized member list for that root; for
-  /// non-root joints the entry is empty (members are migrated into the winning root on union).
-  mutable std::vector<JointId> affine_parent_{};
+  /// **Invariants:**
+  /// - `affine_parent_.size() == affine_group_members_storage_.size() == joint_order_.inverse.size()`.
+  ///   Maintained atomically by `ensure_joint_id` (the only entry point that grows the joint set).
+  /// - `affine_parent_[j]` is **always the direct root of `j`'s affine group**. The tree is kept
+  ///   maximally flat: every union eagerly walks the loser group's member list and re-points each
+  ///   member's parent to the new root. There is no lazy path compression on read — finds are O(1)
+  ///   single array lookups.
+  /// - The "root" of a group has a directional meaning: it is the source-side joint at the end of
+  ///   the affine chain, the joint everything else ultimately derives from. Every
+  ///   `add_affine_transmission(source, target, ...)` call makes `source`'s current root win the
+  ///   merge against `target`'s current root.
+  /// - `affine_group_members_storage_[root]` is the materialized member list for that root; for
+  ///   non-root joints the entry is empty (members are migrated into the winning root on union).
+  std::vector<JointId> affine_parent_{};
   std::vector<std::vector<JointId>> affine_group_members_storage_{};
-
-  /// Internal find with path compression.
-  JointId affine_find(JointId j) const noexcept;
 };
 
 } // namespace arm_kinematics

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <stdexcept>
 #include <utility>
 
@@ -26,6 +27,23 @@ void populate_default_projection_rules(std::unordered_map<InterfaceId, AffinePro
   registry.emplace(InterfaceId{"velocity"}, AffineProjectionRule{1.0F, 0.0F, false});
   // Acceleration: a_b = m·a_a
   registry.emplace(InterfaceId{"acceleration"}, AffineProjectionRule{1.0F, 0.0F, false});
+}
+
+// Tolerance for floating-point equality checks on composed affine coefficients. Used in the
+// redundant-edge consistency assertion in `add_affine_transmission`. Hybrid relative + absolute:
+// values within 1e-5 absolute are considered equal (handles near-zero); larger values are
+// compared with ~5 digits of relative agreement (handles arbitrary scale without false positives
+// from FP rounding accumulated through chained compositions).
+constexpr float kAffineCoefficientTolerance = 1.0e-5F;
+
+bool affine_coefficients_approx_equal(const float a, const float b) noexcept
+{
+  const float diff = std::fabs(a - b);
+  if (diff <= kAffineCoefficientTolerance) {
+    return true;
+  }
+  const float largest = std::max(std::fabs(a), std::fabs(b));
+  return diff <= kAffineCoefficientTolerance * largest;
 }
 
 }  // namespace
@@ -103,9 +121,16 @@ JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
   const bool was_present = joint_order_.contains_key(name);
   const JointId id = joint_order_.ensure(name);
   if (!was_present) {
-    // New joint: initialize as its own affine root with a singleton member list.
+    // New joint: initialize as its own affine root with a singleton member list and an
+    // identity affine transmission entry (j = 1*j + 0).
     affine_parent_.push_back(id);
     affine_group_members_storage_.push_back({id});
+    affine_transmissions_.push_back(AffineTransmission{
+      /*source_joint_id=*/id,
+      /*target_joint_id=*/id,
+      /*multiplier=*/1.0F,
+      /*offset=*/0.0F,
+    });
   }
   return id;
 }
@@ -217,32 +242,96 @@ void TransmissionAnalysis::add_affine_transmission(
       "TransmissionAnalysis::add_affine_transmission() received a target JointId not present in joint_order()");
   }
 
-  affine_transmissions_.push_back(AffineTransmission{
-    source_joint_id,
-    target_joint_id,
-    multiplier,
-    offset
-  });
+  // The new edge says: target_value = multiplier * source_value + offset.
+  //
+  // Both source_joint_id and target_joint_id already have entries in affine_transmissions_
+  // (initialized to identity by ensure_joint_id). We compose the new edge into the existing
+  // flat relations and update everything that needs to change so that the per-joint flat
+  // invariant holds after the call.
+  //
+  // **Directional semantic:** the canonical "root" of an affine group is the source-side end
+  // of the chain — the joint everything else ultimately derives from. The source's current
+  // root therefore always wins the merge.
 
-  // Maintain the union-find affine group index. Both joint ids are guaranteed to have
-  // entries in affine_parent_/affine_group_members_storage_ because the joint_count check
-  // above implies they were added via ensure_joint_id.
-  const JointId root_a = affine_find(source_joint_id);
-  const JointId root_b = affine_find(target_joint_id);
-  if (root_a != root_b) {
-    // Pick the smaller-id root as the new root for stability of root-joint identity.
-    const JointId winner = std::min(root_a, root_b);
-    const JointId loser = std::max(root_a, root_b);
-    affine_parent_[loser] = winner;
+  const AffineTransmission t_source = affine_transmissions_[source_joint_id];
+  const AffineTransmission t_target = affine_transmissions_[target_joint_id];
 
-    // Migrate the loser's group members into the winner's list.
-    auto & winner_members = affine_group_members_storage_[winner];
-    auto & loser_members = affine_group_members_storage_[loser];
-    winner_members.insert(winner_members.end(), loser_members.begin(), loser_members.end());
-    loser_members.clear();
-    // Note: deliberately not calling shrink_to_fit() — typical group sizes are tiny and
-    // releasing the small allocation isn't worth the allocator churn.
+  // source's current root and target's current root.
+  const JointId winner = t_source.source_joint_id;  // == affine_parent_[source_joint_id]
+  const JointId loser = t_target.source_joint_id;   // == affine_parent_[target_joint_id]
+
+  // target's NEW flat from the winner root, computed by substituting source's old flat
+  // into the new edge equation:
+  //   target = m * source + o
+  //          = m * (t_source.m * winner + t_source.o) + o
+  //          = (m * t_source.m) * winner + (m * t_source.o + o)
+  const float new_m = multiplier * t_source.multiplier;
+  const float new_o = multiplier * t_source.offset + offset;
+
+  if (winner == loser) {
+    // The new edge is redundant — source and target are already in the same affine group.
+    // In a consistent setup the new (m, o) should match target's existing flat (t_target.m,
+    // t_target.o), within FP-rounding tolerance accumulated through chained compositions. If
+    // they disagree beyond tolerance the user has added inconsistent edges (a precondition
+    // violation per the header's warning); we debug-assert but otherwise leave the existing
+    // entry in place — modifying it would silently let the latest call override the prior
+    // analysis, which is worse than leaving it inconsistent.
+    assert(affine_coefficients_approx_equal(new_m, t_target.multiplier) &&
+           affine_coefficients_approx_equal(new_o, t_target.offset) &&
+           "add_affine_transmission: inconsistent redundant edge — caller has added "
+           "contradictory affine relationships within the same group (precondition violation).");
+    return;
   }
+
+  // Different roots — merge the loser's group into the winner's.
+  //
+  // We need every member of the loser's old group (currently expressed as
+  // `member = m_member * loser + o_member`) to be re-expressed in terms of the winner.
+  //
+  // First, derive the loser-root-to-winner-root transformation. We have two ways to
+  // express target:
+  //   - new flat:    target = new_m * winner + new_o
+  //   - old flat:    target = t_target.m * loser + t_target.o
+  // Equating and solving for loser:
+  //   loser = (new_m / t_target.m) * winner + ((new_o - t_target.o) / t_target.m)
+  //
+  // By induction `t_target.multiplier` is always non-zero in well-behaved use: identity
+  // entries start at 1.0, and every subsequent composition is a product of non-zero edge
+  // multipliers (the `multiplier == 0` check above) and non-zero existing multipliers. The
+  // only way to land at exactly zero here is FP underflow from a chain of pathologically
+  // small multipliers — a degenerate input the user is responsible for. We debug-assert
+  // against it so the corruption is loud rather than silent.
+  assert(t_target.multiplier != 0.0F &&
+         "add_affine_transmission: target's stored composed multiplier is zero — likely "
+         "FP underflow from a chain of pathologically small affine multipliers. The analysis "
+         "would be corrupted by the divide-by-zero below.");
+  const float root_to_winner_m = new_m / t_target.multiplier;
+  const float root_to_winner_o = (new_o - t_target.offset) / t_target.multiplier;
+
+  // Now walk every member of the loser's group, updating its stored flat relation.
+  // For each member j with old flat `j = m_j * loser + o_j`, substituting the loser's
+  // new expression:
+  //   j = m_j * (root_to_winner_m * winner + root_to_winner_o) + o_j
+  //     = (m_j * root_to_winner_m) * winner + (m_j * root_to_winner_o + o_j)
+  // This loop also re-points each member's parent to the winner and migrates it into
+  // the winner's member list — same single pass as the union does.
+  auto & winner_members = affine_group_members_storage_[winner];
+  auto & loser_members = affine_group_members_storage_[loser];
+  winner_members.reserve(winner_members.size() + loser_members.size());
+  for (const JointId member : loser_members) {
+    auto & relation = affine_transmissions_[member];
+    const float old_m = relation.multiplier;
+    const float old_o = relation.offset;
+    relation.source_joint_id = winner;
+    relation.multiplier = old_m * root_to_winner_m;
+    relation.offset = old_m * root_to_winner_o + old_o;
+
+    affine_parent_[member] = winner;
+    winner_members.push_back(member);
+  }
+  loser_members.clear();
+  // Note: deliberately not calling shrink_to_fit() — typical group sizes are tiny and
+  // releasing the small allocation isn't worth the allocator churn.
 }
 
 void TransmissionAnalysis::add_affine_transmission(
@@ -282,10 +371,18 @@ const AffineProjectionRule * TransmissionAnalysis::affine_projection_rule(const 
 
 JointId TransmissionAnalysis::affine_root_of(const JointId j) const noexcept
 {
-  // Precondition: `j` is a valid JointId previously returned by ensure_joint_id, so
-  // affine_parent_[j] is guaranteed to exist by invariant.
+  // O(1) single lookup. The tree is kept maximally flat by eager union: every joint's parent
+  // always points directly at its root. No walking, no path compression, no mutation.
   assert(j < affine_parent_.size() && "affine_root_of: JointId out of range — was it returned by ensure_joint_id?");
-  return affine_find(j);
+  return affine_parent_[j];
+}
+
+const TransmissionAnalysis::AffineTransmission & TransmissionAnalysis::affine_transmission_of(const JointId j) const noexcept
+{
+  // O(1) lookup. Per the storage invariant, each joint has exactly one entry indexed by joint id;
+  // root joints have the identity entry, non-root joints have their composed flat relation.
+  assert(j < affine_transmissions_.size() && "affine_transmission_of: JointId out of range — was it returned by ensure_joint_id?");
+  return affine_transmissions_[j];
 }
 
 span<const JointId> TransmissionAnalysis::affine_group_members(const JointId root) const noexcept
@@ -297,22 +394,6 @@ span<const JointId> TransmissionAnalysis::affine_group_members(const JointId roo
   assert(root < affine_group_members_storage_.size() && "affine_group_members: JointId out of range");
   assert(affine_parent_[root] == root && "affine_group_members: argument is not a root joint — call affine_root_of() first");
   return affine_group_members_storage_[root];
-}
-
-JointId TransmissionAnalysis::affine_find(JointId j) const noexcept
-{
-  // Iterative find with path compression.
-  JointId root = j;
-  while (affine_parent_[root] != root) {
-    root = affine_parent_[root];
-  }
-  // Path compression: make every node on the path point directly at the root.
-  while (affine_parent_[j] != root) {
-    const JointId next = affine_parent_[j];
-    affine_parent_[j] = root;
-    j = next;
-  }
-  return root;
 }
 
 // ---------------------------------------------------------------------------
