@@ -51,8 +51,8 @@ struct AffineTransmission {
 ### `AffineProjectionRule` (new) and the projection registry on `TransmissionAnalysis`
 Different interfaces project an affine joint-level relationship differently:
 - **Position**: `q_target = m * q_source + o` — direct
-- **Velocity**: `qdot_target = m * qdot_source` — offset drops under d/dt
-- **Effort** (ideal energy-conserving coupling): `tau_source = m * tau_target` — magnitude scales by the reciprocal and the relationship runs target → source
+- **Velocity**: `v_target = m * v_source` — offset drops under d/dt
+- **Effort** (energy-conserving coupling, opt-in): `τ_source = m * τ_target` — same magnitude factor, but the relationship runs target → source (knowing the load torque tells you the actuator torque)
 
 A rule encodes how to derive the projected affine relationship for a given interface from the underlying joint-level `AffineTransmission`'s `(multiplier, offset)`:
 
@@ -61,29 +61,40 @@ struct AffineProjectionRule {
   // Effective relationship:
   //   projected_target_iface = effective_m * projected_source_iface + effective_o
   // where:
-  //   effective_m = (use_reciprocal_multiplier ? 1.0f / multiplier : multiplier) * multiplier_scale
+  //   effective_m = multiplier * multiplier_scale
   //   effective_o = offset * offset_scale
   // If reverse_direction is true, the source/target roles swap before applying
-  // (i.e. projected_source_iface = AffineTransmission::target_joint_id's interface).
+  // (i.e. projected_source_iface = AffineTransmission::target_joint_id's interface,
+  // projected_target_iface = AffineTransmission::source_joint_id's interface).
   float multiplier_scale = 1.0f;
   float offset_scale = 1.0f;
-  bool use_reciprocal_multiplier = false;
   bool reverse_direction = false;
 };
 ```
 
-`TransmissionAnalysis` owns an `InterfaceId`-keyed map of these rules and **populates default entries on construction** for the common interface ids. Callers can override or add more via `set_affine_projection_rule(InterfaceId, AffineProjectionRule)`.
+`TransmissionAnalysis` owns an `InterfaceId`-keyed map of these rules and **populates default entries on construction** for position, velocity, and acceleration. Callers can override or add more via `set_affine_projection_rule(InterfaceId, AffineProjectionRule)`.
 
 Built-in defaults:
 
-| InterfaceId | `multiplier_scale` | `offset_scale` | `use_reciprocal_multiplier` | `reverse_direction` | Effective relation |
-|---|---|---|---|---|---|
-| `"position"` | 1.0 | 1.0 | false | false | `q_b = m·q_a + o` |
-| `"velocity"` | 1.0 | 0.0 | false | false | `v_b = m·v_a` |
-| `"effort"`   | 1.0 | 0.0 | true  | true  | `τ_a = m·τ_b` |
-| `"acceleration"` | 1.0 | 0.0 | false | false | `a_b = m·a_a` |
+| InterfaceId | `multiplier_scale` | `offset_scale` | `reverse_direction` | Effective relation |
+|---|---|---|---|---|
+| `"position"` | 1.0 | 1.0 | false | `q_b = m·q_a + o` |
+| `"velocity"` | 1.0 | 0.0 | false | `v_b = m·v_a` |
+| `"acceleration"` | 1.0 | 0.0 | false | `a_b = m·a_a` |
 
-An interface with no registered rule is treated as "affine does not propagate" — the subgraph will not use mimic relationships to satisfy it, and a missing input that could only be reached via affine projection through that interface will surface as missing.
+**Effort is intentionally not registered by default.** URDF mimic joints are kinematic constraints — typically enforced by control logic rather than physical gears or belts — so energy-conserving effort propagation is a strong assumption that could silently produce wrong joint torques. Users who actually have a physical coupling and want effort to propagate must opt in explicitly:
+
+```cpp
+analysis.set_affine_projection_rule(
+  InterfaceId{"effort"},
+  AffineProjectionRule{
+    .multiplier_scale = 1.0f,
+    .offset_scale = 0.0f,
+    .reverse_direction = true,  // τ_source = m·τ_target via energy conservation
+  });
+```
+
+An interface with no registered rule is treated as "affine does not propagate" — the subgraph will not use mimic relationships to satisfy it, and any unreachable output that could only be reached via affine projection through that interface will surface as unreachable.
 
 ### `TransmissionModel` (already correct — keep)
 ```cpp
@@ -92,6 +103,8 @@ virtual unique_ptr<const ComputeTransmission> build(
   span<const StateInterfaceId> output_ids) const = 0;
 ```
 No quantity, no direction. The model decides what to compute purely from which interfaces are listed in inputs vs outputs.
+
+**Contract: `build(input_ids, output_ids)` is only ever called with `(input_ids, output_ids)` matching a `TransmissionInstance` previously registered for this model.** Implementers can `assert` and assume validity. The builder enforces this by selecting `TransmissionInstance`s from the analysis and passing their exact `input_ids`/`output_ids` to the corresponding model's `build()`. Custom (non-ros2_control) `TransmissionModel` implementations should rely on this contract — there is no need for `build()` to return failure for "unsupported combinations" because the caller is structurally prevented from asking.
 
 ### `ComputeTransmission` (already correct — keep)
 Unchanged: `compute(inputs, outputs, scratch)`.
@@ -236,7 +249,7 @@ The algorithm runs in two distinct phases: first compute the full reachable set 
 1. **Initialize.** `known = initial_inputs`. `needed = initial_outputs \ initial_inputs`. For each interface in `initial_inputs`, record `producers::Input{input_index}` where `input_index` is its position in the span. (Interfaces that appear in both `initial_inputs` and `initial_outputs` are therefore handled correctly: they go into `known` with their `Input` producer, and never enter `needed`.)
 2. **Compute reachability fixed point.** Iterate until no new interfaces are added to `known`:
    - For every `TransmissionInstance T` in `analysis_.transmissions()`: if every interface in `T.input_ids` is in `known`, then every interface in `T.output_ids` becomes derivable. Record `T` as one of the candidate producers for each of those output interfaces.
-   - For every joint `J` whose `(J, I)` is in `known` and whose `I` has a registered `AffineProjectionRule`: every other joint `J'` in `analysis.affine_group_members(analysis.affine_root_of(J))` has `(J', I)` derivable via affine projection. The composed `(multiplier, offset)` is built by walking the affine edges from `J` to `J'` and applying the projection rule (`use_reciprocal_multiplier`, `multiplier_scale`, `offset_scale`, and the `reverse_direction` source/target swap). Record this as a candidate producer for `(J', I)`.
+   - For every joint `J` whose `(J, I)` is in `known` and whose `I` has a registered `AffineProjectionRule`: every other joint `J'` in `analysis.affine_group_members(analysis.affine_root_of(J))` has `(J', I)` derivable via affine projection. The composed `(multiplier, offset)` is built by walking the affine edges from `J` to `J'` (typically a short BFS within the joint group; the chain composition rule for two edges (m1, o1) and (m2, o2) is `(m1·m2, m2·o1 + o2)`) and then applying the projection rule (`multiplier_scale`, `offset_scale`, and the `reverse_direction` source/target swap). Record this as a candidate producer for `(J', I)`.
    - Add newly-derivable interfaces to `known`. Note: a newly-derivable interface is added to `known` regardless of whether it has 1 or more candidate producers — its "knownness" propagates downstream so the full reach is still computed.
 3. **Classify each interface in the converged candidate set.** A single pass:
    - 0 candidates → not produced (will only matter if it's a needed output).
@@ -283,9 +296,11 @@ struct JointMapBuildError {
   enum class Kind {
     MissingInputs,  // needed outputs are not derivable from the given inputs
     Ambiguous,      // one or more needed interfaces have multiple viable producers
-    Invalid,        // request is malformed (unknown interface ids, etc.)
   };
   Kind kind = Kind::MissingInputs;
+  // Human-readable message. Should reference TransmissionInstance::name when
+  // identifying transmissions in ambiguity reports or resolution hints, so users
+  // see "transmission `differential_left`" rather than "transmission 3".
   std::string message;
 
   // Populated when kind == MissingInputs.
@@ -402,8 +417,30 @@ Critical principle (from the user): `TransmissionAnalysis` must never know about
 
 ### URDF importer (lives outside `TransmissionAnalysis`)
 - Parses URDF and ros2_control transmission XML.
-- For each ros2_control transmission, instantiates the plugin via the loader, probes its supported combinations, and registers one `TransmissionInstance` per supported (direction × quantity) combination — each pointing at the same `Ros2ControlPluginTransmissionModel` (one model per ros2_control transmission, shared across the up-to-4 instances).
-- Mimic joints become `TransmissionAnalysis::add_affine_transmission(JointId, JointId, multiplier, offset)` calls. The importer is the only place that knows mimic joints exist. It does **not** need to register `AffineProjectionRule` entries for `"position"`/`"velocity"`/`"effort"`/`"acceleration"` — `TransmissionAnalysis` populates those defaults on construction. The importer only registers projection rules when overriding a default or adding a custom interface id.
+- For each ros2_control transmission, instantiates the plugin via the loader and **probes its supported combinations** by trying to `configure()` it with dummy actuator/joint handles for each of the (direction × quantity) combinations: actuator→joint position, joint→actuator position, actuator→joint velocity, joint→actuator velocity. Combinations where `configure()` succeeds (no exception, no error return) are considered supported. For each supported combination, register one `TransmissionInstance` pointing at the same `Ros2ControlPluginTransmissionModel` (one model per ros2_control transmission, shared across the up-to-4 instances).
+  - The probe only needs to verify configurability, not run a compute step. Dummy handles can hold throwaway storage.
+  - If probing turns out to be expensive or fragile in practice, a fallback heuristic is to consult the plugin's class name against a small known-table; for unknown classes, register all 4 combinations and let the user discover unsupported ones at runtime. The implementer should pick whichever proves more practical once they hit real plugin types.
+- Mimic joints become `TransmissionAnalysis::add_affine_transmission(JointId, JointId, multiplier, offset)` calls. The importer is the only place that knows mimic joints exist. It does **not** need to register `AffineProjectionRule` entries for `"position"`/`"velocity"`/`"acceleration"` — `TransmissionAnalysis` populates those defaults on construction. The importer only registers projection rules when overriding a default or adding a custom interface id (e.g. opting into the `"effort"` rule for a robot whose mimic joints really do reflect a physical coupling).
+
+---
+
+## FK plugin and RobotModel call sites
+
+The Eigen FK plugin currently consumes `JointMapBuilder` via `EigenForwardKinematicsPlugin::make_tree(joint_names, base_link_name, frames)`, where `joint_names` are plain strings. The new builder API takes `span<const StateInterfaceId>`. The FK plugin must therefore:
+
+1. Hold a reference to (or get one from) the `TransmissionAnalysis` so it can resolve names → `StateInterfaceId`s.
+2. Decide which `InterfaceId`(s) it wants to request. For the existing FK use case the plugin reads joint *positions* — so it requests `(joint_name, "position")` for each joint name. Velocity-aware FK paths (if any) would request `"velocity"` instead.
+3. Call `analysis.ensure_state_interface_id(NamedStateInterfaceDefinition{name, InterfaceId{"position"}})` for each input/output joint name to get the `StateInterfaceId`s, then pass those spans to `builder.build_expected(...)`.
+4. Handle the new `JointMapBuildError` (logging the message at minimum; ambiguity and unreachable-output errors during FK setup indicate a robot configuration bug).
+
+`RobotModel::get_joint_map_builder()` continues to return a `JointMapBuilder &` (the new `DefaultJointMapBuilder` constructed against the robot's `TransmissionAnalysis`). No interface change at the `RobotModel` layer beyond the builder concrete type swapping under the hood.
+
+**Files affected:**
+- `src/plugins/forward/eigen_forward_kinematics_plugin.cpp` — `make_tree` resolves joint names to `(joint_name, "position")` `StateInterfaceId`s before calling the builder; handles the new error type.
+- `include/arm_kinematics/forward/forward_kinematics_plugin.hpp` — `get_joint_map_builder()` virtual seam likely unchanged at the signature level (still returns `const JointMapBuilder &`); only the concrete returned object changes.
+- `src/common/robot_model.cpp` (and corresponding header) — `get_joint_map_builder()` constructs and returns a `DefaultJointMapBuilder` over the robot's `TransmissionAnalysis`.
+
+This is a real interface change for the FK plugin. It is intentionally in scope for this refactor (rather than deferred to a follow-up) so that the codebase compiles as a whole at the end.
 
 ---
 
@@ -428,7 +465,9 @@ Critical principle (from the user): `TransmissionAnalysis` must never know about
 - `include/arm_kinematics/joint_map/composite_joint_map.hpp/.cpp` — remove `compile_joint_map_plan_expected`; constructor builds segments directly
 - `include/arm_kinematics/joint_map/joint_map_builder.hpp` — finalize canonical signature (StateInterfaceId-based); define `JointMapBuildError`
 - `include/arm_kinematics/joint_map/default_joint_map_builder.hpp/.cpp` — use `TransmissionSubgraph`; fail-loudly-with-rich-error strategy
-- `src/joint_map/transmission_analysis_import.cpp` — drop `JointQuantity`/`PropagationDirection` internals; restructure `Ros2ControlPluginTransmission*` to load plugin once at import and dispatch from state interface ids; route mimic joints to joint-level `add_affine_transmission`
+- `src/joint_map/transmission_analysis_import.cpp` — drop `JointQuantity`/`PropagationDirection` internals; restructure `Ros2ControlPluginTransmission*` to load plugin once at import (try-configure probing for supported combinations) and dispatch from state interface ids; route mimic joints to joint-level `add_affine_transmission`
+- `src/plugins/forward/eigen_forward_kinematics_plugin.cpp` — `make_tree` resolves joint names → `(name, "position")` `StateInterfaceId`s against the robot's `TransmissionAnalysis` before calling the builder; handles the new `JointMapBuildError`
+- `src/common/robot_model.cpp` (+ header) — `get_joint_map_builder()` returns a `DefaultJointMapBuilder` constructed over the robot's `TransmissionAnalysis`
 - `CMakeLists.txt` — remove deleted source files; add new `transmission_subgraph.cpp` and `missing_input_resolution.cpp`; register the new `test/joint_map/` test directory and the split eigen FK test files
 
 **New:**
@@ -449,10 +488,11 @@ Critical principle (from the user): `TransmissionAnalysis` must never know about
 3. **Define `JointMapBuilder` shape.** Finalize the canonical `build_expected(span<const StateInterfaceId>, span<const StateInterfaceId>)` signature. Define `JointMapBuildError` and the `MissingInputResolution` helper header (impl can stub for now).
 4. **Build out `TransmissionSubgraph`.** Fields, invariants, algorithm, queries. The subgraph reads `AffineProjectionRule`s from analysis when projecting affine relationships per interface. Add focused unit tests in `test/joint_map/test_transmission_subgraph.cpp` against synthetic `TransmissionAnalysis` instances — no FK dependency.
 5. **Reconnect runtime joint maps.** Give `TransmissionJointMap` and `CompositeJointMap` direct constructors / factories the builder can call without any plan struct intermediary.
-6. **Rewire `DefaultJointMapBuilder`.** Construct a `TransmissionSubgraph`, fail loudly with rich error on ambiguous or incomplete plans (using `compute_missing_input_resolutions`), and otherwise emit a `JointMap` directly by walking the subgraph (`producer_of()` per output, `selected_transmissions()` in topological order for staging). Codebase compiles again from this step on.
-7. **Restructure ros2_control wrappers.** `Ros2ControlPluginTransmissionModel` loads its plugin once at import; `Compute` holds preallocated handles. Move mimic import to use joint-level `add_affine_transmission`. The default position/velocity/effort/acceleration projection rules are already populated by `TransmissionAnalysis`'s constructor — the importer does not need to register them.
-8. **Test split + updates.** Create `test/joint_map/` directory. Split `test_eigen_fk_mapper.cpp` into focused files. Update all call sites to the new API. Add `test_transmission_subgraph.cpp` and `test_missing_input_resolution.cpp`. Update CMakeLists.txt.
-9. **Build, run all tests.**
+6. **Rewire `DefaultJointMapBuilder`.** Construct a `TransmissionSubgraph`, fail loudly with rich error on ambiguous or incomplete plans (using `compute_missing_input_resolutions`), and otherwise emit a `JointMap` directly by walking the subgraph (`producer_of()` per output, `selected_transmissions()` in topological order for staging). Production `joint_map` code compiles from this step; the FK plugin and tests are still broken until later steps.
+7. **Restructure ros2_control wrappers.** `Ros2ControlPluginTransmissionModel` loads its plugin once at import (try-configure each combination with dummy handles to detect supported (direction × quantity) combos); `Compute` holds preallocated handles. Move mimic import to use joint-level `add_affine_transmission`. The default position/velocity/acceleration projection rules are already populated by `TransmissionAnalysis`'s constructor; the importer does not need to register them. (Effort is not a default — opt in if needed.)
+8. **Update FK plugin and RobotModel call sites.** Modify `EigenForwardKinematicsPlugin::make_tree` to resolve joint names → `StateInterfaceId`s against the robot's `TransmissionAnalysis` (defaulting to the `"position"` interface), then call the new `build_expected(span<const StateInterfaceId>, ...)`. Handle the new `JointMapBuildError`. Update `RobotModel::get_joint_map_builder()` to return a `DefaultJointMapBuilder`. From this step the entire production codebase compiles again — only test files remain on the old API.
+9. **Test split + updates.** Create `test/joint_map/` directory. Split `test_eigen_fk_mapper.cpp` into focused files. Update all call sites to the new API. Add `test_transmission_subgraph.cpp` and `test_missing_input_resolution.cpp`. Update CMakeLists.txt.
+10. **Build, run all tests.**
 
 ---
 
@@ -469,7 +509,8 @@ Critical principle (from the user): `TransmissionAnalysis` must never know about
     - completable plan with pure transmission graph
     - completable plan that requires affine projection through mimic joints (position rule)
     - completable plan that requires affine projection with the offset dropped (velocity rule)
-    - completable plan that requires affine projection with reversed direction (effort rule)
+    - completable plan that requires affine projection with reversed direction (effort rule, registered explicitly by the test)
+    - interface with no registered projection rule does **not** propagate via affine — surfaces as unreachable even when other interfaces on the same joint are known
     - viability filtering: a transmission with unreachable inputs is **not** counted as a candidate, even if its outputs are needed
     - unreachable-outputs reporting when needed outputs cannot be derived
     - `add_input` unblocks a previously-incomplete plan
