@@ -2,21 +2,16 @@
 // Created by Bailey Chessum on 21/03/2026.
 //
 
-#include "arm_kinematics/joint_map/joint_map_builder.hpp"
+// JointMapBuilder is a pure virtual interface — no out-of-line definitions are needed in the
+// base class. Concrete implementations (DefaultJointMapBuilder, FK-plugin-specific builders)
+// provide the build_expected body. The legacy `build()` compatibility wrapper that threw on
+// JointMapBuildError has been removed; callers use build_expected directly and pattern-match on
+// tl::expected.
 
-#include <stdexcept>
+#include "arm_kinematics/joint_map/joint_map_builder.hpp"
 
 namespace arm_kinematics {
 
-JointMap JointMapBuilder::build(
-  const std::vector<StateInterfaceDefinition> & input_names,
-  const std::vector<StateInterfaceDefinition> & output_names) const
-{
-  auto built = build_expected(input_names, output_names);
-  if (!built)
-    throw std::runtime_error(built.error());
+// (no out-of-line definitions)
 
-  return std::move(built.value());
-}
-
-} // namespace arm_kinematics
+}  // namespace arm_kinematics
