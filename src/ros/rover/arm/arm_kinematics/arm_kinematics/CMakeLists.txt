@@ -57,12 +57,10 @@ add_library(${PROJECT_NAME} SHARED
   src/joint_map/affine_joint_map.cpp
   src/joint_map/composite_joint_map.cpp
   src/joint_map/default_joint_map_builder.cpp
-  src/joint_map/transmission_analysis_joint_map_builder.cpp
   src/joint_map/transmission_analysis.cpp
   src/joint_map/transmission_analysis_import.cpp
   src/joint_map/ros2_control_transmission_plugin_loader.cpp
   src/joint_map/transmission_joint_map.cpp
-  src/joint_map/transmission_plan.cpp
   src/common/kinematics_params.cpp
   src/common/kinematics_base.cpp
   src/forward/forward_kinematics_plugin.cpp
@@ -82,8 +80,6 @@ add_library(${PROJECT_NAME} SHARED
   src/common/robot_model.cpp
   src/plugins/inverse/banksia_ik_plugin.cpp
   src/kinematics.cpp
-  include/arm_kinematics/joint_map/TransmissionSubgraph.cpp
-  include/arm_kinematics/joint_map/TransmissionSubgraph.hpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17

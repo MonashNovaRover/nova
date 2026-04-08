@@ -4,79 +4,10 @@
 
 #include "arm_kinematics/joint_map/composite_joint_map.hpp"
 
-#include "arm_kinematics/joint_map/affine_joint_map.hpp"
-#include "arm_kinematics/joint_map/transmission_joint_map.hpp"
-
 #include <algorithm>
 #include <stdexcept>
 
 namespace arm_kinematics {
-
-namespace {
-
-bool has_identity_output_indices(const std::vector<size_t> & output_indices)
-{
-  for (size_t i = 0; i < output_indices.size(); ++i) {
-    if (output_indices[i] != i) {
-      return false;
-    }
-  }
-  return true;
-}
-
-tl::expected<JointMap, std::string> compile_joint_map_plan_stage_expected(
-  const TransmissionAnalysis & analysis,
-  const JointMapPlanStage & joint_map_plan_stage,
-  const JointQuantity quantity)
-{
-  if (joint_map_plan_stage.segments.empty()) {
-    return tl::make_unexpected("Joint map plan stage does not contain any executable segments");
-  }
-
-  if (joint_map_plan_stage.segments.size() == 1) {
-    const auto & segment = joint_map_plan_stage.segments.front();
-    if (has_identity_output_indices(segment.output_indices)) {
-      if (const auto * affine_plan = std::get_if<AffinePlan>(&segment.plan)) {
-        return JointMap(AffineJointMap(*affine_plan));
-      }
-
-      const auto & transmission_plan = std::get<TransmissionPlan>(segment.plan);
-      auto compiled_transmission_plan = compile_transmission_plan_expected(analysis, transmission_plan, quantity);
-      if (!compiled_transmission_plan.has_value()) {
-        return tl::make_unexpected(compiled_transmission_plan.error());
-      }
-      return JointMap(TransmissionJointMap(std::move(*compiled_transmission_plan)));
-    }
-  }
-
-  std::vector<CompositeJointMapSegment> segments{};
-  segments.reserve(joint_map_plan_stage.segments.size());
-
-  for (const auto & segment : joint_map_plan_stage.segments) {
-    if (const auto * affine_plan = std::get_if<AffinePlan>(&segment.plan)) {
-      segments.push_back(CompositeJointMapSegment{
-        JointMap(AffineJointMap(*affine_plan)),
-        segment.output_indices
-      });
-      continue;
-    }
-
-    const auto & transmission_plan = std::get<TransmissionPlan>(segment.plan);
-    auto compiled_transmission_plan = compile_transmission_plan_expected(analysis, transmission_plan, quantity);
-    if (!compiled_transmission_plan.has_value()) {
-      return tl::make_unexpected(compiled_transmission_plan.error());
-    }
-
-    segments.push_back(CompositeJointMapSegment{
-      JointMap(TransmissionJointMap(std::move(*compiled_transmission_plan))),
-      segment.output_indices
-    });
-  }
-
-  return JointMap(CompositeJointMap(std::move(segments)));
-}
-
-} // namespace
 
 CompositeJointMap::CompositeJointMap(std::vector<CompositeJointMapSegment> segments)
   : segments_(std::move(segments))
@@ -218,30 +149,8 @@ void StagedJointMap::map(const span<const float> inputs, const span<float> outpu
   std::copy(final_outputs.begin(), final_outputs.end(), outputs.begin());
 }
 
-CompileJointMapPlanResult compile_joint_map_plan_expected(
-  const TransmissionAnalysis & analysis,
-  const JointMapPlan & joint_map_plan,
-  const JointQuantity quantity)
-{
-  if (joint_map_plan.stages.empty()) {
-    return tl::make_unexpected("Joint map plan does not contain any executable stages");
-  }
-
-  std::vector<JointMap> stages{};
-  stages.reserve(joint_map_plan.stages.size());
-  for (const auto & stage : joint_map_plan.stages) {
-    const auto compiled_stage = compile_joint_map_plan_stage_expected(analysis, stage, quantity);
-    if (!compiled_stage.has_value()) {
-      return tl::make_unexpected(compiled_stage.error());
-    }
-    stages.push_back(*compiled_stage);
-  }
-
-  if (stages.size() == 1) {
-    return stages.front();
-  }
-
-  return JointMap(StagedJointMap(std::move(stages)));
-}
+// NOTE: The legacy `compile_joint_map_plan_expected` and `compile_joint_map_plan_stage_expected`
+// helpers have been removed in step 2 of the state-interface refactor. The new direct
+// construction path that walks a TransmissionSubgraph will be added in step 5 / step 6.
 
 } // namespace arm_kinematics

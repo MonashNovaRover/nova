@@ -8,9 +8,6 @@
 #include <vector>
 
 #include "arm_kinematics/joint_map/joint_map.hpp"
-#include "arm_kinematics/joint_map/transmission_analysis.hpp"
-#include "arm_kinematics/joint_map/transmission_plan.hpp"
-#include "arm_kinematics/utilities/expected.hpp"
 #include "arm_kinematics/visibility_control.h"
 
 namespace arm_kinematics {
@@ -67,12 +64,9 @@ private:
   mutable Workspace workspace_{};
 };
 
-using CompileJointMapPlanResult = tl::expected<JointMap, std::string>;
-
-[[nodiscard]] ARM_KINEMATICS_PUBLIC CompileJointMapPlanResult compile_joint_map_plan_expected(
-  const TransmissionAnalysis & analysis,
-  const JointMapPlan & joint_map_plan,
-  JointQuantity quantity);
+// NOTE: The legacy `compile_joint_map_plan_expected` helper has been removed in step 2 of the
+// state-interface refactor (along with the JointMapPlan type it consumed). The new direct
+// construction path that walks a TransmissionSubgraph will be added in step 5 / step 6.
 
 } // namespace arm_kinematics
 
