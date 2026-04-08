@@ -21,110 +21,102 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
 
   useCartographerMarkers(map);
   useCartographerTracking(map);
-
   const { updateMousePosition, handleMapClickEvent } = useCartographerActions();
 
-  useEffect(() => {
-    setMap(undefined);
-  }, [mapTile]);
+  useEffect(()=>{
+    const initaliseMap  = ():maptilersdk.Map => {
+      
+      const newMap = new maptilersdk.Map({
+        maptilerLogo: false,
+        geolocateControl: false,
+        container: mapContainer.current ?? "ERROR",
+      });
+      newMap.on("load", () => {
+        newMap.addSource("trace", getLineGeoJSONSource([]));
 
+        newMap.addSource("measureLine", getLineGeoJSONSource([]));
 
-  useEffect(() => {
-    if ((map || !mapContainer.current)) return; // stops map from intializing more than once
+        newMap.addLayer({
+          id: "trace",
+          type: "line",
+          source: "trace",
+          paint: {
+            "line-color": "red",
+            "line-opacity": 0.75,
+            "line-width": 3,
+          },
+        });
 
+        newMap.addLayer({
+          id: "measure-points",
+          type: "circle",
+          source: "measureLine",
+          paint: {
+            "circle-radius": 5,
+            "circle-color": "#000",
+          },
+          filter: ["in", "$type", "Point"],
+        });
+        newMap.addLayer({
+          id: "measure-lines",
+          type: "line",
+          source: "measureLine",
+          layout: {
+            "line-cap": "round",
+            "line-join": "round",
+          },
+          paint: {
+            "line-color": "#000",
+            "line-width": 2.5,
+          },
+          filter: ["in", "$type", "LineString"],
+        });
+      });
+      return newMap
+    }
+    setMap(initaliseMap())
+  }, [])
+
+  useEffect(()=> {
+    if (!map) return;
     maptilersdk.config.apiKey = "PLZ ADD MEMES TO PR'S PLEASE"; // This Comment is to ensure that No API Key is Needed
-    const newMap = new maptilersdk.Map({
-      maptilerLogo: false,
-      geolocateControl: false,
-      container: mapContainer.current,
-      maxBounds: MAP_BOUNDS[mapTile],
-      style: {
+    map.setStyle({
         version: 8,
         name: "Cartographer",
         sources: {
           tiles: {
             tiles: [
-              `http://${baseStationIp}:8080/services/${mapTile}/maps/{z}/{x}/{y}.png`,
+              `http://${baseStationIp}:8080/services/${mapTile}/tiles/{z}/{x}/{y}.png`,
             ],
             type: "raster",
             bounds: MAP_BOUNDS[mapTile],
           },
         },
-        layers: [
-          {
-            id: "tiles",
-            source: "tiles",
-            type: "raster",
-          },
-        ],
-      },
-    });
+        layers: [{
+          id: "tiles",
+          source: "tiles",
+          type: "raster",
+        },],
+      })
+    map.setMaxBounds(MAP_BOUNDS[mapTile])
+  }, [baseStationIp, map, mapTile]);
 
-    newMap.on("load", () => {
-      newMap.addSource("trace", getLineGeoJSONSource([]));
-
-      newMap.addSource("measureLine", getLineGeoJSONSource([]));
-
-      newMap.addLayer({
-        id: "trace",
-        type: "line",
-        source: "trace",
-        paint: {
-          "line-color": "red",
-          "line-opacity": 0.75,
-          "line-width": 3,
-        },
+  useEffect(()=>{
+      // Add Event Listeners
+      if (!map) return;
+      map.on("mousemove", (event) => {
+        updateMousePosition({
+          lat: event.lngLat.lat,
+          long: event.lngLat.lng,
+        });
       });
-
-      newMap.addLayer({
-        id: "measure-points",
-        type: "circle",
-        source: "measureLine",
-        paint: {
-          "circle-radius": 5,
-          "circle-color": "#000",
-        },
-        filter: ["in", "$type", "Point"],
+      map.on("click", (event) => {
+        handleMapClickEvent({
+          lat: event.lngLat.lat,
+          long: event.lngLat.lng,
+        });
       });
-      newMap.addLayer({
-        id: "measure-lines",
-        type: "line",
-        source: "measureLine",
-        layout: {
-          "line-cap": "round",
-          "line-join": "round",
-        },
-        paint: {
-          "line-color": "#000",
-          "line-width": 2.5,
-        },
-        filter: ["in", "$type", "LineString"],
-      });
-    });
-
-    // Add Event Listeners
-    newMap.on("mousemove", (event) => {
-      updateMousePosition({
-        lat: event.lngLat.lat,
-        long: event.lngLat.lng,
-      });
-    });
-    newMap.on("click", (event) => {
-      handleMapClickEvent({
-        lat: event.lngLat.lat,
-        long: event.lngLat.lng,
-      });
-    });
-
-    setMap(newMap);
-  }, [
-    mapContainer,
-    map,
-    baseStationIp,
-    mapTile,
-    updateMousePosition,
-    handleMapClickEvent,
-  ]);
+  },[map, updateMousePosition, handleMapClickEvent])
 
   return (
     <div className="w-full h-full" ref={mapContainer}>
