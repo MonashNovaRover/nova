@@ -1,12 +1,11 @@
-#include <optional>
 #include <string>
 
 #include <gst/gst.h>
 #include "rclcpp/rclcpp.hpp"
-
 #include <camera_msgs/msg/camera.hpp>
 
 #include "cameras/pipeline.hpp"
+
 
 int crop43(const int width, const int height) {
   return (width-(height*4/3))/2;
@@ -25,9 +24,10 @@ std::string set_property(rclcpp::Node* streamer_node, const std::string serial, 
     std::string value;
     streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (profile != "NULL")
+    if (profile != "NULL") {
       streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
+    }
     streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     return value;
 }
@@ -37,9 +37,10 @@ int set_property(rclcpp::Node* streamer_node, const std::string serial, const st
     int value;
     streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (profile != "NULL")
+    if (profile != "NULL") {
       streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
+    }
     streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     return value;
 }
@@ -49,9 +50,10 @@ bool set_property(rclcpp::Node* streamer_node, const std::string serial, const s
     bool value;
     streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (profile != "NULL")
+    if (profile != "NULL") {
       streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
+    }
     streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     return value;
 }
@@ -216,6 +218,7 @@ void set_h264parse(GstElement* parse, const int interval = -1) {
         interval,
         NULL);
 }
+
 
 /*
  * V4l camera to webrtc pipeline

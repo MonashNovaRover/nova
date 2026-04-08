@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <gst/gst.h>
 #define PIPELINE_PREFIX     "serial_pipelines"
@@ -115,3 +117,4 @@ GstElement* h264software_pipeline(rclcpp::Node* log_node, h264softwarePipelinePr
 struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, vpXencProperties, scaleProperties, cropProperties, clockProperties, decodeProperties {};
 vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, vpXsoftwarePipelineProperties* props);
+
