@@ -118,7 +118,7 @@ arm:
           max_position: 3.14
           min_position: -3.14
           has_velocity_limits: true
-          max_velocity: 0.2
+          max_velocity: 0.1
         j5: # wrist pitch
           has_position_limits: true
           max_position: -0.1153
