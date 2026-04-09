@@ -7,6 +7,7 @@
 
 #include <pluginlib/class_loader.hpp>
 
+#include "arm_kinematics/common/robot_model.hpp"
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 #include "arm_kinematics/visibility_control.h"

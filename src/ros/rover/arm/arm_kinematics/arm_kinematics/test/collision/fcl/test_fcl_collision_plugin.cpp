@@ -10,7 +10,8 @@
 
 #include "arm_kinematics/forward/utilities/compute_joint_tree.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
-#include "arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
+#include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/plugins/forward/default_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/state_interface_definition.hpp"
@@ -28,7 +29,7 @@ using arm_kinematics::FrameDefinitions;
 using arm_kinematics::JointMap;
 using arm_kinematics::JointMapBuilder;
 using arm_kinematics::ForwardKinematicsPlugin;
-using arm_kinematics::EigenForwardKinematicsPlugin;
+using arm_kinematics::DefaultForwardKinematicsPlugin;
 using arm_kinematics::AnalysisTree;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
@@ -126,7 +127,7 @@ protected:
     robot_model_ = std::make_unique<RobotModel>(robot_description_);
     kinematics_params_ = std::make_shared<KinematicsParams>(*node_);
 
-    fk_plugin_ = std::make_shared<EigenForwardKinematicsPlugin>();
+    fk_plugin_ = std::make_shared<DefaultForwardKinematicsPlugin>();
     init_result_ = fk_plugin_->initialize(*node_, *robot_model_, kinematics_params_);
     ASSERT_TRUE(init_result_);
 

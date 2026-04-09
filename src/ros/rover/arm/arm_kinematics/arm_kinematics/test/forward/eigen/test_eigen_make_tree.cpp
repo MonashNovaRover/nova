@@ -1,7 +1,7 @@
 //
 // Created by Bailey Chessum on 9/4/26.
 //
-// `EigenForwardKinematicsPlugin::make_tree` end-to-end tests with synthetic URDFs.
+// `DefaultForwardKinematicsPlugin::make_tree` end-to-end tests with synthetic URDFs.
 //
 
 #include <gtest/gtest.h>
@@ -25,7 +25,7 @@
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
 #include "arm_kinematics/joint_map/state_interface_definition.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
-#include "arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
+#include "arm_kinematics/plugins/forward/default_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/utilities/aliases.hpp"
 #include "arm_kinematics/utilities/order.hpp"
 #include "arm_kinematics/utilities/span.hpp"
@@ -146,7 +146,7 @@ TEST_F(SimpleUrdfTests, AnalysisTreeBuildsExpectedJointPosesFromUrdf)
   // This test exercises AnalysisTree internals (sort_joints, make_compute_joint_tree, pose
   // computation) — independent of the FK plugin's make_tree, but kept here because it's
   // load-bearing for the FK pipeline that follows.
-  ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
+  ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<DefaultForwardKinematicsPlugin>();
   ASSERT_TRUE(plugin->initialize(*node_, *robot_model_, kinematics_params_));
 
   const float theta = static_cast<float>(M_PI / 2.0);
@@ -195,8 +195,8 @@ TEST_F(SimpleUrdfTests, MakeTreeProducesCorrectFrameTransforms)
   FrameDefinitions frames = {std::vector<std::string>{"link1", "link2"}};
   const std::size_t output_count = frames.origins.size();
 
-  EigenForwardKinematicsPlugin::SharedPtr plugin =
-    std::make_shared<EigenForwardKinematicsPlugin>();
+  DefaultForwardKinematicsPlugin::SharedPtr plugin =
+    std::make_shared<DefaultForwardKinematicsPlugin>();
   ASSERT_TRUE(plugin->initialize(*node_, *robot_model_, kinematics_params_));
 
   const float theta = static_cast<float>(M_PI / 2.0);
@@ -214,7 +214,7 @@ TEST_F(SimpleUrdfTests, MakeTreeProducesCorrectFrameTransforms)
   auto tree_ = std::move(result.value().tree);
   ASSERT_TRUE(tree_) << "make_tree returned null tree";
 
-  auto * tree = dynamic_cast<EigenForwardKinematicsPlugin::TreeImpl *>(tree_.get());
+  auto * tree = dynamic_cast<DefaultForwardKinematicsPlugin::TreeImpl *>(tree_.get());
   ASSERT_TRUE(tree) << "Failed to cast to TreeImpl";
 
   EXPECT_EQ(tree->get_joint_map().input_count(), 2u);
@@ -241,7 +241,7 @@ TEST_F(SimpleUrdfTests, AnalysisTreeReversedSubtreeReorientsJoints)
   // The reversed-subtree case: build a subtree rooted at a non-root link, verify the joint
   // origins flip correctly. This is an AnalysisTree internals test; the FK plugin doesn't
   // directly drive it.
-  ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<EigenForwardKinematicsPlugin>();
+  ForwardKinematicsPlugin::SharedPtr plugin = std::make_shared<DefaultForwardKinematicsPlugin>();
   ASSERT_TRUE(plugin->initialize(*node_, *robot_model_, kinematics_params_));
 
   AnalysisTree anal(plugin->get_robot_model().get_urdf_model());
@@ -397,7 +397,7 @@ protected:
     node_ = std::make_shared<rclcpp::Node>("test_eigen_make_tree_fixed_joint");
     kinematics_params_ = std::make_shared<KinematicsParams>(*node_);
 
-    plugin_ = std::make_shared<EigenForwardKinematicsPlugin>();
+    plugin_ = std::make_shared<DefaultForwardKinematicsPlugin>();
     init_result_ = plugin_->initialize(*node_, *robot_model_, kinematics_params_);
   }
 

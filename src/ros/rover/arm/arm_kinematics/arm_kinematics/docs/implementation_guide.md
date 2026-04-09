@@ -195,9 +195,9 @@ The key implementation point is that the FK tree itself does not care where a jo
 It only wants a dense vector in the order its compute arrays expect.
 `JointMap` is the adapter that makes that possible.
 
-### 6. The concrete Eigen FK plugin
+### 6. The concrete default FK plugin
 
-[`EigenForwardKinematicsPlugin`](../include/arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp) packages the above pieces into the default FK implementation.
+[`DefaultForwardKinematicsPlugin`](../include/arm_kinematics/plugins/forward/default_forward_kinematics_plugin.hpp) packages the above pieces into the default FK implementation.
 
 Its `TreeImpl` holds:
 

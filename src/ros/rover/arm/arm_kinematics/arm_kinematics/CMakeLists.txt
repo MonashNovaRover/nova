@@ -41,7 +41,7 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-pluginlib_export_plugin_description_file(arm_kinematics plugins.xml)
+# pluginlib_export_plugin_description_file(arm_kinematics plugins.xml)
 
 include_directories(
   include
@@ -76,7 +76,7 @@ add_library(${PROJECT_NAME} SHARED
   src/forward/frame_definitions.cpp
   src/forward/utilities/compute_joint_tree.cpp
   src/forward/utilities/compute_frame_tree.cpp
-  src/plugins/forward/eigen_forward_kinematics_plugin.cpp
+  src/plugins/forward/default_forward_kinematics_plugin.cpp
   src/forward/utilities/analysis_tree.cpp
   src/plugin_loader.cpp
   src/collision/collision_manager.cpp
@@ -171,10 +171,10 @@ target_link_libraries(test_manual
 target_include_directories(test_manual PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
-install(TARGETS
-  test_manual
-  DESTINATION lib/${PROJECT_NAME}
-)
+# install(TARGETS
+#   test_manual
+#   DESTINATION lib/${PROJECT_NAME}
+# )
 
 ament_export_targets(
   #  ${PROJECT_NAME}Targets

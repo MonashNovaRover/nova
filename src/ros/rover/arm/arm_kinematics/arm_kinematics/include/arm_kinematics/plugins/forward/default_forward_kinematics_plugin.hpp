@@ -2,8 +2,8 @@
 // Created by Bailey Chessum on 17/11/2025.
 //
 
-#ifndef ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP
-#define ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP
+#ifndef ARM_KINEMATICS_DEFAULT_FORWARD_KINEMATICS_PLUGIN_HPP
+#define ARM_KINEMATICS_DEFAULT_FORWARD_KINEMATICS_PLUGIN_HPP
 
 #include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
 #include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
@@ -16,7 +16,14 @@
 
 namespace arm_kinematics {
 
-class ARM_KINEMATICS_PUBLIC EigenForwardKinematicsPlugin : public ForwardKinematicsPlugin {
+/**
+ * Default `ForwardKinematicsPlugin` implementation. Builds a `ComputeFrameTree` from the
+ * robot's URDF + a runtime `JointMap` from the FK plugin's `DefaultJointMapBuilder`. The
+ * "default" naming reflects that this is the canonical implementation shipped with the
+ * package; the underlying math is currently Eigen-based but that's an implementation detail
+ * users shouldn't pin to.
+ */
+class ARM_KINEMATICS_PUBLIC DefaultForwardKinematicsPlugin : public ForwardKinematicsPlugin {
 public:
   /**
    * ForwardKinematicsPlugin::Tree implementation using ComputeFrameTree
@@ -63,7 +70,7 @@ public:
   /**
    * \copydoc ForwardKinematicsPlugin::make_tree(span<const StateInterfaceId>, ...)
    */
-  tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+  tl::expected<MakeTreeResult, MakeTreeError> make_tree(
     span<const StateInterfaceId> input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames,
@@ -96,4 +103,4 @@ private:
 
 } // arm_kinematics
 
-#endif //ARM_KINEMATICS_EIGEN_FORWARD_KINEMATICS_PLUGIN_HPP
+#endif //ARM_KINEMATICS_DEFAULT_FORWARD_KINEMATICS_PLUGIN_HPP

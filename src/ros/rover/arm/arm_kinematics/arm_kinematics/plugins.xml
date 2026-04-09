@@ -1,7 +1,7 @@
 <library path="arm_kinematics">
   <!-- Forward -->
-  <class name="arm_kinematics/EigenForwardKinematicsPlugin" type="arm_kinematics::EigenForwardKinematicsPlugin" base_class_type="arm_kinematics::ForwardKinematicsPlugin">
-    <description>A generic data-oriented FK implementation. Does not take poses from tf2.</description>
+  <class name="arm_kinematics/DefaultForwardKinematicsPlugin" type="arm_kinematics::DefaultForwardKinematicsPlugin" base_class_type="arm_kinematics::ForwardKinematicsPlugin">
+    <description>The default `ForwardKinematicsPlugin` implementation. A generic data-oriented FK implementation. Does not take poses from tf2.</description>
   </class>
 
   <!-- Inverse -->

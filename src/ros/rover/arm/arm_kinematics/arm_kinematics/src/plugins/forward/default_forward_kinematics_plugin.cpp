@@ -2,8 +2,9 @@
 // Created by Bailey Chessum on 17/11/2025.
 //
 
-#include "../../../include/arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
+#include "../../../include/arm_kinematics/plugins/forward/default_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
+#include "arm_kinematics/common/robot_model.hpp"
 
 #include <sstream>
 #include <utility>
@@ -13,9 +14,9 @@ namespace arm_kinematics {
 
 static_assert(std::is_base_of_v<
   ForwardKinematicsPlugin::Tree,
-  EigenForwardKinematicsPlugin::TreeImpl>);
+  DefaultForwardKinematicsPlugin::TreeImpl>);
 
-const JointMapBuilder & EigenForwardKinematicsPlugin::get_joint_map_builder() const noexcept
+const JointMapBuilder & DefaultForwardKinematicsPlugin::get_joint_map_builder() const noexcept
 {
   // One-shot lazy init. The captured analysis reference is valid for as long as
   // `get_transmission_analysis()` returns a stable object — which it does for the default
@@ -27,8 +28,8 @@ const JointMapBuilder & EigenForwardKinematicsPlugin::get_joint_map_builder() co
   return *joint_map_builder_;
 }
 
-tl::expected<ForwardKinematicsPlugin::MakeTreeResult, JointMapBuildError>
-EigenForwardKinematicsPlugin::make_tree(
+tl::expected<ForwardKinematicsPlugin::MakeTreeResult, ForwardKinematicsPlugin::MakeTreeError>
+DefaultForwardKinematicsPlugin::make_tree(
   const span<const StateInterfaceId> input_state_interfaces,
   const std::string & base_link_name,
   const FrameDefinitions & frames,
@@ -73,10 +74,10 @@ EigenForwardKinematicsPlugin::make_tree(
     // internal inconsistency between the URDF (which feeds the analysis) and the analysis
     // tree (which feeds the FK subtree). Surface as UnknownInterface so the user can
     // diagnose.
-    JointMapBuildError err{};
-    err.kind = JointMapBuildError::Kind::UnknownInterface;
+    JointMapBuildError joint_map_err{};
+    joint_map_err.kind = JointMapBuildError::Kind::UnknownInterface;
     std::ostringstream oss;
-    oss << "EigenForwardKinematicsPlugin::make_tree: " << unknown_mapper_joints.size()
+    oss << "DefaultForwardKinematicsPlugin::make_tree: " << unknown_mapper_joints.size()
         << " joint(s) referenced by the FK analysis subtree are not registered in the FK "
         << "plugin's transmission analysis: [";
     constexpr std::size_t kMaxFormatted = 5;
@@ -89,26 +90,41 @@ EigenForwardKinematicsPlugin::make_tree(
       oss << ", ...and " << (unknown_mapper_joints.size() - shown) << " more";
     }
     oss << "]";
-    err.message = oss.str();
+    joint_map_err.message = oss.str();
+
+    MakeTreeError err{};
+    err.kind = MakeTreeError::Kind::UnknownInterface;
+    err.message = joint_map_err.message;
+    err.joint_map_error = std::move(joint_map_err);
     return tl::unexpected(std::move(err));
   }
 
   // Sort frames such that any root-relative frames are placed at the end of the array.
   auto frame_order = subtree.sort_frames();
 
-  // Create the compute tree.
+  // Create the compute tree. A failure here is a real error (bad URDF parent reference,
+  // unresolved frame, etc.) — surface it as a MakeTreeError::FrameTreeFailed instead of
+  // silently substituting an empty tree.
   auto compute_frame_tree = subtree.make_compute_frame_tree();
   if (!compute_frame_tree.has_value()) {
-    RCLCPP_ERROR(get_logger(), "Failed to make FK Tree: %s", compute_frame_tree.error().data());
-    compute_frame_tree = ComputeFrameTree();  // Use an empty tree that will do nothing.
+    MakeTreeError err{};
+    err.kind = MakeTreeError::Kind::FrameTreeFailed;
+    err.message = std::string{"DefaultForwardKinematicsPlugin::make_tree: failed to build "
+                              "compute frame tree: "} + std::string{compute_frame_tree.error()};
+    return tl::unexpected(std::move(err));
   }
 
-  // Build the runtime joint map via the new builder API.
+  // Build the runtime joint map via the builder API.
   auto joint_map_result = joint_map_builder.build_expected(
     input_state_interfaces,
     span<const StateInterfaceId>(mapper_output_sids.data(), mapper_output_sids.size()));
   if (!joint_map_result.has_value()) {
-    return tl::unexpected(std::move(joint_map_result.error()));
+    MakeTreeError err{};
+    err.kind = MakeTreeError::Kind::JointMapBuildFailed;
+    err.message = "DefaultForwardKinematicsPlugin::make_tree: joint map builder rejected the "
+                  "request: " + joint_map_result.error().message;
+    err.joint_map_error = std::move(joint_map_result.error());
+    return tl::unexpected(std::move(err));
   }
 
   auto ptr = std::make_unique<TreeImpl>(
@@ -122,7 +138,7 @@ EigenForwardKinematicsPlugin::make_tree(
   };
 }
 
-bool EigenForwardKinematicsPlugin::on_initialize() {
+bool DefaultForwardKinematicsPlugin::on_initialize() {
   // TODO: Could we precompute joints we wouldn't have the values for here?
 
   return true;
@@ -132,4 +148,4 @@ bool EigenForwardKinematicsPlugin::on_initialize() {
 
 #include <pluginlib/class_list_macros.hpp>
 
-PLUGINLIB_EXPORT_CLASS(arm_kinematics::EigenForwardKinematicsPlugin, arm_kinematics::ForwardKinematicsPlugin)
+PLUGINLIB_EXPORT_CLASS(arm_kinematics::DefaultForwardKinematicsPlugin, arm_kinematics::ForwardKinematicsPlugin)

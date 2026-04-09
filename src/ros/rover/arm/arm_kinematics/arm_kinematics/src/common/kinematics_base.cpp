@@ -4,6 +4,10 @@
 
 #include "arm_kinematics/common/kinematics_base.hpp"
 
+#include <stdexcept>
+
+#include "arm_kinematics/common/robot_model.hpp"
+
 namespace arm_kinematics {
 
 bool KinematicsBase::initialize_base(

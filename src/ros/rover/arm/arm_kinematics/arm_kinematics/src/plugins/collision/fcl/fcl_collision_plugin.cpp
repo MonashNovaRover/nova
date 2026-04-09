@@ -5,6 +5,7 @@
 #include "arm_kinematics/plugins/collision/fcl/fcl_collision_plugin.hpp"
 
 #include <fcl/fcl.h>
+#include <rclcpp/logging.hpp>
 
 namespace arm_kinematics {
 
@@ -150,8 +151,19 @@ bool FclCollisionPlugin::on_initialize(
   colliders_ = {};
   colliders_.reserve(collider_geometries.size());
 
+  // Note: when a geometry is skipped here, the per-collider `i` index baked into UserData
+  // below stays aligned with the input collider_geometries index — i.e. user_data values may
+  // have gaps after a skipped geometry, but they always trace back to the original URDF
+  // collider position. Downstream consumers walking colliders_ should not assume contiguous
+  // user_data indices.
   for (size_t i = 0; i < collider_geometries.size(); ++i) {
     std::shared_ptr geometry = geometry_cache_.from_urdf(collider_geometries[i]);
+    if (!geometry) {
+      RCLCPP_WARN(
+        get_logger(),
+        "FclCollisionPlugin: skipping collider %zu (unsupported or invalid geometry)", i);
+      continue;
+    }
     auto& collider = colliders_.emplace_back(geometry, Eigen::Isometry3f::Identity());
 
     collider.setUserData(reinterpret_cast<void*>(static_cast<std::uintptr_t>(i)));

@@ -66,7 +66,7 @@ ForwardKinematicsPlugin::SharedPtr PluginLoader::make_fk() {
   const ParamReader params(node_.get_node_parameters_interface());
   const auto name = params.get<std::string>(
     "kinematics.forward_kinematics_plugin",
-    "arm_kinematics/EigenForwardKinematicsPlugin");
+    "arm_kinematics/DefaultForwardKinematicsPlugin");
 
   return make_fk(name);
 }

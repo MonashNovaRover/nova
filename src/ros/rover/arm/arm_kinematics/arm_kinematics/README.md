@@ -88,7 +88,7 @@ Avoid introducing heap allocation or repeated name-based lookups into code that 
 
 The default concrete implementations are:
 
-- `EigenForwardKinematicsPlugin`
+- `DefaultForwardKinematicsPlugin`
 - `FclCollisionPlugin`
 - `BanksiaIKPlugin`
 
@@ -99,13 +99,13 @@ For maintainers, this is the shortest useful path through the codebase:
 1. [`docs/implementation_guide.md`](docs/implementation_guide.md)
 2. [`docs/joint_map_guide.md`](docs/joint_map_guide.md)
 3. `RobotModel`, `JointMap`, and `PluginLoader`
-4. `ForwardKinematicsPlugin` and `EigenForwardKinematicsPlugin`
+4. `ForwardKinematicsPlugin` and `DefaultForwardKinematicsPlugin`
 5. `CollisionManager` and `FclCollisionPlugin`
 6. the tests in [`test/`](test)
 
-[`kinematics.hpp`](include/arm_kinematics/kinematics.hpp) provides an example of how you can initialize various data 
-structures. You do not need to use this type, and I encourage you to build your own Kinematics class specific to your 
-controller, using [`kinematics.hpp`](include/arm_kinematics/kinematics.hpp) as a guide.
+Build your own controller-specific Kinematics aggregate by holding a `RobotModel::UniquePtr`, then constructing the
+plugins you need from a `PluginLoader`. There is no one-size-fits-all aggregate type — wire up only the pieces your
+controller actually uses.
 
 ## Working Style In This Package
 

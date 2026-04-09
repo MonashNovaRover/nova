@@ -11,6 +11,8 @@
 
 #include <urdf/model.h>
 
+#include "arm_kinematics/common/robot_model.hpp"
+
 namespace arm_kinematics {
 
 bool ForwardKinematicsPlugin::initialize(
@@ -32,7 +34,7 @@ const TransmissionAnalysis & ForwardKinematicsPlugin::get_transmission_analysis(
   return get_robot_model().get_default_transmission_analysis();
 }
 
-tl::expected<ForwardKinematicsPlugin::MakeTreeResult, JointMapBuildError>
+tl::expected<ForwardKinematicsPlugin::MakeTreeResult, ForwardKinematicsPlugin::MakeTreeError>
 ForwardKinematicsPlugin::make_tree(
   const span<const NamedStateInterfaceDefinition> named_input_state_interfaces,
   const std::string & base_link_name,
@@ -69,8 +71,8 @@ ForwardKinematicsPlugin::make_tree(
   }
 
   if (!unknown.empty()) {
-    JointMapBuildError err{};
-    err.kind = JointMapBuildError::Kind::UnknownInterface;
+    JointMapBuildError joint_map_err{};
+    joint_map_err.kind = JointMapBuildError::Kind::UnknownInterface;
     std::ostringstream oss;
     oss << "ForwardKinematicsPlugin::make_tree: " << unknown.size()
         << " requested state interface(s) are not registered in the FK plugin's analysis "
@@ -79,13 +81,18 @@ ForwardKinematicsPlugin::make_tree(
     const std::size_t shown = std::min(unknown.size(), kMaxFormatted);
     for (std::size_t i = 0; i < shown; ++i) {
       if (i > 0) oss << ", ";
-      oss << unknown[i].joint_name << "." << unknown[i].interface_id.name;
+      oss << unknown[i].joint_name << "/" << unknown[i].interface_id.name;
     }
     if (unknown.size() > shown) {
       oss << ", ...and " << (unknown.size() - shown) << " more";
     }
     oss << "]";
-    err.message = oss.str();
+    joint_map_err.message = oss.str();
+
+    MakeTreeError err{};
+    err.kind = MakeTreeError::Kind::UnknownInterface;
+    err.message = joint_map_err.message;
+    err.joint_map_error = std::move(joint_map_err);
     return tl::unexpected(std::move(err));
   }
 

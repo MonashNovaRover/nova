@@ -6,6 +6,7 @@
 #define ARM_KINEMATICS_FORWARD_KINEMATICS_PLUGIN_HPP
 
 #include <arm_kinematics/visibility_control.h>
+#include <optional>
 #include <string>
 #include <vector>
 #include <urdf/model.h>
@@ -62,11 +63,38 @@ public:
      */
     virtual void position_fk(const std::vector<float> & joint_states, Isometry3fVector & link_poses) = 0;
 
-    // TODO: velocity_fk?
-
   protected:
     explicit Tree(const size_t link_count) : link_count(link_count) {}
     const size_t link_count = 0;
+  };
+
+  /**
+   * Error returned by `make_tree` when tree construction cannot complete. Tree construction
+   * has several distinct failure modes — joint-map construction failure, frame-tree
+   * construction failure, name-resolution failure for the convenience overload — and squashing
+   * them all into one type would lose actionable detail. The `kind` discriminator says which
+   * failure occurred; `joint_map_error` is populated when the underlying cause is a structured
+   * `JointMapBuildError` (kinds `JointMapBuildFailed` and `UnknownInterface`).
+   */
+  struct MakeTreeError {
+    enum class Kind {
+      /// The joint map builder rejected the request. `joint_map_error` carries the structured
+      /// reason (missing inputs, ambiguity, unknown interface from the builder's perspective).
+      JointMapBuildFailed,
+      /// `AnalysisTree::make_compute_frame_tree()` failed (e.g. unresolved frame parent, bad
+      /// link reference). The error string from the analysis tree lives in `message`.
+      FrameTreeFailed,
+      /// One or more `NamedStateInterfaceDefinition` entries passed to the convenience overload
+      /// could not be resolved against the FK plugin's analysis (joint name not in URDF, or
+      /// interface id not registered for the joint). `joint_map_error` is populated with the
+      /// equivalent `JointMapBuildError::Kind::UnknownInterface` slice.
+      UnknownInterface,
+    };
+    Kind kind = Kind::JointMapBuildFailed;
+    std::string message{};
+    /// Populated when `kind` is `JointMapBuildFailed` or `UnknownInterface`. Empty for
+    /// `FrameTreeFailed`.
+    std::optional<JointMapBuildError> joint_map_error{};
   };
 
   /**
@@ -74,9 +102,12 @@ public:
    * provide you with the tree that you created, but also with information about how you might need to rearrange your
    * data to match the input order it needs. Hence, this struct exists. Sorry!
    *
-   * Get data out with structured bindings:
+   * `make_tree` returns `tl::expected<MakeTreeResult, MakeTreeError>`. On success, structured
+   * bindings work directly on `value()`:
    * \code
-   *   auto [tree, order] = plugin->make_tree({"j1", "j2"}, "base_link", {"ee_link"});
+   *   auto result = plugin->make_tree({"j1", "j2"}, "base_link", {"ee_link"});
+   *   if (!result) { handle(result.error()); return; }
+   *   auto & [tree, order] = result.value();
    * \endcode
    */
   struct MakeTreeResult {
@@ -124,15 +155,16 @@ public:
    * \param joint_map_builder[in] The builder used to construct the joint map needed for the
    *   tree. Must already have its analysis populated with all the joints/state interfaces the
    *   FK tree references.
-   * \returns A `tl::expected` wrapping the tree on success, or a `JointMapBuildError` on
-   *   failure (e.g. unproducible outputs, ambiguous transmissions).
+   * \returns A `tl::expected` wrapping the tree on success, or a `MakeTreeError` on failure.
+   *   Failure modes include joint-map construction failure (`JointMapBuildFailed` — wraps the
+   *   underlying `JointMapBuildError`) and frame-tree construction failure (`FrameTreeFailed`).
    *
    * \warning Likely expensive, and obviously not real-time safe.
    * \note From testing, takes < .1 millisecond on a simple URDF.
    * \warning The parent `ForwardKinematicsPlugin` must stay alive for the lifetime of any
    *   trees it produces; tree implementations may reference memory from the parent.
    */
-  virtual tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+  virtual tl::expected<MakeTreeResult, MakeTreeError> make_tree(
     span<const StateInterfaceId> input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames,
@@ -146,8 +178,9 @@ public:
    * Default implementation looks up each `(joint_name, interface_id)` pair in
    * `get_transmission_analysis()`. **The analysis must already have these joints and
    * interfaces registered** (typically populated at URDF parse time). If any name/interface
-   * is unknown, returns a `JointMapBuildError` with `Kind::UnknownInterface` and lists the
-   * unresolvable entries in the message.
+   * is unknown, returns a `MakeTreeError` with `Kind::UnknownInterface` (the wrapped
+   * `joint_map_error` carries a `JointMapBuildError::Kind::UnknownInterface` slice with the
+   * full list of unresolvable entries).
    *
    * Subclasses can override if they want a different resolution policy.
    *
@@ -155,14 +188,14 @@ public:
    * exists for callers that have joint names + interface ids on hand and don't want to do the
    * resolution themselves.
    */
-  virtual tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+  virtual tl::expected<MakeTreeResult, MakeTreeError> make_tree(
     span<const NamedStateInterfaceDefinition> named_input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames,
     const JointMapBuilder & joint_map_builder);
 
   /// Helper overload — defaults the builder to `get_joint_map_builder()`. SID fast path.
-  tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+  tl::expected<MakeTreeResult, MakeTreeError> make_tree(
     span<const StateInterfaceId> input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames)
@@ -171,7 +204,7 @@ public:
   }
 
   /// Helper overload — defaults the builder to `get_joint_map_builder()`. Named convenience.
-  tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+  tl::expected<MakeTreeResult, MakeTreeError> make_tree(
     span<const NamedStateInterfaceDefinition> named_input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames)

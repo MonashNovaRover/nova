@@ -17,6 +17,8 @@
 
 namespace arm_kinematics {
 
+class RobotModel;
+
 /**
  * Base class for the two kinematics plugin types,
  *   - ForwardKinematicsPlugin
