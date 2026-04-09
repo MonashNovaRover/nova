@@ -592,3 +592,134 @@ TEST_F(DefaultJointMapBuilderTest, Error_TransmissionModelReturnsNull_Propagates
     },
     std::invalid_argument);
 }
+
+// ===========================================================================
+// Second-order ambiguity reported through build_expected
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Error_SecondOrderAmbiguity_ReportedThroughBuildExpected)
+{
+  // Same scenario as Ambiguity_DownstreamProducerWithCleanAlternativeStaysAmbiguous in the
+  // reachability tests. Verify the builder reports x as ambiguous (with both T1 and T2 in
+  // the snapshot) AND surfaces b as a relevant blocking ambiguity.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_a", "j_b", "j_c", "j_x"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
+  const auto c = ensure_state(analysis, "j_c", InterfaceId{"position"});
+  const auto x = ensure_state(analysis, "j_x", InterfaceId{"position"});
+
+  const auto m = analysis.add_model(std::make_unique<StubTransmissionModel>());
+  analysis.add_transmission(m, {a}, {x}, "T1");
+  analysis.add_transmission(m, {b}, {x}, "T2");
+  analysis.add_transmission(m, {c}, {b}, "T3");
+  analysis.add_transmission(m, {c}, {b}, "T4");
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{a, c}, std::vector<StateInterfaceId>{x});
+
+  ASSERT_FALSE(result.has_value());
+  const auto & err = result.error();
+  EXPECT_EQ(err.kind, JointMapBuildError::Kind::Ambiguous);
+  // x and b should both appear in ambiguous_interfaces (x directly, b transitively).
+  // Note: the exact contents depend on the diagnose attribution walk; both should be
+  // reported because x is directly requested and b is in x's potential producer chain
+  // through T2.
+  bool saw_x = false, saw_b = false;
+  for (const auto & ai : err.ambiguous_interfaces) {
+    if (ai.interface == x) {
+      saw_x = true;
+      EXPECT_EQ(ai.candidates.size(), 2u);  // T1 and T2
+    }
+    if (ai.interface == b) saw_b = true;
+  }
+  EXPECT_TRUE(saw_x);
+  EXPECT_TRUE(saw_b);
+}
+
+// ===========================================================================
+// Forward/inverse transmission pairs (the analysis is not a DAG and that's OK)
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_MotorToJoint)
+{
+  // T_fwd: motor → joint, joint = 5*motor.
+  // T_inv: joint → motor, motor = joint/5 (i.e., 0.2*joint).
+  // Inputs: {motor}, request: {joint}.
+  // Expected: joint = 5 * motor.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_motor", "j_joint"});
+  const auto motor = ensure_state(analysis, "j_motor", InterfaceId{"position"});
+  const auto joint = ensure_state(analysis, "j_joint", InterfaceId{"position"});
+
+  const auto m_fwd = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{5.0F}, std::vector<float>{0.0F}, 1, 1));
+  const auto m_inv = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{0.2F}, std::vector<float>{0.0F}, 1, 1));
+  analysis.add_transmission(m_fwd, {motor}, {joint}, "T_fwd");
+  analysis.add_transmission(m_inv, {joint}, {motor}, "T_inv");
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{motor}, std::vector<StateInterfaceId>{joint});
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<float> in{3.0F};
+  std::vector<float> out(1, 0.0F);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 15.0F));  // joint = 5*3
+}
+
+TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_JointToMotor)
+{
+  // Same setup, opposite direction. Inputs: {joint}, request: {motor}.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_motor", "j_joint"});
+  const auto motor = ensure_state(analysis, "j_motor", InterfaceId{"position"});
+  const auto joint = ensure_state(analysis, "j_joint", InterfaceId{"position"});
+
+  const auto m_fwd = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{5.0F}, std::vector<float>{0.0F}, 1, 1));
+  const auto m_inv = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{0.2F}, std::vector<float>{0.0F}, 1, 1));
+  analysis.add_transmission(m_fwd, {motor}, {joint}, "T_fwd");
+  analysis.add_transmission(m_inv, {joint}, {motor}, "T_inv");
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{joint}, std::vector<StateInterfaceId>{motor});
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<float> in{20.0F};
+  std::vector<float> out(1, 0.0F);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 4.0F));  // motor = 0.2*20
+}
+
+TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_BothInputs_NoAmbiguity)
+{
+  // Both motor and joint supplied as inputs. The user asks for both back. Both should be
+  // input passthroughs, no ambiguity reported (input wins on both sides).
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_motor", "j_joint"});
+  const auto motor = ensure_state(analysis, "j_motor", InterfaceId{"position"});
+  const auto joint = ensure_state(analysis, "j_joint", InterfaceId{"position"});
+
+  const auto m_fwd = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{5.0F}, std::vector<float>{0.0F}, 1, 1));
+  const auto m_inv = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{0.2F}, std::vector<float>{0.0F}, 1, 1));
+  analysis.add_transmission(m_fwd, {motor}, {joint}, "T_fwd");
+  analysis.add_transmission(m_inv, {joint}, {motor}, "T_inv");
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{motor, joint},
+    std::vector<StateInterfaceId>{motor, joint});
+  ASSERT_TRUE(result.has_value());
+
+  // The user supplies inconsistent values (motor=3, joint=99) intentionally — input wins on
+  // both sides means the joint map passes them through unchanged.
+  std::vector<float> in{3.0F, 99.0F};
+  std::vector<float> out(2, 0.0F);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 3.0F));   // motor passthrough
+  EXPECT_TRUE(approx_equal(out[1], 99.0F));  // joint passthrough
+}

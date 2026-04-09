@@ -189,6 +189,44 @@ private:
 
   void run_fixed_point(span<const StateInterfaceId> inputs);
 
+  // ---- Algorithm helpers (called from `run_fixed_point`) ---------------------
+
+  /// Returns true iff `sid` was newly added to `derivable_membership_`. No-op for sids that
+  /// are already derivable or out of range.
+  bool add_to_derivable(StateInterfaceId sid);
+
+  /// Records `producer` as a candidate for `iface`, honoring input-wins (if `iface` already has
+  /// an `Input` entry in `producer_assignment_`, the candidate is silently dropped).
+  void record_candidate(
+    StateInterfaceId iface,
+    StateInterfaceProducer producer,
+    std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> & candidates) const;
+
+  /// Process a single `(group, interface_id)` affine hyper-node: pick the lowest-JointId leaf
+  /// source among the group's currently-derivable members and project from it to every other
+  /// group member, recording AffineProjection candidates and (when not already known
+  /// ambiguous) marking them derivable. Sets `*changed = true` if any new interface entered
+  /// `derivable_membership_`.
+  ///
+  /// The leaf-source picking is dynamic — the union-find affine root is irrelevant; whichever
+  /// derivable group member happens to be a leaf (Input or unique Transmission candidate)
+  /// wins, with ties broken by lowest JointId. This is what enables the "user can supply any
+  /// group member as input" pivoting property.
+  void process_affine_hypernode(
+    JointId root,
+    const InterfaceId & interface_id,
+    const AffineProjectionRule & rule,
+    span<const JointId> group_members,
+    std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> & candidates,
+    bool & changed);
+
+  /// Run the blocked-interface post-pass after the main 2-pass algorithm converges. Walks
+  /// transmissions and affine groups, marking interfaces as blocked iff they have at least one
+  /// potential producer whose inputs are all classified (derivable, ambiguous, or blocked) and
+  /// at least one is ambiguous or blocked. Iterates to a fixed point — only runs when at least
+  /// one ambiguity exists.
+  void run_blocked_post_pass(std::size_t state_count);
+
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------

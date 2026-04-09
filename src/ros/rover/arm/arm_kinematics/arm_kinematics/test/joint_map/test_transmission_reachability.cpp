@@ -772,3 +772,149 @@ TEST_F(TransmissionReachabilityTest, Blocked_CascadeThroughTwoLayers)
   EXPECT_TRUE(saw_y);
   EXPECT_TRUE(saw_z);
 }
+
+// ===========================================================================
+// Second-order ambiguity: x has 2 producers, but one of them is upstream-blocked
+// ===========================================================================
+
+TEST_F(TransmissionReachabilityTest, Ambiguity_DownstreamProducerWithCleanAlternativeStaysAmbiguous)
+{
+  // Setup:
+  //   T1: a → x   (clean — input a is supplied directly)
+  //   T2: b → x   (T2's input b will become ambiguous)
+  //   T3: c → b
+  //   T4: c → b   (b ambiguous via T3 and T4)
+  // Inputs: {a, c}
+  //
+  // The user wrote BOTH T1 and T2 as producers for x. After b is recognized as ambiguous, T2
+  // can't actually fire — but the user's authorial intent was "x has multiple producers".
+  // The algorithm should report x as ambiguous (with snapshot [T1, T2]) NOT as derivable via
+  // T1, because the user needs to know they have a structural ambiguity in their analysis.
+  //
+  // This test would have FAILED on the previous code's revocation logic, which committed
+  // x = T1 in pass 2 (when only T1 actually fires), leaving an inconsistent four-way
+  // contradiction (`producer_of(x)` returned T1 while x was simultaneously in
+  // `blocked_interfaces_()` and absent from `derivable_interfaces_()`).
+  ensure_joints(analysis_, {"j_a", "j_b", "j_c", "j_x"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
+  const auto c = ensure_state(analysis_, "j_c", InterfaceId{"position"});
+  const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a}, {x}, "T1");
+  analysis_.add_transmission(model_id, {b}, {x}, "T2");
+  analysis_.add_transmission(model_id, {c}, {b}, "T3");
+  analysis_.add_transmission(model_id, {c}, {b}, "T4");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{a, c});
+
+  // Both x and b are ambiguous.
+  EXPECT_TRUE(reach.is_ambiguous());
+  ASSERT_EQ(reach.ambiguities().size(), 2u);
+
+  // Find the AmbiguousInterface entry for x and verify it has BOTH T1 and T2 in the snapshot.
+  bool found_x_ambig = false;
+  bool found_b_ambig = false;
+  for (const auto & amb : reach.ambiguities()) {
+    if (amb.interface == x) {
+      found_x_ambig = true;
+      ASSERT_EQ(amb.candidates.size(), 2u);
+      // Both candidates should be Transmissions.
+      bool saw_both_transmissions = true;
+      for (const auto & c : amb.candidates) {
+        if (!as_transmission(c).has_value()) saw_both_transmissions = false;
+      }
+      EXPECT_TRUE(saw_both_transmissions);
+    }
+    if (amb.interface == b) {
+      found_b_ambig = true;
+      ASSERT_EQ(amb.candidates.size(), 2u);
+    }
+  }
+  EXPECT_TRUE(found_x_ambig);
+  EXPECT_TRUE(found_b_ambig);
+
+  // x's producer is monostate (NOT T1).
+  EXPECT_TRUE(is_monostate(reach.producer_of(x)));
+
+  // x is NOT in derivable_interfaces_.
+  bool x_in_derivable = false;
+  for (const auto sid : reach.derivable_interfaces()) {
+    if (sid == x) x_in_derivable = true;
+  }
+  EXPECT_FALSE(x_in_derivable);
+
+  // x is NOT in blocked_interfaces_ either (it's ambiguous, not blocked).
+  bool x_in_blocked = false;
+  for (const auto sid : reach.blocked_interfaces()) {
+    if (sid == x) x_in_blocked = true;
+  }
+  EXPECT_FALSE(x_in_blocked);
+}
+
+// ===========================================================================
+// Forward/inverse transmission pairs: the analysis is not a DAG and that's OK
+// ===========================================================================
+
+TEST_F(TransmissionReachabilityTest, ForwardInversePair_MotorInput_OnlyForwardSelected)
+{
+  // T_fwd: motor → joint
+  // T_inv: joint → motor
+  // Inputs: {motor}
+  // Expected: motor is Input, joint is derivable via T_fwd. T_inv fires harmlessly in the
+  // inner loop but its output is input-won and not selected by plan_joint_map.
+  ensure_joints(analysis_, {"j_motor", "j_joint"});
+  const auto motor = ensure_state(analysis_, "j_motor", InterfaceId{"position"});
+  const auto joint = ensure_state(analysis_, "j_joint", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {motor}, {joint}, "T_fwd");
+  analysis_.add_transmission(model_id, {joint}, {motor}, "T_inv");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{motor});
+
+  EXPECT_FALSE(reach.is_ambiguous());
+  ASSERT_TRUE(as_input(reach.producer_of(motor)).has_value());
+  ASSERT_TRUE(as_transmission(reach.producer_of(joint)).has_value());
+  EXPECT_TRUE(reach.blocked_interfaces().empty());
+}
+
+TEST_F(TransmissionReachabilityTest, ForwardInversePair_JointInput_OnlyInverseSelected)
+{
+  ensure_joints(analysis_, {"j_motor", "j_joint"});
+  const auto motor = ensure_state(analysis_, "j_motor", InterfaceId{"position"});
+  const auto joint = ensure_state(analysis_, "j_joint", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {motor}, {joint}, "T_fwd");
+  analysis_.add_transmission(model_id, {joint}, {motor}, "T_inv");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{joint});
+
+  EXPECT_FALSE(reach.is_ambiguous());
+  ASSERT_TRUE(as_input(reach.producer_of(joint)).has_value());
+  ASSERT_TRUE(as_transmission(reach.producer_of(motor)).has_value());
+}
+
+TEST_F(TransmissionReachabilityTest, ForwardInversePair_BothInputs_BothInputWins)
+{
+  ensure_joints(analysis_, {"j_motor", "j_joint"});
+  const auto motor = ensure_state(analysis_, "j_motor", InterfaceId{"position"});
+  const auto joint = ensure_state(analysis_, "j_joint", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {motor}, {joint}, "T_fwd");
+  analysis_.add_transmission(model_id, {joint}, {motor}, "T_inv");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{motor, joint});
+
+  EXPECT_FALSE(reach.is_ambiguous());
+  // Both should resolve to Input (input wins on both sides).
+  ASSERT_TRUE(as_input(reach.producer_of(motor)).has_value());
+  ASSERT_TRUE(as_input(reach.producer_of(joint)).has_value());
+}

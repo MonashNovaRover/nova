@@ -14,7 +14,7 @@ namespace arm_kinematics {
 namespace {
 
 // Walk the analysis's potential-producer graph backward from `blocked_output` and collect
-// every ambiguous-interface ancestor (transitively, through transmission inputs and affine
+// every ambiguous-interface ancestor (transitively, through transmission inputs AND affine
 // projection sources). Used only on the failing path to attribute "this output is blocked
 // because of these upstream ambiguities".
 //
@@ -22,6 +22,8 @@ namespace {
 // for O(1) checks.
 //
 // The walk is bounded by the number of state interfaces (visited set prevents revisits).
+// Cost: O(reachable potential-producer subgraph + affine-group-size sum), only on the
+// failing path.
 void collect_blocking_ambiguities(
   const TransmissionReachability & reach,
   const StateInterfaceId blocked_output,
@@ -34,21 +36,42 @@ void collect_blocking_ambiguities(
   }
   if (ambiguous_set.count(blocked_output) > 0) {
     blocking_ambiguities.insert(blocked_output);
-    return;  // Don't walk past an ambiguous interface.
+    // Don't early-return — keep walking to find any deeper upstream ambiguities. The user
+    // benefits from seeing the FULL transitive closure of related ambiguities so they can
+    // fix everything in one pass instead of round-tripping through multiple build attempts.
+    // The visited set prevents infinite recursion.
   }
-  // Walk every potential producer transmission for this interface and recurse on its inputs.
-  const auto producing = reach.analysis().producing_transmissions(blocked_output);
+
+  // ---- Walk producing transmissions (and recurse on each transmission's inputs) ----
+  const auto & analysis = reach.analysis();
+  const auto producing = analysis.producing_transmissions(blocked_output);
   for (const auto tid : producing) {
-    const auto & instance = reach.analysis().transmissions()[tid];
+    const auto & instance = analysis.transmissions()[tid];
     for (const auto in : instance.input_ids) {
       collect_blocking_ambiguities(reach, in, ambiguous_set, visited, blocking_ambiguities);
     }
   }
-  // Note: affine projection blocking attribution is conservative — we don't walk through
-  // affine groups here, because the producing_transmissions index doesn't cover affine
-  // sources. The reachability has already classified the interface as blocked, so the user
-  // gets the correct error category (Ambiguous); we just may miss some root-cause attribution
-  // in pure-affine cases. Refinement deferred.
+
+  // ---- Walk affine group members (for projection-driven blocking) ----
+  // If this interface lives in a non-trivial affine group with a registered projection rule,
+  // any other group member at the same interface_id is a potential affine source. Recurse
+  // into each, so a blocked output that's only producible via affine projection from an
+  // ambiguous source still gets its upstream cause attributed.
+  const auto & defn = analysis.state_interface_order().inverse[blocked_output];
+  const AffineProjectionRule * rule = analysis.affine_projection_rule(defn.interface_id);
+  if (rule != nullptr) {
+    const JointId root = analysis.affine_root_of(defn.joint_id);
+    const auto group_members = analysis.affine_group_members(root);
+    if (group_members.size() > 1) {
+      for (const JointId member_joint : group_members) {
+        if (member_joint == defn.joint_id) continue;
+        const auto member_def = StateInterfaceDefinition{member_joint, defn.interface_id};
+        if (!analysis.state_interface_order().contains_key(member_def)) continue;
+        const StateInterfaceId member_sid = analysis.state_interface_order()[member_def];
+        collect_blocking_ambiguities(reach, member_sid, ambiguous_set, visited, blocking_ambiguities);
+      }
+    }
+  }
 }
 
 }  // namespace
@@ -83,18 +106,14 @@ MissingOutputDiagnosis diagnose_missing_outputs(
     if (!std::holds_alternative<std::monostate>(producer)) {
       continue;  // satisfied
     }
-    if (ambiguous_set.count(out) > 0) {
-      // Directly ambiguous: the output itself has multiple producers.
+    if (ambiguous_set.count(out) > 0 || blocked_set.count(out) > 0) {
+      // Directly ambiguous OR blocked: in either case, the output is unbuildable due to
+      // ambiguity (direct or transitive). Walk the producer chain to attribute the FULL
+      // transitive closure of related ambiguities, so the user can see everything that
+      // needs disambiguation in one error.
       if (ambiguous_seen.insert(out).second) {
         diag.ambiguous_outputs.push_back(out);
       }
-      blocking_ambiguities.insert(out);
-    } else if (blocked_set.count(out) > 0) {
-      // Blocked: producer chain transitively depends on an ambiguous upstream.
-      if (ambiguous_seen.insert(out).second) {
-        diag.ambiguous_outputs.push_back(out);
-      }
-      // Walk back to find which upstream ambiguities are responsible.
       std::unordered_set<StateInterfaceId> visited;
       collect_blocking_ambiguities(reach, out, ambiguous_set, visited, blocking_ambiguities);
     } else {

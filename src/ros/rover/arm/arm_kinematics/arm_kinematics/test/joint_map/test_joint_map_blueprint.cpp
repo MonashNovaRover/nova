@@ -230,6 +230,59 @@ TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
   EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, x);
 }
 
+TEST_F(JointMapBlueprintTest, Diagnose_AffineBlockedOutput_ReportsUpstreamAmbiguity)
+{
+  // A→B mimic. T1, T2: x → A.position (A.position is ambiguous).
+  // Request: B.position.
+  //
+  // Expected:
+  //   - A.position is ambiguous (T1 and T2 both produce it)
+  //   - B.position is blocked (its only path is the affine projection from A.position, which
+  //     is ambiguous)
+  //   - The diagnose attribution walk must follow the affine group from B back to A and
+  //     report A.position in relevant_blocking_ambiguities.
+  //
+  // This test would FAIL on the previous code's diagnose walk, which only followed
+  // producing_transmissions (not affine group members), and would have returned
+  // relevant_blocking_ambiguities.empty() for B.position.
+  const auto joints = ensure_joints(analysis_, {"j_a", "j_b", "j_x"});
+  const auto a_pos = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
+  const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+
+  // B mimics A: B = 2A.
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+
+  // Two transmissions producing A.position → A is ambiguous.
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {x}, {a_pos}, "T1");
+  analysis_.add_transmission(model_id, {x}, {a_pos}, "T2");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{x});
+
+  // A.position is ambiguous in the reachability.
+  EXPECT_TRUE(reach.is_ambiguous());
+  // B.position should be in blocked_interfaces_ (only producible via affine projection from
+  // ambiguous A.position).
+  bool b_blocked = false;
+  for (const auto sid : reach.blocked_interfaces()) {
+    if (sid == b_pos) b_blocked = true;
+  }
+  EXPECT_TRUE(b_blocked);
+
+  // Diagnose B.position: should report it as ambiguous_outputs AND attribute the upstream
+  // ambiguity (A.position) via the affine walk in collect_blocking_ambiguities.
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{b_pos});
+
+  ASSERT_EQ(diag.ambiguous_outputs.size(), 1u);
+  EXPECT_EQ(diag.ambiguous_outputs[0], b_pos);
+  // The upstream A.position should appear in relevant_blocking_ambiguities — this is the
+  // load-bearing assertion that the affine walk extension works.
+  ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
+  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, a_pos);
+}
+
 // ===========================================================================
 // plan_joint_map: pure passthrough
 // ===========================================================================
