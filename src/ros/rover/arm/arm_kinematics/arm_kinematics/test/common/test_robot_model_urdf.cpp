@@ -83,11 +83,14 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
   const TransmissionAnalysis & second = robot_model_->get_default_transmission_analysis();
   EXPECT_EQ(&first, &second);
 
-  // The URDF defined exactly one transmission (main_transmission) and should produce one
-  // model + one transmission instance in the analysis.
-  ASSERT_EQ(first.models().size(), 1u);
+  // SimpleTransmission supports {position, velocity} × {forward, inverse}.
+  // `Ros2ControlPluginCore` probes {position, velocity, acceleration}; the
+  // accel probe is rejected by SimpleTransmission, leaving the four
+  // position+velocity combos. Each is registered as its own per-combo model
+  // and `TransmissionInstance`.
+  ASSERT_EQ(first.models().size(), 4u);
   const auto & transmissions = first.transmissions();
-  ASSERT_EQ(transmissions.size(), 1u);
+  ASSERT_EQ(transmissions.size(), 4u);
 
   // The two joints should be registered.
   const auto & joint_order = first.joint_order();
@@ -99,13 +102,24 @@ TEST_F(TransmissionUrdfTests, RobotModelCachesTransmissionAnalysis)
   EXPECT_EQ(joint_order.inverse[motor_id], "motor_joint");
   EXPECT_EQ(joint_order.inverse[driven_id], "driven_joint");
 
-  // The transmission's input/output should be the position state interfaces of the
-  // respective joints (the import path produces position-interface ids by default).
-  const auto & transmission = transmissions.front();
-  EXPECT_EQ(transmission.model_id, 0u);
-  EXPECT_EQ(transmission.name, "main_transmission");
-  EXPECT_EQ(transmission.input_ids.size(), 1u);
-  EXPECT_EQ(transmission.output_ids.size(), 1u);
+  // Locate the position-forward instance by name (motor.position → driven.position).
+  const auto position_fwd_it = std::find_if(
+    transmissions.begin(), transmissions.end(),
+    [](const auto & t) { return t.name == "main_transmission/position[fwd]"; });
+  ASSERT_NE(position_fwd_it, transmissions.end());
+  EXPECT_EQ(position_fwd_it->input_ids.size(), 1u);
+  EXPECT_EQ(position_fwd_it->output_ids.size(), 1u);
+
+  // The matching inverse instance should also exist.
+  const auto position_inv_it = std::find_if(
+    transmissions.begin(), transmissions.end(),
+    [](const auto & t) { return t.name == "main_transmission/position[inv]"; });
+  ASSERT_NE(position_inv_it, transmissions.end());
+  EXPECT_EQ(position_inv_it->input_ids.size(), 1u);
+  EXPECT_EQ(position_inv_it->output_ids.size(), 1u);
+  // The inverse is the position-forward edge with directions swapped.
+  EXPECT_EQ(position_inv_it->input_ids.front(), position_fwd_it->output_ids.front());
+  EXPECT_EQ(position_inv_it->output_ids.front(), position_fwd_it->input_ids.front());
 }
 
 TEST_F(TransmissionUrdfTests, RobotModelProvidesSharedRos2ControlTransmissionPluginLoader)
@@ -170,13 +184,18 @@ TEST_F(TransmissionUrdfTests, NamedBoundaryMappingStaysAtTransmissionAnalysisEdg
   const auto motor_position_sid = state_interface_order[motor_position];
   const auto driven_position_sid = state_interface_order[driven_position];
 
-  // The single registered transmission should reference exactly these state interface ids.
-  ASSERT_EQ(analysis.transmissions().size(), 1u);
-  const auto & transmission = analysis.transmissions().front();
-  ASSERT_EQ(transmission.input_ids.size(), 1u);
-  ASSERT_EQ(transmission.output_ids.size(), 1u);
-  EXPECT_EQ(transmission.input_ids.front(), motor_position_sid);
-  EXPECT_EQ(transmission.output_ids.front(), driven_position_sid);
+  // The analysis now contains four `TransmissionInstance`s (position/velocity
+  // × forward/inverse). Locate the position-forward edge by name and check
+  // it points at the expected state interface ids.
+  const auto & transmissions = analysis.transmissions();
+  const auto position_fwd_it = std::find_if(
+    transmissions.begin(), transmissions.end(),
+    [](const auto & t) { return t.name == "main_transmission/position[fwd]"; });
+  ASSERT_NE(position_fwd_it, transmissions.end());
+  ASSERT_EQ(position_fwd_it->input_ids.size(), 1u);
+  ASSERT_EQ(position_fwd_it->output_ids.size(), 1u);
+  EXPECT_EQ(position_fwd_it->input_ids.front(), motor_position_sid);
+  EXPECT_EQ(position_fwd_it->output_ids.front(), driven_position_sid);
 }
 
 }  // namespace arm_kinematics

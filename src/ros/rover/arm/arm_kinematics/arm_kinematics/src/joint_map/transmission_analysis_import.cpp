@@ -10,100 +10,241 @@
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <transmission_interface/handle.hpp>
 
+#include <array>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
+
+#include "arm_kinematics/joint_map/state_interface_definition.hpp"
+#include "arm_kinematics/utilities/interface_id.hpp"
 
 namespace arm_kinematics {
 
 namespace {
 
-const char * get_interface_name_for_quantity(const JointQuantity quantity)
+// ===========================================================================
+// ros2_control plugin wrapper helpers
+//
+// Each ros2_control `<transmission>` XML element is wrapped in a single
+// `Ros2ControlPluginCore` (heap-allocated, shared via shared_ptr). The core
+// loads the plugin once at construction and probes which
+// `(interface_id × direction)` combinations the plugin actually supports
+// (using fresh dummy `Transmission` instances + try/catch around configure
+// and the per-direction propagation calls).
+//
+// Each supported combo is then registered with the analysis as its own
+// `TransmissionInstance`, backed by a tiny `Ros2ControlPluginTransmissionInstanceModel`
+// that holds a shared_ptr to the core and remembers its own
+// (interface_id, direction). At `build()` time the instance model asks the
+// core to mint a freshly-configured `Transmission` and hands it to a
+// `Ros2ControlPluginTransmissionCompute` that just shovels values back and
+// forth across the plugin handles.
+//
+// This avoids the legacy design's per-Compute plugin reload, and lets the
+// planner select the right (direction × interface) without the model having
+// to introspect SIDs.
+// ===========================================================================
+
+/// Bundles a freshly loaded + freshly configured `Transmission` instance
+/// with the value vectors and handles it was bound to.
+///
+/// **Critical lifetime invariant:** the `JointHandle` / `ActuatorHandle`
+/// objects store raw `double *` pointers into `actuator_values` and
+/// `joint_values`. The vectors **must not be relocated** after the handles
+/// are constructed. Callers therefore allocate this struct on the heap (via
+/// `unique_ptr`) and never copy or move it.
+struct ConfiguredTransmission {
+  std::shared_ptr<transmission_interface::Transmission> transmission{};
+  std::vector<double> actuator_values{};
+  std::vector<double> joint_values{};
+  std::vector<transmission_interface::ActuatorHandle> actuator_handles{};
+  std::vector<transmission_interface::JointHandle> joint_handles{};
+
+  ConfiguredTransmission() = default;
+  ConfiguredTransmission(const ConfiguredTransmission &) = delete;
+  ConfiguredTransmission & operator=(const ConfiguredTransmission &) = delete;
+  ConfiguredTransmission(ConfiguredTransmission &&) = delete;
+  ConfiguredTransmission & operator=(ConfiguredTransmission &&) = delete;
+};
+
+/// One supported `(interface_id × direction)` combo for a single
+/// ros2_control transmission XML element.
+struct SupportedCombo {
+  InterfaceId interface_id{};
+  bool forward = false;
+  bool inverse = false;
+};
+
+/// Loads a fresh `Transmission` instance via the plugin loader and configures
+/// it against fresh handles bound to the given interface name. The handles
+/// point into the returned struct's own value vectors, so the struct must
+/// stay heap-pinned for the lifetime of the handles.
+std::unique_ptr<ConfiguredTransmission> make_configured_transmission(
+  const Ros2ControlTransmissionPluginLoader & plugin_loader,
+  const hardware_interface::TransmissionInfo & info,
+  const std::string & interface_name)
 {
-  switch (quantity) {
-    case JointQuantity::Position:
-      return hardware_interface::HW_IF_POSITION;
-    case JointQuantity::Velocity:
-      return hardware_interface::HW_IF_VELOCITY;
+  auto out = std::make_unique<ConfiguredTransmission>();
+  out->transmission = plugin_loader.load(info);
+  if (!out->transmission) {
+    throw std::runtime_error(
+      "ros2_control transmission '" + info.name + "': plugin loader returned a null transmission");
   }
 
-  throw std::invalid_argument("Unsupported JointQuantity for ros2_control transmission wrapper");
-}
-
-void configure_ros2_control_transmission_for_quantity(
-  const std::shared_ptr<transmission_interface::Transmission> & transmission,
-  const hardware_interface::TransmissionInfo & transmission_info,
-  const JointQuantity quantity,
-  std::vector<double> & actuator_values,
-  std::vector<double> & joint_values,
-  std::vector<transmission_interface::ActuatorHandle> & actuator_handles,
-  std::vector<transmission_interface::JointHandle> & joint_handles)
-{
-  if (transmission->num_actuators() != transmission_info.actuators.size()) {
+  if (out->transmission->num_actuators() != info.actuators.size()) {
     throw std::runtime_error(
-      "ros2_control transmission '" + transmission_info.name +
+      "ros2_control transmission '" + info.name +
       "' reported an actuator count inconsistent with its TransmissionInfo");
   }
-  if (transmission->num_joints() != transmission_info.joints.size()) {
+  if (out->transmission->num_joints() != info.joints.size()) {
     throw std::runtime_error(
-      "ros2_control transmission '" + transmission_info.name +
+      "ros2_control transmission '" + info.name +
       "' reported a joint count inconsistent with its TransmissionInfo");
   }
 
-  actuator_values.assign(transmission_info.actuators.size(), 0.0);
-  joint_values.assign(transmission_info.joints.size(), 0.0);
+  out->actuator_values.assign(info.actuators.size(), 0.0);
+  out->joint_values.assign(info.joints.size(), 0.0);
 
-  const auto * interface_name = get_interface_name_for_quantity(quantity);
-
-  actuator_handles.clear();
-  actuator_handles.reserve(transmission_info.actuators.size());
-  for (size_t i = 0; i < transmission_info.actuators.size(); ++i) {
-    actuator_handles.emplace_back(
-      transmission_info.actuators[i].name,
+  out->actuator_handles.reserve(info.actuators.size());
+  for (size_t i = 0; i < info.actuators.size(); ++i) {
+    out->actuator_handles.emplace_back(
+      info.actuators[i].name,
       interface_name,
-      &actuator_values[i]);
+      &out->actuator_values[i]);
   }
 
-  joint_handles.clear();
-  joint_handles.reserve(transmission_info.joints.size());
-  for (size_t i = 0; i < transmission_info.joints.size(); ++i) {
-    joint_handles.emplace_back(
-      transmission_info.joints[i].name,
+  out->joint_handles.reserve(info.joints.size());
+  for (size_t i = 0; i < info.joints.size(); ++i) {
+    out->joint_handles.emplace_back(
+      info.joints[i].name,
       interface_name,
-      &joint_values[i]);
+      &out->joint_values[i]);
   }
 
-  transmission->configure(joint_handles, actuator_handles);
+  out->transmission->configure(out->joint_handles, out->actuator_handles);
+  return out;
 }
 
+/// Heavy state for one ros2_control `<transmission>` element. Probes once at
+/// construction; shared by reference between every per-combo
+/// `TransmissionModel` registered for this element.
+struct Ros2ControlPluginCore {
+  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader{};
+  hardware_interface::TransmissionInfo info{};
+  size_t actuator_count = 0;
+  size_t joint_count = 0;
+  std::vector<SupportedCombo> supported_combos{};
+
+  Ros2ControlPluginCore(
+    hardware_interface::TransmissionInfo transmission_info,
+    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> loader)
+    : plugin_loader(std::move(loader)),
+      info(std::move(transmission_info))
+  {
+    if (!plugin_loader) {
+      return;
+    }
+    if (!plugin_loader->has_plugin_type(info.type)) {
+      return;
+    }
+    probe();
+  }
+
+  /// Mints a freshly loaded + freshly configured Transmission for the given
+  /// interface name. Throws on plugin/configure failure.
+  [[nodiscard]] std::unique_ptr<ConfiguredTransmission> make_configured(
+    const std::string & interface_name) const
+  {
+    return make_configured_transmission(*plugin_loader, info, interface_name);
+  }
+
+private:
+  void probe()
+  {
+    // Static probe set: the default projection-rule interfaces registered
+    // by `TransmissionAnalysis`'s constructor. `effort` is opt-in and not
+    // probed.
+    static constexpr std::array<const char *, 3> kProbeInterfaces = {
+      hardware_interface::HW_IF_POSITION,
+      hardware_interface::HW_IF_VELOCITY,
+      hardware_interface::HW_IF_ACCELERATION,
+    };
+
+    // Establish actuator/joint counts from one plain load. If the very first
+    // load fails or counts mismatch, the plugin is unusable for this info.
+    try {
+      const auto probe_load = plugin_loader->load(info);
+      if (!probe_load) {
+        return;
+      }
+      actuator_count = probe_load->num_actuators();
+      joint_count = probe_load->num_joints();
+      if (
+        actuator_count != info.actuators.size() ||
+        joint_count != info.joints.size())
+      {
+        actuator_count = 0;
+        joint_count = 0;
+        return;
+      }
+    } catch (const std::exception &) {
+      return;
+    }
+
+    for (const char * interface_name : kProbeInterfaces) {
+      SupportedCombo combo{InterfaceId{std::string_view{interface_name}}, false, false};
+
+      std::unique_ptr<ConfiguredTransmission> configured{};
+      try {
+        configured = make_configured_transmission(*plugin_loader, info, interface_name);
+      } catch (const std::exception &) {
+        // Plugin doesn't support this interface_id at configure time. Skip
+        // both directions.
+        continue;
+      }
+
+      try {
+        configured->transmission->actuator_to_joint();
+        combo.forward = true;
+      } catch (const std::exception &) {
+        // Plugin loaded + configured but doesn't implement this direction
+        // for this interface. Leave `forward` false.
+      }
+
+      try {
+        configured->transmission->joint_to_actuator();
+        combo.inverse = true;
+      } catch (const std::exception &) {
+      }
+
+      if (combo.forward || combo.inverse) {
+        supported_combos.push_back(std::move(combo));
+      }
+    }
+  }
+};
+
+/// Runtime adapter that copies inputs into the configured value vectors,
+/// asks the plugin to propagate, and copies the results back out.
 class Ros2ControlPluginTransmissionCompute final : public ComputeTransmission {
 public:
   Ros2ControlPluginTransmissionCompute(
-    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
-    hardware_interface::TransmissionInfo transmission_info,
-    const JointQuantity quantity,
-    const PropagationDirection direction)
-    : plugin_loader_(std::move(plugin_loader)),
-      transmission_info_(std::move(transmission_info)),
-      quantity_(quantity),
-      direction_(direction),
-      actuator_values_(transmission_info_.actuators.size(), 0.0),
-      joint_values_(transmission_info_.joints.size(), 0.0)
+    std::shared_ptr<const Ros2ControlPluginCore> core,
+    std::string interface_name,
+    const bool is_forward,
+    std::unique_ptr<ConfiguredTransmission> configured)
+    : core_(std::move(core)),
+      interface_name_(std::move(interface_name)),
+      is_forward_(is_forward),
+      configured_(std::move(configured))
   {
-    if (!plugin_loader_) {
-      throw std::invalid_argument("Ros2ControlPluginTransmissionCompute received a null plugin loader");
+    if (!configured_) {
+      throw std::invalid_argument(
+        "Ros2ControlPluginTransmissionCompute received a null ConfiguredTransmission");
     }
-
-    transmission_ = plugin_loader_->load(transmission_info_);
-    configure_ros2_control_transmission_for_quantity(
-      transmission_,
-      transmission_info_,
-      quantity_,
-      actuator_values_,
-      joint_values_,
-      actuator_handles_,
-      joint_handles_);
   }
 
   void compute(
@@ -111,37 +252,34 @@ public:
     const span<float> outputs,
     const span<float>) const override
   {
-    if (direction_ == PropagationDirection::Forward) {
-      if (inputs.size() != actuator_values_.size() || outputs.size() != joint_values_.size()) {
+    auto & av = configured_->actuator_values;
+    auto & jv = configured_->joint_values;
+
+    if (is_forward_) {
+      if (inputs.size() != av.size() || outputs.size() != jv.size()) {
         throw std::invalid_argument(
           "Ros2ControlPluginTransmissionCompute received a forward request with mismatched input/output sizes");
       }
-
-      for (size_t i = 0; i < actuator_values_.size(); ++i) {
-        actuator_values_[i] = inputs[i];
+      for (size_t i = 0; i < av.size(); ++i) {
+        av[i] = inputs[i];
       }
-
-      transmission_->actuator_to_joint();
-
-      for (size_t i = 0; i < joint_values_.size(); ++i) {
-        outputs[i] = static_cast<float>(joint_values_[i]);
+      configured_->transmission->actuator_to_joint();
+      for (size_t i = 0; i < jv.size(); ++i) {
+        outputs[i] = static_cast<float>(jv[i]);
       }
       return;
     }
 
-    if (inputs.size() != joint_values_.size() || outputs.size() != actuator_values_.size()) {
+    if (inputs.size() != jv.size() || outputs.size() != av.size()) {
       throw std::invalid_argument(
         "Ros2ControlPluginTransmissionCompute received a reverse request with mismatched input/output sizes");
     }
-
-    for (size_t i = 0; i < joint_values_.size(); ++i) {
-      joint_values_[i] = inputs[i];
+    for (size_t i = 0; i < jv.size(); ++i) {
+      jv[i] = inputs[i];
     }
-
-    transmission_->joint_to_actuator();
-
-    for (size_t i = 0; i < actuator_values_.size(); ++i) {
-      outputs[i] = static_cast<float>(actuator_values_[i]);
+    configured_->transmission->joint_to_actuator();
+    for (size_t i = 0; i < av.size(); ++i) {
+      outputs[i] = static_cast<float>(av[i]);
     }
   }
 
@@ -152,156 +290,74 @@ public:
 
   [[nodiscard]] std::unique_ptr<ComputeTransmission> clone() const override
   {
+    // Each clone needs its own freshly-configured plugin instance + value
+    // vectors so the underlying handles point at independent storage.
     return std::make_unique<Ros2ControlPluginTransmissionCompute>(
-      plugin_loader_,
-      transmission_info_,
-      quantity_,
-      direction_);
+      core_,
+      interface_name_,
+      is_forward_,
+      core_->make_configured(interface_name_));
   }
 
 private:
-  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader_{};
-  hardware_interface::TransmissionInfo transmission_info_{};
-  JointQuantity quantity_{JointQuantity::Position};
-  PropagationDirection direction_{PropagationDirection::Forward};
-
-  std::shared_ptr<transmission_interface::Transmission> transmission_{};
-  mutable std::vector<double> actuator_values_{};
-  mutable std::vector<double> joint_values_{};
-  std::vector<transmission_interface::ActuatorHandle> actuator_handles_{};
-  std::vector<transmission_interface::JointHandle> joint_handles_{};
+  std::shared_ptr<const Ros2ControlPluginCore> core_{};
+  std::string interface_name_{};
+  bool is_forward_ = true;
+  std::unique_ptr<ConfiguredTransmission> configured_{};
 };
 
-class Ros2ControlPluginTransmissionModel final : public TransmissionModel {
+/// One `TransmissionModel` per (interface_id × direction) combo, sharing the
+/// same backing `Ros2ControlPluginCore`. Tiny — all heavy state lives in the
+/// shared core. Direction and interface_id are baked in at construction so
+/// `build()` doesn't need to introspect input/output SIDs to figure them out.
+class Ros2ControlPluginTransmissionInstanceModel final : public TransmissionModel {
 public:
-  Ros2ControlPluginTransmissionModel(
-    hardware_interface::TransmissionInfo transmission_info,
-    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader)
-    : transmission_info_(std::move(transmission_info)),
-      plugin_loader_(std::move(plugin_loader))
+  Ros2ControlPluginTransmissionInstanceModel(
+    std::shared_ptr<const Ros2ControlPluginCore> core,
+    InterfaceId interface_id,
+    const bool is_forward)
+    : core_(std::move(core)),
+      interface_id_(std::move(interface_id)),
+      is_forward_(is_forward)
   {
-    validate();
+    if (!core_) {
+      throw std::invalid_argument(
+        "Ros2ControlPluginTransmissionInstanceModel received a null core");
+    }
   }
 
   [[nodiscard]] std::unique_ptr<TransmissionModel> clone() const override
   {
-    return std::unique_ptr<TransmissionModel>(new Ros2ControlPluginTransmissionModel(
-      transmission_info_,
-      plugin_loader_,
-      is_loadable_,
-      supports_position_,
-      supports_velocity_,
-      actuator_count_,
-      joint_count_));
+    return std::make_unique<Ros2ControlPluginTransmissionInstanceModel>(
+      core_, interface_id_, is_forward_);
   }
 
   [[nodiscard]] std::unique_ptr<const ComputeTransmission> build(
     const span<const StateInterfaceId> input_joint_ids,
     const span<const StateInterfaceId> output_joint_ids) const override
   {
-    if (!is_loadable_) {
-      throw std::invalid_argument(
-        "Ros2ControlPluginTransmissionModel::build() called for an unsupported quantity or unloaded plugin type");
-    }
+    const auto expected_input_count = is_forward_ ? core_->actuator_count : core_->joint_count;
+    const auto expected_output_count = is_forward_ ? core_->joint_count : core_->actuator_count;
 
-    const auto inferred_direction = infer_direction(input_joint_ids.size(), output_joint_ids.size());
-    const auto inferred_quantity = infer_quantity();
-    const auto expected_input_count =
-      inferred_direction == PropagationDirection::Forward ? actuator_count_ : joint_count_;
-    const auto expected_output_count =
-      inferred_direction == PropagationDirection::Forward ? joint_count_ : actuator_count_;
-
-    if (input_joint_ids.size() != expected_input_count || output_joint_ids.size() != expected_output_count) {
+    if (
+      input_joint_ids.size() != expected_input_count ||
+      output_joint_ids.size() != expected_output_count)
+    {
       throw std::invalid_argument(
-        "Ros2ControlPluginTransmissionModel::build() received input/output counts inconsistent with the transmission");
+        "Ros2ControlPluginTransmissionInstanceModel::build() received input/output counts inconsistent with the transmission");
     }
 
     return std::make_unique<Ros2ControlPluginTransmissionCompute>(
-      plugin_loader_,
-      transmission_info_,
-      inferred_quantity,
-      inferred_direction);
+      core_,
+      interface_id_.name,
+      is_forward_,
+      core_->make_configured(interface_id_.name));
   }
 
 private:
-  Ros2ControlPluginTransmissionModel(
-    hardware_interface::TransmissionInfo transmission_info,
-    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
-    const bool is_loadable,
-    const bool supports_position,
-    const bool supports_velocity,
-    const size_t actuator_count,
-    const size_t joint_count)
-    : transmission_info_(std::move(transmission_info)),
-      plugin_loader_(std::move(plugin_loader)),
-      is_loadable_(is_loadable),
-      supports_position_(supports_position),
-      supports_velocity_(supports_velocity),
-      actuator_count_(actuator_count),
-      joint_count_(joint_count)
-  {
-  }
-
-  [[nodiscard]] bool supports_quantity(const JointQuantity quantity) const
-  {
-    try {
-      auto transmission = plugin_loader_->load(transmission_info_);
-      std::vector<double> actuator_values{};
-      std::vector<double> joint_values{};
-      std::vector<transmission_interface::ActuatorHandle> actuator_handles{};
-      std::vector<transmission_interface::JointHandle> joint_handles{};
-      configure_ros2_control_transmission_for_quantity(
-        transmission,
-        transmission_info_,
-        quantity,
-        actuator_values,
-        joint_values,
-        actuator_handles,
-        joint_handles);
-      actuator_count_ = transmission->num_actuators();
-      joint_count_ = transmission->num_joints();
-      return true;
-    } catch (const std::exception &) {
-      return false;
-    }
-  }
-
-  void validate()
-  {
-    if (!plugin_loader_) {
-      return;
-    }
-
-    if (!plugin_loader_->has_plugin_type(transmission_info_.type)) {
-      return;
-    }
-
-    try {
-      auto transmission = plugin_loader_->load(transmission_info_);
-      actuator_count_ = transmission->num_actuators();
-      joint_count_ = transmission->num_joints();
-      if (
-        actuator_count_ != transmission_info_.actuators.size() ||
-        joint_count_ != transmission_info_.joints.size())
-      {
-        return;
-      }
-
-      supports_position_ = supports_quantity(JointQuantity::Position);
-      supports_velocity_ = supports_quantity(JointQuantity::Velocity);
-      is_loadable_ = supports_position_ || supports_velocity_;
-    } catch (const std::exception &) {
-      is_loadable_ = false;
-    }
-  }
-
-  hardware_interface::TransmissionInfo transmission_info_{};
-  std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader_{};
-  bool is_loadable_ = false;
-  mutable bool supports_position_ = false;
-  mutable bool supports_velocity_ = false;
-  mutable size_t actuator_count_ = 0;
-  mutable size_t joint_count_ = 0;
+  std::shared_ptr<const Ros2ControlPluginCore> core_{};
+  InterfaceId interface_id_{};
+  bool is_forward_ = true;
 };
 
 void add_ros2_control_transmission_to_analysis(
@@ -309,26 +365,52 @@ void add_ros2_control_transmission_to_analysis(
   const hardware_interface::TransmissionInfo & transmission,
   const std::shared_ptr<const Ros2ControlTransmissionPluginLoader> & plugin_loader)
 {
-  const auto model_id = transmission_analysis.add_model(
-    std::make_unique<Ros2ControlPluginTransmissionModel>(transmission, plugin_loader));
-
-  std::vector<std::string> input_names{};
-  input_names.reserve(transmission.actuators.size());
-  for (const auto & actuator : transmission.actuators) {
-    input_names.emplace_back(actuator.name);
+  auto core = std::make_shared<Ros2ControlPluginCore>(transmission, plugin_loader);
+  if (core->supported_combos.empty()) {
+    // Plugin failed to load, didn't match the TransmissionInfo, or supported
+    // no probed (interface × direction) combos. Skip silently — the
+    // logging-wrapper at the import boundary handles user-visible reporting.
+    return;
   }
 
-  std::vector<std::string> output_names{};
-  output_names.reserve(transmission.joints.size());
-  for (const auto & joint : transmission.joints) {
-    output_names.emplace_back(joint.name);
-  }
+  for (const auto & combo : core->supported_combos) {
+    // Resolve actuator/joint state interface ids for this interface_id.
+    std::vector<StateInterfaceId> actuator_sids{};
+    actuator_sids.reserve(transmission.actuators.size());
+    for (const auto & actuator : transmission.actuators) {
+      actuator_sids.push_back(transmission_analysis.ensure_state_interface_id(
+        NamedStateInterfaceDefinition{actuator.name, combo.interface_id}));
+    }
 
-  transmission_analysis.add_transmission(
-    model_id,
-    span<const std::string>(input_names),
-    span<const std::string>(output_names),
-    transmission.name);
+    std::vector<StateInterfaceId> joint_sids{};
+    joint_sids.reserve(transmission.joints.size());
+    for (const auto & joint : transmission.joints) {
+      joint_sids.push_back(transmission_analysis.ensure_state_interface_id(
+        NamedStateInterfaceDefinition{joint.name, combo.interface_id}));
+    }
+
+    if (combo.forward) {
+      const auto fwd_model_id = transmission_analysis.add_model(
+        std::make_unique<Ros2ControlPluginTransmissionInstanceModel>(
+          core, combo.interface_id, /*is_forward=*/true));
+      transmission_analysis.add_transmission(
+        fwd_model_id,
+        actuator_sids,
+        joint_sids,
+        transmission.name + "/" + combo.interface_id.name + "[fwd]");
+    }
+
+    if (combo.inverse) {
+      const auto inv_model_id = transmission_analysis.add_model(
+        std::make_unique<Ros2ControlPluginTransmissionInstanceModel>(
+          core, combo.interface_id, /*is_forward=*/false));
+      transmission_analysis.add_transmission(
+        inv_model_id,
+        std::move(joint_sids),
+        std::move(actuator_sids),
+        transmission.name + "/" + combo.interface_id.name + "[inv]");
+    }
+  }
 }
 
 enum class MimicVisitState {
