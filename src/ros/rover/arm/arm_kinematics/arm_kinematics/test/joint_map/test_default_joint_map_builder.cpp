@@ -163,6 +163,23 @@ protected:
 };
 
 // ===========================================================================
+// JointMap default-state test
+// ===========================================================================
+
+TEST(JointMapTests, DefaultConstructed_IsInvalid)
+{
+  arm_kinematics::JointMap joint_map{};
+
+  EXPECT_FALSE(joint_map.valid());
+  EXPECT_EQ(joint_map.input_count(), 0u);
+  EXPECT_EQ(joint_map.output_count(), 0u);
+
+  std::vector<float> inputs{};
+  std::vector<float> outputs{};
+  EXPECT_THROW(joint_map.map(inputs, outputs), std::logic_error);
+}
+
+// ===========================================================================
 // Happy paths
 // ===========================================================================
 

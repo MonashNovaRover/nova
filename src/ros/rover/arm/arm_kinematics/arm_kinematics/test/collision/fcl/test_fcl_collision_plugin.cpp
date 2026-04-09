@@ -13,7 +13,10 @@
 #include "arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
+#include "arm_kinematics/joint_map/state_interface_definition.hpp"
+#include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/reordered.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/collision/collision_manager.hpp"
 #include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 #include "arm_kinematics/plugins/collision/fcl/fcl_collision_plugin.hpp"
@@ -130,7 +133,25 @@ protected:
     auto collision = std::make_shared<FclCollisionPlugin>();
     auto [colliders, frames, acm] = arm_kinematics::ColliderDefinitions(robot_model_->get_urdf_model());
 
-    auto [tree, order] = fk_plugin_->make_tree(joint_names_, "base_link", std::move(frames));
+    // Build position-interface NamedStateInterfaceDefinitions for the joint inputs and call
+    // the new make_tree convenience overload, which returns tl::expected<MakeTreeResult, ...>.
+    static const arm_kinematics::InterfaceId k_position{"position"};
+    std::vector<arm_kinematics::NamedStateInterfaceDefinition> named_inputs;
+    named_inputs.reserve(joint_names_.size());
+    for (const auto & name : joint_names_) {
+      named_inputs.push_back(arm_kinematics::NamedStateInterfaceDefinition{name, k_position});
+    }
+
+    auto make_tree_result = fk_plugin_->make_tree(
+      arm_kinematics::span<const arm_kinematics::NamedStateInterfaceDefinition>(
+        named_inputs.data(), named_inputs.size()),
+      "base_link",
+      std::move(frames));
+    ASSERT_TRUE(make_tree_result.has_value())
+      << "make_tree failed: " << make_tree_result.error().message;
+    auto tree = std::move(make_tree_result.value().tree);
+    const auto & order = make_tree_result.value().frame_order;
+
     init_result_ = collision->initialize(*node_, order.reorder(std::move(colliders)), std::move(acm));
     ASSERT_TRUE(init_result_);
 

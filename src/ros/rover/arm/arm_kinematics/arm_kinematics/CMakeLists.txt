@@ -103,12 +103,14 @@ install(FILES plugins.xml
 set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
   test/collision/fcl/test_fcl_collision_plugin.cpp
-  test/forward/eigen/test_eigen_fk_mapper.cpp
-  test/joint_map/test_transmission_analysis.cpp
-  test/joint_map/test_transmission_reachability.cpp
+  test/common/test_robot_model_urdf.cpp
+  test/forward/eigen/test_eigen_make_tree.cpp
+  test/joint_map/test_default_joint_map_builder.cpp
   test/joint_map/test_joint_map_blueprint.cpp
   test/joint_map/test_materialize_joint_map.cpp
-  test/joint_map/test_default_joint_map_builder.cpp
+  test/joint_map/test_transmission_analysis.cpp
+  test/joint_map/test_transmission_analysis_urdf_import.cpp
+  test/joint_map/test_transmission_reachability.cpp
   test/main.cpp
 )
 #if(NIX_DO_CHECK)
