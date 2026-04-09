@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<NetworkDefinition xmlns="http://kayak.2codeornot2code.org/1.0" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<!-- included macros -->
+	<xacro:include filename="blcmd.kcd.xacro"/>
+
+	<Document name="Banksia Drive (Interpreted)" version="0.0.1" author="Jonathan Jia" date="2026-04-04">
+		CAN database file for Banksia's drive system
+
+		(All values/signals are transformed into SI units where there exists some known linear transformation;
+		however, some values/signals will not be if that transformation is unknown)
+	</Document>
+
+	<Node id="0" name="orin"/>
+	<Node id="1" name="front_left_wheel"/>
+	<Node id="2" name="back_left_wheel"/>
+	<Node id="3" name="back_right_wheel"/>
+	<Node id="4" name="front_right_wheel"/>
+	<Node id="5" name="front_left_pivot"/>
+	<Node id="6" name="back_left_pivot"/>
+	<Node id="7" name="back_right_pivot"/>
+	<Node id="8" name="front_right_pivot"/>
+
+	<!-- calculate transformations used in blcmd control software (blcmd_hardware2) -->
+
+	<!-- constants (usually from ros2_control.xacro) -->
+	<xacro:property name="signed_16_bit_integer_limit" value="${2**15 - 1}"/>
+	<xacro:property name="clock_rate" value="100000000"/>
+	<xacro:property name="revolution_pulses" value="8192"/>
+
+	<xacro:property name="drive_min_interval" value="122"/>
+	<xacro:property name="drive_gear_ratio" value="15.0"/>
+
+	<xacro:property name="pivot_min_interval" value="233"/>
+	<xacro:property name="pivot_gear_ratio" value="36.0"/>
+
+	<!-- if reversed is true in ros2_control.xacro, then multiplier is -1; else 1 -->
+	<xacro:property name="blcmd_1_reversed_multiplier" value="-1"/>
+	<xacro:property name="blcmd_2_reversed_multiplier" value="-1"/>
+	<xacro:property name="blcmd_3_reversed_multiplier" value="1"/>
+	<xacro:property name="blcmd_4_reversed_multiplier" value="1"/>
+	<xacro:property name="blcmd_5_reversed_multiplier" value="-1"/>
+	<xacro:property name="blcmd_6_reversed_multiplier" value="1"/>
+	<xacro:property name="blcmd_7_reversed_multiplier" value="-1"/>
+	<xacro:property name="blcmd_8_reversed_multiplier" value="1"/>
+
+	<!-- rev
+
+	<!-- effort -->
+
+	<xacro:property name="effort_slope" value="${1 / signed_16_bit_integer_limit}"/>
+
+	<!-- velocity -->
+
+	<!-- equivalent to max_velocity in blcmd_hardware2 -->
+	<xacro:property name="drive_max_velocity" value="${ (clock_rate) / (drive_min_interval * revolution_pulses * drive_gear_ratio) * 2 * pi }"/>
+
+	<xacro:property name="drive_velocity_command_slope" value="${ drive_max_velocity / signed_16_bit_integer_limit }"/>
+	<xacro:property name="drive_velocity_telemetry_slope" value="${ (drive_max_velocity * -1 * 0.5) / signed_16_bit_integer_limit }"/>
+
+	<!-- position -->
+
+
+
+
+	<Bus name="can0" baudrate="250000">
+
+		<xacro:blcmd_messages blcmd_id="1" blcmd_node_id="1" joint_name="flw"
+			  drive_at_speed_slope="${drive_velocity_command_slope * blcmd_1_reversed_multiplier}"
+			  drive_at_current_slope="${effort_slope * blcmd_1_reversed_multiplier}"
+			  telemetry_packet_1_velocity_slope="${drive_velocity_telemetry_slope * blcmd_1_reversed_multiplier}"
+			  telemetry_packet_1_effort_slope="${effort_slope * blcmd_1_reversed_multiplier}"/>
+
+		<<xacro:property name="blcmd_2_reversed_multiplier" value="${-1 if blcmd_2_reversed else 1}"/>
+		<xacro:blcmd_messages blcmd_id="2" blcmd_node_id="2" joint_name="blw"
+			  drive_at_current_slope="${effort_slope * -1}"
+			  telemetry_packet_1_effort_slope="${effort_slope * -1}"/>
+
+		<xacro:property name="blcmd_3_reversed_multiplier" value="${-1 if blcmd_3_reversed else 1}"/>
+		<xacro:blcmd_messages blcmd_id="3" blcmd_node_id="3" joint_name="brw"
+			  drive_at_current_slope="${effort_slope}"
+			  telemetry_packet_1_effort_slope="${effort_slope}"/>
+
+		<xacro:property name="blcmd_4_reversed_multiplier" value="${-1 if blcmd_4_reversed else 1}"/>
+		<xacro:blcmd_messages blcmd_id="4" blcmd_node_id="4" joint_name="frw"
+			  drive_at_current_slope="${effort_slope}"
+			  telemetry_packet_1_effort_slope="${effort_slope}"/>
+
+		<xacro:property name="blcmd_5_reversed_multiplier" value="${-1 if blcmd_5_reversed else 1}"/>
+		<xacro:blcmd_messages blcmd_id="5" blcmd_node_id="5" joint_name="flp"
+			  drive_at_current_slope="${effort_slope * -1}"
+			  telemetry_packet_1_effort_slope="${effort_slope * -1}"/>
+
+		<xacro:property name="blcmd_6_reversed_multiplier" value="${-1 if blcmd_6_reversed else 1}"/>
+		<xacro:blcmd_messages blcmd_id="6" blcmd_node_id="6" joint_name="blp"/>
+
+		<xacro:property name="blcmd_7_reversed_multiplier" value="${-1 if blcmd_7_reversed else 1}"/>
+		<xacro:blcmd_messages blcmd_id="7" blcmd_node_id="7" joint_name="brp"/>
+
+		<xacro:property name="blcmd_8_reversed_multiplier" value="${-1 if blcmd_8_reversed else 1}"/>
+		<xacro:blcmd_messages blcmd_id="8" blcmd_node_id="8" joint_name="frp"/>
+
+	</Bus>
+</NetworkDefinition>

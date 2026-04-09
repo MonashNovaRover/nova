@@ -4,8 +4,11 @@
 	<!-- included macros -->
 	<xacro:include filename="blcmd.kcd.xacro"/>
 
-	<Document name="Banksia Drive" version="0.0.1" author="Jonathan Jia" date="2026-03-06">
-		CAN Description file for Banksia's drive system
+	<Document name="Banksia Drive (Raw)" version="0.0.1" author="Jonathan Jia" date="2026-03-06">
+		CAN database file for Banksia's drive system
+
+		(All values/signals are provided as-is, without transforming them into SI units;
+		however values/signals are still obtained based off type, e.g. signed or unsigned)
 	</Document>
 
 	<Node id="0" name="orin"/>
