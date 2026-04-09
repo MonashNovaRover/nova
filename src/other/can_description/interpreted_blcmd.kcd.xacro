@@ -4,51 +4,89 @@
 
 <wrapper xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://kayak.2codeornot2code.org/1.0" xsi:noNamespaceSchemaLocation="schemas/kcd-macro.xsd">
 
-
     <!-- include generic blcmd macro -->
     <xacro:include filename="blcmd.kcd.xacro"/>
 
-
-
+    <!-- obtain additional parameters from definitions in ros2_control.xacro -->
+    <!-- resolver_reduction, res_ticks_per_rev and zero_offset are optional if interpret_position is False -->
     <xacro:macro name="interpreted_blcmd_messages" params="
     blcmd_id
     joint_name
     blcmd_node_id
-    orin_node_id:=0">
+    orin_node_id:=0
+    unit_radians:=False
+
+    reversed
+    clock_rate
+    revolution_pulses
+    min_interval
+    gear_ratio
+
+    interpret_position:=False
+    resolver_reduction:=None
+    res_ticks_per_rev:=None
+    zero_offset:=None">
+
+        <!-- all calculations are derived from blcmd_hardware2.cpp -->
+
+        <!-- constants -->
+        <xacro:property name="signed_16_bit_integer_limit" value="${2**15 - 1}"/>
+        <xacro:property name="reversed_multiplier" value="${-1 if reversed else 1}"/>
+
+        <!-- display radians or degrees -->
+        <xacro:if value="${unit_radians}">
+            <xacro:property name="unit" value="rad"/>
+            <xacro:property name="conversion_multiplier" value="1"/>
+        </xacro:if>
+        <xacro:unless value="${unit_radians}">
+            <xacro:property name="unit" value="deg"/>
+            <xacro:property name="conversion_multiplier" value="${180 / pi}"/>
+        </xacro:unless>
+
+        <!-- effort -->
+
+        <xacro:property name="effort_slope" value="${1 / signed_16_bit_integer_limit * reversed_multiplier}"/>
+
+        <!-- velocity -->
+
+        <xacro:property name="max_velocity" value="${ (clock_rate) / (min_interval * revolution_pulses * drive_gear_ratio) * 2 * pi }"/>
+
+        <xacro:property name="velocity_command_slope" value="${ max_velocity / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
+        <xacro:property name="velocity_telemetry_slope" value="${ (max_velocity * -1 * 0.5) / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
+
+        <!-- position -->
+
+        <xacro:if value="${interpret_position}">
+            <xacro:property name="position_slope" value="${(2 * pi) / (reversed_multiplier * resolver_reduction * res_ticks_per_rev) * conversion_multiplier}"/>
+            <xacro:property name="position_intercept" value="${position_slope * -zero_offset}"/>
+        </xacro:if>
+        <xacro:unless value="${interpret_position}">
+            <xacro:property name="position_slope" value="1"/>
+            <xacro:property name="position_intercept" value="0"/>
+        </xacro:unless>
+
+
         <xacro:blcmd_messages
                 blcmd_id="${blcmd_id}"
                 joint_name="${joint_name}"
                 blcmd_node_id="${blcmd_node_id}"
                 orin_node_id="${orin_node_id}"
 
+                drive_at_current_slope="${effort_slope}"
+                telemetry_packet_1_effort_slope="${effort_slope}"
 
+                drive_at_speed_slope="${velocity_command_slope}"
+                drive_at_speed_unit="${unit}"
+                telemetry_packet_1_velocity_slope="${velocity_telemetry_slope}"
+                telemetry_packet_1_velocity_unit="${unit}"
+
+                drive_to_position_intercept="${position_intercept}"
+                drive_to_position_slope="${position_slope}"
+                drive_to_position_unit="${unit}"
+                telemetry_packet_3_resolver_position_intercept="${position_intercept}"
+                telemetry_packet_3_resolver_position_slope="${position_slope}"
+                telemetry_packet_3_resolver_position_unit="${unit}"
         />
+
     </xacro:macro>
-
-    <Document name="Banksia Drive" version="0.0.1" author="Jonathan Jia" date="2026-03-06">
-        CAN Description file for Banksia's drive system
-    </Document>
-
-    <Node id="0" name="orin"/>
-    <Node id="1" name="front_left_wheel"/>
-    <Node id="2" name="back_left_wheel"/>
-    <Node id="3" name="back_right_wheel"/>
-    <Node id="4" name="front_right_wheel"/>
-    <Node id="5" name="front_left_pivot"/>
-    <Node id="6" name="back_left_pivot"/>
-    <Node id="7" name="back_right_pivot"/>
-    <Node id="8" name="front_right_pivot"/>
-
-    <Bus name="can0" baudrate="250000">
-
-        <xacro:blcmd_messages blcmd_id="1" blcmd_node_id="1" joint_name="flw"/>
-        <xacro:blcmd_messages blcmd_id="2" blcmd_node_id="2" joint_name="blw"/>
-        <xacro:blcmd_messages blcmd_id="3" blcmd_node_id="3" joint_name="brw"/>
-        <xacro:blcmd_messages blcmd_id="4" blcmd_node_id="4" joint_name="frw"/>
-        <xacro:blcmd_messages blcmd_id="5" blcmd_node_id="5" joint_name="flp"/>
-        <xacro:blcmd_messages blcmd_id="6" blcmd_node_id="6" joint_name="blp"/>
-        <xacro:blcmd_messages blcmd_id="7" blcmd_node_id="7" joint_name="brp"/>
-        <xacro:blcmd_messages blcmd_id="8" blcmd_node_id="8" joint_name="frp"/>
-
-    </Bus>
 </wrapper>
