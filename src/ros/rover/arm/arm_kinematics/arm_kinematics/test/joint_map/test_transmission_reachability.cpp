@@ -674,3 +674,101 @@ TEST_F(TransmissionReachabilityTest, NonInputAmbiguity_TransmissionVsAffineProje
   EXPECT_TRUE(saw_transmission);
   EXPECT_TRUE(saw_affine);
 }
+
+// ===========================================================================
+// Algorithm fix: ambiguity does NOT propagate through downstream transmissions
+// ===========================================================================
+
+TEST_F(TransmissionReachabilityTest, Ambiguity_DoesNotPropagateThroughChain)
+{
+  // T1: a → x;  T2: a → x   (x is ambiguous)
+  // T3: x → y                  (y depends on x; the algorithm fix means y is BLOCKED, not
+  //                              derivable, and not ambiguous either — it has no producer at
+  //                              all because T3 is skipped during the inner loop)
+  ensure_joints(analysis_, {"j_a", "j_x", "j_y"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+  const auto y = ensure_state(analysis_, "j_y", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a}, {x}, "T1");
+  analysis_.add_transmission(model_id, {a}, {x}, "T2");
+  analysis_.add_transmission(model_id, {x}, {y}, "T3");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{a});
+
+  // x is the directly-ambiguous interface.
+  EXPECT_TRUE(reach.is_ambiguous());
+  ASSERT_EQ(reach.ambiguities().size(), 1u);
+  EXPECT_EQ(reach.ambiguities()[0].interface, x);
+
+  // y has NO producer — not derivable (T3 was skipped because x is ambiguous), not ambiguous
+  // (it has no candidates because T3 didn't fire).
+  EXPECT_TRUE(is_monostate(reach.producer_of(y)));
+
+  // Derivable contains only `a` — neither x nor y propagated.
+  const auto derivable = reach.derivable_interfaces();
+  EXPECT_EQ(derivable.size(), 1u);
+  EXPECT_EQ(derivable[0], a);
+}
+
+TEST_F(TransmissionReachabilityTest, Blocked_OutputDownstreamOfAmbiguous_IsBlocked_NotDerivable)
+{
+  // Same setup as above, but assert via the blocked_interfaces() query.
+  ensure_joints(analysis_, {"j_a", "j_x", "j_y"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  ensure_state(analysis_, "j_x", InterfaceId{"position"});
+  const auto y = ensure_state(analysis_, "j_y", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  const auto x_id = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+  analysis_.add_transmission(model_id, {a}, {x_id}, "T1");
+  analysis_.add_transmission(model_id, {a}, {x_id}, "T2");
+  analysis_.add_transmission(model_id, {x_id}, {y}, "T3");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{a});
+
+  // y is in blocked_interfaces() — its producer chain transitively touches an ambiguous
+  // interface (x).
+  const auto blocked = reach.blocked_interfaces();
+  ASSERT_EQ(blocked.size(), 1u);
+  EXPECT_EQ(blocked[0], y);
+}
+
+TEST_F(TransmissionReachabilityTest, Blocked_CascadeThroughTwoLayers)
+{
+  // T1, T2: a → x   (x ambiguous)
+  // T3: x → y       (y blocked by x)
+  // T4: y → z       (z blocked by y, transitively by x)
+  ensure_joints(analysis_, {"j_a", "j_x", "j_y", "j_z"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+  const auto y = ensure_state(analysis_, "j_y", InterfaceId{"position"});
+  const auto z = ensure_state(analysis_, "j_z", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a}, {x}, "T1");
+  analysis_.add_transmission(model_id, {a}, {x}, "T2");
+  analysis_.add_transmission(model_id, {x}, {y}, "T3");
+  analysis_.add_transmission(model_id, {y}, {z}, "T4");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{a});
+
+  ASSERT_EQ(reach.ambiguities().size(), 1u);
+  EXPECT_EQ(reach.ambiguities()[0].interface, x);
+
+  // Both y and z are blocked.
+  const auto blocked = reach.blocked_interfaces();
+  ASSERT_EQ(blocked.size(), 2u);
+  // Order may vary; check via membership.
+  bool saw_y = false, saw_z = false;
+  for (const auto sid : blocked) {
+    if (sid == y) saw_y = true;
+    if (sid == z) saw_z = true;
+  }
+  EXPECT_TRUE(saw_y);
+  EXPECT_TRUE(saw_z);
+}

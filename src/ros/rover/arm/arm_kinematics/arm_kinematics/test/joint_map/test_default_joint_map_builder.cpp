@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -352,4 +353,242 @@ TEST_F(DefaultJointMapBuilderTest, PolymorphicCallThroughBaseInterface)
   std::vector<float> out(1, 0.0F);
   result.value().map(in, out);
   EXPECT_TRUE(approx_equal(out[0], 42.0F));
+}
+
+// ===========================================================================
+// Unknown interface
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleId)
+{
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_a"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+
+  // Pass an out-of-range id as an output. The state interface count is 1, so id 999 is bogus.
+  const StateInterfaceId bogus = 999;
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{a},
+    std::vector<StateInterfaceId>{bogus});
+
+  ASSERT_FALSE(result.has_value());
+  const auto & err = result.error();
+  EXPECT_EQ(err.kind, JointMapBuildError::Kind::UnknownInterface);
+  ASSERT_EQ(err.unknown_interfaces.size(), 1u);
+  EXPECT_EQ(err.unknown_interfaces[0], bogus);
+  EXPECT_TRUE(err.unreachable_outputs.empty());
+  EXPECT_TRUE(err.ambiguous_interfaces.empty());
+}
+
+TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleInputId)
+{
+  // Same but the bogus id is in the inputs list — should also be caught.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_a"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+
+  const StateInterfaceId bogus = 42;
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{bogus},
+    std::vector<StateInterfaceId>{a});
+
+  ASSERT_FALSE(result.has_value());
+  EXPECT_EQ(result.error().kind, JointMapBuildError::Kind::UnknownInterface);
+  EXPECT_EQ(result.error().unknown_interfaces[0], bogus);
+}
+
+// ===========================================================================
+// Double build (no cached state contamination)
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, DoubleBuild_NoCachedStateContamination)
+{
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  const auto joints = ensure_joints(analysis, {"j_a", "j_b"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
+  analysis.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+
+  // First call: request just `a`.
+  const auto result1 = builder_.build_expected(
+    std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{a});
+  ASSERT_TRUE(result1.has_value());
+
+  // Second call on the same builder: different request (now ask for `b`).
+  const auto result2 = builder_.build_expected(
+    std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{b});
+  ASSERT_TRUE(result2.has_value());
+
+  std::vector<float> in{5.0F};
+  std::vector<float> out1(1, 0.0F);
+  result1.value().map(in, out1);
+  EXPECT_TRUE(approx_equal(out1[0], 5.0F));
+
+  std::vector<float> out2(1, 0.0F);
+  result2.value().map(in, out2);
+  EXPECT_TRUE(approx_equal(out2[0], 10.0F));  // 2*5
+}
+
+// ===========================================================================
+// Velocity projection rule end-to-end
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Success_VelocityProjectionRule_EndToEnd)
+{
+  // b mimics a (b = 2a + 5). Request b.velocity from a.velocity → expect 2*v_a (offset
+  // dropped by the velocity rule).
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  const auto joints = ensure_joints(analysis, {"j_a", "j_b"});
+  const auto a_vel = ensure_state(analysis, "j_a", InterfaceId{"velocity"});
+  const auto b_vel = ensure_state(analysis, "j_b", InterfaceId{"velocity"});
+  analysis.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{a_vel}, std::vector<StateInterfaceId>{b_vel});
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<float> in{3.0F};
+  std::vector<float> out(1, 0.0F);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 6.0F));  // 2*3, offset dropped
+}
+
+// ===========================================================================
+// Diamond DAG end-to-end numerical verification
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Success_DiamondDAG_NumericalVerification)
+{
+  // T1: a → b = 2a
+  // T2: a → c = 3a + 1
+  // T3: b, c → d = b + c
+  // For a = 4: b = 8, c = 13, d = 21.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_a", "j_b", "j_c", "j_d"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
+  const auto c = ensure_state(analysis, "j_c", InterfaceId{"position"});
+  const auto d = ensure_state(analysis, "j_d", InterfaceId{"position"});
+
+  const auto m1 = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{2.0F}, std::vector<float>{0.0F}, 1, 1));
+  const auto m2 = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{3.0F}, std::vector<float>{1.0F}, 1, 1));
+  const auto m3 = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{1.0F, 1.0F}, std::vector<float>{0.0F}, 2, 1));
+  analysis.add_transmission(m1, {a}, {b}, "T1");
+  analysis.add_transmission(m2, {a}, {c}, "T2");
+  analysis.add_transmission(m3, {b, c}, {d}, "T3");
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{d});
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<float> in{4.0F};
+  std::vector<float> out(1, 0.0F);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 21.0F));
+}
+
+// ===========================================================================
+// Redundant equivalent inputs end-to-end
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Success_RedundantEquivalentInputs_EndToEnd)
+{
+  // A→B (B=2A) and A→D (D=3A). Supply both A and D. Request B.
+  // Expected: B = 2A computed correctly. The redundant supply of D doesn't break the build.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  const auto joints = ensure_joints(analysis, {"j_a", "j_b", "j_d"});
+  const auto a_pos = ensure_state(analysis, "j_a", InterfaceId{"position"});
+  const auto b_pos = ensure_state(analysis, "j_b", InterfaceId{"position"});
+  const auto d_pos = ensure_state(analysis, "j_d", InterfaceId{"position"});
+  analysis.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+  analysis.add_affine_transmission(joints[0], joints[2], 3.0F, 0.0F);
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{a_pos, d_pos},
+    std::vector<StateInterfaceId>{b_pos});
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<float> in{5.0F, 15.0F};  // a=5, d=15 (consistent: 3*5=15)
+  std::vector<float> out(1, 0.0F);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 10.0F));  // B = 2*A = 10
+}
+
+// ===========================================================================
+// Transmission with mixed gather sources (input slot + upstream transmission output)
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Success_TransmissionWithMixedGatherSources)
+{
+  // T1: a → b = 2a
+  // T2: b, c → d = b + c   (where c is also a direct input)
+  // Inputs: {a, c}. Request: {d}.
+  // For a=3, c=10: b=6, d=16.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_a", "j_b", "j_c", "j_d"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
+  const auto c = ensure_state(analysis, "j_c", InterfaceId{"position"});
+  const auto d = ensure_state(analysis, "j_d", InterfaceId{"position"});
+
+  const auto m1 = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{2.0F}, std::vector<float>{0.0F}, 1, 1));
+  const auto m2 = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{1.0F, 1.0F}, std::vector<float>{0.0F}, 2, 1));
+  analysis.add_transmission(m1, {a}, {b}, "T1");
+  analysis.add_transmission(m2, {b, c}, {d}, "T2");
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{a, c}, std::vector<StateInterfaceId>{d});
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<float> in{3.0F, 10.0F};
+  std::vector<float> out(1, 0.0F);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 16.0F));
+}
+
+// ===========================================================================
+// TransmissionModel returning null compute
+// ===========================================================================
+
+namespace {
+
+class NullReturningModel : public TransmissionModel {
+public:
+  [[nodiscard]] std::unique_ptr<TransmissionModel> clone() const override
+  {
+    return std::make_unique<NullReturningModel>();
+  }
+  [[nodiscard]] std::unique_ptr<const ComputeTransmission> build(
+    arm_kinematics::span<const StateInterfaceId>,
+    arm_kinematics::span<const StateInterfaceId>) const override
+  {
+    return nullptr;
+  }
+};
+
+}  // namespace
+
+TEST_F(DefaultJointMapBuilderTest, Error_TransmissionModelReturnsNull_PropagatesAsException)
+{
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_a", "j_b"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
+
+  const auto m = analysis.add_model(std::make_unique<NullReturningModel>());
+  analysis.add_transmission(m, {a}, {b}, "T");
+
+  // The materializer should throw std::invalid_argument when build() returns null.
+  EXPECT_THROW(
+    {
+      auto result = builder_.build_expected(
+        std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{b});
+      (void)result;
+    },
+    std::invalid_argument);
 }

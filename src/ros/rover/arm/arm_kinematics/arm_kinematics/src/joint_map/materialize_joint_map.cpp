@@ -4,6 +4,14 @@
 
 #include "arm_kinematics/joint_map/materialize_joint_map.hpp"
 
+// Error-handling policy for this file:
+//   - `assert` is for defensive impossible-state checks: invariants the algorithm guarantees,
+//     not user-facing preconditions. Failing one is a programming error in the algorithm
+//     itself.
+//   - `throw std::logic_error` (or `std::invalid_argument` for shape errors) is for caller
+//     precondition violations and shape mismatches — when a caller passes bad input we throw
+//     so it's loud in both debug and release builds.
+
 #include <cassert>
 #include <stdexcept>
 #include <unordered_map>
@@ -52,6 +60,9 @@ JointMap materialize_pure_affine(const JointMapBlueprint & blueprint)
 
   for (const auto & seg : blueprint.segments()) {
     const auto * batch = std::get_if<JointMapBlueprintSegment::InputAffineBatch>(&seg.kind);
+    // Defensive: this is an internal invariant — `materialize_pure_affine` is only called when
+    // `blueprint_is_pure_affine(blueprint)` is true, which already excludes any non-affine
+    // segments. If we hit this, the materializer's classification logic is buggy.
     assert(batch != nullptr && "materialize_pure_affine: non-affine segment in pure-affine blueprint");
     for (std::size_t i = 0; i < batch->blueprint_output_indices.size(); ++i) {
       const std::size_t out_pos = batch->blueprint_output_indices[i];

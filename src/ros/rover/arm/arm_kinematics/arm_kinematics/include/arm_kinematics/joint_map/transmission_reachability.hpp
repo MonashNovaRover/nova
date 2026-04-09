@@ -70,24 +70,30 @@ using StateInterfaceProducer = std::variant<
 /**
  * Build-time analysis of "what is derivable from these inputs?" against a `TransmissionAnalysis`.
  *
- * `TransmissionReachability` is the result of running an eager forward fixed point that
- * propagates derivability through transmission instances and affine projections. It is purely
- * a function of `(analysis, inputs)` — it does **not** know which outputs the caller wants. That
- * concern lives in `diagnose_missing_outputs` and `plan_joint_map`, which take a reachability
- * plus an output list.
+ * `TransmissionReachability` is the result of running a forward fixed point that propagates
+ * derivability through transmission instances and affine projections. It is purely a function of
+ * `(analysis, inputs)` — it does **not** know which outputs the caller wants. That concern lives
+ * in `diagnose_missing_outputs` and `plan_joint_map`, which take a reachability plus an output
+ * list.
  *
  * Construct via the static `analyze()` factory. The result is immutable: every query is a pure
  * read, safe for concurrent reads from multiple threads.
  *
- * \note **Ambiguity-poison limitation.** When an interface is ambiguous (≥2 viable producers),
- * the algorithm still propagates its derivability to downstream transmissions — a transmission
- * whose input is ambiguous will still record its outputs as candidates and may end up with a
- * committed `producer_of()` entry. Those downstream commits are **internally inconsistent**:
- * their inputs cannot actually be computed at runtime because the upstream is ambiguous. This is
- * a deliberate simplicity trade-off — propagating ambiguity poison correctly would require
- * multiple fixed-point passes. Consumers (`diagnose_missing_outputs`, `plan_joint_map`) refuse to
- * proceed when `is_ambiguous()` is true and surface the upstream `Ambiguous` error first, so the
- * inconsistency never reaches a runtime `JointMap`.
+ * **Interface classification.** Every state interface known to the analysis falls into exactly
+ * one of four categories:
+ *   - **Derivable** — has a unique committed producer. `producer_of(i)` returns a non-monostate
+ *     value; `derivable_interfaces()` lists every such id.
+ *   - **Ambiguous** — has ≥2 viable producers and the algorithm refuses to silently pick a winner.
+ *     `producer_of(i)` returns `monostate`; `ambiguities()` lists the conflict.
+ *   - **Blocked** — has at least one potential producer transmission whose inputs are all known
+ *     OR ambiguous OR blocked, and at least one input is ambiguous or blocked. The interface
+ *     could be derivable if the user disambiguated upstream. `producer_of(i)` returns
+ *     `monostate`; `blocked_interfaces()` lists every such id.
+ *   - **Unreachable** — none of the above. The user simply hasn't supplied enough inputs.
+ *
+ * Ambiguity does NOT propagate derivability: a transmission whose inputs include an ambiguous or
+ * blocked interface is silently skipped during the fixed point, so its outputs do not enter the
+ * derivable set. This is correct: the runtime literally could not compute those values.
  */
 class TransmissionReachability {
 public:
@@ -141,15 +147,17 @@ public:
   /// full algorithm pass, not just the first conflict.
   [[nodiscard]] span<const AmbiguousInterface> ambiguities() const noexcept;
 
-  /// O(1) lookup. Returns `std::monostate` if the interface is not derivable from the analyzed
-  /// inputs, ambiguous, or out-of-scope (not known to the analysis).
-  ///
-  /// \warning When `is_ambiguous()` is true, this method may return non-`monostate` values for
-  /// interfaces whose producers transitively depend on ambiguous upstream interfaces. Those
-  /// values are internally inconsistent and must not be used to emit a runtime `JointMap`. The
-  /// downstream consumers (`diagnose_missing_outputs`, `plan_joint_map`) gate on
-  /// `is_ambiguous()` and refuse to proceed in that case. See the class-level
-  /// "Ambiguity-poison limitation" note for the rationale.
+  /// Interfaces that cannot be computed because at least one of their potential producers'
+  /// inputs is itself ambiguous or blocked. Disjoint from `derivable_interfaces()` and from
+  /// `ambiguities()`. The user resolves these by disambiguating the relevant upstream — see
+  /// `diagnose_missing_outputs` for the per-output attribution walk.
+  [[nodiscard]] span<const StateInterfaceId> blocked_interfaces() const noexcept;
+
+  /// O(1) lookup. Returns the committed producer for `interface`, or `std::monostate` if the
+  /// interface is ambiguous, blocked, unreachable, or not known to the analysis. The four
+  /// non-derivable cases are distinguished by `ambiguities()`, `blocked_interfaces()`, and the
+  /// state interface order respectively (or via `diagnose_missing_outputs` for a one-shot
+  /// classification of a request).
   [[nodiscard]] StateInterfaceProducer producer_of(StateInterfaceId interface) const noexcept;
 
   /// Each entry: a leaf input that the algorithm did NOT pick as the affine projection source
@@ -205,6 +213,20 @@ private:
 
   /// Interfaces with multiple viable producers, with their full candidate lists.
   std::vector<AmbiguousInterface> ambiguities_{};
+
+  /// Membership lookup for ambiguous interfaces, indexed by StateInterfaceId. Used by the inner
+  /// fixed point's "skip transmissions whose inputs are ambiguous" check, and by the blocked
+  /// post-pass.
+  std::vector<bool> ambiguous_membership_{};
+
+  /// Interfaces that have at least one potential producer transmission whose inputs include
+  /// (transitively) an ambiguous interface, but that themselves have no derivable producer.
+  /// Computed in a post-pass after the main fixed point converges; only populated when at least
+  /// one ambiguity exists.
+  std::vector<StateInterfaceId> blocked_interfaces_{};
+
+  /// Membership lookup for blocked_interfaces_, indexed by StateInterfaceId.
+  std::vector<bool> blocked_membership_{};
 
   /// Redundant equivalent inputs (lower-JointId leaf wins in affine groups).
   std::vector<StateInterfaceId> redundant_equivalent_inputs_{};

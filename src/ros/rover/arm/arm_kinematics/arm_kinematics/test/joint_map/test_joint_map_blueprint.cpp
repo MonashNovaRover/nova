@@ -160,7 +160,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmb
   // T1: a → x;  T2: a → x  (x is ambiguous)
   // T3: x → y                  (y depends on x; the transitive walk should taint y)
   // Inputs: {a}, Outputs: {y}
-  // Expected: y in ambiguous_outputs, x in relevant_ambiguities, no unreachable.
+  // Expected: y in ambiguous_outputs, x in relevant_blocking_ambiguities, no unreachable.
   ensure_joints(analysis_, {"j_a", "j_x", "j_y"});
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
@@ -178,8 +178,8 @@ TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmb
   EXPECT_TRUE(diag.unreachable.empty());
   ASSERT_EQ(diag.ambiguous_outputs.size(), 1u);
   EXPECT_EQ(diag.ambiguous_outputs[0], y);
-  ASSERT_EQ(diag.relevant_ambiguities.size(), 1u);
-  EXPECT_EQ(diag.relevant_ambiguities[0].interface, x);
+  ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
+  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, x);
 }
 
 TEST_F(JointMapBlueprintTest, Diagnose_UnrelatedAmbiguity_DoesNotAffectRequest)
@@ -206,7 +206,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_UnrelatedAmbiguity_DoesNotAffectRequest)
   EXPECT_TRUE(reach.is_ambiguous());  // x is ambiguous in the reachability
   EXPECT_TRUE(diag.unreachable.empty());
   EXPECT_TRUE(diag.ambiguous_outputs.empty());  // ...but z is fine
-  EXPECT_TRUE(diag.relevant_ambiguities.empty());
+  EXPECT_TRUE(diag.relevant_blocking_ambiguities.empty());
 }
 
 TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
@@ -226,8 +226,8 @@ TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
   EXPECT_TRUE(diag.unreachable.empty());
   ASSERT_EQ(diag.ambiguous_outputs.size(), 1u);
   EXPECT_EQ(diag.ambiguous_outputs[0], x);
-  ASSERT_EQ(diag.relevant_ambiguities.size(), 1u);
-  EXPECT_EQ(diag.relevant_ambiguities[0].interface, x);
+  ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
+  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, x);
 }
 
 // ===========================================================================

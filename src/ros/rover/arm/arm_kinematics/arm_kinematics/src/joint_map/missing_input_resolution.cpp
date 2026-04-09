@@ -5,9 +5,7 @@
 #include "arm_kinematics/joint_map/missing_input_resolution.hpp"
 
 #include <algorithm>
-#include <unordered_map>
 #include <unordered_set>
-#include <variant>
 
 #include "arm_kinematics/joint_map/transmission_reachability.hpp"
 
@@ -15,59 +13,42 @@ namespace arm_kinematics {
 
 namespace {
 
-// Walks `iface`'s producer chain and returns true if any node in the chain is an ambiguous
-// interface (i.e. its producer is monostate AND it's listed in `reach.ambiguities()`).
+// Walk the analysis's potential-producer graph backward from `blocked_output` and collect
+// every ambiguous-interface ancestor (transitively, through transmission inputs and affine
+// projection sources). Used only on the failing path to attribute "this output is blocked
+// because of these upstream ambiguities".
 //
-// `ambiguous_set` is a precomputed lookup of every ambiguous interface id in the reachability,
-// for O(1) checks. `cache` memoizes results across multiple calls (each interface is visited at
-// most once across the whole diagnosis). `tainted_ambiguities` is populated with every
-// ambiguous interface id encountered along *any* tainted chain — this is what feeds the
-// builder's `relevant_ambiguities` slice.
-bool depends_on_ambiguous(
+// `ambiguous_set` is the precomputed lookup of every ambiguous interface in the reachability,
+// for O(1) checks.
+//
+// The walk is bounded by the number of state interfaces (visited set prevents revisits).
+void collect_blocking_ambiguities(
   const TransmissionReachability & reach,
-  const StateInterfaceId iface,
+  const StateInterfaceId blocked_output,
   const std::unordered_set<StateInterfaceId> & ambiguous_set,
-  std::unordered_map<StateInterfaceId, bool> & cache,
-  std::unordered_set<StateInterfaceId> & tainted_ambiguities)
+  std::unordered_set<StateInterfaceId> & visited,
+  std::unordered_set<StateInterfaceId> & blocking_ambiguities)
 {
-  const auto cached = cache.find(iface);
-  if (cached != cache.end()) {
-    return cached->second;
+  if (!visited.insert(blocked_output).second) {
+    return;
   }
-  // Tentatively mark as "not tainted" to break any pathological cycles. (The producer chain
-  // is acyclic by construction — transmissions become viable strictly after their inputs —
-  // but this is cheap insurance.)
-  cache[iface] = false;
-
-  bool tainted = false;
-  const auto producer = reach.producer_of(iface);
-
-  if (std::holds_alternative<std::monostate>(producer)) {
-    // Either ambiguous or unreachable. If ambiguous, we taint THIS interface (it's a leaf
-    // ambiguity).
-    if (ambiguous_set.count(iface) > 0) {
-      tainted_ambiguities.insert(iface);
-      tainted = true;
-    }
-  } else if (std::holds_alternative<producers::Input>(producer)) {
-    tainted = false;
-  } else if (auto * tx = std::get_if<producers::Transmission>(&producer)) {
-    const auto & instance = reach.analysis().transmissions()[tx->instance_id];
+  if (ambiguous_set.count(blocked_output) > 0) {
+    blocking_ambiguities.insert(blocked_output);
+    return;  // Don't walk past an ambiguous interface.
+  }
+  // Walk every potential producer transmission for this interface and recurse on its inputs.
+  const auto producing = reach.analysis().producing_transmissions(blocked_output);
+  for (const auto tid : producing) {
+    const auto & instance = reach.analysis().transmissions()[tid];
     for (const auto in : instance.input_ids) {
-      if (depends_on_ambiguous(reach, in, ambiguous_set, cache, tainted_ambiguities)) {
-        tainted = true;
-        // Don't break — we want to discover *all* ambiguities the chain touches so the
-        // builder can report them all in one error.
-      }
-    }
-  } else if (auto * ap = std::get_if<producers::AffineProjection>(&producer)) {
-    if (depends_on_ambiguous(reach, ap->source, ambiguous_set, cache, tainted_ambiguities)) {
-      tainted = true;
+      collect_blocking_ambiguities(reach, in, ambiguous_set, visited, blocking_ambiguities);
     }
   }
-
-  cache[iface] = tainted;
-  return tainted;
+  // Note: affine projection blocking attribution is conservative — we don't walk through
+  // affine groups here, because the producing_transmissions index doesn't cover affine
+  // sources. The reachability has already classified the interface as blocked, so the user
+  // gets the correct error category (Ambiguous); we just may miss some root-cause attribution
+  // in pure-affine cases. Refinement deferred.
 }
 
 }  // namespace
@@ -78,7 +59,6 @@ MissingOutputDiagnosis diagnose_missing_outputs(
 {
   MissingOutputDiagnosis diag{};
 
-  // Build the ambiguity lookup set once.
   const auto ambiguities = reach.ambiguities();
   std::unordered_set<StateInterfaceId> ambiguous_set;
   ambiguous_set.reserve(ambiguities.size());
@@ -86,41 +66,49 @@ MissingOutputDiagnosis diagnose_missing_outputs(
     ambiguous_set.insert(amb.interface);
   }
 
-  std::unordered_map<StateInterfaceId, bool> taint_cache;
-  std::unordered_set<StateInterfaceId> tainted_ambiguity_ids;
+  // Lookup for blocked classification — turn the span into a set once.
+  const auto blocked_span = reach.blocked_interfaces();
+  std::unordered_set<StateInterfaceId> blocked_set;
+  blocked_set.reserve(blocked_span.size());
+  for (const auto sid : blocked_span) {
+    blocked_set.insert(sid);
+  }
 
   std::unordered_set<StateInterfaceId> unreachable_seen;
   std::unordered_set<StateInterfaceId> ambiguous_seen;
+  std::unordered_set<StateInterfaceId> blocking_ambiguities;
 
   for (const StateInterfaceId out : needed_outputs) {
     const auto producer = reach.producer_of(out);
-
-    if (std::holds_alternative<std::monostate>(producer)) {
-      // Direct case: output is itself either ambiguous or unreachable.
-      if (ambiguous_set.count(out) > 0) {
-        if (ambiguous_seen.insert(out).second) {
-          diag.ambiguous_outputs.push_back(out);
-        }
-        tainted_ambiguity_ids.insert(out);
-      } else {
-        if (unreachable_seen.insert(out).second) {
-          diag.unreachable.push_back(out);
-        }
+    if (!std::holds_alternative<std::monostate>(producer)) {
+      continue;  // satisfied
+    }
+    if (ambiguous_set.count(out) > 0) {
+      // Directly ambiguous: the output itself has multiple producers.
+      if (ambiguous_seen.insert(out).second) {
+        diag.ambiguous_outputs.push_back(out);
       }
+      blocking_ambiguities.insert(out);
+    } else if (blocked_set.count(out) > 0) {
+      // Blocked: producer chain transitively depends on an ambiguous upstream.
+      if (ambiguous_seen.insert(out).second) {
+        diag.ambiguous_outputs.push_back(out);
+      }
+      // Walk back to find which upstream ambiguities are responsible.
+      std::unordered_set<StateInterfaceId> visited;
+      collect_blocking_ambiguities(reach, out, ambiguous_set, visited, blocking_ambiguities);
     } else {
-      // Output has a producer. Walk the chain to detect transitive ambiguity poison.
-      if (depends_on_ambiguous(reach, out, ambiguous_set, taint_cache, tainted_ambiguity_ids)) {
-        if (ambiguous_seen.insert(out).second) {
-          diag.ambiguous_outputs.push_back(out);
-        }
+      // Genuinely unreachable.
+      if (unreachable_seen.insert(out).second) {
+        diag.unreachable.push_back(out);
       }
     }
   }
 
-  // Slice reach.ambiguities() to those touched by tainted output chains.
+  // Slice reach.ambiguities() to those that any blocked/ambiguous output depends on.
   for (const auto & amb : ambiguities) {
-    if (tainted_ambiguity_ids.count(amb.interface) > 0) {
-      diag.relevant_ambiguities.push_back(amb);
+    if (blocking_ambiguities.count(amb.interface) > 0) {
+      diag.relevant_blocking_ambiguities.push_back(amb);
     }
   }
 

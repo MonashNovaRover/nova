@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -141,17 +142,23 @@ std::optional<TransmissionInstanceId> find_leaf_transmission(
 
 }  // namespace
 
+// Error-handling policy for this file:
+//   - `assert` is for defensive impossible-state checks: invariants the algorithm guarantees,
+//     not user-facing preconditions. Failing one is a programming error in the algorithm
+//     itself.
+//   - `throw std::logic_error` is for caller precondition violations — when a caller passes
+//     bad input (e.g. an output with no producer in the reachability) we throw so it's loud
+//     in both debug and release builds.
+
 JointMapBlueprint plan_joint_map(
   const TransmissionReachability & reach,
   const span<const StateInterfaceId> ordered_outputs)
 {
-  // Caller's contract: every output is producible (non-monostate) and the reachability is
-  // unambiguous. Sanity check in debug.
-  // Note: we deliberately do NOT assert !reach.is_ambiguous() here — unrelated ambiguities are
-  // permitted. The per-output `producer_of(out) == monostate` check inside the bucketing loop
-  // (line ~209) catches the cases that actually matter (a requested output that's directly
-  // ambiguous or unreachable). The transitive ambiguity-poison case must be filtered out by
-  // the caller via `diagnose_missing_outputs` before calling this function.
+  // Caller's contract: the reachability MAY have ambiguous interfaces unrelated to the
+  // requested outputs, but every output in `ordered_outputs` must be derivable. The caller
+  // is expected to have run `diagnose_missing_outputs` first and verified that both
+  // `unreachable` and `ambiguous_outputs` are empty. The per-output check inside the
+  // bucketing loop below throws `std::logic_error` if this contract is violated.
 
   JointMapBlueprint blueprint{};
   {
@@ -209,9 +216,11 @@ JointMapBlueprint plan_joint_map(
     const StateInterfaceId out = ordered_outputs[i];
     const auto producer = reach.producer_of(out);
     if (std::holds_alternative<std::monostate>(producer)) {
-      // Caller violated the precondition. Skip this output to avoid crashing in release.
-      assert(false && "plan_joint_map: output has no producer in the reachability");
-      continue;
+      // Caller precondition violation: this output is unreachable, ambiguous, or blocked.
+      // The caller should have caught it via diagnose_missing_outputs and refused to call us.
+      throw std::logic_error(
+        "plan_joint_map: output has no producer in the reachability "
+        "(caller did not gate on diagnose_missing_outputs)");
     }
     if (auto * tx = std::get_if<producers::Transmission>(&producer)) {
       is_direct_transmission[i] = true;

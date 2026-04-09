@@ -79,6 +79,11 @@ TransmissionReachability::ambiguities() const noexcept
   return ambiguities_;
 }
 
+span<const StateInterfaceId> TransmissionReachability::blocked_interfaces() const noexcept
+{
+  return blocked_interfaces_;
+}
+
 StateInterfaceProducer TransmissionReachability::producer_of(
   const StateInterfaceId interface) const noexcept
 {
@@ -143,15 +148,34 @@ TransmissionReachability::compute_affine_projection_coefficients(
 
 void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId> inputs)
 {
-  derivable_interfaces_.clear();
-  derivable_membership_.assign(analysis_->state_interface_order().inverse.size(), false);
-  producer_assignment_.clear();
+  // The algorithm runs an iterative outer loop that builds up a `ambiguous_membership_` set.
+  // Each outer pass runs an inner forward fixed point that *honors* the current ambiguous set
+  // — transmissions whose inputs include any ambiguous interface do not fire, and ambiguous
+  // outputs are not added to derivable. After each inner pass, classification adds any
+  // newly-discovered multi-candidate interfaces to ambiguous_membership_; the outer loop
+  // re-runs from scratch with the augmented set. Termination is guaranteed because the
+  // ambiguous set grows monotonically (bounded by the number of state interfaces); in
+  // practice convergence is in 1 pass (no ambiguities) or 2 passes (initial discovery +
+  // confirm).
+  //
+  // After convergence, a final post-pass walks the transmission graph to populate
+  // `blocked_interfaces_` — interfaces whose every potential producer transitively depends on
+  // an ambiguous (or blocked) input. Builders surface these as "blocked by upstream
+  // ambiguity" rather than as plain unreachable.
+
+  const std::size_t state_count = analysis_->state_interface_order().inverse.size();
+
+  ambiguous_membership_.assign(state_count, false);
   ambiguities_.clear();
-  redundant_equivalent_inputs_.clear();
+  blocked_interfaces_.clear();
+  blocked_membership_.assign(state_count, false);
+
+  // Local candidate accumulator — re-built each outer pass. The final pass's candidates feed
+  // the post-loop classification commit.
+  std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> candidates;
 
   const auto add_to_derivable = [this](const StateInterfaceId sid) {
     if (sid >= derivable_membership_.size()) {
-      // Out of range — interface not in the analysis. Skip silently.
       return false;
     }
     if (derivable_membership_[sid]) {
@@ -161,29 +185,6 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
     derivable_interfaces_.push_back(sid);
     return true;
   };
-
-  // ---------------------------------------------------------------------------
-  // Phase 1: Initialize from inputs, with first-occurrence-wins.
-  // ---------------------------------------------------------------------------
-  for (std::size_t i = 0; i < inputs.size(); ++i) {
-    const StateInterfaceId sid = inputs[i];
-    if (sid >= derivable_membership_.size()) {
-      continue;  // out-of-range; skip silently
-    }
-    if (producer_assignment_.find(sid) == producer_assignment_.end()) {
-      producer_assignment_[sid] = producers::Input{i};
-      add_to_derivable(sid);
-    }
-    // else: duplicate, the first-occurrence Input producer wins
-  }
-
-  // ---------------------------------------------------------------------------
-  // Phase 2: Forward fixed point. Build candidate lists for non-Input interfaces by walking
-  // transmissions and affine projections until no new interfaces become derivable.
-  // ---------------------------------------------------------------------------
-  // Per-interface candidate accumulator. Interfaces that already have an Input producer in
-  // producer_assignment_ are exempt — Input wins, no candidates recorded for them.
-  std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> candidates;
 
   const auto record_candidate = [&candidates, this](
     const StateInterfaceId iface,
@@ -197,189 +198,206 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
     candidates[iface].push_back(std::move(producer));
   };
 
-  bool changed = true;
-  while (changed) {
-    changed = false;
+  while (true) {
+    // ---- Reset per-pass state -----------------------------------------------
+    derivable_interfaces_.clear();
+    derivable_membership_.assign(state_count, false);
+    producer_assignment_.clear();
+    candidates.clear();
+    redundant_equivalent_inputs_.clear();
 
-    // ---- Transmissions ----
-    // For each transmission whose inputs are all derivable, mark its outputs derivable and
-    // record it as a candidate producer for each output.
-    for (TransmissionInstanceId tid = 0; tid < analysis_->transmissions().size(); ++tid) {
-      const auto & instance = analysis_->transmissions()[tid];
-      bool all_inputs_known = true;
-      for (const StateInterfaceId in : instance.input_ids) {
-        if (in >= derivable_membership_.size() || !derivable_membership_[in]) {
-          all_inputs_known = false;
-          break;
-        }
+    // ---- Phase 1: Initialize from inputs (first-occurrence-wins) -----------
+    for (std::size_t i = 0; i < inputs.size(); ++i) {
+      const StateInterfaceId sid = inputs[i];
+      if (sid >= state_count) {
+        continue;  // out-of-range; skip silently
       }
-      if (!all_inputs_known) {
-        continue;
-      }
-      // T is viable. Record it as a candidate for each output (unless that output has Input).
-      for (const StateInterfaceId out : instance.output_ids) {
-        // Avoid duplicate candidates if the same transmission is reached again in a later
-        // iteration (it shouldn't be, but defend against bugs).
-        bool already_listed = false;
-        const auto cand_it = candidates.find(out);
-        if (cand_it != candidates.end()) {
-          for (const auto & c : cand_it->second) {
-            if (auto * tx = std::get_if<producers::Transmission>(&c)) {
-              if (tx->instance_id == tid) {
-                already_listed = true;
-                break;
-              }
-            }
-          }
-        }
-        if (!already_listed) {
-          record_candidate(out, producers::Transmission{tid});
-        }
-        if (add_to_derivable(out)) {
-          changed = true;
-        }
+      if (producer_assignment_.find(sid) == producer_assignment_.end()) {
+        producer_assignment_[sid] = producers::Input{i};
+        add_to_derivable(sid);
       }
     }
 
-    // ---- Affine projections ----
-    // Group derivable interfaces by (affine_root, interface_id). For each such group, find the
-    // lowest-JointId leaf that's currently derivable and use it as the source for AffineProjection
-    // candidates targeting other (member, interface_id) pairs.
-    //
-    // Snapshot the derivable list to avoid iterator invalidation if we add to it during the pass.
-    const auto derivable_snapshot = derivable_interfaces_;
-    // Dedup (group root, interface id hash) processing within this iteration.
-    std::set<std::pair<JointId, std::size_t>> processed_groups;
-    for (const StateInterfaceId sid : derivable_snapshot) {
-      const auto & defn = resolve_state_interface(*analysis_, sid);
-      const AffineProjectionRule * rule = analysis_->affine_projection_rule(defn.interface_id);
-      if (rule == nullptr) {
-        continue;  // No projection rule for this interface id — affine doesn't propagate.
-      }
-      const JointId root = analysis_->affine_root_of(defn.joint_id);
-      const auto group_members = analysis_->affine_group_members(root);
-      if (group_members.size() <= 1) {
-        continue;  // Trivial group, nothing to project to.
-      }
-      if (!processed_groups.insert({root, defn.interface_id.hash}).second) {
-        continue;
+    // ---- Phase 2: Inner fixed point ----------------------------------------
+    bool changed = true;
+    while (changed) {
+      changed = false;
+
+      // ---- Transmissions ----
+      for (TransmissionInstanceId tid = 0; tid < analysis_->transmissions().size(); ++tid) {
+        const auto & instance = analysis_->transmissions()[tid];
+        // Ambiguity-honest viability check: every input must be derivable AND not ambiguous.
+        bool viable = true;
+        for (const StateInterfaceId in : instance.input_ids) {
+          if (in >= state_count || !derivable_membership_[in] || ambiguous_membership_[in]) {
+            viable = false;
+            break;
+          }
+        }
+        if (!viable) {
+          continue;
+        }
+        for (const StateInterfaceId out : instance.output_ids) {
+          if (out >= state_count) continue;
+          // Avoid duplicate candidate entries if we revisit T in a later inner iteration.
+          bool already_listed = false;
+          const auto cand_it = candidates.find(out);
+          if (cand_it != candidates.end()) {
+            for (const auto & c : cand_it->second) {
+              if (auto * tx = std::get_if<producers::Transmission>(&c)) {
+                if (tx->instance_id == tid) {
+                  already_listed = true;
+                  break;
+                }
+              }
+            }
+          }
+          if (!already_listed) {
+            record_candidate(out, producers::Transmission{tid});
+          }
+          // Only add to derivable if NOT already known ambiguous from a prior outer pass.
+          // This is the algorithmic fix: an ambiguous interface doesn't propagate
+          // derivability, so downstream transmissions that depend on it won't fire either.
+          if (!ambiguous_membership_[out]) {
+            if (add_to_derivable(out)) {
+              changed = true;
+            }
+          }
+        }
       }
 
-      // Find the lowest-JointId leaf in the group whose (joint, interface_id) is currently
-      // derivable AND whose producer is a leaf (Input or Transmission).
-      //
-      // A member counts as a leaf source if either:
-      //   (a) it has an Input or Transmission entry already committed in producer_assignment_
-      //       (Input is committed in phase 1; Transmissions only become committed in phase 3,
-      //       so during the fixed-point loop only Inputs land here), OR
-      //   (b) it has exactly one Transmission candidate in `candidates` and is not yet committed
-      //       — this lets affine projections chain off transmission outputs during the loop. If
-      //       a second transmission later joins the candidate set, the member becomes ambiguous,
-      //       producer_of() returns monostate, and the AffineProjection.source pointer dangles
-      //       from the consumer's perspective — this is the same ambiguity-poison case the class
-      //       doc warns about.
-      JointId source_joint = std::numeric_limits<JointId>::max();
-      bool found_leaf_source = false;
-      // Track all leaf-Input candidates so we can populate redundant_equivalent_inputs_.
-      std::vector<JointId> leaf_input_joints_in_group;
-      for (const JointId member : group_members) {
-        const auto member_def = StateInterfaceDefinition{member, defn.interface_id};
-        if (!analysis_->state_interface_order().contains_key(member_def)) {
+      // ---- Affine projections ----
+      const auto derivable_snapshot = derivable_interfaces_;
+      std::set<std::pair<JointId, std::size_t>> processed_groups;
+      for (const StateInterfaceId sid : derivable_snapshot) {
+        const auto & defn = resolve_state_interface(*analysis_, sid);
+        const AffineProjectionRule * rule = analysis_->affine_projection_rule(defn.interface_id);
+        if (rule == nullptr) {
           continue;
         }
-        const StateInterfaceId member_sid = analysis_->state_interface_order()[member_def];
-        if (member_sid >= derivable_membership_.size() || !derivable_membership_[member_sid]) {
+        const JointId root = analysis_->affine_root_of(defn.joint_id);
+        const auto group_members = analysis_->affine_group_members(root);
+        if (group_members.size() <= 1) {
           continue;
         }
-        bool is_leaf_source = false;
-        bool is_input_leaf = false;
-        const auto pa_it = producer_assignment_.find(member_sid);
-        if (pa_it != producer_assignment_.end() && is_leaf_producer(pa_it->second)) {
-          is_leaf_source = true;
-          is_input_leaf = is_input_producer(pa_it->second);
-        } else if (pa_it == producer_assignment_.end()) {
-          // Not yet committed — check candidates for a unique Transmission candidate.
-          const auto cand_it = candidates.find(member_sid);
-          if (cand_it != candidates.end() && cand_it->second.size() == 1 &&
-              std::holds_alternative<producers::Transmission>(cand_it->second.front()))
-          {
+        if (!processed_groups.insert({root, defn.interface_id.hash}).second) {
+          continue;
+        }
+
+        // Find the lowest-JointId leaf source in the group. A member is a valid leaf source
+        // if it has an Input producer (committed in phase 1) or a unique Transmission
+        // candidate in `candidates` — the latter lets affine projections chain off
+        // transmission outputs in the same outer pass.
+        JointId source_joint = std::numeric_limits<JointId>::max();
+        bool found_leaf_source = false;
+        std::vector<JointId> leaf_input_joints_in_group;
+        for (const JointId member : group_members) {
+          const auto member_def = StateInterfaceDefinition{member, defn.interface_id};
+          if (!analysis_->state_interface_order().contains_key(member_def)) continue;
+          const StateInterfaceId member_sid = analysis_->state_interface_order()[member_def];
+          if (member_sid >= state_count || !derivable_membership_[member_sid]) continue;
+          if (ambiguous_membership_[member_sid]) continue;  // ambiguity-honest
+
+          bool is_leaf_source = false;
+          bool is_input_leaf = false;
+          const auto pa_it = producer_assignment_.find(member_sid);
+          if (pa_it != producer_assignment_.end() && is_leaf_producer(pa_it->second)) {
             is_leaf_source = true;
+            is_input_leaf = is_input_producer(pa_it->second);
+          } else if (pa_it == producer_assignment_.end()) {
+            const auto cand_it = candidates.find(member_sid);
+            if (cand_it != candidates.end() && cand_it->second.size() == 1 &&
+                std::holds_alternative<producers::Transmission>(cand_it->second.front()))
+            {
+              is_leaf_source = true;
+            }
+          }
+          if (!is_leaf_source) continue;
+          if (member < source_joint) {
+            source_joint = member;
+            found_leaf_source = true;
+          }
+          if (is_input_leaf) {
+            leaf_input_joints_in_group.push_back(member);
           }
         }
-        if (!is_leaf_source) {
-          continue;
-        }
-        if (member < source_joint) {
-          source_joint = member;
-          found_leaf_source = true;
-        }
-        if (is_input_leaf) {
-          leaf_input_joints_in_group.push_back(member);
-        }
-      }
-      if (!found_leaf_source) {
-        continue;
-      }
+        if (!found_leaf_source) continue;
 
-      // Record redundant_equivalent_inputs: every leaf-Input joint in the group OTHER than
-      // source_joint counts as a redundant equivalent input.
-      for (const JointId leaf_joint : leaf_input_joints_in_group) {
-        if (leaf_joint == source_joint) continue;
-        const auto leaf_def = StateInterfaceDefinition{leaf_joint, defn.interface_id};
-        const StateInterfaceId leaf_sid = analysis_->state_interface_order()[leaf_def];
-        if (std::find(redundant_equivalent_inputs_.begin(),
-                      redundant_equivalent_inputs_.end(),
-                      leaf_sid) == redundant_equivalent_inputs_.end())
-        {
-          redundant_equivalent_inputs_.push_back(leaf_sid);
+        // Record redundant_equivalent_inputs.
+        for (const JointId leaf_joint : leaf_input_joints_in_group) {
+          if (leaf_joint == source_joint) continue;
+          const auto leaf_def = StateInterfaceDefinition{leaf_joint, defn.interface_id};
+          const StateInterfaceId leaf_sid = analysis_->state_interface_order()[leaf_def];
+          if (std::find(redundant_equivalent_inputs_.begin(),
+                        redundant_equivalent_inputs_.end(),
+                        leaf_sid) == redundant_equivalent_inputs_.end())
+          {
+            redundant_equivalent_inputs_.push_back(leaf_sid);
+          }
         }
-      }
 
-      // Get the source's StateInterfaceId.
-      const auto source_def = StateInterfaceDefinition{source_joint, defn.interface_id};
-      const StateInterfaceId source_sid = analysis_->state_interface_order()[source_def];
+        const auto source_def = StateInterfaceDefinition{source_joint, defn.interface_id};
+        const StateInterfaceId source_sid = analysis_->state_interface_order()[source_def];
 
-      // For each non-source member of the group, create an AffineProjection candidate.
-      for (const JointId member : group_members) {
-        if (member == source_joint) continue;
-        const auto member_def = StateInterfaceDefinition{member, defn.interface_id};
-        if (!analysis_->state_interface_order().contains_key(member_def)) {
-          continue;
-        }
-        const StateInterfaceId member_sid = analysis_->state_interface_order()[member_def];
-        const auto coeffs = compute_affine_projection_coefficients(source_joint, member, *rule);
-        producers::AffineProjection projection{};
-        projection.source = source_sid;
-        projection.multiplier = coeffs.multiplier;
-        projection.offset = coeffs.offset;
-        // Avoid duplicate candidates if we revisit this group on a later iteration.
-        bool already_listed = false;
-        const auto cand_it = candidates.find(member_sid);
-        if (cand_it != candidates.end()) {
-          for (const auto & c : cand_it->second) {
-            if (auto * ap = std::get_if<producers::AffineProjection>(&c)) {
-              if (ap->source == projection.source &&
-                  ap->multiplier == projection.multiplier &&
-                  ap->offset == projection.offset)
-              {
-                already_listed = true;
-                break;
+        for (const JointId member : group_members) {
+          if (member == source_joint) continue;
+          const auto member_def = StateInterfaceDefinition{member, defn.interface_id};
+          if (!analysis_->state_interface_order().contains_key(member_def)) continue;
+          const StateInterfaceId member_sid = analysis_->state_interface_order()[member_def];
+          const auto coeffs = compute_affine_projection_coefficients(source_joint, member, *rule);
+          producers::AffineProjection projection{};
+          projection.source = source_sid;
+          projection.multiplier = coeffs.multiplier;
+          projection.offset = coeffs.offset;
+          // Dedup
+          bool already_listed = false;
+          const auto cand_it = candidates.find(member_sid);
+          if (cand_it != candidates.end()) {
+            for (const auto & c : cand_it->second) {
+              if (auto * ap = std::get_if<producers::AffineProjection>(&c)) {
+                if (ap->source == projection.source &&
+                    ap->multiplier == projection.multiplier &&
+                    ap->offset == projection.offset)
+                {
+                  already_listed = true;
+                  break;
+                }
               }
             }
           }
-        }
-        if (!already_listed) {
-          record_candidate(member_sid, projection);
-        }
-        if (add_to_derivable(member_sid)) {
-          changed = true;
+          if (!already_listed) {
+            record_candidate(member_sid, projection);
+          }
+          if (!ambiguous_membership_[member_sid]) {
+            if (add_to_derivable(member_sid)) {
+              changed = true;
+            }
+          }
         }
       }
     }
+
+    // ---- Phase 3: Detect newly-ambiguous interfaces -------------------------
+    bool any_new_ambiguous = false;
+    for (const auto & kv : candidates) {
+      if (kv.second.size() >= 2 && !ambiguous_membership_[kv.first]) {
+        ambiguous_membership_[kv.first] = true;
+        any_new_ambiguous = true;
+      }
+    }
+
+    if (!any_new_ambiguous) {
+      break;  // Outer loop converged.
+    }
+    // Otherwise: re-run with the augmented ambiguous set.
   }
 
   // ---------------------------------------------------------------------------
-  // Phase 3: Classify the candidate set. 1 candidate → commit; ≥2 → ambiguous.
+  // Final commit: walk the converged candidates map and populate producer_assignment_ +
+  // ambiguities_. Note that an interface flagged ambiguous in an earlier pass may have <2
+  // candidates in the final pass (because blocking caused some producers to stop firing).
+  // In that case, the ambiguity is "stale" and should be revoked — the interface is actually
+  // blocked, not ambiguous, and the post-pass below will catch it.
   // ---------------------------------------------------------------------------
   for (auto & kv : candidates) {
     const StateInterfaceId iface = kv.first;
@@ -388,7 +406,6 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
       continue;
     }
     if (cand_list.size() == 1) {
-      // Don't overwrite an Input producer (input-wins).
       if (producer_assignment_.find(iface) == producer_assignment_.end()) {
         producer_assignment_[iface] = std::move(cand_list.front());
       }
@@ -397,8 +414,122 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
       entry.interface = iface;
       entry.candidates = std::move(cand_list);
       ambiguities_.push_back(std::move(entry));
-      // Ambiguous interfaces have NO entry in producer_assignment_ — producer_of() returns
-      // monostate for them.
+      // ambiguous_membership_[iface] is already true from the outer loop.
+    }
+  }
+
+  // Revoke stale ambiguities: any interface in ambiguous_membership_ that did NOT make it into
+  // ambiguities_ above had its candidate count drop below 2 in the final pass (because of a
+  // cascade where blocking upstream killed some of its producers). Such interfaces are
+  // actually blocked, not ambiguous.
+  std::vector<bool> still_ambiguous(state_count, false);
+  for (const auto & amb : ambiguities_) {
+    still_ambiguous[amb.interface] = true;
+  }
+  for (StateInterfaceId i = 0; i < state_count; ++i) {
+    if (ambiguous_membership_[i] && !still_ambiguous[i]) {
+      ambiguous_membership_[i] = false;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase 4: Blocked post-pass.
+  //
+  // An interface is blocked iff:
+  //   - it is not derivable
+  //   - it is not ambiguous
+  //   - at least one transmission could produce it whose every input is in
+  //     (derivable ∪ ambiguous ∪ blocked) and at least one input is in (ambiguous ∪ blocked)
+  //
+  // OR (for affine projections):
+  //   - it has a non-trivial affine group with a registered rule, and the lowest-JointId
+  //     leaf source available in the group is in (ambiguous ∪ blocked)
+  //
+  // Iterate to a fixed point. Only runs if any ambiguities were found.
+  // ---------------------------------------------------------------------------
+  if (!ambiguities_.empty()) {
+    bool blocked_changed = true;
+    while (blocked_changed) {
+      blocked_changed = false;
+
+      // Transmission-driven blocking
+      for (TransmissionInstanceId tid = 0; tid < analysis_->transmissions().size(); ++tid) {
+        const auto & instance = analysis_->transmissions()[tid];
+        bool any_input_problematic = false;
+        bool all_inputs_classifiable = true;
+        for (const StateInterfaceId in : instance.input_ids) {
+          if (in >= state_count) {
+            all_inputs_classifiable = false;
+            break;
+          }
+          const bool d = derivable_membership_[in];
+          const bool a = ambiguous_membership_[in];
+          const bool b = blocked_membership_[in];
+          if (!d && !a && !b) {
+            // Genuinely unreachable input — this transmission cannot serve as a "blocker
+            // chain" for its outputs (the outputs are unreachable, not blocked).
+            all_inputs_classifiable = false;
+            break;
+          }
+          if (a || b) {
+            any_input_problematic = true;
+          }
+        }
+        if (!all_inputs_classifiable || !any_input_problematic) {
+          continue;
+        }
+        for (const StateInterfaceId out : instance.output_ids) {
+          if (out >= state_count) continue;
+          if (derivable_membership_[out]) continue;  // already derivable via another path
+          if (ambiguous_membership_[out]) continue;
+          if (blocked_membership_[out]) continue;
+          blocked_membership_[out] = true;
+          blocked_interfaces_.push_back(out);
+          blocked_changed = true;
+        }
+      }
+
+      // Affine projection-driven blocking. If a non-trivial affine group's lowest-JointId
+      // available leaf is in (ambiguous ∪ blocked), the other group members for that
+      // interface are also blocked (assuming no other valid leaf source exists).
+      //
+      // For simplicity, we check: for each non-derivable, non-ambiguous, non-blocked group
+      // member, walk the group looking for any leaf source. If the only leaf sources we find
+      // are problematic, mark blocked.
+      //
+      // Note: this is conservative — it may miss some blocked-via-affine cases — but it
+      // handles the common ones. Refinement is deferred.
+      for (StateInterfaceId sid = 0; sid < state_count; ++sid) {
+        if (derivable_membership_[sid]) continue;
+        if (ambiguous_membership_[sid]) continue;
+        if (blocked_membership_[sid]) continue;
+        const auto & defn = analysis_->state_interface_order().inverse[sid];
+        const AffineProjectionRule * rule = analysis_->affine_projection_rule(defn.interface_id);
+        if (rule == nullptr) continue;
+        const JointId root = analysis_->affine_root_of(defn.joint_id);
+        const auto group_members = analysis_->affine_group_members(root);
+        if (group_members.size() <= 1) continue;
+        bool any_problematic_leaf = false;
+        bool any_clean_leaf = false;
+        for (const JointId member : group_members) {
+          const auto member_def = StateInterfaceDefinition{member, defn.interface_id};
+          if (!analysis_->state_interface_order().contains_key(member_def)) continue;
+          const StateInterfaceId member_sid = analysis_->state_interface_order()[member_def];
+          if (member_sid >= state_count) continue;
+          if (derivable_membership_[member_sid]) {
+            any_clean_leaf = true;
+            break;  // a clean leaf exists; sid would be derivable, not blocked
+          }
+          if (ambiguous_membership_[member_sid] || blocked_membership_[member_sid]) {
+            any_problematic_leaf = true;
+          }
+        }
+        if (!any_clean_leaf && any_problematic_leaf) {
+          blocked_membership_[sid] = true;
+          blocked_interfaces_.push_back(sid);
+          blocked_changed = true;
+        }
+      }
     }
   }
 }

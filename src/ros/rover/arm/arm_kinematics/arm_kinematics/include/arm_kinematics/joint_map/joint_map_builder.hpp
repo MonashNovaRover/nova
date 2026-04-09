@@ -21,24 +21,31 @@ namespace arm_kinematics {
 /**
  * Error returned by `JointMapBuilder::build_expected` when a request cannot be satisfied.
  *
- * Two failure modes are surfaced:
+ * Three failure modes are surfaced:
  * - **MissingInputs:** one or more requested outputs are not derivable from the supplied inputs.
  *   `unreachable_outputs` lists which outputs failed; `resolutions` carries actionable hints
  *   from `compute_missing_input_resolutions`.
- * - **Ambiguous:** one or more requested outputs have multiple viable producers and the
- *   reachability algorithm refuses to silently pick a winner. `ambiguous_interfaces` lists each
- *   conflict with its competing producers.
+ * - **Ambiguous:** one or more requested outputs have multiple viable producers (or
+ *   transitively depend on something that does) and the reachability algorithm refuses to
+ *   silently pick a winner. `ambiguous_interfaces` lists the upstream conflicts the user must
+ *   resolve.
+ * - **UnknownInterface:** one or more `StateInterfaceId`s in the request are out of range for
+ *   the analysis (i.e., the caller passed a stale or fabricated id). `unknown_interfaces`
+ *   lists the bad ids. This is distinct from `MissingInputs` because the user's bug is "I
+ *   passed an id that doesn't exist", not "I forgot to supply some inputs".
  *
- * **Ambiguity wins over unreachability** when both occur in the same plan: `kind == Ambiguous`
- * and `unreachable_outputs` is left empty. The user fixes the ambiguity first, retries, and
- * then sees any remaining unreachable outputs.
+ * **Precedence when multiple failure modes apply.** UnknownInterface is checked first
+ * (validation is cheap and a stale id makes everything else moot). Then Ambiguous wins over
+ * MissingInputs — the user fixes ambiguities first and retries.
  */
 struct JointMapBuildError {
   enum class Kind {
     /// Needed outputs are not derivable from the given inputs.
     MissingInputs,
-    /// One or more needed interfaces have multiple viable producers.
+    /// One or more needed interfaces have multiple viable producers (directly or transitively).
     Ambiguous,
+    /// One or more `StateInterfaceId`s in the request are out of range for the analysis.
+    UnknownInterface,
   };
   Kind kind = Kind::MissingInputs;
 
@@ -55,10 +62,15 @@ struct JointMapBuildError {
   /// unreachable output — describing what could be supplied to unblock it. May be empty.
   std::vector<MissingInputResolution> resolutions{};
 
-  /// Populated when `kind == Ambiguous`. Each entry is one ambiguous interface in the plan with
-  /// the full list of competing candidate producers. Accumulated across the entire algorithm
-  /// pass — every ambiguous interface is reported, not just the first one encountered.
+  /// Populated when `kind == Ambiguous`. Each entry is one ambiguous interface that the
+  /// requested outputs transitively depend on (directly or via the producer chain). Sliced
+  /// from the reachability's full ambiguity list — unrelated ambiguities elsewhere in the
+  /// analysis are not reported.
   std::vector<TransmissionReachability::AmbiguousInterface> ambiguous_interfaces{};
+
+  /// Populated when `kind == UnknownInterface`. Each entry is a `StateInterfaceId` from the
+  /// request that is out of range for the analysis's state interface order.
+  std::vector<StateInterfaceId> unknown_interfaces{};
 };
 
 /**

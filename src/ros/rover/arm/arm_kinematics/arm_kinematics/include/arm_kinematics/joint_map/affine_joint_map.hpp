@@ -60,9 +60,6 @@ public:
     std::vector<float> offsets,
     size_t input_count);
 
-  /// Creates an identity affine map for an N-element joint space.
-  static AffineJointMap identity(size_t element_count);
-
   /**
    * \brief Maps all the given input joint values to output joint values using the affine gather mapping.
    * \note The values in inputs and outputs should correspond to the input and output spaces used at construction.

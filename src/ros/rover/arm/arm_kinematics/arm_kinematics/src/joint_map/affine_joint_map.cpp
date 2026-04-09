@@ -33,22 +33,6 @@ AffineJointMap::AffineJointMap(
   }
 }
 
-AffineJointMap AffineJointMap::identity(const size_t element_count)
-{
-  AffineJointMap jm;
-  jm.input_count_ = element_count;
-  jm.output_count_ = element_count;
-  jm.sources_.resize(element_count);
-  jm.multipliers_.resize(element_count, 1.0F);
-  jm.offsets_.resize(element_count, 0.0F);
-
-  for (size_t i = 0; i < element_count; ++i) {
-    jm.sources_[i] = i;
-  }
-
-  return jm;
-}
-
 void AffineJointMap::map(span<const float> inputs, span<float> outputs) const
 {
   assert(!input_count_ || inputs.size() == input_count_);
