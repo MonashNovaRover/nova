@@ -21,7 +21,7 @@ namespace {
 // Anything beyond this gets a "...and N more" suffix to keep the message bounded.
 constexpr std::size_t kMaxFormattedInterfaces = 5;
 
-// Format a single StateInterfaceId as "joint_name.interface_id_name (sid=N)" using the analysis
+// Format a single StateInterfaceId as "joint_name/interface_id_name (sid=N)" using the analysis
 // to look up the joint and interface names. Falls back to "<unknown sid=N>" if the id is out
 // of range.
 std::string format_state_interface(
@@ -40,10 +40,10 @@ std::string format_state_interface(
   } else {
     joint_name = "<joint_id=" + std::to_string(def.joint_id) + ">";
   }
-  return joint_name + "." + def.interface_id.name + " (sid=" + std::to_string(sid) + ")";
+  return joint_name + "/" + def.interface_id.name + " (sid=" + std::to_string(sid) + ")";
 }
 
-// Format a list of StateInterfaceIds as `[a.position (sid=1), b.velocity (sid=2)]`, truncating
+// Format a list of StateInterfaceIds as `[a/position (sid=1), b/velocity (sid=2)]`, truncating
 // after kMaxFormattedInterfaces with a "...and N more" suffix.
 std::string format_interface_list(
   const TransmissionAnalysis & analysis,
