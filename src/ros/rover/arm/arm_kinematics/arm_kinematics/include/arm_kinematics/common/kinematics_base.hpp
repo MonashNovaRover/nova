@@ -38,7 +38,11 @@ public:
 
   /**
    * \returns The URDF (+derived data from the URDF) being used.
-   * \throws std::logic_error if you call this before initializing
+   * \throws std::logic_error if you call this before initializing.
+   *
+   * \warning The returned reference points at the `RobotModel` passed to `initialize_base()`.
+   * The caller that owns the `RobotModel` must keep it alive for the entire lifetime of this
+   * plugin — destroying the model while the plugin is alive produces a dangling reference.
    */
   [[nodiscard]] const RobotModel & get_robot_model() const;
 
@@ -62,6 +66,10 @@ public:
 protected:
   /**
    * Initializer for common KinematicsBase base class.
+   *
+   * \warning `robot_model` is captured by raw pointer — the caller must ensure it outlives
+   * this plugin instance. Destroying the `RobotModel` while any plugin initialized against it
+   * is still alive is undefined behavior.
    */
   bool initialize_base(
     KinematicsNodeInterfaces node_interfaces,
@@ -70,8 +78,7 @@ protected:
     const std::string & logger_name);
 
 private:
-  /// The URDF being used with derived data. You can construct this from within a ros2_control controller with
-  /// make_unique<RobotModel>(get_robot_description()).
+  /// Non-owning. Set by `initialize_base()`; must outlive this plugin instance.
   const RobotModel * robot_model_ = nullptr;
   /// Params common to both FK and IK plugins. Shared pointer to account for parameters potentially being changed
   /// dynamically

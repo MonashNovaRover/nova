@@ -6,7 +6,7 @@
 #define ARM_KINEMATICS_COLLIDER_DEFINITIONS_HPP
 
 #include <vector>
-#include <urdf/urdf/model.h>
+#include <urdf/model.h>
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/forward/frame_definitions.hpp"
