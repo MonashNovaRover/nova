@@ -148,7 +148,7 @@ private:
  *      (transitively, through transmission inputs and affine projection sources) must not
  *      touch any ambiguous interface in the reachability. Caller must run
  *      `diagnose_missing_outputs` first and only call this function when the diagnosis's
- *      `unreachable` and `ambiguous_outputs` are both empty.
+ *      `diagnose_missing_outputs(reach, ordered_outputs).ok()` returns true.
  *
  *      Unrelated ambiguities elsewhere in the reachability are allowed — only the requested
  *      outputs' chains matter. Violating this precondition asserts in debug builds; release

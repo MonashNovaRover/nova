@@ -84,6 +84,11 @@ span<const StateInterfaceId> TransmissionReachability::blocked_interfaces() cons
   return blocked_interfaces_;
 }
 
+span<const StateInterfaceId> TransmissionReachability::unreachable_interfaces() const noexcept
+{
+  return unreachable_interfaces_;
+}
+
 StateInterfaceProducer TransmissionReachability::producer_of(
   const StateInterfaceId interface) const noexcept
 {
@@ -173,14 +178,15 @@ void TransmissionReachability::record_candidate(
 }
 
 void TransmissionReachability::process_affine_hypernode(
-  const JointId root,
   const InterfaceId & interface_id,
   const AffineProjectionRule & rule,
   const span<const JointId> group_members,
   std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> & candidates,
   bool & changed)
 {
-  (void)root;  // root is informational; the actual source picking is done dynamically below.
+  // The hypernode's "root" from the union-find is intentionally NOT used. The actual source
+  // picking is done dynamically below — whichever derivable group member happens to be a
+  // leaf wins. This is what enables non-root members to be supplied as inputs.
 
   const std::size_t state_count = analysis_->state_interface_order().inverse.size();
 
@@ -372,6 +378,7 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
   ambiguities_.clear();
   blocked_interfaces_.clear();
   blocked_membership_.assign(state_count, false);
+  unreachable_interfaces_.clear();
 
   // Local accumulators (re-built each pass).
   std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> candidates;
@@ -392,8 +399,14 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
   auto seed_inputs = [&]() {
     for (std::size_t i = 0; i < inputs.size(); ++i) {
       const StateInterfaceId sid = inputs[i];
+      // Out-of-range SIDs indicate a caller bug (using a stale id from a different
+      // analysis, or a fabricated id). The builder layer (DefaultJointMapBuilder) catches
+      // these up front and reports `Kind::UnknownInterface`. Direct callers of `analyze()`
+      // get a debug assertion to catch the bug in test suites; release builds skip
+      // silently to avoid crashing on a recoverable input.
+      assert(sid < state_count && "TransmissionReachability::analyze: input SID out of range");
       if (sid >= state_count) {
-        continue;  // out-of-range; skip silently
+        continue;
       }
       if (producer_assignment_.find(sid) == producer_assignment_.end()) {
         producer_assignment_[sid] = producers::Input{i};
@@ -475,7 +488,7 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
           continue;
         }
         process_affine_hypernode(
-          root, defn.interface_id, *rule, group_members, candidates, changed);
+          defn.interface_id, *rule, group_members, candidates, changed);
       }
     }
   };
@@ -550,6 +563,16 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
   if (!ambiguities_.empty()) {
     run_blocked_post_pass(state_count);
   }
+
+  // ---- Compute unreachable_interfaces_ ------------------------------------
+  // Everything in the analysis that's not in derivable, ambiguous, or blocked is
+  // unreachable. O(N) walk; runs once per analyze() call.
+  for (StateInterfaceId i = 0; i < state_count; ++i) {
+    if (derivable_membership_[i]) continue;
+    if (ambiguous_membership_[i]) continue;
+    if (blocked_membership_[i]) continue;
+    unreachable_interfaces_.push_back(i);
+  }
 }
 
 void TransmissionReachability::run_blocked_post_pass(const std::size_t state_count)
@@ -564,7 +587,22 @@ void TransmissionReachability::run_blocked_post_pass(const std::size_t state_cou
   //   - it has a non-trivial affine group with a registered rule, no clean leaf source exists
   //     in the group, and at least one group member is in (ambiguous ∪ blocked)
   //
-  // Iterates to a fixed point. Per-iteration: O(T × m + N × s). Iterations: ≤ d.
+  // Iterates to a fixed point. Per-iteration: O(T × m + B × s) where B is the number of
+  // potentially-affine-blockable interfaces (precomputed once below). Iterations: ≤ d.
+
+  // ---- Pre-compute the affine-blockable interface list -------------------
+  // Only state interfaces that are BOTH (a) in a non-trivial affine group AND (b) have a
+  // registered projection rule for their interface_id are candidates for affine-driven
+  // blocking. Computing this once avoids walking every state interface inside the inner
+  // fixed-point loop.
+  std::vector<StateInterfaceId> affine_blockable_sids;
+  for (StateInterfaceId sid = 0; sid < state_count; ++sid) {
+    const auto & defn = analysis_->state_interface_order().inverse[sid];
+    if (analysis_->affine_projection_rule(defn.interface_id) == nullptr) continue;
+    const JointId root = analysis_->affine_root_of(defn.joint_id);
+    if (analysis_->affine_group_members(root).size() <= 1) continue;
+    affine_blockable_sids.push_back(sid);
+  }
 
   bool blocked_changed = true;
   while (blocked_changed) {
@@ -608,19 +646,16 @@ void TransmissionReachability::run_blocked_post_pass(const std::size_t state_cou
     }
 
     // ---- Affine projection-driven blocking ----
-    // For each non-derivable, non-ambiguous, non-blocked group member: walk the group looking
-    // for any clean leaf source. If the only available leaf sources are problematic, mark
-    // blocked.
-    for (StateInterfaceId sid = 0; sid < state_count; ++sid) {
+    // Walk the precomputed list of affine-blockable interfaces only. For each non-derivable,
+    // non-ambiguous, non-blocked entry: walk the group looking for any clean leaf source. If
+    // the only available leaf sources are problematic, mark blocked.
+    for (const StateInterfaceId sid : affine_blockable_sids) {
       if (derivable_membership_[sid]) continue;
       if (ambiguous_membership_[sid]) continue;
       if (blocked_membership_[sid]) continue;
       const auto & defn = analysis_->state_interface_order().inverse[sid];
-      const AffineProjectionRule * rule = analysis_->affine_projection_rule(defn.interface_id);
-      if (rule == nullptr) continue;
       const JointId root = analysis_->affine_root_of(defn.joint_id);
       const auto group_members = analysis_->affine_group_members(root);
-      if (group_members.size() <= 1) continue;
       bool any_problematic_leaf = false;
       bool any_clean_leaf = false;
       for (const JointId member : group_members) {

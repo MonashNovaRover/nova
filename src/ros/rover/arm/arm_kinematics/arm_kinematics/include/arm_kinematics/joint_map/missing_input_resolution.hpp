@@ -41,41 +41,55 @@ struct MissingInputResolution {
  * exactly one of four cases:
  *
  *   - **Satisfied** — `reach.producer_of(out)` returns a non-monostate value. Not reported.
- *   - **Unreachable** — the user simply hasn't supplied enough inputs. The output's potential
- *     producers all need other inputs that aren't derivable. Listed in `unreachable`.
- *   - **Directly ambiguous** — the output itself has ≥2 viable producers. Listed in
- *     `ambiguous_outputs`. The relevant ambiguity is the output's own entry in
- *     `reach.ambiguities()`.
- *   - **Blocked** — the output has at least one potential producer transmission, but every
- *     such producer transitively depends on an ambiguous (or further blocked) input. Listed in
- *     `ambiguous_outputs` (lumped with directly-ambiguous because builders treat them
- *     identically — fail with `Kind::Ambiguous`, ask the user to disambiguate). The upstream
- *     blocking ambiguities are surfaced in `relevant_blocking_ambiguities`.
+ *   - **Unreachable** — the user hasn't supplied enough inputs. None of the output's potential
+ *     producers have all-derivable inputs. Listed in `unreachable`. Remediation: supply more
+ *     inputs (see `resolutions`).
+ *   - **Directly ambiguous** — the output itself has ≥2 viable producers in the analysis. The
+ *     user authored multiple ways to compute this value and the algorithm refuses to silently
+ *     pick. Listed in `directly_ambiguous_outputs`. Remediation: disambiguate the output by
+ *     removing/disabling the unwanted producers.
+ *   - **Blocked** — the output's potential producer chain transitively depends on an ambiguous
+ *     (or further-blocked) interface. Listed in `blocked_outputs`. Remediation: disambiguate
+ *     the upstream interfaces in `relevant_blocking_ambiguities`.
  *
- * Builders treat the request as buildable iff `unreachable.empty() && ambiguous_outputs.empty()`.
+ * Builders treat the request as buildable iff `ok()` returns true (all four lists empty).
  *
- * Unlike the old "transitive walk" implementation, this diagnosis is a simple O(N) classification
- * pass over `needed_outputs` against the reachability's pre-computed `derivable_interfaces()`,
- * `ambiguities()`, and `blocked_interfaces()` sets. The "find which upstream ambiguity blocks
- * this output" attribution walk only runs for blocked outputs (i.e., only on the failing path).
+ * The classification is a simple O(N) pass over `needed_outputs` against the reachability's
+ * pre-computed `derivable_interfaces()`, `ambiguities()`, and `blocked_interfaces()` sets. The
+ * "which upstream ambiguities are responsible" attribution walk only runs for failing outputs
+ * (and walks the analysis's potential-producer graph + affine group members).
  */
 struct MissingOutputDiagnosis {
   /// Outputs that cannot be derived from the supplied inputs because the user hasn't supplied
-  /// enough — none of their potential producers have all-derivable inputs.
+  /// enough — none of their potential producers have all-derivable inputs. Remediation:
+  /// supply more inputs.
   std::vector<StateInterfaceId> unreachable;
-  /// Outputs that cannot be produced because they are themselves ambiguous (≥2 producers) or
-  /// because their potential producer chain transitively depends on an ambiguous interface.
-  /// Both kinds are reported here because builders treat them identically — fail with
-  /// `Kind::Ambiguous` and surface the relevant ambiguities so the user can disambiguate.
-  std::vector<StateInterfaceId> ambiguous_outputs;
-  /// The subset of `reach.ambiguities()` that some entry in `ambiguous_outputs` actually
-  /// depends on. For directly-ambiguous outputs the dependency is the output itself. For
-  /// blocked outputs, the diagnose walks the analysis's potential-producer graph to attribute
-  /// the upstream ambiguities. Empty when `ambiguous_outputs` is empty.
+
+  /// Outputs that have ≥2 viable producers in the analysis (the user authored multiple ways
+  /// to compute this exact value). Remediation: pick one and remove/disable the others.
+  std::vector<StateInterfaceId> directly_ambiguous_outputs;
+
+  /// Outputs whose potential producer chain transitively depends on an ambiguous (or further
+  /// blocked) interface. The output itself doesn't have multiple producers, but its only paths
+  /// to derivability all go through an ambiguous upstream. Remediation: disambiguate the
+  /// upstream entries in `relevant_blocking_ambiguities`.
+  std::vector<StateInterfaceId> blocked_outputs;
+
+  /// The subset of `reach.ambiguities()` that some failing output (directly ambiguous OR
+  /// blocked) actually depends on. For directly-ambiguous outputs the dependency is the
+  /// output itself. For blocked outputs, the diagnose walks the analysis's potential-producer
+  /// graph and affine group members to attribute the upstream ambiguities.
   std::vector<TransmissionReachability::AmbiguousInterface> relevant_blocking_ambiguities;
-  /// Resolution hints for each entry in `unreachable`. Same length as `unreachable`. Stubbed
-  /// for now (one default-constructed entry per missing interface).
+
+  /// Resolution hints for each entry in `unreachable`. Same length as `unreachable`.
   std::vector<MissingInputResolution> resolutions;
+
+  /// Convenience: returns true iff the request is buildable (no unreachable, directly
+  /// ambiguous, or blocked outputs). Builders gate on this.
+  [[nodiscard]] bool ok() const noexcept
+  {
+    return unreachable.empty() && directly_ambiguous_outputs.empty() && blocked_outputs.empty();
+  }
 };
 
 /**

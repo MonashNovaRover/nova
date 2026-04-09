@@ -723,3 +723,99 @@ TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_BothInputs_NoAmbig
   EXPECT_TRUE(approx_equal(out[0], 3.0F));   // motor passthrough
   EXPECT_TRUE(approx_equal(out[1], 99.0F));  // joint passthrough
 }
+
+TEST_F(DefaultJointMapBuilderTest, Success_InverseTransmissionWithSideEffectOutput)
+{
+  // T_fwd: motor → joint = 5*motor.
+  // T_inv: joint → {motor, motor_torque}.
+  //   motor_torque = 0.1 * joint   (some side-effect output of the inverse transmission)
+  // Inputs: {motor}, request: {joint, motor_torque}.
+  //
+  // The forward direction fires T_fwd to derive joint. The inverse direction (T_inv) is
+  // needed to derive motor_torque (since nothing else produces it, and joint becomes
+  // derivable after T_fwd). Both transmissions are selected; both fire at runtime.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_motor", "j_joint", "j_motor_torque"});
+  const auto motor = ensure_state(analysis, "j_motor", InterfaceId{"position"});
+  const auto joint = ensure_state(analysis, "j_joint", InterfaceId{"position"});
+  const auto motor_torque = ensure_state(analysis, "j_motor_torque", InterfaceId{"position"});
+
+  // T_fwd: 1 input → 1 output (joint = 5*motor)
+  const auto m_fwd = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{5.0F}, std::vector<float>{0.0F}, 1, 1));
+  // T_inv: 1 input → 2 outputs ([motor, motor_torque] = [0.2*joint, 0.1*joint])
+  const auto m_inv = analysis.add_model(std::make_unique<LinearTransmissionModel>(
+    std::vector<float>{0.2F, 0.1F}, std::vector<float>{0.0F, 0.0F}, 1, 2));
+  analysis.add_transmission(m_fwd, {motor}, {joint}, "T_fwd");
+  analysis.add_transmission(m_inv, {joint}, {motor, motor_torque}, "T_inv");
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{motor},
+    std::vector<StateInterfaceId>{joint, motor_torque});
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<float> in{4.0F};  // motor=4
+  std::vector<float> out(2, 0.0F);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 20.0F));  // joint = 5*4
+  EXPECT_TRUE(approx_equal(out[1], 2.0F));   // motor_torque = 0.1*joint = 0.1*20
+}
+
+// ===========================================================================
+// Empty inputs + non-empty outputs
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Error_EmptyInputs_AllOutputsUnreachable)
+{
+  // No inputs supplied; ask for an output that has no producer.
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  ensure_joints(analysis, {"j_a"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{},
+    std::vector<StateInterfaceId>{a});
+
+  ASSERT_FALSE(result.has_value());
+  const auto & err = result.error();
+  EXPECT_EQ(err.kind, JointMapBuildError::Kind::MissingInputs);
+  ASSERT_EQ(err.unreachable_outputs.size(), 1u);
+  EXPECT_EQ(err.unreachable_outputs[0], a);
+}
+
+// ===========================================================================
+// Multi-ambiguous outputs through build_expected (exercises the message truncation)
+// ===========================================================================
+
+TEST_F(DefaultJointMapBuilderTest, Error_ManyAmbiguousOutputs_MessageIsTruncatedSensibly)
+{
+  // Set up 8 ambiguous outputs (more than the 5-entry message cap).
+  auto & analysis = builder_.get_mutable_transmission_analysis();
+  std::vector<StateInterfaceId> outputs;
+  for (int i = 0; i < 8; ++i) {
+    const std::string joint_name = "j_x" + std::to_string(i);
+    ensure_joints(analysis, {joint_name.c_str()});
+    outputs.push_back(ensure_state(analysis, joint_name, InterfaceId{"position"}));
+  }
+  ensure_joints(analysis, {"j_a"});
+  const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
+
+  const auto m = analysis.add_model(std::make_unique<StubTransmissionModel>());
+  for (int i = 0; i < 8; ++i) {
+    analysis.add_transmission(m, {a}, {outputs[i]}, "T1_" + std::to_string(i));
+    analysis.add_transmission(m, {a}, {outputs[i]}, "T2_" + std::to_string(i));
+  }
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceId>{a}, outputs);
+
+  ASSERT_FALSE(result.has_value());
+  const auto & err = result.error();
+  EXPECT_EQ(err.kind, JointMapBuildError::Kind::Ambiguous);
+  // All 8 should be in ambiguous_interfaces.
+  EXPECT_EQ(err.ambiguous_interfaces.size(), 8u);
+  // Message should reference truncation ("...and N more") when listing 8 entries (cap is 5).
+  EXPECT_NE(err.message.find("and 3 more"), std::string::npos);
+  // Message should mention how many outputs are affected.
+  EXPECT_NE(err.message.find("8 requested output"), std::string::npos);
+}

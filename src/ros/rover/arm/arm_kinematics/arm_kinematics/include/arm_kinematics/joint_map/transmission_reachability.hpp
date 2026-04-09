@@ -153,6 +153,12 @@ public:
   /// `diagnose_missing_outputs` for the per-output attribution walk.
   [[nodiscard]] span<const StateInterfaceId> blocked_interfaces() const noexcept;
 
+  /// Interfaces in the analysis that are NOT in any of `derivable_interfaces()`,
+  /// `ambiguities()`, or `blocked_interfaces()` — i.e., they have no potential producer that
+  /// could fire from the current inputs (the user simply hasn't supplied enough). The four
+  /// sets together partition the analysis's state interfaces.
+  [[nodiscard]] span<const StateInterfaceId> unreachable_interfaces() const noexcept;
+
   /// O(1) lookup. Returns the committed producer for `interface`, or `std::monostate` if the
   /// interface is ambiguous, blocked, unreachable, or not known to the analysis. The four
   /// non-derivable cases are distinguished by `ambiguities()`, `blocked_interfaces()`, and the
@@ -213,7 +219,6 @@ private:
   /// wins, with ties broken by lowest JointId. This is what enables the "user can supply any
   /// group member as input" pivoting property.
   void process_affine_hypernode(
-    JointId root,
     const InterfaceId & interface_id,
     const AffineProjectionRule & rule,
     span<const JointId> group_members,
@@ -265,6 +270,12 @@ private:
 
   /// Membership lookup for blocked_interfaces_, indexed by StateInterfaceId.
   std::vector<bool> blocked_membership_{};
+
+  /// Interfaces in the analysis that fall into none of derivable / ambiguous / blocked.
+  /// Computed eagerly at the end of `run_fixed_point` (cheap O(N) walk). The numeric order
+  /// is not algorithmically meaningful — the field exists for ergonomic completeness so
+  /// consumers can iterate "everything still missing".
+  std::vector<StateInterfaceId> unreachable_interfaces_{};
 
   /// Redundant equivalent inputs (lower-JointId leaf wins in affine groups).
   std::vector<StateInterfaceId> redundant_equivalent_inputs_{};

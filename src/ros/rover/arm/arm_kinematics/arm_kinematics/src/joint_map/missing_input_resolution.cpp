@@ -98,7 +98,8 @@ MissingOutputDiagnosis diagnose_missing_outputs(
   }
 
   std::unordered_set<StateInterfaceId> unreachable_seen;
-  std::unordered_set<StateInterfaceId> ambiguous_seen;
+  std::unordered_set<StateInterfaceId> directly_ambiguous_seen;
+  std::unordered_set<StateInterfaceId> blocked_seen;
   std::unordered_set<StateInterfaceId> blocking_ambiguities;
 
   for (const StateInterfaceId out : needed_outputs) {
@@ -106,13 +107,19 @@ MissingOutputDiagnosis diagnose_missing_outputs(
     if (!std::holds_alternative<std::monostate>(producer)) {
       continue;  // satisfied
     }
-    if (ambiguous_set.count(out) > 0 || blocked_set.count(out) > 0) {
-      // Directly ambiguous OR blocked: in either case, the output is unbuildable due to
-      // ambiguity (direct or transitive). Walk the producer chain to attribute the FULL
-      // transitive closure of related ambiguities, so the user can see everything that
-      // needs disambiguation in one error.
-      if (ambiguous_seen.insert(out).second) {
-        diag.ambiguous_outputs.push_back(out);
+    if (ambiguous_set.count(out) > 0) {
+      // Directly ambiguous: the output itself has ≥2 viable producers in the analysis.
+      if (directly_ambiguous_seen.insert(out).second) {
+        diag.directly_ambiguous_outputs.push_back(out);
+      }
+      // Walk the producer chain to attribute deeper upstream ambiguities (in case the user
+      // also needs to fix something further upstream).
+      std::unordered_set<StateInterfaceId> visited;
+      collect_blocking_ambiguities(reach, out, ambiguous_set, visited, blocking_ambiguities);
+    } else if (blocked_set.count(out) > 0) {
+      // Blocked: producer chain transitively depends on an ambiguous upstream.
+      if (blocked_seen.insert(out).second) {
+        diag.blocked_outputs.push_back(out);
       }
       std::unordered_set<StateInterfaceId> visited;
       collect_blocking_ambiguities(reach, out, ambiguous_set, visited, blocking_ambiguities);
@@ -140,16 +147,76 @@ std::vector<MissingInputResolution> compute_missing_input_resolutions(
   const TransmissionReachability & reach,
   const span<const StateInterfaceId> missing)
 {
-  (void)reach;
-  // Stub: return one default-constructed entry per missing interface so callers can iterate
-  // structurally even though the contents aren't useful yet.
+  // For each missing interface, enumerate two kinds of remediation:
+  //
+  //   1. **Transmission alternatives**: any transmission T whose outputs include the missing
+  //      interface and whose inputs are NOT all already supplied. The "needed" set is the
+  //      subset of T's inputs that are not currently in the reachability's input set. If a
+  //      transmission's needed set is empty, T should already be firing — that means the
+  //      missing interface should already be derivable, so we skip it (this case shouldn't
+  //      happen in a correct caller, but we handle it defensively).
+  //
+  //   2. **Affine alternative**: if the missing interface lives in a non-trivial affine
+  //      group AND its interface_id has a registered projection rule, populate `affine_root`
+  //      with the group's root joint id. The user can supply ANY other group member at the
+  //      same interface_id to unblock the missing one.
+  //
+  // The algorithm doesn't recursively check whether the recommended inputs are themselves
+  // unreachable — the user iterates: supply X, retry, see what's now missing, repeat.
+  //
+  // Complexity: O(K × (P × m + s)) where K = len(missing), P = max producers per interface,
+  // m = max inputs per transmission, s = max affine group size. Only runs on the failing
+  // path.
+
   std::vector<MissingInputResolution> result;
   result.reserve(missing.size());
+
+  // Build the "currently supplied" set from the reachability's inputs (deduped).
+  std::unordered_set<StateInterfaceId> supplied_set;
+  supplied_set.reserve(reach.inputs().size());
+  for (const auto sid : reach.inputs()) {
+    supplied_set.insert(sid);
+  }
+
+  const auto & analysis = reach.analysis();
+
   for (const StateInterfaceId m : missing) {
     MissingInputResolution entry{};
     entry.missing = m;
+
+    // ---- Transmission alternatives ----
+    const auto producing = analysis.producing_transmissions(m);
+    for (const auto tid : producing) {
+      const auto & instance = analysis.transmissions()[tid];
+      std::vector<StateInterfaceId> needed;
+      for (const auto in : instance.input_ids) {
+        if (supplied_set.count(in) == 0) {
+          needed.push_back(in);
+        }
+      }
+      // If needed is empty, the transmission already had all inputs available — meaning the
+      // missing interface should NOT be missing. Skip this entry (defensive; shouldn't happen
+      // for a correct caller).
+      if (needed.empty()) {
+        continue;
+      }
+      entry.transmission_alternatives.push_back(std::move(needed));
+    }
+
+    // ---- Affine alternative ----
+    const auto & defn = analysis.state_interface_order().inverse[m];
+    const AffineProjectionRule * rule = analysis.affine_projection_rule(defn.interface_id);
+    if (rule != nullptr) {
+      const JointId root = analysis.affine_root_of(defn.joint_id);
+      const auto group_members = analysis.affine_group_members(root);
+      if (group_members.size() > 1) {
+        entry.affine_root = root;
+      }
+    }
+
     result.push_back(std::move(entry));
   }
+
   return result;
 }
 

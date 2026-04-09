@@ -112,17 +112,37 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
   auto diag = diagnose_missing_outputs(
     reach, span<const StateInterfaceId>(outputs.data_, outputs.size_));
 
-  // Step 3: If anything is broken, surface it. Ambiguity wins over MissingInputs.
-  if (!diag.ambiguous_outputs.empty()) {
+  // Step 3: If anything is broken, surface it. Ambiguity (direct or blocked) wins over
+  // MissingInputs.
+  const bool has_ambiguity = !diag.directly_ambiguous_outputs.empty() ||
+                             !diag.blocked_outputs.empty();
+  if (has_ambiguity) {
     JointMapBuildError err{};
     err.kind = JointMapBuildError::Kind::Ambiguous;
     err.ambiguous_interfaces = std::move(diag.relevant_blocking_ambiguities);
-    // Format a multi-line summary listing both the affected outputs and the upstream
-    // ambiguities.
+
+    // Build a unified list of affected outputs (direct + blocked) for the message.
+    std::vector<StateInterfaceId> affected;
+    affected.reserve(diag.directly_ambiguous_outputs.size() + diag.blocked_outputs.size());
+    affected.insert(
+      affected.end(),
+      diag.directly_ambiguous_outputs.begin(),
+      diag.directly_ambiguous_outputs.end());
+    affected.insert(
+      affected.end(),
+      diag.blocked_outputs.begin(),
+      diag.blocked_outputs.end());
+
     std::ostringstream oss;
-    oss << "DefaultJointMapBuilder: " << diag.ambiguous_outputs.size()
-        << " requested output(s) cannot be produced due to ambiguity. "
-        << "Affected outputs: " << format_interface_list(transmission_analysis_, diag.ambiguous_outputs);
+    oss << "DefaultJointMapBuilder: " << affected.size()
+        << " requested output(s) cannot be produced due to ambiguity";
+    if (!diag.directly_ambiguous_outputs.empty() && !diag.blocked_outputs.empty()) {
+      oss << " (" << diag.directly_ambiguous_outputs.size() << " directly ambiguous, "
+          << diag.blocked_outputs.size() << " blocked by upstream ambiguity)";
+    } else if (!diag.blocked_outputs.empty()) {
+      oss << " (blocked by upstream ambiguity)";
+    }
+    oss << ". Affected outputs: " << format_interface_list(transmission_analysis_, affected);
     if (!err.ambiguous_interfaces.empty()) {
       std::vector<StateInterfaceId> ambiguous_ids;
       ambiguous_ids.reserve(err.ambiguous_interfaces.size());

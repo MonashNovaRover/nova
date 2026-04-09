@@ -156,9 +156,9 @@ JointMapBlueprint plan_joint_map(
 {
   // Caller's contract: the reachability MAY have ambiguous interfaces unrelated to the
   // requested outputs, but every output in `ordered_outputs` must be derivable. The caller
-  // is expected to have run `diagnose_missing_outputs` first and verified that both
-  // `unreachable` and `ambiguous_outputs` are empty. The per-output check inside the
-  // bucketing loop below throws `std::logic_error` if this contract is violated.
+  // is expected to have run `diagnose_missing_outputs` first and verified that the
+  // diagnosis's `ok()` returns true. The per-output check inside the bucketing loop below
+  // throws `std::logic_error` if this contract is violated.
 
   JointMapBlueprint blueprint{};
   {

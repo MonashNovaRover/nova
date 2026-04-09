@@ -131,8 +131,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_AllOutputsSatisfied_EmptyDiagnosis)
     analysis_, std::vector<StateInterfaceId>{a});
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{a, b});
 
-  EXPECT_TRUE(diag.unreachable.empty());
-  EXPECT_TRUE(diag.ambiguous_outputs.empty());
+  EXPECT_TRUE(diag.ok());
 }
 
 TEST_F(JointMapBlueprintTest, Diagnose_UnreachableOutput_ReportedInUnreachableList)
@@ -152,7 +151,8 @@ TEST_F(JointMapBlueprintTest, Diagnose_UnreachableOutput_ReportedInUnreachableLi
 
   ASSERT_EQ(diag.unreachable.size(), 1u);
   EXPECT_EQ(diag.unreachable[0], c);
-  EXPECT_TRUE(diag.ambiguous_outputs.empty());
+  EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
+  EXPECT_TRUE(diag.blocked_outputs.empty());
 }
 
 TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmbiguousIsTainted)
@@ -160,7 +160,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmb
   // T1: a → x;  T2: a → x  (x is ambiguous)
   // T3: x → y                  (y depends on x; the transitive walk should taint y)
   // Inputs: {a}, Outputs: {y}
-  // Expected: y in ambiguous_outputs, x in relevant_blocking_ambiguities, no unreachable.
+  // Expected: y in blocked_outputs, x in relevant_blocking_ambiguities, no unreachable.
   ensure_joints(analysis_, {"j_a", "j_x", "j_y"});
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
@@ -176,8 +176,9 @@ TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmb
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{y});
 
   EXPECT_TRUE(diag.unreachable.empty());
-  ASSERT_EQ(diag.ambiguous_outputs.size(), 1u);
-  EXPECT_EQ(diag.ambiguous_outputs[0], y);
+  EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
+  ASSERT_EQ(diag.blocked_outputs.size(), 1u);
+  EXPECT_EQ(diag.blocked_outputs[0], y);
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
   EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, x);
 }
@@ -204,8 +205,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_UnrelatedAmbiguity_DoesNotAffectRequest)
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{z});
 
   EXPECT_TRUE(reach.is_ambiguous());  // x is ambiguous in the reachability
-  EXPECT_TRUE(diag.unreachable.empty());
-  EXPECT_TRUE(diag.ambiguous_outputs.empty());  // ...but z is fine
+  EXPECT_TRUE(diag.ok());  // ...but z is fine
   EXPECT_TRUE(diag.relevant_blocking_ambiguities.empty());
 }
 
@@ -224,8 +224,9 @@ TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{x});
 
   EXPECT_TRUE(diag.unreachable.empty());
-  ASSERT_EQ(diag.ambiguous_outputs.size(), 1u);
-  EXPECT_EQ(diag.ambiguous_outputs[0], x);
+  EXPECT_TRUE(diag.blocked_outputs.empty());
+  ASSERT_EQ(diag.directly_ambiguous_outputs.size(), 1u);
+  EXPECT_EQ(diag.directly_ambiguous_outputs[0], x);
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
   EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, x);
 }
@@ -271,16 +272,161 @@ TEST_F(JointMapBlueprintTest, Diagnose_AffineBlockedOutput_ReportsUpstreamAmbigu
   }
   EXPECT_TRUE(b_blocked);
 
-  // Diagnose B.position: should report it as ambiguous_outputs AND attribute the upstream
+  // Diagnose B.position: should report it as blocked_outputs AND attribute the upstream
   // ambiguity (A.position) via the affine walk in collect_blocking_ambiguities.
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{b_pos});
 
-  ASSERT_EQ(diag.ambiguous_outputs.size(), 1u);
-  EXPECT_EQ(diag.ambiguous_outputs[0], b_pos);
+  // B.position is blocked (not directly ambiguous).
+  EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
+  ASSERT_EQ(diag.blocked_outputs.size(), 1u);
+  EXPECT_EQ(diag.blocked_outputs[0], b_pos);
   // The upstream A.position should appear in relevant_blocking_ambiguities — this is the
   // load-bearing assertion that the affine walk extension works.
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
   EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, a_pos);
+}
+
+// ===========================================================================
+// compute_missing_input_resolutions
+// ===========================================================================
+
+TEST_F(JointMapBlueprintTest, Resolutions_SingleProducerWithOneMissingInput)
+{
+  // T: a, b → c. User supplies a only. Resolution for c: {b}.
+  ensure_joints(analysis_, {"j_a", "j_b", "j_c"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
+  const auto c = ensure_state(analysis_, "j_c", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a, b}, {c}, "T");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{a});
+  const auto resolutions = compute_missing_input_resolutions(
+    reach, std::vector<StateInterfaceId>{c});
+
+  ASSERT_EQ(resolutions.size(), 1u);
+  EXPECT_EQ(resolutions[0].missing, c);
+  ASSERT_EQ(resolutions[0].transmission_alternatives.size(), 1u);
+  ASSERT_EQ(resolutions[0].transmission_alternatives[0].size(), 1u);
+  EXPECT_EQ(resolutions[0].transmission_alternatives[0][0], b);
+  EXPECT_FALSE(resolutions[0].affine_root.has_value());
+}
+
+TEST_F(JointMapBlueprintTest, Resolutions_MultipleProducerAlternatives)
+{
+  // T1: a → x. T2: b → x. User supplies neither.
+  // Resolutions for x: [{a}, {b}].
+  ensure_joints(analysis_, {"j_a", "j_b", "j_x"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
+  const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a}, {x}, "T1");
+  analysis_.add_transmission(model_id, {b}, {x}, "T2");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{});
+  const auto resolutions = compute_missing_input_resolutions(
+    reach, std::vector<StateInterfaceId>{x});
+
+  ASSERT_EQ(resolutions.size(), 1u);
+  EXPECT_EQ(resolutions[0].missing, x);
+  ASSERT_EQ(resolutions[0].transmission_alternatives.size(), 2u);
+  // Each alternative has exactly one input. Order may vary.
+  std::vector<StateInterfaceId> seen_alts;
+  for (const auto & alt : resolutions[0].transmission_alternatives) {
+    ASSERT_EQ(alt.size(), 1u);
+    seen_alts.push_back(alt[0]);
+  }
+  EXPECT_NE(std::find(seen_alts.begin(), seen_alts.end(), a), seen_alts.end());
+  EXPECT_NE(std::find(seen_alts.begin(), seen_alts.end(), b), seen_alts.end());
+}
+
+TEST_F(JointMapBlueprintTest, Resolutions_MissingInterfaceInNonTrivialAffineGroup)
+{
+  // A→B mimic (B = 2A). Position rule is registered by default. User supplies neither.
+  // Resolution for B.position: affine_root populated (= A's joint id).
+  const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
+  ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{});
+  const auto resolutions = compute_missing_input_resolutions(
+    reach, std::vector<StateInterfaceId>{b_pos});
+
+  ASSERT_EQ(resolutions.size(), 1u);
+  EXPECT_EQ(resolutions[0].missing, b_pos);
+  // No transmission alternatives (B.position is only producible via affine projection).
+  EXPECT_TRUE(resolutions[0].transmission_alternatives.empty());
+  // affine_root should be populated.
+  ASSERT_TRUE(resolutions[0].affine_root.has_value());
+  // The root is whichever joint is the affine union-find root for joints[0]/joints[1].
+  EXPECT_EQ(*resolutions[0].affine_root, analysis_.affine_root_of(joints[0]));
+}
+
+TEST_F(JointMapBlueprintTest, Resolutions_TrivialAffineGroup_NoAffineRoot)
+{
+  // A standalone joint with no mimic relationships. The affine group is just {A} (size 1).
+  // Resolution for A.position should NOT have affine_root populated.
+  ensure_joints(analysis_, {"j_a"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{});
+  const auto resolutions = compute_missing_input_resolutions(
+    reach, std::vector<StateInterfaceId>{a});
+
+  ASSERT_EQ(resolutions.size(), 1u);
+  EXPECT_EQ(resolutions[0].missing, a);
+  EXPECT_TRUE(resolutions[0].transmission_alternatives.empty());
+  EXPECT_FALSE(resolutions[0].affine_root.has_value());
+}
+
+TEST_F(JointMapBlueprintTest, Resolutions_NoProjectionRule_NoAffineRoot)
+{
+  // A→B mimic, but the requested interface_id is "custom_iface" with no registered rule.
+  // affine_root should NOT be populated.
+  const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
+  ensure_state(analysis_, "j_a", InterfaceId{"custom_iface"});
+  const auto b_custom = ensure_state(analysis_, "j_b", InterfaceId{"custom_iface"});
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{});
+  const auto resolutions = compute_missing_input_resolutions(
+    reach, std::vector<StateInterfaceId>{b_custom});
+
+  ASSERT_EQ(resolutions.size(), 1u);
+  EXPECT_FALSE(resolutions[0].affine_root.has_value());
+}
+
+TEST_F(JointMapBlueprintTest, Resolutions_AlternativeWithAlreadySuppliedInput_NotEmpty)
+{
+  // T: a, b → c. User supplies a (one of T's inputs is already supplied). The "needed" set
+  // for T's alternative is just {b} — the alternative should still be present.
+  ensure_joints(analysis_, {"j_a", "j_b", "j_c"});
+  const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
+  const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
+  const auto c = ensure_state(analysis_, "j_c", InterfaceId{"position"});
+
+  const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
+  analysis_.add_transmission(model_id, {a, b}, {c}, "T");
+
+  const auto reach = TransmissionReachability::analyze(
+    analysis_, std::vector<StateInterfaceId>{a});
+  const auto resolutions = compute_missing_input_resolutions(
+    reach, std::vector<StateInterfaceId>{c});
+
+  ASSERT_EQ(resolutions.size(), 1u);
+  ASSERT_EQ(resolutions[0].transmission_alternatives.size(), 1u);
+  // The alternative lists ONLY b — a is already supplied and excluded.
+  ASSERT_EQ(resolutions[0].transmission_alternatives[0].size(), 1u);
+  EXPECT_EQ(resolutions[0].transmission_alternatives[0][0], b);
 }
 
 // ===========================================================================
