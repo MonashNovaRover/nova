@@ -156,7 +156,10 @@ bool approx_equal(float a, float b)
 class DefaultJointMapBuilderTest : public ::testing::Test
 {
 protected:
-  DefaultJointMapBuilder builder_{};
+  // The builder holds a reference to the analysis. Construct the analysis first, then the
+  // builder around it. Both have the same lifetime as the test instance.
+  TransmissionAnalysis analysis_{};
+  DefaultJointMapBuilder builder_{analysis_};
 };
 
 // ===========================================================================
@@ -165,7 +168,7 @@ protected:
 
 TEST_F(DefaultJointMapBuilderTest, Success_PureAffineMimic)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   const auto joints = ensure_joints(analysis, {"j_a", "j_b"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -186,7 +189,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_PureAffineMimic)
 
 TEST_F(DefaultJointMapBuilderTest, Success_MixedAffineAndTransmission)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   const auto joints = ensure_joints(analysis, {"j_a", "j_b", "j_x", "j_y"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -220,7 +223,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_MixedAffineAndTransmission)
 
 TEST_F(DefaultJointMapBuilderTest, Error_MissingInputs_OutputUnreachable)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a", "j_b", "j_c"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -250,7 +253,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_MissingInputs_OutputUnreachable)
 
 TEST_F(DefaultJointMapBuilderTest, Error_DirectAmbiguity_OutputItselfAmbiguous)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a", "j_x"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto x = ensure_state(analysis, "j_x", InterfaceId{"position"});
@@ -277,7 +280,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_DirectAmbiguity_OutputItselfAmbiguous)
 
 TEST_F(DefaultJointMapBuilderTest, Error_TransitiveAmbiguity_OutputDownstreamOfAmbiguous)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a", "j_x", "j_y"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto x = ensure_state(analysis, "j_x", InterfaceId{"position"});
@@ -306,7 +309,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_TransitiveAmbiguity_OutputDownstreamOfA
 
 TEST_F(DefaultJointMapBuilderTest, Success_UnrelatedAmbiguity_DoesNotBlockUnrelatedRequest)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a", "j_x", "j_z"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto x = ensure_state(analysis, "j_x", InterfaceId{"position"});
@@ -339,7 +342,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_UnrelatedAmbiguity_DoesNotBlockUnrela
 
 TEST_F(DefaultJointMapBuilderTest, PolymorphicCallThroughBaseInterface)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
 
@@ -361,7 +364,7 @@ TEST_F(DefaultJointMapBuilderTest, PolymorphicCallThroughBaseInterface)
 
 TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleId)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
 
@@ -383,7 +386,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleId)
 TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleInputId)
 {
   // Same but the bogus id is in the inputs list — should also be caught.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
 
@@ -403,7 +406,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleInputId)
 
 TEST_F(DefaultJointMapBuilderTest, DoubleBuild_NoCachedStateContamination)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   const auto joints = ensure_joints(analysis, {"j_a", "j_b"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -437,7 +440,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_VelocityProjectionRule_EndToEnd)
 {
   // b mimics a (b = 2a + 5). Request b.velocity from a.velocity → expect 2*v_a (offset
   // dropped by the velocity rule).
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   const auto joints = ensure_joints(analysis, {"j_a", "j_b"});
   const auto a_vel = ensure_state(analysis, "j_a", InterfaceId{"velocity"});
   const auto b_vel = ensure_state(analysis, "j_b", InterfaceId{"velocity"});
@@ -463,7 +466,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_DiamondDAG_NumericalVerification)
   // T2: a → c = 3a + 1
   // T3: b, c → d = b + c
   // For a = 4: b = 8, c = 13, d = 21.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a", "j_b", "j_c", "j_d"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -498,7 +501,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_RedundantEquivalentInputs_EndToEnd)
 {
   // A→B (B=2A) and A→D (D=3A). Supply both A and D. Request B.
   // Expected: B = 2A computed correctly. The redundant supply of D doesn't break the build.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   const auto joints = ensure_joints(analysis, {"j_a", "j_b", "j_d"});
   const auto a_pos = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b_pos = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -527,7 +530,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_TransmissionWithMixedGatherSources)
   // T2: b, c → d = b + c   (where c is also a direct input)
   // Inputs: {a, c}. Request: {d}.
   // For a=3, c=10: b=6, d=16.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a", "j_b", "j_c", "j_d"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -575,7 +578,7 @@ public:
 
 TEST_F(DefaultJointMapBuilderTest, Error_TransmissionModelReturnsNull_PropagatesAsException)
 {
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a", "j_b"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -602,7 +605,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_SecondOrderAmbiguity_ReportedThroughBui
   // Same scenario as Ambiguity_DownstreamProducerWithCleanAlternativeStaysAmbiguous in the
   // reachability tests. Verify the builder reports x as ambiguous (with both T1 and T2 in
   // the snapshot) AND surfaces b as a relevant blocking ambiguity.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a", "j_b", "j_c", "j_x"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis, "j_b", InterfaceId{"position"});
@@ -647,7 +650,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_MotorToJoint)
   // T_inv: joint → motor, motor = joint/5 (i.e., 0.2*joint).
   // Inputs: {motor}, request: {joint}.
   // Expected: joint = 5 * motor.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_motor", "j_joint"});
   const auto motor = ensure_state(analysis, "j_motor", InterfaceId{"position"});
   const auto joint = ensure_state(analysis, "j_joint", InterfaceId{"position"});
@@ -672,7 +675,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_MotorToJoint)
 TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_JointToMotor)
 {
   // Same setup, opposite direction. Inputs: {joint}, request: {motor}.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_motor", "j_joint"});
   const auto motor = ensure_state(analysis, "j_motor", InterfaceId{"position"});
   const auto joint = ensure_state(analysis, "j_joint", InterfaceId{"position"});
@@ -698,7 +701,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_BothInputs_NoAmbig
 {
   // Both motor and joint supplied as inputs. The user asks for both back. Both should be
   // input passthroughs, no ambiguity reported (input wins on both sides).
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_motor", "j_joint"});
   const auto motor = ensure_state(analysis, "j_motor", InterfaceId{"position"});
   const auto joint = ensure_state(analysis, "j_joint", InterfaceId{"position"});
@@ -734,7 +737,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_InverseTransmissionWithSideEffectOutp
   // The forward direction fires T_fwd to derive joint. The inverse direction (T_inv) is
   // needed to derive motor_torque (since nothing else produces it, and joint becomes
   // derivable after T_fwd). Both transmissions are selected; both fire at runtime.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_motor", "j_joint", "j_motor_torque"});
   const auto motor = ensure_state(analysis, "j_motor", InterfaceId{"position"});
   const auto joint = ensure_state(analysis, "j_joint", InterfaceId{"position"});
@@ -768,7 +771,7 @@ TEST_F(DefaultJointMapBuilderTest, Success_InverseTransmissionWithSideEffectOutp
 TEST_F(DefaultJointMapBuilderTest, Error_EmptyInputs_AllOutputsUnreachable)
 {
   // No inputs supplied; ask for an output that has no producer.
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
 
@@ -790,7 +793,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_EmptyInputs_AllOutputsUnreachable)
 TEST_F(DefaultJointMapBuilderTest, Error_ManyAmbiguousOutputs_MessageIsTruncatedSensibly)
 {
   // Set up 8 ambiguous outputs (more than the 5-entry message cap).
-  auto & analysis = builder_.get_mutable_transmission_analysis();
+  auto & analysis = analysis_;
   std::vector<StateInterfaceId> outputs;
   for (int i = 0; i < 8; ++i) {
     const std::string joint_name = "j_x" + std::to_string(i);

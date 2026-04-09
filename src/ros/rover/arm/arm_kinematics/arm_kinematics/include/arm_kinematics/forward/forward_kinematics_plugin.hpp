@@ -10,10 +10,14 @@
 #include <vector>
 #include <urdf/model.h>
 #include <arm_kinematics/common/kinematics_base.hpp>
+#include <arm_kinematics/joint_map/default_joint_map_builder.hpp>
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
+#include <arm_kinematics/joint_map/state_interface_definition.hpp>
 #include <arm_kinematics/joint_map/transmission_analysis.hpp>
-#include <arm_kinematics/joint_map/transmission_analysis_joint_map_builder.hpp>
+#include <arm_kinematics/joint_map/transmission_types.hpp>
 #include <arm_kinematics/utilities/aliases.hpp>
+#include <arm_kinematics/utilities/expected.hpp>
+#include <arm_kinematics/utilities/span.hpp>
 #include <arm_kinematics/forward/frame_definitions.hpp>
 #include <arm_kinematics/utilities/order.hpp>
 
@@ -108,54 +112,74 @@ public:
   };
 
   /**
-   * \brief Constructs the plugin implementation's Tree subclass.
+   * \brief Constructs the plugin implementation's Tree subclass — the canonical (fast-path)
+   * overload taking already-resolved `StateInterfaceId`s.
    * \see ForwardKinematicsPlugin::Tree
    *
-   * \param joint_names[in] The name of the joints to use as inputs
+   * \param input_state_interfaces[in] The state interfaces the FK tree will receive at runtime
+   *   in `position_fk(joint_states, ...)`. Each id must be valid against the FK plugin's
+   *   transmission analysis (see `get_transmission_analysis()`).
    * \param base_link_name[in] The name of the frame to act as the origin
-   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3f values for in
-   * \c Tree::position_fk(). You can also just wrap a string or vector of strings in {} if you don't care about the
-   * origins from FrameDefinitions.
-   * \param joint_map_builder[in] The builder used to construct the joint map needed for.
-   * \returns a tree that you can call .position_fk() on with joint positions to get the poses for all the frames
-   * defined in frames.
+   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3f values
+   *   for in `Tree::position_fk()`.
+   * \param joint_map_builder[in] The builder used to construct the joint map needed for the
+   *   tree. Must already have its analysis populated with all the joints/state interfaces the
+   *   FK tree references.
+   * \returns A `tl::expected` wrapping the tree on success, or a `JointMapBuildError` on
+   *   failure (e.g. unreachable outputs, ambiguous transmissions).
    *
    * \warning Likely expensive, and obviously not real-time safe.
-   * \note From testing, takes < .1 millisecond on a simple URDF
-   * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
-   * chain implementations may reference memory from the parent.
+   * \note From testing, takes < .1 millisecond on a simple URDF.
+   * \warning The parent `ForwardKinematicsPlugin` must stay alive for the lifetime of any
+   *   trees it produces; tree implementations may reference memory from the parent.
    */
-  virtual MakeTreeResult make_tree(
-    const std::vector<std::string> & joint_names,
+  virtual tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+    span<const StateInterfaceId> input_state_interfaces,
     const std::string & base_link_name,
-    const FrameDefinitions & frames,  //< TODO: Maybe make pass by copy to allow for std::move where appropriate
+    const FrameDefinitions & frames,
     const JointMapBuilder & joint_map_builder) = 0;
 
   /**
-   * \brief Constructs the plugin implementation's Tree subclass. This helper overload provides the joint_map_builder
-   * automatically via get_joint_map_builder().
-   * \see ForwardKinematicsPlugin::Tree
+   * \brief Convenience overload that accepts `NamedStateInterfaceDefinition`s and resolves
+   * them to `StateInterfaceId`s via const lookup against the FK plugin's analysis before
+   * delegating to the main overload above.
    *
-   * \param joint_names[in] The name of the joints to use as inputs
-   * \param base_link_name[in] The name of the frame to act as the origin
-   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3f values for in
-   * \c Tree::position_fk(). You can also just wrap a string or vector of strings in {} if you don't care about the
-   * origins from FrameDefinitions
-   * \returns a tree that you can call .position_fk() on with joint positions to get the poses for all the frames
-   * defined in frames.
+   * Default implementation looks up each `(joint_name, interface_id)` pair in
+   * `get_transmission_analysis()`. **The analysis must already have these joints and
+   * interfaces registered** (typically populated at URDF parse time). If any name/interface
+   * is unknown, returns a `JointMapBuildError` with `Kind::UnknownInterface` and lists the
+   * unresolvable entries in the message.
    *
-   * \warning Likely expensive, and obviously not real-time safe.
-   * \note From testing, takes < .1 millisecond on a simple URDF
-   * \warning Assume the parent ForwardKinematicsPlugin must stay alive for the lifetime of any chains it produces,
-   * chain implementations may reference memory from the parent.
+   * Subclasses can override if they want a different resolution policy.
+   *
+   * The main `StateInterfaceId`-based overload is the canonical fast path; this overload
+   * exists for callers that have joint names + interface ids on hand and don't want to do the
+   * resolution themselves.
    */
-  MakeTreeResult make_tree(
-    const std::vector<std::string> & joint_names,
+  virtual tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+    span<const NamedStateInterfaceDefinition> named_input_state_interfaces,
+    const std::string & base_link_name,
+    const FrameDefinitions & frames,
+    const JointMapBuilder & joint_map_builder);
+
+  /// Helper overload — defaults the builder to `get_joint_map_builder()`. SID fast path.
+  tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+    span<const StateInterfaceId> input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames)
   {
-    return make_tree(joint_names, base_link_name, frames, get_joint_map_builder());
-  };
+    return make_tree(input_state_interfaces, base_link_name, frames, get_joint_map_builder());
+  }
+
+  /// Helper overload — defaults the builder to `get_joint_map_builder()`. Named convenience.
+  tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+    span<const NamedStateInterfaceDefinition> named_input_state_interfaces,
+    const std::string & base_link_name,
+    const FrameDefinitions & frames)
+  {
+    return make_tree(
+      named_input_state_interfaces, base_link_name, frames, get_joint_map_builder());
+  }
 
   /**
    * Effectively replaces the constructor for the class, as we can only use a default constructor in plugins.
@@ -171,10 +195,12 @@ public:
   /**
    * \brief Gets the transmission analysis used by this FK plugin's default mapping policy.
    *
-   * Different FK plugin implementations may choose to provide a transmission analysis that differs from the shared
-   * default analysis exposed by RobotModel.
+   * Different FK plugin implementations may choose to provide a transmission analysis that
+   * differs from the shared default analysis exposed by RobotModel. The returned analysis
+   * is logically frozen — callers must not assume it can be mutated.
    *
-   * \warning The returned reference must remain valid for as long as any builder or tree using it remains alive.
+   * \warning The returned reference must remain valid for as long as any builder or tree
+   * using it remains alive.
    */
   [[nodiscard]] virtual const TransmissionAnalysis & get_transmission_analysis() const noexcept;
 
@@ -183,8 +209,9 @@ public:
    *
    * This is the canonical source of the FK plugin's default runtime joint mapping policy.
    *
-   * Different plugin implementations may choose to provide a joint map builder that differs from the analysis-backed
-   * default implementation provided here.
+   * Different plugin implementations may choose to provide a joint map builder that differs
+   * from the analysis-backed default implementation provided here. The default implementation
+   * lazily constructs a `DefaultJointMapBuilder` wrapping `get_mutable_transmission_analysis()`.
    */
   [[nodiscard]] virtual const JointMapBuilder & get_joint_map_builder() const noexcept;
 
@@ -197,7 +224,7 @@ protected:
   virtual bool on_initialize() = 0;
 
 private:
-  mutable std::unique_ptr<TransmissionAnalysisJointMapBuilder> joint_map_builder_ = nullptr;
+  mutable std::unique_ptr<DefaultJointMapBuilder> joint_map_builder_ = nullptr;
   mutable const TransmissionAnalysis * joint_map_builder_analysis_ = nullptr;
 };
 

@@ -38,7 +38,11 @@ public:
   /// Lazily evaluated urdf model from parsing robot_description
   [[nodiscard]] const urdf::Model & get_urdf_model() const;
 
-  /// Gets the lazily-built shared default transmission analysis derived from the robot description.
+  /// Gets the lazily-built shared default transmission analysis derived from the robot
+  /// description. The first call triggers URDF parsing and population (mimic + ros2_control
+  /// transmissions); subsequent calls return the same instance. The analysis is logically
+  /// frozen after lazy init — the `mutable std::unique_ptr` storage exists ONLY to support
+  /// lazy population from a const method; callers must not assume ongoing mutation.
   [[nodiscard]] const TransmissionAnalysis & get_default_transmission_analysis() const;
 
   /// Gets the lazily-built shared ros2_control transmission plugin loader used by the default analysis import path.

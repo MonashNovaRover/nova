@@ -58,13 +58,17 @@ public:
   };
 
   /**
-   * \copydoc ForwardKinematicsPlugin::make_tree
+   * \copydoc ForwardKinematicsPlugin::make_tree(span<const StateInterfaceId>, ...)
    */
-  MakeTreeResult make_tree(
-    const std::vector<std::string> & joint_names,
+  tl::expected<MakeTreeResult, JointMapBuildError> make_tree(
+    span<const StateInterfaceId> input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames,
     const JointMapBuilder & joint_map_builder) override;
+
+  // Bring the convenience overloads from the base class into scope so users can call them
+  // without explicit name qualification.
+  using ForwardKinematicsPlugin::make_tree;
 
   bool on_initialize() override;
 };
