@@ -52,13 +52,12 @@ struct Kinematics final {
   Collision collision;
   Inverse inverse;
 
-  explicit Kinematics(PluginLoader plugin_loader)
-  : plugin_loader(std::move(plugin_loader)),
+  explicit Kinematics(PluginLoader loader)
+  : plugin_loader(std::move(loader)),
     forward(plugin_loader),
-    collision(plugin_loader, forward.plugin), //< TODO: Make make_collision_manager() constexpr and use it here :/
+    collision(plugin_loader, forward.plugin),
     inverse()
   {
-
   }
 };
 
