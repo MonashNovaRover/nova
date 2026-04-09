@@ -17,10 +17,10 @@ namespace arm_kinematics {
  * `build_expected` runs the canonical analysis-time pipeline:
  *   1. `TransmissionReachability::analyze(analysis_, inputs)` — eager forward fixed point.
  *   2. `diagnose_missing_outputs(reach, outputs)` — classify each requested output as
- *      satisfied / unreachable / ambiguous (direct or transitive).
+ *      satisfied / unproducible / ambiguous (directly or transitively blocked).
  *   3. If the diagnosis is non-empty: return a `JointMapBuildError` with the relevant slice.
- *      Ambiguity wins over unreachability when both apply (the user fixes the ambiguity
- *      first, retries, then sees any remaining unreachables).
+ *      Ambiguity wins over unproducibility when both apply (the user fixes the ambiguity
+ *      first, retries, then sees any remaining unproducible outputs).
  *   4. Otherwise: `plan_joint_map(reach, outputs)` to produce a blueprint, then
  *      `materialize_joint_map(blueprint, analysis_)` to obtain the runtime `JointMap`.
  *

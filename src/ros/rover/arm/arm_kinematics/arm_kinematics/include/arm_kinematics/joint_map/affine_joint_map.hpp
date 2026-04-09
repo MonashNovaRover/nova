@@ -25,13 +25,6 @@ namespace arm_kinematics {
  *   - duplication / fan-out of one input into multiple outputs
  *   - mimic-joint propagation (with the mimic relationship pre-composed into multipliers/offsets)
  *   - simple affine conversions
- *
- * \note This class is in a stub-ish state during step 2 of the state-interface refactor. The legacy
- * constructors that took `(input_names, output_names, TransmissionAnalysis)` and `(AffinePlan)` have
- * been deleted (they depended on the legacy plan structs). The runtime `map()` / `identity()` / data
- * members survive — they don't reference deleted types. Step 5 / step 6 will add a new direct
- * constructor that the builder calls with the resolved sources/multipliers/offsets after walking a
- * `JointMapBlueprint`.
  */
 class ARM_KINEMATICS_PUBLIC AffineJointMap {
 public:

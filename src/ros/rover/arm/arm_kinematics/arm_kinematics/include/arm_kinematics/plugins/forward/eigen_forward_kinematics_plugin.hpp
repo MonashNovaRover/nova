@@ -8,6 +8,9 @@
 #include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
 #include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
 #include <arm_kinematics/forward/utilities/analysis_tree.hpp>
+#include <arm_kinematics/joint_map/default_joint_map_builder.hpp>
+#include <memory>
+#include <mutex>
 #include <utility>
 #include <arm_kinematics/visibility_control.h>
 
@@ -70,7 +73,25 @@ public:
   // without explicit name qualification.
   using ForwardKinematicsPlugin::make_tree;
 
+  /**
+   * \brief Returns this plugin's `DefaultJointMapBuilder`, lazy-constructed against
+   * `get_transmission_analysis()` on the first call.
+   *
+   * \warning Relies on the implicit pointer-stability of the underlying analysis: this plugin
+   * captures a reference on the first call and never re-checks. The default
+   * `get_transmission_analysis()` delegates to `RobotModel::get_default_transmission_analysis()`,
+   * whose returned reference is stable for the lifetime of the `RobotModel`.
+   */
+  [[nodiscard]] const JointMapBuilder & get_joint_map_builder() const noexcept override;
+
   bool on_initialize() override;
+
+private:
+  // One-shot lazy init of the default joint map builder. `mutable` so the lazy init can run
+  // from a const accessor; `std::once_flag` makes it thread-safe and zero-cost on the hot path
+  // after the first call.
+  mutable std::once_flag joint_map_builder_once_{};
+  mutable std::unique_ptr<DefaultJointMapBuilder> joint_map_builder_{};
 };
 
 } // arm_kinematics

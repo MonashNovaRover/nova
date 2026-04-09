@@ -11,8 +11,6 @@
 
 #include <urdf/model.h>
 
-#include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
-
 namespace arm_kinematics {
 
 bool ForwardKinematicsPlugin::initialize(
@@ -32,17 +30,6 @@ bool ForwardKinematicsPlugin::initialize(
 const TransmissionAnalysis & ForwardKinematicsPlugin::get_transmission_analysis() const noexcept
 {
   return get_robot_model().get_default_transmission_analysis();
-}
-
-const JointMapBuilder & ForwardKinematicsPlugin::get_joint_map_builder() const noexcept
-{
-  const auto & transmission_analysis = get_transmission_analysis();
-  if (!joint_map_builder_ || joint_map_builder_analysis_ != &transmission_analysis) {
-    joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>(transmission_analysis);
-    joint_map_builder_analysis_ = &transmission_analysis;
-  }
-
-  return *joint_map_builder_;
 }
 
 tl::expected<ForwardKinematicsPlugin::MakeTreeResult, JointMapBuildError>

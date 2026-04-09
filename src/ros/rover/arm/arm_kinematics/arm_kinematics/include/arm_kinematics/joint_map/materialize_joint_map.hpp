@@ -31,7 +31,7 @@ class TransmissionAnalysis;
  * required, to keep the API consistent).
  *
  * \pre Every state interface in `blueprint.segments()` must be valid against `analysis`.
- * \pre `blueprint` must come from a complete diagnosis (no unreachable / ambiguous outputs).
+ * \pre `blueprint` must come from a complete diagnosis (no unproducible / ambiguous outputs).
  *      Asserted in debug builds; behavior is unspecified otherwise.
  *
  * \throws std::invalid_argument on shape errors (e.g. transmission model returning a null

@@ -23,7 +23,7 @@ namespace arm_kinematics {
  *
  * Three failure modes are surfaced:
  * - **MissingInputs:** one or more requested outputs are not derivable from the supplied inputs.
- *   `unreachable_outputs` lists which outputs failed; `resolutions` carries actionable hints
+ *   `unproducible_outputs` lists which outputs failed; `resolutions` carries actionable hints
  *   from `compute_missing_input_resolutions`.
  * - **Ambiguous:** one or more requested outputs have multiple viable producers (or
  *   transitively depend on something that does) and the reachability algorithm refuses to
@@ -56,10 +56,10 @@ struct JointMapBuildError {
 
   /// Populated when `kind == MissingInputs`. Each entry is a needed output that the algorithm
   /// could not derive from the requested inputs. Empty when `kind == Ambiguous`.
-  std::vector<StateInterfaceId> unreachable_outputs{};
+  std::vector<StateInterfaceId> unproducible_outputs{};
 
   /// Populated when `kind == MissingInputs`. Optional rich-error hints — one entry per
-  /// unreachable output — describing what could be supplied to unblock it. May be empty.
+  /// unproducible output — describing what could be supplied to unblock it. May be empty.
   std::vector<MissingInputResolution> resolutions{};
 
   /// Populated when `kind == Ambiguous`. Each entry is one ambiguous interface that the

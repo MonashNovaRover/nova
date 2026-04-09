@@ -10,7 +10,6 @@
 #include <vector>
 #include <urdf/model.h>
 #include <arm_kinematics/common/kinematics_base.hpp>
-#include <arm_kinematics/joint_map/default_joint_map_builder.hpp>
 #include <arm_kinematics/joint_map/joint_map_builder.hpp>
 #include <arm_kinematics/joint_map/state_interface_definition.hpp>
 #include <arm_kinematics/joint_map/transmission_analysis.hpp>
@@ -126,7 +125,7 @@ public:
    *   tree. Must already have its analysis populated with all the joints/state interfaces the
    *   FK tree references.
    * \returns A `tl::expected` wrapping the tree on success, or a `JointMapBuildError` on
-   *   failure (e.g. unreachable outputs, ambiguous transmissions).
+   *   failure (e.g. unproducible outputs, ambiguous transmissions).
    *
    * \warning Likely expensive, and obviously not real-time safe.
    * \note From testing, takes < .1 millisecond on a simple URDF.
@@ -193,27 +192,29 @@ public:
     KinematicsParams::SharedPtr kinematics_params);
 
   /**
-   * \brief Gets the transmission analysis used by this FK plugin's default mapping policy.
+   * \brief Gets the transmission analysis used by this FK plugin.
    *
    * Different FK plugin implementations may choose to provide a transmission analysis that
    * differs from the shared default analysis exposed by RobotModel. The returned analysis
    * is logically frozen — callers must not assume it can be mutated.
    *
-   * \warning The returned reference must remain valid for as long as any builder or tree
-   * using it remains alive.
+   * The default implementation delegates to `RobotModel::get_default_transmission_analysis()`.
+   *
+   * \warning Subclasses that cache or wrap a `JointMapBuilder` against this analysis are
+   * responsible for documenting their own pointer-stability requirements. The base class makes
+   * no assumptions either way.
    */
   [[nodiscard]] virtual const TransmissionAnalysis & get_transmission_analysis() const noexcept;
 
   /**
-   * \brief Gets the default joint map builder used for constructing trees.
+   * \brief Gets the joint map builder used by `make_tree()` convenience overloads.
    *
-   * This is the canonical source of the FK plugin's default runtime joint mapping policy.
-   *
-   * Different plugin implementations may choose to provide a joint map builder that differs
-   * from the analysis-backed default implementation provided here. The default implementation
-   * lazily constructs a `DefaultJointMapBuilder` wrapping `get_mutable_transmission_analysis()`.
+   * The base class declares this as pure virtual: each concrete plugin chooses (and owns) its
+   * own joint map builder, so the abstract base does not pull in any concrete builder type.
+   * Concrete plugins typically lazily construct a builder against their
+   * `get_transmission_analysis()`.
    */
-  [[nodiscard]] virtual const JointMapBuilder & get_joint_map_builder() const noexcept;
+  [[nodiscard]] virtual const JointMapBuilder & get_joint_map_builder() const noexcept = 0;
 
 protected:
   /**
@@ -222,10 +223,6 @@ protected:
    * \returns True if initialization was successful. False otherwise.
    */
   virtual bool on_initialize() = 0;
-
-private:
-  mutable std::unique_ptr<DefaultJointMapBuilder> joint_map_builder_ = nullptr;
-  mutable const TransmissionAnalysis * joint_map_builder_analysis_ = nullptr;
 };
 
 } // arm_kinematics

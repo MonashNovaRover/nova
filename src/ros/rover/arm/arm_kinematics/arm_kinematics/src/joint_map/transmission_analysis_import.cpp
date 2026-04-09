@@ -10,7 +10,6 @@
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <transmission_interface/handle.hpp>
 
-#include <array>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -46,6 +45,13 @@ namespace {
 // This avoids the legacy design's per-Compute plugin reload, and lets the
 // planner select the right (direction × interface) without the model having
 // to introspect SIDs.
+//
+// **Granularity note.** `TransmissionAnalysis` is a general-purpose structure
+// for analyzing relationships between joint properties; it is NOT designed
+// around ros2_control specifically. The per-(interface × direction) expansion
+// here is the importer adapting to the analysis's natural shape (one
+// `TransmissionInstance` = one directed input→output edge), not the analysis
+// bending to match the ros2_control plugin model.
 // ===========================================================================
 
 /// Bundles a freshly loaded + freshly configured `Transmission` instance
@@ -140,7 +146,8 @@ struct Ros2ControlPluginCore {
 
   Ros2ControlPluginCore(
     hardware_interface::TransmissionInfo transmission_info,
-    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> loader)
+    std::shared_ptr<const Ros2ControlTransmissionPluginLoader> loader,
+    span<const InterfaceId> probe_interfaces)
     : plugin_loader(std::move(loader)),
       info(std::move(transmission_info))
   {
@@ -150,7 +157,7 @@ struct Ros2ControlPluginCore {
     if (!plugin_loader->has_plugin_type(info.type)) {
       return;
     }
-    probe();
+    probe(probe_interfaces);
   }
 
   /// Mints a freshly loaded + freshly configured Transmission for the given
@@ -162,17 +169,8 @@ struct Ros2ControlPluginCore {
   }
 
 private:
-  void probe()
+  void probe(const span<const InterfaceId> probe_interfaces)
   {
-    // Static probe set: the default projection-rule interfaces registered
-    // by `TransmissionAnalysis`'s constructor. `effort` is opt-in and not
-    // probed.
-    static constexpr std::array<const char *, 3> kProbeInterfaces = {
-      hardware_interface::HW_IF_POSITION,
-      hardware_interface::HW_IF_VELOCITY,
-      hardware_interface::HW_IF_ACCELERATION,
-    };
-
     // Establish actuator/joint counts from one plain load. If the very first
     // load fails or counts mismatch, the plugin is unusable for this info.
     try {
@@ -194,8 +192,9 @@ private:
       return;
     }
 
-    for (const char * interface_name : kProbeInterfaces) {
-      SupportedCombo combo{InterfaceId{std::string_view{interface_name}}, false, false};
+    for (const auto & interface_id : probe_interfaces) {
+      const std::string & interface_name = interface_id.name;
+      SupportedCombo combo{interface_id, false, false};
 
       std::unique_ptr<ConfiguredTransmission> configured{};
       try {
@@ -363,9 +362,10 @@ private:
 void add_ros2_control_transmission_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const hardware_interface::TransmissionInfo & transmission,
-  const std::shared_ptr<const Ros2ControlTransmissionPluginLoader> & plugin_loader)
+  const std::shared_ptr<const Ros2ControlTransmissionPluginLoader> & plugin_loader,
+  const span<const InterfaceId> probe_interfaces)
 {
-  auto core = std::make_shared<Ros2ControlPluginCore>(transmission, plugin_loader);
+  auto core = std::make_shared<Ros2ControlPluginCore>(transmission, plugin_loader, probe_interfaces);
   if (core->supported_combos.empty()) {
     // Plugin failed to load, didn't match the TransmissionInfo, or supported
     // no probed (interface × direction) combos. Skip silently — the
@@ -476,10 +476,24 @@ std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions
     plugin_loader = std::make_shared<Ros2ControlTransmissionPluginLoader>();
   }
 
+  // Source the per-import probe set from whatever interfaces the analysis currently has
+  // registered AffineProjectionRules for. By default this is {position, velocity, acceleration},
+  // populated by `TransmissionAnalysis`'s constructor; if a caller has registered an additional
+  // rule (e.g. effort) before this import runs, the importer will probe and register the
+  // corresponding ros2_control combos automatically. Snapshotted into a vector so the inner
+  // probe loop iterates a stable contiguous sequence regardless of any (rare) interleaved
+  // mutation later.
+  std::vector<InterfaceId> probe_interfaces{};
+  probe_interfaces.reserve(transmission_analysis.affine_projection_rules().size());
+  for (const auto & [interface_id, _rule] : transmission_analysis.affine_projection_rules()) {
+    probe_interfaces.push_back(interface_id);
+  }
+
   std::vector<hardware_interface::TransmissionInfo> transmissions{};
   for (auto & hardware_info : hardware_interface::parse_control_resources_from_urdf(urdf_string)) {
     for (auto & transmission : hardware_info.transmissions) {
-      add_ros2_control_transmission_to_analysis(transmission_analysis, transmission, plugin_loader);
+      add_ros2_control_transmission_to_analysis(
+        transmission_analysis, transmission, plugin_loader, probe_interfaces);
       transmissions.push_back(std::move(transmission));
     }
   }

@@ -85,15 +85,18 @@ using StateInterfaceProducer = std::variant<
  *     value; `derivable_interfaces()` lists every such id.
  *   - **Ambiguous** — has ≥2 viable producers and the algorithm refuses to silently pick a winner.
  *     `producer_of(i)` returns `monostate`; `ambiguities()` lists the conflict.
- *   - **Blocked** — has at least one potential producer transmission whose inputs are all known
- *     OR ambiguous OR blocked, and at least one input is ambiguous or blocked. The interface
- *     could be derivable if the user disambiguated upstream. `producer_of(i)` returns
- *     `monostate`; `blocked_interfaces()` lists every such id.
- *   - **Unreachable** — none of the above. The user simply hasn't supplied enough inputs.
+ *   - **Transitively blocked** — has at least one potential producer transmission whose inputs
+ *     are all classified (derivable, ambiguous, or transitively blocked) and at least one of
+ *     those inputs is ambiguous or transitively blocked. The interface could be derivable if
+ *     the user disambiguated upstream. `producer_of(i)` returns `monostate`;
+ *     `transitively_blocked_interfaces()` lists every such id.
+ *   - **Unproducible** — none of the above. The user simply hasn't supplied enough inputs and
+ *     no producer chain exists that could possibly fire.
  *
  * Ambiguity does NOT propagate derivability: a transmission whose inputs include an ambiguous or
- * blocked interface is silently skipped during the fixed point, so its outputs do not enter the
- * derivable set. This is correct: the runtime literally could not compute those values.
+ * transitively blocked interface is silently skipped during the fixed point, so its outputs do
+ * not enter the derivable set. This is correct: the runtime literally could not compute those
+ * values.
  */
 class TransmissionReachability {
 public:
@@ -110,24 +113,31 @@ public:
   /// Pure-function analysis. Runs the eager forward fixed point against `analysis` starting from
   /// the given `inputs`. The returned object is immutable — to update the analysis with more
   /// inputs, call `analyze()` again with the augmented input list.
+  ///
+  /// \warning **Lifetime contract:** the returned `TransmissionReachability` holds a reference
+  /// to `analysis`. The reachability must not outlive the analysis. The type is intentionally
+  /// non-movable and non-copyable so it can only be used as a local within the scope that owns
+  /// (or otherwise guarantees the lifetime of) the analysis. Constructed via guaranteed copy
+  /// elision — the prvalue returned here is materialized directly into the caller's storage.
   [[nodiscard]] static TransmissionReachability analyze(
     const TransmissionAnalysis & analysis,
     span<const StateInterfaceId> inputs);
 
   ~TransmissionReachability() = default;
 
-  // Move-only — copying would be expensive and there's no clear use case.
+  // Non-copyable, non-movable — see the lifetime contract on `analyze()`. The reference to the
+  // analysis is captured in the constructor and cannot be rebound.
   TransmissionReachability(const TransmissionReachability &) = delete;
   TransmissionReachability & operator=(const TransmissionReachability &) = delete;
-  TransmissionReachability(TransmissionReachability &&) noexcept = default;
-  TransmissionReachability & operator=(TransmissionReachability &&) noexcept = default;
+  TransmissionReachability(TransmissionReachability &&) = delete;
+  TransmissionReachability & operator=(TransmissionReachability &&) = delete;
 
   // ---------------------------------------------------------------------------
   // Queries
   // ---------------------------------------------------------------------------
 
   /// The underlying `TransmissionAnalysis` this reachability was analyzed against.
-  [[nodiscard]] const TransmissionAnalysis & analysis() const noexcept { return *analysis_; }
+  [[nodiscard]] const TransmissionAnalysis & analysis() const noexcept { return analysis_; }
 
   /// True iff at least one interface in the reachability has multiple viable producers. The
   /// algorithm refuses to pick a winner and surfaces the conflict via `ambiguities()`.
@@ -148,20 +158,21 @@ public:
   [[nodiscard]] span<const AmbiguousInterface> ambiguities() const noexcept;
 
   /// Interfaces that cannot be computed because at least one of their potential producers'
-  /// inputs is itself ambiguous or blocked. Disjoint from `derivable_interfaces()` and from
-  /// `ambiguities()`. The user resolves these by disambiguating the relevant upstream — see
-  /// `diagnose_missing_outputs` for the per-output attribution walk.
-  [[nodiscard]] span<const StateInterfaceId> blocked_interfaces() const noexcept;
+  /// inputs is itself ambiguous or transitively blocked. Disjoint from `derivable_interfaces()`
+  /// and from `ambiguities()`. The user resolves these by disambiguating the relevant upstream
+  /// — see `diagnose_missing_outputs` for the per-output attribution walk.
+  [[nodiscard]] span<const StateInterfaceId> transitively_blocked_interfaces() const noexcept;
 
   /// Interfaces in the analysis that are NOT in any of `derivable_interfaces()`,
-  /// `ambiguities()`, or `blocked_interfaces()` — i.e., they have no potential producer that
-  /// could fire from the current inputs (the user simply hasn't supplied enough). The four
-  /// sets together partition the analysis's state interfaces.
-  [[nodiscard]] span<const StateInterfaceId> unreachable_interfaces() const noexcept;
+  /// `ambiguities()`, or `transitively_blocked_interfaces()` — i.e., they have no potential
+  /// producer that could fire from the current inputs (the user simply hasn't supplied enough).
+  /// The four sets together partition the analysis's state interfaces.
+  [[nodiscard]] span<const StateInterfaceId> unproducible_interfaces() const noexcept;
 
   /// O(1) lookup. Returns the committed producer for `interface`, or `std::monostate` if the
-  /// interface is ambiguous, blocked, unreachable, or not known to the analysis. The four
-  /// non-derivable cases are distinguished by `ambiguities()`, `blocked_interfaces()`, and the
+  /// interface is ambiguous, transitively blocked, unproducible, or not known to the analysis.
+  /// The four non-derivable cases are distinguished by `ambiguities()`,
+  /// `transitively_blocked_interfaces()`, and the
   /// state interface order respectively (or via `diagnose_missing_outputs` for a one-shot
   /// classification of a request).
   [[nodiscard]] StateInterfaceProducer producer_of(StateInterfaceId interface) const noexcept;
@@ -174,7 +185,12 @@ public:
   [[nodiscard]] span<const StateInterfaceId> redundant_equivalent_inputs() const noexcept;
 
 private:
-  TransmissionReachability() = default;
+  /// Private constructor used by `analyze()`. Captures the analysis reference and immediately
+  /// runs the fixed point. Direct construction in the prvalue returned by `analyze()` is the
+  /// only path to a `TransmissionReachability`.
+  explicit TransmissionReachability(
+    const TransmissionAnalysis & analysis,
+    span<const StateInterfaceId> inputs);
 
   // Helper: derives the interface-space (m, o) from the source joint's interface to the target
   // joint's interface using the per-joint flat relations stored on the analysis. The interface
@@ -225,20 +241,20 @@ private:
     std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> & candidates,
     bool & changed);
 
-  /// Run the blocked-interface post-pass after the main 2-pass algorithm converges. Walks
-  /// transmissions and affine groups, marking interfaces as blocked iff they have at least one
-  /// potential producer whose inputs are all classified (derivable, ambiguous, or blocked) and
-  /// at least one is ambiguous or blocked. Iterates to a fixed point — only runs when at least
-  /// one ambiguity exists.
-  void run_blocked_post_pass(std::size_t state_count);
+  /// Run the transitively-blocked post-pass after the main 2-pass algorithm converges. Walks
+  /// transmissions and affine groups, marking interfaces as transitively blocked iff they have
+  /// at least one potential producer whose inputs are all classified (derivable, ambiguous, or
+  /// transitively blocked) and at least one is ambiguous or transitively blocked. Iterates to
+  /// a fixed point — only runs when at least one ambiguity exists.
+  void run_transitively_blocked_post_pass(std::size_t state_count);
 
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
 
-  /// Pointer (not reference) so the type stays move-assignable. Set by `analyze()`; never null
-  /// post-construction.
-  const TransmissionAnalysis * analysis_ = nullptr;
+  /// Captured at construction. The reachability is non-movable so this reference can't be
+  /// rebound. The lifetime contract on `analyze()` requires the analysis to outlive `*this`.
+  const TransmissionAnalysis & analysis_;
 
   /// Effective input list — `analyze()`'s inputs argument, in insertion order. Duplicates are
   /// preserved; producer assignment uses first-occurrence-wins semantics.
@@ -258,24 +274,24 @@ private:
   std::vector<AmbiguousInterface> ambiguities_{};
 
   /// Membership lookup for ambiguous interfaces, indexed by StateInterfaceId. Used by the inner
-  /// fixed point's "skip transmissions whose inputs are ambiguous" check, and by the blocked
-  /// post-pass.
+  /// fixed point's "skip transmissions whose inputs are ambiguous" check, and by the
+  /// transitively-blocked post-pass.
   std::vector<bool> ambiguous_membership_{};
 
   /// Interfaces that have at least one potential producer transmission whose inputs include
   /// (transitively) an ambiguous interface, but that themselves have no derivable producer.
   /// Computed in a post-pass after the main fixed point converges; only populated when at least
   /// one ambiguity exists.
-  std::vector<StateInterfaceId> blocked_interfaces_{};
+  std::vector<StateInterfaceId> transitively_blocked_interfaces_{};
 
-  /// Membership lookup for blocked_interfaces_, indexed by StateInterfaceId.
-  std::vector<bool> blocked_membership_{};
+  /// Membership lookup for transitively_blocked_interfaces_, indexed by StateInterfaceId.
+  std::vector<bool> transitively_blocked_membership_{};
 
-  /// Interfaces in the analysis that fall into none of derivable / ambiguous / blocked.
-  /// Computed eagerly at the end of `run_fixed_point` (cheap O(N) walk). The numeric order
-  /// is not algorithmically meaningful — the field exists for ergonomic completeness so
-  /// consumers can iterate "everything still missing".
-  std::vector<StateInterfaceId> unreachable_interfaces_{};
+  /// Interfaces in the analysis that fall into none of derivable / ambiguous /
+  /// transitively_blocked. Computed eagerly at the end of `run_fixed_point` (cheap O(N) walk).
+  /// The numeric order is not algorithmically meaningful — the field exists for ergonomic
+  /// completeness so consumers can iterate "everything still missing".
+  std::vector<StateInterfaceId> unproducible_interfaces_{};
 
   /// Redundant equivalent inputs (lower-JointId leaf wins in affine groups).
   std::vector<StateInterfaceId> redundant_equivalent_inputs_{};

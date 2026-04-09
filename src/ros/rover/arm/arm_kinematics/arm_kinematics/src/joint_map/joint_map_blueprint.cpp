@@ -216,7 +216,7 @@ JointMapBlueprint plan_joint_map(
     const StateInterfaceId out = ordered_outputs[i];
     const auto producer = reach.producer_of(out);
     if (std::holds_alternative<std::monostate>(producer)) {
-      // Caller precondition violation: this output is unreachable, ambiguous, or blocked.
+      // Caller precondition violation: this output is unproducible, ambiguous, or transitively blocked.
       // The caller should have caught it via diagnose_missing_outputs and refused to call us.
       throw std::logic_error(
         "plan_joint_map: output has no producer in the reachability "

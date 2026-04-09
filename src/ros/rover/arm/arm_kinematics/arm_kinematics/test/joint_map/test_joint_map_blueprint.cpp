@@ -2,7 +2,7 @@
 // Created by Bailey Chessum on 8/4/26.
 //
 // Unit tests for JointMapBlueprint and the diagnose_missing_outputs helper. These cover the
-// output-dependent half of the analysis: which outputs are unreachable/ambiguous, and how
+// output-dependent half of the analysis: which outputs are unproducible/ambiguous, and how
 // the blueprint groups output production into segments (input/affine batches and transmission
 // stages) with proper topological ordering and affine consolidation.
 //
@@ -144,15 +144,15 @@ TEST_F(JointMapBlueprintTest, Diagnose_UnreachableOutput_ReportedInUnreachableLi
   const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
   analysis_.add_transmission(model_id, {a, b}, {c}, "T");
 
-  // Only `a` supplied → c is unreachable.
+  // Only `a` supplied → c is unproducible.
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a});
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{c});
 
-  ASSERT_EQ(diag.unreachable.size(), 1u);
-  EXPECT_EQ(diag.unreachable[0], c);
+  ASSERT_EQ(diag.unproducible.size(), 1u);
+  EXPECT_EQ(diag.unproducible[0], c);
   EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
-  EXPECT_TRUE(diag.blocked_outputs.empty());
+  EXPECT_TRUE(diag.transitively_blocked_outputs.empty());
 }
 
 TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmbiguousIsTainted)
@@ -160,7 +160,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmb
   // T1: a → x;  T2: a → x  (x is ambiguous)
   // T3: x → y                  (y depends on x; the transitive walk should taint y)
   // Inputs: {a}, Outputs: {y}
-  // Expected: y in blocked_outputs, x in relevant_blocking_ambiguities, no unreachable.
+  // Expected: y in transitively_blocked_outputs, x in relevant_blocking_ambiguities, no unproducible.
   ensure_joints(analysis_, {"j_a", "j_x", "j_y"});
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
@@ -175,10 +175,10 @@ TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmb
     analysis_, std::vector<StateInterfaceId>{a});
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{y});
 
-  EXPECT_TRUE(diag.unreachable.empty());
+  EXPECT_TRUE(diag.unproducible.empty());
   EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
-  ASSERT_EQ(diag.blocked_outputs.size(), 1u);
-  EXPECT_EQ(diag.blocked_outputs[0], y);
+  ASSERT_EQ(diag.transitively_blocked_outputs.size(), 1u);
+  EXPECT_EQ(diag.transitively_blocked_outputs[0], y);
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
   EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, x);
 }
@@ -223,8 +223,8 @@ TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
     analysis_, std::vector<StateInterfaceId>{a});
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{x});
 
-  EXPECT_TRUE(diag.unreachable.empty());
-  EXPECT_TRUE(diag.blocked_outputs.empty());
+  EXPECT_TRUE(diag.unproducible.empty());
+  EXPECT_TRUE(diag.transitively_blocked_outputs.empty());
   ASSERT_EQ(diag.directly_ambiguous_outputs.size(), 1u);
   EXPECT_EQ(diag.directly_ambiguous_outputs[0], x);
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
@@ -267,19 +267,19 @@ TEST_F(JointMapBlueprintTest, Diagnose_AffineBlockedOutput_ReportsUpstreamAmbigu
   // B.position should be in blocked_interfaces_ (only producible via affine projection from
   // ambiguous A.position).
   bool b_blocked = false;
-  for (const auto sid : reach.blocked_interfaces()) {
+  for (const auto sid : reach.transitively_blocked_interfaces()) {
     if (sid == b_pos) b_blocked = true;
   }
   EXPECT_TRUE(b_blocked);
 
-  // Diagnose B.position: should report it as blocked_outputs AND attribute the upstream
+  // Diagnose B.position: should report it as transitively_blocked_outputs AND attribute the upstream
   // ambiguity (A.position) via the affine walk in collect_blocking_ambiguities.
   const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{b_pos});
 
   // B.position is blocked (not directly ambiguous).
   EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
-  ASSERT_EQ(diag.blocked_outputs.size(), 1u);
-  EXPECT_EQ(diag.blocked_outputs[0], b_pos);
+  ASSERT_EQ(diag.transitively_blocked_outputs.size(), 1u);
+  EXPECT_EQ(diag.transitively_blocked_outputs[0], b_pos);
   // The upstream A.position should appear in relevant_blocking_ambiguities — this is the
   // load-bearing assertion that the affine walk extension works.
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);

@@ -47,11 +47,18 @@ TransmissionReachability TransmissionReachability::analyze(
   const TransmissionAnalysis & analysis,
   const span<const StateInterfaceId> inputs)
 {
-  TransmissionReachability result{};
-  result.analysis_ = &analysis;
-  result.inputs_.assign(inputs.begin(), inputs.end());
-  result.run_fixed_point(inputs);
-  return result;
+  // Direct prvalue return — guaranteed copy elision (C++17) materializes the constructed
+  // object in the caller's storage. The type is non-movable so this is the only path.
+  return TransmissionReachability(analysis, inputs);
+}
+
+TransmissionReachability::TransmissionReachability(
+  const TransmissionAnalysis & analysis,
+  const span<const StateInterfaceId> inputs)
+  : analysis_(analysis),
+    inputs_(inputs.begin(), inputs.end())
+{
+  run_fixed_point(inputs);
 }
 
 // ---------------------------------------------------------------------------
@@ -79,14 +86,14 @@ TransmissionReachability::ambiguities() const noexcept
   return ambiguities_;
 }
 
-span<const StateInterfaceId> TransmissionReachability::blocked_interfaces() const noexcept
+span<const StateInterfaceId> TransmissionReachability::transitively_blocked_interfaces() const noexcept
 {
-  return blocked_interfaces_;
+  return transitively_blocked_interfaces_;
 }
 
-span<const StateInterfaceId> TransmissionReachability::unreachable_interfaces() const noexcept
+span<const StateInterfaceId> TransmissionReachability::unproducible_interfaces() const noexcept
 {
-  return unreachable_interfaces_;
+  return unproducible_interfaces_;
 }
 
 StateInterfaceProducer TransmissionReachability::producer_of(
@@ -126,8 +133,8 @@ TransmissionReachability::compute_affine_projection_coefficients(
   // So in joint-space, target = m_joint * source + o_joint where:
   //   m_joint = T_tgt.m / T_src.m
   //   o_joint = T_tgt.o - m_joint * T_src.o
-  const auto & t_src = analysis_->affine_transmission_of(source_joint);
-  const auto & t_tgt = analysis_->affine_transmission_of(target_joint);
+  const auto & t_src = analysis_.affine_transmission_of(source_joint);
+  const auto & t_tgt = analysis_.affine_transmission_of(target_joint);
   assert(t_src.multiplier != 0.0F && "compute_affine_projection_coefficients: source joint's flat multiplier is zero");
 
   const float joint_m = t_tgt.multiplier / t_src.multiplier;
@@ -188,7 +195,7 @@ void TransmissionReachability::process_affine_hypernode(
   // picking is done dynamically below — whichever derivable group member happens to be a
   // leaf wins. This is what enables non-root members to be supplied as inputs.
 
-  const std::size_t state_count = analysis_->state_interface_order().inverse.size();
+  const std::size_t state_count = analysis_.state_interface_order().inverse.size();
 
   // ---- Find the lowest-JointId leaf source for this hypernode -------------
   // A member is a "leaf source" candidate if either:
@@ -205,8 +212,8 @@ void TransmissionReachability::process_affine_hypernode(
   std::vector<JointId> leaf_input_joints_in_group;
   for (const JointId member : group_members) {
     const auto member_def = StateInterfaceDefinition{member, interface_id};
-    if (!analysis_->state_interface_order().contains_key(member_def)) continue;
-    const StateInterfaceId member_sid = analysis_->state_interface_order()[member_def];
+    if (!analysis_.state_interface_order().contains_key(member_def)) continue;
+    const StateInterfaceId member_sid = analysis_.state_interface_order()[member_def];
     if (member_sid >= state_count || !derivable_membership_[member_sid]) continue;
     if (ambiguous_membership_[member_sid]) continue;  // ambiguity-honest
 
@@ -242,7 +249,7 @@ void TransmissionReachability::process_affine_hypernode(
   for (const JointId leaf_joint : leaf_input_joints_in_group) {
     if (leaf_joint == source_joint) continue;
     const auto leaf_def = StateInterfaceDefinition{leaf_joint, interface_id};
-    const StateInterfaceId leaf_sid = analysis_->state_interface_order()[leaf_def];
+    const StateInterfaceId leaf_sid = analysis_.state_interface_order()[leaf_def];
     if (std::find(redundant_equivalent_inputs_.begin(),
                   redundant_equivalent_inputs_.end(),
                   leaf_sid) == redundant_equivalent_inputs_.end())
@@ -253,13 +260,13 @@ void TransmissionReachability::process_affine_hypernode(
 
   // ---- Project from source to every other group member --------------------
   const auto source_def = StateInterfaceDefinition{source_joint, interface_id};
-  const StateInterfaceId source_sid = analysis_->state_interface_order()[source_def];
+  const StateInterfaceId source_sid = analysis_.state_interface_order()[source_def];
 
   for (const JointId member : group_members) {
     if (member == source_joint) continue;
     const auto member_def = StateInterfaceDefinition{member, interface_id};
-    if (!analysis_->state_interface_order().contains_key(member_def)) continue;
-    const StateInterfaceId member_sid = analysis_->state_interface_order()[member_def];
+    if (!analysis_.state_interface_order().contains_key(member_def)) continue;
+    const StateInterfaceId member_sid = analysis_.state_interface_order()[member_def];
     const auto coeffs = compute_affine_projection_coefficients(source_joint, member, rule);
     producers::AffineProjection projection{};
     projection.source = source_sid;
@@ -299,7 +306,7 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
   // ===========================================================================
   //
   // This is a 2-pass forward dataflow that classifies every state interface in the analysis
-  // into exactly one of {derivable, ambiguous, blocked, unreachable}.
+  // into exactly one of {derivable, ambiguous, transitively_blocked, unproducible}.
   //
   // Variables (used in the complexity bounds below):
   //   N = number of state interfaces in the analysis
@@ -327,9 +334,10 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
   //     single-candidate non-ambiguous interfaces to producer_assignment_. Build ambiguities_
   //     from the snapshots captured in pass 1.
   //
-  //   Blocked post-pass (only if any ambiguities): walk the analysis to find interfaces that
-  //     are not derivable but have at least one potential producer whose inputs are all
-  //     classified and at least one is ambiguous or blocked. Iterates to a fixed point.
+  //   Transitively-blocked post-pass (only if any ambiguities): walk the analysis to find
+  //     interfaces that are not derivable but have at least one potential producer whose inputs
+  //     are all classified and at least one is ambiguous or transitively blocked. Iterates to a
+  //     fixed point.
   //
   // **Why pass 1's snapshot is the maximum candidate set:**
   //
@@ -371,14 +379,14 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
   // because `derivable_membership_` only grows during a single pass.
   // ===========================================================================
 
-  const std::size_t state_count = analysis_->state_interface_order().inverse.size();
+  const std::size_t state_count = analysis_.state_interface_order().inverse.size();
 
   // ---- Initialize the cross-pass state ------------------------------------
   ambiguous_membership_.assign(state_count, false);
   ambiguities_.clear();
-  blocked_interfaces_.clear();
-  blocked_membership_.assign(state_count, false);
-  unreachable_interfaces_.clear();
+  transitively_blocked_interfaces_.clear();
+  transitively_blocked_membership_.assign(state_count, false);
+  unproducible_interfaces_.clear();
 
   // Local accumulators (re-built each pass).
   std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> candidates;
@@ -428,8 +436,8 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
       // For each transmission whose inputs are all derivable AND not ambiguous, record it as
       // a candidate producer for each output. Add the output to derivable iff it isn't
       // already known ambiguous from a prior pass.
-      for (TransmissionInstanceId tid = 0; tid < analysis_->transmissions().size(); ++tid) {
-        const auto & instance = analysis_->transmissions()[tid];
+      for (TransmissionInstanceId tid = 0; tid < analysis_.transmissions().size(); ++tid) {
+        const auto & instance = analysis_.transmissions()[tid];
         bool viable = true;
         for (const StateInterfaceId in : instance.input_ids) {
           if (in >= state_count || !derivable_membership_[in] || ambiguous_membership_[in]) {
@@ -474,13 +482,13 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
       const auto derivable_snapshot = derivable_interfaces_;
       std::set<std::pair<JointId, std::size_t>> processed_groups;
       for (const StateInterfaceId sid : derivable_snapshot) {
-        const auto & defn = resolve_state_interface(*analysis_, sid);
-        const AffineProjectionRule * rule = analysis_->affine_projection_rule(defn.interface_id);
+        const auto & defn = resolve_state_interface(analysis_, sid);
+        const AffineProjectionRule * rule = analysis_.affine_projection_rule(defn.interface_id);
         if (rule == nullptr) {
           continue;
         }
-        const JointId root = analysis_->affine_root_of(defn.joint_id);
-        const auto group_members = analysis_->affine_group_members(root);
+        const JointId root = analysis_.affine_root_of(defn.joint_id);
+        const auto group_members = analysis_.affine_group_members(root);
         if (group_members.size() <= 1) {
           continue;
         }
@@ -557,35 +565,36 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
   }
 
   // ===========================================================================
-  // Blocked post-pass: classify "non-derivable, non-ambiguous" interfaces into
-  // {blocked, unreachable}. Only runs if there are any ambiguities.
+  // Transitively-blocked post-pass: classify "non-derivable, non-ambiguous" interfaces into
+  // {transitively_blocked, unproducible}. Only runs if there are any ambiguities.
   // ===========================================================================
   if (!ambiguities_.empty()) {
-    run_blocked_post_pass(state_count);
+    run_transitively_blocked_post_pass(state_count);
   }
 
-  // ---- Compute unreachable_interfaces_ ------------------------------------
-  // Everything in the analysis that's not in derivable, ambiguous, or blocked is
-  // unreachable. O(N) walk; runs once per analyze() call.
+  // ---- Compute unproducible_interfaces_ ------------------------------------
+  // Everything in the analysis that's not in derivable, ambiguous, or transitively_blocked is
+  // unproducible. O(N) walk; runs once per analyze() call.
   for (StateInterfaceId i = 0; i < state_count; ++i) {
     if (derivable_membership_[i]) continue;
     if (ambiguous_membership_[i]) continue;
-    if (blocked_membership_[i]) continue;
-    unreachable_interfaces_.push_back(i);
+    if (transitively_blocked_membership_[i]) continue;
+    unproducible_interfaces_.push_back(i);
   }
 }
 
-void TransmissionReachability::run_blocked_post_pass(const std::size_t state_count)
+void TransmissionReachability::run_transitively_blocked_post_pass(const std::size_t state_count)
 {
-  // An interface is BLOCKED iff:
+  // An interface is TRANSITIVELY BLOCKED iff:
   //   - it is not derivable
   //   - it is not ambiguous
   //   - at least one transmission could produce it whose every input is in
-  //     (derivable ∪ ambiguous ∪ blocked) AND at least one input is in (ambiguous ∪ blocked)
+  //     (derivable ∪ ambiguous ∪ transitively_blocked) AND at least one input is in
+  //     (ambiguous ∪ transitively_blocked)
   //
   // OR (for affine projections):
   //   - it has a non-trivial affine group with a registered rule, no clean leaf source exists
-  //     in the group, and at least one group member is in (ambiguous ∪ blocked)
+  //     in the group, and at least one group member is in (ambiguous ∪ transitively_blocked)
   //
   // Iterates to a fixed point. Per-iteration: O(T × m + B × s) where B is the number of
   // potentially-affine-blockable interfaces (precomputed once below). Iterations: ≤ d.
@@ -597,10 +606,10 @@ void TransmissionReachability::run_blocked_post_pass(const std::size_t state_cou
   // fixed-point loop.
   std::vector<StateInterfaceId> affine_blockable_sids;
   for (StateInterfaceId sid = 0; sid < state_count; ++sid) {
-    const auto & defn = analysis_->state_interface_order().inverse[sid];
-    if (analysis_->affine_projection_rule(defn.interface_id) == nullptr) continue;
-    const JointId root = analysis_->affine_root_of(defn.joint_id);
-    if (analysis_->affine_group_members(root).size() <= 1) continue;
+    const auto & defn = analysis_.state_interface_order().inverse[sid];
+    if (analysis_.affine_projection_rule(defn.interface_id) == nullptr) continue;
+    const JointId root = analysis_.affine_root_of(defn.joint_id);
+    if (analysis_.affine_group_members(root).size() <= 1) continue;
     affine_blockable_sids.push_back(sid);
   }
 
@@ -609,8 +618,8 @@ void TransmissionReachability::run_blocked_post_pass(const std::size_t state_cou
     blocked_changed = false;
 
     // ---- Transmission-driven blocking ----
-    for (TransmissionInstanceId tid = 0; tid < analysis_->transmissions().size(); ++tid) {
-      const auto & instance = analysis_->transmissions()[tid];
+    for (TransmissionInstanceId tid = 0; tid < analysis_.transmissions().size(); ++tid) {
+      const auto & instance = analysis_.transmissions()[tid];
       bool any_input_problematic = false;
       bool all_inputs_classifiable = true;
       for (const StateInterfaceId in : instance.input_ids) {
@@ -620,10 +629,10 @@ void TransmissionReachability::run_blocked_post_pass(const std::size_t state_cou
         }
         const bool d = derivable_membership_[in];
         const bool a = ambiguous_membership_[in];
-        const bool b = blocked_membership_[in];
+        const bool b = transitively_blocked_membership_[in];
         if (!d && !a && !b) {
-          // Genuinely unreachable input — this transmission cannot serve as a "blocker chain"
-          // for its outputs (the outputs are unreachable, not blocked).
+          // Genuinely unproducible input — this transmission cannot serve as a "blocker chain"
+          // for its outputs (the outputs are unproducible, not transitively blocked).
           all_inputs_classifiable = false;
           break;
         }
@@ -638,42 +647,42 @@ void TransmissionReachability::run_blocked_post_pass(const std::size_t state_cou
         if (out >= state_count) continue;
         if (derivable_membership_[out]) continue;  // already derivable via another path
         if (ambiguous_membership_[out]) continue;
-        if (blocked_membership_[out]) continue;
-        blocked_membership_[out] = true;
-        blocked_interfaces_.push_back(out);
+        if (transitively_blocked_membership_[out]) continue;
+        transitively_blocked_membership_[out] = true;
+        transitively_blocked_interfaces_.push_back(out);
         blocked_changed = true;
       }
     }
 
     // ---- Affine projection-driven blocking ----
     // Walk the precomputed list of affine-blockable interfaces only. For each non-derivable,
-    // non-ambiguous, non-blocked entry: walk the group looking for any clean leaf source. If
-    // the only available leaf sources are problematic, mark blocked.
+    // non-ambiguous, non-transitively-blocked entry: walk the group looking for any clean leaf
+    // source. If the only available leaf sources are problematic, mark transitively blocked.
     for (const StateInterfaceId sid : affine_blockable_sids) {
       if (derivable_membership_[sid]) continue;
       if (ambiguous_membership_[sid]) continue;
-      if (blocked_membership_[sid]) continue;
-      const auto & defn = analysis_->state_interface_order().inverse[sid];
-      const JointId root = analysis_->affine_root_of(defn.joint_id);
-      const auto group_members = analysis_->affine_group_members(root);
+      if (transitively_blocked_membership_[sid]) continue;
+      const auto & defn = analysis_.state_interface_order().inverse[sid];
+      const JointId root = analysis_.affine_root_of(defn.joint_id);
+      const auto group_members = analysis_.affine_group_members(root);
       bool any_problematic_leaf = false;
       bool any_clean_leaf = false;
       for (const JointId member : group_members) {
         const auto member_def = StateInterfaceDefinition{member, defn.interface_id};
-        if (!analysis_->state_interface_order().contains_key(member_def)) continue;
-        const StateInterfaceId member_sid = analysis_->state_interface_order()[member_def];
+        if (!analysis_.state_interface_order().contains_key(member_def)) continue;
+        const StateInterfaceId member_sid = analysis_.state_interface_order()[member_def];
         if (member_sid >= state_count) continue;
         if (derivable_membership_[member_sid]) {
           any_clean_leaf = true;
-          break;  // a clean leaf exists; sid would be derivable, not blocked
+          break;  // a clean leaf exists; sid would be derivable, not transitively blocked
         }
-        if (ambiguous_membership_[member_sid] || blocked_membership_[member_sid]) {
+        if (ambiguous_membership_[member_sid] || transitively_blocked_membership_[member_sid]) {
           any_problematic_leaf = true;
         }
       }
       if (!any_clean_leaf && any_problematic_leaf) {
-        blocked_membership_[sid] = true;
-        blocked_interfaces_.push_back(sid);
+        transitively_blocked_membership_[sid] = true;
+        transitively_blocked_interfaces_.push_back(sid);
         blocked_changed = true;
       }
     }

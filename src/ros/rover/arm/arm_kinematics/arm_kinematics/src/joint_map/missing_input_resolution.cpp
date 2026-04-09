@@ -89,17 +89,17 @@ MissingOutputDiagnosis diagnose_missing_outputs(
     ambiguous_set.insert(amb.interface);
   }
 
-  // Lookup for blocked classification — turn the span into a set once.
-  const auto blocked_span = reach.blocked_interfaces();
-  std::unordered_set<StateInterfaceId> blocked_set;
-  blocked_set.reserve(blocked_span.size());
-  for (const auto sid : blocked_span) {
-    blocked_set.insert(sid);
+  // Lookup for transitively-blocked classification — turn the span into a set once.
+  const auto transitively_blocked_span = reach.transitively_blocked_interfaces();
+  std::unordered_set<StateInterfaceId> transitively_blocked_set;
+  transitively_blocked_set.reserve(transitively_blocked_span.size());
+  for (const auto sid : transitively_blocked_span) {
+    transitively_blocked_set.insert(sid);
   }
 
-  std::unordered_set<StateInterfaceId> unreachable_seen;
+  std::unordered_set<StateInterfaceId> unproducible_seen;
   std::unordered_set<StateInterfaceId> directly_ambiguous_seen;
-  std::unordered_set<StateInterfaceId> blocked_seen;
+  std::unordered_set<StateInterfaceId> transitively_blocked_seen;
   std::unordered_set<StateInterfaceId> blocking_ambiguities;
 
   for (const StateInterfaceId out : needed_outputs) {
@@ -116,29 +116,30 @@ MissingOutputDiagnosis diagnose_missing_outputs(
       // also needs to fix something further upstream).
       std::unordered_set<StateInterfaceId> visited;
       collect_blocking_ambiguities(reach, out, ambiguous_set, visited, blocking_ambiguities);
-    } else if (blocked_set.count(out) > 0) {
-      // Blocked: producer chain transitively depends on an ambiguous upstream.
-      if (blocked_seen.insert(out).second) {
-        diag.blocked_outputs.push_back(out);
+    } else if (transitively_blocked_set.count(out) > 0) {
+      // Transitively blocked: producer chain transitively depends on an ambiguous upstream.
+      if (transitively_blocked_seen.insert(out).second) {
+        diag.transitively_blocked_outputs.push_back(out);
       }
       std::unordered_set<StateInterfaceId> visited;
       collect_blocking_ambiguities(reach, out, ambiguous_set, visited, blocking_ambiguities);
     } else {
-      // Genuinely unreachable.
-      if (unreachable_seen.insert(out).second) {
-        diag.unreachable.push_back(out);
+      // Genuinely unproducible.
+      if (unproducible_seen.insert(out).second) {
+        diag.unproducible.push_back(out);
       }
     }
   }
 
-  // Slice reach.ambiguities() to those that any blocked/ambiguous output depends on.
+  // Slice reach.ambiguities() to those that any transitively-blocked / ambiguous output
+  // depends on.
   for (const auto & amb : ambiguities) {
     if (blocking_ambiguities.count(amb.interface) > 0) {
       diag.relevant_blocking_ambiguities.push_back(amb);
     }
   }
 
-  diag.resolutions = compute_missing_input_resolutions(reach, diag.unreachable);
+  diag.resolutions = compute_missing_input_resolutions(reach, diag.unproducible);
 
   return diag;
 }
@@ -162,7 +163,7 @@ std::vector<MissingInputResolution> compute_missing_input_resolutions(
   //      same interface_id to unblock the missing one.
   //
   // The algorithm doesn't recursively check whether the recommended inputs are themselves
-  // unreachable — the user iterates: supply X, retry, see what's now missing, repeat.
+  // unproducible — the user iterates: supply X, retry, see what's now missing, repeat.
   //
   // Complexity: O(K × (P × m + s)) where K = len(missing), P = max producers per interface,
   // m = max inputs per transmission, s = max affine group size. Only runs on the failing

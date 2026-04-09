@@ -250,7 +250,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_MissingInputs_OutputUnreachable)
     std::vector<float>{1.0F, 1.0F}, std::vector<float>{0.0F}, 2, 1));
   analysis.add_transmission(m, {a, b}, {c}, "T");
 
-  // Only `a` supplied; T can't fire so c is unreachable.
+  // Only `a` supplied; T can't fire so c is unproducible.
   const auto result = builder_.build_expected(
     std::vector<StateInterfaceId>{a},
     std::vector<StateInterfaceId>{c});
@@ -258,8 +258,8 @@ TEST_F(DefaultJointMapBuilderTest, Error_MissingInputs_OutputUnreachable)
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();
   EXPECT_EQ(err.kind, JointMapBuildError::Kind::MissingInputs);
-  ASSERT_EQ(err.unreachable_outputs.size(), 1u);
-  EXPECT_EQ(err.unreachable_outputs[0], c);
+  ASSERT_EQ(err.unproducible_outputs.size(), 1u);
+  EXPECT_EQ(err.unproducible_outputs[0], c);
   EXPECT_EQ(err.resolutions.size(), 1u);  // stub returns one entry per missing
   EXPECT_EQ(err.resolutions[0].missing, c);
 }
@@ -396,7 +396,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleId)
   EXPECT_EQ(err.kind, JointMapBuildError::Kind::UnknownInterface);
   ASSERT_EQ(err.unknown_interfaces.size(), 1u);
   EXPECT_EQ(err.unknown_interfaces[0], bogus);
-  EXPECT_TRUE(err.unreachable_outputs.empty());
+  EXPECT_TRUE(err.unproducible_outputs.empty());
   EXPECT_TRUE(err.ambiguous_interfaces.empty());
 }
 
@@ -799,8 +799,8 @@ TEST_F(DefaultJointMapBuilderTest, Error_EmptyInputs_AllOutputsUnreachable)
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();
   EXPECT_EQ(err.kind, JointMapBuildError::Kind::MissingInputs);
-  ASSERT_EQ(err.unreachable_outputs.size(), 1u);
-  EXPECT_EQ(err.unreachable_outputs[0], a);
+  ASSERT_EQ(err.unproducible_outputs.size(), 1u);
+  EXPECT_EQ(err.unproducible_outputs[0], a);
 }
 
 // ===========================================================================

@@ -67,6 +67,10 @@ public:
   TransmissionJointMap(TransmissionJointMap &&) noexcept = default;
   TransmissionJointMap & operator=(TransmissionJointMap &&) noexcept = default;
 
+  /// \warning Not thread-safe. The per-instance scratch buffers (`tx_inputs_`, `tx_outputs_`,
+  /// `scratch_`) are mutated on every call. Concurrent callers must use independent
+  /// `TransmissionJointMap` instances (the copy constructor clones the compute kernel and
+  /// reallocates scratch).
   void map(span<const float> inputs, span<float> outputs) const;
 
   [[nodiscard]] size_t input_count() const noexcept { return input_count_; }

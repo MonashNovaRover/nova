@@ -15,6 +15,18 @@ static_assert(std::is_base_of_v<
   ForwardKinematicsPlugin::Tree,
   EigenForwardKinematicsPlugin::TreeImpl>);
 
+const JointMapBuilder & EigenForwardKinematicsPlugin::get_joint_map_builder() const noexcept
+{
+  // One-shot lazy init. The captured analysis reference is valid for as long as
+  // `get_transmission_analysis()` returns a stable object — which it does for the default
+  // RobotModel-backed implementation. Subclasses that override `get_transmission_analysis()`
+  // to return a different object on different calls would need to override this method too.
+  std::call_once(joint_map_builder_once_, [this]() {
+    joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>(get_transmission_analysis());
+  });
+  return *joint_map_builder_;
+}
+
 tl::expected<ForwardKinematicsPlugin::MakeTreeResult, JointMapBuildError>
 EigenForwardKinematicsPlugin::make_tree(
   const span<const StateInterfaceId> input_state_interfaces,

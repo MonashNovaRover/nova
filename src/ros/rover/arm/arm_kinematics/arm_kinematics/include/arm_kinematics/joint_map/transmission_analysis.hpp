@@ -214,6 +214,14 @@ public:
   /// An interface with no registered rule does not participate in affine projection at all.
   [[nodiscard]] const AffineProjectionRule * affine_projection_rule(const InterfaceId & interface_id) const noexcept;
 
+  /// Returns the full registered projection-rule table. Useful for callers that need to enumerate
+  /// every interface that participates in affine projection (e.g. ros2_control transmission import,
+  /// which probes its plugin against this set instead of a hardcoded list of interface names).
+  [[nodiscard]] const std::unordered_map<InterfaceId, AffineProjectionRule> & affine_projection_rules() const noexcept
+  {
+    return projection_rules_;
+  }
+
   // ---------------------------------------------------------------------------
   // Affine group queries
   // ---------------------------------------------------------------------------

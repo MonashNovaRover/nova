@@ -87,7 +87,7 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
 {
   // Step 0: Validate that every requested id is known to the analysis. Catches stale or
   // fabricated StateInterfaceIds early so the user gets a clear error instead of a misleading
-  // "unreachable" report.
+  // "unproducible" report.
   auto unknown = find_unknown_ids(transmission_analysis_, inputs);
   auto unknown_outputs = find_unknown_ids(transmission_analysis_, outputs);
   unknown.insert(unknown.end(), unknown_outputs.begin(), unknown_outputs.end());
@@ -106,41 +106,43 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
   auto reach = TransmissionReachability::analyze(transmission_analysis_, inputs);
 
   // Step 2: Diagnose against the requested outputs. Catches:
-  //   - directly unreachable outputs (no producer)
+  //   - unproducible outputs (no producer chain has all-derivable inputs)
   //   - directly ambiguous outputs (≥2 candidate producers)
-  //   - blocked outputs (producer chain depends on an upstream ambiguous interface)
+  //   - transitively blocked outputs (producer chain depends on an upstream ambiguous interface)
   auto diag = diagnose_missing_outputs(
     reach, span<const StateInterfaceId>(outputs.data_, outputs.size_));
 
-  // Step 3: If anything is broken, surface it. Ambiguity (direct or blocked) wins over
-  // MissingInputs.
+  // Step 3: If anything is broken, surface it. Ambiguity (direct or transitively blocked) wins
+  // over MissingInputs.
   const bool has_ambiguity = !diag.directly_ambiguous_outputs.empty() ||
-                             !diag.blocked_outputs.empty();
+                             !diag.transitively_blocked_outputs.empty();
   if (has_ambiguity) {
     JointMapBuildError err{};
     err.kind = JointMapBuildError::Kind::Ambiguous;
     err.ambiguous_interfaces = std::move(diag.relevant_blocking_ambiguities);
 
-    // Build a unified list of affected outputs (direct + blocked) for the message.
+    // Build a unified list of affected outputs (direct + transitively blocked) for the message.
     std::vector<StateInterfaceId> affected;
-    affected.reserve(diag.directly_ambiguous_outputs.size() + diag.blocked_outputs.size());
+    affected.reserve(
+      diag.directly_ambiguous_outputs.size() + diag.transitively_blocked_outputs.size());
     affected.insert(
       affected.end(),
       diag.directly_ambiguous_outputs.begin(),
       diag.directly_ambiguous_outputs.end());
     affected.insert(
       affected.end(),
-      diag.blocked_outputs.begin(),
-      diag.blocked_outputs.end());
+      diag.transitively_blocked_outputs.begin(),
+      diag.transitively_blocked_outputs.end());
 
     std::ostringstream oss;
     oss << "DefaultJointMapBuilder: " << affected.size()
         << " requested output(s) cannot be produced due to ambiguity";
-    if (!diag.directly_ambiguous_outputs.empty() && !diag.blocked_outputs.empty()) {
+    if (!diag.directly_ambiguous_outputs.empty() && !diag.transitively_blocked_outputs.empty()) {
       oss << " (" << diag.directly_ambiguous_outputs.size() << " directly ambiguous, "
-          << diag.blocked_outputs.size() << " blocked by upstream ambiguity)";
-    } else if (!diag.blocked_outputs.empty()) {
-      oss << " (blocked by upstream ambiguity)";
+          << diag.transitively_blocked_outputs.size()
+          << " transitively blocked by upstream ambiguity)";
+    } else if (!diag.transitively_blocked_outputs.empty()) {
+      oss << " (transitively blocked by upstream ambiguity)";
     }
     oss << ". Affected outputs: " << format_interface_list(transmission_analysis_, affected);
     if (!err.ambiguous_interfaces.empty()) {
@@ -155,14 +157,14 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
     err.message = oss.str();
     return tl::unexpected(std::move(err));
   }
-  if (!diag.unreachable.empty()) {
+  if (!diag.unproducible.empty()) {
     JointMapBuildError err{};
     err.kind = JointMapBuildError::Kind::MissingInputs;
-    err.unreachable_outputs = std::move(diag.unreachable);
+    err.unproducible_outputs = std::move(diag.unproducible);
     err.resolutions = std::move(diag.resolutions);
-    err.message = "DefaultJointMapBuilder: " + std::to_string(err.unreachable_outputs.size()) +
+    err.message = "DefaultJointMapBuilder: " + std::to_string(err.unproducible_outputs.size()) +
                   " requested output(s) are not derivable from the supplied inputs: " +
-                  format_interface_list(transmission_analysis_, err.unreachable_outputs);
+                  format_interface_list(transmission_analysis_, err.unproducible_outputs);
     return tl::unexpected(std::move(err));
   }
 

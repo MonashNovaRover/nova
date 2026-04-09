@@ -4,7 +4,7 @@
 // Unit tests for TransmissionReachability against synthetic TransmissionAnalysis instances.
 // These tests cover the output-independent half of the analysis: which interfaces are derivable
 // from given inputs, via which producer, with which ambiguities. Output-dependent concerns
-// (unreachable, topological selection) live in test_joint_map_blueprint.cpp.
+// (unproducible, topological selection) live in test_joint_map_blueprint.cpp.
 //
 
 #include <gtest/gtest.h>
@@ -715,7 +715,7 @@ TEST_F(TransmissionReachabilityTest, Ambiguity_DoesNotPropagateThroughChain)
 
 TEST_F(TransmissionReachabilityTest, Blocked_OutputDownstreamOfAmbiguous_IsBlocked_NotDerivable)
 {
-  // Same setup as above, but assert via the blocked_interfaces() query.
+  // Same setup as above, but assert via the transitively_blocked_interfaces() query.
   ensure_joints(analysis_, {"j_a", "j_x", "j_y"});
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   ensure_state(analysis_, "j_x", InterfaceId{"position"});
@@ -730,9 +730,9 @@ TEST_F(TransmissionReachabilityTest, Blocked_OutputDownstreamOfAmbiguous_IsBlock
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a});
 
-  // y is in blocked_interfaces() — its producer chain transitively touches an ambiguous
+  // y is in transitively_blocked_interfaces() — its producer chain transitively touches an ambiguous
   // interface (x).
-  const auto blocked = reach.blocked_interfaces();
+  const auto blocked = reach.transitively_blocked_interfaces();
   ASSERT_EQ(blocked.size(), 1u);
   EXPECT_EQ(blocked[0], y);
 }
@@ -761,7 +761,7 @@ TEST_F(TransmissionReachabilityTest, Blocked_CascadeThroughTwoLayers)
   EXPECT_EQ(reach.ambiguities()[0].interface, x);
 
   // Both y and z are blocked.
-  const auto blocked = reach.blocked_interfaces();
+  const auto blocked = reach.transitively_blocked_interfaces();
   ASSERT_EQ(blocked.size(), 2u);
   // Order may vary; check via membership.
   bool saw_y = false, saw_z = false;
@@ -794,7 +794,7 @@ TEST_F(TransmissionReachabilityTest, Ambiguity_DownstreamProducerWithCleanAltern
   // This test would have FAILED on the previous code's revocation logic, which committed
   // x = T1 in pass 2 (when only T1 actually fires), leaving an inconsistent four-way
   // contradiction (`producer_of(x)` returned T1 while x was simultaneously in
-  // `blocked_interfaces_()` and absent from `derivable_interfaces_()`).
+  // `transitively_blocked_interfaces_()` and absent from `derivable_interfaces_()`).
   ensure_joints(analysis_, {"j_a", "j_b", "j_c", "j_x"});
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
@@ -846,9 +846,9 @@ TEST_F(TransmissionReachabilityTest, Ambiguity_DownstreamProducerWithCleanAltern
   }
   EXPECT_FALSE(x_in_derivable);
 
-  // x is NOT in blocked_interfaces_ either (it's ambiguous, not blocked).
+  // x is NOT in transitively_blocked_interfaces_ either (it's ambiguous, not blocked).
   bool x_in_blocked = false;
-  for (const auto sid : reach.blocked_interfaces()) {
+  for (const auto sid : reach.transitively_blocked_interfaces()) {
     if (sid == x) x_in_blocked = true;
   }
   EXPECT_FALSE(x_in_blocked);
@@ -879,7 +879,7 @@ TEST_F(TransmissionReachabilityTest, ForwardInversePair_MotorInput_OnlyForwardSe
   EXPECT_FALSE(reach.is_ambiguous());
   ASSERT_TRUE(as_input(reach.producer_of(motor)).has_value());
   ASSERT_TRUE(as_transmission(reach.producer_of(joint)).has_value());
-  EXPECT_TRUE(reach.blocked_interfaces().empty());
+  EXPECT_TRUE(reach.transitively_blocked_interfaces().empty());
 }
 
 TEST_F(TransmissionReachabilityTest, ForwardInversePair_JointInput_OnlyInverseSelected)
