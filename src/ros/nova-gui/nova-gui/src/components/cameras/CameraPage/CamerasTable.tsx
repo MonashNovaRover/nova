@@ -5,6 +5,7 @@ import {CircleFill} from "react-bootstrap-icons";
 import {useOnlineCameraSerials, useStreamingBifrost} from "../hooks/cameraBifrostHooks.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
+import {useCallback} from "react";
 
 interface CamerasTableProps {
   refreshAvailabilies: () => void
@@ -22,6 +23,14 @@ export const CamerasTable = ({refreshAvailabilies}: CamerasTableProps ) => {
   const cameraStreamerMap = useSelector(
     (state: RootState) => state.cameraStreamerState.cameras
   );
+
+  const booleanChip = useCallback((serial: string) => <BooleanChip
+    boolean={!!cameraStreamerMap[serial]}
+    trueText="Streaming"
+    falseText="Idle"
+    falseColor="primary"
+    variant="flat"
+  />, [cameraStreamerMap])
 
   return (
     <Table
@@ -51,13 +60,7 @@ export const CamerasTable = ({refreshAvailabilies}: CamerasTableProps ) => {
               </Tooltip>
             </TableCell>
             <TableCell>
-              <BooleanChip
-                boolean={!!cameraStreamerMap[serial]}
-                trueText="Streaming"
-                falseText="Idle"
-                falseColor="primary"
-                variant="flat"
-              />
+              {booleanChip(serial)}
             </TableCell>
             <TableCell>
               <div className="flex flex-row gap-2 justify-end">

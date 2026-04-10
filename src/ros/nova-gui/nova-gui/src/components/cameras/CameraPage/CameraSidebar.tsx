@@ -2,6 +2,8 @@ import {Button, Card, CardBody, CardFooter, CardHeader, Input, Tooltip} from "@n
 import {Minus, Pause, Play, Plus, Square, X} from "react-feather";
 import {BooleanChip} from "../CameraComponent/components/BooleanChip.tsx";
 import {CamerasTable} from "./CamerasTable.tsx";
+import {useRosNodes} from "../../../utils/hooks/useRosNodes.ts";
+import {useMemo} from "react";
 
 interface CameraSidebarProps {
   refreshAvailabilities: () => void;
@@ -16,6 +18,17 @@ export const CameraSidebar = (
   : CameraSidebarProps) => {
   const expandedSidebarWidth = "27vw";
   const sidebarWidth = showSidebar ? expandedSidebarWidth : "0px";
+
+  const nodes = useRosNodes();
+  const camerasRunning = useMemo(() => nodes.includes("/camera_streamer"), [nodes]);
+
+  const booleanChip = useMemo(() => <BooleanChip
+    boolean={camerasRunning}
+    variant="dot"
+    trueText="Cameras Running"
+    falseText="Cameras Stopped"
+    size="lg"
+  />, [camerasRunning])
 
   return (
     <div
@@ -46,13 +59,7 @@ export const CameraSidebar = (
               content="Not Real Time"
               closeDelay={100}
             >
-              <BooleanChip
-                boolean={true}
-                variant="dot"
-                trueText="Cameras Running"
-                falseText="Cameras Stopped"
-                size="lg"
-              />
+              {booleanChip}
             </Tooltip>
             <span>Streaming Controls</span>
             <div className="grid grid-cols-3 gap-2">

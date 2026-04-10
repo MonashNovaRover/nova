@@ -6,7 +6,7 @@ import {useCameraStreamer} from "../../../components/cameras/hooks/useCameraStre
 
 export const TestCameraPage = () => {
   const { refreshAvailabilities } = useCameraStreamer();
-  const [showSidebar, setShowSidebar] = useState(true)
+  const [showSidebar, setShowSidebar] = useState(false)
   const [gridSize, setGridSize] = useState(4)
 
   return (

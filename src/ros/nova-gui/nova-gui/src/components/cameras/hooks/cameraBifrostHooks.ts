@@ -1,7 +1,7 @@
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import toast from "react-hot-toast";
-import {useCallback, useMemo} from "react";
+import {useCallback} from "react";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 
@@ -13,7 +13,7 @@ export const useOnlineCameraSerials = () => {
     (state: RootState) => state.camerasStore.cameras
   );
 
-  return useMemo(() => onlineCameras.map((cam) => cam.serial), [onlineCameras])
+  return onlineCameras.map((cam) => cam.serial)
 }
 
 /**
