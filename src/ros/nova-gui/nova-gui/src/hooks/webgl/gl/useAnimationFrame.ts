@@ -17,6 +17,7 @@ export default function useAnimationFrame(
     callback(time, deltaTime);
 
     previousTimeRef.current = time;
+    // eslint-disable-next-line react-hooks/immutability
     requestRef.current = requestAnimationFrame(animationCallback);
   }, [callback])
 
