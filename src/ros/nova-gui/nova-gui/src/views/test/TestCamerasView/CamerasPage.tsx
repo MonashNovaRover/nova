@@ -1,5 +1,5 @@
 import {Button, Card, CardBody, CardHeader, Tooltip} from "@nextui-org/react";
-import {Pause, Play, Square, X} from "react-feather";
+import {Eye, EyeOff, Menu, Pause, Play, Square, X} from "react-feather";
 import { useCameraStreamer } from "../../../components/cameras/CameraComponent/hooks/useCameraStreamer";
 import { useState } from "react";
 import {
@@ -13,13 +13,13 @@ import SerialMappedCameraComponent from "../../shared/CamerasPage/SerialMappedCa
 import {TestCameraTable} from "./CameraTable.tsx";
 import {BooleanChip} from "../../../components/cameras/CameraComponent/components/BooleanChip.tsx";
 
-
 export interface CameraPageProps {
+  toggleSidebar: () => void;
   views: CameraView[];
 }
 
 const CameraPage = (props: CameraPageProps) => {
-  const { views } = props;
+  const { views, toggleSidebar } = props;
   const [controlPanelOpen, setControlPanelOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
@@ -35,6 +35,9 @@ const CameraPage = (props: CameraPageProps) => {
     <div className="p-3 flex flex-col gap-0">
       <div className="flex flex-row justify-between items-center gap-32 pl-1 mb-3">
         <div className="flex flex-row gap-3 items-center">
+          <Button isIconOnly onPressStart={toggleSidebar} variant="ghost" color="primary">
+            <Menu/>
+          </Button>
           {!allCamsOn ? (
             <Button
               size="md"
@@ -42,7 +45,7 @@ const CameraPage = (props: CameraPageProps) => {
               className="w-28"
               onPress={() => setAllCamsOn(true)}
             >
-              <Play size="15px" fill="white" /> Start All
+              <Eye size="15px" fill="white" /> Show All
             </Button>
           ) : (
             <Button
@@ -50,7 +53,7 @@ const CameraPage = (props: CameraPageProps) => {
               color="danger"
               onPress={() => setAllCamsOn(false)}
             >
-              <Square size="15px" fill="white" /> Stop All
+              <EyeOff size="15px" fill="white" /> Hide All
             </Button>
           )}
         </div>
@@ -115,21 +118,24 @@ export const TestCameraPage = () => {
 
 
   return (
-    <div className="flex flex-row w-full items-stretch">
+    <div
+      className="flex flex-row w-full items-stretch"
+      style={{ height: "calc(100vh - 4.05rem)" }}
+    >
       <div
-        className="transition-all duration-300 overflow-clip"
+        className="transition-all duration-300 overflow-clip h-full"
         style={{
           maxWidth: sidebarWidth,
           width:sidebarWidth
         }}
       >
         <div
-          className="top-0 bottom-0 left-0 right-0"
+          className="top-0 bottom-0 left-0 right-0 h-full"
           style={{
             width: expandedSidebarWidth
           }}
         >
-          { <Card radius="none" style={{
+          { <Card radius="none" className="h-full" style={{
             width: expandedSidebarWidth
           }}>
               <CardHeader>
@@ -140,7 +146,7 @@ export const TestCameraPage = () => {
                   <X size={20}/>
                 </Button>
               </CardHeader>
-              <CardBody className="flex flex-col gap-3">
+              <CardBody className="flex flex-col gap-3 overflow-y-auto">
                 <Tooltip
                   className="dark text-foreground"
                   content="Not Real Time"
@@ -156,13 +162,13 @@ export const TestCameraPage = () => {
                 </Tooltip>
                 <span>Streaming Controls</span>
                 <div className="grid grid-cols-3 gap-2">
-                  <Button color="primary" variant="ghost" size="sm" startContent={<Play size={14}/>}>
+                  <Button color="primary" size="sm" startContent={<Play size={14}/>}>
                     Start all
                   </Button>
-                  <Button color="warning" variant="ghost" size="sm" startContent={<Pause size={14}/>}>
+                  <Button color="warning" size="sm" startContent={<Pause size={14}/>}>
                     Pause all
                   </Button>
-                  <Button color="danger" variant="ghost" size="sm" startContent={<Square size={14}/>}>
+                  <Button color="danger" size="sm" startContent={<Square size={14}/>}>
                     Stop all
                   </Button>
                 </div>
@@ -179,12 +185,11 @@ export const TestCameraPage = () => {
         </div>
       </div>
       <div className="grow">
-        <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]}/>
+        <CameraPage
+          views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]}
+          toggleSidebar={() => setShowSidebar(!showSidebar)}
+        />
       </div>
-      <Button onPressStart={() => setShowSidebar(!showSidebar)}>
-        Sidebar
-      </Button>
-
     </div>
   )
 }

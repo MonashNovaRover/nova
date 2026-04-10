@@ -1,17 +1,17 @@
-import {Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@nextui-org/react";
+import {Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip} from "@nextui-org/react";
 import {BooleanChip} from "../../../components/cameras/CameraComponent/components/BooleanChip.tsx";
 import {Circle, ExternalLink, Pause, Play, Square} from "react-feather";
 import {CircleFill} from "react-bootstrap-icons";
 
 export const TestCameraTable = () => {
-  // const cameras = ["mast_forward", "Surface_Surface_Camera_Front_200901010001"]
-  const cameras = ["mast_forward", "mast_down"]
+  const cameras = ["mast_forward", "Surface_Surface_Camera_Front_200901010001"]
+  // const cameras = ["mast_forward", "mast_down"]
 
   return (
   <Table
     removeWrapper
     isCompact
-    className="h-[72vh] hide-scrollbar w-full table-fixed"
+    className="hide-scrollbar w-full table-fixed"
     isHeaderSticky
   >
     <TableHeader>
@@ -29,7 +29,11 @@ export const TestCameraTable = () => {
         <TableRow>
           <TableCell className="flex flex-row gap-3 items-center">
             <CircleFill size={12} color="#17c964"/>
-            <span className="truncate block">{serial}</span>
+            <Tooltip content={serial} showArrow placement="top-start" color="default">
+              <span className="truncate block">
+                {serial.length > 16 ? serial.slice(0, 16 - 1) + "…" : serial}
+              </span>
+            </Tooltip>
           </TableCell>
           {/*<TableCell>*/}
           {/*  <BooleanChip*/}
