@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffectEvent, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -84,9 +84,9 @@ export const CartographerGoalModal: React.FC<{
   };
 
   // idk how to fix this linting error cause i dont get what this is meant to do @Felicity
-  useEffect(() => {
+  useEffectEvent(() => {
     setItems(points.map((point) => ({ ...point, selected: false })));
-  }, [isOpen, points]);
+  });
 
   const renderPoints = (points: MapPoint[], isSortable: boolean) => {
     return points.map((point) => (
