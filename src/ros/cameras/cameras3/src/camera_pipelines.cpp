@@ -7,6 +7,96 @@
 #include "cameras/pipeline.hpp"
 
 
+
+bool verify_resolution(auto props) {
+  GstDeviceMonitor *monitor = gst_device_monitor_new();
+  gst_device_monitor_add_filter(monitor, "Video/Source", NULL);
+
+  GList *devices = gst_device_monitor_get_devices(monitor);
+  for (GList *l = devices; l != NULL; l = l->next) {
+      GstDevice *device = (GstDevice *)l->data;
+      GstStructure *device_props = gst_device_get_properties(device);
+      const gchar *path = gst_structure_get_string(device_props, "device.path");
+      int valid_width, valid_height, framerate_n, framerate_d;
+      std::string valid_mime;
+
+      if (std::string(path) == props->device) {
+          GstCaps* caps = gst_device_get_caps(device);
+          for (guint i = 0; i < gst_caps_get_size(caps); i++) {
+              const GstStructure* str = gst_caps_get_structure(caps, i);
+              valid_mime = std::string(gst_structure_get_name(str));
+
+              // Width
+              const GValue* width_val = gst_structure_get_value(str, "width");
+              bool width_ok = false;
+
+              if (G_VALUE_HOLDS_INT(width_val)) {
+                  width_ok = (valid_width == props->width);
+                  valid_width = g_value_get_int(width_val);
+              } else if (GST_VALUE_HOLDS_INT_RANGE(width_val)) {
+                  width_ok = (props->width >= gst_value_get_int_range_min(width_val) &&
+                              props->width <= gst_value_get_int_range_max(width_val));
+                  valid_width = gst_value_get_int_range_min(width_val);
+              } else if (GST_VALUE_HOLDS_LIST(width_val)) {
+                  for (guint j = 0; j < gst_value_list_get_size(width_val); ++j) {
+                      const GValue* v = gst_value_list_get_value(width_val, j);
+                      if (g_value_get_int(v) == props->width) {
+                          width_ok = true;
+                          valid_width = g_value_get_int(v);
+                          break;
+                      }
+                  }
+              }
+
+              // Height
+              const GValue* height_val = gst_structure_get_value(str, "height");
+              bool height_ok = false;
+
+              if (G_VALUE_HOLDS_INT(height_val)) {
+                  height_ok = (valid_height == props->height);
+                  valid_height = g_value_get_int(height_val);
+              } else if (GST_VALUE_HOLDS_INT_RANGE(height_val)) {
+                  height_ok = (props->height >= gst_value_get_int_range_min(height_val) &&
+                               props->height <= gst_value_get_int_range_max(height_val));
+                  valid_height = gst_value_get_int_range_max(height_val);
+              } else if (GST_VALUE_HOLDS_LIST(height_val)) {
+                  for (guint j = 0; j < gst_value_list_get_size(height_val); ++j) {
+
+                      const GValue* v = gst_value_list_get_value(height_val, j);
+                      if (g_value_get_int(v) == props->height) {
+                          height_ok = true;
+                          valid_height = g_value_get_int(v);
+                          break;
+                      }
+                  }
+              }
+
+              // Framerate
+              gst_structure_get_fraction(str, "framerate", &framerate_n, &framerate_d);
+
+              if ((valid_mime == props->mime) && width_ok && height_ok && (framerate_n == props->framerate)) {
+                g_list_free_full(devices, gst_object_unref);
+                gst_object_unref(monitor);
+                return true;
+              }
+          }
+          g_list_free_full(devices, gst_object_unref);
+          gst_object_unref(monitor);
+
+          props->mime = valid_mime;
+          props->width = valid_width;
+          props->height = valid_height;
+          props->framerate = framerate_n;
+          props->framerate_denominator = framerate_d;
+
+          return false;
+      }
+  }
+  g_list_free_full(devices, gst_object_unref);
+  gst_object_unref(monitor);
+  return true;
+}
+
 int crop43(const int width, const int height) {
   return (width-(height*4/3))/2;
 }
@@ -72,16 +162,16 @@ void set_source(GstElement* source, auto props) {
 }
 
 void set_srcfilter(GstElement* srcfilter, auto props) {
-    GstCaps *caps = gst_caps_new_simple(
-        props->mime.c_str(),
-        "width", G_TYPE_INT, props->width,
-        "height", G_TYPE_INT, props->height,
-        "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
-        "brightness", G_TYPE_INT, props->brightness,
-        "contrast", G_TYPE_INT,  props->contrast,
-        NULL);
-    g_object_set(srcfilter, "caps", caps, NULL);
-    gst_caps_unref(caps);
+  GstCaps *caps = gst_caps_new_simple(
+      props->mime.c_str(),
+      "width", G_TYPE_INT, props->width,
+      "height", G_TYPE_INT, props->height,
+      "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
+      "brightness", G_TYPE_INT, props->brightness,
+      "contrast", G_TYPE_INT,  props->contrast,
+      NULL);
+  g_object_set(srcfilter, "caps", caps, NULL);
+  gst_caps_unref(caps);
 }
 
 void set_scalefilter(GstElement* scalefilter, auto props) {
@@ -214,8 +304,7 @@ void set_vpXenc(GstElement* encode, vpXsoftwarePipelineProperties* props) {
 
 void set_h264parse(GstElement* parse, const int interval = -1) {
     g_object_set(parse,
-        "config-interval",
-        interval,
+        "config-interval", interval,
         NULL);
 }
 
@@ -238,6 +327,7 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   */
 
   // 0. Initialize constants
+
   // Disable crop43 if it is already 4:3
   const int crop_width = crop43(props->width, props->height);
   if (crop_width == 0) {
@@ -262,7 +352,13 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+
+  // Verify resolution
+  if (verify_resolution(props)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
 
   // 2. Set element properties
   set_source(source, props);
@@ -338,7 +434,7 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
 
   // 0. Initialize constants
   v4l2webrtcPipelineProperties* props = new v4l2webrtcPipelineProperties;
-  RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
+  RCLCPP_DEBUG(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
@@ -409,8 +505,8 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
-  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
   GstElement* parse = gst_element_factory_make("h264parse", "parser");
+  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
   GstElement* payload = (props->payload_quirk) ? gst_element_factory_make("rtph264pay", "payloader") : nullptr;
   GstElement* depayload = (props->payload_quirk) ? gst_element_factory_make("rtph264depay", "depayloader") : nullptr;
 
@@ -418,7 +514,13 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+
+  // Verify resolution
+  if (verify_resolution(props)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
 
   // 2. Set element properties
   set_source(source, props);
@@ -454,7 +556,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 {
   // 0. Initialize constants
   h264passthroughPipelineProperties* props = new h264passthroughPipelineProperties;
-  RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
+  RCLCPP_DEBUG(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
@@ -530,8 +632,14 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  
+
+  // Verify resolution
+  if (verify_resolution(props)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
+
   // 2. Set element properties
   set_source(source, props);
   set_srcfilter(srcfilter, props);
@@ -598,7 +706,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
 {
   // 0. Initialize constants
   h264softwarePipelineProperties* props = new h264softwarePipelineProperties;
-  RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
+  RCLCPP_DEBUG(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
@@ -705,7 +813,13 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-  RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+
+  // Verify resolution
+  if (verify_resolution(props)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
   
   // 2. Set element properties
   set_source(source, props);
@@ -773,7 +887,7 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
 {
   // 0. Initialize constants
   vpXsoftwarePipelineProperties* props = new vpXsoftwarePipelineProperties;
-  RCLCPP_INFO(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
+  RCLCPP_DEBUG(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;

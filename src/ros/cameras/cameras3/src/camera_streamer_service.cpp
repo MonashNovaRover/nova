@@ -25,35 +25,6 @@
 
 using namespace std::placeholders;
 
-
-bool verify_resolutions(rclcpp::Node* streamer_node, const std::string original_serial) {
-  GstDeviceMonitor *monitor = gst_device_monitor_new();
-  gst_device_monitor_add_filter(monitor, "Video/Source", NULL);
-
-  GList *devices = gst_device_monitor_get_devices(monitor);
-  for (GList *l = devices; l != NULL; l = l->next) {
-      GstDevice *device = (GstDevice *)l->data;
-      GstStructure *props = gst_device_get_properties(device);
-
-      const gchar *serial = gst_structure_get_string(props, "device.serial");
-      RCLCPP_INFO(streamer_node->get_logger(), "Device serial: %s", serial);
-
-      GstCaps *caps = gst_device_get_caps(device);
-      for (guint i = 0; i < gst_caps_get_size(caps); i++) {
-        const GstStructure* str = gst_caps_get_structure(caps, i);
-        const char* mime = gst_structure_get_name(str);
-        int width, height, framerate_n, framerate_d;
-        gst_structure_get_int(str, "width", &width);
-        gst_structure_get_int(str, "height", &height);
-        gst_structure_get_fraction(str, "framerate", &framerate_n, &framerate_d);
-        RCLCPP_INFO(streamer_node->get_logger(), "%s: %dx%d@%d/%dfps", mime, width, height, framerate_n, framerate_d);
-      }
-      gst_caps_unref(caps);
-  }
-  g_list_free_full(devices, gst_object_unref);
-  gst_object_unref(monitor);
-}
-
 enum CameraState {STOP = 0, START = 1, PAUSE = 2};
 
 class CameraStreamer : public rclcpp::Node
@@ -123,7 +94,7 @@ class CameraStreamer : public rclcpp::Node
       auto props = get_vpXsoftware_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props);
-    }  
+    }
   }
 
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
@@ -156,7 +127,6 @@ class CameraStreamer : public rclcpp::Node
         }
         RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline->pipeline_type.c_str(), camera.serial.c_str());
         this->pipelines[camera.serial] = pipeline;
-        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_READY);
       }
     }
   }
