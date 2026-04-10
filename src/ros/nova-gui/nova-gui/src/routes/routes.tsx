@@ -3,7 +3,6 @@ import ARCExcavationConstructionView from "../views/arc/ARCEscavationConstructio
 import ARCAutonomousView from "../views/arc/ARCMappingAutonomous";
 import ARCPostLandingView from "../views/arc/ARCPostLandingView";
 import ARCSpaceResourcesView from "../views/arc/ARCSpaceResourcesView";
-import ARCBaseView from "../views/arc/ARCBaseView";
 import URCBaseView from "../views/urc/URCBaseView";
 import URCAutonomousNavigationView from "../views/urc/URCAutonomousNavigationView";
 import {URCDeliveryView} from "../views/urc/URCDeliveryView.tsx";
@@ -38,10 +37,6 @@ export const arcRoutes: RouteObject[] = [
   {
     path: "/arc",
     element: <HomePageView navigationData={arcNavigationData} />,
-  },
-  {
-    path: "/arc/base",
-    element: <ARCBaseView />
   },
   {
     path: "/arc/post-landing",
