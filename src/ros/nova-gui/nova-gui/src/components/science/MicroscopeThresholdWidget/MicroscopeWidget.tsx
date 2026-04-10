@@ -15,9 +15,9 @@ const MicroscopeWidget: React.FC<CameraComponentProps> = () => {
           aria-label="NIR-Probe-Options"
           classNames={{
             tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-            cursor: "w-full bg-[#22d3ee]",
+            cursor: "w-full bg-[#ECBAC4]",
             tab: "max-w-fit px-0 h-12",
-            tabContent: "group-data-[selected=true]:text-[#06b6d4]",
+            tabContent: "group-data-[selected=true]:text-[#ECBAC4]",
           }}
           color="primary"
           variant="underlined"
