@@ -33,6 +33,7 @@ export default class MappedGLint<T> {
 export function useMappedGLint<T>(mappedGLint: MappedGLint<T>, value?: T) {
   useEffect(() => {
     if (value)
+      // eslint-disable-next-line react-hooks/immutability
       mappedGLint.value = value;
   }, [mappedGLint, value]);
 }

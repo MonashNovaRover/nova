@@ -30,6 +30,7 @@ function useSampler_aux(programState: GLProgramState, textureUnit: number, name:
     samplerRef.current!.wrapS.value = filledOptions.wrapS;
   }, [filledOptions.target, filledOptions.format, filledOptions.wrapT, filledOptions.wrapS]);
 
+  // eslint-disable-next-line react-hooks/refs
   return samplerRef.current!;
 }
 
@@ -48,6 +49,7 @@ export default function useSampler(programState: GLProgramState, textureUnit: nu
   const samplerState = useSampler_aux(programState, textureUnit, name, sampler, options)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     samplerState.sampler = sampler;
   }, [sampler, samplerState]);
 

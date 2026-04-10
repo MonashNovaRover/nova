@@ -11,6 +11,7 @@ export default function useVideoTexture(videoRef: React.MutableRefObject<HTMLVid
     videoRef.current?.play()
       .then(() => {
         console.log("played video")
+        // eslint-disable-next-line react-hooks/immutability
         window.removeEventListener("click", play);
       })
       .catch(e => {console.error(e)});
