@@ -1,6 +1,5 @@
 import {Button, Card, CardHeader, CardProps} from "@nextui-org/react";
-import {Eye, EyeOff, Menu} from "react-feather";
-import { useCameraStreamer } from "../hooks/useCameraStreamer.ts";
+import {Eye, EyeOff, Menu, Move} from "react-feather";
 import { useState } from "react";
 import {CameraControlPanelModal,} from "./CamerasControlPanelModal.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
@@ -8,7 +7,6 @@ import { SaveAllCamerasModal } from "../../navbar/TopBar/SaveAllCamerasModal.tsx
 import { CameraPresetDropdown } from "../CameraPresetDropdown.tsx";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { UniqueIdentifier } from "@dnd-kit/core";
-import {Table as TableIcon} from "react-feather";
 import SerialMappedCameraComponent from "../../../views/shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import {CameraView} from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
 
@@ -18,7 +16,7 @@ export interface SortableProps extends CardProps {
 }
 
 /**
- * Creates a button on the top left that allows a camera component to be moved
+ * Creates a button on the top right that allows a camera component to be moved
  * @param props
  * @constructor
  */
@@ -33,10 +31,10 @@ const Sortable = (props: SortableProps) => {
       onMouseLeave={()=>setIsHovered(false)}
       {...props}
     >
-      <CardHeader className="absolute z-1 top-0">
+      <CardHeader className="absolute z-1 top-0 right-0 justify-end">
         {isHovered &&
             <Button className="z-50" isIconOnly size="sm" ref={handleRef}>
-                <TableIcon size="15px"/>
+                <Move size="15px"/>
             </Button>
         }
       </CardHeader>
@@ -47,6 +45,7 @@ const Sortable = (props: SortableProps) => {
 
 
 export interface CameraPageProps {
+  refreshAvailabilities: () => void
   gridSize: number
   toggleSidebar: () => void;
   views: CameraView[];
@@ -57,13 +56,11 @@ export interface CameraPageProps {
  * @param props
  * @constructor
  */
-export const CamerasPage = ({gridSize, views, toggleSidebar }: CameraPageProps) => {
+export const CamerasPage = ({refreshAvailabilities, gridSize, views, toggleSidebar }: CameraPageProps) => {
   const [controlPanelOpen, setControlPanelOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
   const closeControlPanel = () => setControlPanelOpen(false);
-
-  const { refreshAvailabilities } = useCameraStreamer();
 
   const [allCamsOn, setAllCamsOn] = useState(false);
 
@@ -122,7 +119,7 @@ export const CamerasPage = ({gridSize, views, toggleSidebar }: CameraPageProps) 
         </div>
       </div>
 
-      <div className={`grid grid-cols-${gridSize} gap-3`}>
+      <div className="grid gap-3 items-start" style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}>
         {[...new Set(views.flatMap((el)=>el.cameraSerials))].map((serial, i) => (
           <Sortable
             key={"sort"+i} sortId={i} index={i} className={
