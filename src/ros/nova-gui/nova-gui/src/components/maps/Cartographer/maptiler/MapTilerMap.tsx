@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useEffectEvent, useRef, useState } from "react";
 import * as maptilersdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 import { useCartographerMarkers } from "../hooks/useCartographerMarkers.tsx";
@@ -101,7 +101,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
     map.setMaxBounds(MAP_BOUNDS[mapTile])
   }, [baseStationIp, map, mapTile]);
 
-  useEffect(()=>{
+  useEffectEvent(()=>{
       // Add Event Listeners
       if (!map) return;
       map.on("mousemove", (event) => {
@@ -116,7 +116,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
           long: event.lngLat.lng,
         });
       });
-  },[map, updateMousePosition, handleMapClickEvent])
+  })
 
   return (
     <div className="w-full h-full" ref={mapContainer}>
