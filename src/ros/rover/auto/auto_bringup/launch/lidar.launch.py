@@ -120,8 +120,6 @@ def launch_setup(context, *args, **kwargs):
         executable='fastlivo_mapping',
         name='fastlivo2',
         output='screen',
-        # gives 66.67% of CPU under 100% load assuming all other processes have default weight of 100
-        prefix='systemd-run --scope --user -p CPUWeight=200 --unit=fastlivo2',
         parameters=[fastlivo2_rewritten_params, extrinsics_params,
                     {'save_folder': output_dir}],
         remappings=[('/aft_mapped_to_init', '/odometry/filtered')],
@@ -233,8 +231,14 @@ def launch_setup(context, *args, **kwargs):
                 RegisterEventHandler(
                     event_handler=OnProcessExit(
                         target_action=wait_for_topics,
-                        on_exit=[OpaqueFunction(function=block_until_enter_pressed, kwargs={'logger': logger}),
-                                 fastlivo2_node],
+                        on_exit=[
+                            OpaqueFunction(
+                                condition=UnlessCondition(sim),
+                                function=block_until_enter_pressed,
+                                kwargs={'logger': logger}
+                            ),
+                            fastlivo2_node
+                        ],
                     ),
                 ),
                 RegisterEventHandler(
@@ -357,7 +361,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='img_en',
-            default_value='True',
+            default_value='False',
             description='Enable coloured mapping?',
         ),
         DeclareLaunchArgument(

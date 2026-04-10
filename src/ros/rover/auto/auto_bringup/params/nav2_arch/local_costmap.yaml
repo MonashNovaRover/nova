@@ -20,7 +20,7 @@ local_costmap:
       track_unknown_space: false
       always_send_full_costmap: True # SnapInCollisionGoals needs this to work
       trinary_costmap: true
-      plugins: ["stvl_layer","denoise_layer", "inflation_layer"]
+      plugins: ["stvl_layer", "denoise_layer", "inflation_layer"]
       
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
@@ -92,14 +92,17 @@ local_costmap:
           data_type: "PointCloud2"
           obstacle_max_range: 5.0
           obstacle_min_range: 0.0
+      
       denoise_layer:
         plugin: "nav2_costmap_2d::DenoiseLayer"
         enabled: True
         minimal_group_size: 3
         group_connectivity_type: 8
       # DO NOT modify lightly, see the section on MPPI in controller_server.yaml
+      
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
+        enabled: True
         cost_scaling_factor: 4.0
         # robot radius = 0.64
         inflation_radius: 1.6 # robot radius * 2.5
