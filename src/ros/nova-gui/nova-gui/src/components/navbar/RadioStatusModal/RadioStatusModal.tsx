@@ -16,7 +16,7 @@ import {
     DropdownItem
 } from "@nextui-org/react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import { Settings } from "react-feather";
 import { ChartOptions, ChartStyle } from "./ChartOptions.ts";
@@ -51,7 +51,7 @@ export const RadioStatusModal = ({ rosTimeout, setRosTimeout }: RadioStatusModal
     });
 
 
-    const addPoint = (currentData: number[], newValue: number) => {
+    const addPoint = useCallback((currentData: number[], newValue: number) => {
         const newData = [...currentData, newValue];
 
         // Remove first element in the array if we exceed the maximum number of points
@@ -60,7 +60,7 @@ export const RadioStatusModal = ({ rosTimeout, setRosTimeout }: RadioStatusModal
         }
 
         return newData;
-    };
+    }, [windowSize]);
 
     // Update existing data
     useEffect(() => {
@@ -73,7 +73,7 @@ export const RadioStatusModal = ({ rosTimeout, setRosTimeout }: RadioStatusModal
                 ping: addPoint(allData.ping, radioStatus.ping),
             }));
         } else return;
-    }, [radioStatus]);
+    }, [addPoint, radioStatus]);
 
     const radioData = {
         signal: { name: 'Signal strength', data: allData.signal.map((v, i) => [allData.time[i], v]) },

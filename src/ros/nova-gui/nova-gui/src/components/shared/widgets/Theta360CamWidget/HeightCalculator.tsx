@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffectEvent, useState} from "react";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
 import {Input, Tooltip} from "@nextui-org/react";
 
@@ -15,22 +15,22 @@ export interface heightCalc360CamProps {
   const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
 
 // Calculate height of landmark
-    useEffect(() => {
+  useEffectEvent(() => {
     const radThetaHigh = Number(inputThetaHigh) * Math.PI / 180;
     const radThetaLow = Number(inputThetaLow) * Math.PI / 180;
     (setLandmarkHeight(Number(inputDistance) * (Math.tan(radThetaHigh) - Math.tan(radThetaLow))));
-  }, [setLandmarkHeight, inputDistance, inputThetaHigh, inputThetaLow]);
+  });
 
   // set angles when text inputs change
-    const typeAngle = useCallback(() => {
+  const typeAngle = useCallback(() => {
     props.setAngles([Number(inputThetaHigh), Number(inputThetaLow)])
-    }, [inputThetaHigh, inputThetaLow])
+  }, [inputThetaHigh, inputThetaLow, props]);
 
   // set input text boxes when angles are updated from canvas
-    useEffect(() => {
-      setInputThetaHigh(props.angles[0].toFixed(2));
-      setInputThetaLow(String(props.angles[1].toFixed(2)));
-    }, [props.angles])
+  useEffectEvent(() => {
+    setInputThetaHigh(props.angles[0].toFixed(2));
+    setInputThetaLow(String(props.angles[1].toFixed(2)));
+  });
 
 // input fields for height calculation
   const distField = (

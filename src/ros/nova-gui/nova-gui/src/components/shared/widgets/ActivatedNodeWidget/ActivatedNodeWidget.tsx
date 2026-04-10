@@ -35,14 +35,14 @@ const ActivatedNodeWidget: React.FC<URCActivatedNodeWidgetProps> = (
     props.config.map((value, index) => value.name === lastMessage.name ? setCurrentStatus(
       currentStatus.map((v, i) => i === index ? lastMessage.active : v)
     ) : null)
-  }, [lastMessage, setCurrentStatus, props.config]);
+  }, [lastMessage, setCurrentStatus, props.config, currentStatus]);
 
   // update currentLockedStatus with every new message
   useEffect(() => {
     props.config.map((value, index) => value.name === lastMessage.name ? setCurrentLockedStatus(
       currentLockedStatus.map((v, i) => i === index ? lastMessage.locked : v)
     ) : null)
-  }, [lastMessage, setCurrentLockedStatus, props.config]);
+  }, [lastMessage, setCurrentLockedStatus, props.config, currentLockedStatus]);
 
   return (
     <Card {...props}>
