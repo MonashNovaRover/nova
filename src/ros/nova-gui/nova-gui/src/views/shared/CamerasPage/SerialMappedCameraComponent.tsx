@@ -47,6 +47,7 @@ const cameraSerialToComponent: (serial: string) => FC<BaseCameraComponentProps> 
 
 const SerialMappedCameraComponentUnmemoed: FC<BaseCameraComponentProps> = (props) => {
   const SerialMappedComponent = useMemo(() => cameraSerialToComponent(props.cameraSerial), [props.cameraSerial]);
+  // eslint-disable-next-line react-hooks/static-components
   return <SerialMappedComponent {...props}></SerialMappedComponent>
 }
 
