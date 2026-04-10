@@ -19,8 +19,8 @@ import CameraSessionStartStopButton from "../../cameras/CameraComponent/componen
 import SiteSelectWidget from "../SiteSelectWidget/SiteSelectWidget.tsx";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
-import {useCameraStream} from "../../cameras/CameraComponent/hooks/useCameraStream.ts";
-import {useCameraStreamer} from "../../cameras/CameraComponent/hooks/useCameraStreamer.ts";
+import {useCameraStream} from "../../cameras/hooks/useCameraStream.ts";
+import {useCameraStreamer} from "../../cameras/hooks/useCameraStreamer.ts";
 import useGL from "../../../hooks/webgl/gl/useGL.ts";
 import useProgram from "../../../hooks/webgl/program/useProgram.ts";
 import useSampler from "../../../hooks/webgl/program/sampler/useSampler.ts";

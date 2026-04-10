@@ -4,7 +4,7 @@ import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCamer
 import KeyboardOverlayedCameraComponent from "../../components/cameras/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
 import ArmTypingWidget from "../../components/arm/ArmWidget/ArmTypingWidget.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
-import { useCameraStreamer } from "../../components/cameras/CameraComponent/hooks/useCameraStreamer";
+import { useCameraStreamer } from "../../components/cameras/hooks/useCameraStreamer";
 import AutoTypingModal from "../../components/arm/AutoTyping/AutoTypingModal.tsx";
 
 

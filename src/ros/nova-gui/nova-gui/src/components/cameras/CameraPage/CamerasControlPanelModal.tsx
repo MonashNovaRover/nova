@@ -12,17 +12,18 @@ import {
   TableRow,
   Tooltip,
 } from "@nextui-org/react";
-import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
-import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../../redux/RootState.ts";
-import { RosService } from "../../../../ros/services/rosService.ts";
+import { RootState } from "../../../redux/RootState.ts";
+import { RosService } from "../../../ros/services/rosService.ts";
 import { Pause, Play, Square, ExternalLink } from "react-feather";
-import { useRosNodes } from "../../../../utils/hooks/useRosNodes.ts";
-import { BooleanChip } from "./BooleanChip.tsx";
-import { allCams } from "../../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import { useRosNodes } from "../../../utils/hooks/useRosNodes.ts";
+import { BooleanChip } from "../CameraComponent/components/BooleanChip.tsx";
+import { allCams } from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
 
+// TODO: delete
 export const CameraControlPanelModal = (props: {
   showModal: boolean;
   closeModal: () => void;
@@ -37,7 +38,6 @@ export const CameraControlPanelModal = (props: {
   const bifrostStopper = useBifrost({ service: RosService.STOP_CAMS });
 
   const nodes = useRosNodes();
-
   const camerasRunning = nodes.includes("/camera_streamer");
 
   const onlineCameras = useSelector(

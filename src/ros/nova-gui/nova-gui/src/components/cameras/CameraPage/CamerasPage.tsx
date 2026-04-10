@@ -1,54 +1,63 @@
-import { Button, Card, CardProps, CardHeader, Input } from "@nextui-org/react";
-import { Play, Square } from "react-feather";
-import { useCameraStreamer } from "../../../components/cameras/hooks/useCameraStreamer";
-import { CameraView } from "./CameraPageConstants";
+import {Button, Card, CardHeader, CardProps} from "@nextui-org/react";
+import {Eye, EyeOff, Menu} from "react-feather";
+import { useCameraStreamer } from "../hooks/useCameraStreamer.ts";
 import { useState } from "react";
-import { CameraControlPanelModal } from "../../../components/cameras/CameraPage/CamerasControlPanelModal.tsx";
-import SerialMappedCameraComponent from "./SerialMappedCameraComponent.tsx";
+import {CameraControlPanelModal,} from "./CamerasControlPanelModal.tsx";
 import SegmentedPicker from "../../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
-import { SaveAllCamerasModal } from "../../../components/navbar/TopBar/SaveAllCamerasModal";
-import { CameraPresetDropdown } from "../../../components/cameras/CameraPresetDropdown";
+import { SaveAllCamerasModal } from "../../navbar/TopBar/SaveAllCamerasModal.tsx";
+import { CameraPresetDropdown } from "../CameraPresetDropdown.tsx";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import {Table as TableIcon} from "react-feather";
+import SerialMappedCameraComponent from "../../../views/shared/CamerasPage/SerialMappedCameraComponent.tsx";
+import {CameraView} from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
 
 export interface SortableProps extends CardProps {
   sortId: UniqueIdentifier,
   index: number,
 }
 
+/**
+ * Creates a button on the top left that allows a camera component to be moved
+ * @param props
+ * @constructor
+ */
 const Sortable = (props: SortableProps) => {
   const {ref, handleRef} = useSortable({id: props.sortId, index: props.index});
   const [isHovered, setIsHovered] = useState(false);
 
-  return <Card ref={ref} 
-    onMouseEnter={()=>setIsHovered(true)} 
-    onMouseLeave={()=>setIsHovered(false)}
-    {...props}>
+  return (
+    <Card
+      ref={ref}
+      onMouseEnter={()=>setIsHovered(true)}
+      onMouseLeave={()=>setIsHovered(false)}
+      {...props}
+    >
       <CardHeader className="absolute z-1 top-0">
         {isHovered &&
-          <Button className="z-50" isIconOnly size="sm" ref={handleRef}>
-            <TableIcon size="15px"/>
-          </Button>
+            <Button className="z-50" isIconOnly size="sm" ref={handleRef}>
+                <TableIcon size="15px"/>
+            </Button>
         }
       </CardHeader>
       {props.children}
     </Card>
+  )
 }
 
-/**
- * TODO: remove
- *
- * This is a temp copy of CamerasPage.tsx meant only for the 2026 ARCh autonomous task,
- * the only change is having 3 instead of 4 columns of cameras.
- */
 
 export interface CameraPageProps {
+  gridSize: number
+  toggleSidebar: () => void;
   views: CameraView[];
 }
 
-export const CameraPage = (props: CameraPageProps) => {
-  const { views } = props;
+/**
+ * Page of camera components
+ * @param props
+ * @constructor
+ */
+export const CamerasPage = ({gridSize, views, toggleSidebar }: CameraPageProps) => {
   const [controlPanelOpen, setControlPanelOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
@@ -60,12 +69,13 @@ export const CameraPage = (props: CameraPageProps) => {
 
   const [selectedTab, setSelectedTab] = useState(0);
 
-  const [gridSize, setGridSize] = useState(3);
-
   return (
-    <div className="p-3 flex flex-col gap-0">
+    <div className="p-3 h-full overflow-auto">
       <div className="flex flex-row justify-between items-center gap-32 pl-1 mb-3">
-        <div className="flex flex-row gap-3 items-center w-50">
+        <div className="flex flex-row gap-3 items-center">
+          <Button isIconOnly onPressStart={toggleSidebar} variant="ghost" color="primary">
+            <Menu/>
+          </Button>
           {!allCamsOn ? (
             <Button
               size="md"
@@ -73,25 +83,19 @@ export const CameraPage = (props: CameraPageProps) => {
               className="w-28"
               onPress={() => setAllCamsOn(true)}
             >
-              <Play size="15px" fill="white" /> Start All
+              <Eye size="15px" fill="white" /> Show All
             </Button>
           ) : (
             <Button
               size="md"
               color="danger"
-              className="w-28"
               onPress={() => setAllCamsOn(false)}
             >
-              <Square size="15px" fill="white" /> Stop All
+              <EyeOff size="15px" fill="white" /> Hide All
             </Button>
           )}
-          <div className="flex flex-row w-14 h-10 gap-2">
-              <Input min={1} type="number" defaultValue="3" onChange={(e)=>setGridSize(+e.target.value)}/>
-              <div className="absolute pointer-events-none">
-                <span className="relative text-[0.7rem] inset-x-[0.3rem] inset-y-[-0.5rem]"># of Cols:</span>
-              </div>
-          </div>
         </div>
+
         <SegmentedPicker
           selectedIndex={selectedTab}
           onIndexChange={setSelectedTab}
@@ -118,22 +122,20 @@ export const CameraPage = (props: CameraPageProps) => {
         </div>
       </div>
 
-      {
-        <div className={`grid grid-cols-${gridSize} gap-3`}>
-          {[...new Set(views.flatMap((el)=>el.cameraSerials))].map((serial, i) => (
-            <Sortable 
-              key={"sort"+i} sortId={i} index={i} className={
-              views[selectedTab].cameraSerials.includes(serial) ? "" : "hidden"
-            }>
-              <SerialMappedCameraComponent
-                cameraSerial={serial}
-                key={i}
-                autostart={allCamsOn}
-              />
-            </Sortable>
-          ))}
-        </div>
-      }
+      <div className={`grid grid-cols-${gridSize} gap-3`}>
+        {[...new Set(views.flatMap((el)=>el.cameraSerials))].map((serial, i) => (
+          <Sortable
+            key={"sort"+i} sortId={i} index={i} className={
+            views[selectedTab].cameraSerials.includes(serial) ? "" : "hidden"
+          }>
+            <SerialMappedCameraComponent
+              cameraSerial={serial}
+              key={i}
+              autostart={allCamsOn}
+            />
+          </Sortable>
+        ))}
+      </div>
 
       <CameraControlPanelModal
         showModal={controlPanelOpen}
