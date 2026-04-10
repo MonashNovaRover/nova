@@ -23,7 +23,7 @@ const NIRProbeCalcTable: React.FC<NIRProbeCalcTableProps> = () => {
         <TableCell key={2}>
           {Math.floor(averageY + 0.5)}  {/*readings are also integers to round to closest int*/}
         </TableCell>
-        <TableCell key={3} className={"font-extrabold text-[#22d3ee]"}>
+        <TableCell key={3} className={"font-extrabold text-[#ECBAC4]"}>
           {calibratedResult.toFixed(4)}
         </TableCell>
         <TableCell key={0}>{""}</TableCell>

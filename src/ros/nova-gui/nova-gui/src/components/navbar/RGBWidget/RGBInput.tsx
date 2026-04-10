@@ -83,13 +83,14 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
     };
 
     const colorPreview = `rgb(${tempR || 0}, ${tempG || 0}, ${tempB || 0})`;
+    const previewTextColor = ((+tempR*299) + (+tempG*587) + (+tempB * 114))/1000 > 150 ? "black" : "white" // determine luminesence and adjust text colour accordingly
 
     return (
         <Card {...props} className="space-y-3 p-3">
             <Card className="space-y-3 p-3 bg-content2" shadow="sm">
-                <div className="flex gap-5">
+                <div className="flex grid-cols-3 gap-5">
                     <div className="w-1/3">
-                        <label htmlFor="r" className="block text-sm font-semibold">R</label>
+                        <label htmlFor="r" className="block text-sm font-semibold pl-3">R</label>
                         <Input
                             id="r"
                             type="number"
@@ -102,7 +103,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                     </div>
 
                     <div className="w-1/3">
-                        <label htmlFor="g" className="block text-sm font-semibold">G</label>
+                        <label htmlFor="g" className="block text-sm font-semibold pl-3">G</label>
                         <Input
                             id="g"
                             type="number"
@@ -115,7 +116,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                     </div>
 
                     <div className="w-1/3">
-                        <label htmlFor="b" className="block text-sm font-semibold">B</label>
+                        <label htmlFor="b" className="block text-sm font-semibold pl-3">B</label>
                         <Input
                             id="b"
                             type="number"
@@ -130,8 +131,8 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
             </Card>
             <Card className="space-y-3 p-3 bg-content2" shadow="sm">
                 <SubCardLabel>COLOR PREVIEW</SubCardLabel>
-                <div className="h-24 w-full flex items-center justify-center mt-4 rounded-lg" style={{ backgroundColor: colorPreview }}>
-                    <span className="text-lg font-bold p-2 text-white">
+                <div className={`h-24 w-full flex items-center justify-center mt-4 rounded-lg bg-${colorPreview}`} style={{ backgroundColor: colorPreview}}>
+                    <span className={`text-lg font-bold p-2 text-${previewTextColor}`}>
                         {colorPreview}
                     </span>
                 </div>
@@ -143,7 +144,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                         <Button
                           isIconOnly
                           size="sm"
-                          className="w-6 h-6 bg-danger"
+                          className="w-6 h-6 bg-[rgb(255,0,0)]"
                           aria-label="Red"
                           onPress={() => {setTempR("255"); setTempG("0"); setTempB("0"); }}
                         />
@@ -152,7 +153,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                         <Button
                           isIconOnly
                           size="sm"
-                          className="w-6 h-6 bg-success"
+                          className="w-6 h-6 bg-[rgb(0,255,0)]"
                           aria-label="Green"
                           onPress={() => {setTempR("0"); setTempG("255"); setTempB("0"); }}
                         />
@@ -161,7 +162,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                         <Button
                           isIconOnly
                           size="sm"
-                          className="w-6 h-6 bg-primary"
+                          className="w-6 h-6 bg-[rgb(0,0,255)]"
                           aria-label="Blue"
                           onPress={() => {setTempR("0"); setTempG("0"); setTempB("255"); }}
                         />
@@ -170,7 +171,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                         <Button
                           isIconOnly
                           size="sm"
-                          className="w-6 h-6 bg-warning"
+                          className="w-6 h-6 bg-[rgb(255,255,0)]"
                           aria-label="Yellow"
                           onPress={() => {setTempR("255"); setTempG("255"); setTempB("0"); }}
                         />
@@ -179,7 +180,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                         <Button
                           isIconOnly
                           size="sm"
-                          className="bg-[#ff69b4] w-6 h-6"
+                          className="w-6 h-6 bg-[rgb(255,105,180)]"
                           aria-label="Pink"
                           onPress={() =>
                           {setTempR("255"); setTempG("105"); setTempB("180"); }
@@ -188,7 +189,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                     </Tooltip>
                         <Button
                           size="sm"
-                          className="text-xs px-2"
+                          className="text-xs px-2 bg-[rgb(0,64,0)] text-[rgb(127,255,127)]"
                           variant="flat"
                           onPress={flashGreen}
                         >
