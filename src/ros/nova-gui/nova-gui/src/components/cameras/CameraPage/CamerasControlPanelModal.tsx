@@ -21,7 +21,7 @@ import { RosService } from "../../../ros/services/rosService.ts";
 import { Pause, Play, Square, ExternalLink } from "react-feather";
 import { useRosNodes } from "../../../utils/hooks/useRosNodes.ts";
 import { BooleanChip } from "../CameraComponent/components/BooleanChip.tsx";
-import { allCams } from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import { allCams } from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 
 // TODO: delete
 export const CameraControlPanelModal = (props: {

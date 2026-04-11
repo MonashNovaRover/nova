@@ -8,7 +8,7 @@ import { CameraPresetDropdown } from "../CameraPresetDropdown.tsx";
 import { useSortable } from "@dnd-kit/react/sortable";
 import { UniqueIdentifier } from "@dnd-kit/core";
 import SerialMappedCameraComponent from "../../../views/shared/CamerasPage/SerialMappedCameraComponent.tsx";
-import {CameraView} from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import {CameraViewConfig} from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 
 export interface SortableProps extends CardProps {
   sortId: UniqueIdentifier,
@@ -48,7 +48,7 @@ export interface CameraPageProps {
   refreshAvailabilities: () => void
   gridSize: number
   toggleSidebar: () => void;
-  views: CameraView[];
+  views: CameraViewConfig[];
 }
 
 /**

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {arcCameraSetup, ARCCompModes} from "../../shared/CamerasPage/CameraPageConstants.tsx";
+import {arcCameraSetup, ARCCompModes} from "../../shared/CamerasPage/CameraViewConstants.tsx";
 import {CameraSidebar} from "../../../components/cameras/CameraPage/CameraSidebar.tsx";
 import {CamerasPage} from "../../../components/cameras/CameraPage/CamerasPage.tsx";
 import {useCameraStreamer} from "../../../components/cameras/hooks/useCameraStreamer.ts";

@@ -1,4 +1,4 @@
-import {CameraSerials} from "../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import {CameraSerials} from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 import SiteSelectWidget from "../SiteSelectWidget/SiteSelectWidget.tsx";
 import SerialMappedCameraComponent from "../../../views/shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import MicroscopeScaleOverlayedCameraComponent from "../../cameras/CameraComponent/special/MicroscopeScaleOverlayedCameraComponent.tsx";

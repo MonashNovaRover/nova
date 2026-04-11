@@ -9,14 +9,14 @@ import {URCDeliveryView} from "../views/urc/URCDeliveryView.tsx";
 import URCEquipmentServicingView from "../views/urc/URCEquipmentServicingView";
 import URCScienceView from "../views/urc/URCScienceView";
 import { Root } from "../root";
-import { CameraPage } from "../views/shared/CamerasPage/CamerasPage.tsx";
+import { CameraView } from "../views/shared/CamerasPage/CamerasView.tsx";
 import { SingleCameraPage } from "../views/shared/SingleCameraPage/SingleCameraPage.tsx";
 import {
   ARCCompModes,
   URCCompModes,
   arcCameraSetup,
   urcCameraSetup,
-} from "../views/shared/CamerasPage/CameraPageConstants";
+} from "../views/shared/CamerasPage/CameraViewConstants.tsx";
 import GeneralBaseView from "../views/general/GeneralBaseView.tsx";
 import { ARCNIRProbeView } from "../views/arc/ARCNIRProbeView.tsx";
 import TestWebGLView from "../views/test/TestWebGLView/TestWebGLView.tsx";
@@ -60,13 +60,12 @@ export const arcRoutes: RouteObject[] = [
   },
   {
     path: "/arc/cameras",
-    element: <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
+    element: <CameraView views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
   },
   ...Object.values(ARCCompModes).map<RouteObject>((comp) => ({
     path: `/arc/cameras/${comp}`,
-    element: <CameraPage views={arcCameraSetup[comp]} />,
+    element: <CameraView views={arcCameraSetup[comp]} defaultGridSize={comp == ARCCompModes.ARC_AUTONOMOUS ? 3 : 4}/>,
   })),
-
 ];
 
 export const urcRoutes: RouteObject[] = [
@@ -104,7 +103,7 @@ export const urcRoutes: RouteObject[] = [
   },
   {
     path: "/urc/cameras",
-    element: <CameraPage views={urcCameraSetup[URCCompModes.URC_EQUIPMENT_SERVICING]} />,
+    element: <CameraView views={urcCameraSetup[URCCompModes.URC_EQUIPMENT_SERVICING]} />,
   },
   {
     path: "/urc/uv-vis-spec",
@@ -124,7 +123,7 @@ export const urcRoutes: RouteObject[] = [
   },
   ...Object.values(URCCompModes).map<RouteObject>((comp) => ({
     path: `/urc/cameras/${comp}`,
-    element: <CameraPage views={urcCameraSetup[comp]} />,
+    element: <CameraView views={urcCameraSetup[comp]}/>,
   })),
 ];
 
@@ -135,7 +134,7 @@ export const generalRoutes: RouteObject[] = [
   },
   {
     path: "/general/cameras",
-    element: <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
+    element: <CameraView views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
   },
   {
     path: "/general/drive",
@@ -176,7 +175,7 @@ export const testRoutes: RouteObject[] = [
 const cameraRoutes: RouteObject[] = [
   {
     path: "/cameras",
-    element: <CameraPage views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
+    element: <CameraView views={arcCameraSetup[ARCCompModes.ARC_POST_LANDING]} />,
   },
   { path: "/cameras/:serial", element: <SingleCameraPage /> },
 ];
