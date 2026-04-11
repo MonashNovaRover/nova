@@ -20,7 +20,42 @@
 					 targetNamespace="http://kayak.2codeornot2code.org/1.0"
 					 xmlns:kcd="http://kayak.2codeornot2code.org/1.0"
 					 xmlns="http://kayak.2codeornot2code.org/1.0">
-  <xs:element name="wrapper">
+
+  <xs:element name="NetworkDefinition">
+    <xs:annotation>
+      <xs:documentation>Definition of one or more CAN bus networks in one file.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="1" ref="Document"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="Node"/>
+        <xs:element maxOccurs="unbounded" ref="Bus"/>
+      </xs:sequence>
+    </xs:complexType>
+    <xs:key name="nodeIdKey">
+      <xs:annotation>
+        <xs:documentation>Assurance that the identifier (id) of a network node is unique.</xs:documentation>
+      </xs:annotation>
+      <xs:selector xpath="kcd:Node"/>
+      <xs:field xpath="@id"/>
+    </xs:key>
+    <xs:unique name="busNameUniqueness">
+      <xs:annotation>
+        <xs:documentation>Assurance that there are no duplicate bus names (assures bus name uniqueness).</xs:documentation>
+      </xs:annotation>
+      <xs:selector xpath="kcd:Bus"/>
+      <xs:field xpath="@name"/>
+    </xs:unique>
+    <xs:keyref name="nodeIdKeyRef" refer="nodeIdKey">
+      <xs:annotation>
+        <xs:documentation>Assurance that the references node, to identify the producer of a network message, was already created.</xs:documentation>
+      </xs:annotation>
+      <xs:selector xpath="kcd:Bus/kcd:Message/kcd:Producer/kcd:NodeRef"/>
+      <xs:field xpath="@id"/>
+    </xs:keyref>
+  </xs:element>
+
+  <xs:element name="Bus">
     <xs:annotation>
       <xs:documentation>A network transport system that transfers the data between several nodes.</xs:documentation>
     </xs:annotation>

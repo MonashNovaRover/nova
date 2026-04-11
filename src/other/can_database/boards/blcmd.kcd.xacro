@@ -1,26 +1,25 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://kayak.2codeornot2code.org/1.0" xsi:noNamespaceSchemaLocation="schemas/kcd-macro.xsd">
-    <xacro:macro name="blcmd_messages" params="
+<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="blcmd_board" params="
     blcmd_id
     joint_name
     blcmd_node_id
-    orin_node_id:=0
     drive_at_speed_intercept:=0
     drive_at_speed_slope:=1
-    drive_at_speed_unit:=1
+    drive_at_speed_unit:=''
     drive_to_position_intercept:=0
     drive_to_position_slope:=1
-    drive_to_position_unit:=1
+    drive_to_position_unit:=''
     drive_at_current_intercept:=0
     drive_at_current_slope:=1
     telemetry_packet_1_velocity_slope:=1
     telemetry_packet_1_velocity_intercept:=0
-    telemetry_packet_1_velocity_unit:=1
+    telemetry_packet_1_velocity_unit:=''
     telemetry_packet_1_effort_slope:=1
     telemetry_packet_1_effort_intercept:=0
     telemetry_packet_3_resolver_position_slope:=1
     telemetry_packet_3_resolver_position_intercept:=0
-    telemetry_packet_3_resolver_position_unit:=1
+    telemetry_packet_3_resolver_position_unit:=''
     ">
         <!-- variables -->
 
@@ -34,7 +33,7 @@
         </xacro:macro>
         <xacro:macro name="producer_orin">
             <Producer>
-                <NodeRef id="${orin_node_id}"/>
+                <NodeRef id="${ORIN_NODE_ID}"/>
             </Producer>
         </xacro:macro>
 
@@ -246,7 +245,7 @@
         <!-- macros for repetitive consumer/producer tags -->
         <xacro:macro name="consumer_orin">
             <Consumer>
-                <NodeRef id="${orin_node_id}"/>
+                <NodeRef id="${ORIN_NODE_ID}"/>
             </Consumer>
         </xacro:macro>
         <xacro:macro name="producer_blcmd">

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--  -->
+
+<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<!-- include generic blcmd macro -->
+	<xacro:include filename="../boards/blcmd_interpreted.kcd.xacro"/>
+
+	<xacro:macro name="drive_interpreted_system">
+
+		<!-- from ros2_control.xacro: -->
+
+		<!-- constants for wheels -->
+		<xacro:property name="wheel_clock_rate" value="100000000"/>
+		<xacro:property name="wheel_revolution_pulses" value="8192"/>
+		<xacro:property name="wheel_min_interval" value="122"/>
+		<xacro:property name="wheel_gear_ratio" value="15.0"/>
+
+		<!-- constants for pivots -->
+		<xacro:property name="pivot_clock_rate" value="100000000"/>
+		<xacro:property name="pivot_revolution_pulses" value="8192"/>
+		<xacro:property name="pivot_min_interval" value="233"/>
+		<xacro:property name="pivot_gear_ratio" value="36.0"/>
+		<xacro:property name="resolver_reduction" value="1.33333333333"/>
+		<xacro:property name="res_ticks_per_rev" value="98304"/>
+		<xacro:property name="zero_offset" value="14717"/>
+
+		<!-- blcmd messages -->
+
+		<xacro:blcmd_interpreted_board blcmd_id="1" blcmd_node_id="${FLW_BLCMD_NODE_ID}" joint_name="flw"
+		   reversed="True"
+		   clock_rate="${wheel_clock_rate}"
+		   revolution_pulses="${wheel_revolution_pulses}"
+		   min_interval="${wheel_min_interval}"
+		   gear_ratio="${wheel_gear_ratio}"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="2" blcmd_node_id="${BLW_BLCMD_NODE_ID}" joint_name="blw"
+		   reversed="True"
+		   clock_rate="${wheel_clock_rate}"
+		   revolution_pulses="${wheel_revolution_pulses}"
+		   min_interval="${wheel_min_interval}"
+		   gear_ratio="${wheel_gear_ratio}"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="3" blcmd_node_id="${BRW_BLCMD_NODE_ID}" joint_name="brw"
+		   reversed="False"
+		   clock_rate="${wheel_clock_rate}"
+		   revolution_pulses="${wheel_revolution_pulses}"
+		   min_interval="${wheel_min_interval}"
+		   gear_ratio="${wheel_gear_ratio}"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="4" blcmd_node_id="${FRW_BLCMD_NODE_ID}" joint_name="frw"
+		   reversed="False"
+		   clock_rate="${wheel_clock_rate}"
+		   revolution_pulses="${wheel_revolution_pulses}"
+		   min_interval="${wheel_min_interval}"
+		   gear_ratio="${wheel_gear_ratio}"/>
+
+
+		<xacro:blcmd_interpreted_board blcmd_id="5" blcmd_node_id="${FLP_BLCMD_NODE_ID}" joint_name="flp"
+		   reversed="True"
+		   clock_rate="${pivot_clock_rate}"
+		   revolution_pulses="${pivot_revolution_pulses}"
+		   min_interval="${pivot_min_interval}"
+		   gear_ratio="${pivot_gear_ratio}"
+
+		   interpret_position="True"
+		   resolver_reduction="${resolver_reduction}"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="${zero_offset}"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="6" blcmd_node_id="${BLP_BLCMD_NODE_ID}" joint_name="blp"
+		   reversed="False"
+		   clock_rate="${pivot_clock_rate}"
+		   revolution_pulses="${pivot_revolution_pulses}"
+		   min_interval="${pivot_min_interval}"
+		   gear_ratio="${pivot_gear_ratio}"
+
+		   interpret_position="True"
+		   resolver_reduction="${resolver_reduction}"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="${zero_offset}"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="7" blcmd_node_id="${BRP_BLCMD_NODE_ID}" joint_name="brp"
+		   reversed="True"
+		   clock_rate="${pivot_clock_rate}"
+		   revolution_pulses="${pivot_revolution_pulses}"
+		   min_interval="${pivot_min_interval}"
+		   gear_ratio="${pivot_gear_ratio}"
+
+		   interpret_position="True"
+		   resolver_reduction="${resolver_reduction}"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="${zero_offset}"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="8" blcmd_node_id="${FRP_BLCMD_NODE_ID}" joint_name="frp"
+		   reversed="False"
+		   clock_rate="${pivot_clock_rate}"
+		   revolution_pulses="${pivot_revolution_pulses}"
+		   min_interval="${pivot_min_interval}"
+		   gear_ratio="${pivot_gear_ratio}"
+
+		   interpret_position="True"
+		   resolver_reduction="${resolver_reduction}"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="${zero_offset}"/>
+	</xacro:macro>
+</wrapper>
