@@ -13,6 +13,7 @@ export interface CarouselDialProps {
 }
 
 const nightyDegrees = [5, 6]
+const degrees = [1, 5, 20]
 
 /**
  * Controls that tell the carousel to move some amount of steps or cuvettes
@@ -30,13 +31,13 @@ const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXStep
 
   const calibratingControls = (
     <div className="col-span-3 flex flex-row justify-center gap-3 place-self-center items-center">
-      <Button isIconOnly onPressStart={() => moveXSteps(-20 * reverseNum)}>-20</Button>
-      <Button isIconOnly onPressStart={() => moveXSteps(-5 * reverseNum)}>-5</Button>
-      <Button isIconOnly onPressStart={() => moveXSteps(-1 * reverseNum)}>-1</Button>
+      {degrees.map(val =>
+        <Button isIconOnly onPressStart={() => moveXSteps(-1 * val * reverseNum)}>-{val}°</Button>
+      )}
       {circleIcon}
-      <Button isIconOnly onPressStart={() => moveXSteps(1 * reverseNum)}>+1</Button>
-      <Button isIconOnly onPressStart={() => moveXSteps(5 * reverseNum)}>+5</Button>
-      <Button isIconOnly onPressStart={() => moveXSteps(20 * reverseNum)}>+20</Button>
+      {degrees.map(val =>
+        <Button isIconOnly onPressStart={() => moveXSteps(val * reverseNum)}>+{val}°</Button>
+      )}
     </div>
   )
 
