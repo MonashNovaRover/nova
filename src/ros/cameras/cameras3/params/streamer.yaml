@@ -82,6 +82,19 @@ camera_streamer:
         height: 1080
         framerate: 30
 
+      low-bitrate:
+        mime: image/jpeg
+        downscale: 2
+        downrate: 1
+        bitrate: 256
+        dither: sierra-lite
+        method: bilinear
+        cpu-used: 10
+        speed-preset: fast
+        noise_reduction: 0
+        crop43: true
+        video_caps: video/x-vp9
+
     defaults:
 
       # Waveshare
