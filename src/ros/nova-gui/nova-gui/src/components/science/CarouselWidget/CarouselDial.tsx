@@ -1,112 +1,17 @@
 import React, { useState } from "react";
 import { ChevronUp, Search } from "react-feather";
-
-// ============================================================================
-// CONFIGURATION - Edit these values to customize the carousel appearance
-// ============================================================================
-
-// Cuvette color constants (70% opacity)
-const CUVETTE = {
-  BLUE:    '#4da3ff70',
-  PURPLE:  '#AD2D6770',
-  PINK:    '#F770AD70',
-  RED:     '#EE000070',
-  YELLOW:  '#FFC90270',
-  EMPTY:   '#1a1a1a',
-};
-
-// Outer wheel: 24 cuvettes
-const OUTER_CUVETTE_COLORS = [
-  CUVETTE.PURPLE, // 1
-  CUVETTE.PURPLE, // 2
-  CUVETTE.PURPLE, // 3
-  CUVETTE.BLUE,   // 4
-  CUVETTE.BLUE,   // 5
-  CUVETTE.BLUE,   // 6
-  CUVETTE.YELLOW, // 7
-  CUVETTE.PURPLE, // 8
-  CUVETTE.PURPLE, // 9
-  CUVETTE.PURPLE, // 10
-  CUVETTE.BLUE,   // 11
-  CUVETTE.BLUE,   // 12
-  CUVETTE.BLUE,   // 13
-  CUVETTE.YELLOW, // 14
-  CUVETTE.PURPLE, // 15
-  CUVETTE.PURPLE, // 16
-  CUVETTE.BLUE,   // 17
-  CUVETTE.BLUE,   // 18
-  CUVETTE.PINK,   // 19
-  CUVETTE.PINK,   // 20
-  CUVETTE.YELLOW, // 21
-  CUVETTE.EMPTY,  // 22
-  CUVETTE.EMPTY,  // 23
-  CUVETTE.EMPTY,  // 24
-];
-
-// Inner wheel: 15 cuvettes
-const INNER_CUVETTE_COLORS = [
-  CUVETTE.RED,    // 1
-  CUVETTE.RED,    // 2
-  CUVETTE.RED,    // 3
-  CUVETTE.PINK,   // 4
-  CUVETTE.PINK,   // 5
-  CUVETTE.PINK,   // 6
-  CUVETTE.RED,    // 7
-  CUVETTE.RED,    // 8
-  CUVETTE.RED,    // 9
-  CUVETTE.RED,    // 10
-  CUVETTE.RED,    // 11
-  CUVETTE.EMPTY,  // 12
-  CUVETTE.PINK,   // 13
-  CUVETTE.PINK,   // 14
-  CUVETTE.PINK,   // 15
-];
-
-// General colors
-const COLORS = {
-  hover: '#3a3a3a',        // Segment fill on hover
-  stroke: '#ffffff90',       // Divider lines between segments
-  text: '#ffffff',         // Segment number text
-  indicator: '#F770AD',    // Chevron and search icons
-  center: '#1a1a1a',       // Center circle fill
-};
-
-// Group border configuration
-const GROUP_BORDER = {
-  color: '#ffffff',        // Default group border color
-  width: 2,                // Border thickness
-};
-
-// Outer wheel groups: { start, end } are 0-indexed, end is exclusive (last cuvette not included in border)
-const OUTER_GROUPS = [
-  { start: 0,  end: 6,  color: '#FFB86C' },  // Medium coffee
-  { start: 7,  end: 13,  color: '#AAAAAA' },  // Amber/orange
-];
-
-// Inner wheel groups: { start, end } are 0-indexed, end is exclusive
-const INNER_GROUPS = [
-  { start: 3,  end: 9,  color: '#AAAAAA' },  // Medium coffee
-  { start: 12, end: 3, color: '#FFB86C' },  // Amber/orange
-];
-
-// Static indicator dots (outside the carousel, don't rotate)
-// Positions are cuvette numbers (1-indexed) as if 24 is at the top
-const INDICATOR_DOTS = [
-  { cuvette: 1, color: '#FFB86C', radius: 4 },
-  { cuvette: 8, color: '#AAAAAA', radius: 4 },
-];
-const INDICATOR_DOT_DISTANCE = 152;  // Distance from center (just outside outer wheel)
-
-// ============================================================================
-// END CONFIGURATION
-// ============================================================================
-
-// Types for groups
-interface CuvetteGroup {
-  start: number;
-  end: number;      // exclusive (last cuvette in group, not included in border)
-  color: string;    // border color
-}
+import {
+  COLORS,
+  GROUP_BORDER,
+  OUTER_CUVETTE_COLORS,
+  INNER_CUVETTE_COLORS,
+  OUTER_GROUPS,
+  INNER_GROUPS,
+  OUTER_INDICATOR_DOTS,
+  OUTER_INDICATOR_DOT_DISTANCE,
+  INNER_INDICATOR_DOTS,
+  INNER_INDICATOR_DOT_DISTANCE,
+} from "./CarouselConfig";
 
 // Types
 export type SegmentState = 'empty' | 'tested' | 'error' | 'default';
@@ -137,10 +42,11 @@ const INNER_INNER_RADIUS = 45;
 const OUTER_STEP = 360 / OUTER_SEGMENTS;
 const INNER_STEP = 360 / INNER_SEGMENTS;
 
-const OUTER_OFFSET = 180 - (OUTER_STEP / 2);
-const INNER_OFFSET = 180 - (INNER_STEP / 2);
+// Offsets to center the current cuvette at the top of the diagram
+const OUTER_OFFSET = -OUTER_STEP / 2;
+const INNER_OFFSET = -INNER_STEP / 2;
 
-const CENTER = 150;
+const CENTER = 156;
 
 // Helper functions
 function createWedgePath(
@@ -263,8 +169,8 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
   const outerConfig: WheelConfig = outer ?? { current: cuvette ?? 0, onClick: noopClick };
   const innerConfig: WheelConfig = inner ?? { current: cuvette ?? 0, onClick: noopClick };
 
-  const outerRotation = outerConfig.current * OUTER_STEP + OUTER_OFFSET;
-  const innerRotation = innerConfig.current * INNER_STEP + INNER_OFFSET;
+  const outerRotation = -outerConfig.current * OUTER_STEP + OUTER_OFFSET;
+  const innerRotation = -innerConfig.current * INNER_STEP + INNER_OFFSET;
 
   const renderSegments = (
     count: number,
@@ -345,7 +251,7 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
       <Search color={COLORS.indicator} className="w-16 h-8 flex-shrink-0" />
       <div className="flex flex-row items-center w-full">
         <svg
-          viewBox="0 0 300 300"
+          viewBox="0 0 312 312"
           className="w-full h-auto aspect-square"
         >
           {/* Outer wheel */}
@@ -375,15 +281,31 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
           {/* Center circle */}
           <circle cx={CENTER} cy={CENTER} r="40" fill={COLORS.center} />
 
-          {/* Static indicator dots (outside carousel, don't rotate) */}
-          {INDICATOR_DOTS.map((dot, i) => {
-            // Calculate angle: if 24 is at top (-90deg), cuvette N is at -90 + N*15 degrees
+          {/* Static outer indicator dots (outside carousel, don't rotate) */}
+          {OUTER_INDICATOR_DOTS.map((dot, i) => {
             const angleRad = ((dot.cuvette * (360 / OUTER_SEGMENTS)) - 90) * (Math.PI / 180);
-            const x = CENTER + INDICATOR_DOT_DISTANCE * Math.cos(angleRad);
-            const y = CENTER + INDICATOR_DOT_DISTANCE * Math.sin(angleRad);
+            const x = CENTER + OUTER_INDICATOR_DOT_DISTANCE * Math.cos(angleRad);
+            const y = CENTER + OUTER_INDICATOR_DOT_DISTANCE * Math.sin(angleRad);
             return (
               <circle
-                key={`indicator-${i}`}
+                key={`outer-indicator-${i}`}
+                cx={x}
+                cy={y}
+                r={dot.radius}
+                fill={dot.color}
+                className="pointer-events-none"
+              />
+            );
+          })}
+
+          {/* Static inner indicator dots (inside center circle, don't rotate) */}
+          {INNER_INDICATOR_DOTS.map((dot, i) => {
+            const angleRad = ((dot.cuvette * (360 / INNER_SEGMENTS)) - 90) * (Math.PI / 180);
+            const x = CENTER + INNER_INDICATOR_DOT_DISTANCE * Math.cos(angleRad);
+            const y = CENTER + INNER_INDICATOR_DOT_DISTANCE * Math.sin(angleRad);
+            return (
+              <circle
+                key={`inner-indicator-${i}`}
                 cx={x}
                 cy={y}
                 r={dot.radius}

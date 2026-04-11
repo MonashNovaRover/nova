@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {Card, CardBody, CardHeader, CardProps, Divider, Switch} from "@nextui-org/react";
 import CarouselDial from "./CarouselDial.tsx";
-import LEDRow from "./LEDRow.tsx";
 import {toInteger} from "lodash";
 import CarouselInputs from "./CarouselInputs.tsx";
 import CarouselControls from "./CarouselControls.tsx";
@@ -102,15 +101,11 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
                         setCurrentCuvette={setCurrentCuvetteRotation} moveXCuvettes={moveXCuvettes}/>
       </div>
 
-      <div className="col-span-3">
+      <div className="col-span-3 flex flex-col gap-3">
         <CarouselDial cuvette={currentCuvetteRotation}/>
+        <CarouselControls moveXCuvettes={moveXCuvettes} moveXSteps={moveXSteps} showCalibration={showCalibration} variant={"inner"}/>
+        <CarouselControls moveXCuvettes={moveXCuvettes} moveXSteps={moveXSteps} showCalibration={showCalibration} variant={"outer"}/>
       </div>
-
-      <div className="col-span-2 place-self-center">
-        <LEDRow/>
-      </div>
-
-      <CarouselControls moveXCuvettes={moveXCuvettes} moveXSteps={moveXSteps} showCalibration={showCalibration}/>
     </CardBody>
   </Card>
 }
