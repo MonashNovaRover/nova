@@ -1,5 +1,5 @@
 import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
@@ -31,16 +31,16 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
     connected: useSelector((state: RootState) => state.driveStore.connected),
   }
 
-  const lockedReasons: Record<string, string> = {
-    "1": "Initial State",
-    "2": "Lock Button Pressed",
-    "3": "Excessive BLCMD Errors",
-    "4": "Gamepad Disconnected",
+  const lockedReasons: Record<number, string> = {
+    1: "Initial State",
+    2: "Lock Button Pressed",
+    3: "Excessive BLCMD Errors",
+    4: "Gamepad Disconnected",
   };
-  const suppressLockedReasonToast = useMemo(()=>[1, 2], []);
+  const suppressLockedReasonToast = [1, 2];
 
   const [autolockOverride, setAutolockOverride] = useState(false);
-  const currentLockedReason = lockedReasons[driveInfo.locked_reason.toString()] ?? "Reason Unknown";
+  const currentLockedReason = lockedReasons[driveInfo.locked_reason] ?? "Reason Unknown";
 
   // show toast when locked unexpectedly
   if (!suppressLockedReasonToast.includes(driveInfo.locked_reason) && driveInfo.locked) {
