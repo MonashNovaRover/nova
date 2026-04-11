@@ -71,6 +71,20 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
           },
           filter: ["in", "$type", "LineString"],
         });
+
+        // Add Event Listeners
+        newMap.on("mousemove", (event) => {
+          updateMousePosition({
+            lat: event.lngLat.lat,
+            long: event.lngLat.lng,
+          });
+        });
+        newMap.on("click", (event) => {
+          handleMapClickEvent({
+            lat: event.lngLat.lat,
+            long: event.lngLat.lng,
+          });
+        });
       });
       return newMap
     }
@@ -100,23 +114,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
       })
     map.setMaxBounds(MAP_BOUNDS[mapTile])
   }, [baseStationIp, map, mapTile]);
-
-  useEffectEvent(()=>{
-      // Add Event Listeners
-      if (!map) return;
-      map.on("mousemove", (event) => {
-        updateMousePosition({
-          lat: event.lngLat.lat,
-          long: event.lngLat.lng,
-        });
-      });
-      map.on("click", (event) => {
-        handleMapClickEvent({
-          lat: event.lngLat.lat,
-          long: event.lngLat.lng,
-        });
-      });
-  })
+  
 
   return (
     <div className="w-full h-full" ref={mapContainer}>
