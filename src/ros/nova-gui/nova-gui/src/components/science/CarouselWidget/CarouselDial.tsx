@@ -13,14 +13,9 @@ import {
   INNER_INDICATOR_DOT_DISTANCE,
 } from "./CarouselConfig";
 
-// Types
-export type SegmentState = 'empty' | 'tested' | 'error' | 'default';
-
 export interface WheelConfig {
   current: number;
   onClick: (index: number) => void;
-  colors?: string[];
-  states?: SegmentState[];
 }
 
 export interface CarouselDialProps {

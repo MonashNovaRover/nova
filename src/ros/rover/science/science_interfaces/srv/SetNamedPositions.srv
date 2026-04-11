@@ -1,4 +1,4 @@
-# Position for each preset
+# Target positions with corresponding names
 string[] names
 float32[] positions
 

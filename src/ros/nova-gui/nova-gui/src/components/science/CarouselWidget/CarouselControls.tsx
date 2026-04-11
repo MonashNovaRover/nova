@@ -2,15 +2,17 @@ import { Button } from "@nextui-org/react";
 import React from "react";
 import {ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CornerLeftUp, CornerRightUp} from "react-feather";
 import {RecordCircle, RecordCircleFill} from "react-bootstrap-icons";
+import {RING} from "./CarouselWidget.tsx";
 
 export interface CarouselDialProps {
   moveXCuvettes: (x: number) => void,
   moveXSteps: (x: number) => void
   showCalibration: boolean
-  variant: 'inner' | 'outer';
+  variant: RING;
+  reverse?: boolean
 }
 
-const nightyDegrees = 5
+const nightyDegrees = [5, 6]
 
 /**
  * Controls that tell the carousel to move some amount of steps or cuvettes
@@ -19,38 +21,40 @@ const nightyDegrees = 5
  * @param showCalibration whether or not to be in calibration mode
  * @constructor
  */
-const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXSteps, showCalibration, variant}) => {
-  const circleIcon = variant == "inner" ?
+const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXSteps, showCalibration, variant, reverse}) => {
+  const reverseNum = reverse ? -1 : 1
+
+  const circleIcon = variant == RING.INNER ?
     <RecordCircle size={24}/> :
     <RecordCircleFill size={24}/>
 
   const calibratingControls = (
     <div className="col-span-3 flex flex-row justify-center gap-3 place-self-center items-center">
-      <Button isIconOnly onPressStart={() => moveXSteps(-20)}>-20</Button>
-      <Button isIconOnly onPressStart={() => moveXSteps(-5)}>-5</Button>
-      <Button isIconOnly onPressStart={() => moveXSteps(-1)}>-1</Button>
+      <Button isIconOnly onPressStart={() => moveXSteps(-20 * reverseNum)}>-20</Button>
+      <Button isIconOnly onPressStart={() => moveXSteps(-5 * reverseNum)}>-5</Button>
+      <Button isIconOnly onPressStart={() => moveXSteps(-1 * reverseNum)}>-1</Button>
       {circleIcon}
-      <Button isIconOnly onPressStart={() => moveXSteps(1)}>+1</Button>
-      <Button isIconOnly onPressStart={() => moveXSteps(5)}>+5</Button>
-      <Button isIconOnly onPressStart={() => moveXSteps(20)}>+20</Button>
+      <Button isIconOnly onPressStart={() => moveXSteps(1 * reverseNum)}>+1</Button>
+      <Button isIconOnly onPressStart={() => moveXSteps(5 * reverseNum)}>+5</Button>
+      <Button isIconOnly onPressStart={() => moveXSteps(20 * reverseNum)}>+20</Button>
     </div>
   )
 
   const cuvetteControls = (
     <div className="col-span-3 flex flex-row justify-center gap-3 place-self-center items-center">
       <Button isIconOnly
-              onPressStart={() => moveXCuvettes(-nightyDegrees)}><CornerLeftUp/></Button>
+              onPressStart={() => moveXCuvettes(-nightyDegrees[variant] * reverseNum)}><CornerLeftUp/></Button>
       <Button isIconOnly
-              onPressStart={() => moveXCuvettes(-2)}><ChevronsLeft/></Button>
+              onPressStart={() => moveXCuvettes(-2 * reverseNum)}><ChevronsLeft/></Button>
       <Button isIconOnly
-              onPressStart={() => moveXCuvettes(-1)}><ChevronLeft/></Button>
+              onPressStart={() => moveXCuvettes(-1 * reverseNum)}><ChevronLeft/></Button>
       {circleIcon}
       <Button isIconOnly
-              onPressStart={() => moveXCuvettes(1)}><ChevronRight/></Button>
+              onPressStart={() => moveXCuvettes(1 * reverseNum)}><ChevronRight/></Button>
       <Button isIconOnly
-              onPressStart={() => moveXCuvettes(2)}><ChevronsRight/></Button>
+              onPressStart={() => moveXCuvettes(2 * reverseNum)}><ChevronsRight/></Button>
       <Button isIconOnly
-              onPressStart={() => moveXCuvettes(nightyDegrees)}><CornerRightUp/></Button>
+              onPressStart={() => moveXCuvettes(nightyDegrees[variant] * reverseNum)}><CornerRightUp/></Button>
     </div>
   )
 

@@ -22,6 +22,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EffortStatus.msg"
   "msg/KilnData.msg"
   "msg/MicroscopeServoInfo.msg"
+  "msg/NamedPositions.msg"
   "msg/NIRProbeData.msg"
   "msg/PumpStatus.msg"
   "msg/RamanSpectrum.msg"
@@ -41,7 +42,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
   "srv/ScienceCommand.srv"
-  "srv/SetPositionPresets.srv"
+  "srv/SetNamedPositions.srv"
   "srv/SetPosition.srv"
   "srv/TakeNIRProbeReading.srv"
 

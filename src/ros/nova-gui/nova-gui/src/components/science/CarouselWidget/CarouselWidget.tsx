@@ -12,6 +12,12 @@ import {
 import {RosService} from "../../../ros/services/rosService.ts";
 import toast from "react-hot-toast";
 
+export enum RING {
+  INNER = 0,
+  OUTER = 1,
+}
+
+type CuvettePositions = [number, number]
 
 export interface CarouselWidgetProps extends CardProps{
 }
@@ -35,60 +41,42 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   const [currentCuvetteRotation, setCurrentCuvetteRotation] = useState(0) // 0-indexed no range
   const currentCuvette = clampStep(currentCuvetteRotation) // 0-indexed between 0-19 inclusive
   const [showCalibration, setShowCalibration] = useState(true)
-  const [stepperActive, setStepperActive] = useState(false)
   const bifrost = useBifrost({service: RosService.CAROUSEL});
+
+  // current cuvette locations both 0 indexed
+  // [inner: between [0, 14], outer: between [0, 23]
+  const [currentCuvettes, setCurrentCuvettes] = useState<CuvettePositions>([0,0])
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
-  const toggleActiveStatus = (value: boolean) => {
-    bifrost.callService({state: value}, {
-      handleResponse: (response) => {
-        const boolResponse = response as IRosScienceInterfacesKilnCommandResponse;
-        if (boolResponse?.success) {
-          toast.success("Request Successful")
-          setStepperActive(value);
-        }
-      }
-    });
+  const setCuvettePositions = (positions: CuvettePositions) => {
+    // TODO add ROS stuff
+
+    setCurrentCuvettes(positions)
   }
 
-  const moveXSteps = (steps: number, cuvettes: number = 0) => {
-    if (steps === 0)
-      return
-
-    if (!stepperActive) {
-      toast.dismiss()
-      toast.error("Stepper is not active")
-      setCurrentCuvetteRotation(currentCuvetteRotation + cuvettes)
-      return
-    }
-
-    bifrost.callService({state: true, target: steps} as IRosScienceInterfacesKilnCommandRequest, {
-      handleResponse: (response) => {
-        const boolResponse = response as IRosScienceInterfacesKilnCommandResponse;
-        if (boolResponse?.success) {
-          toast.success("Request Successful")
-          setCurrentCuvetteRotation(currentCuvetteRotation + cuvettes);
-        }
-      }
-    });
+  const onCuvetteClick = (ring: RING) => (index: number) => {
+    setCuvettePositions(
+      currentCuvettes.map((val, i) => i == ring ? index : val) as CuvettePositions
+    )
   }
 
-  const moveXCuvettes = (x: number) => {
-    const cuvettes = x < 10 ? (x > -10 ? x : x + 20) : x - 20
-    moveXSteps(cuvettes * CuvvetteStepSize, cuvettes)
+  const moveXCuvettes = (ring: RING)=> (x: number) => {
+    setCuvettePositions(
+      currentCuvettes.map((val, i) => i == ring ? val + x : val) as CuvettePositions
+    )
+  }
+
+  const moveXDegrees = (ring: RING)=> (x: number)=> {
+    console.log(`moving ring ${ring} ${x} degrees`)
   }
 
   return <Card {...props}>
     <CardHeader>Carousel</CardHeader>
     <CardBody className="grid grid-cols-5 gap-3">
       <div className="flex flex-col col-span-2 gap-3">
-        <div className="flex flex-row items-center justify-between gap-5 ">
-          <span>Enable Stepper</span>
-          <Switch size="lg" isSelected={stepperActive} onValueChange={toggleActiveStatus}/>
-        </div>
 
         <div className="flex flex-row items-center justify-between gap-5 ">
           <span>Calibrate Mode</span>
@@ -97,14 +85,33 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
 
         <Divider className="mt-2"/>
 
-        <CarouselInputs currentCuvette={currentCuvette} showCalibration={showCalibration}
-                        setCurrentCuvette={setCurrentCuvetteRotation} moveXCuvettes={moveXCuvettes}/>
+        <CarouselInputs
+          currentCuvette={currentCuvette}
+          showCalibration={showCalibration}
+          setCurrentCuvette={setCurrentCuvetteRotation}
+          moveXCuvettes={moveXCuvettes}
+        />
       </div>
 
       <div className="col-span-3 flex flex-col gap-3">
-        <CarouselDial cuvette={currentCuvetteRotation}/>
-        <CarouselControls moveXCuvettes={moveXCuvettes} moveXSteps={moveXSteps} showCalibration={showCalibration} variant={"inner"}/>
-        <CarouselControls moveXCuvettes={moveXCuvettes} moveXSteps={moveXSteps} showCalibration={showCalibration} variant={"outer"}/>
+        <CarouselDial
+          inner={{current: currentCuvettes[RING.INNER], onClick: onCuvetteClick(RING.INNER)}}
+          outer={{current: currentCuvettes[RING.OUTER], onClick: onCuvetteClick(RING.OUTER)}}
+        />
+        <CarouselControls
+          moveXCuvettes={moveXCuvettes(RING.OUTER)}
+          moveXSteps={moveXDegrees(RING.OUTER)}
+          showCalibration={showCalibration}
+          variant={RING.OUTER}
+          reverse
+        />
+        <CarouselControls
+          moveXCuvettes={moveXCuvettes(RING.INNER)}
+          moveXSteps={moveXDegrees(RING.INNER)}
+          showCalibration={showCalibration}
+          variant={RING.INNER}
+          reverse
+        />
       </div>
     </CardBody>
   </Card>
