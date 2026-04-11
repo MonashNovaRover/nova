@@ -53,7 +53,7 @@ model.eval()
 transform = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)), 
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 # Load the images from the directory
@@ -71,7 +71,7 @@ def predict_all_images(model, image_paths, transform):
         for img_path in image_paths:
             img = transform(Image.open(img_path).convert("RGB")).unsqueeze(0).to(DEVICE)
             output = model(img)
-            pred_label = output.item()
+            pred_label = output.item()*100.0 # convert back to percentages from normalised model
             predictions.append(pred_label)
     
     return predictions

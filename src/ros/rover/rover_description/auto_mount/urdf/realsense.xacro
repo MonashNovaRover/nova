@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find realsense2_description)/urdf/_d415.urdf.xacro"/>
+
+    <!-- Gazebo sensor plugins for the RealSense D415 camera (does not affect IRL) -->
+    <xacro:if value="$(arg gazebo)">
+        <gazebo reference="d415_link">
+            <sensor name="d415/color" type="camera">
+                <topic>d415/color</topic>
+                <gz_frame_id>d415_color_optical_frame</gz_frame_id>
+                <visualize>false</visualize>
+                <update_rate>15</update_rate>
+                <always_on>1</always_on>
+                <camera>
+                    <horizontal_fov>${radians(69.4)}</horizontal_fov>
+                    <image>
+                        <width>640</width>
+                        <height>360</height>
+                    </image>
+                    <clip>
+                        <near>0.5</near>
+                        <far>10.0</far>
+                    </clip>
+                </camera>
+            </sensor>
+            <!-- <sensor name="d415/depth" type="depth_camera">
+                <topic>d415/depth</topic>
+                <gz_frame_id>d415_depth_optical_frame</gz_frame_id>
+                <visualize>false</visualize>
+                <update_rate>15</update_rate>
+                <always_on>1</always_on>
+                <camera>
+                    <horizontal_fov>${radians(69.4)}</horizontal_fov>
+                    <image>
+                        <width>640</width>
+                        <height>360</height>
+                    </image>
+                    <clip>
+                        <near>0.5</near>
+                        <far>3.0</far>
+                    </clip>
+                </camera>
+            </sensor> -->
+        </gazebo>
+    </xacro:if>
+
+</robot>

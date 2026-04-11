@@ -90,8 +90,6 @@ class KilnDoorController(Controller):
         return (axis +1)/2
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("kiln_door")
@@ -99,7 +97,7 @@ if __name__ == "__main__":
 
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", KilnDoorController) \
-        .with_hardware("kiln_door", QCMDHardware, can_id = 0xD2) \
+        .with_hardware("kiln_door", QCMDHardware, can_id = 0x032) \
         .with_hardware("current_sensor",GenericSensorHardware, can_id=0x4FF, unit = "current") \
         .with_teleop(inputs) \
         .with_jcan() \

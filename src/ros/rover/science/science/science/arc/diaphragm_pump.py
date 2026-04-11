@@ -23,8 +23,6 @@ from python_control2.hardware_interfaces import QCMDHardware
 from teleop_python_utils import Inputs
 
 if __name__ == "__main__":
-    print("Setting up!") 
-
     rclpy.init()
 
     node = Node("diaphragm_pump")
@@ -37,6 +35,6 @@ if __name__ == "__main__":
             service_name="/science/diaphragm_pump_command",
             topic_name="/science/diaphragm_pump_status"
         ) \
-        .with_hardware("flow", QCMDHardware, can_id=0x032) \
+        .with_hardware("flow", QCMDHardware, can_id=0x0C2) \
         .with_jcan() \
         .spin()

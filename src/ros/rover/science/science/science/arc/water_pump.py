@@ -20,8 +20,6 @@ from python_control2.controllers import EffortCommandController
 from python_control2.hardware_interfaces import QCMDHardware
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("water_pump")
@@ -34,6 +32,6 @@ if __name__ == "__main__":
             service_name="/science/water_pump_command",
             topic_name="/science/water_pump_status"
         ) \
-        .with_hardware("cooling", QCMDHardware, can_id=0x031) \
+        .with_hardware("cooling", QCMDHardware, can_id=0x0D1) \
         .with_jcan() \
         .spin()

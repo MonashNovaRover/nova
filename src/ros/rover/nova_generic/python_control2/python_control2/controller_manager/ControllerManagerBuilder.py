@@ -240,7 +240,7 @@ class ControllerManagerBuilder:
         :param auto_run_rclpy: When True (the default), rclpy.spin() and rclpy.shutdown() will be called automatically
         :return: None
         """
-        self._cm.contexts[Node].get_logger().info(f"Starting python control")
+        self._cm.contexts[Node].get_logger().debug(f"Starting python control")
 
         # Do deferred initialization
         for constructor in self.controller_constructors:

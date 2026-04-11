@@ -61,6 +61,11 @@ let
       description = "Miscellaneous packages";
       nixexprpath = "nixfiles/ci/jobsets/misc.nix";
     })) //
+    (mkJobsets (planRosDistroAndPrJobsets "tests" {
+      description = "Tests";
+      nixexprpath = "nixfiles/ci/jobsets/tests.nix";
+      inputs = novaInputs;
+    })) //
     {
       docs = mkJobset {
         description = "Nova Rover documentation";

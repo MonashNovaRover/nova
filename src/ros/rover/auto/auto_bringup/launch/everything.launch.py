@@ -9,9 +9,8 @@ INCLUDED LAUNCH FILES:
   - gazebo.launch.py
   - drive.launch.py
   - localization.launch.py
-  - rviz.launch.py
   - navigation.launch.py
-  - rtabmap.launch.py
+  - lidar.launch.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
@@ -20,15 +19,25 @@ EDITED:     05/01/2026
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
 
+from os.path import expanduser, exists
+
 def launch_setup(context, *args, **kwargs):
     # package directories
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
+    local = LaunchConfiguration('local')
+
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
     comp = LaunchConfiguration('comp').perform(context).lower()
@@ -47,17 +56,20 @@ def launch_setup(context, *args, **kwargs):
     rviz_params = LaunchConfiguration('rviz_params')
     sim_params = LaunchConfiguration('sim_params')
     use_respawn = LaunchConfiguration('use_respawn')
-    rtabmap = LaunchConfiguration('rtabmap')
-    rtabmap_params = LaunchConfiguration('rtabmap_params')
+    fastlivo2 = LaunchConfiguration('fastlivo2')
+    fastlivo2_params = LaunchConfiguration('fastlivo2_params')
+    mppi_config = LaunchConfiguration('mppi_config')
 
     # comp defaults
     if comp == 'arch':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
+        localization = 'False'
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_arch.yaml'])
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
         gps = 'False'
     elif comp == 'urc':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
+        localization = 'True'
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_urc.yaml'])
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf'])
         gps = 'True'
@@ -65,8 +77,8 @@ def launch_setup(context, *args, **kwargs):
         raise ValueError('"comp" arg must be either "arch" or "urc"')
     
     # comp defaults overrides
-    if LaunchConfiguration('nav2_params_dir').perform(context) != '':
-        nav2_params_dir = LaunchConfiguration('nav2_params_dir')
+    if LaunchConfiguration('localization').perform(context) != '':
+        localization = LaunchConfiguration('localization')
     if LaunchConfiguration('rl_params').perform(context) != '':
         rl_params = LaunchConfiguration('rl_params')
     if LaunchConfiguration('world').perform(context) != '':
@@ -80,11 +92,12 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
                 'comp': comp,
-                'camera':'True',
                 'controller_params': controller_params,
                 'model': model,
                 'namespace': namespace,
                 'world': world,
+                'rviz': rviz,
+                'rviz_params': rviz_params,
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -102,14 +115,6 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
         IncludeLaunchDescription(
-            condition=IfCondition(rviz),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            launch_arguments={
-                'gazebo': gazebo,
-                'rviz_params': rviz_params,
-            }.items()
-        ),
-        IncludeLaunchDescription(
             condition=IfCondition(navigation),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
             launch_arguments={
@@ -123,25 +128,42 @@ def launch_setup(context, *args, **kwargs):
                 'use_respawn': use_respawn,
                 'gazebo': gazebo,
                 'map_params': map_params,
+                'mppi_config': mppi_config,
             }.items()
         ),
         IncludeLaunchDescription(
-            condition=IfCondition(rtabmap),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rtabmap.launch.py'])),
+            condition=IfCondition(fastlivo2),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'lidar.launch.py'])),
             launch_arguments={
-                'rtabmap_params': rtabmap_params,
-                'gazebo': gazebo,
+                'fastlivo2_params': fastlivo2_params,
+                'sim': gazebo,
             }.items(),
         ),
     ]
 
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
-    drive_bringup_dir = FindPackageShare('drive_bringup')
+    local = LaunchConfiguration('local')
+
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+    rover_description_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
+        FindPackageShare('rover_description')
+    )
+    drive_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        FindPackageShare('drive_bringup')
+    )
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='comp',
             default_value='arch',
@@ -162,11 +184,6 @@ def generate_launch_description():
             name='gazebo',
             default_value='True',
             description='Flag to launch gazebo',
-        ),
-        DeclareLaunchArgument(
-            name='localization',
-            default_value='True',
-            description='Flag to robot localization nodes',
         ),
         DeclareLaunchArgument(
             name='log_level',
@@ -200,8 +217,8 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
             name='rviz_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
-            description='Full path to the RViz config file to use',
+            default_value='everything',
+            description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
         ),
         DeclareLaunchArgument(
             name='sim_params',
@@ -214,20 +231,25 @@ def generate_launch_description():
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
         DeclareLaunchArgument(
-            name='rtabmap',
+            name='fastlivo2',
             default_value='True',
-            description='Launch rtabmap?',
+            description='Launch FAST-LIVO2?',
         ),
         DeclareLaunchArgument(
-            name='rtabmap_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'rtabmap.yaml']),
-            description='Params file for RTABMap Nodes',
+            name='fastlivo2_params',
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'fast_livo2', 'fastlivo2.yaml']),
+            description='Params file for FAST-LIVO2 Nodes',
+        ),
+        DeclareLaunchArgument(
+            name='mppi_config',
+            default_value='regular',
+            description='Name of the MPPI config to use (without .yaml)',
         ),
         # arguments with comp defaults
         DeclareLaunchArgument(
-            name='nav2_params_dir',
+            name='localization',
             default_value='',
-            description='Full path to the folder with ROS2 parameters files to use with all nodes',
+            description='Run robot_localization?',
         ),
         DeclareLaunchArgument(
             name='rl_params',

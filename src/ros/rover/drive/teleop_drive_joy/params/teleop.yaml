@@ -6,6 +6,15 @@ teleop_drive_joy_node:
     handbrake_speed_multiplier: 0.6
     trigger_pressed_threshold: 0.1
 
+    autolock_enable: true
+    autolock_threshold_error_count: 0
+    autolock_threshold_error_duration: 2250
+    autolock_error_active_duration: 500
+    autolock_override: false  # only change dynamically via service call or command line (edit autolock_enable instead)
+
+    lock_on_gamepad_disconnected: true
+    gamepad_connection_timeout: 2000
+
     rumble_enable: true
     # rumble is currently updated every 50ms (period that drive joint states is published at),
     # so rumble_delay is actually ceiling(rumble_delay / 50) * 50
@@ -23,6 +32,7 @@ teleop_drive_joy_node:
     drive_info_topic: /drive/drive_info
     joint_states_topic: /drive/joint_states
     joy_feedback_topic: /drive/joy/set_feedback
+    blcmd_log_topic: /drive/blcmd_log
 
     controllers:
       - pivot_drive_controller

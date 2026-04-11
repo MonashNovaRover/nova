@@ -117,7 +117,7 @@ class PresetTwitchController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting {self.hardware_name}/position")
+        self.logger.debug(f"Getting {self.hardware_name}/position")
         self.rotation_cmd = command_interfaces[f"{self.hardware_name}/position"]
 
         # Validate angles

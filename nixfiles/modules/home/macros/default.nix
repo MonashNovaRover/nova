@@ -45,8 +45,9 @@ in
       shellAliases = lib.mkMerge [
         pkgs.nova.nova.config.shellAliases
         rec {
-          # Poweroff
+          # System
           off = "sudo poweroff";
+          kfc = "can stop can0";
 
           # Nix CLI shortcuts
           nova-build = "nom-build ${cfg.nixfileDir}";
@@ -125,14 +126,12 @@ in
           launch-theta-orin = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
 
           # Cameras
-          launch-cameras = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params'";
-          launch-cameras-all = "${launch-cameras} autostart:=true";
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
 
-          # Temporary aliases (remove when a better solution has been implemented)
-          cameras-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=rover param-dir:='/home/nvidia/nova/src/ros/cameras2/cameras2/params' autostart:=true";
-          cameras-orin = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
-          cameras-ec = "~/Builds/cameras2legacyarm/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params payload:=arm";
+          cameras = "~/Builds/master/bin/ros2 launch cameras cameras.launch.py platform:=orin param_dir:=/home/nova/nova/src/ros/cameras/cameras3/params";
+          cameras3 = "~/Builds/master/bin/ros2 launch cameras cameras.launch.py platform:=orin param_dir:=/home/nova/nova/src/ros/cameras/cameras3/params";
+          cameras2 = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
+          cameras2-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
           nix-enable = "sudo systemctl enable nix-daemon.service";
           nix-start = "sudo systemctl start nix-daemon.service";
 
@@ -176,12 +175,17 @@ in
           launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
           launch-auto-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
           launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak.launch.py";
+          launch-realsense = "~/Builds/master/bin/ros2 launch auto_bringup realsense.launch.py";
           launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
+          launch-lidar = "~/Builds/master/bin/ros2 launch auto_bringup lidar.launch.py";
           launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
           launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
           launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
+          launch-auto-urdf = "~/Builds/master/bin/ros2 launch auto_bringup urdf.launch.py";
           launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
           oak-gui = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
+          scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
+          start-arch = "~/Builds/master/bin/ros2 run nova_utils start_auto_arch.py";
 
           # GPS
           launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";

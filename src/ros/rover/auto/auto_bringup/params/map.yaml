@@ -24,12 +24,12 @@
 # free_thresh: 0.196          # Pixels with occupancy probability less than this threshold are considered completely free.
 
 # clear map (no obstacles)
-image: ../maps/clear_map_2.png     
-resolution: 0.1
-origin: [-100, -100, 0]
-negate: 0
-occupied_thresh: 0.65
-free_thresh: 0.196 
+# image: ../maps/1_10m_p.png     
+# resolution: 0.1
+# origin: [-16, -14.5, 0]
+# negate: 0
+# occupied_thresh: 0.65
+# free_thresh: 0.196 
 
 # 2025 Comp Sims
 # image: ../maps/comp_sim_ARCh_2025.png
@@ -39,10 +39,18 @@ free_thresh: 0.196
 # occupied_thresh: 0.65
 # free_thresh: 0.196  
 
-#2025 comp
+# 2025 comp
 # image: ../maps/COMPMAP.png     
 # resolution: 0.100000
 # origin: [-7.637181, -10.487444, 0]
 # negate: 0
 # occupied_thresh: 0.65
 # free_thresh: 0.196 
+
+# 2026 ARCh Comp
+image: ../maps/ARCh_2026_COMP_MAP_WITH_ROCKS.png     
+resolution: 0.12 # 30 m / 250 pixels
+origin: [-3.63, -16.5185, 0]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196 

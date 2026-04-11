@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 project(teleop_drive_joy LANGUAGES CXX)
 
+# Default to C++23
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 23)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   control_msgs
   geometry_msgs
@@ -9,6 +15,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   drive_interfaces
   input_interfaces
   nova_interfaces
+  blcmd_interfaces
   pluginlib
   rclcpp
   realtime_tools

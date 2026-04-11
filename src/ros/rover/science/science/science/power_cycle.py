@@ -72,8 +72,6 @@ class PowerCycleController(Controller):
         return response
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("power_cycle")

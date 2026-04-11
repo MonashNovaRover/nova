@@ -70,7 +70,7 @@ class AugerController(Controller):
         :returns: None or True if configured successfully. False otherwise.
         """
         # Save references to interfaces
-        self.logger.info(f"Getting actuation/effort and drill/effort")
+        self.logger.debug(f"Getting actuation/effort and drill/effort")
         self.actuation_cmd = command_interfaces["actuation/effort"]
         self.drill_cmd = command_interfaces["drill/effort"]
 
@@ -104,8 +104,6 @@ class AugerController(Controller):
 
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("auger")
@@ -114,8 +112,8 @@ if __name__ == "__main__":
     # ARCh auger system
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", AugerController) \
-        .with_hardware("actuation", QCMDHardware, can_id=0xC2) \
-        .with_hardware("drill", QCMDHardware, can_id=0xC1) \
+        .with_hardware("actuation", QCMDHardware, can_id=0x031) \
+        .with_hardware("drill", QCMDHardware, can_id=0x041) \
         .with_teleop(inputs) \
         .with_activation_buttons(
             start_active=True, 

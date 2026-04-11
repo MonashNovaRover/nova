@@ -134,3 +134,22 @@ ackermann_steering_controller:
     wheelbase: 0.95752883 # 0.875 for Waratah
     front_wheels_radius: 0.15692321 # 0.15 for Waratah
     rear_wheels_radius: 0.15692321 # 0.15 for Waratah
+
+blcmd_status_monitor:
+  ros__parameters:
+
+    # auto blcmd reset parameters
+    enable_auto_blcmd_reset: true
+    max_resets: 5
+    reset_timeout: 5
+    auto_reset_drive_blmcd_ids: [1, 2, 3, 4]
+    auto_reset_pivot_blmcd_ids: [5, 6, 7, 8]
+
+    blcmd_zero_response_timeout: 3
+    canbus: can0
+    error_active_duration: 2
+    log_gate_driver_condition: false
+    num_blcmds: 8
+    output_max_frequency: 1
+    publish_log_max_frequency: 10
+    publish_status_frequency: 2

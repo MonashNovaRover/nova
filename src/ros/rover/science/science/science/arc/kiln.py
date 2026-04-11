@@ -81,10 +81,10 @@ class HeaterController(Controller):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-        self.logger.info(f"Getting {[h + "/effort" for h in self.heaters]} command interfaces")
+        self.logger.debug(f"Getting {[h + "/effort" for h in self.heaters]} command interfaces")
         self.heater_cmds = [command_interfaces[h + "/effort"] for h in self.heaters]
 
-        self.logger.info("Getting temp_sensors/temperature state interface")
+        self.logger.debug("Getting temp_sensors/temperature state interface")
         self.temp_sensors_state = state_interfaces["temp_sensors/temperature"]
 
         self.kiln_data_publisher = self.node.create_publisher(KilnData, self.data_topic, 5)
@@ -92,7 +92,7 @@ class HeaterController(Controller):
 
         self.kiln_command_service = self.node.create_service(KilnCommand, self.command_service, self.kiln_command_callback)
 
-        self.logger.info(f"HeaterController {self.name} configured")
+        self.logger.debug(f"HeaterController {self.name} configured")
 
         return True
 
@@ -154,8 +154,8 @@ if __name__ == "__main__":
                          calculate_reference_temp = lambda l: l[0], # use kiln_sensor temperature as the current/reference temp
                          command_service = "/science/kiln_command",
                          data_topic = "/science/kiln_data") \
-        .with_hardware("left_heater", QCMDHardware, can_id = 0x41) \
-        .with_hardware("right_heater", QCMDHardware, can_id = 0x42) \
+        .with_hardware("left_heater", QCMDHardware, can_id = 0x0C1) \
+        .with_hardware("right_heater", QCMDHardware, can_id = 0x0D2) \
         .with_hardware("temp_sensors", GenericSensorHardware,
                        can_id=0x4E1,
                        interpret_data=lambda data: [((data[0] << 8) | data[1]) - 273.15, 

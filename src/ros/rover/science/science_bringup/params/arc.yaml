@@ -88,7 +88,7 @@ auger:
         reversed: false
       drill:
         can_id: 0x041
-        max_effort: 0.5
+        max_effort: 0.9
         reversed: false
 
 chute:

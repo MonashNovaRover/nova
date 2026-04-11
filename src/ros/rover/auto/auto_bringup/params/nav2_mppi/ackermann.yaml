@@ -1,0 +1,151 @@
+controller_server:
+  ros__parameters:
+    RotationShimMPPI:
+      plugin: "nav2_mppi_controller::MPPIController"
+      # plugin: "nav2_rotation_shim_controller::RotationShimController"
+      # primary_controller: "nav2_mppi_controller::MPPIController"
+      # angular_dist_threshold: 2.0         # ~115 degrees
+      # angular_disengage_threshold: 1.13   # ~65 degrees
+      # forward_sampling_distance: 0.5
+      # rotate_to_heading_angular_vel: 1.57
+      # max_angular_accel: 3.2
+      # simulate_ahead_time: 1.0
+      # rotate_to_goal_heading: false
+      
+      # MPPI params
+      # Angular and velocity limits are more loosely set here to allow for the planning of
+      # more aggressive trajectories. The velocity smoother sets stricter limits to ensure
+      # the planned trajectories are still accurately followed.
+      #
+      # Higher vx_std and wz_std values allow for more aggressive trajectories, but can lead
+      # to more oscillation and more variable paths. Tuning these is a balance between allowing
+      # for aggressive obstacle avoidance and maintaining smooth and accurate control.
+      #
+      # Obstacle avoidance behaviour is closely linked to the inflation layer and the Cost Critic.
+      # Read https://docs.nav2.org/configuration/packages/configuring-mppic.html#general-words-of-wisdom.
+      # The inflation radius guides the controller to plan trajectories around and between obstacles.
+      # The inflation cost scaling factor determines how close the controller is willing to plan around
+      # obstacles. Higher values allow the controller to plan closer, whereas lower values will cause
+      # the controller to plan further around obstacles.
+      #
+      # prediction horizon (m) = v_max * time_steps * model_dt
+
+      time_steps: 40
+      model_dt: 0.1
+      batch_size: 2000
+      vx_std: 0.3   # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
+      vy_std: 0.2   # only used in Omni motion model
+      wz_std: 0.6   # similar to vx_std, higher values allow trajectories with higher rotation
+      vx_max: 0.3   # max linear velocity, ~3.6 km/h
+      vx_min: -0.21 # vx_max * 0.7
+      vy_max: 0.5   # only used in Omni motion model
+      wz_max: 0.78  # max angular velocity (rad/s), ~90 degrees/s
+      ax_max: 4.0   # max linear acceleration. going lower gives preference to rotational trajectories
+      ax_min: -4.0 
+      ay_max: 3.0   # only used in Omni motion model
+      ay_min: -3.0  # only used in Omni motion model
+      az_max: 4.0   # max angular acceleration
+      iteration_count: 1
+      transform_tolerance: 0.1
+      temperature: 0.3
+      motion_model: "Ackermann" # if holonomic drive works, can try "Omni"
+      prune_distance: 1.7       # slightly longer than prediction horizon
+      visualize: true
+      TrajectoryVisualizer:
+        trajectory_step: 10
+        time_step: 6
+      AckermannConstraints:
+        min_turning_r: 0.5 # min turning radius in m
+      critics: ["ConstraintCritic", "CostCritic", "GoalCritic", "GoalAngleCritic",
+                "PathAlignCritic", "PathFollowCritic", "PathAngleCritic",
+                "PreferForwardCritic", "VelocityDeadbandCritic", "TwirlingCritic"]
+      ConstraintCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 4.0
+      GoalCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 1.2 # prediction horizon
+      GoalAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 3.0
+        threshold_to_consider: 0.5
+      # The Cost Critic incentivizes navigating away from obstacles and critical collisions
+      # Setting the weight too high will cause the robot to stop upon reaching an obstacle
+      # instead of trying to navigate around it.
+      CostCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.3
+        critical_cost: 300.0
+        consider_footprint: true
+        collision_cost: 1000000.0
+        near_goal_distance: 1.0
+        trajectory_point_step: 2
+      PathAlignCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 14.0
+        max_path_occupancy_ratio: 0.05
+        trajectory_point_step: 4
+        threshold_to_consider: 0.5
+        offset_from_furthest: 8 # prediction horizon / path_resolution / 3.0
+        use_path_orientations: false
+      PathFollowCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        offset_from_furthest: 6
+        threshold_to_consider: 1.2 # prediction horizon
+      PathAngleCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 2.0
+        offset_from_furthest: 4 # ~PathAlignCritic.offset_from_furthest / 2.0 (not thoroughly tuned)
+        threshold_to_consider: 0.5
+        max_angle_to_furthest: 1.0
+        mode: 0
+      PreferForwardCritic:
+        enabled: true
+        cost_power: 1
+        cost_weight: 5.0
+        threshold_to_consider: 0.5
+      VelocityDeadbandCritic:
+        enabled: false
+        cost_power: 1
+        cost_weight: 35.0
+        deadband_velocities: [0.05, 0.05, 0.02]
+      TwirlingCritic:
+        enabled: false
+        twirling_cost_power: 1
+        twirling_cost_weight: 10.0
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 4.0
+        # robot radius = 0.64
+        inflation_radius: 1.6 # robot radius * 2.5
+
+velocity_smoother:
+  ros__parameters:
+    smoothing_frequency: 30.0
+    scale_velocities: False
+    feedback: "OPEN_LOOP"
+    # Angular velocity and acceleration limits are more strict than in MPPI.
+    # This is to allow MPPI to plan more aggressive trajectories while still
+    # ensuring the controller can follow them accurately.
+    max_velocity: [0.3, 0.0, 0.52]
+    min_velocity: [-0.21, 0.0, -0.52]
+    max_accel: [4.0, 0.0, 4.0]
+    max_decel: [-4.0, 0.0, -4.0]
+    odom_topic: /odometry/filtered
+    odom_duration: 0.1
+    # deadband_velocity: [0.01, 0.01, 0.01]
+    velocity_timeout: 1.0
+    enable_stamped_cmd_vel: True

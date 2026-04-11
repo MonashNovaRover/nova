@@ -5,6 +5,7 @@
 , nova-drive-interfaces
 , nova-input-interfaces
 , nova-interfaces
+, nova-blcmd-interfaces
 , rclcpp
 , joy
 , geometry-msgs
@@ -36,6 +37,7 @@ buildRosPackage {
     nova-drive-interfaces
     nova-input-interfaces
     nova-interfaces
+    nova-blcmd-interfaces
     control-msgs
     rclcpp
     std-srvs

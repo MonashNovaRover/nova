@@ -157,7 +157,12 @@ class BLCMDEmulator(candevice.CanDevice):
         self.prev_pos = self.pos
 
         if (self.pos_control):
-            self.pos = self.target_pos
+            error = self.pos - self.target_pos
+            # limit position velocity to 1rad/s
+            if error > 0:
+                self.pos -= min(error, delta*1)
+            else:
+                self.pos -= max(error, -delta*1)
 
         if (self.vel_control):
             self.pos += self.target_vel*delta;

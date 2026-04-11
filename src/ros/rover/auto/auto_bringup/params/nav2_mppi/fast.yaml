@@ -1,0 +1,69 @@
+# Only the relevant changed params are included here.
+# Other (essential) params are defined in controller_server.yaml, local_costmap.yaml,
+# and velocity_smoother.yaml to avoid duplication across MPPI configs.
+
+controller_server:
+  ros__parameters:
+    RotationShimMPPI:
+      # MPPI params
+      # Angular and velocity limits are more loosely set here to allow for the planning of
+      # more aggressive trajectories. The velocity smoother sets stricter limits to ensure
+      # the planned trajectories are still accurately followed.
+      #
+      # Higher vx_std and wz_std values allow for more aggressive trajectories, but can lead
+      # to more oscillation and more variable paths. Tuning these is a balance between allowing
+      # for aggressive obstacle avoidance and maintaining smooth and accurate control.
+      #
+      # Obstacle avoidance behaviour is closely linked to the inflation layer and the Cost Critic.
+      # Read https://docs.nav2.org/configuration/packages/configuring-mppic.html#general-words-of-wisdom.
+      # The inflation radius guides the controller to plan trajectories around and between obstacles.
+      # The inflation cost scaling factor determines how close the controller is willing to plan around
+      # obstacles. Higher values allow the controller to plan closer, whereas lower values will cause
+      # the controller to plan further around obstacles.
+      #
+      # prediction horizon (m) = v_max * time_steps * model_dt
+
+      vx_std: 0.3   # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
+      vy_std: 0.2   # only used in Omni motion model
+      wz_std: 0.6   # similar to vx_std, higher values allow trajectories with higher rotation
+      vx_max: 0.7   # max linear velocity, ~3.6 km/h
+      vx_min: -0.49 # vx_max * 0.7
+      vy_max: 0.5   # only used in Omni motion model
+      wz_max: 0.78  # max angular velocity (rad/s), ~90 degrees/s
+      ax_max: 4.0   # max linear acceleration. going lower gives preference to rotational trajectories
+      ax_min: -4.0 
+      ay_max: 3.0   # only used in Omni motion model
+      ay_min: -3.0  # only used in Omni motion model
+      az_max: 4.0   # max angular acceleration
+      temperature: 0.3
+      prune_distance: 3.2       # slightly longer than prediction horizon
+      visualize: true
+      GoalCritic:
+        threshold_to_consider: 2.8 # prediction horizon
+      # The Cost Critic incentivizes navigating away from obstacles and critical collisions
+      # Setting the weight too high will cause the robot to stop upon reaching an obstacle
+      # instead of trying to navigate around it.
+      PathAlignCritic:
+        offset_from_furthest: 19 # prediction horizon / path_resolution / 3.0
+      PathFollowCritic:
+        threshold_to_consider: 2.8 # prediction horizon
+      PathAngleCritic:
+        offset_from_furthest: 9 # ~PathAlignCritic.offset_from_furthest / 2.0 (not thoroughly tuned)
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      inflation_layer:
+        cost_scaling_factor: 4.0
+        # robot radius = 0.64
+        inflation_radius: 1.6 # robot radius * 2.5
+
+velocity_smoother:
+  ros__parameters:
+    # Angular velocity and acceleration limits are more strict than in MPPI.
+    # This is to allow MPPI to plan more aggressive trajectories while still
+    # ensuring the controller can follow them accurately.
+    max_velocity: [0.7, 0.0, 0.52]
+    min_velocity: [-0.49, 0.0, -0.52]
+    max_accel: [4.0, 0.0, 4.0]
+    max_decel: [-4.0, 0.0, -4.0]

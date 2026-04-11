@@ -30,6 +30,12 @@ from rclpy.node import Node
 from rosidl_runtime_py.utilities import get_message
 
 
+class Colour:
+    RED = '\033[1;31m'
+    GREEN = '\033[1;32m'
+    YELLOW = '\033[0;33m'
+    END = '\033[0m'
+
 class TopicWaiter(Node):
     def __init__(self):
         super().__init__('topic_waiter')
@@ -51,7 +57,7 @@ class TopicWaiter(Node):
         def get_topic_active_cb(i):
             def callback(_): # discard the msg
                 self.topics_active[i] = True
-                self.get_logger().info(f'Data received on topic: {self.topics[i]}')
+                self.get_logger().info(f'{Colour.GREEN}Data received on topic: {self.topics[i]}{Colour.END}')
                 self.destroy_subscription(self.subs[i])
             return callback
 
@@ -71,17 +77,17 @@ class TopicWaiter(Node):
                     qos_profile=1,
                 )
                 self.subs[i] = sub
-                self.get_logger().info(f'Subscribed to topic: {self.topics[i]}')
+                self.get_logger().info(f'{Colour.GREEN}Subscribed to topic: {self.topics[i]}{Colour.END}')
             else:
-                self.get_logger().info(f'Waiting for topic to exist: {self.topics[i]}')
+                self.get_logger().info(f'{Colour.YELLOW}Waiting for topic to exist: {self.topics[i]}{Colour.END}')
                 break
         
         # All topics have received data
         if all(self.topics_active):
-            self.get_logger().info('All required topics are active, exiting.')
+            self.get_logger().info(f'{Colour.GREEN}All required topics are active, exiting.{Colour.END}')
             rclpy.shutdown()
         elif (self.get_clock().now().nanoseconds / 1e9 - self.start_time) > self.timeout:
-            self.get_logger().error('Timed out waiting for topics.')
+            self.get_logger().error(f'{Colour.RED}Timed out waiting for topics.{Colour.END}')
             rclpy.shutdown()
         
 

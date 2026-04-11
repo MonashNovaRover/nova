@@ -18,7 +18,7 @@ controller_server:
       plugin: "nav2_controller::PoseProgressChecker"
       required_movement_radius: 0.3 # Minimum amount a robot must move to be progressing to goal (m).
       required_movement_angle: 0.5  # Minimum amount a robot must rotate to be progressing to goal (rad).
-      movement_time_allowance: 10.0 # Maximum amount of time (sec) a robot has to move the minimum radius or the minimum angle.
+      movement_time_allowance: 60.0 # Maximum amount of time (sec) a robot has to move the minimum radius or the minimum angle.
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.5
@@ -31,7 +31,7 @@ controller_server:
       # plugin: "nav2_mppi_controller::MPPIController"
       plugin: "nav2_rotation_shim_controller::RotationShimController"
       primary_controller: "nav2_mppi_controller::MPPIController"
-      angular_dist_threshold: 2.0         # ~115 degrees
+      angular_dist_threshold: 1.48        # ~85 degrees
       angular_disengage_threshold: 1.13   # ~65 degrees
       forward_sampling_distance: 0.5
       rotate_to_heading_angular_vel: 1.57
@@ -138,10 +138,10 @@ controller_server:
         cost_weight: 5.0
         threshold_to_consider: 0.5
       VelocityDeadbandCritic:
-        enabled: false
+        enabled: true
         cost_power: 1
         cost_weight: 35.0
-        deadband_velocities: [0.05, 0.05, 0.02]
+        deadband_velocities: [0.05, 0.05, 0.05]
       TwirlingCritic:
         enabled: false
         twirling_cost_power: 1

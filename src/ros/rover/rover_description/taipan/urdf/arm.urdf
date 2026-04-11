@@ -1030,7 +1030,7 @@
     <origin xyz="0 -0.02099 -0.04071" rpy="-1.5708 1.309 2.14032e-13"/>
     <parent link="diff_support"/>
     <child link="ee_base"/>
-    <axis xyz="0 0 1"/>
+    <axis xyz="0 0 -1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
   </joint>
   <!-- Joint from cf_link to diff_support -->

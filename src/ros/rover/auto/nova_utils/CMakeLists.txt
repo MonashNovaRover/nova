@@ -47,12 +47,14 @@ install(PROGRAMS
   scripts/gz_frame_fixer.py
   scripts/gz_gps_fixer.py
   scripts/gz_imu_fixer.py
+  scripts/livox_field_republisher.py
   scripts/load_waypoint.py
   scripts/quaternion_to_euler.py
   scripts/record_metrics.py
   scripts/save_waypoint.py
   scripts/service_listener.py
   scripts/start_auto_2.py
+  scripts/start_auto_arch.py
   scripts/start_auto.py
   scripts/test_start_auto.py
   scripts/topic_waiter.py

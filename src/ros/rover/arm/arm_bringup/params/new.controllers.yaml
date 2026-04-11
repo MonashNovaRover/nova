@@ -8,8 +8,8 @@ arm:
       nova_arm_velocity_controller:
         type: nova_arm_controller/NovaArmController
 
-      #nova_arm_position_controller:
-      #  type: nova_arm_controller/NovaArmController
+      nova_arm_position_controller:
+        type: nova_arm_controller/NovaArmController
       
       nova_end_effector_velocity_controller:
         type: nova_arm_controller/NovaArmController
@@ -37,7 +37,7 @@ arm:
         - j5
         - j6
       use_position_control: false
-      use_collision_limits: true
+      use_collision_limits: false
       do_4bar: true
       j2_minus_j3:
         j2_idx: 1 # this is badly designed.
@@ -50,8 +50,8 @@ arm:
       joint_limits:
         j1:
           has_position_limits: true
-          max_position: 3.14
-          min_position: -3.14
+          max_position: 1.57
+          min_position: -1.57
         j2:
           has_position_limits: true
           max_position: 2.35
@@ -65,12 +65,12 @@ arm:
           max_position: 3.14
           min_position: -3.14
         j5: # wrist pitch
-          has_position_limits: true # TODO: Need time to figure out what was going on with this!
+          has_position_limits: true
           max_position: -0.1153
           min_position: -2.44
         j6: # wrist roll
           has_position_limits: true
-          max_position: 6.0 # TODO: is this enough to make the resolver get to 0xffff and have the position feedback overflow
+          max_position: 6.0
           min_position: -6.0
 
   nova_arm_position_controller:
@@ -86,39 +86,51 @@ arm:
       use_position_control: true
       velocity_feedback: true
       position_feedback: true
-      use_collision_limits: true
-      use_limits: true
+      use_collision_limits: false
       do_4bar: true
       j2_minus_j3:
         j2_idx: 1 # this is badly designed.
         j3_idx: 2
-        max_position: 0.75
+        max_position: 0.8487
         min_position: -1.0
+      use_limits: true
       joint_limits:
         j1:
           has_position_limits: true
-          max_position: 3.14
-          min_position: -3.14
+          max_position: 1.57
+          min_position: -1.57
+          has_velocity_limits: true
+          max_velocity: 0.2
         j2:
           has_position_limits: true
           max_position: 2.35
-          min_position: -1.57
+          min_position: -1.6364
+          has_velocity_limits: true
+          max_velocity: 0.2
         j3:
           has_position_limits: true
           max_position: 2.9
-          min_position: -0.78
+          min_position: -0.6535
+          has_velocity_limits: true
+          max_velocity: 0.2
         j4:
           has_position_limits: true
-          max_position: 1.57
-          min_position: -1.57
+          max_position: 3.14
+          min_position: -3.14
+          has_velocity_limits: true
+          max_velocity: 0.1
         j5: # wrist pitch
           has_position_limits: true
-          max_position: 0.0
-          min_position: -3.14
+          max_position: -0.1153
+          min_position: -2.44
+          has_velocity_limits: true
+          max_velocity: 0.1
         j6: # wrist roll
           has_position_limits: true
-          max_position: 1.57
-          min_position: -1.57
+          max_position: 6.0
+          min_position: -6.0
+          has_velocity_limits: true
+          max_velocity: 0.1
     
   nova_end_effector_velocity_controller:
     ros__parameters:

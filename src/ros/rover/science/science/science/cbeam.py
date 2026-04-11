@@ -20,8 +20,6 @@ from python_control2.hardware_interfaces import QCMDHardware
 from teleop_python_utils import Inputs
 
 if __name__ == "__main__":
-    print("Setting up!")
-
     rclpy.init()
 
     node = Node("cbeam")
@@ -35,7 +33,7 @@ if __name__ == "__main__":
             hardware_name="actuation",
             actuation_axis="cbeam_actuation"
         ) \
-        .with_hardware("actuation", QCMDHardware, can_id=0xC2) \
+        .with_hardware("actuation", QCMDHardware, can_id=0x042) \
         .with_teleop(inputs) \
         .with_activation_buttons(start_active=False, active_button_name="activate_cbeam", inactive_button_pool_names=["activate_analysis_arm"]) \
         .with_jcan() \

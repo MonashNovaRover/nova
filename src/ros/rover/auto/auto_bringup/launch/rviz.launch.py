@@ -1,23 +1,31 @@
-import os
 from launch import LaunchDescription
-from launch.conditions.unless_condition import IfCondition
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
+from launch.actions import DeclareLaunchArgument
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import OpaqueFunction, ExecuteProcess
 
+from os.path import expanduser, exists
+
 def launch_setup(context, *args, **kwargs):
     # package directories
-    auto_bringup_dir = FindPackageShare('auto_bringup')
+    local = LaunchConfiguration('local')
 
-    gazebo = LaunchConfiguration('gazebo')
-    rtabmap_viz = LaunchConfiguration('rtabmap_viz').perform(context)
-    rviz_params = LaunchConfiguration('rviz_params')
+    auto_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/auto/auto_bringup']),
+        FindPackageShare('auto_bringup')
+    )
+
+    gazebo = LaunchConfiguration('gazebo').perform(context)
+    rviz_params = LaunchConfiguration('rviz_params').perform(context)
     model = LaunchConfiguration('model').perform(context)
-    urdf = LaunchConfiguration('urdf')
+    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount').perform(context)
+    robot_name = LaunchConfiguration('robot_name').perform(context)
+    
+    rviz_params = PathJoinSubstitution([auto_bringup_dir, 'rviz', rviz_params + '.rviz'])
+    if not exists(rviz_params.perform(context)):
+        raise ValueError(f"RViz config file {rviz_params.perform(context)} does not exist")
 
     return [
         Node(
@@ -27,50 +35,40 @@ def launch_setup(context, *args, **kwargs):
             name='rviz2',
             arguments=['-d', [rviz_params]]
         ),
-        Node(
-            condition=IfCondition(rtabmap_viz),
-            package='rtabmap_viz',
-            executable='rtabmap_viz',
-            output='screen',
-            parameters=[{
-                "subscribe_rgbd": True,
-                "use_sim_time": gazebo}],
-            remappings=[
-                ('rgbd_image','oak/rgbd/image_raw'),
-                ('odom', 'odom/visual'),
-            ],
-        ),
         ExecuteProcess(
-            cmd=["xacro", model, '-o', os.path.expanduser("~/rviz.urdf")],
+            cmd=['xacro', model,
+                 f'gazebo:={gazebo}',
+                 f'robot_name:={robot_name}',
+                 'auto_mount:=True',
+                 f'shortened_auto_mount:={shortened_auto_mount}',
+                 '-o', expanduser("~/rviz.urdf")],
             output="screen"
-        ),
-        IncludeLaunchDescription(
-            condition=IfCondition(urdf),
-            launch_description_source=PythonLaunchDescriptionSource(
-                PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model}.items(),
         ),
     ]
 
 def generate_launch_description():
-    auto_bringup_dir = FindPackageShare('auto_bringup')
-    rover_description_dir = FindPackageShare('rover_description')
+    local = LaunchConfiguration('local')
 
-    launch_args = [
+    rover_description_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/rover_description']),
+        FindPackageShare('rover_description')
+    )
+
+    declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='False',
+            description='Whether to use local directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='gazebo',
             default_value='false',
             description='',
         ),
         DeclareLaunchArgument(
-            name='rtabmap_viz',
-            default_value='false',
-            description='Launch rtabmap_viz for mapping visualisation',
-        ),
-        DeclareLaunchArgument(
             name='rviz_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'rviz', 'everything.rviz']),
-            description='Full path to the RViz config file to use',
+            default_value='everything',
+            description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
         ),
         DeclareLaunchArgument(
             name='model',
@@ -78,10 +76,17 @@ def generate_launch_description():
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
-            name='urdf',
-            default_value='False',
-            description='Launch URDF?',
+            name='shortened_auto_mount',
+            default_value='True',
+            description='Whether to use the shortened auto mount model',
+        ),
+        DeclareLaunchArgument(
+            name='robot_name',
+            default_value='Banksia',
+            description='name of the robot',
         ),
     ]
 
-    return LaunchDescription( launch_args + [OpaqueFunction(function=launch_setup)])
+    return LaunchDescription(
+        declared_arguments + [OpaqueFunction(function=launch_setup)]
+    )

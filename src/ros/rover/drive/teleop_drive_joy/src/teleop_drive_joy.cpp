@@ -19,6 +19,7 @@
 #include <utility>
 #include <tuple>
 #include <algorithm>
+#include <chrono>
 
 #include "teleop_drive_joy/teleop_drive_joy.hpp"
 
@@ -33,10 +34,12 @@ TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   : Node("teleop_drive_joy_node", options)
   , sent_lock_msg_(false)
   , locked_(true)
+  , locked_reason_(drive_interfaces::msg::DriveInfo::START_LOCKED)
   , drive_mode_(DriveMode::PIVOT)
   , handbrake_pressed_(false)
   , autonomous_mode_(false) // assume (maybe incorrectly) until set_autonomous_mode_for_controllers is called
   , connected_(false)
+  , autolock_override_trigger(false)
 {
 }
 
@@ -104,7 +107,7 @@ void TeleopDriveJoy::initialize()
   print_controls();
 
   // initialize connection timer
-  connection_timer_ = this->create_timer(0.5s, [this]()
+  connection_timer_ = this->create_timer(std::chrono::milliseconds(params_.gamepad_connection_timeout), [this]()
   {
     set_connected(false);
     connection_timer_->cancel();
@@ -122,12 +125,16 @@ void TeleopDriveJoy::initialize_params()
 {
   param_listener_ = std::make_shared<ParamListener>(this->shared_from_this());
   params_ = param_listener_->get_params();
+  speed_ = params_.initial_speed;
+}
 
+void TeleopDriveJoy::update_params()
+{
   if (param_listener_->is_old(params_))
   {
     params_ = param_listener_->get_params();
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Parameters updated" << C_END);
   }
-  speed_ = params_.initial_speed;
 }
 
 void TeleopDriveJoy::initialize_interfaces()
@@ -148,12 +155,12 @@ void TeleopDriveJoy::initialize_interfaces()
   drive_info_pub_ = this->create_publisher<drive_interfaces::msg::DriveInfo>(
     params_.drive_info_topic, rclcpp::QoS(1).transient_local());
 
-  if (params_.rumble_enable)
-  {
-    joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-      params_.joint_states_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joint_states_callback, this, _1));
-    joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
-  }
+  joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
+    params_.joint_states_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joint_states_callback, this, _1));
+  joy_feedback_pub_ = this->create_publisher<sensor_msgs::msg::JoyFeedback>(params_.joy_feedback_topic, 10);
+
+  blcmd_log_sub_ = this->create_subscription<blcmd_interfaces::msg::BLCMDLog>(
+    params_.blcmd_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::blcmd_log_callback, this, _1));
 }
 
 void TeleopDriveJoy::map_button_callbacks()
@@ -172,6 +179,7 @@ void TeleopDriveJoy::map_button_callbacks()
     if (!locked_)
     {
       locked_ = true;
+      locked_reason_ = drive_interfaces::msg::DriveInfo::LOCK_BUTTON;
       RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked" << C_END);
       send_drive_info();
     }
@@ -240,11 +248,50 @@ void TeleopDriveJoy::map_button_callbacks()
   {
     change_speed(params_.speed_change_coarse_val);
   };
+
+  axis_callbacks_[params_.axis_override_autolock] = {
+
+    {
+      .start = -params_.trigger_pressed_threshold,
+      .callback = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+      {
+        if (autolock_override_trigger)
+        {
+          autolock_override_trigger = false;
+          RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Autolock trigger override deactivated" << C_END);
+          send_drive_info();
+        }
+      },
+    },
+
+    {
+      .end = -params_.trigger_pressed_threshold,
+      .callback = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+      {
+        if (not autolock_override_trigger)
+        {
+          autolock_override_trigger = true;
+          RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Autolock trigger override activated" << C_END);
+          send_drive_info();
+        }
+      },
+    },
+
+    // TODO: toggle handbrake here instead of in send_drive_command
+
+  };
 }
 
 void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
 {
+  update_params();
   handle_button_callbacks(joy_msg);
+  handle_axis_callbacks(joy_msg);
+
+  if (params_.autolock_enable)
+  {
+    apply_autolock();
+  }
 
   if (!locked_)
   {
@@ -279,6 +326,38 @@ void TeleopDriveJoy::handle_button_callbacks(const sensor_msgs::msg::Joy::Shared
     {
       last_button_press_time_[button_index] = now;
       button_callback(joy_msg);
+    }
+  }
+}
+
+void TeleopDriveJoy::handle_axis_callbacks(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+{
+  auto inCallbackRange = [this, joy_msg](const int axis_index, const AxisCallback& axis_callback) -> bool
+  {
+    double axis_value = joy_msg->axes[axis_index];
+
+    bool in_range = true;
+    if (axis_callback.start.has_value() and axis_value < axis_callback.start.value())
+    {
+      in_range = false;
+    }
+    if (axis_callback.end.has_value() and axis_value > axis_callback.end.value())
+    {
+      in_range = false;
+    }
+
+    return in_range;
+  };
+
+  for (const auto& [axis_index, axis_callback_list] : axis_callbacks_)
+  {
+    for (const auto& axis_callback : axis_callback_list)
+    {
+      if (inCallbackRange(axis_index, axis_callback))
+      {
+        axis_callback.callback(joy_msg);
+        break;
+      }
     }
   }
 }
@@ -339,6 +418,7 @@ void TeleopDriveJoy::send_halt_command()
   if (sent_lock_msg_) return;
 
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
+  cmd_vel_msg->header.stamp = this->now();
   cmd_vel_pub_->publish(std::move(cmd_vel_msg));
 
   sent_lock_msg_ = true;
@@ -409,20 +489,34 @@ void TeleopDriveJoy::print_controls()
 
 void TeleopDriveJoy::set_connected(const bool connected)
 {
-    if (connected != connected_)
-    {
-      connected_ = connected;
-      send_drive_info();
+  // no update required
+  if (connected == connected_)
+  {
+    return;
+  }
 
-      if (connected_)
-      {
-        RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad connected" << C_END);
-      }
-      else
-      {
-        RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad disconnected" << C_END);
-      }
-    }
+  connected_ = connected;
+
+  if (connected_)
+  {
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad connected" << C_END);
+  }
+  else
+  {
+    RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad disconnected" << C_END);
+  }
+
+  if (connected_ == false and params_.lock_on_gamepad_disconnected)
+  {
+    locked_ = true;
+    locked_reason_ = drive_interfaces::msg::DriveInfo::GAME_PAD_DISCONNECTED;
+    RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked as gamepad was disconnected" << C_END);
+
+    // stop rover as joy_callback may no longer be run (i.e. when gamepad is disconnected)
+    send_halt_command();
+  }
+
+  send_drive_info();
 }
 
 void TeleopDriveJoy::send_drive_info()
@@ -434,13 +528,21 @@ void TeleopDriveJoy::send_drive_info()
   msg.drive_mode = mode_to_drive_info(drive_mode_);
   msg.handbrake = handbrake_pressed_;
   msg.locked = locked_;
+  msg.locked_reason = locked_reason_;
   msg.multiplier = static_cast<float>(speed_);
+  msg.override_autolock = autolock_override_trigger or params_.autolock_override;
 
   drive_info_pub_->publish(msg);
 }
 
 void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg)
 {
+  // don't rumble if disabled
+  if (not params_.rumble_enable)
+  {
+    return;
+  }
+
   // get max effort of joints in rumble_joints
   const auto joint_effort = [joint_state_msg](const std::string& joint) -> double
   {
@@ -494,6 +596,94 @@ void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::S
   msg.id = 0;
   msg.intensity = static_cast<float>(rumble_intensity);
   joy_feedback_pub_->publish(msg);
+}
+
+void TeleopDriveJoy::blcmd_log_callback(const blcmd_interfaces::msg::BLCMDLog::SharedPtr blcmd_log_msg)
+{
+  // don't record blcmd errors for autolock if disabled
+  if (not params_.autolock_enable)
+  {
+    return;
+  }
+
+  RCLCPP_DEBUG(this->get_logger(), "Processing blcmd log message from %hhu of type %hhu", blcmd_log_msg->id, blcmd_log_msg->type);
+
+  // update if log message was an error
+  if (blcmd_log_msg->type == blcmd_interfaces::msg::BLCMDLog::ERROR)
+  {
+    int blcmd_id { blcmd_log_msg->id };
+
+    // update error count
+    if (not blcmd_error_count_.contains(blcmd_id))
+    {
+      blcmd_error_count_[blcmd_id] = 0;
+    }
+    blcmd_error_count_[blcmd_id] += 1;
+
+    // update error times
+    const rclcpp::Time now = this->now();
+    if (not blcmd_times_last_error_.contains(blcmd_id)
+      or now - blcmd_times_last_error_[blcmd_id] > std::chrono::milliseconds(params_.autolock_error_active_duration))
+    {
+      blcmd_times_start_error_[blcmd_id] = now;
+    }
+    blcmd_times_last_error_[blcmd_id] = now;
+  }
+}
+
+void TeleopDriveJoy::apply_autolock()
+{
+  // don't autolock if disabled
+  if (not params_.autolock_enable)
+  {
+    return;
+  }
+
+  const auto activate_autolock = [this](const std::string& error_message)
+  {
+    // don't activate autolock if any override is active
+    if (autolock_override_trigger or params_.autolock_override)
+    {
+      return;
+    }
+
+    if (not locked_ or locked_reason_ != drive_interfaces::msg::DriveInfo::BLCMD_ERRORS)
+    {
+      RCLCPP_ERROR(this->get_logger(), error_message.c_str());
+      if (not locked_) { RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad locked" << C_END); }
+      locked_ = true;
+      locked_reason_ = drive_interfaces::msg::DriveInfo::BLCMD_ERRORS;
+      send_drive_info();
+    }
+  };
+
+  // check error count autolock trigger
+  if (params_.autolock_threshold_error_count > 0)
+  {
+    for (const auto [blcmd_id, error_count] : blcmd_error_count_)
+    {
+      if (error_count >= params_.autolock_threshold_error_count)
+      {
+        blcmd_error_count_[blcmd_id] = 0;
+        activate_autolock(std::format("{}Autolock triggered due to too many errors from BLCMD {}{}", C_FAIL, blcmd_id, C_END));
+      }
+    }
+  }
+
+  // check error duration autolock trigger
+  if (params_.autolock_threshold_error_duration > 0)
+  {
+    const rclcpp::Time now = this->now();
+
+    for (const auto& [blcmd_id, last_error] : blcmd_times_last_error_)
+    {
+      if (now - last_error <= std::chrono::milliseconds(params_.autolock_error_active_duration)
+        and now - blcmd_times_start_error_[blcmd_id] >= std::chrono::milliseconds(params_.autolock_threshold_error_duration))
+      {
+        activate_autolock(std::format("{}Autolock triggered due to continuous errors from BLCMD {}{}", C_FAIL, blcmd_id, C_END));
+      }
+    }
+  }
 }
 
 }  // namespace teleop_drive_joy
