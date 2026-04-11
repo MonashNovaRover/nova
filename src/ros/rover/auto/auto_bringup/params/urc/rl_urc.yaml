@@ -21,8 +21,8 @@ ekf_filter_node_odom:
     odom0_differential: false
     odom0_relative: false
 
-    # Front IMU
-    imu0: /oak/imu/transformed
+    # Livox IMU
+    imu0: /livox/imu
     imu0_config: [false, false, false,
                   true,  true,  true,
                   false, false, false,
@@ -32,17 +32,6 @@ ekf_filter_node_odom:
     imu0_relative: false
     imu0_remove_gravitational_acceleration: true
     
-    # Back IMU
-    imu1: /bootie/imu/transformed
-    imu1_config: [false, false, false,
-                  true,  true,  true,
-                  false, false, false,
-                  false, false, false,
-                  false, false, false]
-    imu1_differential: false
-    imu1_relative: false
-    imu1_remove_gravitational_acceleration: true
-
     process_noise_covariance: [1e-3, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                             0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                             0.0,    0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
@@ -74,29 +63,29 @@ ekf_filter_node_map:
     base_link_frame: base_link
     world_frame: map
 
+    # GPS Odom
+    odom0: /odometry/gps
+    odom0_config: [true,  true,  true, #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 10
+    odom0_differential: false
+    odom0_relative: false
+
     # Wheel Odom
-    odom0: /pivot_drive_controller/odom
-    odom0_config: [false, false, false,
+    odom1: /pivot_drive_controller/odom
+    odom1_config: [false, false, false,
                    false, false, false,
                    true,  false, false,
                    false, false, true,
                    false, false, false]
-    odom0_differential: false
-    odom0_relative: false
-    
-    # GPS Odom
-    odom1: /odometry/gps
-    odom1_config: [true,  true,  true, #https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html#configuring-robot-localization
-                   false, false, false,
-                   false, false, false,
-                   false, false, false,
-                   false, false, false]
-    odom1_queue_size: 10
     odom1_differential: false
     odom1_relative: false
 
-    # Front IMU
-    imu0: /oak/imu/transformed
+    # Livox IMU
+    imu0: /livox/imu
     imu0_config: [false, false, false,
                   true,  true,  true,
                   false, false, false,
@@ -106,17 +95,6 @@ ekf_filter_node_map:
     imu0_relative: false
     imu0_remove_gravitational_acceleration: true
     
-    # Back IMU
-    imu1: /bootie/imu/transformed
-    imu1_config: [false, false, false,
-                  true,  true,  true,
-                  false, false, false,
-                  false, false, false,
-                  false, false, false]
-    imu1_differential: false
-    imu1_relative: false
-    imu1_remove_gravitational_acceleration: true
-
     process_noise_covariance: [1e-3, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                             0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                             0.0,    0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
