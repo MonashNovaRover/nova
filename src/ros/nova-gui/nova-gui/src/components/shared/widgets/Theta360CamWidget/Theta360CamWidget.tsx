@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useEffectEvent, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {Button, Card, CardBody, CardHeader, Tooltip} from "@nextui-org/react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
@@ -27,14 +27,16 @@ function numsToBlobContent(data: number[]) {
   return [ab]
 }
 
-
 const Theta360CamWidget: React.FC = () => {
   const bifrost = useBifrost({
     topic: RosTopic.THETA_360_CAM_IMAGE,
     service: RosService.THETA_360_CAM_CAPTURE,
   });
 
-  const imageMessage = useSelector((state: RootState) => state.theta360CamStore);
+  const imageMessage = {
+    data: useSelector((state: RootState) => state.theta360CamStore.data),
+    format: useSelector((state: RootState) => state.theta360CamStore.format),
+  };
   //const imageRef = useRef<HTMLImageElement>(new Image(5376, 2388));
   //const imageRef = useRef<HTMLVideoElement>(null);
   //useWebcam(imageRef);
@@ -42,14 +44,10 @@ const Theta360CamWidget: React.FC = () => {
   //const image = useImageTexture(monkey);
 
   // const imageRef = useRef<HTMLImageElement>(null);\
-  const [image, setImage] = useState<HTMLImageElement>(() => new Image())
+  const image = new Image();
+  image.src= imageMessage.data.length !== 0 ? `data:image/${imageMessage.format};base64,` + imageMessage.data : monkey;
+
   const [angles, setAngles] = useState([0, 0]);
-
-  const url = monkey;
-
-  useEffectEvent(() => {
-    setImage((image)=>({...image, src: url}));
-  });
 
   // Used to select between perspective and panoramic canvases
   const [canvasIndex, setCanvasIndex] = useState<number>(0);
@@ -60,14 +58,9 @@ const Theta360CamWidget: React.FC = () => {
 
   // Update the image to contain the data from imageData whenever it changes
   // TODO: Test this, and performance test to ensure no unnecessary re-renders
-  useEffectEvent(() => {
-    if (imageMessage.data.length == 0)
-      return;
-
-    const newImage = new Image();
-    newImage.src = `data:image/${imageMessage.format};base64,` + imageMessage.data;
-    setImage(newImage);
-  });
+  // To test this use this command: 
+  //  mros2 run image_publisher image_publisher_node /mnt/c/Users/Anthony/Pictures/universetemple.jpg --ros-args -r /image_raw/compressed:=/science/theta360cam/image
+  // This runs master build ros2's image_publisher node which the image u specify and the compressed topic remapped to the theta360cam topic
 
   // When called, will capture a new image
   const capture = useCallback(() => {
@@ -123,10 +116,3 @@ const Theta360CamWidget: React.FC = () => {
 }
 
 export default Theta360CamWidget;
-
-
-
-
-
-
-
