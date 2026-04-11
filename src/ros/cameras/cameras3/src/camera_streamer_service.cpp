@@ -94,6 +94,10 @@ class CameraStreamer : public rclcpp::Node
       auto props = get_vpXsoftware_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props);
+      } else if (pipeline->pipeline_type == "av1software") {
+      auto props = get_av1software_pipeline_properties(this, pipeline->camera);
+      pipeline->props = props;
+      pipeline->gst_pipeline = av1software_pipeline(this, props);
     }
   }
 

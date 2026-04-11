@@ -43,7 +43,6 @@ struct x264encProperties
   std::string speed_preset;
   std::string tune;
 
-  int bitrate;
   int gop;
   int noise_reduction;
   int threads;
@@ -51,11 +50,21 @@ struct x264encProperties
 
 struct vpXencProperties
 {
+  std::string aq_mode;
   std::string end_usage;
 
-  int bitrate;
   int cpu_used;
   int deadline;
+  int gop;
+  int threads;
+};
+
+struct av1encProperties
+{
+  std::string end_usage;
+  std::string usage_profile;
+
+  int cpu_used;
   int gop;
   int threads;
 };
@@ -64,6 +73,8 @@ struct webRTCProperties
 {
   std::string congestion_control;
   std::string video_caps;
+
+  int bitrate;
 
   bool do_fec;
   bool do_retransmission;
@@ -118,4 +129,8 @@ GstElement* h264software_pipeline(rclcpp::Node* log_node, h264softwarePipelinePr
 struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, vpXencProperties, scaleProperties, cropProperties, clockProperties, decodeProperties {};
 vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, vpXsoftwarePipelineProperties* props);
+
+struct av1softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, av1encProperties, scaleProperties, cropProperties, clockProperties, decodeProperties {};
+av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
+GstElement* av1software_pipeline(rclcpp::Node* log_node, av1softwarePipelineProperties* props);
 
