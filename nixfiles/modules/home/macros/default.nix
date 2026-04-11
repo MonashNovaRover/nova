@@ -66,7 +66,7 @@ in
           auto = autonomous;
           chassis = "${nova}/src/ros/rover/chassis";
           science = "${nova}/src/ros/rover/science";
-          camerasdir = "${nova}/src/ros/cameras2";
+          camerasdir = "${nova}/src/ros/cameras";
           gui = "${nova}/src/ros/nova-gui/nova-gui";
           coms = "${nova}/src/other/coms_utils";
 
@@ -128,7 +128,7 @@ in
           # Cameras
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
 
-          cameras3 = "~/Builds/master/bin/ros2 launch cameras cameras.launch.py platform:=orin";
+          cameras3 = "~/Builds/master/bin/ros2 launch cameras cameras.launch.py platform:=orin local:=true";
           cameras2 = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
           cameras2-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
           cameras-orin ="echo 'DEPRECATED - Please use cameras instead for cameras operation, or cameras2-legacy for old camera stack'";

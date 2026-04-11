@@ -177,6 +177,7 @@ void set_srcfilter(GstElement* srcfilter, auto props) {
 void set_scalefilter(GstElement* scalefilter, auto props) {
     GstCaps *caps = gst_caps_new_simple(
         "video/x-raw",
+        "format", G_TYPE_STRING, props->format.c_str(),
         "width", G_TYPE_INT, props->width/props->downscale,
         "height", G_TYPE_INT, props->height/props->downscale,
         "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
@@ -452,6 +453,8 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", default_string);
 
   // filter
+  default_string = "I420";
+  props->format = set_property(streamer_node, camera->serial, profile, camera->original_serial, "format", default_string);
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
 
@@ -724,6 +727,8 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
 
   // filter
+  default_string = "NV12";
+  props->format = set_property(streamer_node, camera->serial, profile, camera->original_serial, "format", default_string);
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
 
@@ -905,6 +910,7 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
 
   // filter
+  props->format = "I420";
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
 

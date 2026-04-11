@@ -21,6 +21,7 @@ struct v4lProperties
 
 struct capsProperties
 {
+  std::string format;
   std::string mime;
 
   int brightness;
