@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<!--  -->
+<!-- messages sent to/from a blcmd,
+ interpreted using calculations in blcmd_hardware2.cpp,
+ requiring constants from ros2_control.urdf.xacro -->
+
+<!-- only effort, velocity and position commands/telemtry are interpreted,
+ and may be reported in degrees or radians (per parameter unit_radians) -->
 
 <wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
 
