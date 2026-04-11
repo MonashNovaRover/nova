@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<NetworkDefinition xmlns="http://kayak.2codeornot2code.org/1.0" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- included macros -->
+    <xacro:include filename="../misc/nodes.kcd.xacro"/>
+    <xacro:include filename=""/>
+
+    <Document name="(network name)" version="1.0.0" author="(author name)" date="(YYYY-MM-DD)">
+        (description of this network)
+    </Document>
+
+    <!-- don't forget to include the nodes here -->
+
+    <Bus name="(e.g. can0)" baudrate="(e.g. 250000)">
+
+    </Bus>
+</NetworkDefinition>

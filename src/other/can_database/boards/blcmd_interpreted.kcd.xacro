@@ -2,18 +2,17 @@
 
 <!--  -->
 
-<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://kayak.2codeornot2code.org/1.0" xsi:noNamespaceSchemaLocation="schemas/kcd-macro.xsd">
+<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <!-- include generic blcmd macro -->
     <xacro:include filename="blcmd.kcd.xacro"/>
 
     <!-- obtain additional parameters from definitions in ros2_control.xacro -->
     <!-- resolver_reduction, res_ticks_per_rev and zero_offset are optional if interpret_position is False -->
-    <xacro:macro name="interpreted_blcmd_messages" params="
+    <xacro:macro name="blcmd_interpreted_board" params="
     blcmd_id
     joint_name
     blcmd_node_id
-    orin_node_id:=0
     unit_radians:=False
 
     reversed
@@ -35,11 +34,13 @@
 
         <!-- display radians or degrees -->
         <xacro:if value="${unit_radians}">
-            <xacro:property name="unit" value="rad"/>
+            <xacro:property name="angular_velocity_unit" value="rad/s"/>
+            <xacro:property name="angle_unit" value="rad"/>
             <xacro:property name="conversion_multiplier" value="1"/>
         </xacro:if>
         <xacro:unless value="${unit_radians}">
-            <xacro:property name="unit" value="deg"/>
+            <xacro:property name="angular_velocity_unit" value="deg/s"/>
+            <xacro:property name="angle_unit" value="deg"/>
             <xacro:property name="conversion_multiplier" value="${180 / pi}"/>
         </xacro:unless>
 
@@ -49,7 +50,7 @@
 
         <!-- velocity -->
 
-        <xacro:property name="max_velocity" value="${ (clock_rate) / (min_interval * revolution_pulses * drive_gear_ratio) * 2 * pi }"/>
+        <xacro:property name="max_velocity" value="${ (clock_rate) / (min_interval * revolution_pulses * gear_ratio) * 2 * pi }"/>
 
         <xacro:property name="velocity_command_slope" value="${ max_velocity / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
         <xacro:property name="velocity_telemetry_slope" value="${ (max_velocity * -1 * 0.5) / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
@@ -63,29 +64,29 @@
         <xacro:unless value="${interpret_position}">
             <xacro:property name="position_slope" value="1"/>
             <xacro:property name="position_intercept" value="0"/>
+            <xacro:property name="angle_unit" value="" lazy_eval="False"/>
         </xacro:unless>
 
 
-        <xacro:blcmd_messages
+        <xacro:blcmd_board
                 blcmd_id="${blcmd_id}"
                 joint_name="${joint_name}"
                 blcmd_node_id="${blcmd_node_id}"
-                orin_node_id="${orin_node_id}"
 
                 drive_at_current_slope="${effort_slope}"
                 telemetry_packet_1_effort_slope="${effort_slope}"
 
                 drive_at_speed_slope="${velocity_command_slope}"
-                drive_at_speed_unit="${unit}"
+                drive_at_speed_unit="${angular_velocity_unit}"
                 telemetry_packet_1_velocity_slope="${velocity_telemetry_slope}"
-                telemetry_packet_1_velocity_unit="${unit}"
+                telemetry_packet_1_velocity_unit="${angular_velocity_unit}"
 
                 drive_to_position_intercept="${position_intercept}"
                 drive_to_position_slope="${position_slope}"
-                drive_to_position_unit="${unit}"
+                drive_to_position_unit="${angle_unit}"
                 telemetry_packet_3_resolver_position_intercept="${position_intercept}"
                 telemetry_packet_3_resolver_position_slope="${position_slope}"
-                telemetry_packet_3_resolver_position_unit="${unit}"
+                telemetry_packet_3_resolver_position_unit="${angle_unit}"
         />
 
     </xacro:macro>

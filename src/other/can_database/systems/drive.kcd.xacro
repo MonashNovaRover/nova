@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--  -->
+
+<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<!-- include generic blcmd macro -->
+	<xacro:include filename="../boards/blcmd.kcd.xacro"/>
+
+	<xacro:macro name="drive_system">
+		<xacro:blcmd_board blcmd_id="1" blcmd_node_id="${FLW_BLCMD_NODE_ID}" joint_name="flw"/>
+		<xacro:blcmd_board blcmd_id="2" blcmd_node_id="${BLW_BLCMD_NODE_ID}" joint_name="blw"/>
+		<xacro:blcmd_board blcmd_id="3" blcmd_node_id="${BRW_BLCMD_NODE_ID}" joint_name="brw"/>
+		<xacro:blcmd_board blcmd_id="4" blcmd_node_id="${FRW_BLCMD_NODE_ID}" joint_name="frw"/>
+		<xacro:blcmd_board blcmd_id="5" blcmd_node_id="${FLP_BLCMD_NODE_ID}" joint_name="flp"/>
+		<xacro:blcmd_board blcmd_id="6" blcmd_node_id="${BLP_BLCMD_NODE_ID}" joint_name="blp"/>
+		<xacro:blcmd_board blcmd_id="7" blcmd_node_id="${BRP_BLCMD_NODE_ID}" joint_name="brp"/>
+		<xacro:blcmd_board blcmd_id="8" blcmd_node_id="${FRP_BLCMD_NODE_ID}" joint_name="frp"/>
+	</xacro:macro>
+</wrapper>

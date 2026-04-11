@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- (description) -->
+
+<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="nodes" params="">
+        <xacro:property name="ORIN_NODE_ID" value="0" scope="global"/>
+        <Node id="${ORIN_NODE_ID}" name="orin"/>
+
+        <!-- TODO: add blcmd node ids for arm -->
+        <xacro:property name="FLW_BLCMD_NODE_ID" value="1" scope="global"/>
+        <Node id="${FLW_BLCMD_NODE_ID}" name="front_left_wheel"/>
+
+        <xacro:property name="BLW_BLCMD_NODE_ID" value="2" scope="global"/>
+        <Node id="${BLW_BLCMD_NODE_ID}" name="back_left_wheel"/>
+
+        <xacro:property name="BRW_BLCMD_NODE_ID" value="3" scope="global"/>
+        <Node id="${BRW_BLCMD_NODE_ID}" name="back_right_wheel"/>
+
+        <xacro:property name="FRW_BLCMD_NODE_ID" value="4" scope="global"/>
+        <Node id="${FRW_BLCMD_NODE_ID}" name="front_right_wheel"/>
+
+        <xacro:property name="FLP_BLCMD_NODE_ID" value="5" scope="global"/>
+        <Node id="${FLP_BLCMD_NODE_ID}" name="front_left_pivot"/>
+
+        <xacro:property name="BLP_BLCMD_NODE_ID" value="6" scope="global"/>
+        <Node id="${BLP_BLCMD_NODE_ID}" name="back_left_pivot"/>
+
+        <xacro:property name="BRP_BLCMD_NODE_ID" value="7" scope="global"/>
+        <Node id="${BRP_BLCMD_NODE_ID}" name="back_right_pivot"/>
+
+        <xacro:property name="FRP_BLCMD_NODE_ID" value="8" scope="global"/>
+        <Node id="${FRP_BLCMD_NODE_ID}" name="front_right_pivot"/>
+    </xacro:macro>
+</wrapper>
