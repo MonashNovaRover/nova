@@ -38,8 +38,8 @@ const OUTER_CUVETTE_COLORS = [
   CUVETTE.PINK,   // 19
   CUVETTE.PINK,   // 20
   CUVETTE.YELLOW, // 21
-  CUVETTE.YELLOW, // 22
-  CUVETTE.YELLOW, // 23
+  CUVETTE.EMPTY,  // 22
+  CUVETTE.EMPTY,  // 23
   CUVETTE.EMPTY,  // 24
 ];
 
@@ -71,9 +71,42 @@ const COLORS = {
   center: '#1a1a1a',       // Center circle fill
 };
 
+// Group border configuration
+const GROUP_BORDER = {
+  color: '#ffffff',        // Default group border color
+  width: 2,                // Border thickness
+};
+
+// Outer wheel groups: { start, end } are 0-indexed, end is exclusive (last cuvette not included in border)
+const OUTER_GROUPS = [
+  { start: 0,  end: 6,  color: '#FFB86C' },  // Medium coffee
+  { start: 7,  end: 13,  color: '#AAAAAA' },  // Amber/orange
+];
+
+// Inner wheel groups: { start, end } are 0-indexed, end is exclusive
+const INNER_GROUPS = [
+  { start: 3,  end: 9,  color: '#AAAAAA' },  // Medium coffee
+  { start: 12, end: 3, color: '#FFB86C' },  // Amber/orange
+];
+
+// Static indicator dots (outside the carousel, don't rotate)
+// Positions are cuvette numbers (1-indexed) as if 24 is at the top
+const INDICATOR_DOTS = [
+  { cuvette: 1, color: '#FFB86C', radius: 4 },
+  { cuvette: 8, color: '#AAAAAA', radius: 4 },
+];
+const INDICATOR_DOT_DISTANCE = 152;  // Distance from center (just outside outer wheel)
+
 // ============================================================================
 // END CONFIGURATION
 // ============================================================================
+
+// Types for groups
+interface CuvetteGroup {
+  start: number;
+  end: number;      // exclusive (last cuvette in group, not included in border)
+  color: string;    // border color
+}
 
 // Types
 export type SegmentState = 'empty' | 'tested' | 'error' | 'default';
@@ -168,6 +201,56 @@ function getSegmentColor(
   return colorArray[index] ?? COLORS.hover;
 }
 
+// Create arc path for a group border (inset from outer edge)
+function createGroupArcPath(
+  startIndex: number,
+  endIndex: number,
+  totalSegments: number,
+  outerRadius: number,
+  innerRadius: number
+): string {
+  // Inset the border so it sits inside the white stroke (matches stroke width)
+  const inset = 1.5;
+  const insetOuter = outerRadius - inset;
+  const insetInner = innerRadius + inset;
+
+  const anglePerSegment = (2 * Math.PI) / totalSegments;
+  // Also inset the angles slightly so the border doesn't overlap the radial lines
+  // Calculate angle inset based on 1px at the outer radius
+  const angleInset = inset / outerRadius;
+  const startAngle = startIndex * anglePerSegment - Math.PI / 2 + angleInset;
+  const endAngle = endIndex * anglePerSegment - Math.PI / 2 - angleInset;
+
+  const outerStart = {
+    x: CENTER + insetOuter * Math.cos(startAngle),
+    y: CENTER + insetOuter * Math.sin(startAngle)
+  };
+  const outerEnd = {
+    x: CENTER + insetOuter * Math.cos(endAngle),
+    y: CENTER + insetOuter * Math.sin(endAngle)
+  };
+  const innerStart = {
+    x: CENTER + insetInner * Math.cos(startAngle),
+    y: CENTER + insetInner * Math.sin(startAngle)
+  };
+  const innerEnd = {
+    x: CENTER + insetInner * Math.cos(endAngle),
+    y: CENTER + insetInner * Math.sin(endAngle)
+  };
+
+  // Determine if we need the large arc flag (more than 180 degrees)
+  const arcSpan = endIndex - startIndex;
+  const largeArc = arcSpan > totalSegments / 2 ? 1 : 0;
+
+  return `
+    M ${outerStart.x} ${outerStart.y}
+    A ${insetOuter} ${insetOuter} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}
+    L ${innerEnd.x} ${innerEnd.y}
+    A ${insetInner} ${insetInner} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y}
+    Z
+  `;
+}
+
 const CarouselDial: React.FC<CarouselDialProps> = ({
   outer,
   inner,
@@ -233,6 +316,30 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
     });
   };
 
+  const renderGroupBorders = (
+    count: number,
+    outerR: number,
+    innerR: number,
+    wheelId: 'inner' | 'outer'
+  ) => {
+    const groups = wheelId === 'outer' ? OUTER_GROUPS : INNER_GROUPS;
+
+    return groups.map((group, i) => {
+      const path = createGroupArcPath(group.start, group.end, count, outerR, innerR);
+
+      return (
+        <path
+          key={`group-${i}`}
+          d={path}
+          fill="none"
+          stroke={group.color}
+          strokeWidth={GROUP_BORDER.width}
+          className="pointer-events-none"
+        />
+      );
+    });
+  };
+
   return (
     <div className="flex flex-col items-center w-full h-full">
       <Search color={COLORS.indicator} className="w-16 h-8 flex-shrink-0" />
@@ -250,6 +357,7 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
             }}
           >
             {renderSegments(OUTER_SEGMENTS, OUTER_OUTER_RADIUS, OUTER_INNER_RADIUS, outerConfig, 'outer')}
+            {renderGroupBorders(OUTER_SEGMENTS, OUTER_OUTER_RADIUS, OUTER_INNER_RADIUS, 'outer')}
           </g>
 
           {/* Inner wheel */}
@@ -261,10 +369,29 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
             }}
           >
             {renderSegments(INNER_SEGMENTS, INNER_OUTER_RADIUS, INNER_INNER_RADIUS, innerConfig, 'inner')}
+            {renderGroupBorders(INNER_SEGMENTS, INNER_OUTER_RADIUS, INNER_INNER_RADIUS, 'inner')}
           </g>
 
           {/* Center circle */}
           <circle cx={CENTER} cy={CENTER} r="40" fill={COLORS.center} />
+
+          {/* Static indicator dots (outside carousel, don't rotate) */}
+          {INDICATOR_DOTS.map((dot, i) => {
+            // Calculate angle: if 24 is at top (-90deg), cuvette N is at -90 + N*15 degrees
+            const angleRad = ((dot.cuvette * (360 / OUTER_SEGMENTS)) - 90) * (Math.PI / 180);
+            const x = CENTER + INDICATOR_DOT_DISTANCE * Math.cos(angleRad);
+            const y = CENTER + INDICATOR_DOT_DISTANCE * Math.sin(angleRad);
+            return (
+              <circle
+                key={`indicator-${i}`}
+                cx={x}
+                cy={y}
+                r={dot.radius}
+                fill={dot.color}
+                className="pointer-events-none"
+              />
+            );
+          })}
         </svg>
       </div>
       <ChevronUp color={COLORS.indicator} className="w-16 h-8 flex-shrink-0" />
