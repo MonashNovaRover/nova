@@ -118,8 +118,10 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera->original_serial=camera.original_serial;
 
         std::map<std::string, rclcpp::Parameter> serial_params;
-        this->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera.original_serial + ".pipeline_type").c_str(), pipeline->pipeline_type, "v4l2webrtc");
-        this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera.serial + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type);
+        const std::string default_string = "v4l2webrtc";
+        this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".pipeline_type").c_str(), pipeline->pipeline_type, default_string);
+        this->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type);
+
         bool autostart;
         this->get_parameter_or("autostart", autostart, true);
 
@@ -131,6 +133,7 @@ class CameraStreamer : public rclcpp::Node
         }
         RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline->pipeline_type.c_str(), camera.serial.c_str());
         this->pipelines[camera.serial] = pipeline;
+        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED); // Start pipeline immediately
       }
     }
   }
@@ -156,7 +159,11 @@ class CameraStreamer : public rclcpp::Node
               RCLCPP_INFO(this->get_logger(), "Starting %s", serial.c_str());
 
               // Check if pipeline changed
-              this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + ".pipeline_type").c_str(), pipeline->pipeline_type, "v4l2webrtc");
+              const std::string default_string = "v4l2webrtc";
+              this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".pipeline_type").c_str(), pipeline->pipeline_type, default_string);
+              this->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type); 
+
+
               this->start_pipeline(pipeline);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }

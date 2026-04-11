@@ -148,98 +148,99 @@ bool set_property(rclcpp::Node* streamer_node, const std::string serial, const s
     return value;
 }
 
-void set_source(GstElement* source, auto props) {
+void set_source(GstElement* source, const std::string device, const std::string io_mode) {
     g_object_set(source,
-      "device", props->device.c_str(),
+      "device", device.c_str(),
       "io-mode", (
-          props->io_mode == "rw" ? 1 :
-          props->io_mode == "mmap" ? 2 :
-          props->io_mode == "userptr" ? 3 :
-          props->io_mode == "dmabuf" ? 4 :
-          props->io_mode == "dmabuf-import" ? 5 :
+          io_mode == "rw" ? 1 :
+          io_mode == "mmap" ? 2 :
+          io_mode == "userptr" ? 3 :
+          io_mode == "dmabuf" ? 4 :
+          io_mode == "dmabuf-import" ? 5 :
           0),
       NULL);
 }
 
-void set_srcfilter(GstElement* srcfilter, auto props) {
+void set_srcfilter(GstElement* filter, const std::string mime, const int width, const int height, const int framerate, const int framerate_denominator, const int downrate, const int brightness, const int contrast) {
   GstCaps *caps = gst_caps_new_simple(
-      props->mime.c_str(),
-      "width", G_TYPE_INT, props->width,
-      "height", G_TYPE_INT, props->height,
-      "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
-      "brightness", G_TYPE_INT, props->brightness,
-      "contrast", G_TYPE_INT,  props->contrast,
+      mime.c_str(),
+      "width", G_TYPE_INT, width,
+      "height", G_TYPE_INT, height,
+      "framerate", GST_TYPE_FRACTION, framerate, framerate_denominator*downrate,
+      "brightness", G_TYPE_INT, brightness,
+      "contrast", G_TYPE_INT,  contrast,
       NULL);
-  g_object_set(srcfilter, "caps", caps, NULL);
+  g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
 }
 
-void set_scalefilter(GstElement* scalefilter, auto props) {
-    GstCaps *caps = gst_caps_new_simple(
-        "video/x-raw",
-        "format", G_TYPE_STRING, props->format.c_str(),
-        "width", G_TYPE_INT, props->width/props->downscale,
-        "height", G_TYPE_INT, props->height/props->downscale,
-        "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
-        "brightness", G_TYPE_INT, props->brightness,
-        "contrast", G_TYPE_INT,  props->contrast,
-        NULL);
-    g_object_set(scalefilter, "caps", caps, NULL);
-    gst_caps_unref(caps);
+void set_scalefilter(GstElement* filter, const std::string format, const int width, const int height, const int framerate, const int framerate_denominator, const int downscale, const int downrate, const int brightness, const int contrast) {
+  const std::string mime = "video/x-raw";
+  GstCaps *caps = gst_caps_new_simple(
+      mime.c_str(),
+      "format", G_TYPE_STRING, format.c_str(),
+      "width", G_TYPE_INT, width/downscale,
+      "height", G_TYPE_INT, height/downscale,
+      "framerate", GST_TYPE_FRACTION, framerate, framerate_denominator*downrate,
+      "brightness", G_TYPE_INT, brightness,
+      "contrast", G_TYPE_INT,  contrast,
+      NULL);
+  g_object_set(filter, "caps", caps, NULL);
+  gst_caps_unref(caps);
 }
 
-void set_convert(GstElement* convert, auto props) {
+void set_convert(GstElement* convert, const std::string chroma_resampler, const std::string dither, const std::string method) {
   g_object_set(convert,
       "chroma-resampler", (
-          props->chroma_resampler == "nearest" ? 0 :
-          props->chroma_resampler == "linear" ? 1 :
-          props->chroma_resampler == "cubic" ? 2 :
-          props->chroma_resampler == "sinc" ? 3 : 
-          props->chroma_resampler == "lanczos" ? 4 :
+          chroma_resampler == "nearest" ? 0 :
+          chroma_resampler == "linear" ? 1 :
+          chroma_resampler == "cubic" ? 2 :
+          chroma_resampler == "sinc" ? 3 : 
+          chroma_resampler == "lanczos" ? 4 :
           0),
       "dither", (
-          props->dither == "none" ? 0 :
-          props->dither == "verterr" ? 1 :
-          props->dither == "floyd-steinberg" ? 2 :
-          props->dither == "sierra-lite" ? 3 : 
-          props->dither == "bayer" ? 4 :
+          dither == "none" ? 0 :
+          dither == "verterr" ? 1 :
+          dither == "floyd-steinberg" ? 2 :
+          dither == "sierra-lite" ? 3 : 
+          dither == "bayer" ? 4 :
           4),
       "method", (
-          props->method == "nearest-neighbour" ? 0 :
-          props->method == "bilinear" ? 1 :
-          props->method == "4-tap" ? 2 :
-          props->method == "lanczos" ? 3 : 
-          props->method == "bilinear2" ? 4 :
-          props->method == "sinc" ? 5 :
-          props->method == "hermite" ? 6 :
-          props->method == "spline" ? 7 :
-          props->method == "catrom" ? 8 : 
-          props->method == "mitchell" ? 9 :
+          method == "nearest-neighbour" ? 0 :
+          method == "bilinear" ? 1 :
+          method == "4-tap" ? 2 :
+          method == "lanczos" ? 3 : 
+          method == "bilinear2" ? 4 :
+          method == "sinc" ? 5 :
+          method == "hermite" ? 6 :
+          method == "spline" ? 7 :
+          method == "catrom" ? 8 : 
+          method == "mitchell" ? 9 :
           0),
       NULL);
 }
 
-void set_crop43(GstElement* cropper, auto props, const int crop_width) {
-    if (props->crop43) {
+void set_crop43(GstElement* cropper, const bool crop43, const int crop_width, const int downscale) {
+    if (crop43) {
         g_object_set(cropper,
-          "left", crop_width/props->downscale,
-          "right", crop_width/props->downscale,
+          "left", crop_width/downscale,
+          "right", crop_width/downscale,
           NULL);
     }
 }
 
-void set_webrtc(GstElement* webrtc, auto props){
-    GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
-    GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
+void set_webrtc(GstElement* webrtc, const std::string serial, const std::string video_caps, const bool do_fec, const bool do_retransmission, const std::string congestion_control, const int bitrate){
+    GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, serial.c_str(), NULL); 
+    GstCaps *webrtc_caps = gst_caps_from_string(video_caps.c_str());
     g_object_set(webrtc,
-        "do-fec", props->do_fec,
-        "do-retransmission", props->do_retransmission,
+        "do-fec", do_fec,
+        "do-retransmission", do_retransmission,
         "congestion-control", (
-            props->congestion_control == "disabled" ? 0 :
-            props->congestion_control == "homegrown" ? 1 :
-            props->congestion_control == "gcc" ? 2 :
+            congestion_control == "disabled" ? 0 :
+            congestion_control == "homegrown" ? 1 :
+            congestion_control == "gcc" ? 2 :
             2),
-        "max-bitrate", props->bitrate*1125,
+        "max-bitrate", bitrate*1125,
         "meta", meta,
         "video-caps", webrtc_caps,
         NULL);
@@ -247,8 +248,8 @@ void set_webrtc(GstElement* webrtc, auto props){
     gst_structure_free(meta);
 }
 
-void set_payload(GstElement* payload, auto props) {
-    if (props->payload_quirk) {
+void set_payload(GstElement* payload, const bool payload_quirk) {
+    if (payload_quirk) {
         // Apply patch for gc2093
         g_object_set(payload,
             "aggregate-mode", 1,
@@ -257,89 +258,89 @@ void set_payload(GstElement* payload, auto props) {
     }
 }
 
-void set_x264(GstElement* encode, h264softwarePipelineProperties* props) {
+void set_x264(GstElement* encode, const std::string tune, const std::string speed_preset, const int threads, const int bitrate, const int noise_reduction, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
     g_object_set(encode,
         "tune", ( 
-            props->tune == "stillimage" ? 0x00000001:
-            props->tune == "fastdecode" ? 0x00000002:
-            props->tune == "zerolatency" ? 0x00000004:
+            tune == "stillimage" ? 0x00000001:
+            tune == "fastdecode" ? 0x00000002:
+            tune == "zerolatency" ? 0x00000004:
             0x00000004), // zerolatency
         "speed-preset", (
-            props->speed_preset == "None" ? 0:
-            props->speed_preset == "ultrafast" ? 1:
-            props->speed_preset == "superfast" ? 2:
-            props->speed_preset == "veryfast" ? 3:
-            props->speed_preset == "faster" ? 4:
-            props->speed_preset == "fast" ? 5:
-            props->speed_preset == "medium" ? 6:
-            props->speed_preset == "slow" ? 7:
-            props->speed_preset == "slower" ? 8:
-            props->speed_preset == "veryslow" ? 9:
-            props->speed_preset == "placebo" ? 10:
+            speed_preset == "None" ? 0:
+            speed_preset == "ultrafast" ? 1:
+            speed_preset == "superfast" ? 2:
+            speed_preset == "veryfast" ? 3:
+            speed_preset == "faster" ? 4:
+            speed_preset == "fast" ? 5:
+            speed_preset == "medium" ? 6:
+            speed_preset == "slow" ? 7:
+            speed_preset == "slower" ? 8:
+            speed_preset == "veryslow" ? 9:
+            speed_preset == "placebo" ? 10:
             1), // ultrafast 
-        "threads", props->threads, // 1 is best for cpu and compression ratio
-        "bitrate", props->bitrate,
-        "noise-reduction", props->noise_reduction,
-        "key-int-max", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
-        "vbv-buf-capacity", props->gop*1000,        // Buffer size for GOP
+        "threads", threads, // 1 is best for cpu and compression ratio
+        "bitrate", bitrate,
+        "noise-reduction", noise_reduction,
+        "key-int-max", (int) gop * (int) ((float) framerate/ (float) framerate_denominator/ (float) downrate + 1.0), // Largest GOP
+        "vbv-buf-capacity", gop*1000,        // Buffer size for GOP
         "b-adapt", false, // Do not allow b frames
         "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
         NULL);
 }
 
-void set_vpXenc(GstElement* encode, vpXsoftwarePipelineProperties* props) {
+void set_vpXenc(GstElement* encode, const int deadline, const int cpu_used, const std::string end_usage, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate, const std::string video_caps, const std::string aq_mode) {
     g_object_set(encode,
-        "deadline", props->deadline, // 1 for lowest latency
-        "cpu-used", props->cpu_used, // Fastest -16, 16 Slowest 
+        "deadline", deadline, // 1 for lowest latency
+        "cpu-used", cpu_used, // Fastest -16, 16 Slowest 
         "end-usage", (
-            props->end_usage == "vbr" ? 0:
-            props->end_usage == "cbr" ? 1:
-            props->end_usage == "cq" ? 2:
+            end_usage == "vbr" ? 0:
+            end_usage == "cbr" ? 1:
+            end_usage == "cq" ? 2:
             1), // mode, constant bitrate best
-        "threads", props->threads, // 1 is best for cpu and compression ratio
-        "target-bitrate", props->bitrate*1000,
-        "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
-        "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP
+        "threads", threads, // 1 is best for cpu and compression ratio
+        "target-bitrate", bitrate*1000,
+        "keyframe-max-dist", (int) gop * (int) ((float) framerate/ (float) framerate_denominator/ (float) downrate + 1.0), // Largest GOP
+        "buffer-optimal-size", gop*1000,        // Buffer size for GOP
         "lag-in-frames", 0, // Do not lookahead
         "error-resilient", 1,
         NULL);
     
-    if (props->video_caps == "video/x-vp9") {
+    if (video_caps == "video/x-vp9") {
         g_object_set(encode,
             "aq-mode", (
-                props->aq_mode == "off" ? 0 :
-                props->aq_mode == "variance" ? 1 :
-                props->aq_mode == "complexity" ? 2 :
-                props->aq_mode == "cyclic-refresh" ? 3 :
-                props->aq_mode == "equator360" ? 4 :
-                props->aq_mode == "perceptual" ? 5 :
-                props->aq_mode == "psnr" ? 6 :
-                props->aq_mode == "lookahead" ? 7 :
+                aq_mode == "off" ? 0 :
+                aq_mode == "variance" ? 1 :
+                aq_mode == "complexity" ? 2 :
+                aq_mode == "cyclic-refresh" ? 3 :
+                aq_mode == "equator360" ? 4 :
+                aq_mode == "perceptual" ? 5 :
+                aq_mode == "psnr" ? 6 :
+                aq_mode == "lookahead" ? 7 :
                 5),
-            "tile-columns", props->threads,
-            "tile-rows", props->threads,
+            "tile-columns", threads,
+            "tile-rows", threads,
           NULL);
     }
 }
 
-void set_av1enc(GstElement* encode, av1softwarePipelineProperties* props) {
+void set_av1enc(GstElement* encode, const int cpu_used, const std::string end_usage, const std::string usage_profile, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
     g_object_set(encode,
-        "cpu-used", props->cpu_used, // Fastest 10, 1 Slowest 
+        "cpu-used", cpu_used, // Fastest 10, 1 Slowest 
         "end-usage", (
-            props->end_usage == "vbr" ? 0:
-            props->end_usage == "cbr" ? 1:
-            props->end_usage == "cq" ? 2:
+            end_usage == "vbr" ? 0:
+            end_usage == "cbr" ? 1:
+            end_usage == "cq" ? 2:
             1), // mode, constant bitrate best
         "usage-profile", (
-            props->usage_profile == "good-quality" ? 0:
-            props->usage_profile == "realtime" ? 1:
-            props->usage_profile == "all-intra" ? 2:
+            usage_profile == "good-quality" ? 0:
+            usage_profile == "realtime" ? 1:
+            usage_profile == "all-intra" ? 2:
             2), 
-        "threads", props->threads, // 1 is best for cpu and compression ratio
-        "target-bitrate", props->bitrate,
-        "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
-        "tile-columns", props->threads,
-        "tile-rows", props->threads,
+        "threads", threads, // 1 is best for cpu and compression ratio
+        "target-bitrate", bitrate,
+        "keyframe-max-dist", (int) gop * (int) ((float) framerate/ (float) framerate_denominator/ (float) downrate + 1.0), // Largest GOP
+        "tile-columns", threads,
+        "tile-rows", threads,
         NULL);
 }
 
@@ -402,12 +403,12 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   };
 
   // 2. Set element properties
-  set_source(source, props);
-  set_srcfilter(srcfilter, props);
-  set_convert(convert, props);
-  set_scalefilter(scalefilter, props);
-  set_crop43(cropper, props, crop_width);
-  set_webrtc(webrtc, props);
+  set_source(source, props->device, props->io_mode);
+  set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
+  set_convert(convert, props->chroma_resampler, props->dither, props->method);
+  set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
+  set_crop43(cropper, props->crop43, crop_width, props->downscale);
+  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, scalefilter, webrtc, NULL);
@@ -481,8 +482,9 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
   props->original_serial = camera->original_serial;
 
   // Get profile
-  std::string profile;
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "NULL"); 
+  std::string profile = "NULL";
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
@@ -568,10 +570,11 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   };
 
   // 2. Set element properties
-  set_source(source, props);
-  set_srcfilter(srcfilter, props);
+  set_source(source, props->device, props->io_mode);
+  set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
+  set_payload(payload, props->payload_quirk);
   set_h264parse(parse);
-  set_webrtc(webrtc, props);
+  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, parse, webrtc, NULL);
@@ -607,8 +610,9 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->original_serial = camera->original_serial;
 
   // Get profile
-  std::string profile;
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "NULL"); 
+  std::string profile = "NULL";
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
@@ -688,14 +692,14 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   };
 
   // 2. Set element properties
-  set_source(source, props);
-  set_srcfilter(srcfilter, props);
-  set_convert(convert, props);
-  set_scalefilter(scalefilter, props);
-  set_crop43(cropper, props, crop_width);
-  set_x264(encode, props);
+  set_source(source, props->device, props->io_mode);
+  set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
+  set_convert(convert, props->chroma_resampler, props->dither, props->method);
+  set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
+  set_crop43(cropper, props->crop43, crop_width, props->downscale);
+  set_x264(encode, props->tune, props->speed_preset, props->threads, props->bitrate, props->noise_reduction, props->gop, props->framerate, props->framerate_denominator, props->downrate);
   set_h264parse(parse, props->gop);
-  set_webrtc(webrtc, props);
+  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, parse, webrtc, NULL);
@@ -759,8 +763,9 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->original_serial = camera->original_serial;
 
   // Get profile
-  std::string profile;
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "NULL");
+  std::string profile = "NULL";
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
@@ -871,13 +876,13 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   };
   
   // 2. Set element properties
-  set_source(source, props);
-  set_srcfilter(srcfilter, props);
-  set_convert(convert, props);
-  set_scalefilter(scalefilter, props);
-  set_crop43(cropper, props, crop_width);
-  set_vpXenc(encode, props);
-  set_webrtc(webrtc, props);
+  set_source(source, props->device, props->io_mode);
+  set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
+  set_convert(convert, props->chroma_resampler, props->dither, props->method);
+  set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
+  set_crop43(cropper, props->crop43, crop_width, props->downscale);
+  set_vpXenc(encode, props->deadline, props->cpu_used, props->end_usage, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate, props->video_caps, props->aq_mode);
+  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, webrtc, NULL);
@@ -942,8 +947,9 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   props->original_serial = camera->original_serial;
 
   // Get profile
-  std::string profile;
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "NULL"); 
+  std::string profile = "NULL";
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
@@ -1057,13 +1063,13 @@ GstElement* av1software_pipeline(rclcpp::Node* streamer_node, av1softwarePipelin
   };
   
   // 2. Set element properties
-  set_source(source, props);
-  set_srcfilter(srcfilter, props);
-  set_convert(convert, props);
-  set_scalefilter(scalefilter, props);
-  set_crop43(cropper, props, crop_width);
-  set_av1enc(encode, props);
-  set_webrtc(webrtc, props);
+  set_source(source, props->device, props->io_mode);
+  set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
+  set_convert(convert, props->chroma_resampler, props->dither, props->method);
+  set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
+  set_crop43(cropper, props->crop43, crop_width, props->downscale);
+  set_av1enc(encode, props->cpu_used, props->end_usage, props->usage_profile, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate);
+  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, parse, webrtc, NULL);
@@ -1129,8 +1135,9 @@ av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node*
   props->original_serial = camera->original_serial;
 
   // Get profile
-  std::string profile;
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, "NULL"); 
+  std::string profile = "NULL";
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
