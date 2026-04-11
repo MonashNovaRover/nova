@@ -51,7 +51,7 @@ public:
    * \returns True if a solution was found
    */
   virtual bool get_position_ik(
-    const Eigen::Isometry3f & ik_pose,
+    const Eigen::Isometry3d & ik_pose,
     const std::vector<double> & ik_seed_state,
     std::vector<double> & solution_state) const = 0;
 
@@ -76,8 +76,8 @@ public:
    * \returns True if a solution was found.
    */
   virtual bool get_velocity_ik(
-    const Twistf & ik_twist,
-    const Eigen::Isometry3f & ik_seed_pose,
+    const Twistd & ik_twist,
+    const Eigen::Isometry3d & ik_seed_pose,
     const std::vector<double> & ik_seed_state,
     std::vector<double> & solution_velocities,
     double time_step) const;

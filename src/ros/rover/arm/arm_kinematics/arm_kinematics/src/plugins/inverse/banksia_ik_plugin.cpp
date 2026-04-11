@@ -5,7 +5,7 @@
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 
 namespace {
-  const auto ENDEFFECTOR_BASIS_INVERSE = Eigen::Quaternionf(0.5, -0.5, 0.5, 0.5).toRotationMatrix().inverse();
+  const auto ENDEFFECTOR_BASIS_INVERSE = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5).toRotationMatrix().inverse();
 }
 
 namespace arm_kinematics {
@@ -23,7 +23,7 @@ public:
   }
 
   bool get_position_ik(
-    const Eigen::Isometry3f & ik_pose,
+    const Eigen::Isometry3d & ik_pose,
     const std::vector<double> & ik_seed_state,
     std::vector<double> & solution_state) const override
   {
@@ -35,15 +35,15 @@ public:
     const auto y = origin.y();
     const auto z = origin.z();
 
-    const Eigen::Matrix3f rotated_basis = ik_pose.rotation() * ENDEFFECTOR_BASIS_INVERSE;
+    const Eigen::Matrix3d rotated_basis = ik_pose.rotation() * ENDEFFECTOR_BASIS_INVERSE;
 
     double l1r = link_lengths_[0];
     double l2r = link_lengths_[1];
     double l3  = link_lengths_[2];
 
-    const Eigen::Matrix3f & rxyz = rotated_basis;
+    const Eigen::Matrix3d & rxyz = rotated_basis;
 
-    Eigen::Matrix4f t07r = Eigen::Matrix4f::Zero();
+    Eigen::Matrix4d t07r = Eigen::Matrix4d::Zero();
     t07r.topLeftCorner<3,3>() = rxyz;
 
     t07r(3, 3) = 1;
@@ -51,13 +51,13 @@ public:
     t07r(1, 3) = y;
     t07r(2, 3) = z;
 
-    Eigen::Matrix4f t67 = to_matrix4(
+    Eigen::Matrix4d t67 = to_matrix4(
       1, 0, 0, 0,
       0, 1, 0, 0,
       0, 0, 1, l3,
       0, 0, 0, 1
     );
-    Eigen::Matrix4f t0_wrist = t07r * t67.inverse();
+    Eigen::Matrix4d t0_wrist = t07r * t67.inverse();
 
     double wrist_x = t0_wrist(0, 3);
     double wrist_y = t0_wrist(1, 3);
@@ -86,7 +86,7 @@ public:
     Eigen::Matrix4d t02 = t01 * t12;
     Eigen::Matrix4d t03_wrist = t02 * t23;
     Eigen::Matrix3d r03_wrist = t03_wrist.topLeftCorner<3, 3>(); // R03_wrist = T03_wrist(1:3,1:3); in matlab
-    Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>().cast<double>(); // see above
+    Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>(); // see above
     Eigen::Matrix3d r37r = r03_wrist.inverse() * r07r;
 
     double j4 = atan2(r37r(1, 2), r37r(0, 2));
@@ -109,13 +109,13 @@ public:
     return true;
   }
 
-  static Eigen::Matrix4f to_matrix4(
-      float r00, float r01, float r02, float tx,
-      float r10, float r11, float r12, float ty,
-      float r20, float r21, float r22, float tz,
-      float b0 = 0,  float b1 = 0,  float b2 = 0, float b3 = 1)
+  static Eigen::Matrix4d to_matrix4(
+      double r00, double r01, double r02, double tx,
+      double r10, double r11, double r12, double ty,
+      double r20, double r21, double r22, double tz,
+      double b0 = 0,  double b1 = 0,  double b2 = 0, double b3 = 1)
   {
-    Eigen::Matrix4f m;
+    Eigen::Matrix4d m;
     m << r00, r01, r02, tx,
          r10, r11, r12, ty,
          r20, r21, r22, tz,
@@ -123,18 +123,18 @@ public:
     return m;
   }
 
-  static Eigen::Isometry3f to_isometry(
-      float r00, float r01, float r02, float tx,
-      float r10, float r11, float r12, float ty,
-      float r20, float r21, float r22, float tz)
+  static Eigen::Isometry3d to_isometry(
+      double r00, double r01, double r02, double tx,
+      double r10, double r11, double r12, double ty,
+      double r20, double r21, double r22, double tz)
   {
-    Eigen::Matrix4f m;
+    Eigen::Matrix4d m;
     m << r00, r01, r02, tx,
          r10, r11, r12, ty,
          r20, r21, r22, tz,
          0.0, 0.0, 0.0, 1.0;
 
-    Eigen::Isometry3f T(m);   // or: Eigen::Isometry3f T = m;
+    Eigen::Isometry3d T(m);
     return T;
   }
 

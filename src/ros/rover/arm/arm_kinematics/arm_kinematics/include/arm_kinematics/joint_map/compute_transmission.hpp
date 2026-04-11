@@ -17,9 +17,9 @@ public:
   virtual ~ComputeTransmission() = default;
 
   virtual void compute(
-    span<const float> inputs,
-    span<float> outputs,
-    span<float> scratch) const = 0;
+    span<const double> inputs,
+    span<double> outputs,
+    span<double> scratch) const = 0;
 
   [[nodiscard]] virtual size_t scratch_size() const noexcept = 0;
   [[nodiscard]] virtual std::unique_ptr<ComputeTransmission> clone() const = 0;

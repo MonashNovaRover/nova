@@ -46,7 +46,7 @@ namespace {
 // Computes a linear transformation: outputs = M * inputs + b, where M is row-major.
 class LinearCompute : public ComputeTransmission {
 public:
-  LinearCompute(std::vector<float> matrix, std::vector<float> bias, size_t input_count, size_t output_count)
+  LinearCompute(std::vector<double> matrix, std::vector<double> bias, size_t input_count, size_t output_count)
     : matrix_(std::move(matrix)),
       bias_(std::move(bias)),
       input_count_(input_count),
@@ -55,12 +55,12 @@ public:
   }
 
   void compute(
-    arm_kinematics::span<const float> inputs,
-    arm_kinematics::span<float> outputs,
-    arm_kinematics::span<float>) const override
+    arm_kinematics::span<const double> inputs,
+    arm_kinematics::span<double> outputs,
+    arm_kinematics::span<double>) const override
   {
     for (size_t i = 0; i < output_count_; ++i) {
-      float acc = bias_[i];
+      double acc = bias_[i];
       for (size_t j = 0; j < input_count_; ++j) {
         acc += matrix_[i * input_count_ + j] * inputs[j];
       }
@@ -76,8 +76,8 @@ public:
   }
 
 private:
-  std::vector<float> matrix_;
-  std::vector<float> bias_;
+  std::vector<double> matrix_;
+  std::vector<double> bias_;
   size_t input_count_;
   size_t output_count_;
 };
@@ -85,7 +85,7 @@ private:
 // Wraps a captured LinearCompute so the analysis can hand it back at build time.
 class LinearTransmissionModel : public TransmissionModel {
 public:
-  explicit LinearTransmissionModel(std::vector<float> matrix, std::vector<float> bias,
+  explicit LinearTransmissionModel(std::vector<double> matrix, std::vector<double> bias,
                                    size_t input_count, size_t output_count)
     : matrix_(std::move(matrix)), bias_(std::move(bias)),
       input_count_(input_count), output_count_(output_count)
@@ -105,8 +105,8 @@ public:
   }
 
 private:
-  std::vector<float> matrix_;
-  std::vector<float> bias_;
+  std::vector<double> matrix_;
+  std::vector<double> bias_;
   size_t input_count_;
   size_t output_count_;
 };
@@ -135,9 +135,9 @@ StateInterfaceId ensure_state(
   return analysis.ensure_state_interface_id(NamedStateInterfaceDefinition{joint_name, iface});
 }
 
-constexpr float kTolerance = 1.0e-5F;
+constexpr double kTolerance = 1.0e-9;
 
-bool approx_equal(float a, float b)
+bool approx_equal(double a, double b)
 {
   return std::abs(a - b) <= kTolerance + kTolerance * std::max(std::abs(a), std::abs(b));
 }
@@ -175,10 +175,10 @@ TEST_F(MaterializeJointMapTest, PureAffine_IdentityPassthrough)
   EXPECT_EQ(jm.input_count(), 1u);
   EXPECT_EQ(jm.output_count(), 1u);
 
-  std::vector<float> in{5.0F};
-  std::vector<float> out(1, 0.0F);
+  std::vector<double> in{5.0};
+  std::vector<double> out(1, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 5.0F));
+  EXPECT_TRUE(approx_equal(out[0], 5.0));
 }
 
 // ===========================================================================
@@ -190,14 +190,14 @@ TEST_F(MaterializeJointMapTest, PureAffine_SingleMimic)
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 3.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 3.0);
 
   const auto jm = build_joint_map(analysis_, {a}, {b});
 
-  std::vector<float> in{5.0F};
-  std::vector<float> out(1, 0.0F);
+  std::vector<double> in{5.0};
+  std::vector<double> out(1, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 13.0F));  // 2*5 + 3 = 13
+  EXPECT_TRUE(approx_equal(out[0], 13.0));  // 2*5 + 3 = 13
 }
 
 // ===========================================================================
@@ -213,18 +213,18 @@ TEST_F(MaterializeJointMapTest, PureAffine_MultipleMimics_OneInputManyOutputs)
   const auto b2 = ensure_state(analysis_, "j_b2", InterfaceId{"position"});
   const auto b3 = ensure_state(analysis_, "j_b3", InterfaceId{"position"});
 
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
-  analysis_.add_affine_transmission(joints[0], joints[2], 3.0F, 1.0F);
-  analysis_.add_affine_transmission(joints[0], joints[3], 0.5F, -2.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
+  analysis_.add_affine_transmission(joints[0], joints[2], 3.0, 1.0);
+  analysis_.add_affine_transmission(joints[0], joints[3], 0.5, -2.0);
 
   const auto jm = build_joint_map(analysis_, {a}, {b1, b2, b3});
 
-  std::vector<float> in{4.0F};
-  std::vector<float> out(3, 0.0F);
+  std::vector<double> in{4.0};
+  std::vector<double> out(3, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 8.0F));   // 2 * 4
-  EXPECT_TRUE(approx_equal(out[1], 13.0F));  // 3 * 4 + 1
-  EXPECT_TRUE(approx_equal(out[2], 0.0F));   // 0.5 * 4 - 2
+  EXPECT_TRUE(approx_equal(out[0], 8.0));   // 2 * 4
+  EXPECT_TRUE(approx_equal(out[1], 13.0));  // 3 * 4 + 1
+  EXPECT_TRUE(approx_equal(out[2], 0.0));   // 0.5 * 4 - 2
 }
 
 // ===========================================================================
@@ -236,15 +236,15 @@ TEST_F(MaterializeJointMapTest, PureAffine_PassthroughAndMimic)
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto jm = build_joint_map(analysis_, {a}, {a, b});
 
-  std::vector<float> in{3.0F};
-  std::vector<float> out(2, 0.0F);
+  std::vector<double> in{3.0};
+  std::vector<double> out(2, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 3.0F));   // a passthrough
-  EXPECT_TRUE(approx_equal(out[1], 11.0F));  // 2*3 + 5
+  EXPECT_TRUE(approx_equal(out[0], 3.0));   // a passthrough
+  EXPECT_TRUE(approx_equal(out[1], 11.0));  // 2*3 + 5
 }
 
 // ===========================================================================
@@ -259,15 +259,15 @@ TEST_F(MaterializeJointMapTest, Mixed_SingleTransmission_OneInputOneOutput)
 
   // x = 5*a
   const auto model_id = analysis_.add_model(std::make_unique<LinearTransmissionModel>(
-    std::vector<float>{5.0F}, std::vector<float>{0.0F}, 1, 1));
+    std::vector<double>{5.0}, std::vector<double>{0.0}, 1, 1));
   analysis_.add_transmission(model_id, {a}, {x}, "T");
 
   const auto jm = build_joint_map(analysis_, {a}, {x});
 
-  std::vector<float> in{2.0F};
-  std::vector<float> out(1, 0.0F);
+  std::vector<double> in{2.0};
+  std::vector<double> out(1, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 10.0F));
+  EXPECT_TRUE(approx_equal(out[0], 10.0));
 }
 
 // ===========================================================================
@@ -285,19 +285,19 @@ TEST_F(MaterializeJointMapTest, Mixed_TransmissionThenAffineProjection)
   const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
   const auto y = ensure_state(analysis_, "j_y", InterfaceId{"position"});
 
-  analysis_.add_affine_transmission(joints[1], joints[2], 2.0F, 1.0F);
+  analysis_.add_affine_transmission(joints[1], joints[2], 2.0, 1.0);
 
   const auto model_id = analysis_.add_model(std::make_unique<LinearTransmissionModel>(
-    std::vector<float>{5.0F}, std::vector<float>{0.0F}, 1, 1));
+    std::vector<double>{5.0}, std::vector<double>{0.0}, 1, 1));
   analysis_.add_transmission(model_id, {a}, {x}, "T");
 
   const auto jm = build_joint_map(analysis_, {a}, {x, y});
 
-  std::vector<float> in{3.0F};
-  std::vector<float> out(2, 0.0F);
+  std::vector<double> in{3.0};
+  std::vector<double> out(2, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 15.0F));  // x = 5*3
-  EXPECT_TRUE(approx_equal(out[1], 31.0F));  // y = 2*15 + 1
+  EXPECT_TRUE(approx_equal(out[0], 15.0));  // x = 5*3
+  EXPECT_TRUE(approx_equal(out[1], 31.0));  // y = 2*15 + 1
 }
 
 // ===========================================================================
@@ -315,19 +315,19 @@ TEST_F(MaterializeJointMapTest, Mixed_PreAffineBatchThenTransmission)
   const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
   const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
 
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto model_id = analysis_.add_model(std::make_unique<LinearTransmissionModel>(
-    std::vector<float>{3.0F}, std::vector<float>{1.0F}, 1, 1));
+    std::vector<double>{3.0}, std::vector<double>{1.0}, 1, 1));
   analysis_.add_transmission(model_id, {a}, {x}, "T");
 
   const auto jm = build_joint_map(analysis_, {a}, {b, x});
 
-  std::vector<float> in{4.0F};
-  std::vector<float> out(2, 0.0F);
+  std::vector<double> in{4.0};
+  std::vector<double> out(2, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 13.0F));  // 2*4 + 5
-  EXPECT_TRUE(approx_equal(out[1], 13.0F));  // 3*4 + 1
+  EXPECT_TRUE(approx_equal(out[0], 13.0));  // 2*4 + 5
+  EXPECT_TRUE(approx_equal(out[1], 13.0));  // 3*4 + 1
 }
 
 // ===========================================================================
@@ -346,17 +346,17 @@ TEST_F(MaterializeJointMapTest, Mixed_SideEffectOutput_OnlyWantedExposed)
 
   // 2-output linear: outputs = [2a, 3a+1]
   const auto model_id = analysis_.add_model(std::make_unique<LinearTransmissionModel>(
-    std::vector<float>{2.0F, 3.0F},
-    std::vector<float>{0.0F, 1.0F},
+    std::vector<double>{2.0, 3.0},
+    std::vector<double>{0.0, 1.0},
     1, 2));
   analysis_.add_transmission(model_id, {a}, {i_iface, k}, "T");
 
   const auto jm = build_joint_map(analysis_, {a}, {k});
 
-  std::vector<float> in{5.0F};
-  std::vector<float> out(1, 0.0F);
+  std::vector<double> in{5.0};
+  std::vector<double> out(1, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 16.0F));
+  EXPECT_TRUE(approx_equal(out[0], 16.0));
 }
 
 // ===========================================================================
@@ -375,18 +375,18 @@ TEST_F(MaterializeJointMapTest, Mixed_TransmissionChain)
   const auto c = ensure_state(analysis_, "j_c", InterfaceId{"position"});
 
   const auto m1 = analysis_.add_model(std::make_unique<LinearTransmissionModel>(
-    std::vector<float>{2.0F}, std::vector<float>{1.0F}, 1, 1));
+    std::vector<double>{2.0}, std::vector<double>{1.0}, 1, 1));
   const auto m2 = analysis_.add_model(std::make_unique<LinearTransmissionModel>(
-    std::vector<float>{3.0F}, std::vector<float>{-2.0F}, 1, 1));
+    std::vector<double>{3.0}, std::vector<double>{-2.0}, 1, 1));
   analysis_.add_transmission(m1, {a}, {b}, "T1");
   analysis_.add_transmission(m2, {b}, {c}, "T2");
 
   const auto jm = build_joint_map(analysis_, {a}, {c});
 
-  std::vector<float> in{4.0F};
-  std::vector<float> out(1, 0.0F);
+  std::vector<double> in{4.0};
+  std::vector<double> out(1, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 25.0F));
+  EXPECT_TRUE(approx_equal(out[0], 25.0));
 }
 
 // ===========================================================================
@@ -406,19 +406,19 @@ TEST_F(MaterializeJointMapTest, Mixed_TransmissionOutputBothExposedAndConsumedDo
   const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
   const auto y = ensure_state(analysis_, "j_y", InterfaceId{"position"});
 
-  analysis_.add_affine_transmission(joints[1], joints[2], 3.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[1], joints[2], 3.0, 0.0);
 
   const auto model_id = analysis_.add_model(std::make_unique<LinearTransmissionModel>(
-    std::vector<float>{2.0F}, std::vector<float>{0.0F}, 1, 1));
+    std::vector<double>{2.0}, std::vector<double>{0.0}, 1, 1));
   analysis_.add_transmission(model_id, {a}, {b}, "T");
 
   const auto jm = build_joint_map(analysis_, {a}, {b, y});
 
-  std::vector<float> in{5.0F};
-  std::vector<float> out(2, 0.0F);
+  std::vector<double> in{5.0};
+  std::vector<double> out(2, 0.0);
   jm.map(in, out);
-  EXPECT_TRUE(approx_equal(out[0], 10.0F));
-  EXPECT_TRUE(approx_equal(out[1], 30.0F));
+  EXPECT_TRUE(approx_equal(out[0], 10.0));
+  EXPECT_TRUE(approx_equal(out[1], 30.0));
 }
 
 // ===========================================================================
@@ -434,7 +434,7 @@ TEST_F(MaterializeJointMapTest, EmptyOutputs_ProducesValidEmptyJointMap)
 
   EXPECT_EQ(jm.output_count(), 0u);
 
-  std::vector<float> in{1.0F};
-  std::vector<float> out{};
+  std::vector<double> in{1.0};
+  std::vector<double> out{};
   jm.map(in, out);  // No-op, should not throw
 }

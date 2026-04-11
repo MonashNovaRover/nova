@@ -32,8 +32,8 @@ namespace arm_kinematics {
  *   (energy-conserving; opt-in only — see TransmissionAnalysis defaults)
  */
 struct AffineProjectionRule {
-  float multiplier_scale = 1.0F;
-  float offset_scale = 1.0F;
+  double multiplier_scale = 1.0;
+  double offset_scale = 1.0;
   bool reverse_direction = false;
 };
 

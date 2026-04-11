@@ -12,8 +12,8 @@ namespace arm_kinematics {
 
 AffineJointMap::AffineJointMap(
   std::vector<size_t> sources,
-  std::vector<float> multipliers,
-  std::vector<float> offsets,
+  std::vector<double> multipliers,
+  std::vector<double> offsets,
   const size_t input_count)
   : sources_(std::move(sources)),
     multipliers_(std::move(multipliers)),
@@ -33,7 +33,7 @@ AffineJointMap::AffineJointMap(
   }
 }
 
-void AffineJointMap::map(span<const float> inputs, span<float> outputs) const
+void AffineJointMap::map(span<const double> inputs, span<double> outputs) const
 {
   assert(!input_count_ || inputs.size() == input_count_);
   assert(outputs.size() == output_count_);

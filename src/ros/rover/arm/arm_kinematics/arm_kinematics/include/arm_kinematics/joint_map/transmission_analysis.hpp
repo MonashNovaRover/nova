@@ -79,9 +79,9 @@ public:
     /// The composed multiplier from source to target. For non-root joints this is the product of
     /// every edge multiplier along the chain from the original source to the target. For root
     /// joints (entry's `source_joint_id == target_joint_id`) this is `1`.
-    float multiplier = 1.0F;
+    double multiplier = 1.0;
     /// The composed offset. For root joints this is `0`.
-    float offset = 0.0F;
+    double offset = 0.0;
   };
 
   struct TransmissionInstance {
@@ -192,15 +192,15 @@ public:
   void add_affine_transmission(
     JointId source_joint_id,
     JointId target_joint_id,
-    float multiplier = 1.0F,
-    float offset = 0.0F);
+    double multiplier = 1.0,
+    double offset = 0.0);
 
   /// Convenience overload — resolves joint names first.
   void add_affine_transmission(
     const std::string & source_joint_name,
     const std::string & target_joint_name,
-    float multiplier = 1.0F,
-    float offset = 0.0F);
+    double multiplier = 1.0,
+    double offset = 0.0);
 
   // ---------------------------------------------------------------------------
   // Affine projection rule registry

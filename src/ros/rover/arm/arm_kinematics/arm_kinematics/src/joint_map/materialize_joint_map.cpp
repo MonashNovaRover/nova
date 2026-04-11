@@ -54,8 +54,8 @@ JointMap materialize_pure_affine(const JointMapBlueprint & blueprint)
 
   // Pre-size for output count; we'll fill in row-by-row from segments.
   std::vector<std::size_t> sources(outputs.size(), 0);
-  std::vector<float> multipliers(outputs.size(), 0.0F);
-  std::vector<float> offsets(outputs.size(), 0.0F);
+  std::vector<double> multipliers(outputs.size(), 0.0);
+  std::vector<double> offsets(outputs.size(), 0.0);
   std::vector<bool> filled(outputs.size(), false);
 
   for (const auto & seg : blueprint.segments()) {

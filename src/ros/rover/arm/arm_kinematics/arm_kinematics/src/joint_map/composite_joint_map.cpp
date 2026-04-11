@@ -83,15 +83,15 @@ CompositeJointMap::CompositeJointMap(
 CompositeJointMap::Workspace CompositeJointMap::make_workspace() const
 {
   Workspace ws{};
-  ws.scratch.assign(scratch_size_, 0.0F);
+  ws.scratch.assign(scratch_size_, 0.0);
   ws.stage_outputs.reserve(stages_.size());
   for (const auto & stage : stages_) {
-    ws.stage_outputs.emplace_back(stage.segment.output_count(), 0.0F);
+    ws.stage_outputs.emplace_back(stage.segment.output_count(), 0.0);
   }
   return ws;
 }
 
-void CompositeJointMap::map(const span<const float> inputs, const span<float> outputs) const
+void CompositeJointMap::map(const span<const double> inputs, const span<double> outputs) const
 {
   if (inputs.size() != input_count_) {
     throw std::invalid_argument("CompositeJointMap::map() received inputs with the wrong size");
@@ -110,8 +110,8 @@ void CompositeJointMap::map(const span<const float> inputs, const span<float> ou
     const auto & stage = stages_[i];
     auto & stage_out = workspace_.stage_outputs[i];
     stage.segment.map(
-      span<const float>(workspace_.scratch.data(), workspace_.scratch.size()),
-      span<float>(stage_out.data(), stage_out.size()));
+      span<const double>(workspace_.scratch.data(), workspace_.scratch.size()),
+      span<double>(stage_out.data(), stage_out.size()));
 
     for (size_t j = 0; j < stage_out.size(); ++j) {
       if (const auto & slot = stage.scratch_scatter[j]; slot.has_value()) {

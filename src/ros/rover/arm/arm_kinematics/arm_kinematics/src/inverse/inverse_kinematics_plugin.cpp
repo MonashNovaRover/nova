@@ -18,8 +18,8 @@ bool InverseKinematicsPlugin::initialize(
   return true;
 }
 
-bool InverseKinematicsPlugin::get_velocity_ik(const Twistf & ik_twist,
-                                              const Eigen::Isometry3f &ik_seed_pose,
+bool InverseKinematicsPlugin::get_velocity_ik(const Twistd & ik_twist,
+                                              const Eigen::Isometry3d &ik_seed_pose,
                                               const std::vector<double> &ik_seed_state,
                                               std::vector<double> &solution_velocities,
                                               const double time_step) const

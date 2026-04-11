@@ -13,13 +13,13 @@ constexpr auto EPSILON = 1e-8;
 namespace arm_kinematics {
 
 void apply_twist(
-  const Twistf & twist,
+  const Twistd & twist,
   const double delta_time,
-  const Eigen::Isometry3f & pose,
-  Eigen::Isometry3f & result)
+  const Eigen::Isometry3d & pose,
+  Eigen::Isometry3d & result)
 {
-  const Eigen::Vector3f twist_linear = twist.cast<float>().block<3, 1>(0, 0);
-  const Eigen::Vector3f twist_angular = twist.cast<float>().block<3, 1>(3, 0);
+  const Eigen::Vector3d twist_linear = twist.block<3, 1>(0, 0);
+  const Eigen::Vector3d twist_angular = twist.block<3, 1>(3, 0);
 
   // Set translational components
   result.translation() = pose.translation() + twist_linear * delta_time;
@@ -31,8 +31,8 @@ void apply_twist(
   // Only apply rotation if it is non-zero enough to avoid precision errors
   if (twist_angular_norm > EPSILON) {
     // Create rotation matrix from twist_angular * period.seconds. This isn't an angular velocity, but a displacement.
-    Eigen::AngleAxisf angular_diff(
-      twist_angular_norm * static_cast<float>(delta_time),
+    Eigen::AngleAxisd angular_diff(
+      twist_angular_norm * delta_time,
       twist_angular / twist_angular_norm);
 
     // This 'linear' does not mean the same thing as the twist's 'linear'!
@@ -44,28 +44,28 @@ void apply_twist(
   }
 }
 
-Eigen::Isometry3f apply_twist(
-  const Twistf &twist,
+Eigen::Isometry3d apply_twist(
+  const Twistd & twist,
   const double delta_time,
-  const Eigen::Isometry3f &pose)
+  const Eigen::Isometry3d & pose)
 {
-  Eigen::Isometry3f result;
+  Eigen::Isometry3d result;
   apply_twist(twist, delta_time, pose, result);
   return result;
 }
 
-void kdl_to_eigen(const KDL::Frame & frame, Eigen::Isometry3f & result) {
+void kdl_to_eigen(const KDL::Frame & frame, Eigen::Isometry3d & result) {
   // Rotation
   for (int i = 0; i < 3; ++i)
     for (int j = 0; j < 3; ++j)
-      result.linear()(i, j) = static_cast<float>(frame.M(i, j));
+      result.linear()(i, j) = frame.M(i, j);
 
   // Translation
-  result.translation() << static_cast<float>(frame.p.x()), static_cast<float>(frame.p.y()), static_cast<float>(frame.p.z());
+  result.translation() << frame.p.x(), frame.p.y(), frame.p.z();
 }
 
-Eigen::Isometry3f kdl_to_eigen(const KDL::Frame & frame) {
-  Eigen::Isometry3f result{};
+Eigen::Isometry3d kdl_to_eigen(const KDL::Frame & frame) {
+  Eigen::Isometry3d result{};
   kdl_to_eigen(frame, result);
   return result;
 }

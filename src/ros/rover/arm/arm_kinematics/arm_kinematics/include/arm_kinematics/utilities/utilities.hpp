@@ -20,8 +20,8 @@ namespace arm_kinematics {
    * \param[in] pose The pose to apply the twist to
    * \param[out] result The pose with the twist applied
    */
-  void apply_twist(const Twistf & twist, double delta_time, const Eigen::Isometry3f & pose,
-                   Eigen::Isometry3f & result);
+  void apply_twist(const Twistd & twist, double delta_time, const Eigen::Isometry3d & pose,
+                   Eigen::Isometry3d & result);
 
   /**
    * Applies a given twist to a pose.
@@ -31,23 +31,23 @@ namespace arm_kinematics {
    * \param[in] pose The pose to apply the twist to
    * \returns The pose with the twist applied
    */
-  Eigen::Isometry3f apply_twist(const Twistf & twist, double delta_time, const Eigen::Isometry3f & pose);
+  Eigen::Isometry3d apply_twist(const Twistd & twist, double delta_time, const Eigen::Isometry3d & pose);
 
   /**
-   * Converts a KDL::Frame to an Eigen::Isometry3f
+   * Converts a KDL::Frame to an Eigen::Isometry3d
    *
-   * \param[in] frame The value to convert to an Eigen::Isometry3f
-   * \param[out] result frame as an Eigen::Isometry3f
+   * \param[in] frame The value to convert to an Eigen::Isometry3d
+   * \param[out] result frame as an Eigen::Isometry3d
    */
-  void kdl_to_eigen(const KDL::Frame & frame, Eigen::Isometry3f & result);
+  void kdl_to_eigen(const KDL::Frame & frame, Eigen::Isometry3d & result);
 
   /**
-   * Converts a KDL::Frame to an Eigen::Isometry3f
+   * Converts a KDL::Frame to an Eigen::Isometry3d
    *
-   * \param[in] frame The value to convert to an Eigen::Isometry3f
-   * \returns frame as an Eigen::Isometry3f
+   * \param[in] frame The value to convert to an Eigen::Isometry3d
+   * \returns frame as an Eigen::Isometry3d
    */
-  Eigen::Isometry3f kdl_to_eigen(const KDL::Frame & frame);
+  Eigen::Isometry3d kdl_to_eigen(const KDL::Frame & frame);
 
 }
 

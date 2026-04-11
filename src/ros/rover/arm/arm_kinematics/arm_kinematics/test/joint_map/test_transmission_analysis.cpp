@@ -34,9 +34,9 @@ namespace {
 class StubComputeTransmission : public ComputeTransmission {
 public:
   void compute(
-    arm_kinematics::span<const float>,
-    arm_kinematics::span<float>,
-    arm_kinematics::span<float>) const override
+    arm_kinematics::span<const double>,
+    arm_kinematics::span<double>,
+    arm_kinematics::span<double>) const override
   {
   }
 
@@ -63,11 +63,11 @@ public:
   }
 };
 
-constexpr float kFloatTolerance = 1.0e-5F;
+constexpr double kTolerance = 1.0e-9;
 
-bool approx_equal(float a, float b)
+bool approx_equal(double a, double b)
 {
-  return std::fabs(a - b) <= kFloatTolerance + kFloatTolerance * std::max(std::fabs(a), std::fabs(b));
+  return std::fabs(a - b) <= kTolerance + kTolerance * std::max(std::fabs(a), std::fabs(b));
 }
 
 }  // namespace
@@ -95,8 +95,8 @@ TEST_F(TransmissionAnalysisTest, IsolatedJoint_AffineRootIsItself_GroupIsSinglet
   const auto & flat = analysis_.affine_transmission_of(j);
   EXPECT_EQ(flat.source_joint_id, j);
   EXPECT_EQ(flat.target_joint_id, j);
-  EXPECT_TRUE(approx_equal(flat.multiplier, 1.0F));
-  EXPECT_TRUE(approx_equal(flat.offset, 0.0F));
+  EXPECT_TRUE(approx_equal(flat.multiplier, 1.0));
+  EXPECT_TRUE(approx_equal(flat.offset, 0.0));
 }
 
 TEST_F(TransmissionAnalysisTest, MimicChain_ProducesCorrectFlatComposition)
@@ -107,8 +107,8 @@ TEST_F(TransmissionAnalysisTest, MimicChain_ProducesCorrectFlatComposition)
   const auto b = analysis_.ensure_joint_id("b");
   const auto c = analysis_.ensure_joint_id("c");
 
-  analysis_.add_affine_transmission(a, b, 2.0F, 5.0F);
-  analysis_.add_affine_transmission(b, c, 3.0F, 7.0F);
+  analysis_.add_affine_transmission(a, b, 2.0, 5.0);
+  analysis_.add_affine_transmission(b, c, 3.0, 7.0);
 
   EXPECT_EQ(analysis_.affine_root_of(a), a);
   EXPECT_EQ(analysis_.affine_root_of(b), a);
@@ -117,13 +117,13 @@ TEST_F(TransmissionAnalysisTest, MimicChain_ProducesCorrectFlatComposition)
   const auto & flat_c = analysis_.affine_transmission_of(c);
   EXPECT_EQ(flat_c.source_joint_id, a);
   EXPECT_EQ(flat_c.target_joint_id, c);
-  EXPECT_TRUE(approx_equal(flat_c.multiplier, 6.0F));
-  EXPECT_TRUE(approx_equal(flat_c.offset, 22.0F));
+  EXPECT_TRUE(approx_equal(flat_c.multiplier, 6.0));
+  EXPECT_TRUE(approx_equal(flat_c.offset, 22.0));
 
   const auto & flat_b = analysis_.affine_transmission_of(b);
   EXPECT_EQ(flat_b.source_joint_id, a);
-  EXPECT_TRUE(approx_equal(flat_b.multiplier, 2.0F));
-  EXPECT_TRUE(approx_equal(flat_b.offset, 5.0F));
+  EXPECT_TRUE(approx_equal(flat_b.multiplier, 2.0));
+  EXPECT_TRUE(approx_equal(flat_b.offset, 5.0));
 }
 
 TEST_F(TransmissionAnalysisTest, ChainCompositionIsOrderIndependent)
@@ -133,15 +133,15 @@ TEST_F(TransmissionAnalysisTest, ChainCompositionIsOrderIndependent)
   const auto a1_a = a1.ensure_joint_id("a");
   const auto a1_b = a1.ensure_joint_id("b");
   const auto a1_c = a1.ensure_joint_id("c");
-  a1.add_affine_transmission(a1_a, a1_b, 2.0F, 5.0F);
-  a1.add_affine_transmission(a1_b, a1_c, 3.0F, 7.0F);
+  a1.add_affine_transmission(a1_a, a1_b, 2.0, 5.0);
+  a1.add_affine_transmission(a1_b, a1_c, 3.0, 7.0);
 
   TransmissionAnalysis a2{};
   const auto a2_a = a2.ensure_joint_id("a");
   const auto a2_b = a2.ensure_joint_id("b");
   const auto a2_c = a2.ensure_joint_id("c");
-  a2.add_affine_transmission(a2_b, a2_c, 3.0F, 7.0F);
-  a2.add_affine_transmission(a2_a, a2_b, 2.0F, 5.0F);
+  a2.add_affine_transmission(a2_b, a2_c, 3.0, 7.0);
+  a2.add_affine_transmission(a2_a, a2_b, 2.0, 5.0);
 
   const auto & f1 = a1.affine_transmission_of(a1_c);
   const auto & f2 = a2.affine_transmission_of(a2_c);
@@ -162,9 +162,9 @@ TEST_F(TransmissionAnalysisTest, MergingNonTrivialGroupsViaNonRootEdge)
   const auto c = analysis_.ensure_joint_id("c");
   const auto d = analysis_.ensure_joint_id("d");
 
-  analysis_.add_affine_transmission(a, b, 2.0F, 5.0F);   // B = 2A + 5
-  analysis_.add_affine_transmission(c, d, 4.0F, 1.0F);   // D = 4C + 1
-  analysis_.add_affine_transmission(b, c, 3.0F, 2.0F);   // C = 3B + 2
+  analysis_.add_affine_transmission(a, b, 2.0, 5.0);   // B = 2A + 5
+  analysis_.add_affine_transmission(c, d, 4.0, 1.0);   // D = 4C + 1
+  analysis_.add_affine_transmission(b, c, 3.0, 2.0);   // C = 3B + 2
 
   EXPECT_EQ(analysis_.affine_root_of(a), a);
   EXPECT_EQ(analysis_.affine_root_of(b), a);
@@ -173,13 +173,13 @@ TEST_F(TransmissionAnalysisTest, MergingNonTrivialGroupsViaNonRootEdge)
 
   // C in terms of A: C = 3B + 2 = 3(2A + 5) + 2 = 6A + 17.
   const auto & flat_c = analysis_.affine_transmission_of(c);
-  EXPECT_TRUE(approx_equal(flat_c.multiplier, 6.0F));
-  EXPECT_TRUE(approx_equal(flat_c.offset, 17.0F));
+  EXPECT_TRUE(approx_equal(flat_c.multiplier, 6.0));
+  EXPECT_TRUE(approx_equal(flat_c.offset, 17.0));
 
   // D in terms of A: D = 4C + 1 = 4(6A + 17) + 1 = 24A + 69.
   const auto & flat_d = analysis_.affine_transmission_of(d);
-  EXPECT_TRUE(approx_equal(flat_d.multiplier, 24.0F));
-  EXPECT_TRUE(approx_equal(flat_d.offset, 69.0F));
+  EXPECT_TRUE(approx_equal(flat_d.multiplier, 24.0));
+  EXPECT_TRUE(approx_equal(flat_d.offset, 69.0));
 
   // The group has all four members.
   const auto members = analysis_.affine_group_members(a);
@@ -195,7 +195,7 @@ TEST_F(TransmissionAnalysisTest, MultiplierZero_IsRejected)
   const auto a = analysis_.ensure_joint_id("a");
   const auto b = analysis_.ensure_joint_id("b");
   EXPECT_THROW(
-    analysis_.add_affine_transmission(a, b, 0.0F, 5.0F),
+    analysis_.add_affine_transmission(a, b, 0.0, 5.0),
     std::invalid_argument);
 }
 
@@ -203,7 +203,7 @@ TEST_F(TransmissionAnalysisTest, SelfLoop_IsRejected)
 {
   const auto a = analysis_.ensure_joint_id("a");
   EXPECT_THROW(
-    analysis_.add_affine_transmission(a, a, 2.0F, 0.0F),
+    analysis_.add_affine_transmission(a, a, 2.0, 0.0),
     std::invalid_argument);
 }
 
@@ -211,16 +211,16 @@ TEST_F(TransmissionAnalysisTest, RedundantConsistentEdge_IsNoOp)
 {
   const auto a = analysis_.ensure_joint_id("a");
   const auto b = analysis_.ensure_joint_id("b");
-  analysis_.add_affine_transmission(a, b, 2.0F, 5.0F);
+  analysis_.add_affine_transmission(a, b, 2.0, 5.0);
 
   // Re-adding the same edge with the same coefficients must not throw and must leave state
   // unchanged.
-  EXPECT_NO_THROW(analysis_.add_affine_transmission(a, b, 2.0F, 5.0F));
+  EXPECT_NO_THROW(analysis_.add_affine_transmission(a, b, 2.0, 5.0));
 
   EXPECT_EQ(analysis_.affine_root_of(b), a);
   const auto & flat = analysis_.affine_transmission_of(b);
-  EXPECT_TRUE(approx_equal(flat.multiplier, 2.0F));
-  EXPECT_TRUE(approx_equal(flat.offset, 5.0F));
+  EXPECT_TRUE(approx_equal(flat.multiplier, 2.0));
+  EXPECT_TRUE(approx_equal(flat.offset, 5.0));
   EXPECT_EQ(analysis_.affine_group_members(a).size(), 2u);
 }
 
@@ -284,11 +284,11 @@ TEST_F(TransmissionAnalysisTest, SetAffineProjectionRule_OverridesDefault)
   // Custom position rule with reverse_direction = true.
   analysis_.set_affine_projection_rule(
     InterfaceId{"position"},
-    AffineProjectionRule{2.0F, 3.0F, true});
+    AffineProjectionRule{2.0, 3.0, true});
 
   const auto * rule = analysis_.affine_projection_rule(InterfaceId{"position"});
   ASSERT_NE(rule, nullptr);
-  EXPECT_TRUE(approx_equal(rule->multiplier_scale, 2.0F));
-  EXPECT_TRUE(approx_equal(rule->offset_scale, 3.0F));
+  EXPECT_TRUE(approx_equal(rule->multiplier_scale, 2.0));
+  EXPECT_TRUE(approx_equal(rule->offset_scale, 3.0));
   EXPECT_TRUE(rule->reverse_direction);
 }

@@ -19,8 +19,8 @@ namespace arm_kinematics {
  */
 class ARM_KINEMATICS_PUBLIC FclCollisionPlugin : public DiscreteCollisionPlugin {
 public:
-  void update_pose(size_t idx, const Eigen::Isometry3f & collider_pose) override;
-  void update_poses(size_t start_idx, span<const Eigen::Isometry3f> collider_poses) override;
+  void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) override;
+  void update_poses(size_t start_idx, span<const Eigen::Isometry3d> collider_poses) override;
 
   bool collide() override;
   bool collide(
@@ -32,9 +32,9 @@ protected:
 
 private:
   /// The collider geometries used in collision checking. DO NOT ADD/REMOVE ELEMENTS OUTSIDE on_initialize()
-  std::vector<fcl::CollisionObjectf> colliders_{};
+  std::vector<fcl::CollisionObjectd> colliders_{};
   GeometryCache geometry_cache_{};
-  fcl::DynamicAABBTreeCollisionManagerf manager_{};
+  fcl::DynamicAABBTreeCollisionManagerd manager_{};
 };
 
 } // arm_kinematics

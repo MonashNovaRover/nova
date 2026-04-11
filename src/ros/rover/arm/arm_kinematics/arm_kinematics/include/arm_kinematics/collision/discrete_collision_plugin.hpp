@@ -52,7 +52,7 @@ public:
    * @param idx The index of the collider to set the pose for.
    * @param collider_pose The new pose for that collider.
    */
-  virtual void update_pose(size_t idx, const Eigen::Isometry3f & collider_pose) = 0;
+  virtual void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) = 0;
 
   /**
    * Update the pose for many colliders contiguously.
@@ -60,7 +60,7 @@ public:
    * @param collider_poses The new poses for colliders starting from start_idx up until
    * start_idx + collider_poses.size().
    */
-  virtual void update_poses(const size_t start_idx, const span<const Eigen::Isometry3f> collider_poses) {
+  virtual void update_poses(const size_t start_idx, const span<const Eigen::Isometry3d> collider_poses) {
     for (size_t i = 0; i < collider_poses.size(); ++i) {
       update_pose(start_idx + i, collider_poses[i]);
     }

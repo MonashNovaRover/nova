@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -38,9 +39,9 @@ namespace {
 class StubComputeTransmission : public ComputeTransmission {
 public:
   void compute(
-    arm_kinematics::span<const float>,
-    arm_kinematics::span<float>,
-    arm_kinematics::span<float>) const override
+    arm_kinematics::span<const double>,
+    arm_kinematics::span<double>,
+    arm_kinematics::span<double>) const override
   {
   }
 
@@ -99,11 +100,11 @@ const JointMapBlueprintSegment::TransmissionStage * as_transmission_stage(
   return std::get_if<JointMapBlueprintSegment::TransmissionStage>(&seg.kind);
 }
 
-constexpr float kFloatTolerance = 1.0e-5F;
+constexpr double kTolerance = 1.0e-9;
 
-bool approx_equal(float a, float b)
+bool approx_equal(double a, double b)
 {
-  return std::abs(a - b) <= kFloatTolerance + kFloatTolerance * std::max(std::abs(a), std::abs(b));
+  return std::abs(a - b) <= kTolerance + kTolerance * std::max(std::abs(a), std::abs(b));
 }
 
 }  // namespace
@@ -252,7 +253,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_AffineBlockedOutput_ReportsUpstreamAmbigu
   const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
 
   // B mimics A: B = 2A.
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
 
   // Two transmissions producing A.position → A is ambiguous.
   const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
@@ -352,7 +353,7 @@ TEST_F(JointMapBlueprintTest, Resolutions_MissingInterfaceInNonTrivialAffineGrou
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{});
@@ -394,7 +395,7 @@ TEST_F(JointMapBlueprintTest, Resolutions_NoProjectionRule_NoAffineRoot)
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   ensure_state(analysis_, "j_a", InterfaceId{"custom_iface"});
   const auto b_custom = ensure_state(analysis_, "j_b", InterfaceId{"custom_iface"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{});
@@ -450,8 +451,8 @@ TEST_F(JointMapBlueprintTest, Plan_DirectInputPassthrough_OneAffineBatchSegment)
   ASSERT_EQ(batch->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(batch->blueprint_output_indices[0], 0u);
   EXPECT_EQ(batch->sources[0], a);
-  EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0F));
-  EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0F));
+  EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0));
+  EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0));
 }
 
 // ===========================================================================
@@ -471,7 +472,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_ConsecutiveAffineOutputs_FoldedInto
   const auto b5 = ensure_state(analysis_, "j_b5", InterfaceId{"position"});
 
   for (std::size_t i = 1; i <= 5; ++i) {
-    analysis_.add_affine_transmission(joints[0], joints[i], static_cast<float>(i), 0.0F);
+    analysis_.add_affine_transmission(joints[0], joints[i], i, 0.0);
   }
 
   const auto reach = TransmissionReachability::analyze(
@@ -486,8 +487,8 @@ TEST_F(JointMapBlueprintTest, AffineBatching_ConsecutiveAffineOutputs_FoldedInto
   // Each row reads from a_pos with the right multiplier.
   for (std::size_t i = 0; i < 5; ++i) {
     EXPECT_EQ(batch->sources[i], a_pos);
-    EXPECT_TRUE(approx_equal(batch->multipliers[i], static_cast<float>(i + 1)));
-    EXPECT_TRUE(approx_equal(batch->offsets[i], 0.0F));
+    EXPECT_TRUE(approx_equal(batch->multipliers[i], i + 1));
+    EXPECT_TRUE(approx_equal(batch->offsets[i], 0.0));
   }
 }
 
@@ -507,8 +508,8 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
   const auto y = ensure_state(analysis_, "j_y", InterfaceId{"position"});
 
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
-  analysis_.add_affine_transmission(joints[2], joints[3], 3.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
+  analysis_.add_affine_transmission(joints[2], joints[3], 3.0, 0.0);
 
   const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
   analysis_.add_transmission(model_id, {a}, {x}, "T");
@@ -526,7 +527,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   ASSERT_EQ(pre->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(pre->blueprint_output_indices[0], 0u);  // b is at output position 0
   EXPECT_EQ(pre->sources[0], a);
-  EXPECT_TRUE(approx_equal(pre->multipliers[0], 2.0F));
+  EXPECT_TRUE(approx_equal(pre->multipliers[0], 2.0));
 
   // Segment 1: transmission stage T
   const auto * tstage = as_transmission_stage(blueprint.segments()[1]);
@@ -544,7 +545,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   ASSERT_EQ(post->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(post->blueprint_output_indices[0], 2u);  // y is at output position 2
   EXPECT_EQ(post->sources[0], x);
-  EXPECT_TRUE(approx_equal(post->multipliers[0], 3.0F));
+  EXPECT_TRUE(approx_equal(post->multipliers[0], 3.0));
 }
 
 TEST_F(JointMapBlueprintTest, InputPassthrough_FoldedIntoSameAffineBatchAsMimic)
@@ -554,7 +555,7 @@ TEST_F(JointMapBlueprintTest, InputPassthrough_FoldedIntoSameAffineBatchAsMimic)
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b = ensure_state(analysis_, "j_b", InterfaceId{"position"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a});
@@ -567,13 +568,13 @@ TEST_F(JointMapBlueprintTest, InputPassthrough_FoldedIntoSameAffineBatchAsMimic)
   // Row for a: identity passthrough
   EXPECT_EQ(batch->blueprint_output_indices[0], 0u);
   EXPECT_EQ(batch->sources[0], a);
-  EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0F));
-  EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0F));
+  EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0));
+  EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0));
   // Row for b: 2a + 5
   EXPECT_EQ(batch->blueprint_output_indices[1], 1u);
   EXPECT_EQ(batch->sources[1], a);
-  EXPECT_TRUE(approx_equal(batch->multipliers[1], 2.0F));
-  EXPECT_TRUE(approx_equal(batch->offsets[1], 5.0F));
+  EXPECT_TRUE(approx_equal(batch->multipliers[1], 2.0));
+  EXPECT_TRUE(approx_equal(batch->offsets[1], 5.0));
 }
 
 // ===========================================================================

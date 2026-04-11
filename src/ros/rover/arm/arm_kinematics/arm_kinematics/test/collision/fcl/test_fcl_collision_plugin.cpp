@@ -40,8 +40,8 @@ namespace {
 
 constexpr double EPSILON = 1e-7;
 
-static void ExpectVectorNear(const Eigen::Vector3f & actual,
-                             const Eigen::Vector3f & expected,
+static void ExpectVectorNear(const Eigen::Vector3d & actual,
+                             const Eigen::Vector3d & expected,
                              const char * message = "", double tol = EPSILON)
 {
   EXPECT_NEAR(actual.x(), expected.x(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
@@ -50,8 +50,8 @@ static void ExpectVectorNear(const Eigen::Vector3f & actual,
 }
 
 // Small helper for comparing isometries
-static void ExpectIsometryNear(const Eigen::Isometry3f & actual,
-                               const Eigen::Isometry3f & expected,
+static void ExpectIsometryNear(const Eigen::Isometry3d & actual,
+                               const Eigen::Isometry3d & expected,
                                const char * message = "", double tol = EPSILON)
 {
   ExpectVectorNear(actual.translation(), expected.translation(), message, tol);
@@ -61,18 +61,18 @@ static void ExpectIsometryNear(const Eigen::Isometry3f & actual,
   EXPECT_TRUE(actual.linear().isApprox(expected.linear(), tol)) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix() << "\n";
 }
 
-Eigen::Isometry3f to_isometry(
-    float r00, float r01, float r02, float tx,
-    float r10, float r11, float r12, float ty,
-    float r20, float r21, float r22, float tz)
+Eigen::Isometry3d to_isometry(
+    double r00, double r01, double r02, double tx,
+    double r10, double r11, double r12, double ty,
+    double r20, double r21, double r22, double tz)
 {
-  Eigen::Matrix4f m;
+  Eigen::Matrix4d m;
   m << r00, r01, r02, tx,
        r10, r11, r12, ty,
        r20, r21, r22, tz,
        0.0, 0.0, 0.0, 1.0;
 
-  Eigen::Isometry3f T(m);   // or: Eigen::Isometry3f T = m;
+  Eigen::Isometry3d T(m);   // or: Eigen::Isometry3d T = m;
   return T;
 }
 

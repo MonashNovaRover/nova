@@ -52,8 +52,8 @@ struct JointMapBlueprintSegment {
     /// the value table after that transmission has run).
     std::vector<StateInterfaceId> sources{};
     /// Per-row affine coefficients. Identity (m=1, o=0) for direct input passthroughs.
-    std::vector<float> multipliers{};
-    std::vector<float> offsets{};
+    std::vector<double> multipliers{};
+    std::vector<double> offsets{};
   };
 
   /// A single transmission instance to run. The materializer must compute the transmission's

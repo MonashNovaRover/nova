@@ -19,7 +19,7 @@ namespace arm_kinematics {
 
 namespace {
 
-constexpr float kEpsilon = 1.0e-5F;
+constexpr double kEpsilon = 1.0e-9;
 
 }  // namespace
 
@@ -87,15 +87,15 @@ TEST_F(MimicUrdfTests, RobotModelCachesMimicsAsAffineTransmissions)
   const auto & follower_flat = analysis.affine_transmission_of(follower_id);
   EXPECT_EQ(follower_flat.target_joint_id, follower_id);
   EXPECT_EQ(follower_flat.source_joint_id, driver_id);  // root is driver_joint
-  EXPECT_FLOAT_EQ(follower_flat.multiplier, -2.0F);
-  EXPECT_FLOAT_EQ(follower_flat.offset, 0.5F);
+  EXPECT_FLOAT_EQ(follower_flat.multiplier, -2.0);
+  EXPECT_FLOAT_EQ(follower_flat.offset, 0.5);
 
   // The driver's flat relation is identity (it's the root).
   const auto & driver_flat = analysis.affine_transmission_of(driver_id);
   EXPECT_EQ(driver_flat.target_joint_id, driver_id);
   EXPECT_EQ(driver_flat.source_joint_id, driver_id);
-  EXPECT_FLOAT_EQ(driver_flat.multiplier, 1.0F);
-  EXPECT_FLOAT_EQ(driver_flat.offset, 0.0F);
+  EXPECT_FLOAT_EQ(driver_flat.multiplier, 1.0);
+  EXPECT_FLOAT_EQ(driver_flat.offset, 0.0);
 }
 
 // ===========================================================================
@@ -167,14 +167,14 @@ TEST(TransmissionAnalysisUrdfImportTests, MimicChainsNormalizeToSingleAffineTran
   const auto & follower_flat = analysis.affine_transmission_of(follower_id);
   EXPECT_EQ(follower_flat.source_joint_id, driver_id);
   EXPECT_EQ(follower_flat.target_joint_id, follower_id);
-  EXPECT_NEAR(follower_flat.multiplier, -6.0F, kEpsilon);
-  EXPECT_NEAR(follower_flat.offset, 0.5F, kEpsilon);
+  EXPECT_NEAR(follower_flat.multiplier, -6.0, kEpsilon);
+  EXPECT_NEAR(follower_flat.offset, 0.5, kEpsilon);
 
   // Middle: middle = -2 * driver + 0.5 (unchanged from the direct mimic).
   const auto & middle_flat = analysis.affine_transmission_of(middle_id);
   EXPECT_EQ(middle_flat.source_joint_id, driver_id);
-  EXPECT_NEAR(middle_flat.multiplier, -2.0F, kEpsilon);
-  EXPECT_NEAR(middle_flat.offset, 0.5F, kEpsilon);
+  EXPECT_NEAR(middle_flat.multiplier, -2.0, kEpsilon);
+  EXPECT_NEAR(middle_flat.offset, 0.5, kEpsilon);
 }
 
 TEST(TransmissionAnalysisUrdfImportTests, MimicImportCreatesCanonicalIdForUndefinedSourceJoint)
@@ -216,8 +216,8 @@ TEST(TransmissionAnalysisUrdfImportTests, MimicImportCreatesCanonicalIdForUndefi
   const auto & follower_flat = analysis.affine_transmission_of(follower_id);
   EXPECT_EQ(follower_flat.source_joint_id, driver_id);
   EXPECT_EQ(follower_flat.target_joint_id, follower_id);
-  EXPECT_FLOAT_EQ(follower_flat.multiplier, 2.0F);
-  EXPECT_FLOAT_EQ(follower_flat.offset, 1.0F);
+  EXPECT_FLOAT_EQ(follower_flat.multiplier, 2.0);
+  EXPECT_FLOAT_EQ(follower_flat.offset, 1.0);
 }
 
 }  // namespace arm_kinematics

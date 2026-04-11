@@ -25,7 +25,7 @@ ColliderDefinitions::ColliderDefinitions(
   acm = AllowedCollisionMatrix(collider_count);
 
   std::vector<std::string> parent_link_names{};
-  Isometry3fVector origins{};
+  Isometry3dVector origins{};
 
   colliders = {};
   colliders.reserve(collider_count);

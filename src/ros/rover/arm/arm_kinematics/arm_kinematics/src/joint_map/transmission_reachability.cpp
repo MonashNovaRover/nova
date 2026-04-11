@@ -137,16 +137,16 @@ TransmissionReachability::compute_affine_projection_coefficients(
   const auto & t_tgt = analysis_.affine_transmission_of(target_joint);
   assert(t_src.multiplier != 0.0F && "compute_affine_projection_coefficients: source joint's flat multiplier is zero");
 
-  const float joint_m = t_tgt.multiplier / t_src.multiplier;
-  const float joint_o = t_tgt.offset - joint_m * t_src.offset;
+  const double joint_m = t_tgt.multiplier / t_src.multiplier;
+  const double joint_o = t_tgt.offset - joint_m * t_src.offset;
 
   // Now apply the projection rule's interface-space transformation. See
   // affine_projection_rule.hpp for the formal definition; in short:
   //   reverse_direction == false → target_iface = (mscale*joint_m) * source_iface + (oscale*joint_o)
   //   reverse_direction == true  → invert so the projection still reads source → target.
   AffineProjectionCoefficients result{};
-  const float scaled_m = rule.multiplier_scale * joint_m;
-  const float scaled_o = rule.offset_scale * joint_o;
+  const double scaled_m = rule.multiplier_scale * joint_m;
+  const double scaled_o = rule.offset_scale * joint_o;
   if (!rule.reverse_direction) {
     result.multiplier = scaled_m;
     result.offset = scaled_o;

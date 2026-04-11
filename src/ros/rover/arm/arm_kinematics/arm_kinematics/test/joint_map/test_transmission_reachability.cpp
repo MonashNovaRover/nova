@@ -42,9 +42,9 @@ namespace {
 class StubComputeTransmission : public ComputeTransmission {
 public:
   void compute(
-    arm_kinematics::span<const float>,
-    arm_kinematics::span<float>,
-    arm_kinematics::span<float>) const override
+    arm_kinematics::span<const double>,
+    arm_kinematics::span<double>,
+    arm_kinematics::span<double>) const override
   {
   }
 
@@ -120,11 +120,11 @@ bool is_monostate(const StateInterfaceProducer & p)
   return std::holds_alternative<std::monostate>(p);
 }
 
-constexpr float kFloatTolerance = 1.0e-5F;
+constexpr double kTolerance = 1.0e-9;
 
-bool approx_equal(float a, float b)
+bool approx_equal(double a, double b)
 {
-  return std::abs(a - b) <= kFloatTolerance + kFloatTolerance * std::max(std::abs(a), std::abs(b));
+  return std::abs(a - b) <= kTolerance + kTolerance * std::max(std::abs(a), std::abs(b));
 }
 
 }  // namespace
@@ -198,7 +198,7 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_PositionRule_Composition)
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   const auto a_pos = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a_pos});
@@ -206,8 +206,8 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_PositionRule_Composition)
   const auto proj = as_affine(reach.producer_of(b_pos));
   ASSERT_TRUE(proj.has_value());
   EXPECT_EQ(proj->source, a_pos);
-  EXPECT_TRUE(approx_equal(proj->multiplier, 2.0F));
-  EXPECT_TRUE(approx_equal(proj->offset, 5.0F));
+  EXPECT_TRUE(approx_equal(proj->multiplier, 2.0));
+  EXPECT_TRUE(approx_equal(proj->offset, 5.0));
 }
 
 TEST_F(TransmissionReachabilityTest, AffineProjection_VelocityRule_DropsOffset)
@@ -215,7 +215,7 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_VelocityRule_DropsOffset)
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   const auto a_vel = ensure_state(analysis_, "j_a", InterfaceId{"velocity"});
   const auto b_vel = ensure_state(analysis_, "j_b", InterfaceId{"velocity"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a_vel});
@@ -223,8 +223,8 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_VelocityRule_DropsOffset)
   const auto proj = as_affine(reach.producer_of(b_vel));
   ASSERT_TRUE(proj.has_value());
   EXPECT_EQ(proj->source, a_vel);
-  EXPECT_TRUE(approx_equal(proj->multiplier, 2.0F));
-  EXPECT_TRUE(approx_equal(proj->offset, 0.0F));
+  EXPECT_TRUE(approx_equal(proj->multiplier, 2.0));
+  EXPECT_TRUE(approx_equal(proj->offset, 0.0));
 }
 
 TEST_F(TransmissionReachabilityTest, AffineProjection_EffortRule_RequiresExplicitRegistration)
@@ -232,7 +232,7 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_EffortRule_RequiresExplici
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   const auto a_eff = ensure_state(analysis_, "j_a", InterfaceId{"effort"});
   const auto b_eff = ensure_state(analysis_, "j_b", InterfaceId{"effort"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   // Without registering an effort rule, B.effort is monostate from A.effort.
   {
@@ -244,7 +244,7 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_EffortRule_RequiresExplici
   // Register the effort rule explicitly.
   analysis_.set_affine_projection_rule(
     InterfaceId{"effort"},
-    AffineProjectionRule{1.0F, 0.0F, true});
+    AffineProjectionRule{1.0, 0.0, true});
 
   {
     const auto reach = TransmissionReachability::analyze(
@@ -252,8 +252,8 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_EffortRule_RequiresExplici
     const auto proj = as_affine(reach.producer_of(b_eff));
     ASSERT_TRUE(proj.has_value());
     EXPECT_EQ(proj->source, a_eff);
-    EXPECT_TRUE(approx_equal(proj->multiplier, 0.5F));
-    EXPECT_TRUE(approx_equal(proj->offset, 0.0F));
+    EXPECT_TRUE(approx_equal(proj->multiplier, 0.5));
+    EXPECT_TRUE(approx_equal(proj->offset, 0.0));
   }
 }
 
@@ -268,21 +268,21 @@ TEST_F(TransmissionReachabilityTest, AffineChain_ComposesAcrossThreeJoints)
   const auto a_pos = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
   const auto c_pos = ensure_state(analysis_, "j_c", InterfaceId{"position"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
-  analysis_.add_affine_transmission(joints[1], joints[2], 3.0F, 7.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
+  analysis_.add_affine_transmission(joints[1], joints[2], 3.0, 7.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a_pos});
 
   const auto b_proj = as_affine(reach.producer_of(b_pos));
   ASSERT_TRUE(b_proj.has_value());
-  EXPECT_TRUE(approx_equal(b_proj->multiplier, 2.0F));
-  EXPECT_TRUE(approx_equal(b_proj->offset, 5.0F));
+  EXPECT_TRUE(approx_equal(b_proj->multiplier, 2.0));
+  EXPECT_TRUE(approx_equal(b_proj->offset, 5.0));
 
   const auto c_proj = as_affine(reach.producer_of(c_pos));
   ASSERT_TRUE(c_proj.has_value());
-  EXPECT_TRUE(approx_equal(c_proj->multiplier, 6.0F));
-  EXPECT_TRUE(approx_equal(c_proj->offset, 22.0F));
+  EXPECT_TRUE(approx_equal(c_proj->multiplier, 6.0));
+  EXPECT_TRUE(approx_equal(c_proj->offset, 22.0));
 }
 
 // ===========================================================================
@@ -294,7 +294,7 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_NoRuleForInterface_DoesNot
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   const auto a_custom = ensure_state(analysis_, "j_a", InterfaceId{"custom_iface"});
   const auto b_custom = ensure_state(analysis_, "j_b", InterfaceId{"custom_iface"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a_custom});
@@ -425,7 +425,7 @@ TEST_F(TransmissionReachabilityTest, InputWinsOverDerivedAffineProducer)
   const auto joints = ensure_joints(analysis_, {"j_a", "j_b"});
   const auto a_pos = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 5.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a_pos, b_pos});
@@ -555,8 +555,8 @@ TEST_F(TransmissionReachabilityTest, RedundantEquivalentInputs_MultipleLeavesInS
   const auto a_pos = ensure_state(analysis_, "j_a", InterfaceId{"position"});
   const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
   const auto d_pos = ensure_state(analysis_, "j_d", InterfaceId{"position"});
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
-  analysis_.add_affine_transmission(joints[0], joints[2], 3.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
+  analysis_.add_affine_transmission(joints[0], joints[2], 3.0, 0.0);
 
   const auto reach = TransmissionReachability::analyze(
     analysis_, std::vector<StateInterfaceId>{a_pos, d_pos});
@@ -616,7 +616,7 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_SourcedFromTransmissionOut
   const auto x_pos = ensure_state(analysis_, "j_x", InterfaceId{"position"});
   const auto y_pos = ensure_state(analysis_, "j_y", InterfaceId{"position"});
 
-  analysis_.add_affine_transmission(joints[1], joints[2], 2.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[1], joints[2], 2.0, 0.0);
 
   const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
   analysis_.add_transmission(model_id, {a}, {x_pos}, "T");
@@ -630,8 +630,8 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_SourcedFromTransmissionOut
   const auto y_producer = as_affine(reach.producer_of(y_pos));
   ASSERT_TRUE(y_producer.has_value());
   EXPECT_EQ(y_producer->source, x_pos);
-  EXPECT_TRUE(approx_equal(y_producer->multiplier, 2.0F));
-  EXPECT_TRUE(approx_equal(y_producer->offset, 0.0F));
+  EXPECT_TRUE(approx_equal(y_producer->multiplier, 2.0));
+  EXPECT_TRUE(approx_equal(y_producer->offset, 0.0));
 
   // Source resolves to a Transmission leaf in one step.
   ASSERT_TRUE(as_transmission(reach.producer_of(y_producer->source)).has_value());
@@ -650,7 +650,7 @@ TEST_F(TransmissionReachabilityTest, NonInputAmbiguity_TransmissionVsAffineProje
   const auto b_pos = ensure_state(analysis_, "j_b", InterfaceId{"position"});
   const auto x = ensure_state(analysis_, "j_x", InterfaceId{"position"});
 
-  analysis_.add_affine_transmission(joints[0], joints[1], 2.0F, 0.0F);
+  analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
 
   const auto model_id = analysis_.add_model(std::make_unique<StubTransmissionModel>());
   analysis_.add_transmission(model_id, {x}, {b_pos}, "T");

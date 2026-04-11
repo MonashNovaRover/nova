@@ -49,8 +49,8 @@ public:
    */
   AffineJointMap(
     std::vector<size_t> sources,
-    std::vector<float> multipliers,
-    std::vector<float> offsets,
+    std::vector<double> multipliers,
+    std::vector<double> offsets,
     size_t input_count);
 
   /**
@@ -63,12 +63,12 @@ public:
    * \warning inputs and outputs must be pre-allocated to the correct size!
    * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
    */
-  void map(span<const float> inputs, span<float> outputs) const;
+  void map(span<const double> inputs, span<double> outputs) const;
 
   /**
-   * std::vector helper overload for map(span<const float>, span<float>).
+   * std::vector helper overload for map(span<const double>, span<double>).
    */
-  void map(const std::vector<float> & inputs, std::vector<float> & outputs) const
+  void map(const std::vector<double> & inputs, std::vector<double> & outputs) const
   {
     map(
       {inputs.data(), inputs.size()},
@@ -84,9 +84,9 @@ private:
   /// output_count_ elements, the index of the input value to use for each output.
   std::vector<size_t> sources_{};
   /// output_count_ elements, the multiplier to apply to each sourced input.
-  std::vector<float> multipliers_{};
+  std::vector<double> multipliers_{};
   /// output_count_ elements, the offset to add to each sourced input.
-  std::vector<float> offsets_{};
+  std::vector<double> offsets_{};
   /// The number of elements in the source joint space.
   size_t input_count_ = 0;
   /// The number of elements in the target joint space.

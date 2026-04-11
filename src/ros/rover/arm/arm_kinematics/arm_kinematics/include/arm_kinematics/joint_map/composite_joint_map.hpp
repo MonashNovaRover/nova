@@ -96,7 +96,7 @@ public:
     std::vector<CompositeJointMapStage> stages,
     std::vector<std::pair<size_t, size_t>> final_output_gather);
 
-  void map(span<const float> inputs, span<float> outputs) const;
+  void map(span<const double> inputs, span<double> outputs) const;
 
   [[nodiscard]] size_t input_count() const noexcept { return input_count_; }
   [[nodiscard]] size_t output_count() const noexcept { return output_count_; }
@@ -104,8 +104,8 @@ public:
 
 private:
   struct Workspace {
-    std::vector<float> scratch{};
-    std::vector<std::vector<float>> stage_outputs{};
+    std::vector<double> scratch{};
+    std::vector<std::vector<double>> stage_outputs{};
   };
 
   [[nodiscard]] Workspace make_workspace() const;

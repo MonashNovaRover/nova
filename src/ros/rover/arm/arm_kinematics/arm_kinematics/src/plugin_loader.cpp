@@ -32,7 +32,7 @@ std::vector<NamedStateInterfaceDefinition> joint_names_to_position_named_interfa
 // with the JointMapBuildError's message field. The caller of make_collision can catch this if
 // they want graceful handling; otherwise the failure surfaces loudly.
 ForwardKinematicsPlugin::MakeTreeResult unwrap_make_tree_result(
-  tl::expected<ForwardKinematicsPlugin::MakeTreeResult, JointMapBuildError> result)
+  tl::expected<ForwardKinematicsPlugin::MakeTreeResult, ForwardKinematicsPlugin::MakeTreeError> result)
 {
   if (!result.has_value()) {
     throw std::runtime_error(

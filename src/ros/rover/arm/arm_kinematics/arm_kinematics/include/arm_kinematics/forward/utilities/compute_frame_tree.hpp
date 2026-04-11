@@ -17,7 +17,7 @@ namespace arm_kinematics {
  * Computes transforms of any frames (that aren't relative to the root frame) by applying fixed offsets from a given
  * \c ComputeJointTree 's poses.
  *
- * \note To handle fixed links/frames relative to the root, just use a Isometry3fVector larger than your
+ * \note To handle fixed links/frames relative to the root, just use a Isometry3dVector larger than your
  * \c ComputeFrameTree needs, and use the values that aren't modified by the tree for these links/frames, setting their
  * value once. They will never change!
  *
@@ -27,7 +27,7 @@ class ARM_KINEMATICS_PUBLIC ComputeFrameTree {
 public:
   ComputeFrameTree(ComputeJointTree tree,
                 std::vector<size_t> tree_pose_indices,
-                Isometry3fVector offsets)
+                Isometry3dVector offsets)
     : tree_pose_indices_(std::move(tree_pose_indices)),
       offsets_(std::move(offsets)),
       tree_(std::move(tree)),
@@ -39,7 +39,7 @@ public:
   ComputeFrameTree() = default;
 
   /// Joint states must match joint_names() order
-  void update(const std::vector<float> & joint_states, Eigen::Isometry3f * data) {
+  void update(const std::vector<double> & joint_states, Eigen::Isometry3d * data) {
     assert(data);
 
     tree_.update(joint_states);
@@ -54,7 +54,7 @@ public:
       data[i] = offsets_[i];
   }
 
-  [[nodiscard]] const Isometry3fVector & get_origins() const noexcept { return offsets_; }
+  [[nodiscard]] const Isometry3dVector & get_origins() const noexcept { return offsets_; }
   [[nodiscard]] const std::vector<size_t> & get_parents() const noexcept { return tree_pose_indices_; }
   [[nodiscard]] const ComputeJointTree & get_tree() const noexcept { return tree_; }  //< For access in tests
 
@@ -64,7 +64,7 @@ private:
   /// Final offset to apply in the output pose at index i.
   /// All the output poses we typically care about will have an offset from the closest parent joint that actuates.
   /// Probably std::move()-d from FrameDefinitions
-  Isometry3fVector offsets_{};
+  Isometry3dVector offsets_{};
 
   /// Used to do mapping for non-fixed joints
   ComputeJointTree tree_{};

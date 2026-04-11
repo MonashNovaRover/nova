@@ -71,7 +71,7 @@ public:
   /// `scratch_`) are mutated on every call. Concurrent callers must use independent
   /// `TransmissionJointMap` instances (the copy constructor clones the compute kernel and
   /// reallocates scratch).
-  void map(span<const float> inputs, span<float> outputs) const;
+  void map(span<const double> inputs, span<double> outputs) const;
 
   [[nodiscard]] size_t input_count() const noexcept { return input_count_; }
   [[nodiscard]] size_t output_count() const noexcept { return output_count_; }
@@ -86,9 +86,9 @@ private:
 
   /// Per-instance reusable buffers. Sized at construction; never reallocated at map() time.
   /// Marked mutable so map() can be const while writing to them.
-  mutable std::vector<float> tx_inputs_{};
-  mutable std::vector<float> tx_outputs_{};
-  mutable std::vector<float> scratch_{};
+  mutable std::vector<double> tx_inputs_{};
+  mutable std::vector<double> tx_outputs_{};
+  mutable std::vector<double> scratch_{};
 };
 
 } // namespace arm_kinematics

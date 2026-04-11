@@ -247,9 +247,9 @@ public:
   }
 
   void compute(
-    const span<const float> inputs,
-    const span<float> outputs,
-    const span<float>) const override
+    const span<const double> inputs,
+    const span<double> outputs,
+    const span<double>) const override
   {
     auto & av = configured_->actuator_values;
     auto & jv = configured_->joint_values;
@@ -264,7 +264,7 @@ public:
       }
       configured_->transmission->actuator_to_joint();
       for (size_t i = 0; i < jv.size(); ++i) {
-        outputs[i] = static_cast<float>(jv[i]);
+        outputs[i] = jv[i];
       }
       return;
     }
@@ -278,7 +278,7 @@ public:
     }
     configured_->transmission->joint_to_actuator();
     for (size_t i = 0; i < av.size(); ++i) {
-      outputs[i] = static_cast<float>(av[i]);
+      outputs[i] = av[i];
     }
   }
 
@@ -448,14 +448,14 @@ TransmissionAnalysis::AffineTransmission normalize_affine_transmission(
   visit_states[target_joint_id] = MimicVisitState::Visiting;
 
   const auto normalized_source = normalize_affine_transmission(
-    raw_it->second.source_id,
+    raw_it->second.source_joint_id,
     raw_affine_transmissions,
     normalized_affine_transmissions,
     visit_states);
 
   const auto normalized = TransmissionAnalysis::AffineTransmission{
     target_joint_id,
-    normalized_source.source_id,
+    normalized_source.source_joint_id,
     normalized_source.multiplier * raw_it->second.multiplier,
     normalized_source.offset * raw_it->second.multiplier + raw_it->second.offset
   };
@@ -554,8 +554,8 @@ void add_mimic_transmissions_to_analysis(
     raw_affine_transmissions[target_joint_id] = TransmissionAnalysis::AffineTransmission{
       target_joint_id,
       transmission_analysis.ensure_joint_id(joint->mimic->joint_name),
-      static_cast<float>(joint->mimic->multiplier),
-      static_cast<float>(joint->mimic->offset)
+      joint->mimic->multiplier,
+      joint->mimic->offset
     };
   }
 
@@ -570,8 +570,8 @@ void add_mimic_transmissions_to_analysis(
       visit_states);
 
     transmission_analysis.add_affine_transmission(
-      normalized.source_id,
-      normalized.target_id,
+      normalized.source_joint_id,
+      normalized.target_joint_id,
       normalized.multiplier,
       normalized.offset);
   }

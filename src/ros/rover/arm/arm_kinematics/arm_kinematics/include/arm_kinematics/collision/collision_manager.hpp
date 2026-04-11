@@ -24,12 +24,12 @@ struct ARM_KINEMATICS_PUBLIC CollisionManager {
     DiscreteCollisionPlugin::SharedPtr plugin);
 
   [[nodiscard]] bool collide() const;
-  void update_poses(const std::vector<float> & joint_states);
+  void update_poses(const std::vector<double> & joint_states);
 
 private:
   ForwardKinematicsPlugin::Tree::SharedPtr tree_{};
   DiscreteCollisionPlugin::SharedPtr plugin_{};
-  Isometry3fVector collider_poses_{};
+  Isometry3dVector collider_poses_{};
 };
 
 /**

@@ -43,8 +43,8 @@ struct AffineProjection {
   /// Already-composed interface-space coefficient. Computed in O(1) at planning time from the
   /// per-joint flat affine relations stored in `TransmissionAnalysis::affine_transmissions_`
   /// and the projection rule for the relevant interface id.
-  float multiplier = 1.0F;
-  float offset = 0.0F;
+  double multiplier = 1.0;
+  double offset = 0.0;
 };
 
 /// The interface's value is produced by a selected `TransmissionInstance` (a block compute
@@ -201,8 +201,8 @@ private:
   // \pre Both joints must be in the same affine group (same `affine_root_of`).
   // \pre All multipliers in the chain must be non-zero — guaranteed by `add_affine_transmission`.
   struct AffineProjectionCoefficients {
-    float multiplier = 1.0F;
-    float offset = 0.0F;
+    double multiplier = 1.0;
+    double offset = 0.0;
   };
   AffineProjectionCoefficients compute_affine_projection_coefficients(
     JointId source_joint,

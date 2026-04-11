@@ -15,17 +15,15 @@ namespace arm_kinematics {
 GeometryCache::GeometryCache(rclcpp::Logger logger) : logger_(std::move(logger)) {}
 
 GeometryCache::GeoPtr GeometryCache::get_box(const double x, const double y, const double z) {
-  return std::make_unique<fcl::Boxf>(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+  return std::make_unique<fcl::Boxd>(x, y, z);
 }
 
 GeometryCache::GeoPtr GeometryCache::get_sphere(const double r) {
-  return std::make_unique<fcl::Spheref>(static_cast<float>(r));
+  return std::make_unique<fcl::Sphered>(r);
 }
 
 GeometryCache::GeoPtr GeometryCache::get_capsule(const double r, const double halfLen) {
-  return std::make_unique<fcl::Capsulef>(
-    static_cast<float>(r),
-    static_cast<float>(halfLen));
+  return std::make_unique<fcl::Capsuled>(r, halfLen);
 }
 
 GeometryCache::GeoPtr GeometryCache::from_urdf(const urdf::Collision & col, const std::string & link_name) {

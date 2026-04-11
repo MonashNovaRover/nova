@@ -33,7 +33,7 @@ public:
   using SharedPtr = std::shared_ptr<ForwardKinematicsPlugin>;
 
   /**
-   * \brief Abstract Base Class for the trees produced by FK plugins, which map joint states to Eigen::Isometry3f
+   * \brief Abstract Base Class for the trees produced by FK plugins, which map joint states to Eigen::Isometry3d
    * transforms for different linkages.
    *
    * It is not responsible for modelling transmissions, and uses JointMaps for responsible.
@@ -61,7 +61,7 @@ public:
      * \warning inputs and outputs must be pre-allocated to the correct size!
      * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
      */
-    virtual void position_fk(const std::vector<float> & joint_states, Isometry3fVector & link_poses) = 0;
+    virtual void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_poses) = 0;
 
   protected:
     explicit Tree(const size_t link_count) : link_count(link_count) {}
@@ -150,7 +150,7 @@ public:
    *   in `position_fk(joint_states, ...)`. Each id must be valid against the FK plugin's
    *   transmission analysis (see `get_transmission_analysis()`).
    * \param base_link_name[in] The name of the frame to act as the origin
-   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3f values
+   * \param frames[in] The names and offsets from links to calculate Eigen::Isometry3d values
    *   for in `Tree::position_fk()`.
    * \param joint_map_builder[in] The builder used to construct the joint map needed for the
    *   tree. Must already have its analysis populated with all the joints/state interfaces the

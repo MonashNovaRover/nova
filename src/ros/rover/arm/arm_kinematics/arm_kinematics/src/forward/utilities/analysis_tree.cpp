@@ -210,7 +210,7 @@ AnalysisTree::AnalysisTree(
     auto joint_id_old = frame_old.parent;
 
     const auto & definition_origin = frame_old.origin * definitions.origins[frame_id];
-    std::string frame_name = definitions.origins[frame_id].isApprox(Eigen::Isometry3f::Identity())
+    std::string frame_name = definitions.origins[frame_id].isApprox(Eigen::Isometry3d::Identity())
       ? definitions.parent_link_names[frame_id]
       : "";
 
@@ -309,7 +309,7 @@ tl::expected<ComputeFrameTree, std::string_view> AnalysisTree::make_compute_fram
     if (frame.parent != 0)
       parents.emplace_back(frame.parent - 1);
 
-  Isometry3fVector origins{};
+  Isometry3dVector origins{};
   origins.reserve(frames_.size());
   for (const auto & frame : frames_.data)
     origins.emplace_back(frame.origin);
@@ -323,15 +323,15 @@ tl::expected<ComputeFrameTree, std::string_view> AnalysisTree::make_compute_fram
 
 ComputeJointTree AnalysisTree::make_compute_joint_tree() {
   std::vector<JointType> types{};
-  Vector3fVector axes{};
-  Isometry3fVector origins{};
+  Vector3dVector axes{};
+  Isometry3dVector origins{};
   std::vector<size_t> parents{};
 
   assert(joints_.size() > 0); //< Dummy root MUST exist
 
   types.resize(joints_.size() - 1);
   axes.resize(joints_.size() - 1);
-  origins.resize(joints_.size() - 1, Eigen::Isometry3f::Identity());
+  origins.resize(joints_.size() - 1, Eigen::Isometry3d::Identity());
   parents.reserve(joints_.size() - 1);
 
   const size_t root_relative_count = joints_[0].children.size();

@@ -22,11 +22,11 @@ namespace {
 void populate_default_projection_rules(std::unordered_map<InterfaceId, AffineProjectionRule> & registry)
 {
   // Position: q_b = m·q_a + o
-  registry.emplace(InterfaceId{"position"}, AffineProjectionRule{1.0F, 1.0F, false});
+  registry.emplace(InterfaceId{"position"}, AffineProjectionRule{1.0, 1.0, false});
   // Velocity: v_b = m·v_a   (offset drops under d/dt)
-  registry.emplace(InterfaceId{"velocity"}, AffineProjectionRule{1.0F, 0.0F, false});
+  registry.emplace(InterfaceId{"velocity"}, AffineProjectionRule{1.0, 0.0, false});
   // Acceleration: a_b = m·a_a
-  registry.emplace(InterfaceId{"acceleration"}, AffineProjectionRule{1.0F, 0.0F, false});
+  registry.emplace(InterfaceId{"acceleration"}, AffineProjectionRule{1.0, 0.0, false});
 }
 
 // Tolerance for floating-point equality checks on composed affine coefficients. Used in the
@@ -34,15 +34,15 @@ void populate_default_projection_rules(std::unordered_map<InterfaceId, AffinePro
 // values within 1e-5 absolute are considered equal (handles near-zero); larger values are
 // compared with ~5 digits of relative agreement (handles arbitrary scale without false positives
 // from FP rounding accumulated through chained compositions).
-constexpr float kAffineCoefficientTolerance = 1.0e-5F;
+constexpr double kAffineCoefficientTolerance = 1.0e-9;
 
-bool affine_coefficients_approx_equal(const float a, const float b) noexcept
+bool affine_coefficients_approx_equal(const double a, const double b) noexcept
 {
-  const float diff = std::fabs(a - b);
+  const double diff = std::fabs(a - b);
   if (diff <= kAffineCoefficientTolerance) {
     return true;
   }
-  const float largest = std::max(std::fabs(a), std::fabs(b));
+  const double largest = std::max(std::fabs(a), std::fabs(b));
   return diff <= kAffineCoefficientTolerance * largest;
 }
 
@@ -128,8 +128,8 @@ JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
     affine_transmissions_.push_back(AffineTransmission{
       /*source_joint_id=*/id,
       /*target_joint_id=*/id,
-      /*multiplier=*/1.0F,
-      /*offset=*/0.0F,
+      /*multiplier=*/1.0,
+      /*offset=*/0.0,
     });
   }
   return id;
@@ -214,10 +214,10 @@ void TransmissionAnalysis::add_transmission(
 void TransmissionAnalysis::add_affine_transmission(
   const JointId source_joint_id,
   const JointId target_joint_id,
-  const float multiplier,
-  const float offset)
+  const double multiplier,
+  const double offset)
 {
-  if (multiplier == 0.0F) {
+  if (multiplier == 0.0) {
     throw std::invalid_argument(
       "TransmissionAnalysis::add_affine_transmission() received multiplier == 0. Zero multipliers "
       "do not represent real mimic relationships and break bidirectional affine-group semantics. "
@@ -265,8 +265,8 @@ void TransmissionAnalysis::add_affine_transmission(
   //   target = m * source + o
   //          = m * (t_source.m * winner + t_source.o) + o
   //          = (m * t_source.m) * winner + (m * t_source.o + o)
-  const float new_m = multiplier * t_source.multiplier;
-  const float new_o = multiplier * t_source.offset + offset;
+  const double new_m = multiplier * t_source.multiplier;
+  const double new_o = multiplier * t_source.offset + offset;
 
   if (winner == loser) {
     // The new edge is redundant — source and target are already in the same affine group.
@@ -301,12 +301,12 @@ void TransmissionAnalysis::add_affine_transmission(
   // only way to land at exactly zero here is FP underflow from a chain of pathologically
   // small multipliers — a degenerate input the user is responsible for. We debug-assert
   // against it so the corruption is loud rather than silent.
-  assert(t_target.multiplier != 0.0F &&
+  assert(t_target.multiplier != 0.0 &&
          "add_affine_transmission: target's stored composed multiplier is zero — likely "
          "FP underflow from a chain of pathologically small affine multipliers. The analysis "
          "would be corrupted by the divide-by-zero below.");
-  const float root_to_winner_m = new_m / t_target.multiplier;
-  const float root_to_winner_o = (new_o - t_target.offset) / t_target.multiplier;
+  const double root_to_winner_m = new_m / t_target.multiplier;
+  const double root_to_winner_o = (new_o - t_target.offset) / t_target.multiplier;
 
   // Now walk every member of the loser's group, updating its stored flat relation.
   // For each member j with old flat `j = m_j * loser + o_j`, substituting the loser's
@@ -320,8 +320,8 @@ void TransmissionAnalysis::add_affine_transmission(
   winner_members.reserve(winner_members.size() + loser_members.size());
   for (const JointId member : loser_members) {
     auto & relation = affine_transmissions_[member];
-    const float old_m = relation.multiplier;
-    const float old_o = relation.offset;
+    const double old_m = relation.multiplier;
+    const double old_o = relation.offset;
     relation.source_joint_id = winner;
     relation.multiplier = old_m * root_to_winner_m;
     relation.offset = old_m * root_to_winner_o + old_o;
@@ -337,8 +337,8 @@ void TransmissionAnalysis::add_affine_transmission(
 void TransmissionAnalysis::add_affine_transmission(
   const std::string & source_joint_name,
   const std::string & target_joint_name,
-  const float multiplier,
-  const float offset)
+  const double multiplier,
+  const double offset)
 {
   add_affine_transmission(
     ensure_joint_id(source_joint_name),
