@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<!--  -->
+<!-- messages associated with the drive system (interpreted using blcmd_interpreted_board)  -->
 
 <wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
 

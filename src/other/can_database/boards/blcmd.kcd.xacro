@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
+
+<!-- messages sent to/from a blcmd -->
+
 <wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:macro name="blcmd_board" params="
     blcmd_id
