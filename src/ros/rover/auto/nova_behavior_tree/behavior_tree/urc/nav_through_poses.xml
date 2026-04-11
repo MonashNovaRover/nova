@@ -16,17 +16,18 @@
                 <UpdateURCGoals detected_goal="{detected_goal}" current_pose="{current_pose}" input_goals="{goals}" output_goals="{goals}"/>
               </Sequence>
             </ForceSuccess>
-            <ReactiveSequence>
-              <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
-              <SnapInCollisionGoals goals_offset="1.5" input_goals="{goals}" output_goals="{goals}"/>
-              <GetGoal index="0" input_goals="{goals}" output_goal="{current_goal}"/>
-              <GetDistBetweenPoses ref_pose="{current_pose}" target_pose="{current_goal}" dist="{dist_to_goal}"/>
-              <ComputePathThroughPoses _skipIf="dist_to_goal < 2.0" goals="{goals}" path="{path}" planner_id="GridBased"/>
-            </ReactiveSequence>
+            <Sequence name="ComputeAndSmoothPathThroughPoses">
+              <ReactiveSequence>
+                <RemoveNearbyInCollisionGoals input_goals="{goals}" max_distance_threshold="4" global_frame="map" robot_base_frame="base_link" cost_threshold="99.0" output_goals="{goals}"/>
+                <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
+                <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
+              </ReactiveSequence>
+              <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" smoother_id="savitzky_golay_smoother"/>
+            </Sequence>
           </ReactiveSequence>
         </RateController>
         <RecoveryNode number_of_retries="1" name="FollowPath">
-          <FollowPath path="{path}" controller_id="FollowPath" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+          <FollowPath path="{path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
           <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
         </RecoveryNode>
       </PipelineSequence>
@@ -35,7 +36,6 @@
           <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
           <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
         </Sequence>
-        <BackUp backup_dist="0.5" backup_speed="0.25"/>
       </Sequence>
     </RecoveryNode>
   </BehaviorTree>

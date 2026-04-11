@@ -85,12 +85,13 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('auto_bringup')
     )
 
+    comp = LaunchConfiguration('comp').perform(context).lower()
+
     driver = LaunchConfiguration('driver')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     mask = LaunchConfiguration('mask')
     ground_seg = LaunchConfiguration('ground_seg')
-    ground_seg_params = LaunchConfiguration('ground_seg_params')
     tfs = LaunchConfiguration('tfs')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
@@ -98,6 +99,18 @@ def launch_setup(context, *args, **kwargs):
     sim = LaunchConfiguration('sim')
     uncompress_img = LaunchConfiguration('uncompress_img')
     shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
+
+    # ground seg params are different for arch and urc
+    if comp == 'arch':
+        ground_seg_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'ground_segmentation.yaml'])
+    elif comp == 'urc':
+        ground_seg_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'ground_segmentation.yaml'])
+    else:
+        raise ValueError('"comp" arg must be either "arch" or "urc"')
+    
+    # ground seg params override
+    if LaunchConfiguration('ground_seg_params').perform(context) != '':
+        ground_seg_params = LaunchConfiguration('ground_seg_params')
 
     img_topic = '/d415/color/image_raw'
     intrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml'])
@@ -320,6 +333,11 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='comp',
+            default_value='arch',
+            description='ARCh or URC',
+        ),
+        DeclareLaunchArgument(
             name='local',
             default_value='False',
             description='Whether to use local directories instead of the nix store.',
@@ -339,9 +357,10 @@ def generate_launch_description():
             default_value='True',
             description='Run ground segmentation?',
         ),
+        # argument with comp default
         DeclareLaunchArgument(
             name='ground_seg_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ground_segmentation.yaml']),
+            default_value='',
             description='Full path to the parameters file to use for ground segmentation',
         ),
         DeclareLaunchArgument(

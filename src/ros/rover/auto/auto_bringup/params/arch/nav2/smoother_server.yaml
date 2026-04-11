@@ -5,6 +5,7 @@ smoother_server:
     robot_base_frame: base_link
     transform_timeout: 0.1
     smoother_plugins: ["simple_smoother", "savitzky_golay_smoother"]
+    
     simple_smoother:
       plugin: "nav2_smoother::SimpleSmoother"
       tolerance: 1.0e-10
@@ -14,6 +15,7 @@ smoother_server:
       w_data: 0.2
       w_smooth: 0.3
       enforce_path_inversion: False # disable for NavFn or Route Server
+    
     savitzky_golay_smoother:
       plugin: "nav2_smoother::SavitzkyGolaySmoother"
       window_size: 7

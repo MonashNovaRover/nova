@@ -23,6 +23,6 @@ behavior_server:
     robot_base_frame: base_link
     transform_tolerance: 0.1
     simulate_ahead_time: 2.0
-    max_rotational_vel: 0.8
+    max_rotational_vel: 0.4
     min_rotational_vel: 0.1
     rotational_acc_lim: 0.1

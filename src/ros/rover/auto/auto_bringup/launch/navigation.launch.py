@@ -56,9 +56,9 @@ def launch_setup(context, *args, **kwargs):
 
     # comp defaults
     if comp == 'arch':
-        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'nav2'])
     elif comp == 'urc':
-        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'nav2'])
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
 
@@ -71,11 +71,11 @@ def launch_setup(context, *args, **kwargs):
     nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in os.listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
     nav2_params.append(substitution_params)
     if mppi:
-        mppi_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_mppi', mppi_config + '.yaml'])
+        mppi_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'mppi', mppi_config + '.yaml'])
         if os.path.exists(mppi_params.perform(context)):
             nav2_params.append(mppi_params)
         else:
-            raise ValueError(f'MPPI config "{mppi_config}" does not exist in auto_bringup/params/nav2_mppi/')
+            raise ValueError(f'MPPI config "{mppi_config}" does not exist in auto_bringup/params/mppi/')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -237,7 +237,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='map_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'map.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'map.yaml']),
             description='Full path to the parameters file to use for static map layer',
         ),
         DeclareLaunchArgument(

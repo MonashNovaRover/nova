@@ -54,7 +54,6 @@ def launch_setup(context, *args, **kwargs):
     navigation = LaunchConfiguration('navigation')
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
-    sim_params = LaunchConfiguration('sim_params')
     use_respawn = LaunchConfiguration('use_respawn')
     fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
@@ -62,15 +61,15 @@ def launch_setup(context, *args, **kwargs):
 
     # comp defaults
     if comp == 'arch':
-        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'nav2'])
         localization = 'False'
-        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_arch.yaml'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'rl_arch.yaml'])
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
         gps = 'False'
     elif comp == 'urc':
-        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'nav2'])
         localization = 'True'
-        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_urc.yaml'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'rl_urc.yaml'])
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf'])
         gps = 'True'
     else:
@@ -124,7 +123,6 @@ def launch_setup(context, *args, **kwargs):
                 'log_level': log_level,
                 'namespace': namespace,
                 'nav2_params_dir': nav2_params_dir,
-                'sim_params': sim_params,
                 'use_respawn': use_respawn,
                 'gazebo': gazebo,
                 'map_params': map_params,
@@ -192,7 +190,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='map_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'map.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'map.yaml']),
             description='Full path to the parameters file to use for static map layer',
         ),
         DeclareLaunchArgument(
@@ -219,11 +217,6 @@ def generate_launch_description():
             name='rviz_params',
             default_value='everything',
             description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
-        ),
-        DeclareLaunchArgument(
-            name='sim_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml']),
-            description='Sim parameters to use if using sim time', 
         ),
         DeclareLaunchArgument(
             name='use_respawn',

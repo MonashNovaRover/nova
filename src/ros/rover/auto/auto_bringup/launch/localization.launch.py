@@ -52,10 +52,10 @@ def launch_setup(context, *args, **kwargs):
 
     # comp defaults
     if comp == 'arch':
-        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_arch.yaml'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'rl_arch.yaml'])
         gps = 'False'
     elif comp == 'urc':
-        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_urc.yaml'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'rl_urc.yaml'])
         gps = 'True'
     else:
         raise ValueError('Invalid comp value')
