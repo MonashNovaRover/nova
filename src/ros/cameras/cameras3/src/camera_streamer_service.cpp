@@ -23,6 +23,8 @@
 #include "cameras/cameras.hpp"
 #include "cameras/pipeline.hpp"
 
+#include "properties/common.hpp"
+
 using namespace std::placeholders;
 
 enum CameraState {STOP = 0, START = 1, PAUSE = 2};
@@ -79,23 +81,23 @@ class CameraStreamer : public rclcpp::Node
     // get pipeline properties and use them to create the pipeline
     if (pipeline->pipeline_type == "v4l2webrtc")
     {
-      auto props = get_v4l2webrtc_pipeline_properties(this, pipeline->camera);
+      v4l2webrtcPipelineProperties* props = get_v4l2webrtc_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = v4l2webrtc_pipeline(this, props);
     } else if (pipeline->pipeline_type == "h264passthrough") {
-      auto props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
+      h264passthroughPipelineProperties* props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
     } else if (pipeline->pipeline_type == "h264software") {
-      auto props = get_h264software_pipeline_properties(this, pipeline->camera);
+      h264softwarePipelineProperties* props = get_h264software_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = h264software_pipeline(this, props);
     } else if (pipeline->pipeline_type == "vpXsoftware") {
-      auto props = get_vpXsoftware_pipeline_properties(this, pipeline->camera);
+      vpXsoftwarePipelineProperties* props = get_vpXsoftware_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props);
       } else if (pipeline->pipeline_type == "av1software") {
-      auto props = get_av1software_pipeline_properties(this, pipeline->camera);
+      av1softwarePipelineProperties* props = get_av1software_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = av1software_pipeline(this, props);
     }
@@ -128,12 +130,12 @@ class CameraStreamer : public rclcpp::Node
         // auto start if true
         if (autostart) {
           this->start_pipeline(pipeline);
+          gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED); // Start pipeline immediately
         } else {
           pipeline->gst_pipeline = nullptr;
         }
-        RCLCPP_INFO(this->get_logger(), "Creating %s pipeline for %s", pipeline->pipeline_type.c_str(), camera.serial.c_str());
+
         this->pipelines[camera.serial] = pipeline;
-        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED); // Start pipeline immediately
       }
     }
   }
@@ -156,14 +158,6 @@ class CameraStreamer : public rclcpp::Node
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             } else {
             // start pipeline if the gst bin doesn't exist yet
-              RCLCPP_INFO(this->get_logger(), "Starting %s", serial.c_str());
-
-              // Check if pipeline changed
-              const std::string default_string = "v4l2webrtc";
-              this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".pipeline_type").c_str(), pipeline->pipeline_type, default_string);
-              this->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type); 
-
-
               this->start_pipeline(pipeline);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }

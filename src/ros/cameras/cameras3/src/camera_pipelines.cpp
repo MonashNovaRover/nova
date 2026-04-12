@@ -6,350 +6,16 @@
 
 #include "cameras/pipeline.hpp"
 
+#include "properties/common.hpp"
+#include "properties/sources.hpp"
+#include "properties/sinks.hpp"
 
+#include "properties/capsfilters.hpp"
+#include "properties/cpufilters.hpp"
 
-bool verify_resolution(auto props) {
-  GstDeviceMonitor *monitor = gst_device_monitor_new();
-  gst_device_monitor_add_filter(monitor, "Video/Source", NULL);
-
-  GList *devices = gst_device_monitor_get_devices(monitor);
-  for (GList *l = devices; l != NULL; l = l->next) {
-      GstDevice *device = (GstDevice *)l->data;
-      GstStructure *device_props = gst_device_get_properties(device);
-      const gchar *path = gst_structure_get_string(device_props, "device.path");
-      int valid_width = 1280, valid_height = 720, framerate_n = 30, framerate_d = 1;
-      std::string valid_mime;
-
-      if (std::string(path) == props->device) {
-          GstCaps* caps = gst_device_get_caps(device);
-          for (guint i = 0; i < gst_caps_get_size(caps); i++) {
-              const GstStructure* str = gst_caps_get_structure(caps, i);
-              valid_mime = std::string(gst_structure_get_name(str));
-
-              // Width
-              const GValue* width_val = gst_structure_get_value(str, "width");
-              bool width_ok = false;
-
-              if (G_VALUE_HOLDS_INT(width_val)) {
-                  width_ok = (valid_width == props->width);
-                  valid_width = g_value_get_int(width_val);
-              } else if (GST_VALUE_HOLDS_INT_RANGE(width_val)) {
-                  width_ok = (props->width >= gst_value_get_int_range_min(width_val) &&
-                              props->width <= gst_value_get_int_range_max(width_val));
-                  valid_width = gst_value_get_int_range_min(width_val);
-              } else if (GST_VALUE_HOLDS_LIST(width_val)) {
-                  for (guint j = 0; j < gst_value_list_get_size(width_val); ++j) {
-                      const GValue* v = gst_value_list_get_value(width_val, j);
-                      if (g_value_get_int(v) == props->width) {
-                          width_ok = true;
-                          valid_width = g_value_get_int(v);
-                          break;
-                      }
-                  }
-              }
-
-              // Height
-              const GValue* height_val = gst_structure_get_value(str, "height");
-              bool height_ok = false;
-
-              if (G_VALUE_HOLDS_INT(height_val)) {
-                  height_ok = (valid_height == props->height);
-                  valid_height = g_value_get_int(height_val);
-              } else if (GST_VALUE_HOLDS_INT_RANGE(height_val)) {
-                  height_ok = (props->height >= gst_value_get_int_range_min(height_val) &&
-                               props->height <= gst_value_get_int_range_max(height_val));
-                  valid_height = gst_value_get_int_range_max(height_val);
-              } else if (GST_VALUE_HOLDS_LIST(height_val)) {
-                  for (guint j = 0; j < gst_value_list_get_size(height_val); ++j) {
-
-                      const GValue* v = gst_value_list_get_value(height_val, j);
-                      if (g_value_get_int(v) == props->height) {
-                          height_ok = true;
-                          valid_height = g_value_get_int(v);
-                          break;
-                      }
-                  }
-              }
-
-              // Framerate
-              gst_structure_get_fraction(str, "framerate", &framerate_n, &framerate_d);
-
-              if ((valid_mime == props->mime) && width_ok && height_ok && (framerate_n == props->framerate)) {
-                g_list_free_full(devices, gst_object_unref);
-                gst_object_unref(monitor);
-                return true;
-              }
-          }
-          g_list_free_full(devices, gst_object_unref);
-          gst_object_unref(monitor);
-
-          props->mime = valid_mime;
-          props->width = valid_width;
-          props->height = valid_height;
-          props->framerate = framerate_n;
-          props->framerate_denominator = framerate_d;
-
-          return false;
-      }
-  }
-  g_list_free_full(devices, gst_object_unref);
-  gst_object_unref(monitor);
-  return true;
-}
-
-int crop43(const int width, const int height) {
-  return (width-(height*4/3))/2;
-}
-
-bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, const std::string serial) {
-   if (!gst_element_link(first_element, second_element)) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Could not link %s to %s for %s", gst_object_get_name(GST_OBJECT(first_element)), gst_object_get_name(GST_OBJECT(second_element)), serial.c_str());
-      return false;
-   }
-   return true;
-}
-
-std::string set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const std::string default_value){
-    // Get property
-    std::string value;
-    streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
-    if (value != default_value) return value;
-    if (profile != "NULL") {
-      streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
-      if (value != default_value) return value;
-    }
-    return value;
-    streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
-}
-
-int set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const int default_value){
-    // Get property
-    int value;
-    streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
-    if (value != default_value) return value;
-    if (profile != "NULL") {
-      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
-      if (value != default_value) return value;
-    }
-    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
-    return value;
-}
-
-bool set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const bool default_value){
-    // Get property
-    bool value;
-    streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
-    if (value != default_value) return value;
-    if (profile != "NULL") {
-      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
-      if (value != default_value) return value;
-    }
-    streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
-    return value;
-}
-
-void set_source(GstElement* source, const std::string device, const std::string io_mode) {
-    g_object_set(source,
-      "device", device.c_str(),
-      "io-mode", (
-          io_mode == "rw" ? 1 :
-          io_mode == "mmap" ? 2 :
-          io_mode == "userptr" ? 3 :
-          io_mode == "dmabuf" ? 4 :
-          io_mode == "dmabuf-import" ? 5 :
-          0),
-      NULL);
-}
-
-void set_srcfilter(GstElement* filter, const std::string mime, const int width, const int height, const int framerate, const int framerate_denominator, const int downrate, const int brightness, const int contrast) {
-  GstCaps *caps = gst_caps_new_simple(
-      mime.c_str(),
-      "width", G_TYPE_INT, width,
-      "height", G_TYPE_INT, height,
-      "framerate", GST_TYPE_FRACTION, framerate, framerate_denominator*downrate,
-      "brightness", G_TYPE_INT, brightness,
-      "contrast", G_TYPE_INT,  contrast,
-      NULL);
-  g_object_set(filter, "caps", caps, NULL);
-  gst_caps_unref(caps);
-}
-
-void set_scalefilter(GstElement* filter, const std::string format, const int width, const int height, const int framerate, const int framerate_denominator, const int downscale, const int downrate, const int brightness, const int contrast) {
-  const std::string mime = "video/x-raw";
-  GstCaps *caps = gst_caps_new_simple(
-      mime.c_str(),
-      "format", G_TYPE_STRING, format.c_str(),
-      "width", G_TYPE_INT, width/downscale,
-      "height", G_TYPE_INT, height/downscale,
-      "framerate", GST_TYPE_FRACTION, framerate, framerate_denominator*downrate,
-      "brightness", G_TYPE_INT, brightness,
-      "contrast", G_TYPE_INT,  contrast,
-      NULL);
-  g_object_set(filter, "caps", caps, NULL);
-  gst_caps_unref(caps);
-}
-
-void set_convert(GstElement* convert, const std::string chroma_resampler, const std::string dither, const std::string method) {
-  g_object_set(convert,
-      "chroma-resampler", (
-          chroma_resampler == "nearest" ? 0 :
-          chroma_resampler == "linear" ? 1 :
-          chroma_resampler == "cubic" ? 2 :
-          chroma_resampler == "sinc" ? 3 : 
-          chroma_resampler == "lanczos" ? 4 :
-          0),
-      "dither", (
-          dither == "none" ? 0 :
-          dither == "verterr" ? 1 :
-          dither == "floyd-steinberg" ? 2 :
-          dither == "sierra-lite" ? 3 : 
-          dither == "bayer" ? 4 :
-          4),
-      "method", (
-          method == "nearest-neighbour" ? 0 :
-          method == "bilinear" ? 1 :
-          method == "4-tap" ? 2 :
-          method == "lanczos" ? 3 : 
-          method == "bilinear2" ? 4 :
-          method == "sinc" ? 5 :
-          method == "hermite" ? 6 :
-          method == "spline" ? 7 :
-          method == "catrom" ? 8 : 
-          method == "mitchell" ? 9 :
-          0),
-      NULL);
-}
-
-void set_crop43(GstElement* cropper, const bool crop43, const int crop_width, const int downscale) {
-    if (crop43) {
-        g_object_set(cropper,
-          "left", crop_width/downscale,
-          "right", crop_width/downscale,
-          NULL);
-    }
-}
-
-void set_webrtc(GstElement* webrtc, const std::string serial, const std::string video_caps, const bool do_fec, const bool do_retransmission, const std::string congestion_control, const int bitrate){
-    GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, serial.c_str(), NULL); 
-    GstCaps *webrtc_caps = gst_caps_from_string(video_caps.c_str());
-    g_object_set(webrtc,
-        "do-fec", do_fec,
-        "do-retransmission", do_retransmission,
-        "congestion-control", (
-            congestion_control == "disabled" ? 0 :
-            congestion_control == "homegrown" ? 1 :
-            congestion_control == "gcc" ? 2 :
-            2),
-        "max-bitrate", bitrate*1125,
-        "meta", meta,
-        "video-caps", webrtc_caps,
-        NULL);
-    gst_caps_unref(webrtc_caps);
-    gst_structure_free(meta);
-}
-
-void set_payload(GstElement* payload, const bool payload_quirk) {
-    if (payload_quirk) {
-        // Apply patch for gc2093
-        g_object_set(payload,
-            "aggregate-mode", 1,
-            "config-interval", -1,
-            NULL);
-    }
-}
-
-void set_x264(GstElement* encode, const std::string tune, const std::string speed_preset, const int threads, const int bitrate, const int noise_reduction, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
-    g_object_set(encode,
-        "tune", ( 
-            tune == "stillimage" ? 0x00000001:
-            tune == "fastdecode" ? 0x00000002:
-            tune == "zerolatency" ? 0x00000004:
-            0x00000004), // zerolatency
-        "speed-preset", (
-            speed_preset == "None" ? 0:
-            speed_preset == "ultrafast" ? 1:
-            speed_preset == "superfast" ? 2:
-            speed_preset == "veryfast" ? 3:
-            speed_preset == "faster" ? 4:
-            speed_preset == "fast" ? 5:
-            speed_preset == "medium" ? 6:
-            speed_preset == "slow" ? 7:
-            speed_preset == "slower" ? 8:
-            speed_preset == "veryslow" ? 9:
-            speed_preset == "placebo" ? 10:
-            1), // ultrafast 
-        "threads", threads, // 1 is best for cpu and compression ratio
-        "bitrate", bitrate,
-        "noise-reduction", noise_reduction,
-        "key-int-max", (int) gop * (int) ((float) framerate/ (float) framerate_denominator/ (float) downrate + 1.0), // Largest GOP
-        "vbv-buf-capacity", gop*1000,        // Buffer size for GOP
-        "b-adapt", false, // Do not allow b frames
-        "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
-        NULL);
-}
-
-void set_vpXenc(GstElement* encode, const int deadline, const int cpu_used, const std::string end_usage, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate, const std::string video_caps, const std::string aq_mode) {
-    g_object_set(encode,
-        "deadline", deadline, // 1 for lowest latency
-        "cpu-used", cpu_used, // Fastest -16, 16 Slowest 
-        "end-usage", (
-            end_usage == "vbr" ? 0:
-            end_usage == "cbr" ? 1:
-            end_usage == "cq" ? 2:
-            1), // mode, constant bitrate best
-        "threads", threads, // 1 is best for cpu and compression ratio
-        "target-bitrate", bitrate*1000,
-        "keyframe-max-dist", (int) gop * (int) ((float) framerate/ (float) framerate_denominator/ (float) downrate + 1.0), // Largest GOP
-        "buffer-optimal-size", gop*1000,        // Buffer size for GOP
-        "lag-in-frames", 0, // Do not lookahead
-        "error-resilient", 1,
-        NULL);
-    
-    if (video_caps == "video/x-vp9") {
-        g_object_set(encode,
-            "aq-mode", (
-                aq_mode == "off" ? 0 :
-                aq_mode == "variance" ? 1 :
-                aq_mode == "complexity" ? 2 :
-                aq_mode == "cyclic-refresh" ? 3 :
-                aq_mode == "equator360" ? 4 :
-                aq_mode == "perceptual" ? 5 :
-                aq_mode == "psnr" ? 6 :
-                aq_mode == "lookahead" ? 7 :
-                5),
-            "tile-columns", threads,
-            "tile-rows", threads,
-          NULL);
-    }
-}
-
-void set_av1enc(GstElement* encode, const int cpu_used, const std::string end_usage, const std::string usage_profile, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
-    g_object_set(encode,
-        "cpu-used", cpu_used, // Fastest 10, 1 Slowest 
-        "end-usage", (
-            end_usage == "vbr" ? 0:
-            end_usage == "cbr" ? 1:
-            end_usage == "cq" ? 2:
-            1), // mode, constant bitrate best
-        "usage-profile", (
-            usage_profile == "good-quality" ? 0:
-            usage_profile == "realtime" ? 1:
-            usage_profile == "all-intra" ? 2:
-            2), 
-        "threads", threads, // 1 is best for cpu and compression ratio
-        "target-bitrate", bitrate,
-        "keyframe-max-dist", (int) gop * (int) ((float) framerate/ (float) framerate_denominator/ (float) downrate + 1.0), // Largest GOP
-        "tile-columns", threads,
-        "tile-rows", threads,
-        NULL);
-}
-
-void set_h264parse(GstElement* parse, const int interval = -1) {
-    g_object_set(parse,
-        "config-interval", interval,
-        NULL);
-}
-
+#include "properties/h264.hpp"
+#include "properties/vpX.hpp"
+#include "properties/av1.hpp"
 
 /*
  * V4l camera to webrtc pipeline
@@ -369,6 +35,14 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
   */
 
   // 0. Initialize constants
+
+  // Verify resolution
+  const std::string pipeline_type = "v4l2webrtc";
+  if (verify_resolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
 
   // Disable crop43 if it is already 4:3
   const int crop_width = crop43(props->width, props->height);
@@ -395,20 +69,13 @@ GstElement* v4l2webrtc_pipeline(rclcpp::Node* streamer_node, v4l2webrtcPipelineP
       return nullptr;
   }
 
-  // Verify resolution
-  if (verify_resolution(props)) {
-      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  } else {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  };
-
   // 2. Set element properties
-  set_source(source, props->device, props->io_mode);
+  set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
-  set_convert(convert, props->chroma_resampler, props->dither, props->method);
+  set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
   set_crop43(cropper, props->crop43, crop_width, props->downscale);
-  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
+  set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, scalefilter, webrtc, NULL);
@@ -548,6 +215,17 @@ v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* s
  */
 GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroughPipelineProperties* props)
 {
+  // 0. Initialize constants
+
+  // Verify resolution
+  const std::string pipeline_type = "h264passthrough";
+  if (verify_resolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
+
+
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
@@ -562,19 +240,12 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
       return nullptr;
   }
 
-  // Verify resolution
-  if (verify_resolution(props)) {
-      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  } else {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  };
-
   // 2. Set element properties
-  set_source(source, props->device, props->io_mode);
+  set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
-  set_payload(payload, props->payload_quirk);
+  set_h264payload(payload, props->payload_quirk);
   set_h264parse(parse);
-  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
+  set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, parse, webrtc, NULL);
@@ -659,6 +330,16 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipelineProperties* props)
 {
   // 0. Initialize constants
+
+  // Verify resolution
+  const std::string pipeline_type = "h264software";
+  if (verify_resolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
+
+
   // Disable crop43 if it is already 4:3 or jpeg
   const int crop_width = crop43(props->width, props->height);
   if (crop_width == 0) {
@@ -684,22 +365,15 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
       return nullptr;
   }
 
-  // Verify resolution
-  if (verify_resolution(props)) {
-      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  } else {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  };
-
   // 2. Set element properties
-  set_source(source, props->device, props->io_mode);
+  set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
-  set_convert(convert, props->chroma_resampler, props->dither, props->method);
+  set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
   set_crop43(cropper, props->crop43, crop_width, props->downscale);
-  set_x264(encode, props->tune, props->speed_preset, props->threads, props->bitrate, props->noise_reduction, props->gop, props->framerate, props->framerate_denominator, props->downrate);
+  set_x264enc(encode, props->tune, props->speed_preset, props->threads, props->bitrate, props->noise_reduction, props->gop, props->framerate, props->framerate_denominator, props->downrate);
   set_h264parse(parse, props->gop);
-  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
+  set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, parse, webrtc, NULL);
@@ -844,6 +518,16 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
 GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelineProperties* props)
 {
   // 0. Initialize constants
+
+  // Verify resolution
+  const std::string pipeline_type = "vpXsoftware";
+  if (verify_resolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
+
+
   // Disable crop43 if it is already 4:3
   const int crop_width = crop43(props->width, props->height);
   if (crop_width == 0) {
@@ -867,22 +551,15 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-
-  // Verify resolution
-  if (verify_resolution(props)) {
-      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  } else {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  };
   
   // 2. Set element properties
-  set_source(source, props->device, props->io_mode);
+  set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
-  set_convert(convert, props->chroma_resampler, props->dither, props->method);
+  set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
   set_crop43(cropper, props->crop43, crop_width, props->downscale);
   set_vpXenc(encode, props->deadline, props->cpu_used, props->end_usage, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate, props->video_caps, props->aq_mode);
-  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
+  set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, webrtc, NULL);
@@ -1030,6 +707,16 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
 GstElement* av1software_pipeline(rclcpp::Node* streamer_node, av1softwarePipelineProperties* props)
 {
   // 0. Initialize constants
+
+  // Verify resolution
+  const std::string pipeline_type = "av1software";
+  if (verify_resolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  } else {
+      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  };
+
+
   // Disable crop43 if it is already 4:3
   const int crop_width = crop43(props->width, props->height);
   if (crop_width == 0) {
@@ -1054,22 +741,15 @@ GstElement* av1software_pipeline(rclcpp::Node* streamer_node, av1softwarePipelin
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
       return nullptr;
   }
-
-  // Verify resolution
-  if (verify_resolution(props)) {
-      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  } else {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  };
   
   // 2. Set element properties
-  set_source(source, props->device, props->io_mode);
+  set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
-  set_convert(convert, props->chroma_resampler, props->dither, props->method);
+  set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
   set_crop43(cropper, props->crop43, crop_width, props->downscale);
   set_av1enc(encode, props->cpu_used, props->end_usage, props->usage_profile, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate);
-  set_webrtc(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
+  set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, convert, scalefilter, encode, parse, webrtc, NULL);
