@@ -14,6 +14,8 @@
 namespace arm_kinematics {
 
 using StateInterfaceId = TransmissionReachability::StateInterfaceId;
+using InterfaceKindId = TransmissionAnalysis::InterfaceKindId;
+using CanonicalStateInterfaceDefinition = TransmissionAnalysis::CanonicalStateInterfaceDefinition;
 
 // File-local aliases so internal code can use the short names without re-polluting the
 // public arm_kinematics:: namespace.
@@ -202,7 +204,7 @@ void TransmissionReachability::record_candidate(
 }
 
 void TransmissionReachability::process_affine_hypernode(
-  const InterfaceId & interface_id,
+  const InterfaceKindId interface_kind_id,
   const AffineProjectionRule & rule,
   const span<const JointId> group_members,
   std::vector<std::vector<StateInterfaceProducer>> & candidates,
@@ -217,12 +219,17 @@ void TransmissionReachability::process_affine_hypernode(
   bool found_leaf_source = false;
   std::vector<JointId> leaf_input_joints_in_group;
 
+  const InterfaceId & interface_id = analysis_.interface_order().inverse[interface_kind_id];
+
   for (const JointId member : group_members) {
     const auto member_def = StateInterfaceDefinition{member, interface_id};
     if (!is_derivable_def(member_def)) continue;
 
     // Ambiguity check (only meaningful for real SIDs — bare defs can't be ambiguous).
-    const auto opt_sid = analysis_.find_state_interface_id(member_def);
+    const auto opt_sid = analysis_.find_state_interface_id(CanonicalStateInterfaceDefinition{
+      member,
+      interface_kind_id
+    });
     if (opt_sid.has_value() && ambiguous_membership_[*opt_sid]) continue;
 
     bool is_leaf = false;
@@ -287,7 +294,10 @@ void TransmissionReachability::process_affine_hypernode(
     projection.multiplier = coeffs.multiplier;
     projection.offset = coeffs.offset;
 
-    const auto opt_member_sid = analysis_.find_state_interface_id(member_def);
+    const auto opt_member_sid = analysis_.find_state_interface_id(CanonicalStateInterfaceDefinition{
+      member,
+      interface_kind_id
+    });
     if (opt_member_sid.has_value()) {
       // Registered member: go through candidates for proper ambiguity detection.
       const StateInterfaceId member_sid = *opt_member_sid;
@@ -371,7 +381,10 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
   auto seed_inputs = [&]() {
     for (std::size_t i = 0; i < inputs.size(); ++i) {
       const StateInterfaceDefinition & def = inputs[i];
-      const auto opt_sid = analysis_.find_state_interface_id(def);
+      const auto opt_kind_id = analysis_.find_interface_kind_id(def.interface_id);
+      const auto opt_sid = opt_kind_id.has_value()
+        ? analysis_.find_state_interface_id(CanonicalStateInterfaceDefinition{def.joint_id, *opt_kind_id})
+        : std::nullopt;
       if (opt_sid.has_value()) {
         // Registered definition: use the SID-indexed path.
         const StateInterfaceId sid = *opt_sid;
@@ -450,16 +463,20 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
         if (rule == nullptr) {
           continue;
         }
+        const auto opt_kind_id = analysis_.find_interface_kind_id(defn.interface_id);
+        if (!opt_kind_id.has_value()) {
+          continue;
+        }
         const JointId root = analysis_.affine_root_of(defn.joint_id);
         const auto group_members = analysis_.affine_group_members(root);
         if (group_members.size() <= 1) {
           continue;
         }
-        if (!processed_groups.insert({root, defn.interface_id.hash}).second) {
+        if (!processed_groups.insert({root, *opt_kind_id}).second) {
           continue;
         }
         process_affine_hypernode(
-          defn.interface_id, *rule, group_members, candidates, changed);
+          *opt_kind_id, *rule, group_members, candidates, changed);
       }
     }
   };
@@ -590,13 +607,19 @@ void TransmissionReachability::run_transitively_blocked_post_pass(const std::siz
       if (ambiguous_membership_[sid]) continue;
       if (transitively_blocked_membership_[sid]) continue;
       const auto & defn = analysis_.state_interface_order().inverse[sid];
+      const auto opt_kind_id = analysis_.find_interface_kind_id(defn.interface_id);
+      if (!opt_kind_id.has_value()) continue;
       const JointId root = analysis_.affine_root_of(defn.joint_id);
       const auto group_members = analysis_.affine_group_members(root);
       bool any_problematic_leaf = false;
       bool any_clean_leaf = false;
+      const InterfaceId & interface_id = analysis_.interface_order().inverse[*opt_kind_id];
       for (const JointId member : group_members) {
-        const auto member_def = StateInterfaceDefinition{member, defn.interface_id};
-        const auto opt_member_sid = analysis_.find_state_interface_id(member_def);
+        const auto member_def = StateInterfaceDefinition{member, interface_id};
+        const auto opt_member_sid = analysis_.find_state_interface_id(CanonicalStateInterfaceDefinition{
+          member,
+          *opt_kind_id
+        });
         if (!opt_member_sid.has_value()) {
           // Bare member: check bare derivability (clean leaf if derivable, not problematic).
           if (derivable_bare_defs_set_.count(member_def) > 0) {

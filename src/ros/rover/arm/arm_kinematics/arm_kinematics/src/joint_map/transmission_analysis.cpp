@@ -15,6 +15,8 @@
 namespace arm_kinematics {
 
 using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
+using InterfaceKindId = TransmissionAnalysis::InterfaceKindId;
+using CanonicalStateInterfaceDefinition = TransmissionAnalysis::CanonicalStateInterfaceDefinition;
 
 namespace {
 
@@ -61,7 +63,9 @@ TransmissionAnalysis::TransmissionAnalysis(const TransmissionAnalysis & other)
   : affine_transmissions_(other.affine_transmissions_),
     transmissions_(other.transmissions_),
     joint_order_(other.joint_order_),
+    interface_order_(other.interface_order_),
     state_interface_order_(other.state_interface_order_),
+    canonical_state_interface_order_(other.canonical_state_interface_order_),
     projection_rules_(other.projection_rules_),
     producers_index_(other.producers_index_),
     affine_parent_(other.affine_parent_),
@@ -92,7 +96,9 @@ TransmissionAnalysis & TransmissionAnalysis::operator=(const TransmissionAnalysi
   affine_transmissions_ = other.affine_transmissions_;
   transmissions_ = other.transmissions_;
   joint_order_ = other.joint_order_;
+  interface_order_ = other.interface_order_;
   state_interface_order_ = other.state_interface_order_;
+  canonical_state_interface_order_ = other.canonical_state_interface_order_;
   projection_rules_ = other.projection_rules_;
   producers_index_ = other.producers_index_;
   affine_parent_ = other.affine_parent_;
@@ -148,10 +154,32 @@ JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
 std::optional<StateInterfaceId> TransmissionAnalysis::find_state_interface_id(
   const StateInterfaceDefinition & definition) const noexcept
 {
-  if (!state_interface_order_.contains_key(definition)) {
+  const auto opt_kind_id = find_interface_kind_id(definition.interface_id);
+  if (!opt_kind_id.has_value()) {
     return std::nullopt;
   }
-  return state_interface_order_[definition];
+  return find_state_interface_id(CanonicalStateInterfaceDefinition{
+    definition.joint_id,
+    *opt_kind_id
+  });
+}
+
+std::optional<StateInterfaceId> TransmissionAnalysis::find_state_interface_id(
+  const CanonicalStateInterfaceDefinition & definition) const noexcept
+{
+  if (!canonical_state_interface_order_.contains_key(definition)) {
+    return std::nullopt;
+  }
+  return canonical_state_interface_order_[definition];
+}
+
+std::optional<InterfaceKindId> TransmissionAnalysis::find_interface_kind_id(
+  const InterfaceId & interface_id) const noexcept
+{
+  if (!interface_order_.contains_key(interface_id)) {
+    return std::nullopt;
+  }
+  return interface_order_[interface_id];
 }
 
 StateInterfaceId TransmissionAnalysis::ensure_state_interface_id(const StateInterfaceDefinition & definition)
@@ -163,9 +191,16 @@ StateInterfaceId TransmissionAnalysis::ensure_state_interface_id(const StateInte
          "ensure_state_interface_id: definition.joint_id is not present in joint_order() — "
          "did you obtain it from ensure_joint_id?");
 
-  const bool was_present = state_interface_order_.contains_key(definition);
-  const StateInterfaceId id = state_interface_order_.ensure(definition);
+  const InterfaceKindId interface_kind_id = interface_order_.ensure(definition.interface_id);
+  const CanonicalStateInterfaceDefinition canonical_definition{
+    definition.joint_id,
+    interface_kind_id
+  };
+
+  const bool was_present = canonical_state_interface_order_.contains_key(canonical_definition);
+  const StateInterfaceId id = canonical_state_interface_order_.ensure(canonical_definition);
   if (!was_present) {
+    state_interface_order_.ensure(definition, id);
     // New state interface: empty producer list until some transmission writes to it.
     producers_index_.emplace_back();
   }

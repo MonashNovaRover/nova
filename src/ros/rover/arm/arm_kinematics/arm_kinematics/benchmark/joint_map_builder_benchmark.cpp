@@ -11,6 +11,8 @@
 //   LinearChain(N)   — N joints, N-1 serial single-input/single-output transmissions.
 //   AffineFan(N)     — N joints, joint 0 is the source, joints 1…N-1 mimic it.
 //   Diamond(N)       — 1 source → N intermediates → 1 sink (fan-out then fan-in).
+//   InputReorder(N)  — N independent registered inputs, no transmissions or affine links;
+//                      outputs are a deterministic permutation of the inputs.
 //
 // Each family is parameterized with a joint count N passed via benchmark::Arg().
 
@@ -190,6 +192,38 @@ struct Diamond {
   }
 };
 
+// N independent joints/interfaces, no transmissions and no affine links.
+// Inputs: all joints/position in declaration order.
+// Outputs: same interfaces in reverse order, to force a pure rearranging map rather than
+// identity passthrough by position.
+struct InputReorder {
+  TransmissionAnalysis analysis;
+  std::vector<StateInterfaceDefinition> inputs;
+  std::vector<StateInterfaceDefinition> outputs;
+
+  explicit InputReorder(int n)
+  {
+    const InterfaceId pos{"position"};
+
+    std::vector<JointId> joints;
+    joints.reserve(n);
+    for (int i = 0; i < n; ++i) {
+      joints.push_back(analysis.ensure_joint_id("j" + std::to_string(i)));
+    }
+
+    inputs.reserve(n);
+    outputs.reserve(n);
+    for (int i = 0; i < n; ++i) {
+      analysis.ensure_state_interface_id({joints[i], pos});
+      inputs.push_back(StateInterfaceDefinition{joints[i], pos});
+    }
+
+    for (int i = n - 1; i >= 0; --i) {
+      outputs.push_back(StateInterfaceDefinition{joints[i], pos});
+    }
+  }
+};
+
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -229,6 +263,17 @@ static void BM_Reachability_Diamond(benchmark::State & state)
 }
 BENCHMARK(BM_Reachability_Diamond)->Arg(8)->Arg(32)->Arg(128);
 
+static void BM_Reachability_InputReorder(benchmark::State & state)
+{
+  const int n = static_cast<int>(state.range(0));
+  InputReorder topo(n);
+  for (auto _ : state) {
+    auto reach = arm_kinematics::TransmissionReachability::analyze(topo.analysis, topo.inputs);
+    benchmark::DoNotOptimize(reach);
+  }
+}
+BENCHMARK(BM_Reachability_InputReorder)->Arg(8)->Arg(32)->Arg(128);
+
 // ---------------------------------------------------------------------------
 // plan_joint_map benchmarks
 // ---------------------------------------------------------------------------
@@ -256,6 +301,18 @@ static void BM_PlanJointMap_Diamond(benchmark::State & state)
   }
 }
 BENCHMARK(BM_PlanJointMap_Diamond)->Arg(8)->Arg(32)->Arg(128);
+
+static void BM_PlanJointMap_InputReorder(benchmark::State & state)
+{
+  const int n = static_cast<int>(state.range(0));
+  InputReorder topo(n);
+  const auto reach = arm_kinematics::TransmissionReachability::analyze(topo.analysis, topo.inputs);
+  for (auto _ : state) {
+    auto bp = plan_joint_map(reach, topo.outputs);
+    benchmark::DoNotOptimize(bp);
+  }
+}
+BENCHMARK(BM_PlanJointMap_InputReorder)->Arg(8)->Arg(32)->Arg(128);
 
 // ---------------------------------------------------------------------------
 // materialize_joint_map benchmarks
@@ -286,6 +343,19 @@ static void BM_Materialize_AffineFan(benchmark::State & state)
   }
 }
 BENCHMARK(BM_Materialize_AffineFan)->Arg(8)->Arg(32)->Arg(128);
+
+static void BM_Materialize_InputReorder(benchmark::State & state)
+{
+  const int n = static_cast<int>(state.range(0));
+  InputReorder topo(n);
+  const auto reach = arm_kinematics::TransmissionReachability::analyze(topo.analysis, topo.inputs);
+  const auto bp = plan_joint_map(reach, topo.outputs);
+  for (auto _ : state) {
+    auto jm = materialize_joint_map(bp, topo.analysis);
+    benchmark::DoNotOptimize(jm);
+  }
+}
+BENCHMARK(BM_Materialize_InputReorder)->Arg(8)->Arg(32)->Arg(128);
 
 // ---------------------------------------------------------------------------
 // Full pipeline benchmarks (DefaultJointMapBuilder::build_expected)
@@ -326,3 +396,15 @@ static void BM_FullPipeline_Diamond(benchmark::State & state)
   }
 }
 BENCHMARK(BM_FullPipeline_Diamond)->Arg(8)->Arg(32)->Arg(128);
+
+static void BM_FullPipeline_InputReorder(benchmark::State & state)
+{
+  const int n = static_cast<int>(state.range(0));
+  InputReorder topo(n);
+  DefaultJointMapBuilder builder(topo.analysis);
+  for (auto _ : state) {
+    auto result = builder.build_expected(topo.inputs, topo.outputs);
+    benchmark::DoNotOptimize(result);
+  }
+}
+BENCHMARK(BM_FullPipeline_InputReorder)->Arg(8)->Arg(32)->Arg(128);

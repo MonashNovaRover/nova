@@ -207,7 +207,7 @@ private:
   /// wins, with ties broken by lowest JointId. This is what enables the "user can supply any
   /// group member as input" pivoting property.
   void process_affine_hypernode(
-    const InterfaceId & interface_id,
+    TransmissionAnalysis::InterfaceKindId interface_kind_id,
     const AffineProjectionRule & rule,
     span<const JointId> group_members,
     std::vector<std::vector<StateInterfaceProducer>> & candidates,

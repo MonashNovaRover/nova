@@ -12,6 +12,7 @@
 
 #include "arm_kinematics/joint_map/transmission_reachability.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
+#include "arm_kinematics/utilities/order.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 
 namespace arm_kinematics {
@@ -20,6 +21,11 @@ namespace arm_kinematics {
 // they are intentionally scoped to the blueprint layer rather than borrowed from
 // TransmissionAnalysis.
 using BlueprintStateInterfaceId = std::size_t;
+
+struct BlueprintStateInterfaceRecord {
+  StateInterfaceDefinition definition{};
+  std::optional<TransmissionAnalysis::StateInterfaceId> analysis_state_interface_id{};
+};
 
 /**
  * One stage in a `JointMapBlueprint`.
@@ -53,11 +59,9 @@ struct JointMapBlueprintSegment {
   struct InputAffineBatch {
     /// Where to write each row's result, in the blueprint's overall ordered output buffer.
     std::vector<std::size_t> blueprint_output_indices{};
-    /// Which state interface to read for each row. Always resolves (via the reachability) to a
-    /// leaf — either an `Input` (read from the input slot) or a `Transmission` output (read from
-    /// the value table after that transmission has run). Stored as `StateInterfaceDefinition`
-    /// because bare inputs (no registered SID) can be affine sources.
-    std::vector<StateInterfaceDefinition> sources{};
+    /// Which blueprint-local state interface to read for each row. The referenced entry always
+    /// resolves (via the reachability) to a leaf — either an `Input` or a `Transmission` output.
+    std::vector<BlueprintStateInterfaceId> sources{};
     /// Per-row affine coefficients. Identity (m=1, o=0) for direct input passthroughs.
     std::vector<double> multipliers{};
     std::vector<double> offsets{};
@@ -71,8 +75,8 @@ struct JointMapBlueprintSegment {
     // Emitted in the InputAffineBatch that PRECEDES the affected TransmissionStage.
     // Each row i: scratch[scratch_targets[i]] =
     //     scratch_multipliers[i] * scratch[scratch_sources[i]] + scratch_offsets[i].
-    std::vector<StateInterfaceDefinition> scratch_targets{};
-    std::vector<StateInterfaceDefinition> scratch_sources{};
+    std::vector<BlueprintStateInterfaceId> scratch_targets{};
+    std::vector<BlueprintStateInterfaceId> scratch_sources{};
     std::vector<double> scratch_multipliers{};
     std::vector<double> scratch_offsets{};
   };
@@ -131,6 +135,12 @@ public:
   /// Echo of the `ordered_outputs` argument that was passed to `plan_joint_map`.
   [[nodiscard]] span<const StateInterfaceDefinition> outputs() const noexcept { return outputs_; }
 
+  /// Blueprint-local canonical state-interface table. Segment-local ids index into this table.
+  [[nodiscard]] span<const BlueprintStateInterfaceRecord> state_interfaces() const noexcept
+  {
+    return state_interface_records_;
+  }
+
   // ---------------------------------------------------------------------------
   // Internal builder access
   // ---------------------------------------------------------------------------
@@ -140,11 +150,22 @@ public:
   void emplace_segment(JointMapBlueprintSegment segment) { segments_.push_back(std::move(segment)); }
   void set_inputs(std::vector<StateInterfaceDefinition> inputs) { inputs_ = std::move(inputs); }
   void set_outputs(std::vector<StateInterfaceDefinition> outputs) { outputs_ = std::move(outputs); }
+  [[nodiscard]] BlueprintStateInterfaceId ensure_state_interface(BlueprintStateInterfaceRecord record)
+  {
+    const auto existing = state_interface_order_.contains_key(record.definition);
+    const BlueprintStateInterfaceId local_id = state_interface_order_.ensure(record.definition);
+    if (!existing) {
+      state_interface_records_.push_back(std::move(record));
+    }
+    return local_id;
+  }
 
 private:
   std::vector<JointMapBlueprintSegment> segments_{};
   std::vector<StateInterfaceDefinition> inputs_{};
   std::vector<StateInterfaceDefinition> outputs_{};
+  Order<StateInterfaceDefinition, BlueprintStateInterfaceId> state_interface_order_{};
+  std::vector<BlueprintStateInterfaceRecord> state_interface_records_{};
 };
 
 /**

@@ -23,6 +23,29 @@ namespace arm_kinematics {
 
 class TransmissionModel;
 
+using InterfaceKindId = std::size_t;
+
+struct CanonicalStateInterfaceDefinition {
+  JointId joint_id = 0;
+  InterfaceKindId interface_kind_id = 0;
+
+  bool operator<(const CanonicalStateInterfaceDefinition & other) const noexcept
+  {
+    return joint_id < other.joint_id ||
+           (joint_id == other.joint_id && interface_kind_id < other.interface_kind_id);
+  }
+
+  bool operator==(const CanonicalStateInterfaceDefinition & other) const noexcept
+  {
+    return joint_id == other.joint_id && interface_kind_id == other.interface_kind_id;
+  }
+
+  bool operator!=(const CanonicalStateInterfaceDefinition & other) const noexcept
+  {
+    return !(*this == other);
+  }
+};
+
 /**
  * Build-time graph data structure for transmissions and joint relationships.
  *
@@ -57,7 +80,9 @@ class TransmissionModel;
  */
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
+  using InterfaceKindId = arm_kinematics::InterfaceKindId;
   using StateInterfaceId = std::size_t;
+  using CanonicalStateInterfaceDefinition = arm_kinematics::CanonicalStateInterfaceDefinition;
 
   /**
    * The current flat affine relationship of one joint to its affine group's root.
@@ -153,6 +178,19 @@ public:
     return state_interface_order_;
   }
 
+  /// Canonical mapping from symbolic interface ids to compact analysis-local kind ids.
+  [[nodiscard]] const Order<InterfaceId, InterfaceKindId> & interface_order() const noexcept
+  {
+    return interface_order_;
+  }
+
+  /// Canonical mapping from `(JointId, InterfaceKindId)` to stable internal `StateInterfaceId`s.
+  [[nodiscard]] const Order<CanonicalStateInterfaceDefinition, StateInterfaceId> &
+  canonical_state_interface_order() const noexcept
+  {
+    return canonical_state_interface_order_;
+  }
+
   /// Provides the JointId from joint_order_, adding it to the end of the order if it is not already present.
   JointId ensure_joint_id(const std::string & name);
 
@@ -163,6 +201,18 @@ public:
    */
   [[nodiscard]] std::optional<StateInterfaceId>
   find_state_interface_id(const StateInterfaceDefinition & definition) const noexcept;
+
+  [[nodiscard]] std::optional<StateInterfaceId>
+  find_state_interface_id(const CanonicalStateInterfaceDefinition & definition) const noexcept;
+
+  [[nodiscard]] std::optional<InterfaceKindId>
+  find_interface_kind_id(const InterfaceId & interface_id) const noexcept;
+
+  [[nodiscard]] const CanonicalStateInterfaceDefinition &
+  canonical_state_interface_definition(StateInterfaceId state_interface_id) const noexcept
+  {
+    return canonical_state_interface_order_.inverse[state_interface_id];
+  }
 
   StateInterfaceId ensure_state_interface_id(const StateInterfaceDefinition & definition);
   StateInterfaceId ensure_state_interface_id(const NamedStateInterfaceDefinition & definition)
@@ -279,8 +329,12 @@ private:
 
   /// Joint name → JointId
   Order<std::string, JointId> joint_order_{};
+  /// InterfaceId -> compact analysis-local kind id.
+  Order<InterfaceId, InterfaceKindId> interface_order_{};
   /// (JointId, InterfaceId) → StateInterfaceId
   Order<StateInterfaceDefinition, StateInterfaceId> state_interface_order_{};
+  /// (JointId, InterfaceKindId) -> StateInterfaceId
+  Order<CanonicalStateInterfaceDefinition, StateInterfaceId> canonical_state_interface_order_{};
 
   /// InterfaceId → projection rule. Populated with sane defaults for position, velocity, and
   /// acceleration in the constructor. Effort is *not* registered by default.

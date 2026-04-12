@@ -34,6 +34,7 @@ using arm_kinematics::TransmissionInstanceId;
 using arm_kinematics::TransmissionModel;
 using arm_kinematics::TransmissionReachability;
 using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
+using BlueprintStateInterfaceId = arm_kinematics::BlueprintStateInterfaceId;
 
 namespace {
 
@@ -111,6 +112,13 @@ constexpr double kTolerance = 1.0e-9;
 bool approx_equal(double a, double b)
 {
   return std::abs(a - b) <= kTolerance + kTolerance * std::max(std::abs(a), std::abs(b));
+}
+
+StateInterfaceDefinition def_of(
+  const JointMapBlueprint & blueprint,
+  const BlueprintStateInterfaceId local_id)
+{
+  return blueprint.state_interfaces()[local_id].definition;
 }
 
 }  // namespace
@@ -456,7 +464,7 @@ TEST_F(JointMapBlueprintTest, Plan_DirectInputPassthrough_OneAffineBatchSegment)
   ASSERT_NE(batch, nullptr);
   ASSERT_EQ(batch->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(batch->blueprint_output_indices[0], 0u);
-  EXPECT_EQ(batch->sources[0], def_of(analysis_, a));
+  EXPECT_EQ(def_of(blueprint, batch->sources[0]), def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0));
   EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0));
 }
@@ -492,7 +500,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_ConsecutiveAffineOutputs_FoldedInto
   EXPECT_EQ(batch->blueprint_output_indices.size(), 5u);
   // Each row reads from a_pos with the right multiplier.
   for (std::size_t i = 0; i < 5; ++i) {
-    EXPECT_EQ(batch->sources[i], def_of(analysis_, a_pos));
+    EXPECT_EQ(def_of(blueprint, batch->sources[i]), def_of(analysis_, a_pos));
     EXPECT_TRUE(approx_equal(batch->multipliers[i], i + 1));
     EXPECT_TRUE(approx_equal(batch->offsets[i], 0.0));
   }
@@ -532,7 +540,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   ASSERT_NE(pre, nullptr);
   ASSERT_EQ(pre->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(pre->blueprint_output_indices[0], 0u);  // b is at output position 0
-  EXPECT_EQ(pre->sources[0], def_of(analysis_, a));
+  EXPECT_EQ(def_of(blueprint, pre->sources[0]), def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(pre->multipliers[0], 2.0));
 
   // Segment 1: transmission stage T
@@ -540,7 +548,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   ASSERT_NE(tstage, nullptr);
   EXPECT_EQ(tstage->instance_id, 0u);
   ASSERT_EQ(tstage->outputs.size(), 1u);
-  EXPECT_EQ(tstage->outputs[0], x);
+  EXPECT_EQ(def_of(blueprint, tstage->outputs[0]), def_of(analysis_, x));
   ASSERT_EQ(tstage->blueprint_output_indices.size(), 1u);
   ASSERT_TRUE(tstage->blueprint_output_indices[0].has_value());
   EXPECT_EQ(*tstage->blueprint_output_indices[0], 1u);  // x is at output position 1
@@ -550,7 +558,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   ASSERT_NE(post, nullptr);
   ASSERT_EQ(post->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(post->blueprint_output_indices[0], 2u);  // y is at output position 2
-  EXPECT_EQ(post->sources[0], def_of(analysis_, x));
+  EXPECT_EQ(def_of(blueprint, post->sources[0]), def_of(analysis_, x));
   EXPECT_TRUE(approx_equal(post->multipliers[0], 3.0));
 }
 
@@ -573,12 +581,12 @@ TEST_F(JointMapBlueprintTest, InputPassthrough_FoldedIntoSameAffineBatchAsMimic)
   ASSERT_EQ(batch->blueprint_output_indices.size(), 2u);
   // Row for a: identity passthrough
   EXPECT_EQ(batch->blueprint_output_indices[0], 0u);
-  EXPECT_EQ(batch->sources[0], def_of(analysis_, a));
+  EXPECT_EQ(def_of(blueprint, batch->sources[0]), def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0));
   EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0));
   // Row for b: 2a + 5
   EXPECT_EQ(batch->blueprint_output_indices[1], 1u);
-  EXPECT_EQ(batch->sources[1], def_of(analysis_, a));
+  EXPECT_EQ(def_of(blueprint, batch->sources[1]), def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[1], 2.0));
   EXPECT_TRUE(approx_equal(batch->offsets[1], 5.0));
 }
@@ -613,10 +621,10 @@ TEST_F(JointMapBlueprintTest, SideEffectOutput_TransmissionStageIncludesAllOutpu
 
   // Find i and k in the outputs vector.
   for (std::size_t out_pos = 0; out_pos < tstage->outputs.size(); ++out_pos) {
-    if (tstage->outputs[out_pos] == k) {
+    if (def_of(blueprint, tstage->outputs[out_pos]) == def_of(analysis_, k)) {
       ASSERT_TRUE(tstage->blueprint_output_indices[out_pos].has_value());
       EXPECT_EQ(*tstage->blueprint_output_indices[out_pos], 0u);
-    } else if (tstage->outputs[out_pos] == i_iface) {
+    } else if (def_of(blueprint, tstage->outputs[out_pos]) == def_of(analysis_, i_iface)) {
       EXPECT_FALSE(tstage->blueprint_output_indices[out_pos].has_value());
     }
   }

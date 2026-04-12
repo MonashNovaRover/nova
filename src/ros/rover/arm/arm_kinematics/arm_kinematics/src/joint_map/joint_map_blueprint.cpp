@@ -183,6 +183,13 @@ JointMapBlueprint plan_joint_map(
     blueprint.set_outputs(std::move(out_copy));
   }
 
+  const auto ensure_blueprint_state_id = [&](const StateInterfaceDefinition & def) -> StateInterfaceId {
+    return blueprint.ensure_state_interface(BlueprintStateInterfaceRecord{
+      def,
+      analysis.find_state_interface_id(def)
+    });
+  };
+
   if (ordered_outputs.empty()) {
     return blueprint;
   }
@@ -292,12 +299,12 @@ JointMapBlueprint plan_joint_map(
       const auto producer = reach.producer_of_def(out);
       if (std::get_if<producers::Input>(&producer)) {
         batch.blueprint_output_indices.push_back(i);
-        batch.sources.push_back(out);
+        batch.sources.push_back(ensure_blueprint_state_id(out));
         batch.multipliers.push_back(1.0);
         batch.offsets.push_back(0.0);
       } else if (auto * ap = std::get_if<producers::AffineProjection>(&producer)) {
         batch.blueprint_output_indices.push_back(i);
-        batch.sources.push_back(ap->source);
+        batch.sources.push_back(ensure_blueprint_state_id(ap->source));
         batch.multipliers.push_back(ap->multiplier);
         batch.offsets.push_back(ap->offset);
       }
@@ -305,8 +312,8 @@ JointMapBlueprint plan_joint_map(
 
     // Scratch-fill rows for the next transmission stage.
     for (const auto & sf : fills) {
-      batch.scratch_targets.push_back(sf.target_def);
-      batch.scratch_sources.push_back(sf.source_def);
+      batch.scratch_targets.push_back(ensure_blueprint_state_id(sf.target_def));
+      batch.scratch_sources.push_back(ensure_blueprint_state_id(sf.source_def));
       batch.scratch_multipliers.push_back(sf.multiplier);
       batch.scratch_offsets.push_back(sf.offset);
     }
@@ -322,8 +329,14 @@ JointMapBlueprint plan_joint_map(
 
     JointMapBlueprintSegment::TransmissionStage stage{};
     stage.instance_id = tid;
-    stage.inputs.assign(instance.input_ids.begin(), instance.input_ids.end());
-    stage.outputs.assign(instance.output_ids.begin(), instance.output_ids.end());
+    stage.inputs.reserve(instance.input_ids.size());
+    for (const auto sid : instance.input_ids) {
+      stage.inputs.push_back(ensure_blueprint_state_id(analysis.state_interface_order().inverse[sid]));
+    }
+    stage.outputs.reserve(instance.output_ids.size());
+    for (const auto sid : instance.output_ids) {
+      stage.outputs.push_back(ensure_blueprint_state_id(analysis.state_interface_order().inverse[sid]));
+    }
     stage.blueprint_output_indices.assign(instance.output_ids.size(), std::nullopt);
 
     // For each transmission output, check whether it's directly requested.
