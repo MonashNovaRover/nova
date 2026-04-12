@@ -52,7 +52,6 @@ class CarouselController(Controller):
         :param contexts: A collection of dependency injection class instances you can index by class type.
         """
         super().__init__(contexts)
-        self.logger.info(f"AugerController -- I have been __init__ialized")
 
         # Set up params
         self.zero_offset = [0, 0]
@@ -86,6 +85,9 @@ class CarouselController(Controller):
         """
         # Save references to interfaces
         self.ring_cmds = [command_interfaces[f"{x}/position"] for x in self.RING_NAMES]
+        for i in range(len(self.ring_cmds)):
+            self.ring_cmds[i].value = self.target_positions[i]
+        self.publish()
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -109,7 +111,7 @@ class CarouselController(Controller):
 
             # Publish current cuvette
             msg.names.append(f"{self.RING_NAMES[i]}_cuvette")
-            msg.positions.append(self.to_cuvette(self.RING(i), self.get_degrees(self.RING(i))))
+            msg.positions.append(float(self.to_cuvette(self.RING(i), self.get_degrees(self.RING(i)))))
 
         self.publisher.publish(msg)
 
@@ -138,16 +140,19 @@ class CarouselController(Controller):
                 return response
 
             if action == "degree":
-                response = self.set_degrees(ring, positions[i])
+                response.success = self.set_degrees(ring, positions[i])
+                self.logger.info(f"Successfully moved {ring.name} to {positions[i]}°")
             elif action == "cuvette":
-                response = self.set_degrees(ring, self.to_degrees(ring, round(positions[i])))
+                response.success = self.set_degrees(ring, self.to_degrees(ring, round(positions[i])))
+                self.logger.info(f"Successfully moved {ring.name} to cuvette {positions[i]}")
             elif action == "zero":
-                response = self.update_zero(ring, positions[i])
+                response.success = self.update_zero(ring, positions[i])
             else:
                 self.logger.error(f"Unknown action: {action} - action must be one of: `degree`, `cuvette` or `zero`")
                 response.success = False
                 return response
 
+        self.publish()
         return response
 
     def update_zero(self, ring: RING, offset: float) -> bool:
@@ -158,11 +163,15 @@ class CarouselController(Controller):
 
     def get_degrees(self, ring: RING) -> float:
         """ Returns the current position of the ring with the zero offset applied """
-        return self.ring_cmds[ring.value].value + self.zero_offset[ring.value]
+        return self.clamp_position(ring, self.ring_cmds[ring.value].value + self.zero_offset[ring.value])
 
     def set_degrees(self, ring: RING, degrees: float) -> bool:
         """ Set current degrees and apply the offset """
-        self.target_positions[ring.value] = degrees - self.zero_offset[ring.value]
+        if degrees < 0 or degrees > self.max_rotation[ring.value]:
+            self.logger.error(f"{degrees} is out of bounds [0,{self.max_rotation[ring.value]}]")
+            return False
+
+        self.target_positions[ring.value] = self.clamp_position(ring, degrees - self.zero_offset[ring.value])
         return True
 
     def clamp_position(self, ring: RING, pos: float) -> float:
@@ -189,7 +198,7 @@ if __name__ == "__main__":
     # URC 2026 Carousel system
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", CarouselController) \
-        .with_hardware("inner", PositionalServoHardware, can_id=0x0E5) \
-        .with_hardware("outer", PositionalServoHardware, can_id=0x0E6) \
+        .with_hardware("inner", PositionalServoHardware, can_id=0x0E5, angular_limit=360) \
+        .with_hardware("outer", PositionalServoHardware, can_id=0x0E6, angular_limit=360) \
         .with_jcan() \
         .spin()
