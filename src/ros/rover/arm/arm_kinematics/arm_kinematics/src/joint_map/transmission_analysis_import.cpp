@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "arm_kinematics/joint_map/state_interface_definition.hpp"
+#include "arm_kinematics/joint_map/transmission_model.hpp"
 #include "arm_kinematics/utilities/interface_id.hpp"
 
 namespace arm_kinematics {

@@ -137,12 +137,22 @@ materialiser should receive that directly rather than recomputing it.
 The current code conflates two different things:
 
 - analysis-local ids that exist only when `TransmissionAnalysis` has registered a definition
+- layer-local ids that exist to make one stage's internal storage compact
 - the planner's need for a compact canonical handle for "state-like things" regardless of whether
   they were registered in the analysis
 
 The remediation should not assume that "registered SID" is the normal case. If unregistered
 definitions are common, then the planner needs its own local canonical ids rather than treating
 non-SID definitions as a secondary path.
+
+The boundary decisions made so far are consistent with this:
+
+- `TransmissionAnalysis::StateInterfaceId` is analysis-local
+- `TransmissionReachability::StateInterfaceId` is reachability-local
+- `JointMapBlueprint` uses blueprint-local ids
+
+Those aliases currently share the same underlying representation, but they should not be treated
+as semantically interchangeable.
 
 ## Phase 1 — Remove Obvious Representation Mistakes
 
@@ -177,7 +187,7 @@ API.
 
    Changes:
    - Replace `producer_assignment_` with storage that is vector-indexed only where the key space is
-     genuinely dense for that analysis run.
+     genuinely dense for that reachability run.
    - Replace pass-local `candidates` and `ambiguity_snapshots` with vector-indexed storage only for
      those entries that have been canonicalised into a dense local index space.
    - Do not assume the correct split is "SIDs fast, bare defs slow". The split should instead be
@@ -185,9 +195,9 @@ API.
 
    Notes:
    - This is both a performance fix and a design correction.
-   - If `TransmissionReachability` continues exposing `producer_of(StateInterfaceId)`, that query
+   - If `TransmissionReachability` exposes `producer_of(StateInterfaceId)`, that query
      can still be O(1), but the internal representation should not be organised around the idea
-     that global `StateInterfaceId` is the planner's main identity model.
+     that `TransmissionAnalysis::StateInterfaceId` is the planner's main identity model.
 
 3. Add `reserve()` and pre-sizing systematically.
    Files:
@@ -233,15 +243,16 @@ established its own canonical local ids.
    - supporting implementation files
 
    Changes:
-   - Define a planner-local canonical key space for all state references that participate in a
-     single reachability/planning/materialisation run.
-   - Make that key space independent from whether a value happened to have a
+   - Define explicit local key spaces for the layers that need them.
+   - Make those key spaces independent from whether a value happened to have a
      `TransmissionAnalysis::StateInterfaceId`.
    - Allow optional back-references to analysis ids where they exist.
 
    Candidate shape:
-   - `LocalStateRef = std::size_t`
-   - planner-owned tables:
+   - layer-local ids such as `ReachabilityStateId` and `BlueprintStateId`
+   - a later shared planner-layer id only if reachability and blueprint actually converge on the
+     same canonical space
+   - owned tables:
      - `local_ref -> StateInterfaceDefinition`
      - optional `local_ref -> analysis-local state id`
      - optional `analysis-local state id -> local_ref`
@@ -249,7 +260,7 @@ established its own canonical local ids.
    The exact type is flexible; the important part is that:
 
    - later stages stop hashing full definitions on every lookup
-   - the planner has one canonical key model for the whole run
+   - each layer owns its own identity model unless there is a deliberate shared planner-layer id
    - registered analysis ids become an optional acceleration path, not the semantic centre
 
 2. Reduce `StateInterfaceDefinition` hashing in `materialize_joint_map()`.
