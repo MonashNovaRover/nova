@@ -159,11 +159,11 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
   }
 
   // Step 2: Reachability analysis against the local analysis.
-  auto reach = TransmissionReachability::analyze(
+  const auto reach = TransmissionReachability::analyze(
     local, span<const StateInterfaceId>(sid_inputs.data(), sid_inputs.size()));
 
   // Step 3: Diagnose against the requested outputs.
-  auto diag = diagnose_missing_outputs(
+  const auto diag = diagnose_missing_outputs(
     reach, span<const StateInterfaceId>(sid_outputs.data(), sid_outputs.size()));
 
   // Step 4: Surface errors. Ambiguity wins over MissingInputs.

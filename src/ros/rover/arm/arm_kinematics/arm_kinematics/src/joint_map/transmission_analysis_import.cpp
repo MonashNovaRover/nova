@@ -453,8 +453,8 @@ TransmissionAnalysis::AffineTransmission normalize_affine_transmission(
     visit_states);
 
   const auto normalized = TransmissionAnalysis::AffineTransmission{
-    target_joint_id,
     normalized_source.source_joint_id,
+    target_joint_id,
     normalized_source.multiplier * raw_it->second.multiplier,
     normalized_source.offset * raw_it->second.multiplier + raw_it->second.offset
   };
@@ -553,8 +553,8 @@ void add_mimic_transmissions_to_analysis(
     const auto target_joint_id = transmission_analysis.ensure_joint_id(joint_name);
 
     raw_affine_transmissions[target_joint_id] = TransmissionAnalysis::AffineTransmission{
-      target_joint_id,
       transmission_analysis.ensure_joint_id(joint->mimic->joint_name),
+      target_joint_id,
       joint->mimic->multiplier,
       joint->mimic->offset
     };
