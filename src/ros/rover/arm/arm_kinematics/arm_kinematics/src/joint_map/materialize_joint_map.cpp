@@ -16,7 +16,6 @@
 #include <limits>
 #include <stdexcept>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -162,13 +161,11 @@ JointMap materialize_composite(
   };
 
   // (a) Inputs (in order, first-occurrence-wins).
-  for (BlueprintStateInterfaceId local_id = 0; local_id < blueprint_state_count; ++local_id) {
-    const auto & record = state_interfaces[local_id];
-    for (const auto & def : inputs) {
-      if (record.definition == def) {
-        allocate_blueprint_slot(local_id);
-        break;
-      }
+  // O(N) via blueprint.find_state_interface_id — avoids the old O(K×N) nested scan.
+  for (std::size_t i = 0; i < inputs.size(); ++i) {
+    const auto opt_local_id = blueprint.find_state_interface_id(inputs[i]);
+    if (opt_local_id.has_value()) {
+      allocate_blueprint_slot(*opt_local_id);
     }
   }
   // (b) Transmission outputs.
@@ -201,18 +198,15 @@ JointMap materialize_composite(
   };
 
   // ---- Build input seeds ----------------------------------------------------
+  // O(N) via blueprint.find_state_interface_id — avoids the old O(N×K) nested scan.
   std::vector<std::pair<std::size_t, std::size_t>> input_seeds;
-  std::unordered_set<StateInterfaceDefinition> seeded;
   input_seeds.reserve(inputs.size());
-  seeded.reserve(inputs.size());
+  std::vector<bool> seeded_by_sid(blueprint_state_count, false);
   for (std::size_t i = 0; i < inputs.size(); ++i) {
-    if (seeded.insert(inputs[i]).second) {
-      for (BlueprintStateInterfaceId local_id = 0; local_id < blueprint_state_count; ++local_id) {
-        if (state_interfaces[local_id].definition == inputs[i]) {
-          input_seeds.emplace_back(i, resolve_scratch(local_id));
-          break;
-        }
-      }
+    const auto opt_local_id = blueprint.find_state_interface_id(inputs[i]);
+    if (opt_local_id.has_value() && !seeded_by_sid[*opt_local_id]) {
+      seeded_by_sid[*opt_local_id] = true;
+      input_seeds.emplace_back(i, resolve_scratch(*opt_local_id));
     }
   }
 

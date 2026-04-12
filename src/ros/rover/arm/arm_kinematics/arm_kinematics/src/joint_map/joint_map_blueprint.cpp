@@ -10,6 +10,7 @@
 #include <limits>
 #include <stdexcept>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 namespace arm_kinematics {
@@ -26,31 +27,66 @@ constexpr std::size_t kUnassignedStageIndex = std::numeric_limits<std::size_t>::
 // Walk producer chains starting from `def` and collect every TransmissionInstanceId that's
 // transitively required to compute it. Recurses through AffineProjection sources (which
 // invariantly resolve to a leaf — Input or Transmission — in one step).
+//
+// Uses a two-tier visited set: vector<bool> indexed by analysis StateInterfaceId for registered
+// interfaces (O(1) read/write, no hashing), and unordered_set<StateInterfaceDefinition> only for
+// bare (unregistered) definitions. Transmission inputs are pushed as SIDs directly, avoiding the
+// inverse-table lookup and re-hashing that the old definition-based stack caused.
 void collect_required_transmissions(
   const TransmissionReachability & reach,
-  const StateInterfaceDefinition & def,
-  std::unordered_set<StateInterfaceDefinition> & traced,
+  const StateInterfaceDefinition & start_def,
+  std::vector<bool> & traced_sids,
+  std::unordered_set<StateInterfaceDefinition> & traced_bare,
   std::unordered_set<TransmissionInstanceId> & required)
 {
+  using AnalysisSID = TransmissionAnalysis::StateInterfaceId;
+  using Item = std::variant<AnalysisSID, StateInterfaceDefinition>;
+
   const auto & analysis = reach.analysis();
-  std::vector<StateInterfaceDefinition> stack;
-  stack.push_back(def);
+  std::vector<Item> stack;
+
+  const auto opt_start_sid = analysis.find_state_interface_id(start_def);
+  if (opt_start_sid.has_value()) {
+    stack.emplace_back(*opt_start_sid);
+  } else {
+    stack.emplace_back(start_def);
+  }
+
   while (!stack.empty()) {
-    const StateInterfaceDefinition cur = stack.back();
+    const Item cur = stack.back();
     stack.pop_back();
-    if (!traced.insert(cur).second) {
-      continue;
+
+    producers::StateInterfaceProducer producer;
+
+    if (const auto * sid_ptr = std::get_if<AnalysisSID>(&cur)) {
+      const AnalysisSID sid = *sid_ptr;
+      if (traced_sids[sid]) {
+        continue;
+      }
+      traced_sids[sid] = true;
+      producer = reach.producer_of(sid);
+    } else {
+      const auto & bare_def = std::get<StateInterfaceDefinition>(cur);
+      if (!traced_bare.insert(bare_def).second) {
+        continue;
+      }
+      producer = reach.producer_of_def(bare_def);
     }
-    const auto producer = reach.producer_of_def(cur);
+
     if (auto * tx = std::get_if<producers::Transmission>(&producer)) {
       if (required.insert(tx->instance_id).second) {
         const auto & instance = analysis.transmissions()[tx->instance_id];
-        for (const StateInterfaceId in : instance.input_ids) {
-          stack.push_back(analysis.state_interface_order().inverse[in]);
+        for (const AnalysisSID in_sid : instance.input_ids) {
+          stack.emplace_back(in_sid);  // push SID directly — no inverse table lookup
         }
       }
     } else if (auto * ap = std::get_if<producers::AffineProjection>(&producer)) {
-      stack.push_back(ap->source);
+      const auto src_sid = analysis.find_state_interface_id(ap->source);
+      if (src_sid.has_value()) {
+        stack.emplace_back(*src_sid);
+      } else {
+        stack.emplace_back(ap->source);
+      }
     }
     // Input or monostate → no further tracing.
   }
@@ -183,12 +219,24 @@ JointMapBlueprint plan_joint_map(
     blueprint.set_outputs(std::move(out_copy));
   }
 
+  // Ensure a blueprint-local id for a definition, recording the analysis SID when available.
   const auto ensure_blueprint_state_id = [&](const StateInterfaceDefinition & def) -> StateInterfaceId {
     return blueprint.ensure_state_interface(BlueprintStateInterfaceRecord{
       def,
       analysis.find_state_interface_id(def)
     });
   };
+
+  // Variant for transmission I/O where the analysis SID is already known — avoids a redundant
+  // find_state_interface_id call (the def is obtained from the inverse table but the SID is
+  // already in hand, so re-hashing the def to recover it is unnecessary).
+  const auto ensure_blueprint_state_id_for_sid =
+    [&](const TransmissionAnalysis::StateInterfaceId analysis_sid) -> StateInterfaceId {
+      return blueprint.ensure_state_interface(BlueprintStateInterfaceRecord{
+        analysis.state_interface_order().inverse[analysis_sid],
+        analysis_sid
+      });
+    };
 
   if (ordered_outputs.empty()) {
     return blueprint;
@@ -199,9 +247,11 @@ JointMapBlueprint plan_joint_map(
   // ---------------------------------------------------------------------------
   std::unordered_set<TransmissionInstanceId> required;
   {
-    std::unordered_set<StateInterfaceDefinition> traced;
+    const std::size_t sid_count = analysis.state_interface_order().size();
+    std::vector<bool> traced_sids(sid_count, false);
+    std::unordered_set<StateInterfaceDefinition> traced_bare;
     for (const StateInterfaceDefinition & out : ordered_outputs) {
-      collect_required_transmissions(reach, out, traced, required);
+      collect_required_transmissions(reach, out, traced_sids, traced_bare, required);
     }
   }
   const auto topo_order = topo_sort_required_transmissions(reach, required);
@@ -327,7 +377,42 @@ JointMapBlueprint plan_joint_map(
   }
 
   // ---------------------------------------------------------------------------
-  // Step 4: Emit segments in execution order.
+  // Step 4: Pre-compute per-stage output lists and SID → blueprint-output-index map.
+  //
+  // These replace two O(N²) scans in the emit loops:
+  //   (a) emit_affine_batch_for_stage previously scanned all output_count outputs per stage to
+  //       find those assigned to it — O(output_count × stage_count) total.
+  //   (b) emit_transmission_stage previously scanned all output_count outputs per tx output to
+  //       find whether it was directly requested — O(output_count × total_tx_output_count) total.
+  // Both are now O(output_count) precomputation + O(1) per lookup.
+  // ---------------------------------------------------------------------------
+
+  // affine_outputs_for_stage[0]     = output indices with affine_batch_stage == kPreTransmissionStage
+  // affine_outputs_for_stage[k + 1] = output indices with affine_batch_stage == k
+  const std::size_t affine_stage_count = topo_order.size() + 1;
+  std::vector<std::vector<std::size_t>> affine_outputs_for_stage(affine_stage_count);
+  for (std::size_t i = 0; i < output_count; ++i) {
+    if (is_direct_transmission[i]) continue;
+    const int s = affine_batch_stage[i];
+    const std::size_t bucket =
+      (s == kPreTransmissionStage) ? 0u : static_cast<std::size_t>(s + 1);
+    affine_outputs_for_stage[bucket].push_back(i);
+  }
+
+  // sid_to_blueprint_output[sid] = blueprint output index for that directly-requested tx output.
+  // Indexed by analysis StateInterfaceId (dense, zero-based). nullopt if not directly requested.
+  const std::size_t analysis_sid_count = analysis.state_interface_order().size();
+  std::vector<std::optional<std::size_t>> sid_to_blueprint_output(analysis_sid_count, std::nullopt);
+  for (std::size_t i = 0; i < output_count; ++i) {
+    if (!is_direct_transmission[i]) continue;
+    const auto opt_sid = analysis.find_state_interface_id(ordered_outputs[i]);
+    if (opt_sid.has_value()) {
+      sid_to_blueprint_output[*opt_sid] = i;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 5: Emit segments in execution order.
   //
   // Layout: [pre-batch] [Tstage_0] [batch_0] [Tstage_1] [batch_1] ...
   //   pre-batch    = outputs with affine_batch_stage == -1, NOT direct transmission outputs,
@@ -337,19 +422,13 @@ JointMapBlueprint plan_joint_map(
   //                  PLUS scratch-fill rows for Tstage_{k+1}
   // ---------------------------------------------------------------------------
 
-  // `scratch_fills_for` returns the scratch-fill rows to embed in the batch preceding stage k.
-  // For the pre-transmission batch, k == 0; for post-batch after stage k, fills for k+1.
   auto emit_affine_batch_for_stage = [&](
-    int stage,
+    const std::vector<std::size_t> & output_indices,
     const std::vector<ScratchFillRow> & fills)
   {
     JointMapBlueprintSegment::InputAffineBatch batch{};
 
-    // Output rows.
-    for (std::size_t i = 0; i < output_count; ++i) {
-      if (is_direct_transmission[i]) continue;
-      if (affine_batch_stage[i] != stage) continue;
-
+    for (const std::size_t i : output_indices) {
       const StateInterfaceDefinition & out = ordered_outputs[i];
       const auto producer = reach.producer_of_def(out);
       if (std::get_if<producers::Input>(&producer)) {
@@ -365,7 +444,6 @@ JointMapBlueprint plan_joint_map(
       }
     }
 
-    // Scratch-fill rows for the next transmission stage.
     for (const auto & sf : fills) {
       batch.scratch_targets.push_back(ensure_blueprint_state_id(sf.target_def));
       batch.scratch_sources.push_back(ensure_blueprint_state_id(sf.source_def));
@@ -386,42 +464,34 @@ JointMapBlueprint plan_joint_map(
     stage.instance_id = tid;
     stage.inputs.reserve(instance.input_ids.size());
     for (const auto sid : instance.input_ids) {
-      stage.inputs.push_back(ensure_blueprint_state_id(analysis.state_interface_order().inverse[sid]));
+      stage.inputs.push_back(ensure_blueprint_state_id_for_sid(sid));
     }
     stage.outputs.reserve(instance.output_ids.size());
     for (const auto sid : instance.output_ids) {
-      stage.outputs.push_back(ensure_blueprint_state_id(analysis.state_interface_order().inverse[sid]));
+      stage.outputs.push_back(ensure_blueprint_state_id_for_sid(sid));
     }
-    stage.blueprint_output_indices.assign(instance.output_ids.size(), std::nullopt);
+    stage.blueprint_output_indices.resize(instance.output_ids.size(), std::nullopt);
 
-    // For each transmission output, check whether it's directly requested.
+    // O(1) per output: look up precomputed sid → blueprint output position.
     for (std::size_t out_pos = 0; out_pos < instance.output_ids.size(); ++out_pos) {
-      const StateInterfaceId tx_out = instance.output_ids[out_pos];
-      const StateInterfaceDefinition tx_out_def = analysis.state_interface_order().inverse[tx_out];
-      for (std::size_t i = 0; i < output_count; ++i) {
-        if (!is_direct_transmission[i]) continue;
-        if (direct_transmission_id[i] != tid) continue;
-        if (ordered_outputs[i] != tx_out_def) continue;
-        stage.blueprint_output_indices[out_pos] = i;
-        break;
+      const auto sid = instance.output_ids[out_pos];
+      if (sid < analysis_sid_count) {
+        stage.blueprint_output_indices[out_pos] = sid_to_blueprint_output[sid];
       }
     }
 
     blueprint.emplace_segment(JointMapBlueprintSegment{std::move(stage)});
   };
 
-  // Pre-transmission affine batch (+ scratch-fills for stage 0).
-  const std::vector<ScratchFillRow> empty_fills{};
-  emit_affine_batch_for_stage(
-    kPreTransmissionStage,
-    topo_order.empty() ? empty_fills : scratch_fills[0]);
+  // topo_order is non-empty here (pure-affine case returned early above).
+  emit_affine_batch_for_stage(affine_outputs_for_stage[0], scratch_fills[0]);
 
-  // Interleave transmission stages with their post-batches.
+  const std::vector<ScratchFillRow> empty_fills{};
   for (std::size_t k = 0; k < topo_order.size(); ++k) {
     emit_transmission_stage(k);
     const std::vector<ScratchFillRow> & next_fills =
       (k + 1 < topo_order.size()) ? scratch_fills[k + 1] : empty_fills;
-    emit_affine_batch_for_stage(static_cast<int>(k), next_fills);
+    emit_affine_batch_for_stage(affine_outputs_for_stage[k + 1], next_fills);
   }
 
   return blueprint;

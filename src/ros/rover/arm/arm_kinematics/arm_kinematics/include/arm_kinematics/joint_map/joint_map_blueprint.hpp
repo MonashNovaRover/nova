@@ -166,6 +166,18 @@ public:
     return local_id;
   }
 
+  /// O(1) lookup of the blueprint-local id for a definition. Returns nullopt if the definition
+  /// was never registered via ensure_state_interface (e.g., in pure-affine blueprints, or for
+  /// definitions that are not used as transmission I/O or scratch sources).
+  [[nodiscard]] std::optional<BlueprintStateInterfaceId> find_state_interface_id(
+    const StateInterfaceDefinition & def) const noexcept
+  {
+    if (!state_interface_order_.contains_key(def)) {
+      return std::nullopt;
+    }
+    return state_interface_order_[def];
+  }
+
 private:
   std::vector<JointMapBlueprintSegment> segments_{};
   std::vector<StateInterfaceDefinition> inputs_{};
