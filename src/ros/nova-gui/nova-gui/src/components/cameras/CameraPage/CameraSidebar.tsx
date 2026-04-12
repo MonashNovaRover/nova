@@ -3,7 +3,12 @@ import {Minus, Pause, Play, Plus, Square, X} from "react-feather";
 import {BooleanChip} from "../CameraComponent/components/BooleanChip.tsx";
 import {CamerasTable} from "./CamerasTable.tsx";
 import {useRosNodes} from "../../../utils/hooks/useRosNodes.ts";
-import {useMemo} from "react";
+import {useEffect, useMemo} from "react";
+import { useStreamingBifrost } from "../hooks/cameraBifrostHooks.ts";
+import { useSelector } from "react-redux";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import { RosTopic } from "../../../ros/topics/rosTopic.ts";
+import { RootState } from "../../../redux/RootState.ts";
 
 interface CameraSidebarProps {
   refreshAvailabilities: () => void;
@@ -30,6 +35,14 @@ export const CameraSidebar = (
     size="lg"
   />, [camerasRunning])
 
+  const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(refreshAvailabilities);
+  const bifrost = useBifrost({ topic: RosTopic.CAMERAS });
+  const onlineCameras = useSelector((state: RootState) => state.camerasStore.cameras);
+  const onlineCameraSerials = onlineCameras.map((cam) => cam.serial);
+  useEffect(() => {
+    bifrost.syncWithTopic();
+  }, [bifrost]);
+  
   return (
     <div
       className="transition-all duration-300 overflow-clip h-full"
@@ -63,13 +76,13 @@ export const CameraSidebar = (
             </Tooltip>
             <span>Streaming Controls</span>
             <div className="grid grid-cols-3 gap-2">
-              <Button color="primary" size="sm" startContent={<Play size={14}/>}>
+              <Button color="primary" size="sm" startContent={<Play size={14}/>} onPress={()=>startStreaming(onlineCameraSerials, true)}>
                 Start all
               </Button>
-              <Button color="warning" size="sm" startContent={<Pause size={14}/>}>
+              <Button color="warning" size="sm" startContent={<Pause size={14}/>} onPress={()=>pauseStreaming(onlineCameraSerials, true)}>
                 Pause all
               </Button>
-              <Button color="danger" size="sm" startContent={<Square size={14}/>}>
+              <Button color="danger" size="sm" startContent={<Square size={14}/>} onPress={()=>stopStreaming(onlineCameraSerials, true)}>
                 Stop all
               </Button>
             </div>
