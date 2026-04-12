@@ -20,9 +20,8 @@
 #include <camera_msgs/msg/camera.hpp>
 #include <camera_msgs/msg/cameras.hpp>
 
-#include "cameras/cameras.hpp"
-#include "cameras/pipeline.hpp"
-
+#include "cameras/globals.hpp"
+#include "pipelines/properties.hpp"
 #include "properties/common.hpp"
 
 using namespace std::placeholders;
@@ -77,13 +76,17 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
   std::unordered_map<std::string, Pipeline*> pipelines;
 
-  private: void start_pipeline(Pipeline* pipeline){
+  private: void start_pipeline(Pipeline* pipeline)
+  {
+    // Unsure no devnames have been lost
+    match_lost_devname(this, &pipelines);
+
     // get pipeline properties and use them to create the pipeline
-    if (pipeline->pipeline_type == "v4l2webrtc")
+    if (pipeline->pipeline_type == "v4lfallback")
     {
-      v4l2webrtcPipelineProperties* props = get_v4l2webrtc_pipeline_properties(this, pipeline->camera);
+      v4lfallbackPipelineProperties* props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
-      pipeline->gst_pipeline = v4l2webrtc_pipeline(this, props);
+      pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
     } else if (pipeline->pipeline_type == "h264passthrough") {
       h264passthroughPipelineProperties* props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
@@ -101,6 +104,8 @@ class CameraStreamer : public rclcpp::Node
       pipeline->props = props;
       pipeline->gst_pipeline = av1software_pipeline(this, props);
     }
+
+    gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
   }
 
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
@@ -118,9 +123,10 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera->serial=camera.serial;
         pipeline->camera->node=camera.node;
         pipeline->camera->original_serial=camera.original_serial;
+        pipeline->camera->path=camera.path;
 
         std::map<std::string, rclcpp::Parameter> serial_params;
-        const std::string default_string = "v4l2webrtc";
+        const std::string default_string = "v4lfallback";
         this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".pipeline_type").c_str(), pipeline->pipeline_type, default_string);
         this->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type);
 
@@ -130,12 +136,12 @@ class CameraStreamer : public rclcpp::Node
         // auto start if true
         if (autostart) {
           this->start_pipeline(pipeline);
-          gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED); // Start pipeline immediately
         } else {
           pipeline->gst_pipeline = nullptr;
         }
 
         this->pipelines[camera.serial] = pipeline;
+        RCLCPP_INFO(this->get_logger(), "Initialized %s pipeline for %s", pipeline->pipeline_type.c_str(), camera.serial.c_str());
       }
     }
   }
@@ -158,8 +164,7 @@ class CameraStreamer : public rclcpp::Node
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             } else {
             // start pipeline if the gst bin doesn't exist yet
-              this->start_pipeline(pipeline);
-              gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
+              this->start_pipeline(pipeline); 
             }
           } else {
           // otherwise report error
@@ -169,10 +174,15 @@ class CameraStreamer : public rclcpp::Node
         }
         break;
       case CameraState::STOP:
+
+        //for (const auto& [serial, pipeline] : pipelines) {
+        //    RCLCPP_INFO(this->get_logger(), "devname: %s", pipeline->props->node.c_str());
+        //}
+
         for (std::string serial : request->serials) {
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             Pipeline* pipeline = pipelines[serial];
-            gst_element_set_state(pipeline->gst_pipeline, GST_STATE_READY);
+            gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
             gst_object_unref(pipeline->gst_pipeline);
             pipeline->gst_pipeline = nullptr;
             RCLCPP_INFO(this->get_logger(), "Stopping %s", serial.c_str());

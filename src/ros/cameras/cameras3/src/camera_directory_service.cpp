@@ -14,11 +14,10 @@
 #include <camera_msgs/msg/camera.hpp>
 #include <camera_msgs/msg/cameras.hpp>
 
-#include "cameras/cameras.hpp"
+#include "cameras/globals.hpp"
 #include "cameras/colors.hpp"
 
 using namespace std::placeholders;
-
 
 struct V4lDevice {
   std::string model;
@@ -65,8 +64,7 @@ class CameraDirectory : public rclcpp::Node
   std::string task;
   std::unordered_map<std::string, std::string> serial_overrides;
   std::unordered_map<std::string, std::string> camera_map;
-  size_t last_device_count;
-  bool pretty_print_cameras = true; // pretty print cameras first time run
+  size_t last_device_count = -1;
 
   private: void get_configuration()
   {
@@ -152,13 +150,17 @@ class CameraDirectory : public rclcpp::Node
   {
     /*
       Add each camera to a cameras message and publish their final serial and dev node.    
-    */
-    std::stringstream log;
-    log << C_MODE << "Detected Cameras:" << C_RESET;
+    */ 
 
     auto message = camera_msgs::msg::Cameras();
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     std::unordered_map<std::string, std::string> new_camera_map;
+
+    std::stringstream log;
+    if (devices.size() != last_device_count) {  
+      log << C_MODE << "Detected Cameras:" << C_RESET;
+    }
+
     for (V4lDevice device : devices) {
       // if device is in blacklist, skip
       if (std::find(blacklist.begin(), blacklist.end(), device.serial) != blacklist.end()) continue;
@@ -176,50 +178,33 @@ class CameraDirectory : public rclcpp::Node
       camera.serial = serial;
       camera.node = device.devname;
       camera.original_serial = device.serial;
+      camera.path = device.path;
       message.cameras.push_back(camera);
 
-      // Prettify camera serial and info
-      if (pretty_print_cameras)
-      {
-        log << "\n  - " << C_TITLE << serial << C_RESET;
+      if (devices.size() != last_device_count) {
+        log << "\n - " << C_TITLE << serial << C_RESET;
         if (serial != device.serial)
         {
-          log << C_QUIET " remapped from " << device.serial << C_RESET;
+          log << C_QUIET " remapped from " << C_SUBTITLE << device.serial << C_RESET;
         }
         log << C_QUIET " located at " << device.path << C_RESET;
-      };
 
-      // check if new camera or serial changed
-      if (camera_map.find(serial) == camera_map.end())
-      {
-        new_camera_map[serial] = device.devname;
-        if (!pretty_print_cameras)
-        {
-          std::stringstream log_new;
-          log_new << "New camera detected: " << C_TITLE << serial << C_RESET;
-          if (serial != device.serial)
-          {
-            log_new << C_QUIET << " remapped from " << device.serial << C_RESET;
-          }
-          log_new << C_QUIET << " located at " << device.path << C_RESET;
-          RCLCPP_INFO(this->get_logger(), "%s", log_new.str().c_str());
+        // check if new camera or serial changed
+        if (camera_map.find(serial) == camera_map.end()) {
+          new_camera_map[serial] = device.devname;
+          camera_map = new_camera_map;
         }
-        camera_map = new_camera_map;
       }
     }
     if (devices.size() != last_device_count) {
-      RCLCPP_INFO(this->get_logger(), "Publishing %ld Cameras...", devices.size());
+      log << "\n" << C_QUIET "Publishing " << C_SUBTITLE << devices.size() << C_QUIET " Cameras..." << C_RESET;
       last_device_count = devices.size();
       camera_map = new_camera_map;
+
+      // Pretty print cameras
+      RCLCPP_INFO(this->get_logger(), "%s", log.str().c_str());
     }
     publisher_->publish(message);
-
-    // Pretty print cameras first time running
-    if (pretty_print_cameras)
-    {
-      RCLCPP_INFO(this->get_logger(), "%s\n", log.str().c_str());
-      pretty_print_cameras = false;
-    }
   }
 
   private: void service_callback(
@@ -269,6 +254,7 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
   }
 
   sd_device_enumerator_unref(enumerator);
+  sd_device_unref(device);
   return matches;
 }
 
@@ -279,3 +265,4 @@ int main(int argc, char * argv[])
   rclcpp::shutdown();
   return 0;
 }
+

@@ -9,8 +9,8 @@ int crop43(const int width, const int height) {
 void set_crop43(GstElement* cropper, const bool crop43, const int crop_width, const int downscale) {
     if (crop43) {
         g_object_set(cropper,
-          "left", crop_width/downscale,
-          "right", crop_width/downscale,
+          "left", (int) ((float) crop_width/ (float) downscale),
+          "right", (int) ((float) crop_width/ (float) downscale),
           NULL);
     }
 }
@@ -23,14 +23,14 @@ void set_convertscale(GstElement* convert, const std::string chroma_resampler, c
           chroma_resampler == "cubic" ? 2 :
           chroma_resampler == "sinc" ? 3 : 
           chroma_resampler == "lanczos" ? 4 :
-          0),
+          1),
       "dither", (
           dither == "none" ? 0 :
           dither == "verterr" ? 1 :
           dither == "floyd-steinberg" ? 2 :
           dither == "sierra-lite" ? 3 : 
           dither == "bayer" ? 4 :
-          4),
+          3),
       "method", (
           method == "nearest-neighbour" ? 0 :
           method == "bilinear" ? 1 :
@@ -42,6 +42,6 @@ void set_convertscale(GstElement* convert, const std::string chroma_resampler, c
           method == "spline" ? 7 :
           method == "catrom" ? 8 : 
           method == "mitchell" ? 9 :
-          0),
+          1),
       NULL);
 }

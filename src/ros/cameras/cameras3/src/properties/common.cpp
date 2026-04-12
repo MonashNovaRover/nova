@@ -1,10 +1,13 @@
 #include <string>
+#include <stdlib.h>
+#include <cstring>
 #include <gst/gst.h>
 #include "rclcpp/rclcpp.hpp"
 #include <camera_msgs/msg/camera.hpp>
+#include <systemd/sd-device.h>
 
 #include "properties/common.hpp"
-#include "cameras/pipeline.hpp"
+#include "pipelines/pipelines.hpp"
 
 bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, const std::string serial) {
    if (!gst_element_link(first_element, second_element)) {
@@ -140,5 +143,79 @@ bool verify_resolution(const std::string device_name, std::string* mime, int* wi
   g_list_free_full(devices, gst_object_unref);
   gst_object_unref(monitor);
   return true;
+}
+
+void match_lost_devname(rclcpp::Node* streamer_node, std::unordered_map<std::string, Pipeline*>* pipelines) {
+  sd_device_enumerator *enumerator = NULL;
+  sd_device *device = NULL;
+
+  // Create new device enumerator object and add filters
+  sd_device_enumerator_new(&enumerator);
+  sd_device_enumerator_add_match_subsystem(enumerator, "video4linux", 1);
+
+  // serial, devname
+  std::unordered_map<std::string, std::string> unmatched_cameras;
+  std::unordered_set<std::string> matched_devs;
+
+
+  // Iterate through the devices found
+  for (device = sd_device_enumerator_get_device_first(enumerator); device != NULL; device = sd_device_enumerator_get_device_next(enumerator)) {
+    const char *dev_name, *path = NULL, *serial = NULL, *capabilities = NULL;
+
+    // Get the kernel name of the device (e.g., "video0")
+    sd_device_get_devname(device, &dev_name);
+    std::string dev_string(dev_name);
+
+    // Get device properties
+    sd_device_get_property_value(device, "ID_SERIAL", &serial);
+    sd_device_get_property_value(device, "ID_PATH", &path);
+    sd_device_get_property_value(device, "ID_V4L_CAPABILITIES", &capabilities);
+
+    // Iterate through pipelines to check if devname matches
+    bool match = false;
+    for (const auto& [serial, pipeline] : *pipelines) {
+        // Check if current camera is being used
+        if (dev_string == pipeline->props->node) {
+            RCLCPP_INFO(streamer_node->get_logger(), "devname matching: %s and %s", dev_string.c_str(), pipeline->props->node.c_str());
+            match = true;
+            break;
+        }
+        RCLCPP_INFO(streamer_node->get_logger(), "devname currently: %s", pipeline->props->node.c_str());
+    }
+
+    if (!match) {
+        if (strstr(capabilities, ":capture:")) {
+            RCLCPP_INFO(streamer_node->get_logger(), "Devname good: %s", dev_string.c_str());
+        } else {
+            RCLCPP_INFO(streamer_node->get_logger(), "Devname bad: %s", dev_string.c_str());
+        }        
+        unmatched_cameras.emplace(std::string(serial), dev_string);
+    }
+  } 
+
+  // Iterate through both unmatched pipelines
+  for (const auto& [pipeline_serial, pipeline] : *pipelines) {
+    for (const auto& [serial, devname] : unmatched_cameras) {
+
+      RCLCPP_INFO(streamer_node->get_logger(), "Devname before: %s and %s", pipeline->props->node.c_str(), devname.c_str());
+      RCLCPP_INFO(streamer_node->get_logger(), "Serials: %s and %s", pipeline->props->original_serial.c_str(), serial.c_str());
+
+      // If the dev names match, and dev name not used, set that devname of unmatched_pipeline_cameras devname to unmatched_cameras devname
+      if ((pipeline->props->original_serial == serial) && (matched_devs.find(devname) == matched_devs.end())) {
+ 
+        //pipeline->props->node = devname;
+
+        RCLCPP_INFO(streamer_node->get_logger(), "Devname after: %s", pipeline->props->node.c_str());
+
+
+        // Mark that dev as matched
+        matched_devs.emplace(devname);
+        break;
+      }
+    }
+  }
+
+  sd_device_enumerator_unref(enumerator);
+  sd_device_unref(device);
 }
 

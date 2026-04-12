@@ -37,7 +37,7 @@ add_executable(camera_directory_service src/camera_directory_service.cpp src/cam
 target_link_libraries(camera_directory_service ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
-add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp src/camera_pipelines.cpp
+add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp
 
   # Properties
   src/properties/common.cpp
@@ -52,8 +52,13 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
   src/properties/av1.cpp
 
   # Pipelines
+  src/pipelines/av1software.cpp
+  src/pipelines/h264passthrough.cpp
+  src/pipelines/h264software.cpp
+  src/pipelines/v4lfallback.cpp
+  src/pipelines/vpXsoftware.cpp
 )
-target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES})
+target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES} ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Install executables

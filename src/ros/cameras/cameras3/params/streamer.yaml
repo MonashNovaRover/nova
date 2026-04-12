@@ -1,9 +1,7 @@
 camera_streamer:
   ros__parameters:
-    autostart: false
+    autostart: true
     serial_pipelines:
-      Microsoft_Microsoft®_LifeCam_HD-3000:
-        pipeline_type: vpXsoftware
 
       # Development cameras
       anthony-cam:
@@ -24,23 +22,19 @@ camera_streamer:
 
       # Science
       science_microscope:
+        pipeline_type: vpXsoftware
         mime: video/x-raw
         width: 640
         framerate: 25
-        show_clock: false
         meta: Science - Microscope
-        #    rotation: 180
       science_gantry:
         meta: Science - Gantry
-        #    rotation: 180
       science_spectrometer_top:
         meta: Science - Spectrometer (Top)
       science_spectrometer_side:
         meta: Science - Spectrometer (Side)
-        #    rotation: 180
       science_backward:
         meta: Science - Butt
-        #    rotation: 180
       science_shotglass:
         meta: Science - Shotglass
       science_rock_flipper:
@@ -53,7 +47,6 @@ camera_streamer:
         meta: Arm - Gimbal
       arm_end_forward:
         meta: Arm - Forward
-        #    mirrorX: true
       arm_end_top:
         meta: Arm - Top
       arm_end_finger:
@@ -62,41 +55,97 @@ camera_streamer:
         meta: Arm - Side
 
     profiles:
-      default:
-        mime: image/jpeg
-        width: 1280
-        height: 720
-        framerate: 30
-        bitrate: 2048
-
-      snail:
-        mime: image/jpeg
-        width: 640
-        height: 480
-        framerate: 30
-        bitrate: 1024
-
-      super:
+      max:
         mime: image/jpeg
         width: 1920
         height: 1080
         framerate: 30
+        bitrate: 1024
+        cpu-used: -16
+        speed-preset: ultrafast
+        video_caps: video/x-vp8
 
-      low-bitrate:
+      high:
         mime: image/jpeg
-        downscale: 2
-        downrate: 1
-        bitrate: 256
-        dither: sierra-lite
-        method: bilinear
-        cpu-used: 10
+        width: 1024
+        height: 768
+        framerate: 30
+        bitrate: 768
+        cpu-used: -8
         speed-preset: fast
-        noise_reduction: 0
+        video_caps: video/x-vp8
+
+      high-cheap:
+        mime: image/jpeg
+        width: 1280
+        height: 720
+        framerate: 30
+        bitrate: 768
+        cpu-used: -8
+        speed-preset: fast
         crop43: true
+        video_caps: video/x-vp8
+
+      high-life:
+        mime: image/jpeg
+        width: 800
+        height: 600
+        framerate: 30
+        bitrate: 512
+        cpu-used: -8
+        speed-preset: fast
+        video_caps: video/x-vp8
+
+      medium:
+        mime: image/jpeg
+        width: 640
+        height: 480
+        framerate: 30
+        bitrate: 384
+        cpu-used: -4
+        video_caps: video/x-vp8
+
+      medium-cheap:
+        mime: image/jpeg
+        width: 1280
+        height: 720
+        framerate: 30
+        downscale: 2
+        bitrate: 384
+        cpu-used: 0
+        video_caps: video/x-vp8
+
+      low:
+        mime: image/jpeg
+        width: 320
+        height: 240
+        framerate: 30
+        bitrate: 256
+        cpu-used: 10
         video_caps: video/x-vp9
 
-    defaults:
+      low-cheap:
+        mime: image/jpeg
+        width: 1280
+        height: 720
+        framerate: 30
+        downscale: 3
+        bitrate: 256
+        cpu-used: 10
+        video_caps: video/x-vp9
 
+      low-focus:
+        mime: image/jpeg
+        width: 640
+        height: 480
+        framerate: 30
+        downscale: 2
+        bitrate: 256
+        cpu-used: 10
+        video_caps: video/x-vp9
+
+
+    defaults:
       # Waveshare
       openaicam_openaicam_2505121128:
         pipeline_type: vpXsoftware
@@ -115,13 +164,14 @@ camera_streamer:
         payload_quirk: true
 
       HZ_USB_Camera_20220301104:
-        pipeline_type: h264software
+        pipeline_type: vpXsoftware
         width: 1024
         height: 768
         framerate: 30
         noise_reduction: 256
         brightness: 256
 
+      # Legacy
       Microsoft_Microsoft®_LifeCam_HD-3000:
         pipeline_type: vpXsoftware
         width: 800

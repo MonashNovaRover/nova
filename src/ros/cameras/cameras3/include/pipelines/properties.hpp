@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COMMON_PIPELINE_HEADER
+#define COMMON_PIPELINE_HEADER
 
 #include <string>
 #include <gst/gst.h>
@@ -11,6 +12,7 @@ struct Properties
   std::string serial;
   std::string node;
   std::string original_serial;
+  std::string path;
 };
 
 struct v4lProperties
@@ -111,12 +113,11 @@ struct Pipeline
   std::string pipeline_type;
   camera_msgs::msg::Camera* camera;
   std::string profile;
-  std::string original_serial;
 };
 
-struct v4l2webrtcPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, scaleProperties, cropProperties, clockProperties {};
-v4l2webrtcPipelineProperties* get_v4l2webrtc_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
-GstElement* v4l2webrtc_pipeline(rclcpp::Node* log_node, v4l2webrtcPipelineProperties* props);
+struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, scaleProperties, cropProperties, clockProperties {};
+v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
+GstElement* v4lfallback_pipeline(rclcpp::Node* log_node, v4lfallbackPipelineProperties* props);
 
 struct h264passthroughPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, h264passthroughProperties {};
 h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
@@ -134,3 +135,4 @@ struct av1softwarePipelineProperties : Properties, v4lProperties, capsProperties
 av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* av1software_pipeline(rclcpp::Node* log_node, av1softwarePipelineProperties* props);
 
+#endif
