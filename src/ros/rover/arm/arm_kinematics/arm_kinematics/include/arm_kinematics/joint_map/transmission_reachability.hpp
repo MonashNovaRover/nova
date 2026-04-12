@@ -6,6 +6,7 @@
 #define ARM_KINEMATICS_TRANSMISSION_REACHABILITY_HPP
 
 #include <cstddef>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -193,7 +194,7 @@ private:
   void record_candidate(
     StateInterfaceId iface,
     StateInterfaceProducer producer,
-    std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> & candidates) const;
+    std::vector<std::vector<StateInterfaceProducer>> & candidates) const;
 
   /// Process a single `(group, interface_id)` affine hyper-node: pick the lowest-JointId leaf
   /// source among the group's currently-derivable members and project from it to every other
@@ -209,7 +210,7 @@ private:
     const InterfaceId & interface_id,
     const AffineProjectionRule & rule,
     span<const JointId> group_members,
-    std::unordered_map<StateInterfaceId, std::vector<StateInterfaceProducer>> & candidates,
+    std::vector<std::vector<StateInterfaceProducer>> & candidates,
     bool & changed);
 
   /// Run the transitively-blocked post-pass after the main 2-pass algorithm converges. Walks
@@ -239,7 +240,7 @@ private:
   std::vector<bool> derivable_membership_{};
 
   /// Producer assignment for each derivable interface that has a unique producer.
-  std::unordered_map<StateInterfaceId, StateInterfaceProducer> producer_assignment_{};
+  std::vector<std::optional<StateInterfaceProducer>> producer_assignment_{};
 
   /// Interfaces with multiple viable producers, with their full candidate lists.
   std::vector<AmbiguousInterface> ambiguities_{};
