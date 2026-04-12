@@ -66,6 +66,12 @@ struct JointMapBlueprintSegment {
     std::vector<double> multipliers{};
     std::vector<double> offsets{};
 
+    // Pure-affine fast path: when the blueprint has no TransmissionStages, the planner
+    // pre-resolves each source definition to its index in blueprint.inputs() and stores it
+    // here. If non-empty, sources is empty and materialize_pure_affine reads these directly,
+    // avoiding both the blueprint-SID lookup table and the O(N²) input-slot scan.
+    std::vector<std::size_t> direct_input_slots{};
+
     // ---- Scratch-fill rows ----
     // Used for Case 3: a transmission input (real SID `r`) whose producer is an
     // AffineProjection from a bare source def. The bare source IS in scratch (user input),

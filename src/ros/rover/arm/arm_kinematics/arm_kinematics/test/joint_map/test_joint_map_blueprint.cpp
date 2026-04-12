@@ -464,7 +464,9 @@ TEST_F(JointMapBlueprintTest, Plan_DirectInputPassthrough_OneAffineBatchSegment)
   ASSERT_NE(batch, nullptr);
   ASSERT_EQ(batch->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(batch->blueprint_output_indices[0], 0u);
-  EXPECT_EQ(def_of(blueprint, batch->sources[0]), def_of(analysis_, a));
+  // Pure-affine path: sources is empty; direct_input_slots holds the input slot index.
+  ASSERT_EQ(batch->direct_input_slots.size(), 1u);
+  EXPECT_EQ(blueprint.inputs()[batch->direct_input_slots[0]], def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0));
   EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0));
 }
@@ -498,9 +500,10 @@ TEST_F(JointMapBlueprintTest, AffineBatching_ConsecutiveAffineOutputs_FoldedInto
   const auto * batch = as_affine_batch(blueprint.segments()[0]);
   ASSERT_NE(batch, nullptr);
   EXPECT_EQ(batch->blueprint_output_indices.size(), 5u);
-  // Each row reads from a_pos with the right multiplier.
+  // Pure-affine path: sources is empty; direct_input_slots holds the input slot index.
+  ASSERT_EQ(batch->direct_input_slots.size(), 5u);
   for (std::size_t i = 0; i < 5; ++i) {
-    EXPECT_EQ(def_of(blueprint, batch->sources[i]), def_of(analysis_, a_pos));
+    EXPECT_EQ(blueprint.inputs()[batch->direct_input_slots[i]], def_of(analysis_, a_pos));
     EXPECT_TRUE(approx_equal(batch->multipliers[i], i + 1));
     EXPECT_TRUE(approx_equal(batch->offsets[i], 0.0));
   }
@@ -579,14 +582,16 @@ TEST_F(JointMapBlueprintTest, InputPassthrough_FoldedIntoSameAffineBatchAsMimic)
   const auto * batch = as_affine_batch(blueprint.segments()[0]);
   ASSERT_NE(batch, nullptr);
   ASSERT_EQ(batch->blueprint_output_indices.size(), 2u);
+  // Pure-affine path: sources is empty; direct_input_slots holds the input slot index.
+  ASSERT_EQ(batch->direct_input_slots.size(), 2u);
   // Row for a: identity passthrough
   EXPECT_EQ(batch->blueprint_output_indices[0], 0u);
-  EXPECT_EQ(def_of(blueprint, batch->sources[0]), def_of(analysis_, a));
+  EXPECT_EQ(blueprint.inputs()[batch->direct_input_slots[0]], def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0));
   EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0));
   // Row for b: 2a + 5
   EXPECT_EQ(batch->blueprint_output_indices[1], 1u);
-  EXPECT_EQ(def_of(blueprint, batch->sources[1]), def_of(analysis_, a));
+  EXPECT_EQ(blueprint.inputs()[batch->direct_input_slots[1]], def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[1], 2.0));
   EXPECT_TRUE(approx_equal(batch->offsets[1], 5.0));
 }

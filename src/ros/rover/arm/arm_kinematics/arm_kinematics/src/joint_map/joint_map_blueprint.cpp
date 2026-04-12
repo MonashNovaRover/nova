@@ -206,6 +206,61 @@ JointMapBlueprint plan_joint_map(
   }
   const auto topo_order = topo_sort_required_transmissions(reach, required);
 
+  // ---------------------------------------------------------------------------
+  // Pure-affine fast path: no transmissions required — skip blueprint-local canonicalization
+  // entirely. Build a single input-slot lookup (one hash insert per input) and populate
+  // direct_input_slots in the output batch. This avoids the O(N) ensure_blueprint_state_id
+  // calls (each of which hashes the definition twice and rehashes the Order map) and the
+  // corresponding O(N²) input-slot scan in materialize_pure_affine.
+  // ---------------------------------------------------------------------------
+  if (topo_order.empty()) {
+    std::unordered_map<StateInterfaceDefinition, std::size_t> input_slot_of;
+    const auto pa_inputs = reach.inputs();
+    input_slot_of.reserve(pa_inputs.size());
+    for (std::size_t i = 0; i < pa_inputs.size(); ++i) {
+      input_slot_of.emplace(pa_inputs[i], i);
+    }
+
+    const std::size_t pa_output_count = ordered_outputs.size();
+    JointMapBlueprintSegment::InputAffineBatch batch{};
+    batch.blueprint_output_indices.reserve(pa_output_count);
+    batch.direct_input_slots.reserve(pa_output_count);
+    batch.multipliers.reserve(pa_output_count);
+    batch.offsets.reserve(pa_output_count);
+
+    for (std::size_t i = 0; i < pa_output_count; ++i) {
+      const StateInterfaceDefinition & out = ordered_outputs[i];
+      const auto producer = reach.producer_of_def(out);
+      const StateInterfaceDefinition * src_def = nullptr;
+      double m = 1.0;
+      double o = 0.0;
+      if (std::get_if<producers::Input>(&producer)) {
+        src_def = &out;
+      } else if (const auto * ap = std::get_if<producers::AffineProjection>(&producer)) {
+        src_def = &ap->source;
+        m = ap->multiplier;
+        o = ap->offset;
+      } else {
+        throw std::logic_error(
+          "plan_joint_map: pure-affine output has no producer in the reachability "
+          "(caller did not gate on diagnose_missing_outputs)");
+      }
+      const auto it = input_slot_of.find(*src_def);
+      if (it == input_slot_of.end()) {
+        throw std::logic_error(
+          "plan_joint_map: pure-affine output source is not among the reachability inputs");
+      }
+      batch.blueprint_output_indices.push_back(i);
+      batch.direct_input_slots.push_back(it->second);
+      batch.multipliers.push_back(m);
+      batch.offsets.push_back(o);
+    }
+    if (!batch.blueprint_output_indices.empty()) {
+      blueprint.emplace_segment(JointMapBlueprintSegment{std::move(batch)});
+    }
+    return blueprint;
+  }
+
   // Map TransmissionInstanceId → its position in topo_order, for stage assignment.
   std::vector<std::size_t> stage_index_of(analysis.transmissions().size(), kUnassignedStageIndex);
   for (std::size_t i = 0; i < topo_order.size(); ++i) {

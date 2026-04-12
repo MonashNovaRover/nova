@@ -54,28 +54,26 @@ JointMap materialize_pure_affine(const JointMapBlueprint & blueprint)
   const auto state_interfaces = blueprint.state_interfaces();
 
   // First-occurrence-wins def → input slot for the user-facing input vector.
+  // Only needed for blueprints that use the blueprint-SID path (state_interfaces non-empty).
   std::unordered_map<StateInterfaceDefinition, std::size_t> bare_input_slot_of;
-  bare_input_slot_of.reserve(inputs.size());
   std::vector<std::size_t> input_slot_of_blueprint_sid(state_interfaces.size(), kUnassignedSlot);
 
-  for (const auto & seg : blueprint.segments()) {
-    const auto * batch = std::get_if<JointMapBlueprintSegment::InputAffineBatch>(&seg.kind);
-    assert(batch != nullptr && "materialize_pure_affine: non-affine segment in pure-affine blueprint");
-  }
-
-  for (std::size_t i = 0; i < inputs.size(); ++i) {
-    bool assigned_registered = false;
-    for (BlueprintStateInterfaceId local_id = 0; local_id < state_interfaces.size(); ++local_id) {
-      if (state_interfaces[local_id].definition != inputs[i]) {
-        continue;
+  if (!state_interfaces.empty()) {
+    bare_input_slot_of.reserve(inputs.size());
+    for (std::size_t i = 0; i < inputs.size(); ++i) {
+      bool assigned_registered = false;
+      for (BlueprintStateInterfaceId local_id = 0; local_id < state_interfaces.size(); ++local_id) {
+        if (state_interfaces[local_id].definition != inputs[i]) {
+          continue;
+        }
+        if (input_slot_of_blueprint_sid[local_id] == kUnassignedSlot) {
+          input_slot_of_blueprint_sid[local_id] = i;
+        }
+        assigned_registered = true;
       }
-      if (input_slot_of_blueprint_sid[local_id] == kUnassignedSlot) {
-        input_slot_of_blueprint_sid[local_id] = i;
+      if (!assigned_registered) {
+        bare_input_slot_of.emplace(inputs[i], i);
       }
-      assigned_registered = true;
-    }
-    if (!assigned_registered) {
-      bare_input_slot_of.emplace(inputs[i], i);
     }
   }
 
@@ -88,6 +86,19 @@ JointMap materialize_pure_affine(const JointMapBlueprint & blueprint)
     const auto * batch = std::get_if<JointMapBlueprintSegment::InputAffineBatch>(&seg.kind);
     assert(batch != nullptr && "materialize_pure_affine: non-affine segment in pure-affine blueprint");
     assert(batch->scratch_targets.empty() && "materialize_pure_affine: scratch-fill rows in pure-affine blueprint");
+
+    if (!batch->direct_input_slots.empty()) {
+      // Fast path: planner pre-resolved each source to a direct input slot index.
+      for (std::size_t i = 0; i < batch->blueprint_output_indices.size(); ++i) {
+        const std::size_t out_pos = batch->blueprint_output_indices[i];
+        sources[out_pos] = batch->direct_input_slots[i];
+        multipliers[out_pos] = batch->multipliers[i];
+        offsets[out_pos] = batch->offsets[i];
+        filled[out_pos] = true;
+      }
+      continue;
+    }
+
     for (std::size_t i = 0; i < batch->blueprint_output_indices.size(); ++i) {
       const std::size_t out_pos = batch->blueprint_output_indices[i];
       const BlueprintStateInterfaceId source_id = batch->sources[i];

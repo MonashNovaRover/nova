@@ -394,6 +394,104 @@ Fix smaller inefficiencies that will remain after the main representation and AP
 - These changes should be justified by follow-up profiling, not habit.
 - They should not complicate the code disproportionately.
 
+## Current Status
+
+### Completed so far
+
+1. Analysis-local versus layer-local state ids were separated explicitly.
+   Completed:
+   - `TransmissionAnalysis::StateInterfaceId` is analysis-local only.
+   - `TransmissionReachability::StateInterfaceId` is reachability-local.
+   - `JointMapBlueprint` uses blueprint-local ids.
+
+   Result:
+   - the code no longer implies that one `StateInterfaceId` type is a package-wide semantic
+     identity for state interfaces
+
+2. Phase 1 dense-id fixes were completed in the obvious hotspots.
+   Completed:
+   - `plan_joint_map()` now uses vector-indexed `dependents`, `in_degree`, and `stage_index_of`
+   - Kahn processing no longer uses `ready.erase(ready.begin())`
+   - `TransmissionReachability` now stores `producer_assignment_` and pass-local candidate state in
+     vector-indexed storage for registered interfaces
+
+   Result:
+   - these changes were correct and materially improved the original transmission-heavy benchmark
+     cases before the later blueprint API experiments
+
+3. `materialize_joint_map()` was corrected to stop re-hashing symbolic definitions in the hottest
+   registered-interface paths.
+   Completed:
+   - registered scratch-slot assignment and gather/scatter now use dense indexed storage
+   - symbolic `StateInterfaceDefinition` lookup is now limited more narrowly to bare-definition
+     cases and boundary handling
+
+4. `JointMapBlueprint` now owns an explicit blueprint-local canonical table.
+   Completed:
+   - blueprint-local ids are backed by a blueprint-owned `Order<>`
+   - blueprint state records carry an optional back-reference to
+     `TransmissionAnalysis::StateInterfaceId`
+
+   Result:
+   - the identity model is more honest
+   - however, the current planner-side population strategy is too eager and has caused a measurable
+     planning regression
+
+5. `TransmissionAnalysis` now has analysis-local canonical interface-name ids.
+   Completed:
+   - added `InterfaceKindId`
+   - added `Order<InterfaceId, InterfaceKindId>`
+   - added canonical `(JointId, InterfaceKindId)` state keys
+   - moved part of `TransmissionReachability`'s registered-member affine probing onto this
+     canonical layer
+
+   Result:
+   - this establishes the right internal/public split for interface names
+   - it does not, by itself, resolve the current planner regression
+
+### New benchmark coverage
+
+The benchmark suite now includes a pure direct-input rearrangement case:
+
+- `InputReorder(N)` — no transmissions, no affine links, all inputs registered directly, outputs
+  are the same interfaces in reverse order
+
+This case is important because it isolates the workload that this remediation has actually been
+optimising for: correcting planner/materialiser overhead in the absence of transmission semantics.
+
+Current CPU means from that benchmark:
+
+- `BM_Reachability_InputReorder/128`: about `4.36 us`
+- `BM_PlanJointMap_InputReorder/128`: about `23.89 us`
+- `BM_Materialize_InputReorder/128`: about `5.32 us`
+- `BM_FullPipeline_InputReorder/128`: about `42.04 us`
+
+Interpretation:
+
+- `Reachability` is not the dominant cost for the direct-rearrangement case
+- `Materialize` is not the dominant cost either
+- `PlanJointMap` currently dominates the no-transmission workload
+
+That makes the next optimisation target clear: the current planner-side blueprint canonicalisation
+strategy is still doing too much work.
+
+### Immediate next step
+
+Keep the newer identity-model corrections, but reduce planner overhead by changing when
+blueprint-local canonicalisation happens.
+
+Specifically:
+
+- do not eagerly canonicalise every transmission input/output through blueprint-local ids during
+  `plan_joint_map()`
+- keep blueprint-local canonical ids only where they actually remove repeated symbolic work at the
+  planner/materialiser boundary
+- keep analysis-local dense ids explicit where the planner already has them and where no symbolic
+  recovery is required
+
+The direct `InputReorder` benchmark should be treated as the primary acceptance check for that
+next pass.
+
 ## Validation Strategy
 
 ### Benchmarks
@@ -403,6 +501,7 @@ Use the existing benchmark target from [`docs/performance-analysis.md`](./perfor
 - `BM_PlanJointMap_*`
 - `BM_Materialize_*`
 - `BM_FullPipeline_*`
+- `BM_*_InputReorder*` for the direct-input control case
 
 Re-run after each phase rather than batching all changes together.
 
