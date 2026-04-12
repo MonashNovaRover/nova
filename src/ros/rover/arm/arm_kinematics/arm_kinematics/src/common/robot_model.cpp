@@ -39,8 +39,11 @@ const urdf::Model & RobotModel::get_urdf_model() const {
 const TransmissionAnalysis & RobotModel::get_default_transmission_analysis() const {
   return default_transmission_analysis_.get([this]() {
     auto analysis = std::make_unique<TransmissionAnalysis>();
-    add_mimic_transmissions_to_analysis(*analysis, get_urdf_model());
-    (void)add_ros2_control_transmissions_to_analysis(
+    const auto & urdf_model = get_urdf_model();
+
+    add_urdf_joints_to_analysis(*analysis, urdf_model);
+    add_mimic_transmissions_to_analysis(*analysis, urdf_model);
+    add_ros2_control_transmissions_to_analysis(
       *analysis,
       get_robot_description(),
       get_ros2_control_transmission_plugin_loader(),

@@ -37,7 +37,7 @@ ARM_KINEMATICS_PUBLIC void add_urdf_joints_to_analysis(
  * \returns The parsed ros2_control transmission metadata.
  * \throws std::runtime_error for invalid URDFs.
  */
-[[nodiscard]] ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
+ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
 add_ros2_control_transmissions_to_analysis_dangerous(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
@@ -56,14 +56,14 @@ add_ros2_control_transmissions_to_analysis_dangerous(
  * \param logger The logger to log any caught exceptions to.
  * \returns The parsed ros2_control transmission metadata. Returns an empty vector on failure.
  */
-[[nodiscard]] ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
+ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
 add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
   std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
   rclcpp::Logger logger);
 
-[[nodiscard]] ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
+ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
 add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
