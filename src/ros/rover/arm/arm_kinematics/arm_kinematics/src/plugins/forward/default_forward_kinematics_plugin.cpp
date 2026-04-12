@@ -6,7 +6,6 @@
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 #include "arm_kinematics/common/robot_model.hpp"
 
-#include <optional>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -31,7 +30,7 @@ const JointMapBuilder & DefaultForwardKinematicsPlugin::get_joint_map_builder() 
 
 tl::expected<ForwardKinematicsPlugin::MakeTreeResult, ForwardKinematicsPlugin::MakeTreeError>
 DefaultForwardKinematicsPlugin::make_tree(
-  const span<const StateInterfaceId> input_state_interfaces,
+  const span<const StateInterfaceDefinition> input_state_interfaces,
   const std::string & base_link_name,
   const FrameDefinitions & frames,
   const JointMapBuilder & joint_map_builder)
@@ -41,13 +40,11 @@ DefaultForwardKinematicsPlugin::make_tree(
   // Joints need to be in the right order to be able to construct a compute frame tree.
   subtree.sort_joints();
   // The mapper needs joint POSITION values in the order produced by the sorted analysis
-  // subtree (skipping index 0, which is the base link). These are joint names; we resolve
-  // them to position-interface StateInterfaceIds against the FK plugin's analysis (the
-  // analysis is logically frozen post-URDF-parse, so this is a const lookup).
+  // subtree (skipping index 0, which is the base link). Resolve joint names to JointIds via
+  // the FK plugin's analysis and pair them with the position interface.
   const auto & subtree_joint_names = subtree.get_joints().names;
   const auto & analysis = get_transmission_analysis();
   const auto & joint_order = analysis.joint_order();
-  const auto & state_interface_order = analysis.state_interface_order();
   static const InterfaceId k_position_interface{"position"};
 
   // Skip index 0 — that's the base link, not a joint with state.
@@ -55,19 +52,13 @@ DefaultForwardKinematicsPlugin::make_tree(
     subtree_joint_names.data() + 1,
     subtree_joint_names.size() > 0 ? subtree_joint_names.size() - 1 : std::size_t{0}};
 
-  auto mapper_result = state_interface_order.try_map_collect(
-    joint_names_to_resolve,
-    [&joint_order](const std::string & name) -> std::optional<StateInterfaceDefinition> {
-      if (!joint_order.contains_key(name)) return std::nullopt;
-      return StateInterfaceDefinition{joint_order[name], k_position_interface};
-    });
+  auto joint_id_result = joint_order.try_map_collect(joint_names_to_resolve);
 
-  if (!mapper_result) {
+  if (!joint_id_result) {
     // The FK subtree references joints that aren't in the FK plugin's analysis. This is an
     // internal inconsistency between the URDF (which feeds the analysis) and the analysis
-    // tree (which feeds the FK subtree). Surface as UnknownInterface so the user can
-    // diagnose.
-    const auto & unknown = mapper_result.error();
+    // tree (which feeds the FK subtree).
+    const auto & unknown = joint_id_result.error();
     std::ostringstream oss;
     oss << "DefaultForwardKinematicsPlugin::make_tree: " << unknown.size()
         << " joint(s) referenced by the FK analysis subtree are not registered in the FK "
@@ -83,7 +74,7 @@ DefaultForwardKinematicsPlugin::make_tree(
     }
     oss << "]";
     JointMapBuildError joint_map_err{};
-    joint_map_err.kind = JointMapBuildError::Kind::UnknownInterface;
+    joint_map_err.kind = JointMapBuildError::Kind::UnknownJoint;
     joint_map_err.message = oss.str();
     MakeTreeError err{};
     err.kind = MakeTreeError::Kind::UnknownInterface;
@@ -91,7 +82,13 @@ DefaultForwardKinematicsPlugin::make_tree(
     err.joint_map_error = std::move(joint_map_err);
     return tl::unexpected(std::move(err));
   }
-  auto & mapper_output_sids = *mapper_result;
+
+  // Build the position-interface StateInterfaceDefinitions from the resolved JointIds.
+  std::vector<StateInterfaceDefinition> mapper_output_defs;
+  mapper_output_defs.reserve(joint_id_result->size());
+  for (const JointId jid : *joint_id_result) {
+    mapper_output_defs.push_back(StateInterfaceDefinition{jid, k_position_interface});
+  }
 
   // Sort frames such that any root-relative frames are placed at the end of the array.
   auto frame_order = subtree.sort_frames();
@@ -111,7 +108,7 @@ DefaultForwardKinematicsPlugin::make_tree(
   // Build the runtime joint map via the builder API.
   auto joint_map_result = joint_map_builder.build_expected(
     input_state_interfaces,
-    span<const StateInterfaceId>(mapper_output_sids.data(), mapper_output_sids.size()));
+    span<const StateInterfaceDefinition>(mapper_output_defs.data(), mapper_output_defs.size()));
   if (!joint_map_result.has_value()) {
     MakeTreeError err{};
     err.kind = MakeTreeError::Kind::JointMapBuildFailed;

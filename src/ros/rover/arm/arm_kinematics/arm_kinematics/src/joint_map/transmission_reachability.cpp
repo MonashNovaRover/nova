@@ -559,7 +559,7 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
   // ---- Build ambiguities_ from the pass-1 snapshots -----------------------
   for (auto & kv : ambiguity_snapshots) {
     AmbiguousInterface entry{};
-    entry.interface = kv.first;
+    entry.interface = analysis_.state_interface_order().inverse[kv.first];
     entry.candidates = std::move(kv.second);
     ambiguities_.push_back(std::move(entry));
   }

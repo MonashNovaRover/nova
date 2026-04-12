@@ -165,26 +165,24 @@ public:
    *   trees it produces; tree implementations may reference memory from the parent.
    */
   virtual tl::expected<MakeTreeResult, MakeTreeError> make_tree(
-    span<const StateInterfaceId> input_state_interfaces,
+    span<const StateInterfaceDefinition> input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames,
     const JointMapBuilder & joint_map_builder) = 0;
 
   /**
    * \brief Convenience overload that accepts `NamedStateInterfaceDefinition`s and resolves
-   * them to `StateInterfaceId`s via const lookup against the FK plugin's analysis before
-   * delegating to the main overload above.
+   * them to `StateInterfaceDefinition`s via joint name lookup against the FK plugin's analysis
+   * before delegating to the main overload above.
    *
-   * Default implementation looks up each `(joint_name, interface_id)` pair in
-   * `get_transmission_analysis()`. **The analysis must already have these joints and
-   * interfaces registered** (typically populated at URDF parse time). If any name/interface
-   * is unknown, returns a `MakeTreeError` with `Kind::UnknownInterface` (the wrapped
-   * `joint_map_error` carries a `JointMapBuildError::Kind::UnknownInterface` slice with the
-   * full list of unresolvable entries).
+   * Default implementation looks up each joint name in `get_transmission_analysis()`. If any
+   * joint name is unknown, returns a `MakeTreeError` with `Kind::UnknownInterface` (the wrapped
+   * `joint_map_error` carries a `JointMapBuildError::Kind::UnknownJoint` slice with the full
+   * list of unresolvable entries).
    *
    * Subclasses can override if they want a different resolution policy.
    *
-   * The main `StateInterfaceId`-based overload is the canonical fast path; this overload
+   * The main `StateInterfaceDefinition`-based overload is the canonical fast path; this overload
    * exists for callers that have joint names + interface ids on hand and don't want to do the
    * resolution themselves.
    */
@@ -194,9 +192,9 @@ public:
     const FrameDefinitions & frames,
     const JointMapBuilder & joint_map_builder);
 
-  /// Helper overload — defaults the builder to `get_joint_map_builder()`. SID fast path.
+  /// Helper overload — defaults the builder to `get_joint_map_builder()`.
   tl::expected<MakeTreeResult, MakeTreeError> make_tree(
-    span<const StateInterfaceId> input_state_interfaces,
+    span<const StateInterfaceDefinition> input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames)
   {

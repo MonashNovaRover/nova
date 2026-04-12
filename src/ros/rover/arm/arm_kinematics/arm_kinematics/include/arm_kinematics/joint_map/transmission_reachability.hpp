@@ -106,7 +106,7 @@ public:
   /// Accumulated across the entire algorithm pass — `ambiguities()` returns *every* ambiguous
   /// interface, not just the first one encountered.
   struct AmbiguousInterface {
-    StateInterfaceId interface = 0;
+    StateInterfaceDefinition interface{};
     std::vector<StateInterfaceProducer> candidates{};
   };
 

@@ -37,8 +37,7 @@ ARM_KINEMATICS_PUBLIC void add_urdf_joints_to_analysis(
  * \returns The parsed ros2_control transmission metadata.
  * \throws std::runtime_error for invalid URDFs.
  */
-ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
-add_ros2_control_transmissions_to_analysis_dangerous(
+ARM_KINEMATICS_PUBLIC void add_ros2_control_transmissions_to_analysis_dangerous(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
   std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader =
@@ -56,18 +55,16 @@ add_ros2_control_transmissions_to_analysis_dangerous(
  * \param logger The logger to log any caught exceptions to.
  * \returns The parsed ros2_control transmission metadata. Returns an empty vector on failure.
  */
-ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
-add_ros2_control_transmissions_to_analysis(
+ARM_KINEMATICS_PUBLIC void add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
   std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
-  rclcpp::Logger logger);
+  const rclcpp::Logger& logger);
 
-ARM_KINEMATICS_PUBLIC std::vector<hardware_interface::TransmissionInfo>
-add_ros2_control_transmissions_to_analysis(
+ARM_KINEMATICS_PUBLIC void add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
-  rclcpp::Logger logger);
+  const rclcpp::Logger & logger);
 
 /**
  * Adds normalized affine transmission relationships for all mimic joints in the given URDF model.

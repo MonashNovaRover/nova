@@ -29,6 +29,7 @@ using arm_kinematics::JointId;
 using arm_kinematics::JointMap;
 using arm_kinematics::JointMapBuildError;
 using arm_kinematics::NamedStateInterfaceDefinition;
+using arm_kinematics::StateInterfaceDefinition;
 using arm_kinematics::StateInterfaceId;
 using arm_kinematics::TransmissionAnalysis;
 using arm_kinematics::TransmissionModel;
@@ -144,6 +145,13 @@ StateInterfaceId ensure_state(
   return analysis.ensure_state_interface_id(NamedStateInterfaceDefinition{joint_name, iface});
 }
 
+// Convert a StateInterfaceId back to a StateInterfaceDefinition via the analysis inverse index.
+// Used in tests to build expected values for JointMapBuildError fields.
+StateInterfaceDefinition def_of(const TransmissionAnalysis & analysis, const StateInterfaceId sid)
+{
+  return analysis.state_interface_order().inverse[sid];
+}
+
 constexpr double kTolerance = 1.0e-9;
 
 bool approx_equal(double a, double b)
@@ -192,8 +200,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_PureAffineMimic)
   analysis.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a},
-    std::vector<StateInterfaceId>{a, b});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a), def_of(analysis, b)});
   ASSERT_TRUE(result.has_value());
 
   const auto & jm = result.value();
@@ -222,8 +230,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_MixedAffineAndTransmission)
   analysis.add_transmission(m, {a}, {x}, "T");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a},
-    std::vector<StateInterfaceId>{b, x, y});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, b), def_of(analysis, x), def_of(analysis, y)});
   ASSERT_TRUE(result.has_value());
 
   std::vector<double> in{4.0};
@@ -252,16 +260,16 @@ TEST_F(DefaultJointMapBuilderTest, Error_MissingInputs_OutputUnreachable)
 
   // Only `a` supplied; T can't fire so c is unproducible.
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a},
-    std::vector<StateInterfaceId>{c});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, c)});
 
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();
   EXPECT_EQ(err.kind, JointMapBuildError::Kind::MissingInputs);
   ASSERT_EQ(err.unproducible_outputs.size(), 1u);
-  EXPECT_EQ(err.unproducible_outputs[0], c);
+  EXPECT_EQ(err.unproducible_outputs[0], def_of(analysis, c));
   EXPECT_EQ(err.resolutions.size(), 1u);  // stub returns one entry per missing
-  EXPECT_EQ(err.resolutions[0].missing, c);
+  EXPECT_EQ(err.resolutions[0].missing, def_of(analysis, c));
 }
 
 // ===========================================================================
@@ -280,14 +288,14 @@ TEST_F(DefaultJointMapBuilderTest, Error_DirectAmbiguity_OutputItselfAmbiguous)
   analysis.add_transmission(m, {a}, {x}, "T2");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a},
-    std::vector<StateInterfaceId>{x});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, x)});
 
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();
   EXPECT_EQ(err.kind, JointMapBuildError::Kind::Ambiguous);
   ASSERT_EQ(err.ambiguous_interfaces.size(), 1u);
-  EXPECT_EQ(err.ambiguous_interfaces[0].interface, x);
+  EXPECT_EQ(err.ambiguous_interfaces[0].interface, def_of(analysis, x));
   EXPECT_EQ(err.ambiguous_interfaces[0].candidates.size(), 2u);
 }
 
@@ -310,14 +318,14 @@ TEST_F(DefaultJointMapBuilderTest, Error_TransitiveAmbiguity_OutputDownstreamOfA
 
   // Asking for y should fail with Ambiguous because y transitively depends on x.
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a},
-    std::vector<StateInterfaceId>{y});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, y)});
 
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();
   EXPECT_EQ(err.kind, JointMapBuildError::Kind::Ambiguous);
   ASSERT_EQ(err.ambiguous_interfaces.size(), 1u);
-  EXPECT_EQ(err.ambiguous_interfaces[0].interface, x);  // The relevant ambiguity
+  EXPECT_EQ(err.ambiguous_interfaces[0].interface, def_of(analysis, x));  // The relevant ambiguity
 }
 
 // ===========================================================================
@@ -343,8 +351,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_UnrelatedAmbiguity_DoesNotBlockUnrela
 
   // Asking only for z should succeed despite x being ambiguous in the reachability.
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a},
-    std::vector<StateInterfaceId>{z});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, z)});
 
   ASSERT_TRUE(result.has_value());
   std::vector<double> in{4.0};
@@ -365,8 +373,8 @@ TEST_F(DefaultJointMapBuilderTest, PolymorphicCallThroughBaseInterface)
 
   const arm_kinematics::JointMapBuilder & base = builder_;
   const auto result = base.build_expected(
-    std::vector<StateInterfaceId>{a},
-    std::vector<StateInterfaceId>{a});
+    std::vector<StateInterfaceDefinition>{def_of(analysis_, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   ASSERT_TRUE(result.has_value());
   std::vector<double> in{42.0};
@@ -379,42 +387,44 @@ TEST_F(DefaultJointMapBuilderTest, PolymorphicCallThroughBaseInterface)
 // Unknown interface
 // ===========================================================================
 
-TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleId)
+TEST_F(DefaultJointMapBuilderTest, Error_UnknownJoint_BogusOutputJointId)
 {
   auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
 
-  // Pass an out-of-range id as an output. The state interface count is 1, so id 999 is bogus.
-  const StateInterfaceId bogus = 999;
+  // Pass a definition referencing an out-of-range JointId as an output.
+  const JointId bogus_joint = 999;
+  const StateInterfaceDefinition bogus_def{bogus_joint, InterfaceId{"position"}};
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a},
-    std::vector<StateInterfaceId>{bogus});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{bogus_def});
 
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();
-  EXPECT_EQ(err.kind, JointMapBuildError::Kind::UnknownInterface);
-  ASSERT_EQ(err.unknown_interfaces.size(), 1u);
-  EXPECT_EQ(err.unknown_interfaces[0], bogus);
+  EXPECT_EQ(err.kind, JointMapBuildError::Kind::UnknownJoint);
+  ASSERT_EQ(err.unknown_joints.size(), 1u);
+  EXPECT_EQ(err.unknown_joints[0], bogus_joint);
   EXPECT_TRUE(err.unproducible_outputs.empty());
   EXPECT_TRUE(err.ambiguous_interfaces.empty());
 }
 
-TEST_F(DefaultJointMapBuilderTest, Error_UnknownInterface_StaleInputId)
+TEST_F(DefaultJointMapBuilderTest, Error_UnknownJoint_BogusInputJointId)
 {
-  // Same but the bogus id is in the inputs list — should also be caught.
+  // Same but the bogus joint id is in the inputs list — should also be caught.
   auto & analysis = analysis_;
   ensure_joints(analysis, {"j_a"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
 
-  const StateInterfaceId bogus = 42;
+  const JointId bogus_joint = 42;
+  const StateInterfaceDefinition bogus_def{bogus_joint, InterfaceId{"position"}};
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{bogus},
-    std::vector<StateInterfaceId>{a});
+    std::vector<StateInterfaceDefinition>{bogus_def},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)});
 
   ASSERT_FALSE(result.has_value());
-  EXPECT_EQ(result.error().kind, JointMapBuildError::Kind::UnknownInterface);
-  EXPECT_EQ(result.error().unknown_interfaces[0], bogus);
+  EXPECT_EQ(result.error().kind, JointMapBuildError::Kind::UnknownJoint);
+  EXPECT_EQ(result.error().unknown_joints[0], bogus_joint);
 }
 
 // ===========================================================================
@@ -431,12 +441,14 @@ TEST_F(DefaultJointMapBuilderTest, DoubleBuild_NoCachedStateContamination)
 
   // First call: request just `a`.
   const auto result1 = builder_.build_expected(
-    std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{a});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)});
   ASSERT_TRUE(result1.has_value());
 
   // Second call on the same builder: different request (now ask for `b`).
   const auto result2 = builder_.build_expected(
-    std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{b});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, b)});
   ASSERT_TRUE(result2.has_value());
 
   std::vector<double> in{5.0};
@@ -464,7 +476,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_VelocityProjectionRule_EndToEnd)
   analysis.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a_vel}, std::vector<StateInterfaceId>{b_vel});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a_vel)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, b_vel)});
   ASSERT_TRUE(result.has_value());
 
   std::vector<double> in{3.0};
@@ -501,7 +514,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_DiamondDAG_NumericalVerification)
   analysis.add_transmission(m3, {b, c}, {d}, "T3");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{d});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, d)});
   ASSERT_TRUE(result.has_value());
 
   std::vector<double> in{4.0};
@@ -527,8 +541,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_RedundantEquivalentInputs_EndToEnd)
   analysis.add_affine_transmission(joints[0], joints[2], 3.0, 0.0);
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a_pos, d_pos},
-    std::vector<StateInterfaceId>{b_pos});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a_pos), def_of(analysis, d_pos)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, b_pos)});
   ASSERT_TRUE(result.has_value());
 
   std::vector<double> in{5.0, 15.0};  // a=5, d=15 (consistent: 3*5=15)
@@ -562,7 +576,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_TransmissionWithMixedGatherSources)
   analysis.add_transmission(m2, {b, c}, {d}, "T2");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a, c}, std::vector<StateInterfaceId>{d});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a), def_of(analysis, c)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, d)});
   ASSERT_TRUE(result.has_value());
 
   std::vector<double> in{3.0, 10.0};
@@ -607,7 +622,8 @@ TEST_F(DefaultJointMapBuilderTest, Error_TransmissionModelReturnsNull_Propagates
   EXPECT_THROW(
     {
       auto result = builder_.build_expected(
-        std::vector<StateInterfaceId>{a}, std::vector<StateInterfaceId>{b});
+        std::vector<StateInterfaceDefinition>{def_of(analysis, a)},
+        std::vector<StateInterfaceDefinition>{def_of(analysis, b)});
       (void)result;
     },
     std::invalid_argument);
@@ -636,7 +652,8 @@ TEST_F(DefaultJointMapBuilderTest, Error_SecondOrderAmbiguity_ReportedThroughBui
   analysis.add_transmission(m, {c}, {b}, "T4");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a, c}, std::vector<StateInterfaceId>{x});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a), def_of(analysis, c)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, x)});
 
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();
@@ -647,11 +664,11 @@ TEST_F(DefaultJointMapBuilderTest, Error_SecondOrderAmbiguity_ReportedThroughBui
   // through T2.
   bool saw_x = false, saw_b = false;
   for (const auto & ai : err.ambiguous_interfaces) {
-    if (ai.interface == x) {
+    if (ai.interface == def_of(analysis, x)) {
       saw_x = true;
       EXPECT_EQ(ai.candidates.size(), 2u);  // T1 and T2
     }
-    if (ai.interface == b) saw_b = true;
+    if (ai.interface == def_of(analysis, b)) saw_b = true;
   }
   EXPECT_TRUE(saw_x);
   EXPECT_TRUE(saw_b);
@@ -680,7 +697,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_MotorToJoint)
   analysis.add_transmission(m_inv, {joint}, {motor}, "T_inv");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{motor}, std::vector<StateInterfaceId>{joint});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, motor)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, joint)});
   ASSERT_TRUE(result.has_value());
 
   std::vector<double> in{3.0};
@@ -705,7 +723,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_JointToMotor)
   analysis.add_transmission(m_inv, {joint}, {motor}, "T_inv");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{joint}, std::vector<StateInterfaceId>{motor});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, joint)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, motor)});
   ASSERT_TRUE(result.has_value());
 
   std::vector<double> in{20.0};
@@ -731,8 +750,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_ForwardInversePair_BothInputs_NoAmbig
   analysis.add_transmission(m_inv, {joint}, {motor}, "T_inv");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{motor, joint},
-    std::vector<StateInterfaceId>{motor, joint});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, motor), def_of(analysis, joint)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, motor), def_of(analysis, joint)});
   ASSERT_TRUE(result.has_value());
 
   // The user supplies inconsistent values (motor=3, joint=99) intentionally — input wins on
@@ -770,8 +789,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_InverseTransmissionWithSideEffectOutp
   analysis.add_transmission(m_inv, {joint}, {motor, motor_torque}, "T_inv");
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{motor},
-    std::vector<StateInterfaceId>{joint, motor_torque});
+    std::vector<StateInterfaceDefinition>{def_of(analysis, motor)},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, joint), def_of(analysis, motor_torque)});
   ASSERT_TRUE(result.has_value());
 
   std::vector<double> in{4.0};  // motor=4
@@ -793,14 +812,14 @@ TEST_F(DefaultJointMapBuilderTest, Error_EmptyInputs_AllOutputsUnreachable)
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{},
-    std::vector<StateInterfaceId>{a});
+    std::vector<StateInterfaceDefinition>{},
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)});
 
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();
   EXPECT_EQ(err.kind, JointMapBuildError::Kind::MissingInputs);
   ASSERT_EQ(err.unproducible_outputs.size(), 1u);
-  EXPECT_EQ(err.unproducible_outputs[0], a);
+  EXPECT_EQ(err.unproducible_outputs[0], def_of(analysis, a));
 }
 
 // ===========================================================================
@@ -811,23 +830,29 @@ TEST_F(DefaultJointMapBuilderTest, Error_ManyAmbiguousOutputs_MessageIsTruncated
 {
   // Set up 8 ambiguous outputs (more than the 5-entry message cap).
   auto & analysis = analysis_;
-  std::vector<StateInterfaceId> outputs;
+  std::vector<StateInterfaceId> output_sids;
   for (int i = 0; i < 8; ++i) {
     const std::string joint_name = "j_x" + std::to_string(i);
     ensure_joints(analysis, {joint_name.c_str()});
-    outputs.push_back(ensure_state(analysis, joint_name, InterfaceId{"position"}));
+    output_sids.push_back(ensure_state(analysis, joint_name, InterfaceId{"position"}));
   }
   ensure_joints(analysis, {"j_a"});
   const auto a = ensure_state(analysis, "j_a", InterfaceId{"position"});
 
   const auto m = analysis.add_model(std::make_unique<StubTransmissionModel>());
   for (int i = 0; i < 8; ++i) {
-    analysis.add_transmission(m, {a}, {outputs[i]}, "T1_" + std::to_string(i));
-    analysis.add_transmission(m, {a}, {outputs[i]}, "T2_" + std::to_string(i));
+    analysis.add_transmission(m, {a}, {output_sids[i]}, "T1_" + std::to_string(i));
+    analysis.add_transmission(m, {a}, {output_sids[i]}, "T2_" + std::to_string(i));
+  }
+
+  std::vector<StateInterfaceDefinition> outputs;
+  outputs.reserve(output_sids.size());
+  for (const auto sid : output_sids) {
+    outputs.push_back(def_of(analysis, sid));
   }
 
   const auto result = builder_.build_expected(
-    std::vector<StateInterfaceId>{a}, outputs);
+    std::vector<StateInterfaceDefinition>{def_of(analysis, a)}, outputs);
 
   ASSERT_FALSE(result.has_value());
   const auto & err = result.error();

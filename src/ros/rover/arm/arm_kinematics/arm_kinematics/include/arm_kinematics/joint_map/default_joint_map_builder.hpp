@@ -46,8 +46,8 @@ public:
   }
 
   [[nodiscard]] tl::expected<JointMap, JointMapBuildError> build_expected(
-    span<const StateInterfaceId> inputs,
-    span<const StateInterfaceId> outputs) const override;
+    span<const StateInterfaceDefinition> inputs,
+    span<const StateInterfaceDefinition> outputs) const override;
 
 private:
   const TransmissionAnalysis & transmission_analysis_;

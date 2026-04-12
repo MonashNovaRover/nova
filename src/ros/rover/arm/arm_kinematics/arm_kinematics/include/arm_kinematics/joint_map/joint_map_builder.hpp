@@ -10,6 +10,7 @@
 
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/missing_input_resolution.hpp"
+#include "arm_kinematics/joint_map/state_interface_definition.hpp"
 #include "arm_kinematics/joint_map/transmission_reachability.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/expected.hpp"
@@ -29,13 +30,13 @@ namespace arm_kinematics {
  *   transitively depend on something that does) and the reachability algorithm refuses to
  *   silently pick a winner. `ambiguous_interfaces` lists the upstream conflicts the user must
  *   resolve.
- * - **UnknownInterface:** one or more `StateInterfaceId`s in the request are out of range for
- *   the analysis (i.e., the caller passed a stale or fabricated id). `unknown_interfaces`
- *   lists the bad ids. This is distinct from `MissingInputs` because the user's bug is "I
- *   passed an id that doesn't exist", not "I forgot to supply some inputs".
+ * - **UnknownJoint:** one or more `JointId`s in the request definitions are not registered in
+ *   the builder's `TransmissionAnalysis`. `unknown_joints` lists the bad ids. This is
+ *   distinct from `MissingInputs` because the user's bug is "I passed a definition whose
+ *   joint doesn't exist", not "I forgot to supply some inputs".
  *
- * **Precedence when multiple failure modes apply.** UnknownInterface is checked first
- * (validation is cheap and a stale id makes everything else moot). Then Ambiguous wins over
+ * **Precedence when multiple failure modes apply.** UnknownJoint is checked first (validation
+ * is cheap and an unregistered joint makes everything else moot). Then Ambiguous wins over
  * MissingInputs — the user fixes ambiguities first and retries.
  */
 struct JointMapBuildError {
@@ -44,8 +45,8 @@ struct JointMapBuildError {
     MissingInputs,
     /// One or more needed interfaces have multiple viable producers (directly or transitively).
     Ambiguous,
-    /// One or more `StateInterfaceId`s in the request are out of range for the analysis.
-    UnknownInterface,
+    /// One or more `JointId`s in the request definitions are not registered in the analysis.
+    UnknownJoint,
   };
   Kind kind = Kind::MissingInputs;
 
@@ -56,7 +57,7 @@ struct JointMapBuildError {
 
   /// Populated when `kind == MissingInputs`. Each entry is a needed output that the algorithm
   /// could not derive from the requested inputs. Empty when `kind == Ambiguous`.
-  std::vector<StateInterfaceId> unproducible_outputs{};
+  std::vector<StateInterfaceDefinition> unproducible_outputs{};
 
   /// Populated when `kind == MissingInputs`. Optional rich-error hints — one entry per
   /// unproducible output — describing what could be supplied to unblock it. May be empty.
@@ -68,9 +69,9 @@ struct JointMapBuildError {
   /// analysis are not reported.
   std::vector<TransmissionReachability::AmbiguousInterface> ambiguous_interfaces{};
 
-  /// Populated when `kind == UnknownInterface`. Each entry is a `StateInterfaceId` from the
-  /// request that is out of range for the analysis's state interface order.
-  std::vector<StateInterfaceId> unknown_interfaces{};
+  /// Populated when `kind == UnknownJoint`. Each entry is a `JointId` from the request that
+  /// is not registered in the analysis's joint order.
+  std::vector<JointId> unknown_joints{};
 };
 
 /**
@@ -100,17 +101,20 @@ public:
    * Constructs a `JointMap` that maps the given input state interfaces to the given output
    * state interfaces.
    *
-   * The canonical request boundary uses `StateInterfaceId` (not `StateInterfaceDefinition` and
-   * not joint names): callers resolve names against a `TransmissionAnalysis` up front via
-   * `ensure_state_interface_id` and pass the resulting ids here. This keeps the builder API
-   * minimal and unambiguous.
+   * The canonical request boundary uses `StateInterfaceDefinition` (`JointId` + `InterfaceId`):
+   * callers resolve joint names against a `TransmissionAnalysis` via `joint_order()` to obtain
+   * `JointId`s, then pair them with the desired `InterfaceId`. `StateInterfaceId` is an
+   * implementation detail of the builder — callers never need to pre-register state interfaces.
+   *
+   * Any registered joint paired with any `InterfaceId` is a valid request. A `JointId` that is
+   * not registered in the analysis returns `Kind::UnknownJoint`.
    *
    * \warning Not real-time safe — performs allocation and graph analysis. Call once at setup
    * time and reuse the resulting `JointMap` at runtime.
    */
   [[nodiscard]] virtual tl::expected<JointMap, JointMapBuildError> build_expected(
-    span<const StateInterfaceId> inputs,
-    span<const StateInterfaceId> outputs) const = 0;
+    span<const StateInterfaceDefinition> inputs,
+    span<const StateInterfaceDefinition> outputs) const = 0;
 };
 
 }  // namespace arm_kinematics

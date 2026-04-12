@@ -21,12 +21,12 @@ namespace arm_kinematics {
  */
 struct MissingInputResolution {
   /// The unproducible state interface this entry is for.
-  StateInterfaceId missing = 0;
+  StateInterfaceDefinition missing{};
 
   /// Each entry is a set of state interfaces that — if all supplied — would unblock the missing
   /// interface via one specific transmission. Empty if no transmission path exists. Multiple
   /// entries indicate multiple alternative transmissions that could be used.
-  std::vector<std::vector<StateInterfaceId>> transmission_alternatives{};
+  std::vector<std::vector<StateInterfaceDefinition>> transmission_alternatives{};
 
   /// If the missing interface lives in a non-trivial affine group AND that interface id has a
   /// registered `AffineProjectionRule`, this is the root joint of that group. The user resolves

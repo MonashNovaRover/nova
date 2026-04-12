@@ -95,6 +95,11 @@ StateInterfaceId ensure_state(
   return analysis.ensure_state_interface_id(NamedStateInterfaceDefinition{joint_name, iface});
 }
 
+StateInterfaceDefinition def_of(const TransmissionAnalysis & analysis, const StateInterfaceId sid)
+{
+  return analysis.state_interface_order().inverse[sid];
+}
+
 // Producer-variant unwrappers — return std::optional<T> (a copy) so callers don't risk a
 // dangling pointer into a temporary StateInterfaceProducer returned by reach.producer_of().
 std::optional<producers::Input> as_input(const StateInterfaceProducer & p)
@@ -388,7 +393,7 @@ TEST_F(TransmissionReachabilityTest, ReAnalyzeWithExplicitInput_DisplacesPreviou
     analysis_, std::vector<StateInterfaceId>{a});
   EXPECT_TRUE(reach1.is_ambiguous());
   ASSERT_EQ(reach1.ambiguities().size(), 1u);
-  EXPECT_EQ(reach1.ambiguities()[0].interface, x);
+  EXPECT_EQ(reach1.ambiguities()[0].interface, def_of(analysis_, x));
   EXPECT_EQ(reach1.ambiguities()[0].candidates.size(), 2u);
 
   const auto reach2 = TransmissionReachability::analyze(
@@ -474,7 +479,7 @@ TEST_F(TransmissionReachabilityTest, AmbiguityAccumulation_MultipleAmbiguousInte
   ASSERT_EQ(reach.ambiguities().size(), 2u);
   for (const auto & ai : reach.ambiguities()) {
     EXPECT_EQ(ai.candidates.size(), 2u);
-    EXPECT_TRUE(ai.interface == x || ai.interface == y);
+    EXPECT_TRUE(ai.interface == def_of(analysis_, x) || ai.interface == def_of(analysis_, y));
   }
   EXPECT_TRUE(is_monostate(reach.producer_of(x)));
   EXPECT_TRUE(is_monostate(reach.producer_of(y)));
@@ -662,7 +667,7 @@ TEST_F(TransmissionReachabilityTest, NonInputAmbiguity_TransmissionVsAffineProje
   ASSERT_EQ(reach.ambiguities().size(), 1u);
 
   const auto amb = reach.ambiguities()[0];
-  EXPECT_EQ(amb.interface, b_pos);
+  EXPECT_EQ(amb.interface, def_of(analysis_, b_pos));
   ASSERT_EQ(amb.candidates.size(), 2u);
 
   bool saw_transmission = false;
@@ -701,7 +706,7 @@ TEST_F(TransmissionReachabilityTest, Ambiguity_DoesNotPropagateThroughChain)
   // x is the directly-ambiguous interface.
   EXPECT_TRUE(reach.is_ambiguous());
   ASSERT_EQ(reach.ambiguities().size(), 1u);
-  EXPECT_EQ(reach.ambiguities()[0].interface, x);
+  EXPECT_EQ(reach.ambiguities()[0].interface, def_of(analysis_, x));
 
   // y has NO producer — not derivable (T3 was skipped because x is ambiguous), not ambiguous
   // (it has no candidates because T3 didn't fire).
@@ -758,7 +763,7 @@ TEST_F(TransmissionReachabilityTest, Blocked_CascadeThroughTwoLayers)
     analysis_, std::vector<StateInterfaceId>{a});
 
   ASSERT_EQ(reach.ambiguities().size(), 1u);
-  EXPECT_EQ(reach.ambiguities()[0].interface, x);
+  EXPECT_EQ(reach.ambiguities()[0].interface, def_of(analysis_, x));
 
   // Both y and z are blocked.
   const auto blocked = reach.transitively_blocked_interfaces();
@@ -818,7 +823,7 @@ TEST_F(TransmissionReachabilityTest, Ambiguity_DownstreamProducerWithCleanAltern
   bool found_x_ambig = false;
   bool found_b_ambig = false;
   for (const auto & amb : reach.ambiguities()) {
-    if (amb.interface == x) {
+    if (amb.interface == def_of(analysis_, x)) {
       found_x_ambig = true;
       ASSERT_EQ(amb.candidates.size(), 2u);
       // Both candidates should be Transmissions.
@@ -828,7 +833,7 @@ TEST_F(TransmissionReachabilityTest, Ambiguity_DownstreamProducerWithCleanAltern
       }
       EXPECT_TRUE(saw_both_transmissions);
     }
-    if (amb.interface == b) {
+    if (amb.interface == def_of(analysis_, b)) {
       found_b_ambig = true;
       ASSERT_EQ(amb.candidates.size(), 2u);
     }

@@ -4,6 +4,7 @@
 
 #include "arm_kinematics/joint_map/default_joint_map_builder.hpp"
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -17,22 +18,16 @@ namespace arm_kinematics {
 
 namespace {
 
-// Maximum number of state interfaces to include verbatim in the formatted error message.
+// Maximum number of interfaces to include verbatim in the formatted error message.
 // Anything beyond this gets a "...and N more" suffix to keep the message bounded.
 constexpr std::size_t kMaxFormattedInterfaces = 5;
 
-// Format a single StateInterfaceId as "joint_name/interface_id_name (sid=N)" using the analysis
-// to look up the joint and interface names. Falls back to "<unknown sid=N>" if the id is out
-// of range.
+// Format a StateInterfaceDefinition as "joint_name/interface_id_name" using the analysis to
+// look up the joint name. Falls back to "<joint_id=N>" if the joint id is out of range.
 std::string format_state_interface(
   const TransmissionAnalysis & analysis,
-  const StateInterfaceId sid)
+  const StateInterfaceDefinition & def)
 {
-  const auto & defs = analysis.state_interface_order().inverse;
-  if (sid >= defs.size()) {
-    return "<unknown sid=" + std::to_string(sid) + ">";
-  }
-  const auto & def = defs[sid];
   const auto & joint_names = analysis.joint_order().inverse;
   std::string joint_name;
   if (def.joint_id < joint_names.size()) {
@@ -40,13 +35,43 @@ std::string format_state_interface(
   } else {
     joint_name = "<joint_id=" + std::to_string(def.joint_id) + ">";
   }
-  return joint_name + "/" + def.interface_id.name + " (sid=" + std::to_string(sid) + ")";
+  return joint_name + "/" + def.interface_id.name;
 }
 
-// Format a list of StateInterfaceIds as `[a/position (sid=1), b/velocity (sid=2)]`, truncating
-// after kMaxFormattedInterfaces with a "...and N more" suffix.
+// Format a StateInterfaceId using the local analysis's state_interface_order inverse.
+std::string format_state_interface(
+  const TransmissionAnalysis & local_analysis,
+  const StateInterfaceId sid)
+{
+  if (sid >= local_analysis.state_interface_order().inverse.size()) {
+    return "<unknown sid=" + std::to_string(sid) + ">";
+  }
+  return format_state_interface(local_analysis, local_analysis.state_interface_order().inverse[sid]);
+}
+
+// Format a list of StateInterfaceDefinitions as "[a/position, b/velocity]", truncating after
+// kMaxFormattedInterfaces with a "...and N more" suffix.
 std::string format_interface_list(
   const TransmissionAnalysis & analysis,
+  const std::vector<StateInterfaceDefinition> & defs)
+{
+  std::ostringstream oss;
+  oss << "[";
+  const std::size_t shown = std::min(defs.size(), kMaxFormattedInterfaces);
+  for (std::size_t i = 0; i < shown; ++i) {
+    if (i > 0) oss << ", ";
+    oss << format_state_interface(analysis, defs[i]);
+  }
+  if (defs.size() > shown) {
+    oss << ", ...and " << (defs.size() - shown) << " more";
+  }
+  oss << "]";
+  return oss.str();
+}
+
+// Format a list of StateInterfaceIds via the local analysis.
+std::string format_interface_list(
+  const TransmissionAnalysis & local_analysis,
   const std::vector<StateInterfaceId> & sids)
 {
   std::ostringstream oss;
@@ -54,7 +79,7 @@ std::string format_interface_list(
   const std::size_t shown = std::min(sids.size(), kMaxFormattedInterfaces);
   for (std::size_t i = 0; i < shown; ++i) {
     if (i > 0) oss << ", ";
-    oss << format_state_interface(analysis, sids[i]);
+    oss << format_state_interface(local_analysis, sids[i]);
   }
   if (sids.size() > shown) {
     oss << ", ...and " << (sids.size() - shown) << " more";
@@ -63,57 +88,85 @@ std::string format_interface_list(
   return oss.str();
 }
 
-// Validate that every StateInterfaceId in `ids` is in range for the analysis. Returns the
-// out-of-range ids (empty if all are valid).
-std::vector<StateInterfaceId> find_unknown_ids(
-  const TransmissionAnalysis & analysis,
-  const span<const StateInterfaceId> ids)
-{
-  const std::size_t state_count = analysis.state_interface_order().inverse.size();
-  std::vector<StateInterfaceId> unknown;
-  for (const auto sid : ids) {
-    if (sid >= state_count) {
-      unknown.push_back(sid);
-    }
-  }
-  return unknown;
-}
-
 }  // namespace
 
 tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expected(
-  const span<const StateInterfaceId> inputs,
-  const span<const StateInterfaceId> outputs) const
+  const span<const StateInterfaceDefinition> inputs,
+  const span<const StateInterfaceDefinition> outputs) const
 {
-  // Step 0: Validate that every requested id is known to the analysis. Catches stale or
-  // fabricated StateInterfaceIds early so the user gets a clear error instead of a misleading
-  // "unproducible" report.
-  auto unknown = find_unknown_ids(transmission_analysis_, inputs);
-  auto unknown_outputs = find_unknown_ids(transmission_analysis_, outputs);
-  unknown.insert(unknown.end(), unknown_outputs.begin(), unknown_outputs.end());
-  if (!unknown.empty()) {
+  const std::size_t joint_count = transmission_analysis_.joint_order().inverse.size();
+
+  // Step 0: Validate that every JointId in the request is registered in the analysis. An
+  // unregistered joint_id is the caller's bug (e.g. obtained from a different analysis or
+  // fabricated). Report UnknownJoint with a deduplicated list.
+  std::vector<JointId> unknown_joints;
+  for (const auto & def : inputs) {
+    if (def.joint_id >= joint_count) {
+      unknown_joints.push_back(def.joint_id);
+    }
+  }
+  for (const auto & def : outputs) {
+    if (def.joint_id >= joint_count) {
+      unknown_joints.push_back(def.joint_id);
+    }
+  }
+  if (!unknown_joints.empty()) {
+    // Deduplicate while preserving insertion order.
+    std::vector<JointId> seen;
+    std::vector<JointId> unique;
+    for (const auto jid : unknown_joints) {
+      if (std::find(seen.begin(), seen.end(), jid) == seen.end()) {
+        seen.push_back(jid);
+        unique.push_back(jid);
+      }
+    }
     JointMapBuildError err{};
-    err.kind = JointMapBuildError::Kind::UnknownInterface;
-    err.unknown_interfaces = std::move(unknown);
-    err.message = "DefaultJointMapBuilder: " + std::to_string(err.unknown_interfaces.size()) +
-                  " StateInterfaceId(s) in the request are unknown to the analysis: " +
-                  format_interface_list(transmission_analysis_, err.unknown_interfaces);
+    err.kind = JointMapBuildError::Kind::UnknownJoint;
+    err.unknown_joints = std::move(unique);
+
+    std::ostringstream oss;
+    oss << "DefaultJointMapBuilder: " << err.unknown_joints.size()
+        << " JointId(s) in the request are not registered in the analysis: [";
+    const std::size_t shown = std::min(err.unknown_joints.size(), kMaxFormattedInterfaces);
+    for (std::size_t i = 0; i < shown; ++i) {
+      if (i > 0) oss << ", ";
+      oss << "joint_id=" << err.unknown_joints[i];
+    }
+    if (err.unknown_joints.size() > shown) {
+      oss << ", ...and " << (err.unknown_joints.size() - shown) << " more";
+    }
+    oss << "]";
+    err.message = oss.str();
     return tl::unexpected(std::move(err));
   }
 
-  // Step 1: Reachability analysis. Output-independent — purely a function of the analysis +
-  // inputs.
-  auto reach = TransmissionReachability::analyze(transmission_analysis_, inputs);
+  // Step 1: Build a local analysis copy and register every requested definition so the existing
+  // StateInterfaceId-based pipeline can be used unchanged. Bare interfaces (no transmissions)
+  // get an empty producing_transmissions() entry — they become pass-throughs when they also
+  // appear in inputs (via producers::Input), or unproducible outputs otherwise.
+  TransmissionAnalysis local = transmission_analysis_;
 
-  // Step 2: Diagnose against the requested outputs. Catches:
-  //   - unproducible outputs (no producer chain has all-derivable inputs)
-  //   - directly ambiguous outputs (≥2 candidate producers)
-  //   - transitively blocked outputs (producer chain depends on an upstream ambiguous interface)
+  std::vector<StateInterfaceId> sid_inputs;
+  sid_inputs.reserve(inputs.size());
+  for (const auto & def : inputs) {
+    sid_inputs.push_back(local.ensure_state_interface_id(def));
+  }
+
+  std::vector<StateInterfaceId> sid_outputs;
+  sid_outputs.reserve(outputs.size());
+  for (const auto & def : outputs) {
+    sid_outputs.push_back(local.ensure_state_interface_id(def));
+  }
+
+  // Step 2: Reachability analysis against the local analysis.
+  auto reach = TransmissionReachability::analyze(
+    local, span<const StateInterfaceId>(sid_inputs.data(), sid_inputs.size()));
+
+  // Step 3: Diagnose against the requested outputs.
   auto diag = diagnose_missing_outputs(
-    reach, span<const StateInterfaceId>(outputs.data_, outputs.size_));
+    reach, span<const StateInterfaceId>(sid_outputs.data(), sid_outputs.size()));
 
-  // Step 3: If anything is broken, surface it. Ambiguity (direct or transitively blocked) wins
-  // over MissingInputs.
+  // Step 4: Surface errors. Ambiguity wins over MissingInputs.
   const bool has_ambiguity = !diag.directly_ambiguous_outputs.empty() ||
                              !diag.transitively_blocked_outputs.empty();
   if (has_ambiguity) {
@@ -121,7 +174,7 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
     err.kind = JointMapBuildError::Kind::Ambiguous;
     err.ambiguous_interfaces = std::move(diag.relevant_blocking_ambiguities);
 
-    // Build a unified list of affected outputs (direct + transitively blocked) for the message.
+    // Build a unified list of affected output sids (direct + transitively blocked) for the message.
     std::vector<StateInterfaceId> affected;
     affected.reserve(
       diag.directly_ambiguous_outputs.size() + diag.transitively_blocked_outputs.size());
@@ -144,15 +197,15 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
     } else if (!diag.transitively_blocked_outputs.empty()) {
       oss << " (transitively blocked by upstream ambiguity)";
     }
-    oss << ". Affected outputs: " << format_interface_list(transmission_analysis_, affected);
+    oss << ". Affected outputs: " << format_interface_list(local, affected);
     if (!err.ambiguous_interfaces.empty()) {
-      std::vector<StateInterfaceId> ambiguous_ids;
-      ambiguous_ids.reserve(err.ambiguous_interfaces.size());
+      std::vector<StateInterfaceDefinition> ambiguous_defs;
+      ambiguous_defs.reserve(err.ambiguous_interfaces.size());
       for (const auto & a : err.ambiguous_interfaces) {
-        ambiguous_ids.push_back(a.interface);
+        ambiguous_defs.push_back(a.interface);
       }
       oss << ". Upstream ambiguous interfaces: "
-          << format_interface_list(transmission_analysis_, ambiguous_ids);
+          << format_interface_list(local, ambiguous_defs);
     }
     err.message = oss.str();
     return tl::unexpected(std::move(err));
@@ -160,18 +213,22 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
   if (!diag.unproducible.empty()) {
     JointMapBuildError err{};
     err.kind = JointMapBuildError::Kind::MissingInputs;
-    err.unproducible_outputs = std::move(diag.unproducible);
+    // Translate unproducible StateInterfaceIds back to StateInterfaceDefinitions.
+    err.unproducible_outputs.reserve(diag.unproducible.size());
+    for (const auto sid : diag.unproducible) {
+      err.unproducible_outputs.push_back(local.state_interface_order().inverse[sid]);
+    }
     err.resolutions = std::move(diag.resolutions);
     err.message = "DefaultJointMapBuilder: " + std::to_string(err.unproducible_outputs.size()) +
                   " requested output(s) are not derivable from the supplied inputs: " +
-                  format_interface_list(transmission_analysis_, err.unproducible_outputs);
+                  format_interface_list(local, err.unproducible_outputs);
     return tl::unexpected(std::move(err));
   }
 
-  // Step 4: Plan and materialize.
+  // Step 5: Plan and materialize against the local analysis.
   const auto blueprint = plan_joint_map(
-    reach, span<const StateInterfaceId>(outputs.data_, outputs.size_));
-  return materialize_joint_map(blueprint, transmission_analysis_);
+    reach, span<const StateInterfaceId>(sid_outputs.data(), sid_outputs.size()));
+  return materialize_joint_map(blueprint, local);
 }
 
 }  // namespace arm_kinematics

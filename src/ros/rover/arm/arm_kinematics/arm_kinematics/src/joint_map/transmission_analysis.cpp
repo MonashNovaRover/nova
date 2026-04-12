@@ -135,6 +135,15 @@ JointId TransmissionAnalysis::ensure_joint_id(const std::string & name)
   return id;
 }
 
+std::optional<StateInterfaceId> TransmissionAnalysis::find_state_interface_id(
+  const StateInterfaceDefinition & definition) const noexcept
+{
+  if (!state_interface_order_.contains_key(definition)) {
+    return std::nullopt;
+  }
+  return state_interface_order_[definition];
+}
+
 StateInterfaceId TransmissionAnalysis::ensure_state_interface_id(const StateInterfaceDefinition & definition)
 {
   // Precondition: the joint id inside the definition must already be present in joint_order_.

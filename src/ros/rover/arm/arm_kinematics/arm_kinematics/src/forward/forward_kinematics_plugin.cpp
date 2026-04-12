@@ -42,30 +42,24 @@ ForwardKinematicsPlugin::make_tree(
   const FrameDefinitions & frames,
   const JointMapBuilder & joint_map_builder)
 {
-  // Resolve each (joint_name, interface_id) against the FK plugin's analysis. The analysis is
-  // logically frozen at this point — typically populated by URDF parsing in RobotModel — so
-  // this is a const lookup. If any name/interface is unknown, return a structured
-  // UnknownInterface error so the caller knows their request references something not in the
-  // analysis.
+  // Resolve each (joint_name, interface_id) to a StateInterfaceDefinition by looking up the
+  // joint name in the FK plugin's analysis. Any unknown joint name is surfaced as UnknownJoint
+  // so the caller knows their request references a joint not registered in the URDF.
   const auto & analysis = get_transmission_analysis();
   const auto & joint_order = analysis.joint_order();
-  const auto & state_interface_order = analysis.state_interface_order();
 
-  auto resolved = state_interface_order.try_map_collect(
+  auto resolved = joint_order.try_map_collect(
     named_input_state_interfaces,
-    [&joint_order](const NamedStateInterfaceDefinition & named) -> std::optional<StateInterfaceDefinition> {
-      if (!joint_order.contains_key(named.joint_name)) {
-        return std::nullopt;
-      }
-      return StateInterfaceDefinition{joint_order[named.joint_name], named.interface_id};
+    [](const NamedStateInterfaceDefinition & named) -> std::optional<std::string> {
+      return named.joint_name;
     });
 
   if (!resolved) {
     const auto & unknown = resolved.error();
     std::ostringstream oss;
     oss << "ForwardKinematicsPlugin::make_tree: " << unknown.size()
-        << " requested state interface(s) are not registered in the FK plugin's analysis "
-        << "(joint name not in URDF, or interface id not present for that joint): [";
+        << " requested state interface(s) reference joint names not registered in the FK "
+        << "plugin's analysis (joint name not in URDF): [";
     constexpr std::size_t kMaxFormatted = 5;
     const std::size_t shown = std::min(unknown.size(), kMaxFormatted);
     for (std::size_t i = 0; i < shown; ++i) {
@@ -77,7 +71,7 @@ ForwardKinematicsPlugin::make_tree(
     }
     oss << "]";
     JointMapBuildError joint_map_err{};
-    joint_map_err.kind = JointMapBuildError::Kind::UnknownInterface;
+    joint_map_err.kind = JointMapBuildError::Kind::UnknownJoint;
     joint_map_err.message = oss.str();
     MakeTreeError err{};
     err.kind = MakeTreeError::Kind::UnknownInterface;
@@ -86,8 +80,15 @@ ForwardKinematicsPlugin::make_tree(
     return tl::unexpected(std::move(err));
   }
 
+  // Build StateInterfaceDefinitions from the resolved JointIds + the original interface ids.
+  std::vector<StateInterfaceDefinition> defs;
+  defs.reserve(named_input_state_interfaces.size());
+  for (std::size_t i = 0; i < named_input_state_interfaces.size(); ++i) {
+    defs.push_back(StateInterfaceDefinition{(*resolved)[i], named_input_state_interfaces[i].interface_id});
+  }
+
   return make_tree(
-    span<const StateInterfaceId>(resolved->data(), resolved->size()),
+    span<const StateInterfaceDefinition>(defs.data(), defs.size()),
     base_link_name,
     frames,
     joint_map_builder);

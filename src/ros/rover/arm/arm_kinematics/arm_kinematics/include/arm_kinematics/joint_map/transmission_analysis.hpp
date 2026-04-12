@@ -6,6 +6,7 @@
 #define ARM_KINEMATICS_TRANSMISSION_ANALYSIS_HPP
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -151,6 +152,14 @@ public:
 
   /// Provides the JointId from joint_order_, adding it to the end of the order if it is not already present.
   JointId ensure_joint_id(const std::string & name);
+
+  /**
+   * Returns the `StateInterfaceId` for `definition` if it has been registered, or `std::nullopt`
+   * if no `StateInterfaceId` has been assigned to this definition. Unlike `ensure_state_interface_id`,
+   * this never mutates the analysis — it is safe to call from any const context.
+   */
+  [[nodiscard]] std::optional<StateInterfaceId>
+  find_state_interface_id(const StateInterfaceDefinition & definition) const noexcept;
 
   StateInterfaceId ensure_state_interface_id(const StateInterfaceDefinition & definition);
   StateInterfaceId ensure_state_interface_id(const NamedStateInterfaceDefinition & definition)

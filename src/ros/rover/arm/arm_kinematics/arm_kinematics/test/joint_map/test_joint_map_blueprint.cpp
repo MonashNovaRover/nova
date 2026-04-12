@@ -28,6 +28,7 @@ using arm_kinematics::JointMapBlueprint;
 using arm_kinematics::JointMapBlueprintSegment;
 using arm_kinematics::MissingOutputDiagnosis;
 using arm_kinematics::NamedStateInterfaceDefinition;
+using arm_kinematics::StateInterfaceDefinition;
 using arm_kinematics::StateInterfaceId;
 using arm_kinematics::TransmissionAnalysis;
 using arm_kinematics::TransmissionInstanceId;
@@ -78,6 +79,11 @@ std::vector<JointId> ensure_joints(
     ids.push_back(analysis.ensure_joint_id(name));
   }
   return ids;
+}
+
+StateInterfaceDefinition def_of(const TransmissionAnalysis & analysis, const StateInterfaceId sid)
+{
+  return analysis.state_interface_order().inverse[sid];
 }
 
 StateInterfaceId ensure_state(
@@ -181,7 +187,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmb
   ASSERT_EQ(diag.transitively_blocked_outputs.size(), 1u);
   EXPECT_EQ(diag.transitively_blocked_outputs[0], y);
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
-  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, x);
+  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, def_of(analysis_, x));
 }
 
 TEST_F(JointMapBlueprintTest, Diagnose_UnrelatedAmbiguity_DoesNotAffectRequest)
@@ -229,7 +235,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
   ASSERT_EQ(diag.directly_ambiguous_outputs.size(), 1u);
   EXPECT_EQ(diag.directly_ambiguous_outputs[0], x);
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
-  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, x);
+  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, def_of(analysis_, x));
 }
 
 TEST_F(JointMapBlueprintTest, Diagnose_AffineBlockedOutput_ReportsUpstreamAmbiguity)
@@ -284,7 +290,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_AffineBlockedOutput_ReportsUpstreamAmbigu
   // The upstream A.position should appear in relevant_blocking_ambiguities — this is the
   // load-bearing assertion that the affine walk extension works.
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
-  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, a_pos);
+  EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, def_of(analysis_, a_pos));
 }
 
 // ===========================================================================
@@ -308,10 +314,10 @@ TEST_F(JointMapBlueprintTest, Resolutions_SingleProducerWithOneMissingInput)
     reach, std::vector<StateInterfaceId>{c});
 
   ASSERT_EQ(resolutions.size(), 1u);
-  EXPECT_EQ(resolutions[0].missing, c);
+  EXPECT_EQ(resolutions[0].missing, def_of(analysis_, c));
   ASSERT_EQ(resolutions[0].transmission_alternatives.size(), 1u);
   ASSERT_EQ(resolutions[0].transmission_alternatives[0].size(), 1u);
-  EXPECT_EQ(resolutions[0].transmission_alternatives[0][0], b);
+  EXPECT_EQ(resolutions[0].transmission_alternatives[0][0], def_of(analysis_, b));
   EXPECT_FALSE(resolutions[0].affine_root.has_value());
 }
 
@@ -334,16 +340,16 @@ TEST_F(JointMapBlueprintTest, Resolutions_MultipleProducerAlternatives)
     reach, std::vector<StateInterfaceId>{x});
 
   ASSERT_EQ(resolutions.size(), 1u);
-  EXPECT_EQ(resolutions[0].missing, x);
+  EXPECT_EQ(resolutions[0].missing, def_of(analysis_, x));
   ASSERT_EQ(resolutions[0].transmission_alternatives.size(), 2u);
   // Each alternative has exactly one input. Order may vary.
-  std::vector<StateInterfaceId> seen_alts;
+  std::vector<StateInterfaceDefinition> seen_alts;
   for (const auto & alt : resolutions[0].transmission_alternatives) {
     ASSERT_EQ(alt.size(), 1u);
     seen_alts.push_back(alt[0]);
   }
-  EXPECT_NE(std::find(seen_alts.begin(), seen_alts.end(), a), seen_alts.end());
-  EXPECT_NE(std::find(seen_alts.begin(), seen_alts.end(), b), seen_alts.end());
+  EXPECT_NE(std::find(seen_alts.begin(), seen_alts.end(), def_of(analysis_, a)), seen_alts.end());
+  EXPECT_NE(std::find(seen_alts.begin(), seen_alts.end(), def_of(analysis_, b)), seen_alts.end());
 }
 
 TEST_F(JointMapBlueprintTest, Resolutions_MissingInterfaceInNonTrivialAffineGroup)
@@ -361,7 +367,7 @@ TEST_F(JointMapBlueprintTest, Resolutions_MissingInterfaceInNonTrivialAffineGrou
     reach, std::vector<StateInterfaceId>{b_pos});
 
   ASSERT_EQ(resolutions.size(), 1u);
-  EXPECT_EQ(resolutions[0].missing, b_pos);
+  EXPECT_EQ(resolutions[0].missing, def_of(analysis_, b_pos));
   // No transmission alternatives (B.position is only producible via affine projection).
   EXPECT_TRUE(resolutions[0].transmission_alternatives.empty());
   // affine_root should be populated.
@@ -383,7 +389,7 @@ TEST_F(JointMapBlueprintTest, Resolutions_TrivialAffineGroup_NoAffineRoot)
     reach, std::vector<StateInterfaceId>{a});
 
   ASSERT_EQ(resolutions.size(), 1u);
-  EXPECT_EQ(resolutions[0].missing, a);
+  EXPECT_EQ(resolutions[0].missing, def_of(analysis_, a));
   EXPECT_TRUE(resolutions[0].transmission_alternatives.empty());
   EXPECT_FALSE(resolutions[0].affine_root.has_value());
 }
@@ -427,7 +433,7 @@ TEST_F(JointMapBlueprintTest, Resolutions_AlternativeWithAlreadySuppliedInput_No
   ASSERT_EQ(resolutions[0].transmission_alternatives.size(), 1u);
   // The alternative lists ONLY b — a is already supplied and excluded.
   ASSERT_EQ(resolutions[0].transmission_alternatives[0].size(), 1u);
-  EXPECT_EQ(resolutions[0].transmission_alternatives[0][0], b);
+  EXPECT_EQ(resolutions[0].transmission_alternatives[0][0], def_of(analysis_, b));
 }
 
 // ===========================================================================

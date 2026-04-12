@@ -7,7 +7,6 @@
 #include <rclcpp/logging.hpp>
 
 #include <hardware_interface/component_parser.hpp>
-#include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <transmission_interface/handle.hpp>
 
 #include <memory>
@@ -476,7 +475,7 @@ void add_urdf_joints_to_analysis(TransmissionAnalysis & transmission_analysis, c
   }
 }
 
-std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions_to_analysis_dangerous(
+void add_ros2_control_transmissions_to_analysis_dangerous(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
   std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader)
@@ -485,6 +484,8 @@ std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions
     plugin_loader = std::make_shared<Ros2ControlTransmissionPluginLoader>();
   }
 
+  // TODO: There should be a separate registry for interface types outside of the AffineProjectionRules, as not all
+  //       interfaces may be projected.
   // Source the per-import probe set from whatever interfaces the analysis currently has
   // registered AffineProjectionRules for. By default this is {position, velocity, acceleration},
   // populated by `TransmissionAnalysis`'s constructor; if a caller has registered an additional
@@ -498,45 +499,36 @@ std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions
     probe_interfaces.push_back(interface_id);
   }
 
-  std::vector<hardware_interface::TransmissionInfo> transmissions{};
   for (auto & hardware_info : hardware_interface::parse_control_resources_from_urdf(urdf_string)) {
     for (auto & transmission : hardware_info.transmissions) {
       add_ros2_control_transmission_to_analysis(
         transmission_analysis, transmission, plugin_loader, probe_interfaces);
-      transmissions.push_back(std::move(transmission));
     }
   }
-
-  if (transmissions.empty()) {
-    throw std::runtime_error("no ros2_control transmissions found");
-  }
-
-  return transmissions;
 }
 
-std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions_to_analysis(
+void add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
   std::shared_ptr<const Ros2ControlTransmissionPluginLoader> plugin_loader,
-  rclcpp::Logger logger)
+  const rclcpp::Logger& logger)
 {
   try {
-    return add_ros2_control_transmissions_to_analysis_dangerous(
+    add_ros2_control_transmissions_to_analysis_dangerous(
       transmission_analysis,
       urdf_string,
       std::move(plugin_loader));
   } catch (const std::runtime_error & e) {
     RCLCPP_WARN(logger, "Error trying to add transmissions to TransmissionAnalysis: %s", e.what());
-    return {};
   }
 }
 
-std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions_to_analysis(
+void add_ros2_control_transmissions_to_analysis(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
-  rclcpp::Logger logger)
+  const rclcpp::Logger & logger)
 {
-  return add_ros2_control_transmissions_to_analysis(
+  add_ros2_control_transmissions_to_analysis(
     transmission_analysis,
     urdf_string,
     std::make_shared<Ros2ControlTransmissionPluginLoader>(),

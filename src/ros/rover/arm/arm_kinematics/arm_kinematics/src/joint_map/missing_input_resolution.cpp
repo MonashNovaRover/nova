@@ -83,10 +83,15 @@ MissingOutputDiagnosis diagnose_missing_outputs(
   MissingOutputDiagnosis diag{};
 
   const auto ambiguities = reach.ambiguities();
+  const auto & analysis = reach.analysis();
   std::unordered_set<StateInterfaceId> ambiguous_set;
   ambiguous_set.reserve(ambiguities.size());
   for (const auto & amb : ambiguities) {
-    ambiguous_set.insert(amb.interface);
+    // AmbiguousInterface::interface is StateInterfaceDefinition; translate to StateInterfaceId for
+    // fast lookup. All ambiguous definitions were registered by the reachability's analysis.
+    if (analysis.state_interface_order().contains_key(amb.interface)) {
+      ambiguous_set.insert(analysis.state_interface_order()[amb.interface]);
+    }
   }
 
   // Lookup for transitively-blocked classification — turn the span into a set once.
@@ -134,8 +139,11 @@ MissingOutputDiagnosis diagnose_missing_outputs(
   // Slice reach.ambiguities() to those that any transitively-blocked / ambiguous output
   // depends on.
   for (const auto & amb : ambiguities) {
-    if (blocking_ambiguities.count(amb.interface) > 0) {
-      diag.relevant_blocking_ambiguities.push_back(amb);
+    if (analysis.state_interface_order().contains_key(amb.interface)) {
+      const StateInterfaceId sid = analysis.state_interface_order()[amb.interface];
+      if (blocking_ambiguities.count(sid) > 0) {
+        diag.relevant_blocking_ambiguities.push_back(amb);
+      }
     }
   }
 
@@ -183,16 +191,16 @@ std::vector<MissingInputResolution> compute_missing_input_resolutions(
 
   for (const StateInterfaceId m : missing) {
     MissingInputResolution entry{};
-    entry.missing = m;
+    entry.missing = analysis.state_interface_order().inverse[m];
 
     // ---- Transmission alternatives ----
     const auto producing = analysis.producing_transmissions(m);
     for (const auto tid : producing) {
       const auto & instance = analysis.transmissions()[tid];
-      std::vector<StateInterfaceId> needed;
+      std::vector<StateInterfaceDefinition> needed;
       for (const auto in : instance.input_ids) {
         if (supplied_set.count(in) == 0) {
-          needed.push_back(in);
+          needed.push_back(analysis.state_interface_order().inverse[in]);
         }
       }
       // If needed is empty, the transmission already had all inputs available — meaning the

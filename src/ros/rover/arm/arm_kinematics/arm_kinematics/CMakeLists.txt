@@ -172,10 +172,10 @@ target_link_libraries(test_manual
 target_include_directories(test_manual PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
-# install(TARGETS
-#   test_manual
-#   DESTINATION lib/${PROJECT_NAME}
-# )
+install(TARGETS
+  test_manual
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_export_targets(
   #  ${PROJECT_NAME}Targets

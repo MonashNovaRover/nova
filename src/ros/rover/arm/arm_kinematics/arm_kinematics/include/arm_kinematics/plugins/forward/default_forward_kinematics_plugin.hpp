@@ -68,10 +68,10 @@ public:
   };
 
   /**
-   * \copydoc ForwardKinematicsPlugin::make_tree(span<const StateInterfaceId>, ...)
+   * \copydoc ForwardKinematicsPlugin::make_tree(span<const StateInterfaceDefinition>, ...)
    */
   tl::expected<MakeTreeResult, MakeTreeError> make_tree(
-    span<const StateInterfaceId> input_state_interfaces,
+    span<const StateInterfaceDefinition> input_state_interfaces,
     const std::string & base_link_name,
     const FrameDefinitions & frames,
     const JointMapBuilder & joint_map_builder) override;
