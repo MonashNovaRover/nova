@@ -87,7 +87,6 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
-  props->path = camera->path;
 
   // Get profile
   std::string profile = "NULL";

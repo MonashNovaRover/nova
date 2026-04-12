@@ -12,7 +12,6 @@ struct Properties
   std::string serial;
   std::string node;
   std::string original_serial;
-  std::string path;
 };
 
 struct v4lProperties

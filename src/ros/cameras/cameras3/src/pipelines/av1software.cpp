@@ -130,7 +130,6 @@ av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node*
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
-  props->path = camera->path;
 
   // Get profile
   std::string profile = "NULL";

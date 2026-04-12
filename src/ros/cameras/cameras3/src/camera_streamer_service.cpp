@@ -78,9 +78,6 @@ class CameraStreamer : public rclcpp::Node
 
   private: void start_pipeline(Pipeline* pipeline)
   {
-    // Unsure no devnames have been lost
-    match_lost_devname(this, &pipelines);
-
     // get pipeline properties and use them to create the pipeline
     if (pipeline->pipeline_type == "v4lfallback")
     {
@@ -105,6 +102,9 @@ class CameraStreamer : public rclcpp::Node
       pipeline->gst_pipeline = av1software_pipeline(this, props);
     }
 
+    // Ensure no devnames have been lost
+    match_lost_devname(this, &pipelines);
+
     gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
   }
 
@@ -123,7 +123,6 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera->serial=camera.serial;
         pipeline->camera->node=camera.node;
         pipeline->camera->original_serial=camera.original_serial;
-        pipeline->camera->path=camera.path;
 
         std::map<std::string, rclcpp::Parameter> serial_params;
         const std::string default_string = "v4lfallback";

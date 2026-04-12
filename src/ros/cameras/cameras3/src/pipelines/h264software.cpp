@@ -129,7 +129,6 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
-  props->path = camera->path;
 
   // Get profile
   std::string profile = "NULL";

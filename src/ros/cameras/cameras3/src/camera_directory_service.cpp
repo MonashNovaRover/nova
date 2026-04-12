@@ -178,7 +178,6 @@ class CameraDirectory : public rclcpp::Node
       camera.serial = serial;
       camera.node = device.devname;
       camera.original_serial = device.serial;
-      camera.path = device.path;
       message.cameras.push_back(camera);
 
       if (devices.size() != last_device_count) {
