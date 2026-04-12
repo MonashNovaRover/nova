@@ -449,48 +449,38 @@ Fix smaller inefficiencies that will remain after the main representation and AP
    - this establishes the right internal/public split for interface names
    - it does not, by itself, resolve the current planner regression
 
-### New benchmark coverage
+### Remediation complete — final benchmark results
 
-The benchmark suite now includes a pure direct-input rearrangement case:
+All four phases have been completed. Final CPU means (N=128):
 
-- `InputReorder(N)` — no transmissions, no affine links, all inputs registered directly, outputs
-  are the same interfaces in reverse order
+| Benchmark | Baseline | Final | Improvement |
+|---|---|---|---|
+| `BM_Reachability_InputReorder/128` | ~4.36 µs | ~3.1 µs | −29% |
+| `BM_Reachability_LinearChain/128` | ~7.5 µs | ~2.3 µs | −69% |
+| `BM_Reachability_Diamond/128` | ~8.5 µs | ~2.7 µs | −68% |
+| `BM_Reachability_AffineFan/128` | — | ~13 µs | — |
+| `BM_PlanJointMap_InputReorder/128` | ~23.89 µs | ~10.3 µs | −57% |
+| `BM_PlanJointMap_LinearChain/128` | — | ~29.8 µs | — |
+| `BM_Materialize_InputReorder/128` | ~5.32 µs | ~0.24 µs | −96% |
+| `BM_Materialize_LinearChain/128` | — | ~28.7 µs | — |
+| `BM_FullPipeline_InputReorder/128` | ~42.04 µs | ~20.4 µs | −52% |
+| `BM_FullPipeline_LinearChain/128` | — | ~62.9 µs | — |
+| `BM_FullPipeline_AffineFan/128` | — | ~26.4 µs | — |
 
-This case is important because it isolates the workload that this remediation has actually been
-optimising for: correcting planner/materialiser overhead in the absence of transmission semantics.
+### Remaining bottlenecks (post-remediation)
 
-Current CPU means from that benchmark:
+The dominant remaining costs are:
 
-- `BM_Reachability_InputReorder/128`: about `4.36 us`
-- `BM_PlanJointMap_InputReorder/128`: about `23.89 us`
-- `BM_Materialize_InputReorder/128`: about `5.32 us`
-- `BM_FullPipeline_InputReorder/128`: about `42.04 us`
+1. **Plan + Materialize for transmission-heavy topologies** (~30 µs each for LinearChain/128).
+   Both are driven by per-stage heap allocations:
+   - `plan_joint_map()`: 3 vectors per `TransmissionStage` + 4 vectors per `InputAffineBatch` = 127 × ~7 allocations
+   - `materialize_joint_map()`: 8+ vectors per stage (input_sids, output_sids, gather, scatter, AffineJointMap internal arrays, CompositeJointMapStage scatter vectors) = 127 × ~8 allocations
 
-Interpretation:
+   Fixing these requires either flat blueprint-level storage (one allocation for all segment data instead of per-segment vectors) or a custom arena. This is a Phase 3 extension (blueprint API redesign) rather than a Phase 4 cleanup.
 
-- `Reachability` is not the dominant cost for the direct-rearrangement case
-- `Materialize` is not the dominant cost either
-- `PlanJointMap` currently dominates the no-transmission workload
+2. **Reachability string hashing for SIDs** (~2-3 µs of LinearChain reachability): the `seed_inputs` pass performs hash lookups on `InterfaceId` strings for each input. Further reduction would require pre-canonicalising inputs before the fixed point.
 
-That makes the next optimisation target clear: the current planner-side blueprint canonicalisation
-strategy is still doing too much work.
-
-### Immediate next step
-
-Keep the newer identity-model corrections, but reduce planner overhead by changing when
-blueprint-local canonicalisation happens.
-
-Specifically:
-
-- do not eagerly canonicalise every transmission input/output through blueprint-local ids during
-  `plan_joint_map()`
-- keep blueprint-local canonical ids only where they actually remove repeated symbolic work at the
-  planner/materialiser boundary
-- keep analysis-local dense ids explicit where the planner already has them and where no symbolic
-  recovery is required
-
-The direct `InputReorder` benchmark should be treated as the primary acceptance check for that
-next pass.
+These are the right costs to investigate next if builder performance needs further improvement after re-profiling in context.
 
 ## Validation Strategy
 

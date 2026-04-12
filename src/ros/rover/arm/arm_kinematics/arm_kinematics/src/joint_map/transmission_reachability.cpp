@@ -191,7 +191,8 @@ bool TransmissionReachability::add_to_derivable(const StateInterfaceId sid)
 void TransmissionReachability::record_candidate(
   const StateInterfaceId iface,
   StateInterfaceProducer producer,
-  std::vector<std::vector<StateInterfaceProducer>> & candidates) const
+  std::vector<StateInterfaceProducer> & candidates_first,
+  std::vector<std::vector<StateInterfaceProducer>> & candidates_extra) const
 {
   if (iface < producer_assignment_.size() &&
       producer_assignment_[iface].has_value() &&
@@ -199,14 +200,19 @@ void TransmissionReachability::record_candidate(
   {
     return;
   }
-  candidates[iface].push_back(std::move(producer));
+  if (std::holds_alternative<std::monostate>(candidates_first[iface])) {
+    candidates_first[iface] = std::move(producer);
+  } else {
+    candidates_extra[iface].push_back(std::move(producer));
+  }
 }
 
 void TransmissionReachability::process_affine_hypernode(
   const InterfaceKindId interface_kind_id,
   const AffineProjectionRule & rule,
   const span<const JointId> group_members,
-  std::vector<std::vector<StateInterfaceProducer>> & candidates,
+  std::vector<StateInterfaceProducer> & candidates_first,
+  std::vector<std::vector<StateInterfaceProducer>> & candidates_extra,
   bool & changed)
 {
   // ---- Find the lowest-JointId leaf source for this hypernode -------------------------
@@ -242,9 +248,10 @@ void TransmissionReachability::process_affine_hypernode(
         is_leaf = true;
         is_input_leaf = is_input_producer(*producer_assignment_[member_sid]);
       } else if (!has_assigned_producer) {
-        const auto & member_candidates = candidates[member_sid];
-        if (member_candidates.size() == 1 &&
-            std::holds_alternative<producers::Transmission>(member_candidates.front()))
+        // A SID with exactly 1 Transmission candidate (in primary, no overflow) is a leaf.
+        if (!std::holds_alternative<std::monostate>(candidates_first[member_sid]) &&
+            candidates_extra[member_sid].empty() &&
+            std::holds_alternative<producers::Transmission>(candidates_first[member_sid]))
         {
           is_leaf = true;
         }
@@ -301,19 +308,31 @@ void TransmissionReachability::process_affine_hypernode(
       // Registered member: go through candidates for proper ambiguity detection.
       const StateInterfaceId member_sid = *opt_member_sid;
       bool already_listed = false;
-      for (const auto & c : candidates[member_sid]) {
-        if (const auto * ap = std::get_if<producers::AffineProjection>(&c)) {
+      if (!std::holds_alternative<std::monostate>(candidates_first[member_sid])) {
+        if (const auto * ap = std::get_if<producers::AffineProjection>(&candidates_first[member_sid])) {
           if (ap->source == projection.source &&
               ap->multiplier == projection.multiplier &&
               ap->offset == projection.offset)
           {
             already_listed = true;
-            break;
+          }
+        }
+        if (!already_listed) {
+          for (const auto & c : candidates_extra[member_sid]) {
+            if (const auto * ap = std::get_if<producers::AffineProjection>(&c)) {
+              if (ap->source == projection.source &&
+                  ap->multiplier == projection.multiplier &&
+                  ap->offset == projection.offset)
+              {
+                already_listed = true;
+                break;
+              }
+            }
           }
         }
       }
       if (!already_listed) {
-        record_candidate(member_sid, projection, candidates);
+        record_candidate(member_sid, projection, candidates_first, candidates_extra);
       }
       if (!ambiguous_membership_[member_sid]) {
         if (add_to_derivable(member_sid)) {
@@ -354,7 +373,12 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
   unproducible_interfaces_.reserve(state_count);
   producer_assignment_.assign(state_count, std::nullopt);
 
-  std::vector<std::vector<StateInterfaceProducer>> candidates(state_count);
+  // Flat primary storage for candidates: one slot per SID, no heap allocation per element.
+  // monostate = no candidate recorded yet. For non-ambiguous topologies (the common case),
+  // each SID gets at most 1 candidate, and the flat array is the sole allocation.
+  // Overflow candidates for ambiguous SIDs (2+ viable producers) go in candidates_extra.
+  std::vector<StateInterfaceProducer> candidates_first(state_count, std::monostate{});
+  std::vector<std::vector<StateInterfaceProducer>> candidates_extra(state_count);
   std::vector<std::vector<StateInterfaceProducer>> ambiguity_snapshots(state_count);
 
   // ---- Per-pass helpers ---------------------------------------------------
@@ -363,8 +387,9 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
     derivable_interfaces_.reserve(state_count);
     derivable_membership_.assign(state_count, false);
     producer_assignment_.assign(state_count, std::nullopt);
-    for (auto & entry : candidates) {
-      entry.clear();
+    std::fill(candidates_first.begin(), candidates_first.end(), std::monostate{});
+    for (auto & v : candidates_extra) {
+      v.clear();
     }
     redundant_equivalent_inputs_.clear();
     redundant_equivalent_inputs_.reserve(inputs.size());
@@ -447,16 +472,20 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
         for (const StateInterfaceId out : instance.output_ids) {
           if (out >= state_count) continue;
           bool already_listed = false;
-          for (const auto & c : candidates[out]) {
-            if (const auto * tx = std::get_if<producers::Transmission>(&c)) {
-              if (tx->instance_id == tid) {
-                already_listed = true;
-                break;
+          if (!std::holds_alternative<std::monostate>(candidates_first[out])) {
+            if (const auto * tx = std::get_if<producers::Transmission>(&candidates_first[out])) {
+              if (tx->instance_id == tid) already_listed = true;
+            }
+            if (!already_listed) {
+              for (const auto & c : candidates_extra[out]) {
+                if (const auto * tx = std::get_if<producers::Transmission>(&c)) {
+                  if (tx->instance_id == tid) { already_listed = true; break; }
+                }
               }
             }
           }
           if (!already_listed) {
-            record_candidate(out, producers::Transmission{tid}, candidates);
+            record_candidate(out, producers::Transmission{tid}, candidates_first, candidates_extra);
           }
           if (!ambiguous_membership_[out]) {
             if (add_to_derivable(out)) {
@@ -495,7 +524,7 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
         }
         processed_groups[group_key] = true;
         process_affine_hypernode(
-          *opt_kind_id, *rule, group_members, candidates, changed);
+          *opt_kind_id, *rule, group_members, candidates_first, candidates_extra, changed);
       };
 
       for (const StateInterfaceId sid : derivable_interfaces_) {
@@ -518,9 +547,15 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
   // ---- Classify and snapshot first detections ----------------------------
   bool any_ambiguous = false;
   for (StateInterfaceId sid = 0; sid < state_count; ++sid) {
-    if (candidates[sid].size() >= 2 && !ambiguous_membership_[sid]) {
+    // An SID is ambiguous iff it has 2+ candidates: candidates_first is non-monostate AND
+    // at least one overflow candidate exists.
+    if (!candidates_extra[sid].empty() && !ambiguous_membership_[sid]) {
       ambiguous_membership_[sid] = true;
-      ambiguity_snapshots[sid] = candidates[sid];
+      ambiguity_snapshots[sid].push_back(candidates_first[sid]);
+      ambiguity_snapshots[sid].insert(
+        ambiguity_snapshots[sid].end(),
+        candidates_extra[sid].begin(),
+        candidates_extra[sid].end());
       any_ambiguous = true;
     }
   }
@@ -536,15 +571,14 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
 
   // ---- Final commit -------------------------------------------------------
   for (StateInterfaceId sid = 0; sid < state_count; ++sid) {
-    auto & sid_candidates = candidates[sid];
-    if (sid_candidates.empty()) {
+    if (std::holds_alternative<std::monostate>(candidates_first[sid])) {
       continue;
     }
     if (ambiguous_membership_[sid]) {
       continue;
     }
-    if (sid_candidates.size() == 1 && !producer_assignment_[sid].has_value()) {
-      producer_assignment_[sid] = std::move(sid_candidates.front());
+    if (!producer_assignment_[sid].has_value()) {
+      producer_assignment_[sid] = std::move(candidates_first[sid]);
     }
   }
 

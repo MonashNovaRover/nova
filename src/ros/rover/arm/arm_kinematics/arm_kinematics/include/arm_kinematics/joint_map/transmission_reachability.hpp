@@ -191,10 +191,15 @@ private:
 
   /// Records `producer` as a candidate for `iface`, honoring input-wins (if `iface` already has
   /// an `Input` entry in `producer_assignment_`, the candidate is silently dropped).
+  ///
+  /// `candidates_first` holds the first candidate per SID as a flat array (monostate = none),
+  /// avoiding per-SID heap allocations for the common non-ambiguous case. `candidates_extra`
+  /// holds overflow candidates for ambiguous SIDs (those with 2+ viable producers).
   void record_candidate(
     StateInterfaceId iface,
     StateInterfaceProducer producer,
-    std::vector<std::vector<StateInterfaceProducer>> & candidates) const;
+    std::vector<StateInterfaceProducer> & candidates_first,
+    std::vector<std::vector<StateInterfaceProducer>> & candidates_extra) const;
 
   /// Process a single `(group, interface_id)` affine hyper-node: pick the lowest-JointId leaf
   /// source among the group's currently-derivable members and project from it to every other
@@ -210,7 +215,8 @@ private:
     TransmissionAnalysis::InterfaceKindId interface_kind_id,
     const AffineProjectionRule & rule,
     span<const JointId> group_members,
-    std::vector<std::vector<StateInterfaceProducer>> & candidates,
+    std::vector<StateInterfaceProducer> & candidates_first,
+    std::vector<std::vector<StateInterfaceProducer>> & candidates_extra,
     bool & changed);
 
   /// Run the transitively-blocked post-pass after the main 2-pass algorithm converges. Walks
