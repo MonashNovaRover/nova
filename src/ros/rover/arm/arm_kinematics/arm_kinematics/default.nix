@@ -18,6 +18,7 @@
 , hardware-interface
 , fcl
 , kdl-parser
+, gbenchmark
 }:
 
 buildRosPackage rec {
@@ -54,6 +55,7 @@ buildRosPackage rec {
     hardware-interface
     fcl
     kdl-parser
+    gbenchmark
   ];
 
   propagatedBuildInputs = [ 

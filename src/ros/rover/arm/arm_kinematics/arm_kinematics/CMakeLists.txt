@@ -177,6 +177,25 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# Benchmark executable
+find_package(benchmark REQUIRED)
+add_executable(benchmark_joint_map
+  benchmark/joint_map_builder_benchmark.cpp
+)
+target_link_libraries(benchmark_joint_map
+  ${PROJECT_NAME}
+  benchmark::benchmark
+  benchmark::benchmark_main
+  Threads::Threads
+  fcl
+)
+target_include_directories(benchmark_joint_map PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+install(TARGETS benchmark_joint_map
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_export_targets(
   #  ${PROJECT_NAME}Targets
   export_${PROJECT_NAME}
