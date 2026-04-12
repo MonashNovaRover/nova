@@ -74,7 +74,7 @@ ForwardKinematicsPlugin::make_tree(
     joint_map_err.kind = JointMapBuildError::Kind::UnknownJoint;
     joint_map_err.message = oss.str();
     MakeTreeError err{};
-    err.kind = MakeTreeError::Kind::UnknownInterface;
+    err.kind = MakeTreeError::Kind::UnknownJoint;
     err.message = joint_map_err.message;
     err.joint_map_error = std::move(joint_map_err);
     return tl::unexpected(std::move(err));

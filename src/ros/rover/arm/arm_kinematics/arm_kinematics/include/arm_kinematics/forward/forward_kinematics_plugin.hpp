@@ -74,25 +74,24 @@ public:
    * construction failure, name-resolution failure for the convenience overload — and squashing
    * them all into one type would lose actionable detail. The `kind` discriminator says which
    * failure occurred; `joint_map_error` is populated when the underlying cause is a structured
-   * `JointMapBuildError` (kinds `JointMapBuildFailed` and `UnknownInterface`).
+   * `JointMapBuildError` (kinds `JointMapBuildFailed` and `UnknownJoint`).
    */
   struct MakeTreeError {
     enum class Kind {
       /// The joint map builder rejected the request. `joint_map_error` carries the structured
-      /// reason (missing inputs, ambiguity, unknown interface from the builder's perspective).
+      /// reason (missing inputs, ambiguity, unknown joint from the builder's perspective).
       JointMapBuildFailed,
       /// `AnalysisTree::make_compute_frame_tree()` failed (e.g. unresolved frame parent, bad
       /// link reference). The error string from the analysis tree lives in `message`.
       FrameTreeFailed,
-      /// One or more `NamedStateInterfaceDefinition` entries passed to the convenience overload
-      /// could not be resolved against the FK plugin's analysis (joint name not in URDF, or
-      /// interface id not registered for the joint). `joint_map_error` is populated with the
-      /// equivalent `JointMapBuildError::Kind::UnknownInterface` slice.
-      UnknownInterface,
+      /// One or more joint names in the request could not be resolved against the FK plugin's
+      /// analysis (joint name not in URDF). `joint_map_error` is populated with the equivalent
+      /// `JointMapBuildError::Kind::UnknownJoint` slice.
+      UnknownJoint,
     };
     Kind kind = Kind::JointMapBuildFailed;
     std::string message{};
-    /// Populated when `kind` is `JointMapBuildFailed` or `UnknownInterface`. Empty for
+    /// Populated when `kind` is `JointMapBuildFailed` or `UnknownJoint`. Empty for
     /// `FrameTreeFailed`.
     std::optional<JointMapBuildError> joint_map_error{};
   };
@@ -176,7 +175,7 @@ public:
    * before delegating to the main overload above.
    *
    * Default implementation looks up each joint name in `get_transmission_analysis()`. If any
-   * joint name is unknown, returns a `MakeTreeError` with `Kind::UnknownInterface` (the wrapped
+   * joint name is unknown, returns a `MakeTreeError` with `Kind::UnknownJoint` (the wrapped
    * `joint_map_error` carries a `JointMapBuildError::Kind::UnknownJoint` slice with the full
    * list of unresolvable entries).
    *

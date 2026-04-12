@@ -7,65 +7,14 @@
 
 #include <cstddef>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 
+#include "arm_kinematics/joint_map/state_interface_producer.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 
 namespace arm_kinematics {
-
-/**
- * Producer alternatives carried in `StateInterfaceProducer`.
- *
- * Each alternative carries only the data relevant to its case (no fat-struct anti-pattern with
- * always-empty fields). The variant `StateInterfaceProducer` selects between them.
- */
-namespace producers {
-
-/// The interface's value comes directly from one of the analysis-input slots.
-struct Input {
-  /// Position in the reachability's effective inputs span (i.e. the index a builder uses to read
-  /// from the JointMap's `inputs` array at runtime). Always points at the first occurrence of
-  /// the interface in the input list — duplicates of the same interface do not change this
-  /// index.
-  std::size_t input_index = 0;
-};
-
-/// The interface's value is derived from another known leaf interface via a (possibly composed)
-/// affine relationship. The `source` is **always** another producer that resolves to either
-/// `Input` or `Transmission` in a single `producer_of()` step — never another `AffineProjection`.
-/// The algorithm enforces this by preferring leaf interfaces when picking a source.
-struct AffineProjection {
-  /// The known leaf interface providing the underlying value.
-  StateInterfaceId source = 0;
-  /// Already-composed interface-space coefficient. Computed in O(1) at planning time from the
-  /// per-joint flat affine relations stored in `TransmissionAnalysis::affine_transmissions_`
-  /// and the projection rule for the relevant interface id.
-  double multiplier = 1.0;
-  double offset = 0.0;
-};
-
-/// The interface's value is produced by a selected `TransmissionInstance` (a block compute
-/// that may produce multiple values together).
-struct Transmission {
-  TransmissionInstanceId instance_id = 0;
-};
-
-}  // namespace producers
-
-/// What produces a given `StateInterfaceId` in the current reachability?
-///
-/// `std::monostate` represents "not produced" — the interface is unreachable from the analyzed
-/// inputs, ambiguous (in which case the producer is intentionally hidden because the algorithm
-/// refuses to pick a winner), or out-of-scope (not in the inputs and not transitively reachable).
-using StateInterfaceProducer = std::variant<
-  std::monostate,
-  producers::Input,
-  producers::AffineProjection,
-  producers::Transmission
->;
 
 /**
  * Build-time analysis of "what is derivable from these inputs?" against a `TransmissionAnalysis`.
@@ -105,10 +54,11 @@ public:
   ///
   /// Accumulated across the entire algorithm pass — `ambiguities()` returns *every* ambiguous
   /// interface, not just the first one encountered.
-  struct AmbiguousInterface {
-    StateInterfaceDefinition interface{};
-    std::vector<StateInterfaceProducer> candidates{};
-  };
+  ///
+  /// Defined as a standalone type in `state_interface_producer.hpp`; aliased here so that
+  /// existing code referring to `TransmissionReachability::AmbiguousInterface` continues to work.
+  using AmbiguousInterface = producers::AmbiguousInterface;
+  using StateInterfaceProducer = producers::StateInterfaceProducer;
 
   /// Pure-function analysis. Runs the eager forward fixed point against `analysis` starting from
   /// the given `inputs`. The returned object is immutable — to update the analysis with more

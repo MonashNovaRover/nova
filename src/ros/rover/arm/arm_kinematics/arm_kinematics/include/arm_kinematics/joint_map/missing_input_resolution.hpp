@@ -8,9 +8,11 @@
 #include <optional>
 #include <vector>
 
-#include "arm_kinematics/joint_map/transmission_reachability.hpp"
+#include "arm_kinematics/joint_map/state_interface_producer.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/span.hpp"
+
+namespace arm_kinematics { class TransmissionReachability; }  // forward declaration
 
 namespace arm_kinematics {
 
@@ -81,7 +83,7 @@ struct MissingOutputDiagnosis {
   /// transitively blocked) actually depends on. For directly-ambiguous outputs the dependency
   /// is the output itself. For transitively blocked outputs, the diagnose walks the analysis's
   /// potential-producer graph and affine group members to attribute the upstream ambiguities.
-  std::vector<TransmissionReachability::AmbiguousInterface> relevant_blocking_ambiguities;
+  std::vector<producers::AmbiguousInterface> relevant_blocking_ambiguities;
 
   /// Resolution hints for each entry in `unproducible`. Same length as `unproducible`.
   std::vector<MissingInputResolution> resolutions;

@@ -13,6 +13,12 @@
 
 namespace arm_kinematics {
 
+// File-local aliases so internal code can use the short names without re-polluting the
+// public arm_kinematics:: namespace. These types live in arm_kinematics::producers:: but
+// are ubiquitous enough in this translation unit to warrant short aliases.
+using producers::AmbiguousInterface;
+using producers::StateInterfaceProducer;
+
 namespace {
 
 // Reverse-lookup helper: given a StateInterfaceId, get its (joint_id, interface_id) parts via
@@ -409,7 +415,7 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceId
       const StateInterfaceId sid = inputs[i];
       // Out-of-range SIDs indicate a caller bug (using a stale id from a different
       // analysis, or a fabricated id). The builder layer (DefaultJointMapBuilder) catches
-      // these up front and reports `Kind::UnknownInterface`. Direct callers of `analyze()`
+      // these up front and reports `Kind::UnknownJoint`. Direct callers of `analyze()`
       // get a debug assertion to catch the bug in test suites; release builds skip
       // silently to avoid crashing on a recoverable input.
       assert(sid < state_count && "TransmissionReachability::analyze: input SID out of range");

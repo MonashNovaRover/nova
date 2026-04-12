@@ -112,11 +112,9 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
   }
   if (!unknown_joints.empty()) {
     // Deduplicate while preserving insertion order.
-    std::vector<JointId> seen;
     std::vector<JointId> unique;
     for (const auto jid : unknown_joints) {
-      if (std::find(seen.begin(), seen.end(), jid) == seen.end()) {
-        seen.push_back(jid);
+      if (std::find(unique.begin(), unique.end(), jid) == unique.end()) {
         unique.push_back(jid);
       }
     }

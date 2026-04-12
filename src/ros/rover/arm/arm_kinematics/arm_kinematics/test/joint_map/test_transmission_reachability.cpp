@@ -25,13 +25,13 @@ using arm_kinematics::JointId;
 using arm_kinematics::NamedStateInterfaceDefinition;
 using arm_kinematics::StateInterfaceDefinition;
 using arm_kinematics::StateInterfaceId;
-using arm_kinematics::StateInterfaceProducer;
 using arm_kinematics::TransmissionAnalysis;
 using arm_kinematics::TransmissionInstanceId;
 using arm_kinematics::TransmissionModel;
 using arm_kinematics::TransmissionReachability;
 
 namespace producers = arm_kinematics::producers;
+using producers::StateInterfaceProducer;
 
 namespace {
 

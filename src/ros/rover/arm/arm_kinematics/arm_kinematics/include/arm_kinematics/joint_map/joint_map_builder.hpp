@@ -11,7 +11,7 @@
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/missing_input_resolution.hpp"
 #include "arm_kinematics/joint_map/state_interface_definition.hpp"
-#include "arm_kinematics/joint_map/transmission_reachability.hpp"
+#include "arm_kinematics/joint_map/state_interface_producer.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/expected.hpp"
 #include "arm_kinematics/utilities/span.hpp"
@@ -67,7 +67,7 @@ struct JointMapBuildError {
   /// requested outputs transitively depend on (directly or via the producer chain). Sliced
   /// from the reachability's full ambiguity list — unrelated ambiguities elsewhere in the
   /// analysis are not reported.
-  std::vector<TransmissionReachability::AmbiguousInterface> ambiguous_interfaces{};
+  std::vector<producers::AmbiguousInterface> ambiguous_interfaces{};
 
   /// Populated when `kind == UnknownJoint`. Each entry is a `JointId` from the request that
   /// is not registered in the analysis's joint order.
