@@ -142,7 +142,7 @@ public:
 
   /**
    * \brief Constructs the plugin implementation's Tree subclass — the canonical (fast-path)
-   * overload taking already-resolved `StateInterfaceId`s.
+   * overload taking already-resolved `TransmissionAnalysis::StateInterfaceId`s.
    * \see ForwardKinematicsPlugin::Tree
    *
    * \param input_state_interfaces[in] The state interfaces the FK tree will receive at runtime

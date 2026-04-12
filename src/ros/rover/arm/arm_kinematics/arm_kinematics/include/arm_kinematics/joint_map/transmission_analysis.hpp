@@ -13,7 +13,6 @@
 
 #include "arm_kinematics/joint_map/affine_projection_rule.hpp"
 #include "arm_kinematics/joint_map/state_interface_definition.hpp"
-#include "arm_kinematics/joint_map/transmission_model.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/interface_id.hpp"
 #include "arm_kinematics/utilities/order.hpp"
@@ -21,6 +20,8 @@
 #include "arm_kinematics/visibility_control.h"
 
 namespace arm_kinematics {
+
+class TransmissionModel;
 
 /**
  * Build-time graph data structure for transmissions and joint relationships.
@@ -56,6 +57,8 @@ namespace arm_kinematics {
  */
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
+  using StateInterfaceId = std::size_t;
+
   /**
    * The current flat affine relationship of one joint to its affine group's root.
    *
@@ -97,10 +100,10 @@ public:
 
   TransmissionAnalysis();
   TransmissionAnalysis(const TransmissionAnalysis & other);
-  TransmissionAnalysis(TransmissionAnalysis &&) noexcept = default;
+  TransmissionAnalysis(TransmissionAnalysis &&) noexcept;
   TransmissionAnalysis & operator=(const TransmissionAnalysis & other);
-  TransmissionAnalysis & operator=(TransmissionAnalysis &&) noexcept = default;
-  ~TransmissionAnalysis() = default;
+  TransmissionAnalysis & operator=(TransmissionAnalysis &&) noexcept;
+  ~TransmissionAnalysis();
 
   // ---------------------------------------------------------------------------
   // Models

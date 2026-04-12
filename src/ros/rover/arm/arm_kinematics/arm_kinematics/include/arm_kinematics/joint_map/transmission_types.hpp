@@ -13,7 +13,6 @@ namespace arm_kinematics {
 // can get disorienting.
 
 using JointId = std::size_t;
-using StateInterfaceId = std::size_t;
 using TransmissionInstanceId = std::size_t; ///< index of a TransmissionInstance inside a TransmissionAnalysis
 using TransmissionModelId = std::size_t;
 

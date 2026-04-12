@@ -36,7 +36,6 @@ using arm_kinematics::InterfaceId;
 using arm_kinematics::JointId;
 using arm_kinematics::NamedStateInterfaceDefinition;
 using arm_kinematics::StateInterfaceDefinition;
-using arm_kinematics::StateInterfaceId;
 using arm_kinematics::TransmissionAnalysis;
 using arm_kinematics::TransmissionModel;
 using arm_kinematics::TransmissionModelId;
@@ -44,6 +43,7 @@ using arm_kinematics::diagnose_missing_outputs;
 using arm_kinematics::materialize_joint_map;
 using arm_kinematics::plan_joint_map;
 using arm_kinematics::span;
+using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
 
 // ---------------------------------------------------------------------------
 // Null transmission (zero-cost stand-in for real models)

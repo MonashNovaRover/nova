@@ -9,6 +9,8 @@
 
 namespace arm_kinematics {
 
+using StateInterfaceId = TransmissionAnalysisView::StateInterfaceId;
+
 TransmissionAnalysisView::TransmissionAnalysisView(const TransmissionAnalysis & base)
   : base_(base),
     base_joint_count_(base.joint_order().size()),

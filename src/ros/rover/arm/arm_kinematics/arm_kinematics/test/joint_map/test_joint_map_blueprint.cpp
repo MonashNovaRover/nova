@@ -29,11 +29,11 @@ using arm_kinematics::JointMapBlueprintSegment;
 using arm_kinematics::MissingOutputDiagnosis;
 using arm_kinematics::NamedStateInterfaceDefinition;
 using arm_kinematics::StateInterfaceDefinition;
-using arm_kinematics::StateInterfaceId;
 using arm_kinematics::TransmissionAnalysis;
 using arm_kinematics::TransmissionInstanceId;
 using arm_kinematics::TransmissionModel;
 using arm_kinematics::TransmissionReachability;
+using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
 
 namespace {
 

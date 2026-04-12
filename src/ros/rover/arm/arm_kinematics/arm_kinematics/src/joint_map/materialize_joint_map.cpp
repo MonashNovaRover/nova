@@ -29,6 +29,8 @@
 
 namespace arm_kinematics {
 
+using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
+
 namespace {
 
 bool blueprint_is_pure_affine(const JointMapBlueprint & blueprint) noexcept

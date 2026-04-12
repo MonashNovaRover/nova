@@ -22,10 +22,10 @@ using arm_kinematics::ComputeTransmission;
 using arm_kinematics::InterfaceId;
 using arm_kinematics::JointId;
 using arm_kinematics::NamedStateInterfaceDefinition;
-using arm_kinematics::StateInterfaceId;
 using arm_kinematics::TransmissionAnalysis;
 using arm_kinematics::TransmissionInstanceId;
 using arm_kinematics::TransmissionModel;
+using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
 
 namespace {
 

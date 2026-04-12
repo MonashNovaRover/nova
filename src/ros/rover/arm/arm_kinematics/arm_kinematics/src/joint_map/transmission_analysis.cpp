@@ -10,7 +10,11 @@
 #include <stdexcept>
 #include <utility>
 
+#include "arm_kinematics/joint_map/transmission_model.hpp"
+
 namespace arm_kinematics {
+
+using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
 
 namespace {
 
@@ -70,6 +74,8 @@ TransmissionAnalysis::TransmissionAnalysis(const TransmissionAnalysis & other)
   }
 }
 
+TransmissionAnalysis::TransmissionAnalysis(TransmissionAnalysis &&) noexcept = default;
+
 TransmissionAnalysis & TransmissionAnalysis::operator=(const TransmissionAnalysis & other)
 {
   if (this == &other) {
@@ -93,6 +99,10 @@ TransmissionAnalysis & TransmissionAnalysis::operator=(const TransmissionAnalysi
   affine_group_members_storage_ = other.affine_group_members_storage_;
   return *this;
 }
+
+TransmissionAnalysis & TransmissionAnalysis::operator=(TransmissionAnalysis &&) noexcept = default;
+
+TransmissionAnalysis::~TransmissionAnalysis() = default;
 
 // ---------------------------------------------------------------------------
 // Models

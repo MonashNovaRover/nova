@@ -16,6 +16,11 @@
 
 namespace arm_kinematics {
 
+// Blueprint-local state interface ids. These are currently stored as a compact integer type, but
+// they are intentionally scoped to the blueprint layer rather than borrowed from
+// TransmissionAnalysis.
+using BlueprintStateInterfaceId = std::size_t;
+
 /**
  * One stage in a `JointMapBlueprint`.
  *
@@ -23,7 +28,8 @@ namespace arm_kinematics {
  * transmission instance or computes a batch of affine-mapped outputs from values that are
  * already available (i.e., inputs and outputs of previously-executed transmission stages).
  *
- * At runtime, the materializer maintains a logical "value table" keyed by `StateInterfaceId` —
+ * At runtime, the materializer maintains a logical "value table" keyed by
+ * `TransmissionAnalysis::StateInterfaceId` —
  * inputs are seeded into it before the first segment runs, and each transmission stage adds its
  * outputs to it. Affine batches read source values out of the table and write results into the
  * blueprint's overall output buffer.
@@ -80,9 +86,9 @@ struct JointMapBlueprintSegment {
     /// The transmission instance id to execute.
     TransmissionInstanceId instance_id = 0;
     /// The transmission's input state interfaces (read from the value table at runtime).
-    std::vector<StateInterfaceId> inputs{};
+    std::vector<BlueprintStateInterfaceId> inputs{};
     /// The transmission's output state interfaces (added to the value table at runtime).
-    std::vector<StateInterfaceId> outputs{};
+    std::vector<BlueprintStateInterfaceId> outputs{};
     /// Parallel to `outputs`. If a transmission output is directly requested in the blueprint's
     /// `outputs()`, the corresponding entry holds the index in the blueprint's overall output
     /// buffer where that value should be written. Otherwise `std::nullopt` (the value is still

@@ -31,11 +31,11 @@ using arm_kinematics::InterfaceId;
 using arm_kinematics::JointId;
 using arm_kinematics::JointMap;
 using arm_kinematics::NamedStateInterfaceDefinition;
-using arm_kinematics::StateInterfaceId;
 using arm_kinematics::TransmissionAnalysis;
 using arm_kinematics::TransmissionJointMap;
 using arm_kinematics::TransmissionModel;
 using arm_kinematics::TransmissionReachability;
+using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
 
 namespace {
 

@@ -13,6 +13,8 @@
 
 namespace arm_kinematics {
 
+using StateInterfaceId = TransmissionReachability::StateInterfaceId;
+
 // File-local aliases so internal code can use the short names without re-polluting the
 // public arm_kinematics:: namespace.
 using producers::AmbiguousInterface;

@@ -50,6 +50,10 @@ namespace arm_kinematics {
  */
 class TransmissionReachability {
 public:
+  // Reachability-local state interface ids. These are currently stored as a compact integer
+  // type, but they belong to the reachability layer rather than to TransmissionAnalysis.
+  using StateInterfaceId = std::size_t;
+
   /// One ambiguous interface in the reachability, with the full list of competing producers
   /// that the algorithm refused to silently choose between.
   ///

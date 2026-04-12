@@ -14,6 +14,8 @@
 
 namespace arm_kinematics {
 
+using StateInterfaceId = BlueprintStateInterfaceId;
+
 namespace {
 
 // Sentinel for "not assigned to any transmission stage; lives in the pre-transmission affine

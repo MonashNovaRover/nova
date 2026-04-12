@@ -47,6 +47,7 @@ class ARM_KINEMATICS_PUBLIC TransmissionAnalysisView {
 public:
   using AffineTransmission   = TransmissionAnalysis::AffineTransmission;
   using TransmissionInstance = TransmissionAnalysis::TransmissionInstance;
+  using StateInterfaceId     = TransmissionAnalysis::StateInterfaceId;
 
   explicit TransmissionAnalysisView(const TransmissionAnalysis & base);
 

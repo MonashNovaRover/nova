@@ -103,7 +103,8 @@ public:
    *
    * The canonical request boundary uses `StateInterfaceDefinition` (`JointId` + `InterfaceId`):
    * callers resolve joint names against a `TransmissionAnalysis` via `joint_order()` to obtain
-   * `JointId`s, then pair them with the desired `InterfaceId`. `StateInterfaceId` is an
+   * `JointId`s, then pair them with the desired `InterfaceId`.
+   * `TransmissionAnalysis::StateInterfaceId` is an
    * implementation detail of the builder — callers never need to pre-register state interfaces.
    *
    * Any registered joint paired with any `InterfaceId` is a valid request. A `JointId` that is

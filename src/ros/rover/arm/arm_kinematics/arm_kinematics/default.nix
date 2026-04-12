@@ -106,5 +106,7 @@ buildRosPackage rec {
 #    "-ffast-math"
     "-DNDEBUG"
     "-DEIGEN_NO_DEBUG"
+    "-fno-omit-frame-pointer"
+    "-g"
   ];
 }

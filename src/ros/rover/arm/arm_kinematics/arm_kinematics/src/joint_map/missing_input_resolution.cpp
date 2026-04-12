@@ -11,6 +11,8 @@
 
 namespace arm_kinematics {
 
+using StateInterfaceId = TransmissionReachability::StateInterfaceId;
+
 namespace {
 
 // Walk the analysis's potential-producer graph backward from `blocked_output` (SID) and

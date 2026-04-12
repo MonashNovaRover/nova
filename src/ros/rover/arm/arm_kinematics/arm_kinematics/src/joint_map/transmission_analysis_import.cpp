@@ -21,6 +21,8 @@
 
 namespace arm_kinematics {
 
+using StateInterfaceId = TransmissionAnalysis::StateInterfaceId;
+
 namespace {
 
 // ===========================================================================
