@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "arm_kinematics/joint_map/joint_map_blueprint.hpp"
@@ -74,9 +75,14 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
   }
   if (!unknown_joints.empty()) {
     std::vector<JointId> unique;
-    for (const auto jid : unknown_joints) {
-      if (std::find(unique.begin(), unique.end(), jid) == unique.end()) {
-        unique.push_back(jid);
+    {
+      std::unordered_set<JointId> seen;
+      seen.reserve(unknown_joints.size());
+      unique.reserve(unknown_joints.size());
+      for (const auto jid : unknown_joints) {
+        if (seen.insert(jid).second) {
+          unique.push_back(jid);
+        }
       }
     }
     JointMapBuildError err{};

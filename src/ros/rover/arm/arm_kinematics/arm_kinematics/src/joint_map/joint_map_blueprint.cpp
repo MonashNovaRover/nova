@@ -467,14 +467,11 @@ JointMapBlueprint plan_joint_map(
       stage.inputs.push_back(ensure_blueprint_state_id_for_sid(sid));
     }
     stage.outputs.reserve(instance.output_ids.size());
-    for (const auto sid : instance.output_ids) {
-      stage.outputs.push_back(ensure_blueprint_state_id_for_sid(sid));
-    }
     stage.blueprint_output_indices.resize(instance.output_ids.size(), std::nullopt);
-
-    // O(1) per output: look up precomputed sid → blueprint output position.
     for (std::size_t out_pos = 0; out_pos < instance.output_ids.size(); ++out_pos) {
       const auto sid = instance.output_ids[out_pos];
+      stage.outputs.push_back(ensure_blueprint_state_id_for_sid(sid));
+      // O(1): look up precomputed sid → blueprint output position.
       if (sid < analysis_sid_count) {
         stage.blueprint_output_indices[out_pos] = sid_to_blueprint_output[sid];
       }

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
-#include <set>
 #include <unordered_map>
 #include <utility>
 
@@ -405,7 +404,29 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
   };
 
   // The inner loop: forward fixed point honoring the current `ambiguous_membership_`.
+  // Allocate the affine group deduplication bitmap once per run_inner_loop call
+  // (keyed by root * num_interface_kinds + interface_kind_id) and reset it each
+  // while(changed) iteration. This avoids the per-iteration std::set tree-node
+  // allocations that the previous version incurred.
+  const std::size_t num_joints = analysis_.joint_order().inverse.size();
+  const std::size_t num_kinds = analysis_.interface_order().inverse.size();
+
+  // Check once whether any non-trivial affine group exists. Joints with no affine
+  // transmission have affine_root_of(j) == j. If all joints are self-roots, the affine
+  // scanning block in run_inner_loop can be skipped entirely, avoiding 2*num_joints
+  // string hash lookups per fixed-point iteration (one affine_projection_rule call per
+  // derivable SID that always returns nullptr or finds size-1 groups).
+  const bool has_non_trivial_affine_groups = [&]() {
+    for (JointId j = 0; j < static_cast<JointId>(num_joints); ++j) {
+      if (analysis_.affine_root_of(j) != j) {
+        return true;
+      }
+    }
+    return false;
+  }();
+
   auto run_inner_loop = [&]() {
+    std::vector<bool> processed_groups(num_joints * num_kinds, false);
     bool changed = true;
     while (changed) {
       changed = false;
@@ -446,38 +467,44 @@ void TransmissionReachability::run_fixed_point(const span<const StateInterfaceDe
       }
 
       // ---- Affine hyper-nodes ----
-      // Snapshot includes BOTH real-SID derivable interfaces AND bare derivable defs so
-      // that bare inputs can seed affine propagation into real-SID group members.
-      std::vector<StateInterfaceDefinition> affine_candidates;
-      affine_candidates.reserve(derivable_interfaces_.size() + derivable_bare_defs_list_.size());
-      for (const StateInterfaceId sid : derivable_interfaces_) {
-        affine_candidates.push_back(analysis_.state_interface_order().inverse[sid]);
-      }
-      for (const StateInterfaceDefinition & d : derivable_bare_defs_list_) {
-        affine_candidates.push_back(d);
-      }
+      // Only run affine scanning when the analysis actually has non-trivial affine groups.
+      // For pure-transmission or pure-input topologies (e.g. LinearChain, InputReorder),
+      // this block is skipped entirely, avoiding per-SID string hash lookups on every
+      // fixed-point iteration.
+      if (has_non_trivial_affine_groups) {
+      // Reset the per-iteration deduplication bitmap.
+      std::fill(processed_groups.begin(), processed_groups.end(), false);
 
-      std::set<std::pair<JointId, std::size_t>> processed_groups;
-      for (const StateInterfaceDefinition & defn : affine_candidates) {
+      auto process_affine_defn = [&](const StateInterfaceDefinition & defn) {
         const AffineProjectionRule * rule = analysis_.affine_projection_rule(defn.interface_id);
         if (rule == nullptr) {
-          continue;
+          return;
         }
         const auto opt_kind_id = analysis_.find_interface_kind_id(defn.interface_id);
         if (!opt_kind_id.has_value()) {
-          continue;
+          return;
         }
         const JointId root = analysis_.affine_root_of(defn.joint_id);
         const auto group_members = analysis_.affine_group_members(root);
         if (group_members.size() <= 1) {
-          continue;
+          return;
         }
-        if (!processed_groups.insert({root, *opt_kind_id}).second) {
-          continue;
+        const std::size_t group_key = root * num_kinds + *opt_kind_id;
+        if (processed_groups[group_key]) {
+          return;
         }
+        processed_groups[group_key] = true;
         process_affine_hypernode(
           *opt_kind_id, *rule, group_members, candidates, changed);
+      };
+
+      for (const StateInterfaceId sid : derivable_interfaces_) {
+        process_affine_defn(analysis_.state_interface_order().inverse[sid]);
       }
+      for (const StateInterfaceDefinition & defn : derivable_bare_defs_list_) {
+        process_affine_defn(defn);
+      }
+      }  // has_non_trivial_affine_groups
     }
   };
 

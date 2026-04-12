@@ -144,12 +144,6 @@ JointMap materialize_composite(
   const auto state_interfaces = blueprint.state_interfaces();
   const std::size_t blueprint_state_count = state_interfaces.size();
 
-  // ---- Allocate scratch slots -----------------------------------------------
-  // Scratch holds: (a) user inputs, (b) transmission outputs, (c) scratch-fill targets
-  // (Case 3: affinely-derived defs needed as transmission inputs, neither inputs nor tx outputs).
-  //
-  // Affine batch output rows do NOT need scratch slots — the leaf-source invariant guarantees
-  // no other segment reads them; they go directly to the composite's output buffer.
   std::vector<std::size_t> scratch_slot_of_blueprint_sid(blueprint_state_count, kUnassignedSlot);
   std::size_t next_scratch_slot = 0;
 
@@ -161,7 +155,6 @@ JointMap materialize_composite(
   };
 
   // (a) Inputs (in order, first-occurrence-wins).
-  // O(N) via blueprint.find_state_interface_id — avoids the old O(K×N) nested scan.
   for (std::size_t i = 0; i < inputs.size(); ++i) {
     const auto opt_local_id = blueprint.find_state_interface_id(inputs[i]);
     if (opt_local_id.has_value()) {
@@ -197,8 +190,7 @@ JointMap materialize_composite(
     return slot;
   };
 
-  // ---- Build input seeds ----------------------------------------------------
-  // O(N) via blueprint.find_state_interface_id — avoids the old O(N×K) nested scan.
+  // Build input seeds.
   std::vector<std::pair<std::size_t, std::size_t>> input_seeds;
   input_seeds.reserve(inputs.size());
   std::vector<bool> seeded_by_sid(blueprint_state_count, false);
@@ -210,7 +202,7 @@ JointMap materialize_composite(
     }
   }
 
-  // ---- Build stages ---------------------------------------------------------
+  // Build stages.
   std::vector<CompositeJointMapStage> stages;
   stages.reserve(segments.size());
 
@@ -221,7 +213,6 @@ JointMap materialize_composite(
       const std::size_t fill_count = batch->scratch_targets.size();
       const std::size_t total_count = out_count + fill_count;
 
-      // Build unified source/multiplier/offset arrays for the AffineJointMap.
       std::vector<std::size_t> aff_sources(total_count);
       std::vector<double> aff_multipliers(total_count);
       std::vector<double> aff_offsets(total_count);
@@ -241,7 +232,6 @@ JointMap materialize_composite(
         std::move(aff_sources), std::move(aff_multipliers), std::move(aff_offsets), scratch_size);
       stage.segment = JointMap(std::move(aff));
 
-      // Output rows → output_scatter; scratch-fill rows → scratch_scatter.
       stage.scratch_scatter.resize(total_count, std::nullopt);
       stage.output_scatter.resize(total_count, std::nullopt);
 
@@ -290,7 +280,6 @@ JointMap materialize_composite(
           "materialize_joint_map: TransmissionModel::build returned a null compute");
       }
 
-      // Gather: each transmission input SID maps to its scratch slot (pre-filled for Case 3).
       std::vector<std::size_t> gather(tx.inputs.size());
       for (std::size_t i = 0; i < tx.inputs.size(); ++i) {
         const std::size_t slot = scratch_slot_of_blueprint_sid[tx.inputs[i]];
