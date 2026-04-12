@@ -433,11 +433,14 @@ TEST_F(FixedJointUrdfTest, ForwardFromRoot)
 
   // Empty inputs — the FK tree has no dynamic joints to drive (we only test fixed-joint
   // propagation from the base link).
-  const std::vector<NamedStateInterfaceDefinition> empty_inputs;
-  auto result = plugin_->make_tree(
-    span<const NamedStateInterfaceDefinition>(empty_inputs.data(), empty_inputs.size()),
-    "base",
-    {frame_names_});
+
+  std::vector<NamedStateInterfaceDefinition> inputs;
+  inputs.reserve(joint_names_.size());
+  for (auto & name : joint_names_) {
+    inputs.emplace_back(name, "position");
+  }
+
+  auto result = plugin_->make_tree(inputs, "base", frame_names_);
   ASSERT_TRUE(result.has_value()) << "make_tree failed: " << result.error().message;
   auto tree = std::move(result.value().tree);
   const auto & order = result.value().frame_order;
@@ -447,7 +450,7 @@ TEST_F(FixedJointUrdfTest, ForwardFromRoot)
   const auto expected = Reordered{expected_frame_poses_, order};
 
   Isometry3dVector actual(expected.size());
-  tree->position_fk({}, actual);
+  tree->position_fk(std::vector(inputs.size(), 0.0), actual);
 
   for (std::size_t i = 0; i < actual.size(); ++i) {
     ExpectVectorNear(actual[i].translation(), expected[i], names[i].c_str());
@@ -489,15 +492,19 @@ TEST_F(FixedJointUrdfTest, BackwardFromAll)
 {
   ASSERT_TRUE(init_result_) << "Failed to init plugin";
 
-  const std::vector<NamedStateInterfaceDefinition> empty_inputs;
+  std::vector<NamedStateInterfaceDefinition> inputs;
+  inputs.reserve(joint_names_.size());
+  for (auto & name : joint_names_) {
+    inputs.emplace_back(name, "position");
+  }
 
   for (std::size_t i = 0; i < frame_names_.size(); ++i) {
     const auto & base_name = frame_names_[i];
 
     auto result = plugin_->make_tree(
-      span<const NamedStateInterfaceDefinition>(empty_inputs.data(), empty_inputs.size()),
+      inputs,
       base_name,
-      {frame_names_});
+      frame_names_);
     ASSERT_TRUE(result.has_value())
       << "make_tree failed from base \"" << base_name << "\": " << result.error().message;
     auto tree = std::move(result.value().tree);
@@ -508,7 +515,7 @@ TEST_F(FixedJointUrdfTest, BackwardFromAll)
     const auto expected = Reordered{expected_frame_poses_, order};
 
     Isometry3dVector actual(expected.size());
-    tree->position_fk({}, actual);
+    tree->position_fk(std::vector(inputs.size(), 0.0), actual);
 
     const auto base = expected_frame_poses_[i];
 
@@ -527,16 +534,21 @@ TEST_F(FixedJointUrdfTest, StressTest)
   std::size_t us_total = 0;
   constexpr std::size_t kCalculationsPerIteration = 131072;
 
-  const std::vector<NamedStateInterfaceDefinition> empty_inputs;
+  std::vector<NamedStateInterfaceDefinition> inputs;
+  inputs.reserve(joint_names_.size());
+  for (auto & name : joint_names_) {
+    inputs.emplace_back(name, "position");
+  }
+  auto input_values = std::vector<double>(inputs.size(), 0.0);
 
   for (std::size_t i = 0; i < frame_names_.size(); ++i) {
     const auto & base_name = frame_names_[i];
 
     const auto tree_start = Clock::now();
     auto result = plugin_->make_tree(
-      span<const NamedStateInterfaceDefinition>(empty_inputs.data(), empty_inputs.size()),
+      inputs,
       base_name,
-      {frame_names_});
+      frame_names_);
     const auto tree_end = Clock::now();
     const auto tree_us = std::chrono::duration_cast<std::chrono::microseconds>(
       tree_end - tree_start).count();
@@ -555,7 +567,7 @@ TEST_F(FixedJointUrdfTest, StressTest)
     std::cout << "Stress testing from base \"" << base_name << "\"\n";
     const auto start = Clock::now();
     for (std::size_t k = 0; k < kCalculationsPerIteration; ++k) {
-      tree->position_fk({}, actual);
+      tree->position_fk(input_values, actual);
     }
     const auto end = Clock::now();
     const auto us =
