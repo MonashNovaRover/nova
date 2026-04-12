@@ -55,6 +55,7 @@ class CarouselController(Controller):
 
         # Set up params
         self.zero_offset = [0, 0]
+        self.last_positions = [None, None]
         self.target_positions = self.declare_parameter("initial_positions", [0,0], "Initial position to set each of the rings").value
         self.zero_cuvettes = self.declare_parameter("zero_cuvettes", [0, 0], "The cuvettes at the spec in the zero position").value
         self.num_cuvettes = self.declare_parameter("num_cuvettes", [15, 24], "The number of cuvettes in each ring").value
@@ -85,9 +86,6 @@ class CarouselController(Controller):
         """
         # Save references to interfaces
         self.ring_cmds = [command_interfaces[f"{x}/position"] for x in self.RING_NAMES]
-        for i in range(len(self.ring_cmds)):
-            self.ring_cmds[i].value = self.target_positions[i]
-        self.publish()
 
     def on_update(self, now: float, period: float):
         """ Called on every update. You should read values from state interfaces, and set values on command interfaces
@@ -97,6 +95,11 @@ class CarouselController(Controller):
         """
         for i in range(len(self.ring_cmds)):
             self.ring_cmds[i].value = self.target_positions[i]
+
+        cur_pos = [x.value for x in self.ring_cmds]
+        if self.last_positions != [x.value for x in self.ring_cmds]:
+            self.last_positions = cur_pos
+            self.publish()
 
     def publish(self):
         msg = NamedPositions()
