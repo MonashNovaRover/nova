@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <limits>
 #include <stdexcept>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -21,6 +21,7 @@ namespace {
 // Sentinel for "not assigned to any transmission stage; lives in the pre-transmission affine
 // batch (stage 0)". Stored as ssize_t-style int with a sentinel value.
 constexpr int kPreTransmissionStage = -1;
+constexpr std::size_t kUnassignedStageIndex = std::numeric_limits<std::size_t>::max();
 
 // Walk producer chains starting from `def` and collect every TransmissionInstanceId that's
 // transitively required to compute it. Recurses through AffineProjection sources (which
@@ -67,11 +68,9 @@ std::vector<TransmissionInstanceId> topo_sort_required_transmissions(
   std::sort(sorted_required.begin(), sorted_required.end());
 
   // Build dependency edges.
-  std::unordered_map<TransmissionInstanceId, std::vector<TransmissionInstanceId>> dependents;
-  std::unordered_map<TransmissionInstanceId, std::size_t> in_degree;
-  for (const auto tid : sorted_required) {
-    in_degree[tid] = 0;
-  }
+  const std::size_t transmission_count = reach.analysis().transmissions().size();
+  std::vector<std::vector<TransmissionInstanceId>> dependents(transmission_count);
+  std::vector<std::size_t> in_degree(transmission_count, 0);
 
   for (const auto t2 : sorted_required) {
     const auto & instance = reach.analysis().transmissions()[t2];
@@ -107,15 +106,13 @@ std::vector<TransmissionInstanceId> topo_sort_required_transmissions(
 
   std::vector<TransmissionInstanceId> result;
   result.reserve(sorted_required.size());
-  while (!ready.empty()) {
-    const TransmissionInstanceId tid = ready.front();
-    ready.erase(ready.begin());
+  std::size_t ready_cursor = 0;
+  while (ready_cursor < ready.size()) {
+    const TransmissionInstanceId tid = ready[ready_cursor++];
     result.push_back(tid);
-    auto deps_it = dependents.find(tid);
-    if (deps_it == dependents.end()) continue;
-    for (const TransmissionInstanceId dep : deps_it->second) {
+    for (const TransmissionInstanceId dep : dependents[tid]) {
       if (--in_degree[dep] == 0) {
-        const auto pos = std::lower_bound(ready.begin(), ready.end(), dep);
+        const auto pos = std::lower_bound(ready.begin() + static_cast<std::ptrdiff_t>(ready_cursor), ready.end(), dep);
         ready.insert(pos, dep);
       }
     }
@@ -203,8 +200,7 @@ JointMapBlueprint plan_joint_map(
   const auto topo_order = topo_sort_required_transmissions(reach, required);
 
   // Map TransmissionInstanceId → its position in topo_order, for stage assignment.
-  std::unordered_map<TransmissionInstanceId, std::size_t> stage_index_of;
-  stage_index_of.reserve(topo_order.size());
+  std::vector<std::size_t> stage_index_of(analysis.transmissions().size(), kUnassignedStageIndex);
   for (std::size_t i = 0; i < topo_order.size(); ++i) {
     stage_index_of[topo_order[i]] = i;
   }
