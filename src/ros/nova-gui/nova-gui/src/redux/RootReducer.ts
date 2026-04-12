@@ -295,6 +295,13 @@ export const reduxStores = {
       time_target: 0,
     }
   ),
+  carouselStore: createBifrostStore(
+    { topic: RosTopic.CAROUSEL },
+    {
+      names: ["inner_degree", "inner_cuvette", "outer_degree", "outer_cuvette"],
+      positions: [0, 0, 0, 0],
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,

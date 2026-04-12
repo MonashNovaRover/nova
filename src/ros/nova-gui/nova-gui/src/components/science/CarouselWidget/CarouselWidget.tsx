@@ -1,29 +1,21 @@
-import React, {useEffect, useState} from "react";
-import {Card, CardBody, CardHeader, CardProps, Divider, Switch, Tab} from "@nextui-org/react";
+import React, {useState} from "react";
+import {Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
 import CarouselDial from "./CarouselDial.tsx";
-import {toInteger} from "lodash";
 import CarouselInputs from "./CarouselInputs.tsx";
 import CarouselControls from "./CarouselControls.tsx";
-import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
-import {RosService} from "../../../ros/services/rosService.ts";
 import SegmentedPicker from "../../shared/components/SegmentedPicker/SegmentedPicker.tsx";
+import {useCarouselPosition, useCarouselServices} from "./useCarouselBifrost.ts";
 
 export enum RING {
   INNER = 0,
   OUTER = 1,
 }
+export const RING_NAMES = ["inner", "outer"];
+export const NUM_CUVETTES = [15, 24]
 
 export type CuvettePositions = [number, number]
 
 export interface CarouselWidgetProps extends CardProps{
-}
-
-const clampStep = (step: number) => {
-  if (step >= 0 )
-    return step % 20
-
-  const n = step + (toInteger(step / 20) * -1 + 1) * 20
-  return n % 20
 }
 
 /**
@@ -32,10 +24,9 @@ const clampStep = (step: number) => {
  * @constructor
  */
 const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
-  const [currentCuvetteRotation, setCurrentCuvetteRotation] = useState(0) // 0-indexed no range
-  const currentCuvette = clampStep(currentCuvetteRotation) // 0-indexed between 0-19 inclusive
-  // const [showCalibration, setShowCalibration] = useState(true)
-  const bifrost = useBifrost({service: RosService.CAROUSEL});
+  const [currentBifrostCuvettes, _] = useCarouselPosition()
+  const carouselService = useCarouselServices()
+  console.log(currentBifrostCuvettes)
 
   // current cuvette locations both 0 indexed
   // [inner: between [0, 14], outer: between [0, 23]
@@ -43,12 +34,19 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   const [selectedTab, setSelectedTab] = useState(0)
   const showCalibration = selectedTab === 1
 
-  useEffect(() => {
-    bifrost.syncWithTopic();
-  }, [bifrost]);
 
   const setCuvettePositions = (positions: CuvettePositions) => {
-    // TODO add ROS stuff
+    carouselService(
+      {
+        names: ["inner_cuvette", "outer_cuvette"],
+        positions: positions
+      }
+    )
+
+    console.log({
+      names: ["inner_cuvette", "outer_cuvette"],
+      positions: positions
+    })
 
     setCurrentCuvettes(positions)
   }
@@ -60,8 +58,9 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   }
 
   const moveXCuvettes = (ring: RING)=> (x: number) => {
+    const newPos = (currentCuvettes[ring] + x + NUM_CUVETTES[ring]) % NUM_CUVETTES[ring]
     setCuvettePositions(
-      currentCuvettes.map((val, i) => i == ring ? val + x : val) as CuvettePositions
+      currentCuvettes.map((val, i) => i == ring ? newPos: val) as CuvettePositions
     )
   }
 
@@ -86,17 +85,10 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
           variant="bordered"
         />
 
-        {/*<div className="flex flex-row items-center justify-between gap-5 ">*/}
-        {/*  <span>Calibrate Mode</span>*/}
-        {/*  <Switch size="lg" isSelected={showCalibration} onValueChange={() => setShowCalibration(!showCalibration)}/>*/}
-        {/*</div>*/}
-
-        {/*<Divider className="mt-2"/>*/}
-
         <CarouselInputs
-          currentCuvette={currentCuvette}
+          currentCuvettes={currentCuvettes}
           showCalibration={showCalibration}
-          setCurrentCuvette={setCurrentCuvetteRotation}
+          setCurrentCuvette={setCurrentCuvettes}
           moveXCuvettes={moveXCuvettes}
         />
       </div>
@@ -117,8 +109,8 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
           reverse
         />
         <CarouselDial
-          inner={{current: currentCuvettes[RING.INNER], onClick: onCuvetteClick(RING.INNER)}}
-          outer={{current: currentCuvettes[RING.OUTER], onClick: onCuvetteClick(RING.OUTER)}}
+          inner={{current: currentBifrostCuvettes[RING.INNER], onClick: onCuvetteClick(RING.INNER)}}
+          outer={{current: currentBifrostCuvettes[RING.OUTER], onClick: onCuvetteClick(RING.OUTER)}}
         />
       </div>
     </CardBody>

@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from "react";
-import {Button, Input} from "@nextui-org/react";
-import {Anchor, ChevronUp, Search} from "react-feather";
+import React from "react";
+import {Button,} from "@nextui-org/react";
+import {Anchor} from "react-feather";
 import {CuvettePositions, RING} from "./CarouselWidget.tsx";
 
 export interface CarouselInputsProps{
@@ -10,8 +10,6 @@ export interface CarouselInputsProps{
   moveXCuvettes : (ring: RING) => (index: number) => void
 }
 
-const relativeVisSpecPos = (x: number) => (x+5) % 20
-
 /**
  * Carousel Inputs component
  * @param currentCuvette current cuvette the camera is facing
@@ -20,16 +18,7 @@ const relativeVisSpecPos = (x: number) => (x+5) % 20
  * @param moveXCuvettes move the carousel x cuvettes
  * @constructor
  */
-const CarouselInputs: React.FC<CarouselInputsProps> = ({currentCuvettes, showCalibration, setCurrentCuvette, moveXCuvettes}: CarouselInputsProps) => {
-  const [currentCuvetteInput, setCurrentCuvetteInput] = useState(currentCuvettes + 1) // 1-indexed between 1-20
-  const [visibleCuvetteInput, setVisibleCuvetteInput] = useState(currentCuvettes + 1) // 1-indexed between 1-20
-  const [visSpecCuvetteInput, setVisSpecCuvetteInput] = useState(relativeVisSpecPos(currentCuvettes) + 1) // 1-indexed between 1-20
-
-  useEffect(() => {
-    setCurrentCuvetteInput(currentCuvettes + 1)
-    setVisibleCuvetteInput(currentCuvettes + 1)
-    setVisSpecCuvetteInput(relativeVisSpecPos(currentCuvettes) + 1)
-  }, [currentCuvettes]);
+const CarouselInputs: React.FC<CarouselInputsProps> = ({showCalibration}: CarouselInputsProps) => {
 
   return (
     <div className="flex flex-col">

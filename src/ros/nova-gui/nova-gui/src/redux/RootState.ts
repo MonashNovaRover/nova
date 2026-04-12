@@ -38,6 +38,7 @@ import {
   IRosNovaInterfacesLockedStatus,
   IRosScienceInterfacesPumpStatus,
   IRosNovaInterfacesGpsData,
+  IRosScienceInterfacesNamedPositions,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -109,6 +110,7 @@ export interface RootState {
   auger2DepthSensorStore: IRosStdMsgsBool;
   toolRotatorAngleStore: IRosStdMsgsFloat64;
   pumpsStatusStore: IRosScienceInterfacesPumpStatus;
+  carouselStore: IRosScienceInterfacesNamedPositions;
 
   // Maps Related Stores
   roverLocationStore: IRosNovaInterfacesGpsData;

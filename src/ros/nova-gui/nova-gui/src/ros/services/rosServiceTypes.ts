@@ -31,8 +31,6 @@ import {
   IRosNovaInterfacesCartographerCommandResponse,
   IRosScienceInterfacesMoveHydraprobeRequest,
   IRosScienceInterfacesMoveHydraprobeResponse,
-  IRosScienceInterfacesSetPositionPresetsRequest,
-  IRosScienceInterfacesSetPositionPresetsResponse,
   IRosScienceInterfacesSetPositionRequest,
   IRosScienceInterfacesSetPositionResponse,
   IRosScienceInterfacesPowerCycleRequest,
@@ -43,6 +41,8 @@ import {
   IRosScienceInterfacesRunPumpResponse,
   IRosCameraMsgsCameraProfileSelectionRequest,
   IRosCameraMsgsCameraProfileSelectionResponse,
+  IRosScienceInterfacesSetNamedPositionsRequest,
+  IRosScienceInterfacesSetNamedPositionsResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -174,8 +174,8 @@ export interface RosServiceInterface {
     IRosStdSrvsTriggerResponse
   >;
   [RosService.CAROUSEL]: RosServiceMessage<
-    IRosScienceInterfacesKilnCommandRequest,
-    IRosScienceInterfacesKilnCommandResponse
+    IRosScienceInterfacesSetNamedPositionsRequest,
+    IRosScienceInterfacesSetNamedPositionsResponse
   >;
   [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
     EmptyMessage,
@@ -194,8 +194,8 @@ export interface RosServiceInterface {
     IRosStdSrvsTriggerResponse
   >;
   [RosService.TOOL_ROTATOR_PRESETS]: RosServiceMessage<
-    IRosScienceInterfacesSetPositionPresetsRequest,
-    IRosScienceInterfacesSetPositionPresetsResponse
+    IRosScienceInterfacesSetNamedPositionsRequest,
+    IRosScienceInterfacesSetNamedPositionsResponse
   >;
   [RosService.TOOL_ROTATOR_POSITION]: RosServiceMessage<
     IRosScienceInterfacesSetPositionRequest,
