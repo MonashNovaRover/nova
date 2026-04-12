@@ -140,14 +140,14 @@ protected:
     std::vector<arm_kinematics::NamedStateInterfaceDefinition> named_inputs;
     named_inputs.reserve(joint_names_.size());
     for (const auto & name : joint_names_) {
-      named_inputs.push_back(arm_kinematics::NamedStateInterfaceDefinition{name, k_position});
+      named_inputs.emplace_back(name, k_position);
     }
 
     auto make_tree_result = fk_plugin_->make_tree(
       arm_kinematics::span<const arm_kinematics::NamedStateInterfaceDefinition>(
         named_inputs.data(), named_inputs.size()),
       "base_link",
-      std::move(frames));
+      frames);
     ASSERT_TRUE(make_tree_result.has_value())
       << "make_tree failed: " << make_tree_result.error().message;
     auto tree = std::move(make_tree_result.value().tree);

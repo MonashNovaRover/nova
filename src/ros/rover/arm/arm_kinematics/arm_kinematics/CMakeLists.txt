@@ -60,6 +60,7 @@ add_library(${PROJECT_NAME} SHARED
   src/joint_map/missing_input_resolution.cpp
   src/joint_map/transmission_analysis.cpp
   src/joint_map/transmission_analysis_import.cpp
+  src/joint_map/transmission_analysis_view.cpp
   src/joint_map/ros2_control_transmission_plugin_loader.cpp
   src/joint_map/transmission_joint_map.cpp
   src/joint_map/transmission_reachability.cpp
