@@ -6,11 +6,15 @@
 #define ARM_KINEMATICS_ORDERING_HPP
 
 #include <map>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+
+#include "arm_kinematics/utilities/expected.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 
 namespace arm_kinematics {
 
@@ -512,6 +516,71 @@ public:
 
     original.clear();
     return mapped;
+  }
+
+  /**
+   * Maps a span of keys through this order, collecting resolved values or unknown keys.
+   *
+   * @param keys The keys to look up in this order.
+   * @return A tl::expected where the value contains all mapped TValues if every key was found,
+   *         or the error contains the subset of keys that were not found in the order.
+   */
+  [[nodiscard]] tl::expected<std::vector<TValue>, std::vector<TKey>>
+  try_map_collect(span<const TKey> keys) const
+  {
+    std::vector<TValue> resolved;
+    resolved.reserve(keys.size());
+    std::vector<TKey> unknown;
+
+    for (const auto & key : keys) {
+      if (!contains_key(key)) {
+        unknown.push_back(key);
+      } else {
+        resolved.push_back((*this)[key]);
+      }
+    }
+
+    if (!unknown.empty()) {
+      return tl::unexpected(std::move(unknown));
+    }
+    return resolved;
+  }
+
+  /**
+   * Maps a span of inputs through a key extractor and then this order, collecting resolved values
+   * or unknown inputs.
+   *
+   * key_fn should return std::optional<TKey>; returning std::nullopt marks the input as unknown
+   * before the order is even consulted.
+   *
+   * @tparam TIn The input element type.
+   * @tparam KeyFn A callable mapping (const TIn &) to std::optional<TKey>.
+   * @param inputs The input elements to resolve.
+   * @param key_fn Extracts a TKey from each TIn, or returns std::nullopt if the input has no valid key.
+   * @return A tl::expected where the value contains all mapped TValues if every input was resolved,
+   *         or the error contains the subset of TIn inputs that could not be resolved.
+   */
+  template<typename TIn, typename KeyFn>
+  [[nodiscard]] tl::expected<std::vector<TValue>, std::vector<TIn>>
+  try_map_collect(span<const TIn> inputs, KeyFn key_fn) const
+  {
+    std::vector<TValue> resolved;
+    resolved.reserve(inputs.size());
+    std::vector<TIn> unknown;
+
+    for (const auto & input : inputs) {
+      auto maybe_key = key_fn(input);
+      if (!maybe_key || !contains_key(*maybe_key)) {
+        unknown.push_back(input);
+      } else {
+        resolved.push_back((*this)[*maybe_key]);
+      }
+    }
+
+    if (!unknown.empty()) {
+      return tl::unexpected(std::move(unknown));
+    }
+    return resolved;
   }
 
   template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>

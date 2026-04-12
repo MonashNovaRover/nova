@@ -4,6 +4,7 @@
 
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -41,38 +42,26 @@ ForwardKinematicsPlugin::make_tree(
   const FrameDefinitions & frames,
   const JointMapBuilder & joint_map_builder)
 {
-  // Const lookup of each (joint_name, interface_id) against the FK plugin's analysis. The
-  // analysis is logically frozen at this point — typically populated by URDF parsing in
-  // RobotModel — so we use `contains_key` + `operator[]` instead of mutating helpers like
-  // `ensure_state_interface_id`. If any name/interface is unknown, return a structured
-  // UnknownInterface error so the caller knows their request references something not in
-  // the analysis.
+  // Resolve each (joint_name, interface_id) against the FK plugin's analysis. The analysis is
+  // logically frozen at this point — typically populated by URDF parsing in RobotModel — so
+  // this is a const lookup. If any name/interface is unknown, return a structured
+  // UnknownInterface error so the caller knows their request references something not in the
+  // analysis.
   const auto & analysis = get_transmission_analysis();
   const auto & joint_order = analysis.joint_order();
   const auto & state_interface_order = analysis.state_interface_order();
 
-  std::vector<StateInterfaceId> resolved;
-  resolved.reserve(named_input_state_interfaces.size());
+  auto resolved = state_interface_order.try_map_collect(
+    named_input_state_interfaces,
+    [&joint_order](const NamedStateInterfaceDefinition & named) -> std::optional<StateInterfaceDefinition> {
+      if (!joint_order.contains_key(named.joint_name)) {
+        return std::nullopt;
+      }
+      return StateInterfaceDefinition{joint_order[named.joint_name], named.interface_id};
+    });
 
-  std::vector<NamedStateInterfaceDefinition> unknown;
-
-  for (const auto & named : named_input_state_interfaces) {
-    if (!joint_order.contains_key(named.joint_name)) {
-      unknown.push_back(named);
-      continue;
-    }
-    const JointId joint_id = joint_order[named.joint_name];
-    const StateInterfaceDefinition def{joint_id, named.interface_id};
-    if (!state_interface_order.contains_key(def)) {
-      unknown.push_back(named);
-      continue;
-    }
-    resolved.push_back(state_interface_order[def]);
-  }
-
-  if (!unknown.empty()) {
-    JointMapBuildError joint_map_err{};
-    joint_map_err.kind = JointMapBuildError::Kind::UnknownInterface;
+  if (!resolved) {
+    const auto & unknown = resolved.error();
     std::ostringstream oss;
     oss << "ForwardKinematicsPlugin::make_tree: " << unknown.size()
         << " requested state interface(s) are not registered in the FK plugin's analysis "
@@ -87,8 +76,9 @@ ForwardKinematicsPlugin::make_tree(
       oss << ", ...and " << (unknown.size() - shown) << " more";
     }
     oss << "]";
+    JointMapBuildError joint_map_err{};
+    joint_map_err.kind = JointMapBuildError::Kind::UnknownInterface;
     joint_map_err.message = oss.str();
-
     MakeTreeError err{};
     err.kind = MakeTreeError::Kind::UnknownInterface;
     err.message = joint_map_err.message;
@@ -97,7 +87,7 @@ ForwardKinematicsPlugin::make_tree(
   }
 
   return make_tree(
-    span<const StateInterfaceId>(resolved.data(), resolved.size()),
+    span<const StateInterfaceId>(resolved->data(), resolved->size()),
     base_link_name,
     frames,
     joint_map_builder);

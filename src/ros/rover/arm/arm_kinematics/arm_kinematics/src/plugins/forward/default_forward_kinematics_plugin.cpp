@@ -6,6 +6,7 @@
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 #include "arm_kinematics/common/robot_model.hpp"
 
+#include <optional>
 #include <sstream>
 #include <utility>
 #include <vector>
@@ -49,55 +50,48 @@ DefaultForwardKinematicsPlugin::make_tree(
   const auto & state_interface_order = analysis.state_interface_order();
   static const InterfaceId k_position_interface{"position"};
 
-  std::vector<StateInterfaceId> mapper_output_sids;
-  mapper_output_sids.reserve(subtree_joint_names.size());
-  std::vector<std::string> unknown_mapper_joints;
-
   // Skip index 0 — that's the base link, not a joint with state.
-  for (std::size_t i = 1; i < subtree_joint_names.size(); ++i) {
-    const std::string & joint_name = subtree_joint_names[i];
-    if (!joint_order.contains_key(joint_name)) {
-      unknown_mapper_joints.push_back(joint_name);
-      continue;
-    }
-    const JointId joint_id = joint_order[joint_name];
-    const StateInterfaceDefinition def{joint_id, k_position_interface};
-    if (!state_interface_order.contains_key(def)) {
-      unknown_mapper_joints.push_back(joint_name);
-      continue;
-    }
-    mapper_output_sids.push_back(state_interface_order[def]);
-  }
+  const span<const std::string> joint_names_to_resolve{
+    subtree_joint_names.data() + 1,
+    subtree_joint_names.size() > 0 ? subtree_joint_names.size() - 1 : std::size_t{0}};
 
-  if (!unknown_mapper_joints.empty()) {
+  auto mapper_result = state_interface_order.try_map_collect(
+    joint_names_to_resolve,
+    [&joint_order](const std::string & name) -> std::optional<StateInterfaceDefinition> {
+      if (!joint_order.contains_key(name)) return std::nullopt;
+      return StateInterfaceDefinition{joint_order[name], k_position_interface};
+    });
+
+  if (!mapper_result) {
     // The FK subtree references joints that aren't in the FK plugin's analysis. This is an
     // internal inconsistency between the URDF (which feeds the analysis) and the analysis
     // tree (which feeds the FK subtree). Surface as UnknownInterface so the user can
     // diagnose.
-    JointMapBuildError joint_map_err{};
-    joint_map_err.kind = JointMapBuildError::Kind::UnknownInterface;
+    const auto & unknown = mapper_result.error();
     std::ostringstream oss;
-    oss << "DefaultForwardKinematicsPlugin::make_tree: " << unknown_mapper_joints.size()
+    oss << "DefaultForwardKinematicsPlugin::make_tree: " << unknown.size()
         << " joint(s) referenced by the FK analysis subtree are not registered in the FK "
         << "plugin's transmission analysis: [";
     constexpr std::size_t kMaxFormatted = 5;
-    const std::size_t shown = std::min(unknown_mapper_joints.size(), kMaxFormatted);
+    const std::size_t shown = std::min(unknown.size(), kMaxFormatted);
     for (std::size_t i = 0; i < shown; ++i) {
       if (i > 0) oss << ", ";
-      oss << unknown_mapper_joints[i];
+      oss << unknown[i];
     }
-    if (unknown_mapper_joints.size() > shown) {
-      oss << ", ...and " << (unknown_mapper_joints.size() - shown) << " more";
+    if (unknown.size() > shown) {
+      oss << ", ...and " << (unknown.size() - shown) << " more";
     }
     oss << "]";
+    JointMapBuildError joint_map_err{};
+    joint_map_err.kind = JointMapBuildError::Kind::UnknownInterface;
     joint_map_err.message = oss.str();
-
     MakeTreeError err{};
     err.kind = MakeTreeError::Kind::UnknownInterface;
     err.message = joint_map_err.message;
     err.joint_map_error = std::move(joint_map_err);
     return tl::unexpected(std::move(err));
   }
+  auto & mapper_output_sids = *mapper_result;
 
   // Sort frames such that any root-relative frames are placed at the end of the array.
   auto frame_order = subtree.sort_frames();
