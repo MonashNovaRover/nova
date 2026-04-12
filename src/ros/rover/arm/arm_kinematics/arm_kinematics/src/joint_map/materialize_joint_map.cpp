@@ -43,16 +43,15 @@ bool blueprint_is_pure_affine(const JointMapBlueprint & blueprint) noexcept
 
 JointMap materialize_pure_affine(const JointMapBlueprint & blueprint)
 {
-  const auto inputs = blueprint.inputs();
-  const auto outputs = blueprint.outputs();
+  const auto inputs = blueprint.inputs();   // span<const StateInterfaceDefinition>
+  const auto outputs = blueprint.outputs(); // span<const StateInterfaceDefinition>
 
-  // First-occurrence-wins SID → input slot for the user-facing input vector.
-  std::unordered_map<StateInterfaceId, std::size_t> input_slot_of;
+  // First-occurrence-wins def → input slot for the user-facing input vector.
+  std::unordered_map<StateInterfaceDefinition, std::size_t> input_slot_of;
   for (std::size_t i = 0; i < inputs.size(); ++i) {
     input_slot_of.emplace(inputs[i], i);
   }
 
-  // Pre-size for output count; we'll fill in row-by-row from segments.
   std::vector<std::size_t> sources(outputs.size(), 0);
   std::vector<double> multipliers(outputs.size(), 0.0);
   std::vector<double> offsets(outputs.size(), 0.0);
@@ -60,14 +59,12 @@ JointMap materialize_pure_affine(const JointMapBlueprint & blueprint)
 
   for (const auto & seg : blueprint.segments()) {
     const auto * batch = std::get_if<JointMapBlueprintSegment::InputAffineBatch>(&seg.kind);
-    // Defensive: this is an internal invariant — `materialize_pure_affine` is only called when
-    // `blueprint_is_pure_affine(blueprint)` is true, which already excludes any non-affine
-    // segments. If we hit this, the materializer's classification logic is buggy.
     assert(batch != nullptr && "materialize_pure_affine: non-affine segment in pure-affine blueprint");
+    assert(batch->scratch_targets.empty() && "materialize_pure_affine: scratch-fill rows in pure-affine blueprint");
     for (std::size_t i = 0; i < batch->blueprint_output_indices.size(); ++i) {
       const std::size_t out_pos = batch->blueprint_output_indices[i];
-      const auto src_sid = batch->sources[i];
-      const auto it = input_slot_of.find(src_sid);
+      const auto src_def = batch->sources[i];
+      const auto it = input_slot_of.find(src_def);
       if (it == input_slot_of.end()) {
         throw std::invalid_argument(
           "materialize_joint_map: pure-affine blueprint references a non-input source");
@@ -94,56 +91,58 @@ JointMap materialize_composite(
   const JointMapBlueprint & blueprint,
   const TransmissionAnalysis & analysis)
 {
-  const auto inputs = blueprint.inputs();
-  const auto outputs = blueprint.outputs();
+  const auto inputs = blueprint.inputs();   // span<const StateInterfaceDefinition>
+  const auto outputs = blueprint.outputs(); // span<const StateInterfaceDefinition>
   const auto segments = blueprint.segments();
 
   // ---- Allocate scratch slots -----------------------------------------------
-  // We need a scratch slot for every distinct StateInterfaceId that needs to live in the
-  // value table at any point during execution: (a) inputs, (b) transmission outputs (so
-  // downstream consumers can read them).
+  // Scratch holds: (a) user inputs, (b) transmission outputs, (c) scratch-fill targets
+  // (Case 3: affinely-derived defs needed as transmission inputs, neither inputs nor tx outputs).
   //
-  // Affine batch outputs do NOT need scratch slots — by the leaf-source invariant, no other
-  // segment reads them, so they go directly to the composite's output buffer.
-  //
-  // Affine batch sources are always either inputs or transmission outputs (per the
-  // leaf-source invariant), both of which already have slots from the above.
-  std::unordered_map<StateInterfaceId, std::size_t> scratch_slot_of;
-  auto allocate_slot = [&](const StateInterfaceId sid) -> std::size_t {
-    const auto [it, inserted] = scratch_slot_of.emplace(sid, scratch_slot_of.size());
+  // Affine batch output rows do NOT need scratch slots — the leaf-source invariant guarantees
+  // no other segment reads them; they go directly to the composite's output buffer.
+  std::unordered_map<StateInterfaceDefinition, std::size_t> scratch_slot_of;
+  auto allocate_slot = [&](const StateInterfaceDefinition & def) -> std::size_t {
+    const auto [it, inserted] = scratch_slot_of.emplace(def, scratch_slot_of.size());
     return it->second;
   };
 
   // (a) Inputs (in order, first-occurrence-wins).
-  for (const auto sid : inputs) {
-    allocate_slot(sid);
+  for (const auto & def : inputs) {
+    allocate_slot(def);
   }
   // (b) Transmission outputs.
   for (const auto & seg : segments) {
     if (const auto * tx = std::get_if<JointMapBlueprintSegment::TransmissionStage>(&seg.kind)) {
       for (const auto sid : tx->outputs) {
-        allocate_slot(sid);
+        allocate_slot(analysis.state_interface_order().inverse[sid]);
+      }
+    }
+  }
+  // (c) Scratch-fill targets (Case 3 intermediate values).
+  for (const auto & seg : segments) {
+    if (const auto * batch = std::get_if<JointMapBlueprintSegment::InputAffineBatch>(&seg.kind)) {
+      for (const auto & target_def : batch->scratch_targets) {
+        allocate_slot(target_def);
       }
     }
   }
 
   const std::size_t scratch_size = scratch_slot_of.size();
 
-  auto resolve_scratch = [&](const StateInterfaceId sid) -> std::size_t {
-    const auto it = scratch_slot_of.find(sid);
+  auto resolve_scratch = [&](const StateInterfaceDefinition & def) -> std::size_t {
+    const auto it = scratch_slot_of.find(def);
     if (it == scratch_slot_of.end()) {
       throw std::invalid_argument(
-        "materialize_joint_map: blueprint segment references a SID with no scratch slot "
+        "materialize_joint_map: blueprint segment references a def with no scratch slot "
         "(violates leaf-source invariant or precondition)");
     }
     return it->second;
   };
 
   // ---- Build input seeds ----------------------------------------------------
-  // For each input slot in `inputs`, copy that input value into its scratch slot. Duplicates
-  // in `inputs` are skipped — first-occurrence wins (matches blueprint semantics).
   std::vector<std::pair<std::size_t, std::size_t>> input_seeds;
-  std::unordered_set<StateInterfaceId> seeded;
+  std::unordered_set<StateInterfaceDefinition> seeded;
   input_seeds.reserve(inputs.size());
   for (std::size_t i = 0; i < inputs.size(); ++i) {
     if (seeded.insert(inputs[i]).second) {
@@ -158,31 +157,43 @@ JointMap materialize_composite(
   for (const auto & seg : segments) {
     CompositeJointMapStage stage{};
     if (const auto * batch = std::get_if<JointMapBlueprintSegment::InputAffineBatch>(&seg.kind)) {
-      // Build an AffineJointMap whose `input_count` is the composite's scratch size and whose
-      // `sources` index scratch slots.
-      std::vector<std::size_t> sources(batch->sources.size());
-      for (std::size_t i = 0; i < batch->sources.size(); ++i) {
-        sources[i] = resolve_scratch(batch->sources[i]);
+      const std::size_t out_count = batch->sources.size();
+      const std::size_t fill_count = batch->scratch_targets.size();
+      const std::size_t total_count = out_count + fill_count;
+
+      // Build unified source/multiplier/offset arrays for the AffineJointMap.
+      std::vector<std::size_t> aff_sources(total_count);
+      std::vector<double> aff_multipliers(total_count);
+      std::vector<double> aff_offsets(total_count);
+
+      for (std::size_t i = 0; i < out_count; ++i) {
+        aff_sources[i] = resolve_scratch(batch->sources[i]);
+        aff_multipliers[i] = batch->multipliers[i];
+        aff_offsets[i] = batch->offsets[i];
       }
+      for (std::size_t i = 0; i < fill_count; ++i) {
+        aff_sources[out_count + i] = resolve_scratch(batch->scratch_sources[i]);
+        aff_multipliers[out_count + i] = batch->scratch_multipliers[i];
+        aff_offsets[out_count + i] = batch->scratch_offsets[i];
+      }
+
       AffineJointMap aff(
-        std::move(sources),
-        batch->multipliers,
-        batch->offsets,
-        scratch_size);
+        std::move(aff_sources), std::move(aff_multipliers), std::move(aff_offsets), scratch_size);
       stage.segment = JointMap(std::move(aff));
 
-      // Each affine row writes its result directly to a final-output slot. None go to scratch
-      // (no downstream consumer needs them — leaf-source invariant).
-      const std::size_t row_count = batch->blueprint_output_indices.size();
-      stage.scratch_scatter.assign(row_count, std::nullopt);
-      stage.output_scatter.reserve(row_count);
-      for (const std::size_t out_pos : batch->blueprint_output_indices) {
-        stage.output_scatter.emplace_back(out_pos);
+      // Output rows → output_scatter; scratch-fill rows → scratch_scatter.
+      stage.scratch_scatter.resize(total_count, std::nullopt);
+      stage.output_scatter.resize(total_count, std::nullopt);
+
+      for (std::size_t i = 0; i < out_count; ++i) {
+        stage.output_scatter[i] = batch->blueprint_output_indices[i];
+      }
+      for (std::size_t i = 0; i < fill_count; ++i) {
+        stage.scratch_scatter[out_count + i] = resolve_scratch(batch->scratch_targets[i]);
       }
     } else {
       const auto & tx = std::get<JointMapBlueprintSegment::TransmissionStage>(seg.kind);
 
-      // Build the ComputeTransmission via the analysis's TransmissionModel.
       const auto & instance = analysis.transmissions().at(tx.instance_id);
       const auto & model = analysis.models().at(instance.model_id);
       if (!model) {
@@ -197,10 +208,10 @@ JointMap materialize_composite(
           "materialize_joint_map: TransmissionModel::build returned a null compute");
       }
 
-      // Gather indices: each transmission input SID maps to its scratch slot.
+      // Gather: each transmission input SID maps to its scratch slot (pre-filled for Case 3).
       std::vector<std::size_t> gather(tx.inputs.size());
       for (std::size_t i = 0; i < tx.inputs.size(); ++i) {
-        gather[i] = resolve_scratch(tx.inputs[i]);
+        gather[i] = resolve_scratch(analysis.state_interface_order().inverse[tx.inputs[i]]);
       }
 
       const std::size_t tx_output_count = tx.outputs.size();
@@ -211,22 +222,17 @@ JointMap materialize_composite(
         scratch_size);
       stage.segment = JointMap(std::move(tjm));
 
-      // For each transmission output: scatter to scratch (downstream consumers may read it),
-      // and additionally scatter to the final output buffer if it's a directly-wanted output.
       stage.scratch_scatter.reserve(tx_output_count);
       stage.output_scatter.reserve(tx_output_count);
       for (std::size_t i = 0; i < tx_output_count; ++i) {
-        stage.scratch_scatter.emplace_back(resolve_scratch(tx.outputs[i]));
+        stage.scratch_scatter.emplace_back(
+          resolve_scratch(analysis.state_interface_order().inverse[tx.outputs[i]]));
         stage.output_scatter.push_back(tx.blueprint_output_indices[i]);
       }
     }
     stages.push_back(std::move(stage));
   }
 
-  // ---- Final output gather --------------------------------------------------
-  // Currently empty: every wanted output is written by a stage (either an affine row or a
-  // transmission scatter). The final-gather mechanism is exposed for forward compatibility
-  // (e.g., a future blueprint that emits direct passthroughs without a wrapping stage).
   std::vector<std::pair<std::size_t, std::size_t>> final_output_gather;
 
   return JointMap(CompositeJointMap(

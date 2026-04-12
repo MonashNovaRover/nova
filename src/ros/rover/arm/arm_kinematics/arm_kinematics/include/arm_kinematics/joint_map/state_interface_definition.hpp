@@ -46,6 +46,11 @@ struct StateInterfaceDefinition {
     // names could in principle collide on FNV1a-64 (vanishingly unlikely, but still incorrect).
     return joint_id == other.joint_id && interface_id == other.interface_id;
   }
+
+  bool operator!=(const StateInterfaceDefinition & other) const noexcept
+  {
+    return !(*this == other);
+  }
 };
 
 } // namespace arm_kinematics

@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "arm_kinematics/joint_map/state_interface_producer.hpp"
@@ -61,8 +62,9 @@ public:
   using StateInterfaceProducer = producers::StateInterfaceProducer;
 
   /// Pure-function analysis. Runs the eager forward fixed point against `analysis` starting from
-  /// the given `inputs`. The returned object is immutable — to update the analysis with more
-  /// inputs, call `analyze()` again with the augmented input list.
+  /// the given `inputs` (as definitions). Bare definitions — those with no registered
+  /// `StateInterfaceId` in `analysis` — participate fully in affine propagation: any joint in an
+  /// affine group can serve as a source or target regardless of SID registration.
   ///
   /// \warning **Lifetime contract:** the returned `TransmissionReachability` holds a reference
   /// to `analysis`. The reachability must not outlive the analysis. The type is intentionally
@@ -71,7 +73,7 @@ public:
   /// elision — the prvalue returned here is materialized directly into the caller's storage.
   [[nodiscard]] static TransmissionReachability analyze(
     const TransmissionAnalysis & analysis,
-    span<const StateInterfaceId> inputs);
+    span<const StateInterfaceDefinition> inputs);
 
   ~TransmissionReachability() = default;
 
@@ -96,7 +98,14 @@ public:
   /// The original `inputs` span passed to `analyze()`, in insertion order. Duplicate entries are
   /// preserved (the same interface can appear multiple times); positions in this span correspond
   /// to `producers::Input::input_index` for the **first occurrence** of each interface.
-  [[nodiscard]] span<const StateInterfaceId> inputs() const noexcept;
+  [[nodiscard]] span<const StateInterfaceDefinition> inputs() const noexcept;
+
+  /// O(1) lookup for any definition — registered or bare. For definitions that have a real
+  /// `StateInterfaceId`, delegates to `producer_of(sid)`. For bare definitions (no registered
+  /// SID), checks the internal `def_producer_assignment_` populated during affine propagation.
+  /// Returns `std::monostate` if the definition is not derivable.
+  [[nodiscard]] StateInterfaceProducer producer_of_def(
+    const StateInterfaceDefinition & def) const noexcept;
 
   /// The full set of derivable interfaces — user inputs plus everything reachable through
   /// transmissions and affine projections, in algorithm-discovery order. Use this to ask "is X
@@ -132,7 +141,7 @@ public:
   /// already won. Surfaces the case where the user supplied two mathematically-equivalent
   /// inputs in the same affine group — both are still stored as `Input` producers for
   /// themselves, but only one is used to project to the other group members.
-  [[nodiscard]] span<const StateInterfaceId> redundant_equivalent_inputs() const noexcept;
+  [[nodiscard]] span<const StateInterfaceDefinition> redundant_equivalent_inputs() const noexcept;
 
 private:
   /// Private constructor used by `analyze()`. Captures the analysis reference and immediately
@@ -140,7 +149,7 @@ private:
   /// only path to a `TransmissionReachability`.
   explicit TransmissionReachability(
     const TransmissionAnalysis & analysis,
-    span<const StateInterfaceId> inputs);
+    span<const StateInterfaceDefinition> inputs);
 
   // Helper: derives the interface-space (m, o) from the source joint's interface to the target
   // joint's interface using the per-joint flat relations stored on the analysis. The interface
@@ -159,7 +168,15 @@ private:
     JointId target_joint,
     const AffineProjectionRule & rule) const noexcept;
 
-  void run_fixed_point(span<const StateInterfaceId> inputs);
+  void run_fixed_point(span<const StateInterfaceDefinition> inputs);
+
+  /// True iff `def` is currently in the derivable set — checks both the SID-indexed
+  /// `derivable_membership_` (for registered defs) and `derivable_bare_defs_set_` (for bare defs).
+  [[nodiscard]] bool is_derivable_def(const StateInterfaceDefinition & def) const noexcept;
+
+  /// Like `add_to_derivable` but for bare defs (no registered SID). Inserts into
+  /// `derivable_bare_defs_set_` and `derivable_bare_defs_list_`. Returns true iff newly added.
+  bool add_to_derivable_bare_def(const StateInterfaceDefinition & def);
 
   // ---- Algorithm helpers (called from `run_fixed_point`) ---------------------
 
@@ -208,7 +225,7 @@ private:
 
   /// Effective input list — `analyze()`'s inputs argument, in insertion order. Duplicates are
   /// preserved; producer assignment uses first-occurrence-wins semantics.
-  std::vector<StateInterfaceId> inputs_{};
+  std::vector<StateInterfaceDefinition> inputs_{};
 
   /// Derivable interfaces in algorithm-discovery order.
   std::vector<StateInterfaceId> derivable_interfaces_{};
@@ -243,8 +260,24 @@ private:
   /// completeness so consumers can iterate "everything still missing".
   std::vector<StateInterfaceId> unproducible_interfaces_{};
 
-  /// Redundant equivalent inputs (lower-JointId leaf wins in affine groups).
-  std::vector<StateInterfaceId> redundant_equivalent_inputs_{};
+  /// Redundant equivalent inputs (lower-JointId leaf wins in affine groups). Stored as
+  /// definitions rather than SIDs because bare inputs (no SID) can also be redundant.
+  std::vector<StateInterfaceDefinition> redundant_equivalent_inputs_{};
+
+  // ---------------------------------------------------------------------------
+  // Bare-def tracking (affine projections to/from definitions with no registered SID)
+  // ---------------------------------------------------------------------------
+
+  /// Producer assignment for bare definitions (those with no registered `StateInterfaceId`).
+  /// Populated by `process_affine_hypernode` when projecting to group members that lack a SID.
+  /// Bare defs can only have `Input` or `AffineProjection` producers (never `Transmission`).
+  std::unordered_map<StateInterfaceDefinition, StateInterfaceProducer> def_producer_assignment_{};
+
+  /// Membership set for `def_producer_assignment_` — O(1) derivability check for bare defs.
+  std::unordered_set<StateInterfaceDefinition> derivable_bare_defs_set_{};
+
+  /// Bare derivable defs in discovery order, for inclusion in the affine hypernode snapshot loop.
+  std::vector<StateInterfaceDefinition> derivable_bare_defs_list_{};
 };
 
 }  // namespace arm_kinematics

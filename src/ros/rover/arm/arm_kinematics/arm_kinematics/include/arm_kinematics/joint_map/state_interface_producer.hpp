@@ -34,11 +34,19 @@ struct Input {
 
 /// The interface's value is derived from another known leaf interface via a (possibly composed)
 /// affine relationship. The `source` is **always** another producer that resolves to either
-/// `Input` or `Transmission` in a single `producer_of()` step — never another `AffineProjection`.
-/// The algorithm enforces this by preferring leaf interfaces when picking a source.
+/// `Input` or `Transmission` in a single `producer_of_def()` step — never another
+/// `AffineProjection`. The algorithm enforces this by preferring leaf interfaces when picking
+/// a source.
+///
+/// `source` is a `StateInterfaceDefinition` (not a `StateInterfaceId`) because affine
+/// transmissions are purely joint-level: `joint_B = k * joint_A + offset` for every interface,
+/// regardless of whether `(joint_A, interface)` has a registered `StateInterfaceId`. A bare
+/// input (no SID) can therefore serve as the affine source without any pre-registration.
 struct AffineProjection {
-  /// The known leaf interface providing the underlying value.
-  StateInterfaceId source = 0;
+  /// The known leaf interface providing the underlying value. May be a registered
+  /// `(joint, interface)` pair (has a real `StateInterfaceId`) or a bare definition (no SID,
+  /// sourced from a direct user input).
+  StateInterfaceDefinition source{};
   /// Already-composed interface-space coefficient. Computed in O(1) at planning time from the
   /// per-joint flat affine relations stored in `TransmissionAnalysis::affine_transmissions_`
   /// and the projection rule for the relevant interface id.

@@ -145,9 +145,14 @@ bool approx_equal(double a, double b)
 // One-shot helper: build the reachability + plan + materialize, then run map().
 JointMap build_joint_map(
   const TransmissionAnalysis & analysis,
-  const std::vector<StateInterfaceId> & inputs,
-  const std::vector<StateInterfaceId> & outputs)
+  std::initializer_list<StateInterfaceId> input_sids,
+  std::initializer_list<StateInterfaceId> output_sids)
 {
+  const auto & inv = analysis.state_interface_order().inverse;
+  std::vector<arm_kinematics::StateInterfaceDefinition> inputs;
+  for (const auto sid : input_sids) { inputs.push_back(inv[sid]); }
+  std::vector<arm_kinematics::StateInterfaceDefinition> outputs;
+  for (const auto sid : output_sids) { outputs.push_back(inv[sid]); }
   const auto reach = TransmissionReachability::analyze(analysis, inputs);
   const auto blueprint = arm_kinematics::plan_joint_map(reach, outputs);
   return arm_kinematics::materialize_joint_map(blueprint, analysis);

@@ -67,17 +67,17 @@ struct MissingOutputDiagnosis {
   /// Outputs that cannot be derived from the supplied inputs because the user hasn't supplied
   /// enough — none of their potential producers have all-derivable inputs. Remediation:
   /// supply more inputs.
-  std::vector<StateInterfaceId> unproducible;
+  std::vector<StateInterfaceDefinition> unproducible;
 
   /// Outputs that have ≥2 viable producers in the analysis (the user authored multiple ways
   /// to compute this exact value). Remediation: pick one and remove/disable the others.
-  std::vector<StateInterfaceId> directly_ambiguous_outputs;
+  std::vector<StateInterfaceDefinition> directly_ambiguous_outputs;
 
   /// Outputs whose potential producer chain transitively depends on an ambiguous (or further
   /// transitively blocked) interface. The output itself doesn't have multiple producers, but
   /// its only paths to derivability all go through an ambiguous upstream. Remediation:
   /// disambiguate the upstream entries in `relevant_blocking_ambiguities`.
-  std::vector<StateInterfaceId> transitively_blocked_outputs;
+  std::vector<StateInterfaceDefinition> transitively_blocked_outputs;
 
   /// The subset of `reach.ambiguities()` that some failing output (directly ambiguous OR
   /// transitively blocked) actually depends on. For directly-ambiguous outputs the dependency
@@ -107,7 +107,7 @@ struct MissingOutputDiagnosis {
  */
 [[nodiscard]] MissingOutputDiagnosis diagnose_missing_outputs(
   const TransmissionReachability & reach,
-  span<const StateInterfaceId> needed_outputs);
+  span<const StateInterfaceDefinition> needed_outputs);
 
 /**
  * Computes resolution hints for the given missing interfaces against `reach`. Returns one
@@ -120,7 +120,7 @@ struct MissingOutputDiagnosis {
  */
 [[nodiscard]] std::vector<MissingInputResolution> compute_missing_input_resolutions(
   const TransmissionReachability & reach,
-  span<const StateInterfaceId> missing);
+  span<const StateInterfaceDefinition> missing);
 
 }  // namespace arm_kinematics
 

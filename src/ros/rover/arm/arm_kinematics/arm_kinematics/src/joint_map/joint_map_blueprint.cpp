@@ -20,29 +20,30 @@ namespace {
 // batch (stage 0)". Stored as ssize_t-style int with a sentinel value.
 constexpr int kPreTransmissionStage = -1;
 
-// Walk producer chains starting from `iface` and collect every TransmissionInstanceId that's
+// Walk producer chains starting from `def` and collect every TransmissionInstanceId that's
 // transitively required to compute it. Recurses through AffineProjection sources (which
 // invariantly resolve to a leaf — Input or Transmission — in one step).
 void collect_required_transmissions(
   const TransmissionReachability & reach,
-  const StateInterfaceId iface,
-  std::unordered_set<StateInterfaceId> & traced,
+  const StateInterfaceDefinition & def,
+  std::unordered_set<StateInterfaceDefinition> & traced,
   std::unordered_set<TransmissionInstanceId> & required)
 {
-  std::vector<StateInterfaceId> stack;
-  stack.push_back(iface);
+  const auto & analysis = reach.analysis();
+  std::vector<StateInterfaceDefinition> stack;
+  stack.push_back(def);
   while (!stack.empty()) {
-    const StateInterfaceId cur = stack.back();
+    const StateInterfaceDefinition cur = stack.back();
     stack.pop_back();
     if (!traced.insert(cur).second) {
       continue;
     }
-    const auto producer = reach.producer_of(cur);
+    const auto producer = reach.producer_of_def(cur);
     if (auto * tx = std::get_if<producers::Transmission>(&producer)) {
       if (required.insert(tx->instance_id).second) {
-        const auto & instance = reach.analysis().transmissions()[tx->instance_id];
+        const auto & instance = analysis.transmissions()[tx->instance_id];
         for (const StateInterfaceId in : instance.input_ids) {
-          stack.push_back(in);
+          stack.push_back(analysis.state_interface_order().inverse[in]);
         }
       }
     } else if (auto * ap = std::get_if<producers::AffineProjection>(&producer)) {
@@ -74,6 +75,7 @@ std::vector<TransmissionInstanceId> topo_sort_required_transmissions(
     const auto & instance = reach.analysis().transmissions()[t2];
     for (const StateInterfaceId in : instance.input_ids) {
       // Walk through AffineProjection chains to find the underlying transmission, if any.
+      // producer_of(sid) for the SID-indexed real inputs, then follow via producer_of_def.
       auto cur = reach.producer_of(in);
       while (true) {
         if (auto * tx = std::get_if<producers::Transmission>(&cur)) {
@@ -84,7 +86,7 @@ std::vector<TransmissionInstanceId> topo_sort_required_transmissions(
           }
           break;
         } else if (auto * ap = std::get_if<producers::AffineProjection>(&cur)) {
-          cur = reach.producer_of(ap->source);
+          cur = reach.producer_of_def(ap->source);
         } else {
           break;  // Input or monostate
         }
@@ -126,19 +128,29 @@ std::vector<TransmissionInstanceId> topo_sort_required_transmissions(
 // most depth 1 (AffineProjection → Input/Transmission), but we walk defensively.
 std::optional<TransmissionInstanceId> find_leaf_transmission(
   const TransmissionReachability & reach,
-  const StateInterfaceId iface)
+  const StateInterfaceDefinition & def)
 {
-  auto cur = reach.producer_of(iface);
+  auto cur = reach.producer_of_def(def);
   while (true) {
     if (auto * tx = std::get_if<producers::Transmission>(&cur)) {
       return tx->instance_id;
     } else if (auto * ap = std::get_if<producers::AffineProjection>(&cur)) {
-      cur = reach.producer_of(ap->source);
+      cur = reach.producer_of_def(ap->source);
     } else {
       return std::nullopt;  // Input or monostate
     }
   }
 }
+
+// Scratch-fill row: pre-fill a scratch slot for a transmission input whose producer is an
+// AffineProjection from a bare source (Case 3). The slot for `target_def` is filled from
+// `source_def` via the given affine coefficients before the TransmissionStage runs.
+struct ScratchFillRow {
+  StateInterfaceDefinition target_def{};
+  StateInterfaceDefinition source_def{};
+  double multiplier = 1.0;
+  double offset = 0.0;
+};
 
 }  // namespace
 
@@ -152,7 +164,7 @@ std::optional<TransmissionInstanceId> find_leaf_transmission(
 
 JointMapBlueprint plan_joint_map(
   const TransmissionReachability & reach,
-  const span<const StateInterfaceId> ordered_outputs)
+  const span<const StateInterfaceDefinition> ordered_outputs)
 {
   // Caller's contract: the reachability MAY have ambiguous interfaces unrelated to the
   // requested outputs, but every output in `ordered_outputs` must be derivable. The caller
@@ -160,13 +172,15 @@ JointMapBlueprint plan_joint_map(
   // diagnosis's `ok()` returns true. The per-output check inside the bucketing loop below
   // throws `std::logic_error` if this contract is violated.
 
+  const auto & analysis = reach.analysis();
+
   JointMapBlueprint blueprint{};
   {
-    std::vector<StateInterfaceId> in_copy(reach.inputs().begin(), reach.inputs().end());
+    std::vector<StateInterfaceDefinition> in_copy(reach.inputs().begin(), reach.inputs().end());
     blueprint.set_inputs(std::move(in_copy));
   }
   {
-    std::vector<StateInterfaceId> out_copy(ordered_outputs.begin(), ordered_outputs.end());
+    std::vector<StateInterfaceDefinition> out_copy(ordered_outputs.begin(), ordered_outputs.end());
     blueprint.set_outputs(std::move(out_copy));
   }
 
@@ -179,8 +193,8 @@ JointMapBlueprint plan_joint_map(
   // ---------------------------------------------------------------------------
   std::unordered_set<TransmissionInstanceId> required;
   {
-    std::unordered_set<StateInterfaceId> traced;
-    for (const StateInterfaceId out : ordered_outputs) {
+    std::unordered_set<StateInterfaceDefinition> traced;
+    for (const StateInterfaceDefinition & out : ordered_outputs) {
       collect_required_transmissions(reach, out, traced, required);
     }
   }
@@ -194,7 +208,30 @@ JointMapBlueprint plan_joint_map(
   }
 
   // ---------------------------------------------------------------------------
-  // Step 2: Assign each requested output to a stage.
+  // Step 2: Pre-compute scratch-fill rows for each transmission stage.
+  //
+  // A transmission input SID `r` whose producer is AffineProjection{src, m, o} has no scratch
+  // slot (it's not a user input and not a transmission output). We pre-fill its def's slot in
+  // the batch that precedes the transmission so the gather works normally.
+  // ---------------------------------------------------------------------------
+  std::vector<std::vector<ScratchFillRow>> scratch_fills(topo_order.size());
+  for (std::size_t k = 0; k < topo_order.size(); ++k) {
+    const auto & instance = analysis.transmissions()[topo_order[k]];
+    for (const StateInterfaceId in_sid : instance.input_ids) {
+      const auto producer = reach.producer_of(in_sid);
+      if (const auto * ap = std::get_if<producers::AffineProjection>(&producer)) {
+        scratch_fills[k].push_back(ScratchFillRow{
+          analysis.state_interface_order().inverse[in_sid],
+          ap->source,
+          ap->multiplier,
+          ap->offset
+        });
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 3: Assign each requested output to a stage.
   //
   // - `Input` producer → kPreTransmissionStage (lives in InputAffineBatch_0)
   // - `AffineProjection` from Input source → kPreTransmissionStage
@@ -202,22 +239,15 @@ JointMapBlueprint plan_joint_map(
   // - `Transmission T_i` producer → goes inside T_i's TransmissionStage segment, not an
   //   AffineBatch. Tracked separately.
   // ---------------------------------------------------------------------------
-  // For each output, the stage at which its AffineBatch row should land. -1 = pre-stage.
-  // For outputs that are direct transmission outputs, this is unused; instead they go in
-  // direct_transmission_outputs[stage_index].
   const std::size_t output_count = ordered_outputs.size();
   std::vector<int> affine_batch_stage(output_count, kPreTransmissionStage);
-  // For each output: true iff its producer is a direct Transmission (not an AffineProjection).
   std::vector<bool> is_direct_transmission(output_count, false);
-  // For each output that's a direct transmission output: which transmission produces it.
   std::vector<TransmissionInstanceId> direct_transmission_id(output_count, 0);
 
   for (std::size_t i = 0; i < output_count; ++i) {
-    const StateInterfaceId out = ordered_outputs[i];
-    const auto producer = reach.producer_of(out);
+    const StateInterfaceDefinition & out = ordered_outputs[i];
+    const auto producer = reach.producer_of_def(out);
     if (std::holds_alternative<std::monostate>(producer)) {
-      // Caller precondition violation: this output is unproducible, ambiguous, or transitively blocked.
-      // The caller should have caught it via diagnose_missing_outputs and refused to call us.
       throw std::logic_error(
         "plan_joint_map: output has no producer in the reachability "
         "(caller did not gate on diagnose_missing_outputs)");
@@ -226,7 +256,6 @@ JointMapBlueprint plan_joint_map(
       is_direct_transmission[i] = true;
       direct_transmission_id[i] = tx->instance_id;
     } else if (auto * ap = std::get_if<producers::AffineProjection>(&producer)) {
-      // Find the underlying leaf to determine which stage produces the source value.
       const auto src_tx = find_leaf_transmission(reach, ap->source);
       if (src_tx.has_value()) {
         affine_batch_stage[i] = static_cast<int>(stage_index_of[*src_tx]);
@@ -238,31 +267,36 @@ JointMapBlueprint plan_joint_map(
   }
 
   // ---------------------------------------------------------------------------
-  // Step 3: Emit segments in execution order.
+  // Step 4: Emit segments in execution order.
   //
   // Layout: [pre-batch] [Tstage_0] [batch_0] [Tstage_1] [batch_1] ...
-  //   pre-batch    = outputs with affine_batch_stage == -1, NOT direct transmission outputs
-  //   Tstage_k     = required transmission topo_order[k], with the wanted-output mapping
-  //                  computed below
-  //   batch_k      = outputs with affine_batch_stage == k (i.e. AffineProjections from T_k's
-  //                  outputs)
+  //   pre-batch    = outputs with affine_batch_stage == -1, NOT direct transmission outputs,
+  //                  PLUS scratch-fill rows for Tstage_0
+  //   Tstage_k     = required transmission topo_order[k]
+  //   batch_k      = outputs with affine_batch_stage == k,
+  //                  PLUS scratch-fill rows for Tstage_{k+1}
   // ---------------------------------------------------------------------------
 
-  auto emit_affine_batch_for_stage = [&](int stage) {
+  // `scratch_fills_for` returns the scratch-fill rows to embed in the batch preceding stage k.
+  // For the pre-transmission batch, k == 0; for post-batch after stage k, fills for k+1.
+  auto emit_affine_batch_for_stage = [&](
+    int stage,
+    const std::vector<ScratchFillRow> & fills)
+  {
     JointMapBlueprintSegment::InputAffineBatch batch{};
+
+    // Output rows.
     for (std::size_t i = 0; i < output_count; ++i) {
       if (is_direct_transmission[i]) continue;
       if (affine_batch_stage[i] != stage) continue;
 
-      const StateInterfaceId out = ordered_outputs[i];
-      const auto producer = reach.producer_of(out);
-      if (auto * input_p = std::get_if<producers::Input>(&producer)) {
-        // Direct input passthrough — identity row, source is the input itself.
+      const StateInterfaceDefinition & out = ordered_outputs[i];
+      const auto producer = reach.producer_of_def(out);
+      if (std::get_if<producers::Input>(&producer)) {
         batch.blueprint_output_indices.push_back(i);
-        batch.sources.push_back(out);  // The output IS the input state interface in this case
-        batch.multipliers.push_back(1.0F);
-        batch.offsets.push_back(0.0F);
-        (void)input_p;
+        batch.sources.push_back(out);
+        batch.multipliers.push_back(1.0);
+        batch.offsets.push_back(0.0);
       } else if (auto * ap = std::get_if<producers::AffineProjection>(&producer)) {
         batch.blueprint_output_indices.push_back(i);
         batch.sources.push_back(ap->source);
@@ -270,14 +304,23 @@ JointMapBlueprint plan_joint_map(
         batch.offsets.push_back(ap->offset);
       }
     }
-    if (!batch.blueprint_output_indices.empty()) {
+
+    // Scratch-fill rows for the next transmission stage.
+    for (const auto & sf : fills) {
+      batch.scratch_targets.push_back(sf.target_def);
+      batch.scratch_sources.push_back(sf.source_def);
+      batch.scratch_multipliers.push_back(sf.multiplier);
+      batch.scratch_offsets.push_back(sf.offset);
+    }
+
+    if (!batch.blueprint_output_indices.empty() || !batch.scratch_targets.empty()) {
       blueprint.emplace_segment(JointMapBlueprintSegment{std::move(batch)});
     }
   };
 
   auto emit_transmission_stage = [&](const std::size_t stage_idx) {
     const TransmissionInstanceId tid = topo_order[stage_idx];
-    const auto & instance = reach.analysis().transmissions()[tid];
+    const auto & instance = analysis.transmissions()[tid];
 
     JointMapBlueprintSegment::TransmissionStage stage{};
     stage.instance_id = tid;
@@ -288,11 +331,11 @@ JointMapBlueprint plan_joint_map(
     // For each transmission output, check whether it's directly requested.
     for (std::size_t out_pos = 0; out_pos < instance.output_ids.size(); ++out_pos) {
       const StateInterfaceId tx_out = instance.output_ids[out_pos];
-      // Is tx_out in ordered_outputs and assigned to this transmission as a direct producer?
+      const StateInterfaceDefinition tx_out_def = analysis.state_interface_order().inverse[tx_out];
       for (std::size_t i = 0; i < output_count; ++i) {
         if (!is_direct_transmission[i]) continue;
         if (direct_transmission_id[i] != tid) continue;
-        if (ordered_outputs[i] != tx_out) continue;
+        if (ordered_outputs[i] != tx_out_def) continue;
         stage.blueprint_output_indices[out_pos] = i;
         break;
       }
@@ -301,13 +344,18 @@ JointMapBlueprint plan_joint_map(
     blueprint.emplace_segment(JointMapBlueprintSegment{std::move(stage)});
   };
 
-  // Pre-transmission affine batch.
-  emit_affine_batch_for_stage(kPreTransmissionStage);
+  // Pre-transmission affine batch (+ scratch-fills for stage 0).
+  const std::vector<ScratchFillRow> empty_fills{};
+  emit_affine_batch_for_stage(
+    kPreTransmissionStage,
+    topo_order.empty() ? empty_fills : scratch_fills[0]);
 
   // Interleave transmission stages with their post-batches.
   for (std::size_t k = 0; k < topo_order.size(); ++k) {
     emit_transmission_stage(k);
-    emit_affine_batch_for_stage(static_cast<int>(k));
+    const std::vector<ScratchFillRow> & next_fills =
+      (k + 1 < topo_order.size()) ? scratch_fills[k + 1] : empty_fills;
+    emit_affine_batch_for_stage(static_cast<int>(k), next_fills);
   }
 
   return blueprint;

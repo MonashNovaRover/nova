@@ -160,7 +160,7 @@ TEST_F(TransmissionReachabilityTest, PureTransmission_SingleProducer)
   analysis_.add_transmission(model_id, {a, b}, {c}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, b});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, b)});
 
   EXPECT_FALSE(reach.is_ambiguous());
   EXPECT_TRUE(reach.ambiguities().empty());
@@ -187,7 +187,7 @@ TEST_F(TransmissionReachabilityTest, PureTransmission_MissingInput_OutputIsMonos
   analysis_.add_transmission(model_id, {a, b}, {c}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   EXPECT_FALSE(reach.is_ambiguous());
   EXPECT_TRUE(is_monostate(reach.producer_of(c)));
@@ -206,11 +206,11 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_PositionRule_Composition)
   analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_pos});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_pos)});
 
   const auto proj = as_affine(reach.producer_of(b_pos));
   ASSERT_TRUE(proj.has_value());
-  EXPECT_EQ(proj->source, a_pos);
+  EXPECT_EQ(proj->source, def_of(analysis_, a_pos));
   EXPECT_TRUE(approx_equal(proj->multiplier, 2.0));
   EXPECT_TRUE(approx_equal(proj->offset, 5.0));
 }
@@ -223,11 +223,11 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_VelocityRule_DropsOffset)
   analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_vel});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_vel)});
 
   const auto proj = as_affine(reach.producer_of(b_vel));
   ASSERT_TRUE(proj.has_value());
-  EXPECT_EQ(proj->source, a_vel);
+  EXPECT_EQ(proj->source, def_of(analysis_, a_vel));
   EXPECT_TRUE(approx_equal(proj->multiplier, 2.0));
   EXPECT_TRUE(approx_equal(proj->offset, 0.0));
 }
@@ -242,7 +242,7 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_EffortRule_RequiresExplici
   // Without registering an effort rule, B.effort is monostate from A.effort.
   {
     const auto reach = TransmissionReachability::analyze(
-      analysis_, std::vector<StateInterfaceId>{a_eff});
+      analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_eff)});
     EXPECT_TRUE(is_monostate(reach.producer_of(b_eff)));
   }
 
@@ -253,10 +253,10 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_EffortRule_RequiresExplici
 
   {
     const auto reach = TransmissionReachability::analyze(
-      analysis_, std::vector<StateInterfaceId>{a_eff});
+      analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_eff)});
     const auto proj = as_affine(reach.producer_of(b_eff));
     ASSERT_TRUE(proj.has_value());
-    EXPECT_EQ(proj->source, a_eff);
+    EXPECT_EQ(proj->source, def_of(analysis_, a_eff));
     EXPECT_TRUE(approx_equal(proj->multiplier, 0.5));
     EXPECT_TRUE(approx_equal(proj->offset, 0.0));
   }
@@ -277,7 +277,7 @@ TEST_F(TransmissionReachabilityTest, AffineChain_ComposesAcrossThreeJoints)
   analysis_.add_affine_transmission(joints[1], joints[2], 3.0, 7.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_pos});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_pos)});
 
   const auto b_proj = as_affine(reach.producer_of(b_pos));
   ASSERT_TRUE(b_proj.has_value());
@@ -302,7 +302,7 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_NoRuleForInterface_DoesNot
   analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_custom});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_custom)});
 
   EXPECT_TRUE(is_monostate(reach.producer_of(b_custom)));
 }
@@ -326,7 +326,7 @@ TEST_F(TransmissionReachabilityTest, ViabilityFiltering_TransmissionWithUnreacha
   analysis_.add_transmission(model_id, {b}, {x}, "T2");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   EXPECT_FALSE(reach.is_ambiguous());
   const auto x_producer = as_transmission(reach.producer_of(x));
@@ -350,11 +350,11 @@ TEST_F(TransmissionReachabilityTest, ReAnalyzeWithAugmentedInputs_UnblocksMissin
   analysis_.add_transmission(model_id, {a, b}, {c}, "T");
 
   const auto reach1 = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
   EXPECT_TRUE(is_monostate(reach1.producer_of(c)));
 
   const auto reach2 = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, b});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, b)});
   ASSERT_TRUE(as_transmission(reach2.producer_of(c)).has_value());
 }
 
@@ -370,11 +370,11 @@ TEST_F(TransmissionReachabilityTest, ReAnalyzeWithExplicitOverride_TransmissionD
   analysis_.add_transmission(model_id, {a}, {x}, "T1");
 
   const auto reach1 = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
   ASSERT_TRUE(as_transmission(reach1.producer_of(x)).has_value());
 
   const auto reach2 = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, x});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, x)});
   ASSERT_TRUE(as_input(reach2.producer_of(x)).has_value());
 }
 
@@ -390,14 +390,14 @@ TEST_F(TransmissionReachabilityTest, ReAnalyzeWithExplicitInput_DisplacesPreviou
   analysis_.add_transmission(model_id, {a}, {x}, "T2");
 
   const auto reach1 = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
   EXPECT_TRUE(reach1.is_ambiguous());
   ASSERT_EQ(reach1.ambiguities().size(), 1u);
   EXPECT_EQ(reach1.ambiguities()[0].interface, def_of(analysis_, x));
   EXPECT_EQ(reach1.ambiguities()[0].candidates.size(), 2u);
 
   const auto reach2 = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, x});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, x)});
   EXPECT_FALSE(reach2.is_ambiguous());
   ASSERT_TRUE(as_input(reach2.producer_of(x)).has_value());
 }
@@ -412,11 +412,11 @@ TEST_F(TransmissionReachabilityTest, DuplicateInterfaceInInputs_FirstOccurrenceW
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, a)});
 
   ASSERT_EQ(reach.inputs().size(), 2u);
-  EXPECT_EQ(reach.inputs()[0], a);
-  EXPECT_EQ(reach.inputs()[1], a);
+  EXPECT_EQ(reach.inputs()[0], def_of(analysis_, a));
+  EXPECT_EQ(reach.inputs()[1], def_of(analysis_, a));
   EXPECT_EQ(as_input(reach.producer_of(a))->input_index, 0u);
 }
 
@@ -433,7 +433,7 @@ TEST_F(TransmissionReachabilityTest, InputWinsOverDerivedAffineProducer)
   analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_pos, b_pos});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_pos), def_of(analysis_, b_pos)});
 
   EXPECT_FALSE(reach.is_ambiguous());
   ASSERT_TRUE(as_input(reach.producer_of(a_pos)).has_value());
@@ -451,7 +451,7 @@ TEST_F(TransmissionReachabilityTest, InputWinsOverTransmission)
   analysis_.add_transmission(model_id, {a}, {x}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, x});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, x)});
   ASSERT_TRUE(as_input(reach.producer_of(x)).has_value());
 }
 
@@ -473,7 +473,7 @@ TEST_F(TransmissionReachabilityTest, AmbiguityAccumulation_MultipleAmbiguousInte
   analysis_.add_transmission(model_id, {a}, {y}, "T4");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   EXPECT_TRUE(reach.is_ambiguous());
   ASSERT_EQ(reach.ambiguities().size(), 2u);
@@ -498,7 +498,7 @@ TEST_F(TransmissionReachabilityTest, NonAmbiguousInterfacesInOtherwiseAmbiguousR
   analysis_.add_transmission(model_id, {a}, {z}, "T3");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   EXPECT_TRUE(reach.is_ambiguous());
   EXPECT_TRUE(is_monostate(reach.producer_of(x)));
@@ -519,7 +519,7 @@ TEST_F(TransmissionReachabilityTest, MixedQuantityTransmission_PositionInEffortO
   analysis_.add_transmission(model_id, {a_pos}, {x_eff}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_pos});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_pos)});
 
   ASSERT_TRUE(as_transmission(reach.producer_of(x_eff)).has_value());
 }
@@ -542,7 +542,7 @@ TEST_F(TransmissionReachabilityTest, UserSuppliedSideEffectOutput_InputWinsOverT
   analysis_.add_transmission(model_id, {a, b}, {i, k}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, b, i});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, b), def_of(analysis_, i)});
 
   ASSERT_TRUE(as_input(reach.producer_of(i)).has_value());
   ASSERT_TRUE(as_transmission(reach.producer_of(k)).has_value());
@@ -564,13 +564,13 @@ TEST_F(TransmissionReachabilityTest, RedundantEquivalentInputs_MultipleLeavesInS
   analysis_.add_affine_transmission(joints[0], joints[2], 3.0, 0.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_pos, d_pos});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_pos), def_of(analysis_, d_pos)});
 
   const auto b_proj = as_affine(reach.producer_of(b_pos));
   ASSERT_TRUE(b_proj.has_value());
-  EXPECT_EQ(b_proj->source, a_pos);
+  EXPECT_EQ(b_proj->source, def_of(analysis_, a_pos));
   ASSERT_EQ(reach.redundant_equivalent_inputs().size(), 1u);
-  EXPECT_EQ(reach.redundant_equivalent_inputs()[0], d_pos);
+  EXPECT_EQ(reach.redundant_equivalent_inputs()[0], def_of(analysis_, d_pos));
   ASSERT_TRUE(as_input(reach.producer_of(d_pos)).has_value());
 }
 
@@ -584,7 +584,7 @@ TEST_F(TransmissionReachabilityTest, AnalysisAccessor_ReturnsTheSameAnalysis)
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
   EXPECT_EQ(&reach.analysis(), &analysis_);
 }
 
@@ -599,7 +599,7 @@ TEST_F(TransmissionReachabilityTest, DerivableInterfaces_IncludesInputsAndDerive
   analysis_.add_transmission(model_id, {a}, {c}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   const auto derivable = reach.derivable_interfaces();
   ASSERT_EQ(derivable.size(), 2u);
@@ -627,19 +627,19 @@ TEST_F(TransmissionReachabilityTest, AffineProjection_SourcedFromTransmissionOut
   analysis_.add_transmission(model_id, {a}, {x_pos}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   const auto x_producer = as_transmission(reach.producer_of(x_pos));
   ASSERT_TRUE(x_producer.has_value());
 
   const auto y_producer = as_affine(reach.producer_of(y_pos));
   ASSERT_TRUE(y_producer.has_value());
-  EXPECT_EQ(y_producer->source, x_pos);
+  EXPECT_EQ(y_producer->source, def_of(analysis_, x_pos));
   EXPECT_TRUE(approx_equal(y_producer->multiplier, 2.0));
   EXPECT_TRUE(approx_equal(y_producer->offset, 0.0));
 
   // Source resolves to a Transmission leaf in one step.
-  ASSERT_TRUE(as_transmission(reach.producer_of(y_producer->source)).has_value());
+  ASSERT_TRUE(as_transmission(reach.producer_of_def(y_producer->source)).has_value());
 }
 
 // ===========================================================================
@@ -661,7 +661,7 @@ TEST_F(TransmissionReachabilityTest, NonInputAmbiguity_TransmissionVsAffineProje
   analysis_.add_transmission(model_id, {x}, {b_pos}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_pos, x});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_pos), def_of(analysis_, x)});
 
   EXPECT_TRUE(reach.is_ambiguous());
   ASSERT_EQ(reach.ambiguities().size(), 1u);
@@ -701,7 +701,7 @@ TEST_F(TransmissionReachabilityTest, Ambiguity_DoesNotPropagateThroughChain)
   analysis_.add_transmission(model_id, {x}, {y}, "T3");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   // x is the directly-ambiguous interface.
   EXPECT_TRUE(reach.is_ambiguous());
@@ -733,7 +733,7 @@ TEST_F(TransmissionReachabilityTest, Blocked_OutputDownstreamOfAmbiguous_IsBlock
   analysis_.add_transmission(model_id, {x_id}, {y}, "T3");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   // y is in transitively_blocked_interfaces() — its producer chain transitively touches an ambiguous
   // interface (x).
@@ -760,7 +760,7 @@ TEST_F(TransmissionReachabilityTest, Blocked_CascadeThroughTwoLayers)
   analysis_.add_transmission(model_id, {y}, {z}, "T4");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   ASSERT_EQ(reach.ambiguities().size(), 1u);
   EXPECT_EQ(reach.ambiguities()[0].interface, def_of(analysis_, x));
@@ -813,7 +813,7 @@ TEST_F(TransmissionReachabilityTest, Ambiguity_DownstreamProducerWithCleanAltern
   analysis_.add_transmission(model_id, {c}, {b}, "T4");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, c});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, c)});
 
   // Both x and b are ambiguous.
   EXPECT_TRUE(reach.is_ambiguous());
@@ -879,7 +879,7 @@ TEST_F(TransmissionReachabilityTest, ForwardInversePair_MotorInput_OnlyForwardSe
   analysis_.add_transmission(model_id, {joint}, {motor}, "T_inv");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{motor});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, motor)});
 
   EXPECT_FALSE(reach.is_ambiguous());
   ASSERT_TRUE(as_input(reach.producer_of(motor)).has_value());
@@ -898,7 +898,7 @@ TEST_F(TransmissionReachabilityTest, ForwardInversePair_JointInput_OnlyInverseSe
   analysis_.add_transmission(model_id, {joint}, {motor}, "T_inv");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{joint});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, joint)});
 
   EXPECT_FALSE(reach.is_ambiguous());
   ASSERT_TRUE(as_input(reach.producer_of(joint)).has_value());
@@ -916,7 +916,7 @@ TEST_F(TransmissionReachabilityTest, ForwardInversePair_BothInputs_BothInputWins
   analysis_.add_transmission(model_id, {joint}, {motor}, "T_inv");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{motor, joint});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, motor), def_of(analysis_, joint)});
 
   EXPECT_FALSE(reach.is_ambiguous());
   // Both should resolve to Input (input wins on both sides).

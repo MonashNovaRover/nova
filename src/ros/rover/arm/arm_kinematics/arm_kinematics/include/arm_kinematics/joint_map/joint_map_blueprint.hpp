@@ -49,11 +49,26 @@ struct JointMapBlueprintSegment {
     std::vector<std::size_t> blueprint_output_indices{};
     /// Which state interface to read for each row. Always resolves (via the reachability) to a
     /// leaf — either an `Input` (read from the input slot) or a `Transmission` output (read from
-    /// the value table after that transmission has run).
-    std::vector<StateInterfaceId> sources{};
+    /// the value table after that transmission has run). Stored as `StateInterfaceDefinition`
+    /// because bare inputs (no registered SID) can be affine sources.
+    std::vector<StateInterfaceDefinition> sources{};
     /// Per-row affine coefficients. Identity (m=1, o=0) for direct input passthroughs.
     std::vector<double> multipliers{};
     std::vector<double> offsets{};
+
+    // ---- Scratch-fill rows ----
+    // Used for Case 3: a transmission input (real SID `r`) whose producer is an
+    // AffineProjection from a bare source def. The bare source IS in scratch (user input),
+    // but `r`'s def is NOT (neither user input nor transmission output). These rows pre-fill
+    // `r`'s scratch slot so the downstream TransmissionStage gathers it normally.
+    //
+    // Emitted in the InputAffineBatch that PRECEDES the affected TransmissionStage.
+    // Each row i: scratch[scratch_targets[i]] =
+    //     scratch_multipliers[i] * scratch[scratch_sources[i]] + scratch_offsets[i].
+    std::vector<StateInterfaceDefinition> scratch_targets{};
+    std::vector<StateInterfaceDefinition> scratch_sources{};
+    std::vector<double> scratch_multipliers{};
+    std::vector<double> scratch_offsets{};
   };
 
   /// A single transmission instance to run. The materializer must compute the transmission's
@@ -105,10 +120,10 @@ public:
 
   /// Echo of the `inputs()` from the source `TransmissionReachability`. Stored here so consumers
   /// don't have to thread the reachability separately.
-  [[nodiscard]] span<const StateInterfaceId> inputs() const noexcept { return inputs_; }
+  [[nodiscard]] span<const StateInterfaceDefinition> inputs() const noexcept { return inputs_; }
 
   /// Echo of the `ordered_outputs` argument that was passed to `plan_joint_map`.
-  [[nodiscard]] span<const StateInterfaceId> outputs() const noexcept { return outputs_; }
+  [[nodiscard]] span<const StateInterfaceDefinition> outputs() const noexcept { return outputs_; }
 
   // ---------------------------------------------------------------------------
   // Internal builder access
@@ -117,13 +132,13 @@ public:
   /// Used by `plan_joint_map`. Public so the free function can populate the blueprint without
   /// being a friend.
   void emplace_segment(JointMapBlueprintSegment segment) { segments_.push_back(std::move(segment)); }
-  void set_inputs(std::vector<StateInterfaceId> inputs) { inputs_ = std::move(inputs); }
-  void set_outputs(std::vector<StateInterfaceId> outputs) { outputs_ = std::move(outputs); }
+  void set_inputs(std::vector<StateInterfaceDefinition> inputs) { inputs_ = std::move(inputs); }
+  void set_outputs(std::vector<StateInterfaceDefinition> outputs) { outputs_ = std::move(outputs); }
 
 private:
   std::vector<JointMapBlueprintSegment> segments_{};
-  std::vector<StateInterfaceId> inputs_{};
-  std::vector<StateInterfaceId> outputs_{};
+  std::vector<StateInterfaceDefinition> inputs_{};
+  std::vector<StateInterfaceDefinition> outputs_{};
 };
 
 /**
@@ -156,7 +171,7 @@ private:
  */
 [[nodiscard]] JointMapBlueprint plan_joint_map(
   const TransmissionReachability & reach,
-  span<const StateInterfaceId> ordered_outputs);
+  span<const StateInterfaceDefinition> ordered_outputs);
 
 }  // namespace arm_kinematics
 

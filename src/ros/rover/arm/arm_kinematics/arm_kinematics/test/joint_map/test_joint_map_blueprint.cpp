@@ -135,8 +135,8 @@ TEST_F(JointMapBlueprintTest, Diagnose_AllOutputsSatisfied_EmptyDiagnosis)
   analysis_.add_transmission(model_id, {a}, {b}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{a, b});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, b)});
 
   EXPECT_TRUE(diag.ok());
 }
@@ -153,11 +153,11 @@ TEST_F(JointMapBlueprintTest, Diagnose_UnreachableOutput_ReportedInUnreachableLi
 
   // Only `a` supplied → c is unproducible.
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{c});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, c)});
 
   ASSERT_EQ(diag.unproducible.size(), 1u);
-  EXPECT_EQ(diag.unproducible[0], c);
+  EXPECT_EQ(diag.unproducible[0], def_of(analysis_, c));
   EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
   EXPECT_TRUE(diag.transitively_blocked_outputs.empty());
 }
@@ -179,13 +179,13 @@ TEST_F(JointMapBlueprintTest, Diagnose_TransitiveAmbiguity_OutputDownstreamOfAmb
   analysis_.add_transmission(model_id, {x}, {y}, "T3");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{y});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, y)});
 
   EXPECT_TRUE(diag.unproducible.empty());
   EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
   ASSERT_EQ(diag.transitively_blocked_outputs.size(), 1u);
-  EXPECT_EQ(diag.transitively_blocked_outputs[0], y);
+  EXPECT_EQ(diag.transitively_blocked_outputs[0], def_of(analysis_, y));
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
   EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, def_of(analysis_, x));
 }
@@ -208,8 +208,8 @@ TEST_F(JointMapBlueprintTest, Diagnose_UnrelatedAmbiguity_DoesNotAffectRequest)
   analysis_.add_transmission(model_id, {a}, {z}, "T3");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{z});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, z)});
 
   EXPECT_TRUE(reach.is_ambiguous());  // x is ambiguous in the reachability
   EXPECT_TRUE(diag.ok());  // ...but z is fine
@@ -227,13 +227,13 @@ TEST_F(JointMapBlueprintTest, Diagnose_AmbiguousOutput_ReportedInAmbiguousList)
   analysis_.add_transmission(model_id, {a}, {x}, "T2");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{x});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, x)});
 
   EXPECT_TRUE(diag.unproducible.empty());
   EXPECT_TRUE(diag.transitively_blocked_outputs.empty());
   ASSERT_EQ(diag.directly_ambiguous_outputs.size(), 1u);
-  EXPECT_EQ(diag.directly_ambiguous_outputs[0], x);
+  EXPECT_EQ(diag.directly_ambiguous_outputs[0], def_of(analysis_, x));
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
   EXPECT_EQ(diag.relevant_blocking_ambiguities[0].interface, def_of(analysis_, x));
 }
@@ -267,7 +267,7 @@ TEST_F(JointMapBlueprintTest, Diagnose_AffineBlockedOutput_ReportsUpstreamAmbigu
   analysis_.add_transmission(model_id, {x}, {a_pos}, "T2");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{x});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, x)});
 
   // A.position is ambiguous in the reachability.
   EXPECT_TRUE(reach.is_ambiguous());
@@ -281,12 +281,12 @@ TEST_F(JointMapBlueprintTest, Diagnose_AffineBlockedOutput_ReportsUpstreamAmbigu
 
   // Diagnose B.position: should report it as transitively_blocked_outputs AND attribute the upstream
   // ambiguity (A.position) via the affine walk in collect_blocking_ambiguities.
-  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceId>{b_pos});
+  const auto diag = diagnose_missing_outputs(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, b_pos)});
 
   // B.position is blocked (not directly ambiguous).
   EXPECT_TRUE(diag.directly_ambiguous_outputs.empty());
   ASSERT_EQ(diag.transitively_blocked_outputs.size(), 1u);
-  EXPECT_EQ(diag.transitively_blocked_outputs[0], b_pos);
+  EXPECT_EQ(diag.transitively_blocked_outputs[0], def_of(analysis_, b_pos));
   // The upstream A.position should appear in relevant_blocking_ambiguities — this is the
   // load-bearing assertion that the affine walk extension works.
   ASSERT_EQ(diag.relevant_blocking_ambiguities.size(), 1u);
@@ -309,9 +309,9 @@ TEST_F(JointMapBlueprintTest, Resolutions_SingleProducerWithOneMissingInput)
   analysis_.add_transmission(model_id, {a, b}, {c}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
   const auto resolutions = compute_missing_input_resolutions(
-    reach, std::vector<StateInterfaceId>{c});
+    reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, c)});
 
   ASSERT_EQ(resolutions.size(), 1u);
   EXPECT_EQ(resolutions[0].missing, def_of(analysis_, c));
@@ -335,9 +335,9 @@ TEST_F(JointMapBlueprintTest, Resolutions_MultipleProducerAlternatives)
   analysis_.add_transmission(model_id, {b}, {x}, "T2");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{});
+    analysis_, std::vector<StateInterfaceDefinition>{});
   const auto resolutions = compute_missing_input_resolutions(
-    reach, std::vector<StateInterfaceId>{x});
+    reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, x)});
 
   ASSERT_EQ(resolutions.size(), 1u);
   EXPECT_EQ(resolutions[0].missing, def_of(analysis_, x));
@@ -362,9 +362,9 @@ TEST_F(JointMapBlueprintTest, Resolutions_MissingInterfaceInNonTrivialAffineGrou
   analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{});
+    analysis_, std::vector<StateInterfaceDefinition>{});
   const auto resolutions = compute_missing_input_resolutions(
-    reach, std::vector<StateInterfaceId>{b_pos});
+    reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, b_pos)});
 
   ASSERT_EQ(resolutions.size(), 1u);
   EXPECT_EQ(resolutions[0].missing, def_of(analysis_, b_pos));
@@ -384,9 +384,9 @@ TEST_F(JointMapBlueprintTest, Resolutions_TrivialAffineGroup_NoAffineRoot)
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{});
+    analysis_, std::vector<StateInterfaceDefinition>{});
   const auto resolutions = compute_missing_input_resolutions(
-    reach, std::vector<StateInterfaceId>{a});
+    reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   ASSERT_EQ(resolutions.size(), 1u);
   EXPECT_EQ(resolutions[0].missing, def_of(analysis_, a));
@@ -404,9 +404,9 @@ TEST_F(JointMapBlueprintTest, Resolutions_NoProjectionRule_NoAffineRoot)
   analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 0.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{});
+    analysis_, std::vector<StateInterfaceDefinition>{});
   const auto resolutions = compute_missing_input_resolutions(
-    reach, std::vector<StateInterfaceId>{b_custom});
+    reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, b_custom)});
 
   ASSERT_EQ(resolutions.size(), 1u);
   EXPECT_FALSE(resolutions[0].affine_root.has_value());
@@ -425,9 +425,9 @@ TEST_F(JointMapBlueprintTest, Resolutions_AlternativeWithAlreadySuppliedInput_No
   analysis_.add_transmission(model_id, {a, b}, {c}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
   const auto resolutions = compute_missing_input_resolutions(
-    reach, std::vector<StateInterfaceId>{c});
+    reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, c)});
 
   ASSERT_EQ(resolutions.size(), 1u);
   ASSERT_EQ(resolutions[0].transmission_alternatives.size(), 1u);
@@ -448,15 +448,15 @@ TEST_F(JointMapBlueprintTest, Plan_DirectInputPassthrough_OneAffineBatchSegment)
   const auto a = ensure_state(analysis_, "j_a", InterfaceId{"position"});
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
 
   ASSERT_EQ(blueprint.segments().size(), 1u);
   const auto * batch = as_affine_batch(blueprint.segments()[0]);
   ASSERT_NE(batch, nullptr);
   ASSERT_EQ(batch->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(batch->blueprint_output_indices[0], 0u);
-  EXPECT_EQ(batch->sources[0], a);
+  EXPECT_EQ(batch->sources[0], def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0));
   EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0));
 }
@@ -482,9 +482,9 @@ TEST_F(JointMapBlueprintTest, AffineBatching_ConsecutiveAffineOutputs_FoldedInto
   }
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a_pos});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a_pos)});
   const auto blueprint = plan_joint_map(
-    reach, std::vector<StateInterfaceId>{b1, b2, b3, b4, b5});
+    reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, b1), def_of(analysis_, b2), def_of(analysis_, b3), def_of(analysis_, b4), def_of(analysis_, b5)});
 
   ASSERT_EQ(blueprint.segments().size(), 1u);
   const auto * batch = as_affine_batch(blueprint.segments()[0]);
@@ -492,7 +492,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_ConsecutiveAffineOutputs_FoldedInto
   EXPECT_EQ(batch->blueprint_output_indices.size(), 5u);
   // Each row reads from a_pos with the right multiplier.
   for (std::size_t i = 0; i < 5; ++i) {
-    EXPECT_EQ(batch->sources[i], a_pos);
+    EXPECT_EQ(batch->sources[i], def_of(analysis_, a_pos));
     EXPECT_TRUE(approx_equal(batch->multipliers[i], i + 1));
     EXPECT_TRUE(approx_equal(batch->offsets[i], 0.0));
   }
@@ -521,9 +521,9 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   analysis_.add_transmission(model_id, {a}, {x}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
   const auto blueprint = plan_joint_map(
-    reach, std::vector<StateInterfaceId>{b, x, y});
+    reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, b), def_of(analysis_, x), def_of(analysis_, y)});
 
   ASSERT_EQ(blueprint.segments().size(), 3u);
 
@@ -532,7 +532,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   ASSERT_NE(pre, nullptr);
   ASSERT_EQ(pre->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(pre->blueprint_output_indices[0], 0u);  // b is at output position 0
-  EXPECT_EQ(pre->sources[0], a);
+  EXPECT_EQ(pre->sources[0], def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(pre->multipliers[0], 2.0));
 
   // Segment 1: transmission stage T
@@ -550,7 +550,7 @@ TEST_F(JointMapBlueprintTest, AffineBatching_AffineThenTransmissionThenAffine)
   ASSERT_NE(post, nullptr);
   ASSERT_EQ(post->blueprint_output_indices.size(), 1u);
   EXPECT_EQ(post->blueprint_output_indices[0], 2u);  // y is at output position 2
-  EXPECT_EQ(post->sources[0], x);
+  EXPECT_EQ(post->sources[0], def_of(analysis_, x));
   EXPECT_TRUE(approx_equal(post->multipliers[0], 3.0));
 }
 
@@ -564,8 +564,8 @@ TEST_F(JointMapBlueprintTest, InputPassthrough_FoldedIntoSameAffineBatchAsMimic)
   analysis_.add_affine_transmission(joints[0], joints[1], 2.0, 5.0);
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceId>{a, b});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, b)});
 
   ASSERT_EQ(blueprint.segments().size(), 1u);
   const auto * batch = as_affine_batch(blueprint.segments()[0]);
@@ -573,12 +573,12 @@ TEST_F(JointMapBlueprintTest, InputPassthrough_FoldedIntoSameAffineBatchAsMimic)
   ASSERT_EQ(batch->blueprint_output_indices.size(), 2u);
   // Row for a: identity passthrough
   EXPECT_EQ(batch->blueprint_output_indices[0], 0u);
-  EXPECT_EQ(batch->sources[0], a);
+  EXPECT_EQ(batch->sources[0], def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[0], 1.0));
   EXPECT_TRUE(approx_equal(batch->offsets[0], 0.0));
   // Row for b: 2a + 5
   EXPECT_EQ(batch->blueprint_output_indices[1], 1u);
-  EXPECT_EQ(batch->sources[1], a);
+  EXPECT_EQ(batch->sources[1], def_of(analysis_, a));
   EXPECT_TRUE(approx_equal(batch->multipliers[1], 2.0));
   EXPECT_TRUE(approx_equal(batch->offsets[1], 5.0));
 }
@@ -602,8 +602,8 @@ TEST_F(JointMapBlueprintTest, SideEffectOutput_TransmissionStageIncludesAllOutpu
   analysis_.add_transmission(model_id, {a, b}, {i_iface, k}, "T");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a, b});
-  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceId>{k});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a), def_of(analysis_, b)});
+  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, k)});
 
   ASSERT_EQ(blueprint.segments().size(), 1u);
   const auto * tstage = as_transmission_stage(blueprint.segments()[0]);
@@ -643,8 +643,8 @@ TEST_F(JointMapBlueprintTest, TopologicalOrdering_SerialChain_T1BeforeT2)
   analysis_.add_transmission(model_id, {b}, {c}, "T2");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceId>{c});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, c)});
 
   // Two transmission stages (in addition to any empty pre-batches that get skipped).
   std::vector<TransmissionInstanceId> stage_order;
@@ -679,8 +679,8 @@ TEST_F(JointMapBlueprintTest, TopologicalOrdering_DiamondDependencies_T3LastBoth
   analysis_.add_transmission(model_id, {b, c}, {d}, "T3");
 
   const auto reach = TransmissionReachability::analyze(
-    analysis_, std::vector<StateInterfaceId>{a});
-  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceId>{d});
+    analysis_, std::vector<StateInterfaceDefinition>{def_of(analysis_, a)});
+  const auto blueprint = plan_joint_map(reach, std::vector<StateInterfaceDefinition>{def_of(analysis_, d)});
 
   std::vector<TransmissionInstanceId> stage_order;
   for (const auto & seg : blueprint.segments()) {
