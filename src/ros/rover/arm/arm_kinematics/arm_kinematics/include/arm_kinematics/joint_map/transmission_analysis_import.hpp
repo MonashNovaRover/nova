@@ -19,6 +19,16 @@
 namespace arm_kinematics {
 
 /**
+ * Ensures all non-fixed joints from the given URDF have been added to the given TransmissionAnalysis
+ *
+ * @param transmission_analysis The transmission analysis to create JointIds in
+ * @param urdf_model The URDF model to get all joint names to add from
+ */
+ARM_KINEMATICS_PUBLIC void add_urdf_joints_to_analysis(
+  TransmissionAnalysis & transmission_analysis,
+  const urdf::Model & urdf_model);
+
+/**
  * Parses ros2_control transmission metadata from a URDF string and adds the resulting transmission topology to the
  * given TransmissionAnalysis.
  *

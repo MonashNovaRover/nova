@@ -467,6 +467,15 @@ TransmissionAnalysis::AffineTransmission normalize_affine_transmission(
 
 } // namespace
 
+void add_urdf_joints_to_analysis(TransmissionAnalysis & transmission_analysis, const urdf::Model & urdf_model) {
+  for (const auto & [name, joint] : urdf_model.joints_) {
+    if (joint->type == urdf::Joint::FIXED)
+      continue;
+
+    transmission_analysis.ensure_joint_id(name);
+  }
+}
+
 std::vector<hardware_interface::TransmissionInfo> add_ros2_control_transmissions_to_analysis_dangerous(
   TransmissionAnalysis & transmission_analysis,
   const std::string & urdf_string,
