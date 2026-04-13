@@ -56,7 +56,7 @@ bool set_property(rclcpp::Node* streamer_node, const std::string serial, const s
     return value;
 }
 
-bool verify_resolution(const std::string device_name, std::string* mime, int* width, int* height, int* framerate, int* framerate_denominator) {
+bool verify_v4lresolution(const std::string device_name, std::string* mime, int* width, int* height, int* framerate, int* framerate_denominator) {
   GstDeviceMonitor *monitor = gst_device_monitor_new();
   gst_device_monitor_add_filter(monitor, "Video/Source", NULL);
 
@@ -145,7 +145,7 @@ bool verify_resolution(const std::string device_name, std::string* mime, int* wi
   return true;
 }
 
-void match_lost_devname(rclcpp::Node* streamer_node, std::unordered_map<std::string, Pipeline*>* pipelines) {
+void verify_v4ldev(std::unordered_map<std::string, Pipeline*>* pipelines) {
   sd_device_enumerator *enumerator = NULL;
   sd_device *device = NULL;
 

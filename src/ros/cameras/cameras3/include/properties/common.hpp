@@ -14,8 +14,8 @@ int set_property(rclcpp::Node* streamer_node, const std::string serial, const st
 
 bool set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const bool default_value);
 
-bool verify_resolution(const std::string device_name, std::string* mime, int* width, int* height, int* framerate, int* framerate_denominator);
+bool verify_v4lresolution(const std::string device_name, std::string* mime, int* width, int* height, int* framerate, int* framerate_denominator);
 
-void match_lost_devname(rclcpp::Node* streamer_node, std::unordered_map<std::string, Pipeline*>* pipelines);
+void verify_v4ldev(std::unordered_map<std::string, Pipeline*>* pipelines);
 
 #endif
