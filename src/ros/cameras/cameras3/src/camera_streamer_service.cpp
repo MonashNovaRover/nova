@@ -156,7 +156,6 @@ class CameraStreamer : public rclcpp::Node
             Pipeline* pipeline = pipelines[serial];
             if (this->pipelines[serial]->gst_pipeline != nullptr) {
             // gstreamer play pipeline if paused
-              //verify_v4ldev(&pipelines);
               RCLCPP_INFO(this->get_logger(), "Resuming %s", serial.c_str());
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             } else {

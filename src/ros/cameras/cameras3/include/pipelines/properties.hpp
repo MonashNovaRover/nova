@@ -18,6 +18,8 @@ struct v4lProperties
 {
   std::string device;
   std::string io_mode;
+
+  bool verify_resolution;
 };
 
 struct capsProperties

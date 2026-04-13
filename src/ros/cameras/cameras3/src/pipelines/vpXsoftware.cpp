@@ -28,12 +28,15 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
 
   // Verify resolution
   const std::string pipeline_type = "vpXsoftware";
-  if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
-      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  if (props->verify_resolution) {
+    if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+        RCLCPP_INFO(streamer_node->get_logger(), "Starting %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+    } else {
+        RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(),  props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+    }
   } else {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  };
-
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(),  props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  }
   // Disable crop43 if it is already 4:3
   const int crop_width = crop43(props->width, props->height);
   if (crop_width == 0) {
@@ -130,7 +133,7 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   props->original_serial = camera->original_serial;
 
   // Get profile
-  std::string profile = "NULL";
+  std::string profile = "";
   streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
   streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
 
@@ -139,8 +142,11 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
 
   // source
   props->device = camera->node;
+  
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
+
+  props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", false);
 
   // filter
   props->format = "I420";

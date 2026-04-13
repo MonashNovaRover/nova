@@ -28,11 +28,15 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
 
   // Verify resolution
   const std::string pipeline_type = "h264passthrough";
-  if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
-      RCLCPP_INFO(streamer_node->get_logger(), "Starting pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  if (props->verify_resolution) {
+    if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+        RCLCPP_INFO(streamer_node->get_logger(), "Starting %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+    } else {
+        RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(),  props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+    }
   } else {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback pipeline for %s with %dx%d@%dfps", props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
-  };
+      RCLCPP_INFO(streamer_node->get_logger(), "Starting %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(),  props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+  }
 
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
@@ -89,7 +93,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->original_serial = camera->original_serial;
 
   // Get profile
-  std::string profile = "NULL";
+  std::string profile = "";
   streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
   streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
 
@@ -98,7 +102,10 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 
   // source
   props->device = camera->node;
+
   props->io_mode = 4; // dmabuf
+
+  props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", false);
 
   // rate
   props->downrate = 1; // Do not change framerate

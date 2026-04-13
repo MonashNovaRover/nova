@@ -178,7 +178,7 @@ class CameraDirectory : public rclcpp::Node
       camera.serial = serial;
       camera.node = device.devname;
       camera.original_serial = device.serial;
-      message.cameras.push_back(camera);
+      message.cameras.emplace_back(camera);
 
       if (devices.size() != last_device_count) {
         log << "\n - " << C_TITLE << serial << C_RESET;
@@ -248,7 +248,7 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
     v4ldevice.path = path_id;
 
     if (capabilities && strstr(capabilities, ":capture:")) {
-      matches.push_back(v4ldevice);
+      matches.emplace_back(v4ldevice);
     }
   }
 

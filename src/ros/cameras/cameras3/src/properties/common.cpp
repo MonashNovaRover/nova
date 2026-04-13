@@ -22,7 +22,7 @@ std::string set_property(rclcpp::Node* streamer_node, const std::string serial, 
     std::string value;
     streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (profile != "NULL") {
+    if (!profile.empty()) {
       streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
     }
@@ -35,7 +35,7 @@ int set_property(rclcpp::Node* streamer_node, const std::string serial, const st
     int value;
     streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (profile != "NULL") {
+    if (!profile.empty()) {
       streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
     }
@@ -48,7 +48,7 @@ bool set_property(rclcpp::Node* streamer_node, const std::string serial, const s
     bool value;
     streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (profile != "NULL") {
+    if (!profile.empty()) {
       streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
     }
@@ -143,51 +143,5 @@ bool verify_v4lresolution(const std::string device_name, std::string* mime, int*
   g_list_free_full(devices, gst_object_unref);
   gst_object_unref(monitor);
   return true;
-}
-
-void verify_v4ldev(std::unordered_map<std::string, Pipeline*>* pipelines) {
-  sd_device_enumerator *enumerator = NULL;
-  sd_device *device = NULL;
-
-  // Create new device enumerator object and add filters
-  sd_device_enumerator_new(&enumerator);
-  sd_device_enumerator_add_match_subsystem(enumerator, "video4linux", 1);
-
-
-  std::unordered_set<std::string> used_devnames;
-
-
-  // Iterate through the devices found
-  for (device = sd_device_enumerator_get_device_first(enumerator); device != NULL; device = sd_device_enumerator_get_device_next(enumerator)) {
-    const char *dev_name, *serial = NULL, *capabilities = NULL;
-
-    // Get the kernel name of the device (e.g., "video0")
-    sd_device_get_devname(device, &dev_name);
-    sd_device_get_property_value(device, "ID_SERIAL", &serial);
-    sd_device_get_property_value(device, "ID_V4L_CAPABILITIES", &capabilities);
-
-    std::string dev_string(dev_name), serial_string(serial);
-
-    // Iterate through pipelines to check if devname is already in use
-    for (const auto& [serial, pipeline] : *pipelines) {
-        if (dev_string == pipeline->props->node) {
-            used_devnames.emplace(dev_string);
-        }
-    }
-
-    // Iterate through pipelines to check if devname is already in use
-    for (const auto& [serial, pipeline] : *pipelines) {
-        if ((capabilities && strstr(capabilities, ":capture:")) && (serial_string == pipeline->props->original_serial) && (used_devnames.find(dev_string) == used_devnames.end())) {
-            GstElement *source = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "video-source");
-            g_object_set(source,
-              "device", dev_string.c_str(),
-              NULL);
-            break;
-        }
-    }
-  }
-
-  sd_device_enumerator_unref(enumerator);
-  sd_device_unref(device);
 }
 

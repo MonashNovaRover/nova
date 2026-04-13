@@ -16,6 +16,4 @@ bool set_property(rclcpp::Node* streamer_node, const std::string serial, const s
 
 bool verify_v4lresolution(const std::string device_name, std::string* mime, int* width, int* height, int* framerate, int* framerate_denominator);
 
-void verify_v4ldev(std::unordered_map<std::string, Pipeline*>* pipelines);
-
 #endif
