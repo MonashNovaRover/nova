@@ -10,6 +10,7 @@ import {ReactNode} from "react";
 import { useStreamingBifrost } from "../../hooks/cameraBifrostHooks.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
+import { BooleanChip } from "./BooleanChip.tsx";
 
 const snapTo90 = (value: number): number => {
   const remainder = value % 90;
@@ -29,41 +30,44 @@ export const CameraSettingsForm = ({
   children?: ReactNode
 }) => {
   const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(()=>{});
+
   const onlineCameras = useSelector((state: RootState) => state.camerasStore.cameras);
   const isOnline = onlineCameras.map(v=>v.serial).includes(cameraSerial)
+
+  const cameraStreamerMap = useSelector((state: RootState) => state.cameraStreamerState.cameras);
+  const isStreaming = !!cameraStreamerMap[cameraSerial]
   return (
     <div className="mt-2 flex flex-col gap-3 w-full">
-      <div className="grid grid-cols-2 w-full">
-        <div className="col-start-1 gap-3">
-          <Switch
-            className="pb-2"
-            size="sm"
-            thumbIcon={<RotateCcw fill="white" />}
-            isSelected={cameraFilters.flipCamera}
-            onChange={(event) =>
-              setCameraFilters((oldFilters) => ({
-                ...oldFilters,
-                flipCamera: event.target.checked,
-              }))
-            }
-          >
-            Flip Camera
-          </Switch>
-          <Switch
-            size="sm"
-            thumbIcon={<Droplet fill="white" />}
-            isSelected={cameraFilters.invertCamera}
-            onChange={(event) =>
-              setCameraFilters((oldFilters) => ({
-                ...oldFilters,
-                invertCamera: event.target.checked,
-              }))
-            }
-          >
-            Invert Colors
-          </Switch>
-        </div>
-        <div className="justify-self-end">
+      <div className="grid grid-cols-2 grid-rows-2 w-full">
+        <Switch
+          className="col-start-1 row-start-1 pb-2"
+          size="sm"
+          thumbIcon={<RotateCcw fill="white" />}
+          isSelected={cameraFilters.flipCamera}
+          onChange={(event) =>
+            setCameraFilters((oldFilters) => ({
+              ...oldFilters,
+              flipCamera: event.target.checked,
+            }))
+          }
+        >
+          Flip Camera
+        </Switch>
+        <Switch
+          className="col-start-1 row-start-2"
+          size="sm"
+          thumbIcon={<Droplet fill="white" />}
+          isSelected={cameraFilters.invertCamera}
+          onChange={(event) =>
+            setCameraFilters((oldFilters) => ({
+              ...oldFilters,
+              invertCamera: event.target.checked,
+            }))
+          }
+        >
+          Invert Colors
+        </Switch>
+        <div className="col-start-2 row-start-1 justify-self-end">
           <Button
             isIconOnly
             size="sm"
@@ -92,6 +96,25 @@ export const CameraSettingsForm = ({
           >
             <Square size="15px" fill="white" />
           </Button>
+        </div>
+        <div className="flex col-start-2 row-start-2 justify-end pr-5 pt-2">
+          {(isOnline) ? (
+            <BooleanChip
+              boolean={isStreaming}
+              trueText="Streaming"
+              falseText="Idle"
+              falseColor="primary"
+              variant="flat"
+            />
+          ) : (
+            <BooleanChip
+              boolean={false}
+              falseText="Not Found"
+              falseColor="danger"
+              variant="flat"
+              trueText="Idle"
+            />
+          )}
         </div>
       </div>
       <Slider
