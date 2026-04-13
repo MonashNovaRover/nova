@@ -14,7 +14,7 @@
 #include "properties/capsfilters.hpp"
 #include "properties/cpufilters.hpp"
 
-#include "properties/av1.hpp"
+#include "properties/software_encoders.hpp"
 
 /*
  * V4l camera (any) decoded then encoded into av1enc
@@ -69,7 +69,7 @@ GstElement* av1software_pipeline(rclcpp::Node* streamer_node, av1softwarePipelin
   set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
   set_crop43(cropper, props->crop43, crop_width, props->downscale);
-  set_av1enc(encode, props->cpu_used, props->end_usage, props->usage_profile, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate);
+  set_av1enc(encode, props->cpu_used, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate);
   set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
@@ -137,14 +137,15 @@ av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node*
 
   // Get profile
   std::string profile = "";
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
   streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
 
   // source
-  props->device = camera->node;
+  props->strict_devname = set_property(streamer_node, camera->serial, profile, camera->original_serial, "strict_devname", true);
+  props->device =  (props->strict_devname) ? set_property(streamer_node, camera->serial, profile, camera->original_serial, "device", camera->node) : camera->node;
 
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
@@ -188,12 +189,7 @@ av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node*
   props->show_clock = set_property(streamer_node, camera->serial, profile, camera->original_serial, "show_clock", false);
 
   // encode
-  default_string = "cbr";
-  props->end_usage = set_property(streamer_node, camera->serial, profile, camera->original_serial, "end_usage", default_string);
-  default_string = "realtime";
-  props->usage_profile = set_property(streamer_node, camera->serial, profile, camera->original_serial, "usage_profile", default_string);
-
-  props->cpu_used = set_property(streamer_node, camera->serial, profile, camera->original_serial, "cpu_used", 10);
+  props->cpu_used = set_property(streamer_node, camera->serial, profile, camera->original_serial, "cpu_used", 1);
   props->gop = set_property(streamer_node, camera->serial, profile, camera->original_serial, "gop", 1);
   props->threads = set_property(streamer_node, camera->serial, profile, camera->original_serial, "threads", 1);
 

@@ -14,7 +14,7 @@
 #include "properties/capsfilters.hpp"
 #include "properties/cpufilters.hpp"
 
-#include "properties/vpX.hpp"
+#include "properties/software_encoders.hpp"
 
 /*
  * V4l camera (any) decoded then encoded into vpXenc
@@ -22,12 +22,12 @@
  * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-vp8
  */
 
-GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelineProperties* props)
+GstElement* vp8software_pipeline(rclcpp::Node* streamer_node, vp8softwarePipelineProperties* props)
 {
   // 0. Initialize constants
 
   // Verify resolution
-  const std::string pipeline_type = "vpXsoftware";
+  const std::string pipeline_type = "vp8software";
   if (props->verify_resolution) {
     if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
         RCLCPP_INFO(streamer_node->get_logger(), "Starting %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
@@ -51,7 +51,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
   GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
-  GstElement* encode = (props->video_caps == "video/x-vp9") ? gst_element_factory_make("vp9enc", "encoder") : gst_element_factory_make("vp8enc", "encoder");
+  GstElement* encode = gst_element_factory_make("vp8enc", "encoder");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
   GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
@@ -67,7 +67,8 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
   set_crop43(cropper, props->crop43, crop_width, props->downscale);
-  set_vpXenc(encode, props->deadline, props->cpu_used, props->end_usage, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate, props->video_caps, props->aq_mode);
+  set_vp8enc(encode, props->cpu_used, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate);
+;
   set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
@@ -123,10 +124,10 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
  * Retrieve ros2 parameters for vpXsoftware pipeline or sets defaults
 */
 
-vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+vp8softwarePipelineProperties* get_vp8software_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
   // 0. Initialize constants
-  vpXsoftwarePipelineProperties* props = new vpXsoftwarePipelineProperties;
+  vp8softwarePipelineProperties* props = new vp8softwarePipelineProperties;
   RCLCPP_DEBUG(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
   props->serial = camera->serial;
   props->node = camera->node;
@@ -134,8 +135,8 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
 
   // Get profile
   std::string profile = "";
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
   streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
@@ -185,22 +186,14 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   props->show_clock = set_property(streamer_node, camera->serial, profile, camera->original_serial, "show_clock", false);
 
   // encode
-  default_string = "perceptual";
-  props->aq_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "aq_mode", default_string);
-  default_string = "cbr";
-  props->end_usage = set_property(streamer_node, camera->serial, profile, camera->original_serial, "end_usage", default_string);
-
-
-  props->cpu_used = set_property(streamer_node, camera->serial, profile, camera->original_serial, "cpu_used", 16);
-  props->deadline = set_property(streamer_node, camera->serial, profile, camera->original_serial, "deadline", 1);
+  props->cpu_used = set_property(streamer_node, camera->serial, profile, camera->original_serial, "cpu_used", 1);
   props->gop = set_property(streamer_node, camera->serial, profile, camera->original_serial, "gop", 1);
   props->threads = set_property(streamer_node, camera->serial, profile, camera->original_serial, "threads", 1);
 
   // webrtc
   default_string = "gcc";
   props->congestion_control = set_property(streamer_node, camera->serial, profile, camera->original_serial, "congestion_control", default_string);
-  default_string = "video/x-vp8";
-  props->video_caps = set_property(streamer_node, camera->serial, profile, camera->original_serial, "video_caps", default_string);
+  props->video_caps = "video/x-vp8";
 
   props->bitrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "bitrate", 4096);
 

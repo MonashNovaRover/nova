@@ -47,16 +47,16 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
   src/properties/capsfilters.cpp
   src/properties/cpufilters.cpp
 
+  src/properties/software_encoders.cpp
   src/properties/h264.cpp
-  src/properties/vpX.cpp
-  src/properties/av1.cpp
 
   # Pipelines
   src/pipelines/av1software.cpp
   src/pipelines/h264passthrough.cpp
   src/pipelines/h264software.cpp
   src/pipelines/v4lfallback.cpp
-  src/pipelines/vpXsoftware.cpp
+  src/pipelines/vp8software.cpp
+  src/pipelines/vp9software.cpp
 )
 target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES} ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})

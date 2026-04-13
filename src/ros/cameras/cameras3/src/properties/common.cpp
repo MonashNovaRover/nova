@@ -18,40 +18,52 @@ bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstEl
 }
 
 std::string set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const std::string default_value) {
-    // Get property
     std::string value;
+    // Check serial for property
     streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (!profile.empty()) {
-      streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
+
+    // Check profile for property
+    if (!(profile.empty())) {
+      streamer_node->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
     }
-    return value;
+    
+    // Check default for property
     streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
+    return value;
 }
 
 int set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const int default_value) {
-    // Get property
     int value;
+    // Check serial for property
     streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (!profile.empty()) {
-      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
+
+    // Check profile for property
+    if (!(profile.empty())) {
+      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
     }
+    
+    // Check default for property
     streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
     return value;
 }
 
 bool set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const bool default_value) {
-    // Get property
     bool value;
+    // Check serial for property
     streamer_node->get_parameter_or((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value, default_value);
     if (value != default_value) return value;
-    if (!profile.empty()) {
-      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value, default_value);
+
+    // Check profile for property
+    if (!(profile.empty())) {
+      streamer_node->get_parameter_or((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value, default_value);
       if (value != default_value) return value;
     }
+    
+    // Check default for property
     streamer_node->get_parameter_or((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value, default_value);
     return value;
 }

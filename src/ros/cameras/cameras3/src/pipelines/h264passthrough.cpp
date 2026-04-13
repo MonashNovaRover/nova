@@ -94,8 +94,8 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 
   // Get profile
   std::string profile = "";
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
   streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;

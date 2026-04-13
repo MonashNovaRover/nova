@@ -14,6 +14,7 @@
 #include "properties/capsfilters.hpp"
 #include "properties/cpufilters.hpp"
 
+#include "properties/software_encoders.hpp"
 #include "properties/h264.hpp"
 
 /*
@@ -69,7 +70,7 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
   set_crop43(cropper, props->crop43, crop_width, props->downscale);
-  set_x264enc(encode, props->tune, props->speed_preset, props->threads, props->bitrate, props->noise_reduction, props->gop, props->framerate, props->framerate_denominator, props->downrate);
+  set_x264enc(encode, props->cpu_used, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate);
   set_h264parse(parse, props->gop);
   set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
@@ -136,8 +137,8 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
 
   // Get profile
   std::string profile = "";
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
   streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
+  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
@@ -188,13 +189,8 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->show_clock = set_property(streamer_node, camera->serial, profile, camera->original_serial, "show_clock", false);
 
   // encode
-  default_string = "ultrafast";
-  props->speed_preset = set_property(streamer_node, camera->serial, profile, camera->original_serial, "speed_preset", default_string);
-  default_string = "zerolatency";
-  props->tune = set_property(streamer_node, camera->serial, profile, camera->original_serial, "tune", default_string);
-
+  props->cpu_used = set_property(streamer_node, camera->serial, profile, camera->original_serial, "cpu_used", 1);
   props->gop = set_property(streamer_node, camera->serial, profile, camera->original_serial, "gop", 1);
-  props->noise_reduction = set_property(streamer_node, camera->serial, profile, camera->original_serial, "noise_reduction", 256);
   props->threads = set_property(streamer_node, camera->serial, profile, camera->original_serial, "threads", 1);
 
   // webrtc
