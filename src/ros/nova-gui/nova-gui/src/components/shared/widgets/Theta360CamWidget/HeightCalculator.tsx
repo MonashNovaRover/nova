@@ -1,38 +1,31 @@
-import React, {useCallback, useEffectEvent, useState} from "react";
+import React, {useState} from "react";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
 import {Input, Tooltip} from "@nextui-org/react";
+import { AngleType } from "./Theta360CamWidget.tsx";
 
 export interface heightCalc360CamProps {
-  angles: number[],
-  setAngles:  React.Dispatch<React.SetStateAction<number[]>>
+  angles: AngleType,
+  setAngles:  React.Dispatch<React.SetStateAction<AngleType>>
 }
 
   const HeightCalculator: React.FC<heightCalc360CamProps> = (props) => {
 
+  // local stores for input fields
   const [inputDistance, setInputDistance] = useGenericStore<string>("theta360InputDistance");
-  const [inputThetaHigh, setInputThetaHigh] = useState<string>("");
-  const [inputThetaLow, setInputThetaLow] = useState<string>("");
-  const [landmarkHeight, setLandmarkHeight] = useState<number>(0);
+  const [inputLow, setInputLow] = useState<string>(props.angles.low.toFixed(2))
+  const [inputHigh, setInputHigh] = useState<string>(props.angles.high.toFixed(2))
+  
 
-// Calculate height of landmark
-  useEffectEvent(() => {
-    const radThetaHigh = Number(inputThetaHigh) * Math.PI / 180;
-    const radThetaLow = Number(inputThetaLow) * Math.PI / 180;
-    (setLandmarkHeight(Number(inputDistance) * (Math.tan(radThetaHigh) - Math.tan(radThetaLow))));
-  });
+  // Calculate height of landmark
+  const radThetaHigh = props.angles.high * Math.PI / 180;
+  const radThetaLow = props.angles.low * Math.PI / 180;
+  const landmarkHeight = Number(inputDistance) * (Math.tan(radThetaHigh) - Math.tan(radThetaLow));
 
-  // set angles when text inputs change
-  const typeAngle = useCallback(() => {
-    props.setAngles([Number(inputThetaHigh), Number(inputThetaLow)])
-  }, [inputThetaHigh, inputThetaLow, props]);
+  // set angles when text inputs change - handled in event handlers in input elements
+  // set input text boxes when angles are updated from canvas - handled by reading props for inital state
+  // height is calculated on render, render triggered on state change
 
-  // set input text boxes when angles are updated from canvas
-  useEffectEvent(() => {
-    setInputThetaHigh(props.angles[0].toFixed(2));
-    setInputThetaLow(String(props.angles[1].toFixed(2)));
-  });
-
-// input fields for height calculation
+  // input fields for height calculation
   const distField = (
     <div className="flex flex-row p-1 justify-start">
       <Input
@@ -55,11 +48,13 @@ export interface heightCalc360CamProps {
         className="w-3/4"
         label="Lower Angle"
         placeholder="0.0deg"
-        value={inputThetaLow}
-        onValueChange={setInputThetaLow}
+        value={inputLow}
+        onValueChange={setInputLow}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && !isNaN(Number(inputThetaLow))) {
-            typeAngle();
+          const val = (e.target as HTMLInputElement).value
+          if (e.key === "Enter" && !isNaN(Number(val))) {
+            props.setAngles({...props.angles, 
+              low: Number(val)});
           }
         }}
       />
@@ -77,11 +72,13 @@ export interface heightCalc360CamProps {
         className="w-3/4"
         label="Upper Angle"
         placeholder="0.0deg"
-        value={inputThetaHigh}
-        onValueChange={setInputThetaHigh}
+        value={inputHigh}
+        onValueChange={setInputHigh}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && !isNaN(Number(inputThetaHigh))) {
-            typeAngle();
+          const val = (e.target as HTMLInputElement).value
+          if (e.key === "Enter" && !isNaN(Number(val))) {
+            props.setAngles({...props.angles, 
+              high: Number(val)});
           }
         }}
       />

@@ -13,13 +13,14 @@ import GLWrapMode from "../../../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import {Image} from "react-feather";
 import ExtendedDownloadButton from "../../components/ExtendedDownload.tsx";
 import {Tooltip} from "@nextui-org/react";
+import { AngleType } from "./Theta360CamWidget.tsx";
 
 const DEG_TO_RAD = 0.0174532925199;
 export interface WebGL360CamProps {
   image?: HTMLImageElement,
   children?: React.ReactNode,
-  angles: number[],
-  setAngles: React.Dispatch<React.SetStateAction<number[]>>
+  angles: AngleType,
+  setAngles: React.Dispatch<React.SetStateAction<AngleType>>
 }
 
 const enableScroll = () => {
@@ -114,11 +115,11 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         return
       }
       // low angle on ctrl click
-      props.setAngles([props.angles[0], theta]);
+      props.setAngles({...props.angles, low: theta});
       return
     }
     // high angle on shift click
-    props.setAngles([theta, props.angles[1]]);
+    props.setAngles({...props.angles, high: theta});
 
   };
 

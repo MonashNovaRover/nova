@@ -19,13 +19,14 @@ import useImageTexture from "../../../../hooks/webgl/program/sampler/useImageTex
 import Compass from "../../../../assets/compass.png";
 import {isArray} from "lodash";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
+import { AngleType } from "./Theta360CamWidget.tsx";
 
 
 export interface WebGL360CamProps {
   image?: HTMLImageElement,
   children?: React.ReactNode
-  angles: number[],
-  setAngles: React.Dispatch<React.SetStateAction<number[]>>
+  angles: AngleType,
+  setAngles: React.Dispatch<React.SetStateAction<AngleType>>
 }
 
 const enableScroll = () => {
@@ -154,11 +155,11 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         return
       }
       // low angle on ctrl click
-      props.setAngles([props.angles[0], theta]);
+      props.setAngles({...props.angles, low: theta});
       return
     }
     // high angle on shift click
-    props.setAngles([theta, props.angles[1]]);
+    props.setAngles({...props.angles, high: theta});
 
   };
 

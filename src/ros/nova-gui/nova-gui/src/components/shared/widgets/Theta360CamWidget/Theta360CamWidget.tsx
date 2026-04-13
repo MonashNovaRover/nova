@@ -27,6 +27,8 @@ function numsToBlobContent(data: number[]) {
   return [ab]
 }
 
+export type AngleType = {low: number, high: number}
+
 const Theta360CamWidget: React.FC = () => {
   const bifrost = useBifrost({
     topic: RosTopic.THETA_360_CAM_IMAGE,
@@ -47,7 +49,7 @@ const Theta360CamWidget: React.FC = () => {
   const image = new Image();
   image.src= imageMessage.data.length !== 0 ? `data:image/${imageMessage.format};base64,` + imageMessage.data : monkey;
 
-  const [angles, setAngles] = useState([0, 0]);
+  const [angles, setAngles] = useState({low: 0, high: 0});
 
   // Used to select between perspective and panoramic canvases
   const [canvasIndex, setCanvasIndex] = useState<number>(0);
