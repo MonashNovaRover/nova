@@ -24,6 +24,8 @@
 #include "pipelines/properties.hpp"
 #include "properties/common.hpp"
 
+#include "cameras/colors.hpp"
+
 using namespace std::placeholders;
 
 enum CameraState {STOP = 0, START = 1, PAUSE = 2};
@@ -65,7 +67,7 @@ class CameraStreamer : public rclcpp::Node
 
     subscription_ = this->create_subscription<camera_msgs::msg::Cameras>(
       TOPIC_CAMERAS, discover_qos, std::bind(&CameraStreamer::topic_callback, this, _1));
-    RCLCPP_INFO(this->get_logger(), "Cameras3 Streamer Running...");
+    RCLCPP_INFO(this->get_logger(), "%sCameras3 Streamer Running...%s", C_QUIET, C_RESET);
   }
 
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
@@ -162,10 +164,11 @@ class CameraStreamer : public rclcpp::Node
           this->start_pipeline(pipeline);
         } else {
           pipeline->gst_pipeline = nullptr;
+          RCLCPP_INFO(this->get_logger(), "%sInitialized %s%s%s pipeline for %s%s%s", C_QUIET, C_INPUT, pipeline->pipeline_type.c_str(), C_QUIET, C_TITLE, camera.serial.c_str(), C_RESET);
+
         }
 
         this->pipelines[camera.serial] = pipeline;
-        RCLCPP_INFO(this->get_logger(), "Initialized %s pipeline for %s", pipeline->pipeline_type.c_str(), camera.serial.c_str());
       }
     }
   }
@@ -184,7 +187,7 @@ class CameraStreamer : public rclcpp::Node
             Pipeline* pipeline = pipelines[serial];
             if (this->pipelines[serial]->gst_pipeline != nullptr) {
             // gstreamer play pipeline if paused
-              RCLCPP_INFO(this->get_logger(), "Resuming %s", serial.c_str());
+              RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             } else {
             // start pipeline if the gst bin doesn't exist yet
@@ -192,26 +195,21 @@ class CameraStreamer : public rclcpp::Node
             }
           } else {
           // otherwise report error
-            RCLCPP_ERROR(this->get_logger(), "Issue with pipeline of: %s", serial.c_str());
+            RCLCPP_ERROR(this->get_logger(), "%sIssue with pipeline of: %s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_RESET);
             response->success = false;
           }
         }
         break;
       case CameraState::STOP:
-
-        //for (const auto& [serial, pipeline] : pipelines) {
-        //    RCLCPP_INFO(this->get_logger(), "devname: %s", pipeline->props->node.c_str());
-        //}
-
         for (std::string serial : request->serials) {
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             Pipeline* pipeline = pipelines[serial];
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
             gst_object_unref(pipeline->gst_pipeline);
             pipeline->gst_pipeline = nullptr;
-            RCLCPP_INFO(this->get_logger(), "Stopping %s", serial.c_str());
+            RCLCPP_INFO(this->get_logger(), "%sStopping %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
           } else {
-            RCLCPP_INFO(this->get_logger(), "Issue with pipeline of: %s", serial.c_str());
+            RCLCPP_INFO(this->get_logger(), "%sIssue with pipeline of: %s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_RESET);
             response->success = false;
           }
         }
@@ -221,9 +219,9 @@ class CameraStreamer : public rclcpp::Node
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             Pipeline* pipeline = pipelines[serial];
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
-            RCLCPP_INFO(this->get_logger(), "Pausing %s", serial.c_str());
+            RCLCPP_INFO(this->get_logger(), "%sPausing %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
           } else {
-            RCLCPP_INFO(this->get_logger(), "Issue with pipeline of: %s", serial.c_str());
+            RCLCPP_INFO(this->get_logger(), "%sIssue with pipeline of: %s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_RESET);
             response->success = false;
           }
         }

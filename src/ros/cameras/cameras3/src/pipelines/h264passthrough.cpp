@@ -15,6 +15,7 @@
 #include "properties/cpufilters.hpp"
 
 #include "properties/h264.hpp"
+#include "cameras/colors.hpp"
 
 /*
  * V4l camera (h264) to webrtc pipeline (direct)
@@ -30,12 +31,12 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   const std::string pipeline_type = "h264passthrough";
   if (props->verify_resolution) {
     if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
-        RCLCPP_INFO(streamer_node->get_logger(), "Starting %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(), props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+        RCLCPP_INFO(streamer_node->get_logger(), "%sStarting %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
     } else {
-        RCLCPP_ERROR(streamer_node->get_logger(), "Wrong resolution! Fallback %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(),  props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+        RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution!%s Fallback %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_FAIL, C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
     }
   } else {
-      RCLCPP_INFO(streamer_node->get_logger(), "Starting %s pipeline for %s with %dx%d@%dfps", pipeline_type.c_str(),  props->serial.c_str(), props->width, props->height, props->framerate/props->framerate_denominator);
+      RCLCPP_INFO(streamer_node->get_logger(), "%sStarting %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
   }
 
   // 1. Create the elements
@@ -48,7 +49,7 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   GstElement* depayload = (props->payload_quirk) ? gst_element_factory_make("rtph264depay", "depayloader") : nullptr;
 
   if (!gst_pipeline || !source || !srcfilter || !parse || !webrtc || (props->payload_quirk && !payload) || (props->payload_quirk && !depayload)) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "Could not create pipeline for %s", props->serial.c_str());
+      RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
       return nullptr;
   }
 
@@ -87,7 +88,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 {
   // 0. Initialize constants
   h264passthroughPipelineProperties* props = new h264passthroughPipelineProperties;
-  RCLCPP_DEBUG(streamer_node->get_logger(), "Getting props for %s", camera->serial.c_str());
+  RCLCPP_DEBUG(streamer_node->get_logger(), "%sGetting props for %s%s%s", C_QUIET, C_TITLE, camera->serial.c_str(), C_RESET);
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;

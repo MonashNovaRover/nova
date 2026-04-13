@@ -52,7 +52,7 @@ class CameraDirectory : public rclcpp::Node
 
     // publish once
     this->publish_cameras();
-    RCLCPP_INFO(this->get_logger(), "Polling v4l capture devices every %dms", POLLING_PERIOD);
+    RCLCPP_INFO(this->get_logger(), "%sPolling v4l capture devices every %dms%s", C_QUIET, POLLING_PERIOD, C_RESET);
   }
 
   rclcpp::TimerBase::SharedPtr timer_;
@@ -75,15 +75,25 @@ class CameraDirectory : public rclcpp::Node
       serial_remaps[kv.first] = kv.second.as_string();
     }
 
+    std::stringstream log;
+
+
     platform = this->get_parameter_or<std::string>("platform", "");
     task = this->get_parameter_or<std::string>("task", "");
-    if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
-      else RCLCPP_INFO(this->get_logger(), "Using platform root from %s", platform.c_str());
-    if (task.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"task\" is empty");
-      else RCLCPP_INFO(this->get_logger(), "Using task serials from %s", task.c_str());
+    //if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
+    //  else RCLCPP_INFO(this->get_logger(), "Using platform root from %s", platform.c_str());
+    //if (task.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"task\" is empty");
+    //  else RCLCPP_INFO(this->get_logger(), "Using task serials from %s", task.c_str());
+    if (platform.empty()) log << C_QUIET << "Node argument \"" << C_INPUT << "platform" << C_QUIET << "\" is empty" << C_RESET << "\n";
+      else log << C_QUIET << "Using platform root from " << C_SUBTITLE << platform << C_RESET << "\n";
+    if (task.empty()) log << C_QUIET << "Node argument \"" << C_INPUT << "task" << C_QUIET << "\" is empty" << C_RESET;
+      else log << C_QUIET << "Using task serials from " << C_SUBTITLE << task << C_RESET;
+
+    // Pretty print cameras
+    RCLCPP_INFO(this->get_logger(), "%s", log.str().c_str());
 
     if (platform.empty()) {
-      RCLCPP_WARN(this->get_logger(), "Skipping serial_overrides...");
+      RCLCPP_WARN(this->get_logger(), "%sSkipping serial_overrides...%s", C_FAIL, C_RESET);
     } else {
       std::map<std::string, std::pair<std::string, std::string>> path_map;
       std::map<std::string, std::string> root_map;
@@ -184,7 +194,7 @@ class CameraDirectory : public rclcpp::Node
         log << "\n - " << C_TITLE << serial << C_RESET;
         if (serial != device.serial)
         {
-          log << C_QUIET " remapped from " << C_SUBTITLE << device.serial << C_RESET;
+          log << C_QUIET " remapped from " << C_INPUT << device.serial << C_RESET;
         }
         log << C_QUIET " located at " << device.path << C_RESET;
 
