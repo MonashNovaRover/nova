@@ -55,94 +55,165 @@ camera_streamer:
         meta: Arm - Side
 
     profiles:
-      max:
-        mime: image/jpeg
-        width: 1920
-        height: 1080
-        framerate: 30
-        bitrate: 1024
-        cpu-used: -16
-        speed-preset: ultrafast
-        video_caps: video/x-vp8
+      openaicam_openaicam_2505121128:
+        🛞:
+          pipeline_type: vpXsoftware
+          mime: image/jpeg
+          width: 1280
+          height: 720
+          framerate: 30
+          downscale: 2
+          crop43: true
+          cpu_usage: 0
+          bitrate: 576
+          video_caps: video/x-vp8
+        🔬:
+          pipeline_type: h264software
+          mime: video/x-raw
+          width: 1920
+          height: 1080
+          framerate: 5
+          cpu_usage: 16
+          bitrate: 4096
+          speed-preset: slow
+          threads: 6
+          video_caps: video/x-h264
+        📻:
+          pipeline_type: vpXsoftware
+          mime: image/jpeg
+          width: 1280
+          height: 720
+          framerate: 30
+          downscale: 6
+          crop43: true
+          cpu_usage: 8
+          bitrate: 256
+          video_caps: video/x-vp9
+        🆘:
+          pipeline_type: vpXsoftware
+          width: 1280
+          height: 720
+          framerate: 30
+          downscale: 12
+          crop43: true
+          cpu_usage: 16
+          bitrate: 64
+          video_caps: video/x-vp9
 
-      high:
-        mime: image/jpeg
-        width: 1024
-        height: 768
-        framerate: 30
-        bitrate: 768
-        cpu-used: -8
-        speed-preset: fast
-        video_caps: video/x-vp8
+      webcamvendor_SK_series1_20220325JWGD2093:
+        🛞:
+          pipeline_type: h264passthrough
+          width: 640
+          height: 480
+          framerate: 30
+        🔬:
+          pipeline_type: h264passthrough
+          width: 1920
+          height: 1080
+          framerate: 30
+        📻:
+          pipeline_type: h264passthrough
+          width: 320
+          height: 240
+          framerate: 30
+        🆘:
+          pipeline_type: vpXsoftware
+          width: 320
+          height: 240
+          framerate: 30
+          downscale: 5
+          crop43: true
+          cpu_usage: 16
+          bitrate: 64
+          video_caps: video/x-vp9
 
-      high-cheap:
-        mime: image/jpeg
-        width: 1280
-        height: 720
-        framerate: 30
-        bitrate: 768
-        cpu-used: -8
-        speed-preset: fast
-        crop43: true
-        video_caps: video/x-vp8
+      HZ_USB_Camera_20220301104:
+        🛞:
+          pipeline_type: vpXsoftware
+          mime: image/jpeg
+          width: 1280
+          height: 720
+          framerate: 30
+          downscale: 2
+          crop43: true
+          cpu_usage: 0
+          bitrate: 576
+          video_caps: video/x-vp8
+        🔬:
+          pipeline_type: h264software
+          mime: video/x-raw
+          width: 2592
+          height: 1944
+          framerate: 1
+          cpu_usage: 16
+          bitrate: 4096
+          speed-preset: slow
+          threads: 6
+          video_caps: video/x-h264
+        📻:
+          pipeline_type: vpXsoftware
+          mime: image/jpeg
+          width: 640
+          height: 480
+          framerate: 30
+          downscale: 4
+          crop43: true
+          cpu_usage: 8
+          bitrate: 256
+          video_caps: video/x-vp9
+        🆘:
+          pipeline_type: vpXsoftware
+          width: 640
+          height: 480
+          framerate: 30
+          downscale: 10
+          crop43: true
+          cpu_usage: 16
+          bitrate: 64
+          video_caps: video/x-vp9
 
-      high-life:
-        mime: image/jpeg
-        width: 800
-        height: 600
-        framerate: 30
-        bitrate: 512
-        cpu-used: -8
-        speed-preset: fast
-        video_caps: video/x-vp8
-
-      medium:
-        mime: image/jpeg
-        width: 640
-        height: 480
-        framerate: 30
-        bitrate: 384
-        cpu-used: -4
-        video_caps: video/x-vp8
-
-      medium-cheap:
-        mime: image/jpeg
-        width: 1280
-        height: 720
-        framerate: 30
-        downscale: 2
-        bitrate: 384
-        cpu-used: 0
-        video_caps: video/x-vp8
-
-      low:
-        mime: image/jpeg
-        width: 320
-        height: 240
-        framerate: 30
-        bitrate: 256
-        cpu-used: 10
-        video_caps: video/x-vp9
-
-      low-cheap:
-        mime: image/jpeg
-        width: 1280
-        height: 720
-        framerate: 30
-        downscale: 3
-        bitrate: 256
-        cpu-used: 10
-        video_caps: video/x-vp9
-
-      low-focus:
-        mime: image/jpeg
-        width: 640
-        height: 480
-        framerate: 30
-        downscale: 2
-        bitrate: 256
-        cpu-used: 10
-        video_caps: video/x-vp9
+      Microsoft_Microsoft®_LifeCam_HD-3000:
+        🛞:
+          pipeline_type: vpXsoftware
+          mime: image/jpeg
+          width: 640
+          height: 360
+          framerate: 30
+          crop43: true
+          cpu_usage: 0
+          bitrate: 576
+          video_caps: video/x-vp8
+        🔬:
+          pipeline_type: h264software
+          mime: video/x-raw
+          width: 1280
+          height: 800
+          framerate: 10
+          downrate: 2
+          bitrate: 4096
+          speed-preset: slow
+          threads: 6
+          video_caps: video/x-h264
+        📻:
+          pipeline_type: vpXsoftware
+          mime: image/jpeg
+          width: 160
+          height: 120
+          framerate: 30
+          crop43: true
+          cpu_usage: 8
+          bitrate: 256
+          video_caps: video/x-vp9
+        🆘:
+          pipeline_type: vpXsoftware
+          width: 320
+          height: 240
+          framerate: 30
+          downscale: 5
+          crop43: true
+          cpu_usage: 16
+          bitrate: 64
+          video_caps: video/x-vp9
 
 
     defaults:
