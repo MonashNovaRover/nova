@@ -88,11 +88,12 @@ To run each componenet individually:
 3. Offline Maps (OPTIONAL)
 
    Open a new terminal. This runs the maps server that is needed for the URC GPS Cartographer.
+   Will display all of the .mbtiles within the specified directory (default is ~/maps)
 
    ```sh
    tileserver
    # alias for
-   ~/Builds/master/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/tiles
+   ~/Builds/master/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/maps
    ```
 
    If you are getting errors first ensure that the gui and rosbridge is running.
