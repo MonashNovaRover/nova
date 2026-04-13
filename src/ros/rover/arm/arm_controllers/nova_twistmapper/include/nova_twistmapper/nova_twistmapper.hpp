@@ -251,6 +251,12 @@ protected:
 
   // publish rate limiter
   bool is_halted = false;
+
+  // the current position target we are moving towards
+  std::vector<double> current_target;
+
+  // the tolerance for assuming the position is the same
+  double target_tolerance;
 };
 } // namespace nova_twistmapper
 #endif // NOVA_TWISTMAPPER__NOVA_TWISTMAPPER_HPP_

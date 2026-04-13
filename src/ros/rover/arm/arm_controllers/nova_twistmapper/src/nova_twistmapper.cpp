@@ -191,6 +191,23 @@ namespace nova_twistmapper
       return controller_interface::return_type::OK;
     }
 
+    if (solution.size() == current_target.size()) {
+      bool is_same = true;
+
+      for (size_t i = 0; i < solution.size(); i++) {
+        if (abs(registered_joint_handles_[i].state_pos.get().get_value() - solution[i]) > target_tolerance) {
+          is_same = false;
+          break;
+        }
+      }
+
+      if (is_same) {
+        return controller_interface::return_type::OK;
+      }
+    }
+
+    current_target = solution;
+
     // Apply solution to command interfaces
     for (size_t i = 0; i < solution.size(); i++) {
       registered_joint_handles_[i].command.get().set_value(solution[i]);
