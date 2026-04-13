@@ -247,6 +247,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
                     <CameraSettingsForm
                       cameraFilters={filters}
                       setCameraFilters={setFilters}
+                      cameraSerial={cameraSerial}
                     >
                       {props.settingsFormChildren}
                     </CameraSettingsForm>
