@@ -99,7 +99,7 @@ export interface heightCalc360CamProps {
   )
 
   return (
-    <div className="flex flex-row gap-1 justify-start my-5">
+    <div className="flex flex-row gap-1 justify-center mt-3 ">
       <Modal isOpen={isModalOpen} onClose={()=>setModalOpen(false)} className="dark text-foreground" size="xl">
         <ModalContent>
           <ModalHeader>
@@ -107,35 +107,35 @@ export interface heightCalc360CamProps {
           </ModalHeader>
           <ModalBody className="pb-5 inline">
             Manual input: Fill boxes and press <b>enter</b> or press calculate <br/>
-            Fast fill (low): <b>Shift</b> + <b>Left Click</b> on canvas to fill low angle <br/>
+            Fast fill (low): <b>Control</b> + <b>Left Click</b> on canvas to fill low angle <br/>
             Fast fill (high): <b>Shift</b> + <b>Left Click</b> on canvas to fill low angle <br/>
             Fast fill will automatically calculate the height. 
           </ModalBody>
         </ModalContent>
       </Modal>
-      <div className="flex flex-col gap-1">
-        {distField}
+      <div className="flex flex-row gap-1 items-center">
         <span className="ml-3 w-[8rem] text-[0.7rem]">
           Distance of landmark from camera in metres
         </span>
+        {distField}
       </div>
-      <div className="flex flex-col gap-1">
-        {lowThetaField}
+      <div className="flex flex-row gap-1 items-center">
         <span className="ml-3 w-[8rem] text-[0.7rem]">
           Low angle of landmark from camera center
         </span>
+        {lowThetaField}
       </div>
-      <div className="flex flex-col gap-1">
-        {highThetaField}
+      <div className="flex flex-row gap-1 items-center">
         <span className="ml-3 w-[8rem] text-[0.7rem]">
           High angle of landmark from camera center
         </span>
+        {highThetaField}
       </div>
-      <div className="flex flex-col p-1 justify-start gap-1">
+      <div className="flex flex-row p-1 justify-start gap-5 items-center">
         Height of landmark:
         <b> {landmarkHeight.toPrecision(2)}m </b>
-        <div className="flex flex-row justify-between items-center">
-          <Button className="-ml-1" onPress={setInputValues}>Calculate!</Button>
+        <div className="flex flex-row gap-5 justify-between items-center">
+          <Button className="ml-5" onPress={setInputValues}>Calculate!</Button>
           <HelpCircle size="2rem" color="pink" onClick={()=>setModalOpen(true)}/>
         </div>
       </div>
