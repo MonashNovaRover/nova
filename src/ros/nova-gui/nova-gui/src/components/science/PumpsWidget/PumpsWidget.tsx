@@ -146,11 +146,16 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
 
   return (
     <Card {...props}>
-      <CardHeader className="pb-0 flex flex-row justify-between">
-        Pumps
-        <Button isIconOnly variant="light" size="sm" onPress={onOpen}>
-          <MoreHorizontal/>
-        </Button>
+      <CardHeader className="pb-0 flex flex-row justify-between items-center">
+        <div className="flex-1">Pumps</div>
+        <div className="flex-1 text-center text-sm text-default-500">
+          {pumpStatus.running && `Running: ${getSelectedPumpDisplay()}`}
+        </div>
+        <div className="flex-1 flex justify-end">
+          <Button isIconOnly variant="light" size="sm" onPress={onOpen}>
+            <MoreHorizontal/>
+          </Button>
+        </div>
       </CardHeader>
       <CardBody className="flex flex-col">
         {progressBar}
@@ -164,12 +169,6 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
             </span>
           </div>
         </div>
-
-        {pumpStatus.running && (
-          <div className="text-center text-sm text-default-500">
-            Running: {getSelectedPumpDisplay()}
-          </div>
-        )}
 
         <div className="grid grid-cols-9 gap-3 mt-3">
           <Select
