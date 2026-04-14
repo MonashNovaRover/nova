@@ -127,10 +127,6 @@ bool verify_v4lresolution(const std::string device_name, std::string* mime, int*
                 gst_object_unref(monitor);
                 return true;
               }
-
-              gst_structure_free(str);
-              g_value_unset(width_val);
-              g_value_unset(height_val);
           }
           g_list_free_full(devices, gst_object_unref);
           gst_object_unref(monitor);
