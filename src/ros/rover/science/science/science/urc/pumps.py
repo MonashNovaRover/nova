@@ -4,8 +4,11 @@
 Purpose: Control for the URC Pumps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: urc_pumps
-ACTIONS:
-    - "/science/pumps_action"   [Pumps]
+TOPICS:
+    - publisher: /science/pumps/status  [PumpStatus]
+SERVICES:
+    - service: /science/pumps/run       [RunPump]
+    - service: /science/pumps/stop      [Trigger]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - cache_to_shot_pump/effort        [value between -1 and 1]
@@ -17,306 +20,268 @@ CREATION:   13-04-2026
 EDITED:     13-04-2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import time
-from enum import Enum
-from typing import Optional
+from typing import Optional, Dict, List
 
 import rclpy
 from rclpy.node import Node
-from rclpy.action import ActionServer, GoalResponse, CancelResponse
-from rclpy.action.server import ServerGoalHandle
+from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSDurabilityPolicy
+from std_srvs.srv import Trigger
 
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
 from python_control2.hardware_interfaces import QCMDHardware
-from science_interfaces.action import Pumps
-
-
-class PumpState(Enum):
-    """State machine states for pump operation"""
-    IDLE = 0
-    RUNNING = 1
+from science_interfaces.msg import PumpStatus
+from science_interfaces.srv import RunPump
 
 
 class PumpsController(Controller):
     """
     Controller for URC science pumps using Python Control2 framework.
 
-    Manages two pumps:
-    - Cache to Shot Pump: Used for fill_shots action
-    - Shot to Carousel Pump: Used for fill_cuvettes_prime and fill_cuvettes actions
+    Manages pumps dynamically based on provided hardware list.
 
-    Exposes a ROS2 Action Server at /science/pumps_action that accepts:
-    - fill_shots: Runs cache-to-shot pump
-    - fill_cuvettes_prime: Runs shot-to-carousel pump
-    - fill_cuvettes: Runs shot-to-carousel pump
+    Exposes services for pump control and a topic for status:
+    - /science/pumps/run: Start a pump operation
+    - /science/pumps/stop: Stop current operation
+    - /science/pumps/status: Current pump status (published at 5Hz)
     """
 
-    # Action names (matching original implementation)
-    FILL_SHOTS = "fill_shots"
-    FILL_CUVETTES_PRIME = "fill_cuvettes_prime"
-    FILL_CUVETTES = "fill_cuvettes"
-
-    # Default durations for each action (seconds)
-    DEFAULT_DURATIONS = {
-        FILL_SHOTS: 10.0,
-        FILL_CUVETTES_PRIME: 10.0,
-        FILL_CUVETTES: 10.0,
-    }
-
-    # Timeout in iterations (at 10Hz sleep rate = 120 seconds)
-    TIMEOUT_ITERATIONS = 1200
-
     def __init__(self, contexts: Contexts,
-                 action_name: str = "/science/pumps_action",
-                 cache_pump_hardware: str = "cache_to_shot_pump",
-                 carousel_pump_hardware: str = "shot_to_carousel_pump",
+                 run_service_name: str = "/science/pumps/run",
+                 stop_service_name: str = "/science/pumps/stop",
+                 status_topic_name: str = "/science/pumps/status",
+                 pump_hardware_list: List[str] = None,
                  max_effort: float = 0.75,
-                 default_duration: float = 10.0):
+                 publish_rate: int = 5):
         """
         Constructor for PumpsController.
 
         :param contexts: Dependency injection contexts from Python Control2
-        :param action_name: ROS action server name
-        :param cache_pump_hardware: Hardware interface name for cache-to-shot pump
-        :param carousel_pump_hardware: Hardware interface name for shot-to-carousel pump
+        :param run_service_name: Service name for starting pump operations
+        :param stop_service_name: Service name for stopping pump operations
+        :param status_topic_name: Topic name for status publishing
+        :param pump_hardware_list: List of hardware interface names (e.g., ["cache_to_shot_pump", "shot_to_carousel_pump"])
         :param max_effort: Maximum pump effort (0.0 to 1.0)
-        :param default_duration: Default run duration in seconds
+        :param publish_rate: Status publish rate in Hz
         """
         super().__init__(contexts)
 
+        # Default hardware list
+        if pump_hardware_list is None:
+            pump_hardware_list = ["cache_to_shot_pump", "shot_to_carousel_pump"]
+
         # Declare parameters (can be overridden via ROS params)
-        self.action_name: str = self.declare_parameter("action_name", action_name).value
-        self.cache_pump_name: str = self.declare_parameter("cache_pump_hardware", cache_pump_hardware).value
-        self.carousel_pump_name: str = self.declare_parameter("carousel_pump_hardware", carousel_pump_hardware).value
+        self.run_service_name: str = self.declare_parameter("run_service_name", run_service_name).value
+        self.stop_service_name: str = self.declare_parameter("stop_service_name", stop_service_name).value
+        self.status_topic_name: str = self.declare_parameter("status_topic_name", status_topic_name).value
+        self.pump_hardware_list: List[str] = self.declare_parameter("pump_hardware_list", pump_hardware_list).value
         self.max_effort: float = self.declare_parameter("max_effort", max_effort).value
-        self.default_duration: float = self.declare_parameter("default_duration", default_duration).value
+        self.publish_rate: int = self.declare_parameter("publish_rate", publish_rate).value
 
-        # State machine for timed pump operations
-        self.state: PumpState = PumpState.IDLE
-        self.current_goal_handle: Optional[ServerGoalHandle] = None
-        self.current_pump_cmd: Optional[Interface] = None
-        self.current_action: Optional[str] = None
-
-        # Timing state
+        # State for timed pump operations
+        self.is_running: bool = False
+        self.current_pump: str = ""
         self.run_start_time: float = 0.0
         self.run_duration: float = 0.0
 
-        # Map action names to pump hardware names
-        self.action_to_pump = {
-            self.FILL_SHOTS: self.cache_pump_name,
-            self.FILL_CUVETTES_PRIME: self.carousel_pump_name,
-            self.FILL_CUVETTES: self.carousel_pump_name,
-        }
+        # Dictionary to store command interfaces (populated in on_configure)
+        self.pump_cmds: Dict[str, Interface] = {}
 
-        self.logger.info(f"PumpsController initialized with pumps: {self.cache_pump_name}, {self.carousel_pump_name}")
+        self.logger.info(f"PumpsController initialized with hardware: {self.pump_hardware_list}")
 
     def on_configure(self, command_interfaces: InterfaceCollection,
                      state_interfaces: InterfaceCollection) -> Optional[bool]:
         """
-        Configure the controller - get interfaces and create action server.
+        Configure the controller - get interfaces, create services and publisher.
 
         :param command_interfaces: Collection of command interfaces from hardware
         :param state_interfaces: Collection of state interfaces from hardware
         :returns: True if configured successfully
         """
-        # Get command interfaces for both pumps
-        self.cache_pump_cmd = command_interfaces[f"{self.cache_pump_name}/effort"]
-        self.carousel_pump_cmd = command_interfaces[f"{self.carousel_pump_name}/effort"]
+        # Dynamically get command interfaces for all pumps in the hardware list
+        for hardware_name in self.pump_hardware_list:
+            interface_name = f"{hardware_name}/effort"
+            cmd_interface = command_interfaces[interface_name]
 
-        # Validate interfaces
-        if not self.cache_pump_cmd:
-            self.logger.warning(f"Cache pump command interface '{self.cache_pump_name}/effort' not populated")
-        if not self.carousel_pump_cmd:
-            self.logger.warning(f"Carousel pump command interface '{self.carousel_pump_name}/effort' not populated")
+            if not cmd_interface:
+                self.logger.warning(f"Pump command interface '{interface_name}' not populated")
+            else:
+                self.logger.info(f"Registered pump command interface: {interface_name}")
 
-        # Create the action server
-        self.action_server = ActionServer(
-            self.node,
-            Pumps,
-            self.action_name,
-            execute_callback=self.execute_callback,
-            goal_callback=self.goal_callback,
-            cancel_callback=self.cancel_callback,
+            self.pump_cmds[hardware_name] = cmd_interface
+
+        # Create services
+        self.run_service = self.node.create_service(
+            RunPump,
+            self.run_service_name,
+            self.run_callback
+        )
+        self.stop_service = self.node.create_service(
+            Trigger,
+            self.stop_service_name,
+            self.stop_callback
         )
 
-        self.logger.info(f"PumpsController configured with action server at '{self.action_name}'")
+        # Create status publisher with persisted QoS
+        # TRANSIENT_LOCAL allows late-joining subscribers to receive the last message
+        qos_profile = QoSProfile(
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL
+        )
+        self.status_publisher = self.node.create_publisher(PumpStatus, self.status_topic_name, qos_profile)
+
+        self.logger.info(f"PumpsController configured with services at '{self.run_service_name}', '{self.stop_service_name}'")
+        self.logger.info(f"Status publishing to '{self.status_topic_name}' with persisted QoS")
         return True
 
-    def goal_callback(self, goal_request) -> GoalResponse:
+    def run_callback(self, request: RunPump.Request, response: RunPump.Response) -> RunPump.Response:
         """
-        Handle incoming goal requests.
+        Handle run pump service requests. Non-blocking - returns immediately.
 
-        :param goal_request: The goal request from the action client
-        :returns: GoalResponse indicating accept or reject
+        :param request: The service request with pump hardware name and duration
+        :param response: The service response
+        :returns: Response indicating success/failure
         """
-        pump_action = goal_request.pump
+        # Check if already running
+        if self.is_running:
+            response.success = False
+            response.message = f"Pump already running: {self.current_pump}"
+            self.logger.warning(f"Run request rejected - pump already running: {self.current_pump}")
+            return response
 
-        # Validate the action name
-        if pump_action not in self.action_to_pump:
-            self.logger.error(f"Invalid pump action requested: '{pump_action}'")
-            return GoalResponse.REJECT
+        # Validate pump hardware name
+        if request.pump not in self.pump_hardware_list:
+            response.success = False
+            response.message = f"Invalid pump hardware: {request.pump}. Valid hardware: {self.pump_hardware_list}"
+            self.logger.error(f"Invalid pump hardware requested: '{request.pump}'")
+            return response
 
-        # Reject if already running
-        if self.state != PumpState.IDLE:
-            self.logger.warning(f"Rejecting goal - pump already running action '{self.current_action}'")
-            return GoalResponse.REJECT
+        # Validate duration
+        if request.duration <= 0:
+            response.success = False
+            response.message = f"Invalid duration: {request.duration}. Duration must be greater than 0."
+            self.logger.error(f"Invalid duration requested: {request.duration} for pump '{request.pump}'")
+            return response
 
-        self.logger.info(f"Accepting pump action goal: '{pump_action}'")
-        return GoalResponse.ACCEPT
+        # Start the pump operation
+        self.current_pump = request.pump
+        self.run_duration = request.duration
+        self.run_start_time = self.node.get_clock().now().nanoseconds * 1e-9
+        self.is_running = True
 
-    def cancel_callback(self, goal_handle: ServerGoalHandle) -> CancelResponse:
+        response.success = True
+        response.message = f"Started {request.pump} for {request.duration:.1f}s"
+        self.logger.info(f"Started pump '{request.pump}' for {request.duration:.1f}s")
+        return response
+
+    def stop_callback(self, request: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         """
-        Handle cancellation requests.
+        Handle stop pump service requests.
 
-        :param goal_handle: The goal handle to cancel
-        :returns: CancelResponse indicating accept or reject
+        :param request: The trigger request
+        :param response: The trigger response
+        :returns: Response indicating success
         """
-        self.logger.info("Received cancel request for pump action")
-        return CancelResponse.ACCEPT
-
-    def execute_callback(self, goal_handle: ServerGoalHandle) -> Pumps.Result:
-        """
-        Execute the pump action.
-
-        This method blocks until the pump operation completes. The on_update()
-        method runs in a separate thread (via PythonControl's timer) and handles
-        the actual pump control and timing.
-
-        :param goal_handle: The goal handle for this action
-        :returns: The action result
-        """
-        pump_action = goal_handle.request.pump
-        time_to_run = goal_handle.request.time_to_run
-
-        # Use default duration if not specified
-        if time_to_run <= 0:
-            time_to_run = self.DEFAULT_DURATIONS.get(pump_action, self.default_duration)
-
-        self.logger.info(f"Executing pump action '{pump_action}' for {time_to_run} seconds")
-
-        # Set up the pump run state
-        pump_name = self.action_to_pump[pump_action]
-        if pump_name == self.cache_pump_name:
-            self.current_pump_cmd = self.cache_pump_cmd
+        if self.is_running:
+            self.logger.info(f"Stopping pump '{self.current_pump}'")
         else:
-            self.current_pump_cmd = self.carousel_pump_cmd
+            self.logger.info("Stop requested but no pump was running")
 
-        self.current_goal_handle = goal_handle
-        self.current_action = pump_action
-        self.run_duration = time_to_run
-        self.run_start_time = time.time()
-        self.state = PumpState.RUNNING
+        self.is_running = False
+        self.current_pump = ""
+        self.stop_all_pumps()
+        self.publish_status()
 
-        # Wait for completion - on_update() handles the actual timing
-        # Action server runs execute_callback in a separate thread, so this blocks safely
-        iteration = 0
-        while self.state == PumpState.RUNNING and iteration < self.TIMEOUT_ITERATIONS:
-            # Check for cancellation
-            if goal_handle.is_cancel_requested:
-                self.logger.info(f"Cancelling pump action '{pump_action}'")
-                self.stop_all_pumps()
-                self.state = PumpState.IDLE
-                goal_handle.canceled()
-                result = Pumps.Result()
-                result.success = False
-                self._cleanup_goal_state()
-                return result
+        response.success = True
+        response.message = "Pumps stopped"
+        return response
 
-            # Calculate elapsed time and publish feedback
-            elapsed_time = time.time() - self.run_start_time
-            feedback_msg = Pumps.Feedback()
-            feedback_msg.time_running = float(elapsed_time)
-            feedback_msg.time_to_run = float(self.run_duration)
-            goal_handle.publish_feedback(feedback_msg)
+    def publish_status(self):
+        """Publish current pump status to the status topic."""
+        msg = PumpStatus()
+        msg.running = self.is_running
+        msg.pump = self.current_pump
 
-            self.logger.debug(f"Pump '{pump_action}': {elapsed_time:.1f}s / {self.run_duration:.1f}s")
-
-            # Check if duration completed
-            if elapsed_time >= self.run_duration:
-                self.logger.info(f"Pump action '{pump_action}' completed after {elapsed_time:.2f}s")
-                self.stop_all_pumps()
-                self.state = PumpState.IDLE
-                break
-
-            time.sleep(0.1)
-            iteration += 1
-
-        # Determine success
-        elapsed_time = time.time() - self.run_start_time
-        success = elapsed_time >= self.run_duration
-
-        # Return result
-        result = Pumps.Result()
-        result.success = success
-
-        if success:
-            goal_handle.succeed()
-            self.logger.info(f"Successfully completed pump action '{pump_action}'")
+        if self.is_running:
+            current_time = self.node.get_clock().now().nanoseconds * 1e-9
+            msg.time_elapsed = float(current_time - self.run_start_time)
+            msg.time_target = float(self.run_duration)
         else:
-            goal_handle.abort()
-            self.logger.error(f"Failed to complete pump action '{pump_action}' (timeout)")
+            msg.time_elapsed = 0.0
+            msg.time_target = 0.0
 
-        self._cleanup_goal_state()
-        return result
-
-    def _cleanup_goal_state(self):
-        """Clean up state after goal completion."""
-        self.current_goal_handle = None
-        self.current_pump_cmd = None
-        self.current_action = None
+        self.status_publisher.publish(msg)
 
     def on_update(self, now: float, period: float):
         """
         Update loop called every control cycle.
 
-        Sets pump effort based on current state. The timing and feedback
-        are handled in execute_callback since ActionServer runs it in
-        a separate thread.
+        Handles timing and pump control. When running, checks if duration
+        has elapsed and stops the pump automatically.
+
+        Publishes status every update when running, once when finishing, and not while idle.
 
         :param now: Current time in seconds
         :param period: Time since last update in seconds
         """
-        if self.state == PumpState.IDLE:
-            # Ensure pumps are stopped when idle
-            self.cache_pump_cmd.value = 0.0
-            self.carousel_pump_cmd.value = 0.0
+        if not self.is_running:
+            # Ensure all pumps are stopped when idle
+            self.stop_all_pumps()
             return
 
-        if self.state == PumpState.RUNNING:
-            # Set active pump effort
-            if self.current_pump_cmd:
-                self.current_pump_cmd.value = self.max_effort
+        # Calculate elapsed time
+        elapsed = now - self.run_start_time
 
-            # Ensure other pump is stopped
-            if self.current_pump_cmd == self.cache_pump_cmd:
-                self.carousel_pump_cmd.value = 0.0
+        # Check if duration completed
+        if elapsed >= self.run_duration:
+            self.logger.info(f"Pump '{self.current_pump}' completed after {elapsed:.2f}s")
+            self.is_running = False
+            self.current_pump = ""
+            self.stop_all_pumps()
+            self.publish_status()
+            return
+
+        # Set active pump effort, ensure all others are stopped
+        for hardware_name, cmd_interface in self.pump_cmds.items():
+            if hardware_name == self.current_pump:
+                cmd_interface.value = self.max_effort
             else:
-                self.cache_pump_cmd.value = 0.0
+                cmd_interface.value = 0.0
+
+        # Publish status every update while running
+        self.publish_status()
 
     def stop_all_pumps(self):
         """Stop all pump motors by setting effort to 0."""
-        self.cache_pump_cmd.value = 0.0
-        self.carousel_pump_cmd.value = 0.0
-        self.logger.debug("All pumps stopped")
+        for cmd_interface in self.pump_cmds.values():
+            cmd_interface.value = 0.0
 
 
 def main():
     rclpy.init()
 
-    node = Node("urc_pumps")
+    node = Node("pumps")
 
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller(
-            "pumps_controller",
+            "controller",
             PumpsController,
-            action_name="/science/pumps_action",
-            cache_pump_hardware="cache_to_shot_pump",
-            carousel_pump_hardware="shot_to_carousel_pump",
+            run_service_name="/science/pumps/run",
+            stop_service_name="/science/pumps/stop",
+            status_topic_name="/science/pumps/status",
+            pump_hardware_list=[
+                "cache_to_shot_pump",
+                "shot_to_inner_pump",
+                "shot_to_outer_pump",
+                "shot_to_electrochem_pump",
+            ],
             max_effort=0.75,
-            default_duration=10.0
+            publish_rate=5
         ) \
-        .with_hardware("cache_to_shot_pump", QCMDHardware, can_id=0x031) \
-        .with_hardware("shot_to_carousel_pump", QCMDHardware, can_id=0x032) \
+        .with_hardware("cache_to_shot_pump", QCMDHardware, can_id=0x031, send_single_zero=True) \
+        .with_hardware("shot_to_inner_pump", QCMDHardware, can_id=0x032, send_single_zero=True) \
+        .with_hardware("shot_to_outer_pump", QCMDHardware, can_id=0x041, send_single_zero=True) \
+        .with_hardware("shot_to_electrochem_pump", QCMDHardware, can_id=0x042, send_single_zero=True) \
         .with_jcan() \
         .spin()
 
