@@ -25,20 +25,6 @@
 
 GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroughPipelineProperties* props)
 {
-  // 0. Initialize constants
-
-  // Verify resolution
-  const std::string pipeline_type = "h264passthrough";
-  if (props->verify_resolution) {
-    if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
-        RCLCPP_INFO(streamer_node->get_logger(), "%sStarting %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-    } else {
-        RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution!%s Fallback %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_FAIL, C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-    }
-  } else {
-      RCLCPP_INFO(streamer_node->get_logger(), "%sStarting %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-  }
-
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
@@ -84,19 +70,13 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
  * Retrieve ros2 parameters for h264passthrough pipeline or sets defaults
 */
 
-h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera, const std::string pipeline_type, const std::string profile)
 {
   // 0. Initialize constants
   h264passthroughPipelineProperties* props = new h264passthroughPipelineProperties;
-  RCLCPP_DEBUG(streamer_node->get_logger(), "%sGetting props for %s%s%s", C_QUIET, C_TITLE, camera->serial.c_str(), C_RESET);
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
-
-  // Get profile
-  std::string profile = "";
-  streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
 
   // 1. Define default properties
   std::string default_string;
@@ -133,6 +113,17 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 
   props->do_fec = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_fec", false);
   props->do_retransmission = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_retransmission", false);
+
+  // 2. Finalize props
+  if (props->verify_resolution) {
+    if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+        RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+    } else {
+        RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution!%s Fallback pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_FAIL, C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+    }
+  } else {
+      RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+  }
 
   return props;
 }

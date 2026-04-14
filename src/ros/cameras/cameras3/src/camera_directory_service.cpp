@@ -77,17 +77,17 @@ class CameraDirectory : public rclcpp::Node
 
     std::stringstream log;
 
+    if (this->get_parameter<std::string>("platform", platform)) {
+      log << C_QUIET << "Using platform root from " << C_SUBTITLE << platform << C_RESET << "\n";
+    } else {
+      log << C_QUIET << "Node argument \"" << C_INPUT << "platform" << C_QUIET << "\" is empty" << C_RESET << "\n";
+    }
 
-    platform = this->get_parameter_or<std::string>("platform", "");
-    task = this->get_parameter_or<std::string>("task", "");
-    //if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
-    //  else RCLCPP_INFO(this->get_logger(), "Using platform root from %s", platform.c_str());
-    //if (task.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"task\" is empty");
-    //  else RCLCPP_INFO(this->get_logger(), "Using task serials from %s", task.c_str());
-    if (platform.empty()) log << C_QUIET << "Node argument \"" << C_INPUT << "platform" << C_QUIET << "\" is empty" << C_RESET << "\n";
-      else log << C_QUIET << "Using platform root from " << C_SUBTITLE << platform << C_RESET << "\n";
-    if (task.empty()) log << C_QUIET << "Node argument \"" << C_INPUT << "task" << C_QUIET << "\" is empty" << C_RESET;
-      else log << C_QUIET << "Using task serials from " << C_SUBTITLE << task << C_RESET;
+    if (this->get_parameter<std::string>("task", task)) {
+      log << C_QUIET << "Using task serials from " << C_SUBTITLE << task << C_RESET;
+    } else {
+      log << C_QUIET << "Node argument \"" << C_INPUT << "task" << C_QUIET << "\" is empty" << C_RESET;
+    }
 
     // Pretty print cameras
     RCLCPP_INFO(this->get_logger(), "%s", log.str().c_str());

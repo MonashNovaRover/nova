@@ -33,19 +33,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelin
      @return GstElement* pointer to the created GStreamer pipeline
   */
 
-  // 0. Initialize constants
-
-  // Verify resolution
-  const std::string pipeline_type = "v4lfallback";
-  if (props->verify_resolution) {
-    if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
-        RCLCPP_INFO(streamer_node->get_logger(), "%sStarting %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-    } else {
-        RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution!%s Fallback %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_FAIL, C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-    }
-  } else {
-      RCLCPP_INFO(streamer_node->get_logger(), "%sStarting %s%s%s pipeline for %s%s%s with %s%dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-  }
+  // 0. Initialize constants 
 
   // Disable crop43 if it is already 4:3
   const int crop_width = crop43(props->width, props->height);
@@ -135,7 +123,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelin
  * Retrieve ros2 parameters for v4l2webrtc pipeline or sets defaults
 */
 
-v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera, const std::string pipeline_type, const std::string profile)
 {
   /*
     Pulls ros2 parameters for a given camera and returns a properties struct for the v4l2webrtc pipeline creation function.
@@ -146,15 +134,9 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
 
   // 0. Initialize constants
   v4lfallbackPipelineProperties* props = new v4lfallbackPipelineProperties;
-  RCLCPP_DEBUG(streamer_node->get_logger(), "%sGetting props for %s%s%s", C_QUIET, C_TITLE, camera->serial.c_str(), C_RESET);
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
-
-  // Get profile
-  std::string profile = "";
-  streamer_node->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + ".profile").c_str(), profile, profile);
-  streamer_node->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + ".profile").c_str(), profile, profile);
   
   // 1. Define default properties
   std::string default_string;
@@ -195,7 +177,7 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
   props->downrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "downrate", 1);
 
   // cropper
-  props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", false);
+  props->crop43 = set_property(streamer_node, camera->serial, profile, camera->original_serial, "crop43", true);
 
   // clock
   props->show_clock = set_property(streamer_node, camera->serial, profile, camera->original_serial, "show_clock", false);
@@ -210,6 +192,17 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
 
   props->do_fec = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_fec", false);
   props->do_retransmission = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_retransmission", false);
+
+  // 2. Finalize props
+  if (props->verify_resolution) {
+    if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
+        RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+    } else {
+        RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution!%s Fallback pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_FAIL, C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+    }
+  } else {
+      RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+  }
 
   return props;
 }

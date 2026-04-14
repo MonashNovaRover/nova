@@ -83,27 +83,27 @@ class CameraStreamer : public rclcpp::Node
     // get pipeline properties and use them to create the pipeline
     if (pipeline->pipeline_type == "v4lfallback")
     {
-      v4lfallbackPipelineProperties* props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
+      v4lfallbackPipelineProperties* props = get_v4lfallback_pipeline_properties(this, pipeline->camera, pipeline->pipeline_type, pipeline->profile);
       pipeline->props = props;
       pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
     } else if (pipeline->pipeline_type == "av1software") {
-      av1softwarePipelineProperties* props = get_av1software_pipeline_properties(this, pipeline->camera);
+      av1softwarePipelineProperties* props = get_av1software_pipeline_properties(this, pipeline->camera, pipeline->pipeline_type, pipeline->profile);
       pipeline->props = props;
       pipeline->gst_pipeline = av1software_pipeline(this, props);
     } else if (pipeline->pipeline_type == "h264passthrough") {
-      h264passthroughPipelineProperties* props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
+      h264passthroughPipelineProperties* props = get_h264passthrough_pipeline_properties(this, pipeline->camera, pipeline->pipeline_type, pipeline->profile);
       pipeline->props = props;
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
     } else if (pipeline->pipeline_type == "h264software") {
-      h264softwarePipelineProperties* props = get_h264software_pipeline_properties(this, pipeline->camera);
+      h264softwarePipelineProperties* props = get_h264software_pipeline_properties(this, pipeline->camera, pipeline->pipeline_type, pipeline->profile);
       pipeline->props = props;
       pipeline->gst_pipeline = h264software_pipeline(this, props);
     } else if (pipeline->pipeline_type == "vp8software") {
-      vp8softwarePipelineProperties* props = get_vp8software_pipeline_properties(this, pipeline->camera);
+      vp8softwarePipelineProperties* props = get_vp8software_pipeline_properties(this, pipeline->camera, pipeline->pipeline_type, pipeline->profile);
       pipeline->props = props;
       pipeline->gst_pipeline = vp8software_pipeline(this, props);
     } else if (pipeline->pipeline_type == "vp9software") {
-      vp9softwarePipelineProperties* props = get_vp9software_pipeline_properties(this, pipeline->camera);
+      vp9softwarePipelineProperties* props = get_vp9software_pipeline_properties(this, pipeline->camera, pipeline->pipeline_type, pipeline->profile);
       pipeline->props = props;
       pipeline->gst_pipeline = vp9software_pipeline(this, props);
     }
@@ -111,30 +111,35 @@ class CameraStreamer : public rclcpp::Node
     gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
   }
 
-  private: void find_pipeline_type(Pipeline* pipeline) {
+  private: void get_profile(Pipeline* pipeline) {
+    // From serial
+    if (this->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".profile").c_str(), pipeline->profile)) return;
+    // From default
+    if (this->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".profile").c_str(), pipeline->profile)) return;
+    // If no profile found
+    pipeline->profile = "";
+  }
+
+  private: void get_pipeline_type(Pipeline* pipeline) {
 
     // Get pipeline type
     const std::string default_string = "v4lfallback";
-    std::string profile = "";
 
-    // Get default first
-    this->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".pipeline_type").c_str(), pipeline->pipeline_type, default_string);
-    
-    // Override default with profile of default
-    this->get_parameter_or<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".profile").c_str(), profile, profile);
-    if (!profile.empty()) {
-      this->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + pipeline->camera->original_serial + "." + profile + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type);
+    // Get serial first
+    if (this->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".pipeline_type").c_str(), pipeline->pipeline_type)) return;
+
+    if (!pipeline->profile.empty()) {
+
+      // Get profile from serial
+      if (this->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + pipeline->camera->original_serial + "." + pipeline->profile + ".pipeline_type").c_str(), pipeline->pipeline_type)) return;
+      
+      // Get profile from default
+      if (this->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + pipeline->camera->original_serial + "." + pipeline->profile + ".pipeline_type").c_str(), pipeline->pipeline_type)) return;
     }
 
-    // Override profile with profile from serial
-    profile = "";
-    this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".profile").c_str(), profile, profile);
-    if (!profile.empty()) {
-      this->get_parameter_or<std::string>((std::string(PROFILE_PREFIX) + "." + pipeline->camera->original_serial + "." + profile + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type);
-    }
-
-    // Override profile with profile from serial
-    this->get_parameter_or<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".pipeline_type").c_str(), pipeline->pipeline_type, pipeline->pipeline_type);
+    // Get default last
+    if (this->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".pipeline_type").c_str(), pipeline->pipeline_type)) return;
+    pipeline->pipeline_type = default_string;
   }
 
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
@@ -153,9 +158,12 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera->node=camera.node;
         pipeline->camera->original_serial=camera.original_serial;
 
+        // Get profile
+        this->get_profile(pipeline);
+
         // Get pipeline_type
-        this->find_pipeline_type(pipeline);
-        
+        this->get_pipeline_type(pipeline);
+
         bool autostart;
         this->get_parameter_or("autostart", autostart, true);
 
@@ -164,8 +172,6 @@ class CameraStreamer : public rclcpp::Node
           this->start_pipeline(pipeline);
         } else {
           pipeline->gst_pipeline = nullptr;
-          RCLCPP_INFO(this->get_logger(), "%sInitialized %s%s%s pipeline for %s%s%s", C_QUIET, C_INPUT, pipeline->pipeline_type.c_str(), C_QUIET, C_TITLE, camera.serial.c_str(), C_RESET);
-
         }
 
         this->pipelines[camera.serial] = pipeline;
