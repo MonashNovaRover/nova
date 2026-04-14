@@ -219,7 +219,7 @@ camera_streamer:
         width: 1024
         height: 768
         framerate: 30
-        brightness: 8192
+        brightness: 255
 
       # Legacy
       Microsoft_Microsoft®_LifeCam_HD-3000:

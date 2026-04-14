@@ -1,6 +1,4 @@
 #include <string>
-#include <algorithm>
-#include <thread>
 #include <gst/gst.h>
 #include "properties/decoders.hpp"
 

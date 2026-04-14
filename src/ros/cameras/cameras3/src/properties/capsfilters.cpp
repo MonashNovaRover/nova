@@ -1,4 +1,5 @@
 #include <string>
+#include <algorithm>
 #include <gst/gst.h>
 #include "properties/capsfilters.hpp"
 
@@ -8,8 +9,8 @@ void set_srcfilter(GstElement* filter, const std::string mime, const int width, 
       "width", G_TYPE_INT, width,
       "height", G_TYPE_INT, height,
       "framerate", GST_TYPE_FRACTION, framerate, framerate_denominator*downrate,
-      "brightness", G_TYPE_INT, brightness,
-      "contrast", G_TYPE_INT,  contrast,
+      "brightness", G_TYPE_INT, std::clamp(brightness, 0, 255),
+      "contrast", G_TYPE_INT,  std::clamp(contrast, 0, 255),
       NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
@@ -23,8 +24,8 @@ void set_scalefilter(GstElement* filter, const std::string format, const int wid
       "width", G_TYPE_INT, (int) ((float) width/ (float) downscale),
       "height", G_TYPE_INT, (int) ((float) height/ (float) downscale),
       "framerate", GST_TYPE_FRACTION, framerate, framerate_denominator*downrate,
-      "brightness", G_TYPE_INT, brightness,
-      "contrast", G_TYPE_INT,  contrast,
+      "brightness", G_TYPE_INT, std::clamp(brightness, 0, 255),
+      "contrast", G_TYPE_INT,  std::clamp(contrast, 0, 255),
       NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
