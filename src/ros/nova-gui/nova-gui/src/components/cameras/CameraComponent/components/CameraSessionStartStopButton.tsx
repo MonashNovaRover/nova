@@ -1,6 +1,6 @@
-import {StreamingState} from "../hooks/useCameraStream.ts";
+import {StreamingState} from "../../hooks/useCameraStream.ts";
 import {Button, ButtonProps} from "@nextui-org/react";
-import {Play, Square} from "react-feather";
+import {Eye, EyeOff} from "react-feather";
 import React from "react";
 
 export interface CameraSessionStartStopButtonProps extends ButtonProps {
@@ -29,8 +29,8 @@ const CameraSessionStartStopButton: React.FC<CameraSessionStartStopButtonProps> 
         className="w-min mx-auto"
         onPress={sendSessionStartMessage}
       >
-        <Play size="15px" fill="white" />
-        Start
+        <Eye size="15px" fill="white" />
+        Show
       </Button>
     ) : (
       <Button {...buttonProps}
@@ -39,7 +39,7 @@ const CameraSessionStartStopButton: React.FC<CameraSessionStartStopButtonProps> 
         className="w-min mx-auto"
         onPress={closeSession}
       >
-        <Square size="15px" fill="white" /> Stop
+        <EyeOff size="15px" fill="white" /> Hide
       </Button>
     )
   );

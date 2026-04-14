@@ -12,17 +12,19 @@ import {
   TableRow,
   Tooltip,
 } from "@nextui-org/react";
-import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
-import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../../redux/RootState.ts";
-import { RosService } from "../../../../ros/services/rosService.ts";
+import { RootState } from "../../../redux/RootState.ts";
+import { RosService } from "../../../ros/services/rosService.ts";
 import { Pause, Play, Square, ExternalLink } from "react-feather";
-import { useRosNodes } from "../../../../utils/hooks/useRosNodes.ts";
-import { BooleanChip } from "./BooleanChip.tsx";
-import { allCams } from "../../../../views/shared/CamerasPage/CameraPageConstants.tsx";
+import { useRosNodes } from "../../../utils/hooks/useRosNodes.ts";
+import { BooleanChip } from "../CameraComponent/components/BooleanChip.tsx";
+import { allCams } from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
+import { useStreamingBifrost } from "../hooks/cameraBifrostHooks.ts";
 
+// TODO: delete
 export const CameraControlPanelModal = (props: {
   showModal: boolean;
   closeModal: () => void;
@@ -30,55 +32,16 @@ export const CameraControlPanelModal = (props: {
 }) => {
   const bifrost = useBifrost({ topic: RosTopic.CAMERAS });
 
-  const bifrostStarter = useBifrost({ service: RosService.START_CAMS });
-
-  const bifrostPauser = useBifrost({ service: RosService.PAUSE_CAMS });
-
-  const bifrostStopper = useBifrost({ service: RosService.STOP_CAMS });
-
   const nodes = useRosNodes();
-
   const camerasRunning = nodes.includes("/camera_streamer");
-
-  const onlineCameras = useSelector(
-    (state: RootState) => state.camerasStore.cameras
-  );
-
-  const onlineCameraSerials = onlineCameras.map((cam) => cam.serial);
 
   useEffect(() => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
-  const startStreaming = () =>
-    bifrostStarter.callService(
-      { serials: onlineCameraSerials },
-      {
-        responseToast: true,
-        successToastMessage: "All Cameras Started Up!",
-        handleResponse: () => props.refreshAvailabilies(),
-      }
-    );
-
-  const pauseStreaming = () =>
-    bifrostPauser.callService(
-      { serials: onlineCameraSerials },
-      {
-        responseToast: true,
-        successToastMessage: "All Cameras Paused!",
-        handleResponse: () => props.refreshAvailabilies(),
-      }
-    );
-  
-  const stopStreaming = () =>
-    bifrostStopper.callService(
-      { serials: onlineCameraSerials },
-      {
-        responseToast: true,
-        successToastMessage: "All Cameras Stopped!",
-        handleResponse: () => props.refreshAvailabilies(),
-      }
-    );
+  const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(props.refreshAvailabilies);
+  const onlineCameras = useSelector((state: RootState) => state.camerasStore.cameras);
+  const onlineCameraSerials = onlineCameras.map((cam) => cam.serial);
 
   return (
     <Modal
@@ -92,13 +55,13 @@ export const CameraControlPanelModal = (props: {
         <ModalBody>
           <div className="flex flex-row m-4 ml-0 gap-4 items-center justify-between">
             <div className="flex flex-row gap-4">
-              <Button size="sm" color="primary" onPress={startStreaming}>
+              <Button size="sm" color="primary" onPress={()=>startStreaming(onlineCameraSerials, true)}>
                 <Play size="15px" fill="white"/> Start Streaming
               </Button>
-              <Button size="sm" color="warning" onPress={pauseStreaming}>
+              <Button size="sm" color="warning" onPress={()=>pauseStreaming(onlineCameraSerials, true)}>
                 <Pause size="15px" fill="white" /> Pause Streaming
               </Button>
-              <Button size="sm" color="danger" onPress={stopStreaming}>
+              <Button size="sm" color="danger" onPress={()=>stopStreaming(onlineCameraSerials, true)}>
                 <Square size="15px" fill="white" /> Stop Streaming
               </Button>
             </div>

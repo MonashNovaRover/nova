@@ -9,14 +9,10 @@ import {
 } from "@nextui-org/react";
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Camera as CameraIcon, Settings } from "react-feather";
-import { CameraInfoModal } from "./components/CameraInfoModal.tsx";
-import { StreamingState, useCameraStream } from "./hooks/useCameraStream.ts";
+import { StreamingState, useCameraStream } from "../hooks/useCameraStream.ts";
 import { CameraSettingsForm } from "./components/CameraSettingsForm.tsx";
 import CameraVideo, {CameraVideoProps} from "./components/CameraVideo.tsx";
-import {
-  defaultCamFilters,
-  initialisedFilters
-} from "../../../views/shared/CamerasPage/CameraFilterConstants.ts";
+import {defaultCamFilters, initialisedFilters} from "../../../views/shared/CamerasPage/CameraFilterConstants.ts";
 import { BooleanChip } from "./components/BooleanChip.tsx";
 import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
@@ -66,7 +62,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const cameraName = humanizeString(cameraSerial);
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const [isCameraInfoModalOpen, setCameraInfoModalOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const {
     streamingState,
@@ -203,14 +198,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
 
   return (
     <Card className={` aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
-      <CameraInfoModal
-        {...props}
-        cameraName={cameraName}
-        isModalOpen={isCameraInfoModalOpen}
-        setCameraModalOpen={setCameraInfoModalOpen}
-      />
-      <div/>
-
       {cameraVideo}
 
       {/* Overlay */}
@@ -260,6 +247,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
                     <CameraSettingsForm
                       cameraFilters={filters}
                       setCameraFilters={setFilters}
+                      cameraSerial={cameraSerial}
                     >
                       {props.settingsFormChildren}
                     </CameraSettingsForm>

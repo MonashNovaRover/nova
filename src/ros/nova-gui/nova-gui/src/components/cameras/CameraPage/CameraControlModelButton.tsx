@@ -3,6 +3,7 @@ import { useState } from "react";
 import {CameraControlPanelModal} from "./CamerasControlPanelModal.tsx";
 import {useCameraStreamer} from "../hooks/useCameraStreamer.ts";
 
+// TODO: delete
 export const CameraControlModalButton = () => {
   const [controlPanelOpen, setControlPanelOpen] = useState(false);
   const closeControlPanel = () => setControlPanelOpen(false);
