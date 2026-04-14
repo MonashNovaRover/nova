@@ -1,13 +1,13 @@
 import { useSelector } from "react-redux";
-import { useCameraStreamerActions } from "../../../../redux/actions/useCameraStreamerActions.ts";
-import { CameraStreamerStatus } from "../../../../redux/models/CameraStreamState.ts";
-import { RootState } from "../../../../redux/RootState.ts";
+import { useCameraStreamerActions } from "../../../redux/actions/useCameraStreamerActions.ts";
+import { CameraStreamerStatus } from "../../../redux/models/CameraStreamState.ts";
+import { RootState } from "../../../redux/RootState.ts";
 import { useCallback, useEffect } from "react";
 import { ServerMessage } from "./serverMessages.ts";
 import useWebSocket from "react-use-websocket";
 import { cloneDeep } from "lodash";
-import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
-import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 
 /**
  * Custom React hook for managing camera streaming functionality.

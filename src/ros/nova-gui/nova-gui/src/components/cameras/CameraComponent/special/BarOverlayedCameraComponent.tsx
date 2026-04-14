@@ -1,7 +1,7 @@
 import {BaseCameraComponentProps} from "../CameraComponent.tsx";
 import {FC, useState} from "react";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
-import {StreamingState} from "../hooks/useCameraStream.ts";
+import {StreamingState} from "../../hooks/useCameraStream.ts";
 
 export const BarOverlayedCameraComponent: FC<BaseCameraComponentProps> = (props) => {
   const [showOverlay, setShowOverlay] = useState<boolean>(false)

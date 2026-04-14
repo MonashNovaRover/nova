@@ -1,6 +1,6 @@
 // TestScimbalCamView.tsx
 import {GimbalOverlayedCameraComponent} from "../../../components/cameras/CameraComponent/special/GimbalOverlayedCameraComponent.tsx";
-import {CameraSerials} from "../../shared/CamerasPage/CameraPageConstants";
+import {CameraSerials} from "../../shared/CamerasPage/CameraViewConstants.tsx";
 
 export default function TestScimbalCamView () {
 
