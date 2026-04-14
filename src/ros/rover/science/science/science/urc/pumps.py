@@ -3,7 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: Control for the URC Pumps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: urc_pumps
+NODE: pumps
 TOPICS:
     - publisher: /science/pumps/status  [PumpStatus]
 SERVICES:
@@ -105,7 +105,7 @@ class PumpsController(Controller):
             if not cmd_interface:
                 self.logger.warning(f"Pump command interface '{interface_name}' not populated")
             else:
-                self.logger.info(f"Registered pump command interface: {interface_name}")
+                self.logger.debug(f"Registered pump command interface: {interface_name}")
 
             self.pump_cmds[hardware_name] = cmd_interface
 
@@ -130,8 +130,8 @@ class PumpsController(Controller):
         )
         self.status_publisher = self.node.create_publisher(PumpStatus, self.status_topic_name, qos_profile)
 
-        self.logger.info(f"PumpsController configured with services at '{self.run_service_name}', '{self.stop_service_name}'")
-        self.logger.info(f"Status publishing to '{self.status_topic_name}' with persisted QoS")
+        self.logger.debug(f"PumpsController configured with services at '{self.run_service_name}', '{self.stop_service_name}'")
+        self.logger.debug(f"Status publishing to '{self.status_topic_name}' with persisted QoS")
         return True
 
     def run_callback(self, request: RunPump.Request, response: RunPump.Response) -> RunPump.Response:
@@ -170,8 +170,8 @@ class PumpsController(Controller):
         self.is_running = True
 
         response.success = True
-        response.message = f"Started {request.pump} for {request.duration:.1f}s"
-        self.logger.info(f"Started pump '{request.pump}' for {request.duration:.1f}s")
+        response.message = f"Started {request.pump} for {request.duration:.2f}s"
+        self.logger.info(f"Started pump '{request.pump}' for {request.duration:.2f}s")
         return response
 
     def stop_callback(self, request: Trigger.Request, response: Trigger.Response) -> Trigger.Response:

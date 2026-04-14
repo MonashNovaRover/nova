@@ -63,7 +63,6 @@ install(PROGRAMS
         science/urc/urc_hydraprobe.py
         science/urc/urc_hydraprobe_control.py
         science/urc/urc_mixers.py
-        science/urc/urc_pumps.py
         science/urc/urc_raman_mech_server.py
         science/urc/urc_raman_spec_server.py
         science/urc/urc_theta_360_cam.py

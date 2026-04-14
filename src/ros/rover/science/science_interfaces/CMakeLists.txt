@@ -46,7 +46,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/TakeNIRProbeReading.srv"
 
   # Action definitions
-  "action/Pumps.action"
   "action/Stepper.action"
 
   # add any msg dependencies here
