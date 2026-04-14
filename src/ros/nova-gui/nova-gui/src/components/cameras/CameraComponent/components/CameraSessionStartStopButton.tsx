@@ -1,6 +1,6 @@
 import {StreamingState} from "../../hooks/useCameraStream.ts";
 import {Button, ButtonProps} from "@nextui-org/react";
-import {Eye, EyeOff, Play, Square} from "react-feather";
+import {Eye, EyeOff} from "react-feather";
 import React from "react";
 
 export interface CameraSessionStartStopButtonProps extends ButtonProps {
