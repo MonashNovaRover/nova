@@ -13,8 +13,9 @@
 
 #include "properties/capsfilters.hpp"
 #include "properties/cpufilters.hpp"
+#include "properties/decoders.hpp"
+#include "properties/encoders.hpp"
 
-#include "properties/software_encoders.hpp"
 #include "properties/h264.hpp"
 #include "cameras/colors.hpp"
 
@@ -68,9 +69,10 @@ GstElement* h264software_pipeline(rclcpp::Node* streamer_node, h264softwarePipel
   // 2. Set element properties
   set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
+  if (props->mime == "image/jpeg") set_jpegdec(decode, props->jpegdec_method);
   set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
-  set_crop43(cropper, props->crop43, crop_width, props->downscale);
+  if (props->crop43) set_crop43(cropper, crop_width, props->downscale);
   set_x264enc(encode, props->cpu_used, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate);
   set_h264parse(parse, props->gop);
   set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
@@ -148,7 +150,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   props->device = camera->node;
 
   default_string = "mmap";
-  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
+  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", default_string);
 
   props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", false);
 
@@ -168,6 +170,8 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   // decoder
   default_string = "jpegdec";
   props->decoder = set_property(streamer_node, camera->serial, profile, camera->original_serial, "decoder", default_string);
+  default_string = "ifast";
+  props->jpegdec_method = set_property(streamer_node, camera->serial, profile, camera->original_serial, "jpegdec_method", default_string);
 
   // convert
   default_string = "linear";

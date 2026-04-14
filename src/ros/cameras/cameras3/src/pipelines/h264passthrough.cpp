@@ -56,7 +56,7 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   // 2. Set element properties
   set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
-  set_h264payload(payload, props->payload_quirk);
+  if (props->payload_quirk) set_h264payload(payload);
   set_h264parse(parse);
   set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 

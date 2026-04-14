@@ -66,6 +66,7 @@ struct webRTCProperties
 struct decodeProperties
 {
   std::string decoder;
+  std::string jpegdec_method;
 };
 
 struct scaleProperties

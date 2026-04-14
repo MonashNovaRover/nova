@@ -77,7 +77,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelin
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
   set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
-  set_crop43(cropper, props->crop43, crop_width, props->downscale);
+  if (props->crop43) set_crop43(cropper, crop_width, props->downscale);
   set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline

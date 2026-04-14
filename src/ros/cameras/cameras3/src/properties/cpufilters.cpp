@@ -6,13 +6,11 @@ int crop43(const int width, const int height) {
   return (width-(height*4/3))/2;
 }
 
-void set_crop43(GstElement* cropper, const bool crop43, const int crop_width, const int downscale) {
-    if (crop43) {
-        g_object_set(cropper,
-          "left", (int) ((float) crop_width/ (float) downscale),
-          "right", (int) ((float) crop_width/ (float) downscale),
-          NULL);
-    }
+void set_crop43(GstElement* cropper, const int crop_width, const int downscale) {
+  g_object_set(cropper,
+    "left", (int) ((float) crop_width/ (float) downscale),
+    "right", (int) ((float) crop_width/ (float) downscale),
+    NULL);
 }
 
 void set_convertscale(GstElement* convert, const std::string chroma_resampler, const std::string dither, const std::string method) {

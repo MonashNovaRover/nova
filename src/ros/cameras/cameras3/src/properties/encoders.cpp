@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <thread>
 #include <gst/gst.h>
-#include "properties/software_encoders.hpp"
+#include "properties/encoders.hpp"
 
 static int num_cores = std::thread::hardware_concurrency();
 

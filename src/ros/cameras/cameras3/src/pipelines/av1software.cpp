@@ -13,8 +13,9 @@
 
 #include "properties/capsfilters.hpp"
 #include "properties/cpufilters.hpp"
+#include "properties/decoders.hpp"
+#include "properties/encoders.hpp"
 
-#include "properties/software_encoders.hpp"
 #include "cameras/colors.hpp"
 
 /*
@@ -67,9 +68,10 @@ GstElement* av1software_pipeline(rclcpp::Node* streamer_node, av1softwarePipelin
   // 2. Set element properties
   set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
+  if (props->mime == "image/jpeg") set_jpegdec(decode, props->jpegdec_method);
   set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
-  set_crop43(cropper, props->crop43, crop_width, props->downscale);
+  if (props->crop43) set_crop43(cropper, crop_width, props->downscale);
   set_av1enc(encode, props->cpu_used, props->threads, props->bitrate, props->gop, props->framerate, props->framerate_denominator, props->downrate);
   set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
@@ -149,7 +151,7 @@ av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node*
   props->device =  (props->strict_devname) ? set_property(streamer_node, camera->serial, profile, camera->original_serial, "device", camera->node) : camera->node;
 
   default_string = "mmap";
-  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
+  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", default_string);
 
   props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", false);
 
@@ -168,6 +170,9 @@ av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node*
   // decoder
   default_string = "jpegdec";
   props->decoder = set_property(streamer_node, camera->serial, profile, camera->original_serial, "decoder", default_string);
+  default_string = "ifast";
+  props->jpegdec_method = set_property(streamer_node, camera->serial, profile, camera->original_serial, "jpegdec_method", default_string);
+
 
   // convert
   default_string = "linear";

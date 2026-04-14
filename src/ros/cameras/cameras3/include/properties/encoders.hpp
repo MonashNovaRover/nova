@@ -1,5 +1,5 @@
-#ifndef SOFTWARE_ENCODER_HEADER
-#define SOFTWARE_ENCODER_HEADER
+#ifndef ENCODER_HEADER
+#define ENCODER_HEADER
 
 #include <string>
 #include <gst/gst.h>

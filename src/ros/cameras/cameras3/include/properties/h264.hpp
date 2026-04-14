@@ -4,7 +4,7 @@
 #include <string>
 #include <gst/gst.h>
 
-void set_h264payload(GstElement* payload, const bool payload_quirk);
+void set_h264payload(GstElement* payload);
 
 void set_h264parse(GstElement* parse, const int interval = -1);
 
