@@ -1,4 +1,4 @@
-export interface CameraView {
+export interface CameraViewConfig {
   viewTitle: string;
   cameraSerials: string[];
 }
@@ -106,7 +106,7 @@ const autoCams = [
   CameraSerials.AUTO_BOOTIE,
 ]
 
-export const post_landing_views: CameraView[] = [
+export const post_landing_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams, ...armCams, ...driveCams],
     viewTitle: "All Cams",
@@ -121,7 +121,7 @@ export const post_landing_views: CameraView[] = [
   },
 ];
 
-export const urc_equipment_servicing_views: CameraView[] = [
+export const urc_equipment_servicing_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams, ...armCams, ...driveCams],
     viewTitle: "All Cams",
@@ -136,7 +136,7 @@ export const urc_equipment_servicing_views: CameraView[] = [
   },
 ];
 
-export const urc_delivery_views: CameraView[] = [
+export const urc_delivery_views: CameraViewConfig[] = [
   {
     cameraSerials: [...armCams.slice(0,2), ...mastCams.slice(0,2), ...armCams.slice(2,4), ...mastCams.slice(2,4), ...driveCams],
     viewTitle: "All Cams",
@@ -151,7 +151,7 @@ export const urc_delivery_views: CameraView[] = [
   },
 ];
 
-export const excavation_and_construction_views: CameraView[] = [
+export const excavation_and_construction_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams, ...ecCams, ...driveCams],
     viewTitle: "All Cams",
@@ -166,7 +166,7 @@ export const excavation_and_construction_views: CameraView[] = [
   },
 ];
 
-export const space_resources_views: CameraView[] = [
+export const space_resources_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams, ...arcScienceCams, ...driveCams, CameraSerials.SCIENCE_COMBINED],
     viewTitle: "All Cams",
@@ -181,7 +181,7 @@ export const space_resources_views: CameraView[] = [
   },
 ];
 
-export const autonomous_views: CameraView[] = [
+export const autonomous_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams, ...driveCams],
     viewTitle: "All Cams",
@@ -192,7 +192,7 @@ export const autonomous_views: CameraView[] = [
   },
 ];
 
-export const urc_autonomous_views: CameraView[] = [
+export const urc_autonomous_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams, ...driveCams, ...autoCams],
     viewTitle: "All Cams",
@@ -203,7 +203,7 @@ export const urc_autonomous_views: CameraView[] = [
   },
 ];
 
-export const urc_science_views: CameraView[] = [
+export const urc_science_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS
     ],

@@ -1,7 +1,7 @@
 import {BaseCameraComponentProps} from "../CameraComponent.tsx";
 import {FC, useState, useEffect} from "react";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
-import {StreamingState} from "../hooks/useCameraStream.ts";
+import {StreamingState} from "../../hooks/useCameraStream.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
 import { RootState } from "../../../../redux/RootState.ts";
 import { useSelector } from "react-redux";

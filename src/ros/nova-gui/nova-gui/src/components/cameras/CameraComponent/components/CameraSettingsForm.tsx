@@ -1,12 +1,16 @@
-import { Slider, Switch } from "@nextui-org/react";
+import { Button, Slider, Switch } from "@nextui-org/react";
 import {
   ArrowCounterclockwise,
   CircleFill,
   CircleHalf,
 } from "react-bootstrap-icons";
-import { Droplet, RotateCcw } from "react-feather";
+import { Droplet, Pause, Play, RotateCcw, Square } from "react-feather";
 import { CameraFilters } from "../CameraComponent.tsx";
 import {ReactNode} from "react";
+import { useStreamingBifrost } from "../../hooks/cameraBifrostHooks.ts";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../redux/RootState.ts";
+import { BooleanChip } from "./BooleanChip.tsx";
 
 const snapTo90 = (value: number): number => {
   const remainder = value % 90;
@@ -17,40 +21,102 @@ const snapTo90 = (value: number): number => {
 export const CameraSettingsForm = ({
   cameraFilters,
   setCameraFilters,
+  cameraSerial,
   children
 }: {
   cameraFilters: CameraFilters;
   setCameraFilters: React.Dispatch<React.SetStateAction<CameraFilters>>;
+  cameraSerial: string,
   children?: ReactNode
 }) => {
+  const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(()=>{});
+
+  const onlineCameras = useSelector((state: RootState) => state.camerasStore.cameras);
+  const isOnline = onlineCameras.map(v=>v.serial).includes(cameraSerial)
+
+  const cameraStreamerMap = useSelector((state: RootState) => state.cameraStreamerState.cameras);
+  const isStreaming = !!cameraStreamerMap[cameraSerial]
   return (
     <div className="mt-2 flex flex-col gap-3 w-full">
-      <Switch
-        size="sm"
-        thumbIcon={<RotateCcw fill="white" />}
-        isSelected={cameraFilters.flipCamera}
-        onChange={(event) =>
-          setCameraFilters((oldFilters) => ({
-            ...oldFilters,
-            flipCamera: event.target.checked,
-          }))
-        }
-      >
-        Flip Camera
-      </Switch>
-      <Switch
-        size="sm"
-        thumbIcon={<Droplet fill="white" />}
-        isSelected={cameraFilters.invertCamera}
-        onChange={(event) =>
-          setCameraFilters((oldFilters) => ({
-            ...oldFilters,
-            invertCamera: event.target.checked,
-          }))
-        }
-      >
-        Invert Colors
-      </Switch>
+      <div className="grid grid-cols-2 grid-rows-2 w-full">
+        <Switch
+          className="col-start-1 row-start-1 pb-2"
+          size="sm"
+          thumbIcon={<RotateCcw fill="white" />}
+          isSelected={cameraFilters.flipCamera}
+          onChange={(event) =>
+            setCameraFilters((oldFilters) => ({
+              ...oldFilters,
+              flipCamera: event.target.checked,
+            }))
+          }
+        >
+          Flip Camera
+        </Switch>
+        <Switch
+          className="col-start-1 row-start-2"
+          size="sm"
+          thumbIcon={<Droplet fill="white" />}
+          isSelected={cameraFilters.invertCamera}
+          onChange={(event) =>
+            setCameraFilters((oldFilters) => ({
+              ...oldFilters,
+              invertCamera: event.target.checked,
+            }))
+          }
+        >
+          Invert Colors
+        </Switch>
+        <div className="col-start-2 row-start-1 justify-self-end">
+          <Button
+            isIconOnly
+            size="sm"
+            color="primary"
+            disabled={!isOnline}
+            onPress={() => startStreaming([cameraSerial], false)}
+          >
+            <Play size="15px" fill="white" />
+          </Button>
+          <Button
+            className="mx-2"
+            isIconOnly
+            size="sm"
+            color="warning"
+            disabled={!isOnline}
+            onPress={() => pauseStreaming([cameraSerial], false)}
+          >
+            <Pause size="15px" fill="white" />
+          </Button>
+          <Button
+            isIconOnly
+            size="sm"
+            color="danger"
+            disabled={!isOnline}
+            onPress={() => stopStreaming([cameraSerial], false)}
+          >
+            <Square size="15px" fill="white" />
+          </Button>
+        </div>
+        <div className="flex col-start-2 row-start-2 justify-end pr-5 pt-2">
+          {(isOnline) ? (
+            <BooleanChip
+              boolean={isStreaming}
+              trueText="Streaming"
+              falseText="Idle"
+              falseColor="primary"
+              variant="flat"
+            />
+          ) : (
+            <BooleanChip
+              boolean={false}
+              falseText="Not Found"
+              falseColor="danger"
+              variant="flat"
+              trueText="Idle"
+            />
+          )}
+        </div>
+      </div>
       <Slider
         className="max-w-md"
         size="lg"

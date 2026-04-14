@@ -1,6 +1,6 @@
 import {FC, memo, useMemo} from "react";
 import {BaseCameraComponentProps, CameraComponent} from "../../../components/cameras/CameraComponent/CameraComponent.tsx";
-import {CameraSerials} from "./CameraPageConstants.tsx";
+import {CameraSerials} from "./CameraViewConstants.tsx";
 import BarOverlayedCameraComponent from "../../../components/cameras/CameraComponent/special/BarOverlayedCameraComponent.tsx";
 //import KeyboardOverlayedCameraComponent from "../../../components/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
 import {
