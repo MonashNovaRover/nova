@@ -23,8 +23,8 @@ camera_directory:
           "platform-3610000.usb-usb-0:3": mast
           "platform-3610000.usb-usb-0:2": payload
         orin_dev_board:
-          "platform-3610000.xhci-usb-0:2.1": mast
-          "platform-3610000.xhci-usb-0:2.2": payload 
+          "platform-3610000.usb-usb-0:2.1": mast
+          "platform-3610000.usb-usb-0:2.1.4": payload 
           # Expected USB slots:
           # -------------------------------------
           # ---- | Mast hub     |      | --------
