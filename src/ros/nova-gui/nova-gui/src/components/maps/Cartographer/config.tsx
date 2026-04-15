@@ -14,6 +14,7 @@ export enum MapTile {
   Mordiallic = "MordiallocHorseBeach",
   Science = "Science",
   JellsPark = "JellsPark",
+  BYU = "BYU",
 }
 
 export const MAP_BOUNDS:  {  [key in MapTile]: [number, number, number, number] }= {
@@ -29,4 +30,5 @@ export const MAP_BOUNDS:  {  [key in MapTile]: [number, number, number, number] 
   [MapTile.ESALQ]: [-110.802,38.398,-110.772,38.4311],
   [MapTile.Science]: [-110.799,38.393,-110.781,38.4048],
   [MapTile.JellsPark]: [145.188,-37.9042,145.209,-37.8895],
+  [MapTile.BYU]: [-111.661,40.2444,-111.633,40.2622],
 };

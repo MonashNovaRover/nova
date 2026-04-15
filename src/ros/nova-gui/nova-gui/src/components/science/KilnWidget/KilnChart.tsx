@@ -121,7 +121,7 @@ const KilnChart: React.FC<KilnChartProps> = () => {
         },
       ],
     };
-  }, [chartConfig, seriesData]);
+  }, [seriesData]);
 
 
   const exportChart = useCallback(() => {

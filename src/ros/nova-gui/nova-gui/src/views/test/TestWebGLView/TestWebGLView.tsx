@@ -51,6 +51,7 @@ export default function TestWebGLView() {
   // Main Program
   const program = useProgram(gl, Vert, Frag);
   useResolutionUniform(gl, program);
+  // eslint-disable-next-line react-hooks/refs
   useSampler(program, 0, "spec", videoRef.current, {
     wrapS: GLWrapMode.REPEAT,
     wrapT: GLWrapMode.CLAMP_TO_EDGE
@@ -114,6 +115,7 @@ export default function TestWebGLView() {
   // Add the "mirrored" webcam with another GL!
   const secondGL = useGL();
   const mirrorWebcamProgram = useProgram(secondGL, IdentityVert, IdentityFrag);
+  // eslint-disable-next-line react-hooks/refs
   useSampler(mirrorWebcamProgram, 0, "image", videoRef.current, {
     wrapS: GLWrapMode.MIRRORED_REPEAT,
     wrapT: GLWrapMode.CLAMP_TO_EDGE,
@@ -136,6 +138,7 @@ export default function TestWebGLView() {
   useScreenQuadAttribute(imageProgram);
   useUniform(imageProgram, "count", [10])
 
+  /* eslint-disable react-hooks/refs */
   return (<div className="h-screen">
     <div className="grid w-full gap-3 p-3 auto-cols-fr max-h-full grid-cols-3 overflow-clip pb-48">
       <video ref={videoRef} className="rounded w-full"></video>
@@ -161,4 +164,5 @@ export default function TestWebGLView() {
       <AutosizedGLCanvas gl={imageGL} className="min-h-64 rounded"></AutosizedGLCanvas>
     </div>
   </div>)
+  /* eslint-enable react-hooks/refs */
 }

@@ -25,7 +25,6 @@ const EffortControl: React.FC<EffortControlProps> = ({ controlName, currentStatu
 
   useEffect(() => {
     setEffortInput(currentEffort)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentEffort]);
 
   const systemStatus = (

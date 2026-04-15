@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useEffectEvent, useState} from "react";
 import toast from "react-hot-toast";
 import {StreamingState} from "../../../../components/cameras/hooks/useCameraStream.ts";
 
@@ -41,11 +41,11 @@ export default function useWebcam(videoRef: React.MutableRefObject<HTMLVideoElem
       });
   }, [videoRef]);
 
-  useEffect(() => {
+  useEffectEvent(() => {
     sendSessionStartMessage();
-  }, [sendSessionStartMessage]);
+  });
 
-  useEffect(() => {
+  useEffectEvent(() => {
     if (!videoRef.current || stream === undefined)
       return;
 
@@ -57,7 +57,7 @@ export default function useWebcam(videoRef: React.MutableRefObject<HTMLVideoElem
     }).then(() => {
       setStreamingState(StreamingState.STREAMING);
     });
-  }, [stream, videoRef]);
+  });
 
   const closeSession = useCallback(() => {
     if (videoRef.current === null)

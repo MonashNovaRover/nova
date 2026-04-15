@@ -1,7 +1,7 @@
 import {Card, CardBody, CardHeader} from "@nextui-org/react";
 import AnalysisArmDiagram from "./AnalysisPlatformDiagram.tsx";
 import {useAnalysisArmPosition, useAnalysisArmServices} from "./useAnalysisArmPosition.ts";
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useEffectEvent, useMemo, useState} from "react";
 import AnalysisArmControls from "./AnalysisArmControls.tsx";
 
 export interface AnalysisArmWidgetProps {
@@ -24,10 +24,10 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
   }
 
   // remove target market when the position is reached.
-  useEffect(() => {
+  useEffectEvent(() => {
     if( aaPos.range === target)
       setTarget(-100)
-  }, [aaPos.range, target]);
+  });
 
   // Converts a position (mm) to a percentage in the box chart.
   const convertToPercent = useCallback((num: number, curTofDist: number) => {
@@ -48,8 +48,8 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
     return (1 - num / aaPos.max_range) * 100
   }, [aaPos.max_range, aaPos.min_range, tofDist.min_range, tofDist.max_range])
 
-  const percent = useMemo(() => convertToPercent(aaPos.range, tofDist.range), [aaPos.range, tofDist.range])
-  const targetPercent = useMemo(() => target < 0 ? -100 : convertToPercent(target, tofDist.range), [target, tofDist.range])
+  const percent = useMemo(() => convertToPercent(aaPos.range, tofDist.range), [aaPos.range, convertToPercent, tofDist.range])
+  const targetPercent = useMemo(() => target < 0 ? -100 : convertToPercent(target, tofDist.range), [convertToPercent, target, tofDist.range])
 
   return (
     <Card>

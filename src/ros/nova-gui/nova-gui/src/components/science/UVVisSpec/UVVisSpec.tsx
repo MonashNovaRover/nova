@@ -98,7 +98,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   }, [bifrost]);
 
   const gl = useGL();
-  const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+  const onMouseMove = (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
     if (!gl.canvasRef.current)
       return;
 
@@ -110,7 +110,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
     const y = pixelsY / bounds.height;
 
     setMousePoint([x, y]);
-  }, [gl.canvasRef])
+  }
 
 
   const {isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange} = useDisclosure();
