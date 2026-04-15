@@ -59,7 +59,7 @@ class MagnetometerNode(Node):
 
         # Heading is flipped because the sensor is mounted upside down
         magnetic_heading = -math.degrees(math.atan2(my, mx)) % 360.0
-        true_heading = (magnetic_heading + self.declination_deg) % 360.0
+        true_heading = (magnetic_heading - self.declination_deg) % 360.0
         self.get_logger().info(f'Magnetic Heading: {magnetic_heading:.2f}° ' \
                                 f'Declination: {self.declination_deg:.2f}° ' \
                                 f'True Heading: {true_heading:.2f}°', throttle_duration_sec=1.0)
