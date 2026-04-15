@@ -44,7 +44,9 @@ class MagnetometerNode(Node):
         self.lat = msg.latitude
         self.lon = msg.longitude
         self.alt_km = msg.altitude / 1000.0  # Convert to km
-        self.get_logger().info(f'Received GPS fix: lat={self.lat:.6f}, lon={self.lon:.6f}, alt={self.alt_km:.3f} km')
+        self.get_logger().info(f'Received GPS fix: lat={self.lat:.6f} '\
+                               f'lon={self.lon:.6f}, alt={self.alt_km:.3f} km',
+                               throttle_duration_sec=1.0)
         if self.lat is not None and self.lon is not None:
             self.model.setup_env([self.lat], [self.lon], [self.alt_km])
             self.declination_deg = float(self.model.get_Bdec()[0])
