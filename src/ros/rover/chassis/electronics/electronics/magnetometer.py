@@ -42,6 +42,7 @@ class MagnetometerNode(Node):
         self.lat = msg.latitude
         self.lon = msg.longitude
         self.alt_km = msg.altitude / 1000.0  # Convert to km
+        self.get_logger().info(f'Received GPS fix: lat={self.lat:.6f}, lon={self.lon:.6f}, alt={self.alt_km:.3f} km')
         if self.lat is not None and self.lon is not None:
             self.model.setup_env([self.lat], [self.lon], [self.alt_km])
             self.declination_deg = float(self.model.get_Bdec()[0])
@@ -54,9 +55,9 @@ class MagnetometerNode(Node):
 
         magnetic_heading = math.degrees(math.atan2(my, mx)) % 360.0
         true_heading = (magnetic_heading + self.declination_deg) % 360.0
-        self.get_logger().info(f'Magnetic Heading: {magnetic_heading:.2f}\n°'
-                                f'Declination: {self.declination_deg:.2f}°\n'
-                                f'True Heading: {true_heading:.2f}°\n', throttle_duration_sec=1.0)
+        self.get_logger().info(f'Magnetic Heading: {magnetic_heading:.2f}° ' \
+                                f'Declination: {self.declination_deg:.2f}° ' \
+                                f'True Heading: {true_heading:.2f}°', throttle_duration_sec=1.0)
 
         msg = Float64()
         msg.data = true_heading
