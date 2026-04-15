@@ -1,6 +1,7 @@
 camera_streamer:
   ros__parameters:
     autostart: false
+    global_profile: nav
     serial_pipelines:
 
       # Development cameras
@@ -55,6 +56,58 @@ camera_streamer:
         meta: Arm - Side
 
     profiles:
+      unknown:
+        nav:
+          pipeline_type: vp8software
+          mime: image/jpeg
+          width: 1280
+          height: 720
+          framerate: 30
+          downscale: 2
+          cpu_usage: 0
+          bitrate: 512
+        super:
+          pipeline_type: h264software
+          mime: image/jpeg
+          width: 1920
+          height: 1080
+          framerate: 30
+          crop43: false
+          cpu_usage: 9
+          jpegdec_method: float
+          bitrate: 3072
+          threads: 6
+          gop: 3
+        snail:
+          pipeline_type: vp9software
+          mime: image/jpeg
+          width: 640
+          height: 480
+          framerate: 30
+          downscale: 4
+          cpu_usage: 0
+          bitrate: 192
+        help:
+          pipeline_type: vp9software
+          width: 640
+          height: 480
+          framerate: 30
+          downscale: 10
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 48
+        dod:
+          pipeline_type: vp9software 
+          width: 640
+          height: 480
+          framerate: 30
+          downscale: 10
+          downrate: 3
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 8
+          greyscale: true
+
       openaicam_openaicam_2505121128:
         nav:
           pipeline_type: vp8software
@@ -93,7 +146,19 @@ camera_streamer:
           framerate: 30
           downscale: 12
           cpu_usage: 10
-          bitrate: 32
+          jpegdec_method: float
+          bitrate: 48
+        dod:
+          pipeline_type: vp9software
+          width: 1280
+          height: 720
+          framerate: 30
+          downscale: 12
+          downrate: 3
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 8
+          greyscale: true
 
       webcamvendor_SK_series1_20220325JWGD2093:
         nav:
@@ -118,7 +183,19 @@ camera_streamer:
           framerate: 30
           downscale: 5
           cpu_usage: 10
-          bitrate: 32
+          jpegdec_method: float
+          bitrate: 48
+        dod:
+          pipeline_type: vp9software
+          width: 320
+          height: 240
+          framerate: 30
+          downscale: 10
+          downrate: 3
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 8
+          greyscale: true
 
       HZ_USB_Camera_20220301104:
         nav:
@@ -157,7 +234,19 @@ camera_streamer:
           framerate: 30
           downscale: 10
           cpu_usage: 10
-          bitrate: 32
+          jpegdec_method: float
+          bitrate: 48
+        dod:
+          pipeline_type: vp9software
+          width: 640
+          height: 480
+          framerate: 30
+          downscale: 10
+          downrate: 3
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 8
+          greyscale: true
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         nav:
@@ -194,20 +283,30 @@ camera_streamer:
           framerate: 30
           downscale: 5
           cpu_usage: 10
-          bitrate: 32
+          jpegdec_method: float
+          bitrate: 48
+        dod:
+          pipeline_type: vp9software
+          width: 320
+          height: 240
+          framerate: 30
+          downscale: 5
+          downrate: 3
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 8
+          greyscale: true
 
     defaults:
       # Waveshare
       openaicam_openaicam_2505121128:
         pipeline_type: vp8software
-        profile: nav
         width: 1280
         height: 720
         framerate: 30
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
-        profile: nav
         width: 1920
         height: 1080
         framerate: 30
@@ -215,7 +314,6 @@ camera_streamer:
 
       HZ_USB_Camera_20220301104:
         pipeline_type: vp9software
-        profile: nav
         width: 1024
         height: 768
         framerate: 30
@@ -224,10 +322,10 @@ camera_streamer:
       # Legacy
       Microsoft_Microsoft®_LifeCam_HD-3000:
         pipeline_type: vp8software
-        profile: nav
         width: 800
         height: 600
         framerate: 30
+
 
       # Name violates yaml rules
       # Ricoh_Company__Ltd._RICOH_THETA_Z1_34122798:

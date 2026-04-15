@@ -69,7 +69,7 @@ void set_vp9enc(GstElement* encode, const int cpu_used, const int threads, const
         "buffer-optimal-size", gop*1000,        // Buffer size for GOP
         "lag-in-frames", 0, // Do not lookahead
         "error-resilient", 1,
-        "aq-mode", 5, // perceptual aq mode
+        "aq-mode", 3, // cyclic refresh aq mode, low latency low bitrate
         "tile-columns", 0,
         "tile-rows", 0,
         NULL);

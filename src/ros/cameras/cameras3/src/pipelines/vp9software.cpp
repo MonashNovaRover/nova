@@ -40,6 +40,8 @@ GstElement* vp9software_pipeline(rclcpp::Node* streamer_node, vp9softwarePipelin
   GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rate") : nullptr;
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
+  GstElement* greyconvert = (props->greyscale) ? gst_element_factory_make("videoconvertscale", "greyconverter") : nullptr;
+  GstElement* greyfilter = (props->greyscale) ? gst_element_factory_make("capsfilter", "greyfilter") : nullptr;
   GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* encode = gst_element_factory_make("vp9enc", "encoder");
@@ -47,7 +49,7 @@ GstElement* vp9software_pipeline(rclcpp::Node* streamer_node, vp9softwarePipelin
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
   GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
 
-  if (!gst_pipeline || !source || (props->downrate > 1 && !rate) || !srcfilter || (props->mime == "image/jpeg" && !decode) || !convert || !scalefilter  || (props->show_clock && !clock) || (props->crop43 && !cropper) || !encode || !webrtc) {
+  if (!gst_pipeline || !source || (props->downrate > 1 && !rate) || !srcfilter || (props->mime == "image/jpeg" && !decode) || (props->greyscale && !greyconvert && !greyfilter) || !convert || !scalefilter  || (props->show_clock && !clock) || (props->crop43 && !cropper) || !encode || !webrtc) {
       RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
       return nullptr;
   }
@@ -56,6 +58,11 @@ GstElement* vp9software_pipeline(rclcpp::Node* streamer_node, vp9softwarePipelin
   set_v4lsource(source, props->device, props->io_mode);
   set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
   if (props->mime == "image/jpeg") set_jpegdec(decode, props->jpegdec_method);
+  if (props->greyscale) {
+    set_convertscale(greyconvert, props->chroma_resampler, props->dither, props->method);
+    const std::string format = "GRAY8";
+    set_scalefilter(greyfilter, format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
+  }
   set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
   set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
   if (props->crop43) set_crop43(cropper, crop_width, props->downscale);
@@ -68,6 +75,7 @@ GstElement* vp9software_pipeline(rclcpp::Node* streamer_node, vp9softwarePipelin
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
   if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
+  if (props->greyscale) gst_bin_add_many(GST_BIN(gst_pipeline), greyconvert, greyfilter, NULL);
 
   // 4. Link elements
   
@@ -80,14 +88,22 @@ GstElement* vp9software_pipeline(rclcpp::Node* streamer_node, vp9softwarePipelin
     if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
   }
 
-  // Convert to raw
-  if (props->mime == "image/jpeg") {
+  // Convert to raw and/or adjust saturation
+  if ((props->mime == "image/jpeg") && (props->greyscale)) {
+      if (!link_elements(streamer_node, srcfilter, decode, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, decode, greyconvert, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, greyconvert, greyfilter, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, greyfilter, convert, props->serial)) return nullptr;
+  } else if (props->mime == "image/jpeg") {
       if (!link_elements(streamer_node, srcfilter, decode, props->serial)) return nullptr;
       if (!link_elements(streamer_node, decode, convert, props->serial)) return nullptr;
+  } else if (props->greyscale) {
+      if (!link_elements(streamer_node, srcfilter, greyconvert, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, greyconvert, greyfilter, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, greyfilter, convert, props->serial)) return nullptr;
   } else {
       if (!link_elements(streamer_node, srcfilter, convert, props->serial)) return nullptr;
-  }
-  
+  }  
   if (!link_elements(streamer_node, convert, scalefilter, props->serial)) return nullptr;
 
   // Enable crop and/or clock
@@ -152,6 +168,9 @@ vp9softwarePipelineProperties* get_vp9software_pipeline_properties(rclcpp::Node*
   default_string = "ifast";
   props->jpegdec_method = set_property(streamer_node, camera->serial, profile, camera->original_serial, "jpegdec_method", default_string);
 
+  // greyscale
+  props->greyscale = set_property(streamer_node, camera->serial, profile, camera->original_serial, "greyscale", false);
+  
   // convert
   default_string = "linear";
   props->chroma_resampler = set_property(streamer_node, camera->serial, profile, camera->original_serial, "chroma_resampler", default_string);

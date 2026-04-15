@@ -114,6 +114,8 @@ class CameraStreamer : public rclcpp::Node
   private: void get_profile(Pipeline* pipeline) {
     // From serial
     if (this->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".profile").c_str(), pipeline->profile)) return;
+    // From global
+    if (this->get_parameter<std::string>(GLOBAL_PROFILE_PREFIX, pipeline->profile)) return;
     // From default
     if (this->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".profile").c_str(), pipeline->profile)) return;
     // If no profile found
@@ -130,11 +132,11 @@ class CameraStreamer : public rclcpp::Node
 
     if (!pipeline->profile.empty()) {
 
-      // Get profile from serial
+      // Get type from serial
       if (this->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + pipeline->camera->original_serial + "." + pipeline->profile + ".pipeline_type").c_str(), pipeline->pipeline_type)) return;
-      
-      // Get profile from default
-      if (this->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + pipeline->camera->original_serial + "." + pipeline->profile + ".pipeline_type").c_str(), pipeline->pipeline_type)) return;
+
+      // Get type from unknown
+      if (this->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + pipeline->profile + ".pipeline_type").c_str(), pipeline->pipeline_type)) return;
     }
 
     // Get default last

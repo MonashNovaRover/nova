@@ -24,6 +24,7 @@ std::string set_property(rclcpp::Node* streamer_node, const std::string serial, 
     // Check profile for property
     if (!profile.empty()) {
       if (streamer_node->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value)) return value;
+      if (streamer_node->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value)) return value;
     }
     // Check default for property
     if (streamer_node->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value)) return value;
@@ -36,7 +37,9 @@ int set_property(rclcpp::Node* streamer_node, const std::string serial, const st
     if (streamer_node->get_parameter((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value)) return value;
     // Check profile for property
     if (!profile.empty()) {
-      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value)) return value;
+      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value)) return value;;
+      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value)) return value;
+
     }
     // Check default for property
     if (streamer_node->get_parameter((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value)) return value;
@@ -50,6 +53,7 @@ bool set_property(rclcpp::Node* streamer_node, const std::string serial, const s
     // Check profile for property
     if (!profile.empty()) {
       if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value)) return value;
+      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value)) return value;
     }
     // Check default for property
     if (streamer_node->get_parameter((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value)) return value;
