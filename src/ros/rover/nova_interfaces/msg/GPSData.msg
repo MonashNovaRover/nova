@@ -14,7 +14,7 @@
 std_msgs/Header header
 
 # Satellite fix status information.
-NavSatStatus status
+sensor_msgs/NavSatStatus status
 
 # Latitude [degrees]. Positive is north of equator; negative is south.
 float64 latitude
@@ -26,5 +26,5 @@ float64 longitude
 # (quiet NaN if no altitude is available).
 float64 altitude
 
-# Heading [degrees]. Between 0 and 360, 0 is North.
-float64 heading
+# Heading [degrees]. Between 0 and 360, 0 is North. -1 means no heading.
+float64 heading -1
