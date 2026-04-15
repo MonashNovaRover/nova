@@ -2,7 +2,7 @@
 , fetchurl
 , pythonOlder
 , setuptools
-, python3Packages
+, numpy
 , geomaglib
 }:
 
@@ -20,7 +20,7 @@ buildPythonPackage rec {
 
   build-system = [ setuptools ];
 
-  propagatedBuildInputs = with python3Packages; [
+  propagatedBuildInputs = [
     numpy
     geomaglib
   ];

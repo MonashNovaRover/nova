@@ -1,8 +1,7 @@
 { buildPythonPackage
 , fetchurl
-, pythonOlder
 , setuptools
-, python3Packages
+, numpy
 }:
 
 buildPythonPackage rec {
@@ -17,7 +16,7 @@ buildPythonPackage rec {
 
   build-system = [ setuptools ];
 
-  propagatedBuildInputs = with python3Packages; [
+  propagatedBuildInputs = [
     numpy
   ];
 

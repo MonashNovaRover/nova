@@ -30,7 +30,8 @@ buildRosPackage {
     nova-coms-utils 
     pynmeagps 
     pyrtcm 
-    pyubx2 
+    pyubx2
+    wmm-calculator 
     pandas 
     folium 
   ] ++ [ 
