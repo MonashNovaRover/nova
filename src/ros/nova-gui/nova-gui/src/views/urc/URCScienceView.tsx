@@ -10,8 +10,8 @@ import SegmentedPicker from "../../components/shared/components/SegmentedPicker/
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
 import HeaterWidget from "../../components/science/HeaterWidget/HeaterWidget.tsx";
-import {CameraControlModalButton} from "../../components/cameras/CameraComponent/components/CameraControlModelButton.tsx";
-import {CameraSerials} from "../shared/CamerasPage/CameraPageConstants.tsx";
+import {CameraControlModalButton} from "../../components/cameras/CameraPage/CameraControlModelButton.tsx";
+import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)

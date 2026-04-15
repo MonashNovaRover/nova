@@ -33,6 +33,11 @@ in
 mkYarnPackage {
   name = "gui";
 
+  # Make sure that the node modules derevation doesn't have the whole source
+  # folder as an input (i.e. changes to tsx files won't trigger rebuilding node_modules)
+  packageJSON = ../../../nova-gui/package.json;
+  yarnLock = ../../../nova-gui/yarn.lock;
+
   src = builtins.path rec {
     name = "gui";
     path = ../../../nova-gui;

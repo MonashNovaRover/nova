@@ -68,7 +68,7 @@ class GenericSensorHardware(HardwareInterface):
 
         self.bus.add_callback(self.can_id, self.frame_callback)
 
-        self.logger.info(f"GenericSensorHardware {self.name} configured")
+        self.logger.debug(f"GenericSensorHardware {self.name} configured")
 
         return True
 

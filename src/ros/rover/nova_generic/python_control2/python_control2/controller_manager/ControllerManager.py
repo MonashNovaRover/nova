@@ -118,6 +118,8 @@ class ControllerManager:
         self._last_now_nanoseconds: int = self.node.get_clock().now().nanoseconds
         self.node.create_timer(update_period, self.__update_callback)
 
+        self.node.get_logger().info(f"{'\033[1;32m'}{self.system_name} started{'\033[0m'}")
+
         if auto_run_rclpy:
             rclpy.spin(self.node)
             rclpy.shutdown()
