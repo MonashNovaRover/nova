@@ -15,7 +15,7 @@ def s16(msb, lsb):
 class MagnetometerNode(Node):
     def __init__(self):
         super().__init__('magnetometer_node')
-        self.declare_parameter('bus', 1)
+        self.declare_parameter('bus', 7)
         self.declare_parameter('addr', 0x1E)
         self.bus_num = self.get_parameter('bus').value
         self.addr = self.get_parameter('addr').value
