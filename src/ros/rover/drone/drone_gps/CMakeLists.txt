@@ -15,7 +15,6 @@ endif()
 
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_python REQUIRED)
 find_package(rclpy REQUIRED)
 
 # Install Python modules
