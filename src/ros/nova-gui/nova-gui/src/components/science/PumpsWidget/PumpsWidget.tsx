@@ -1,5 +1,5 @@
 import {Button, Card, CardBody, CardHeader, CardProps, Input, Progress} from "@nextui-org/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffectEvent, useState } from "react";
 import SegmentedPicker from "../../shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import { RosAction } from "../../../ros/actions/RosAction.ts";
 import { IRosScienceInterfacesPumpsActionFeedback, IRosScienceInterfacesPumpsActionGoal, IRosScienceInterfacesPumpsActionResult } from "../../../ros/rosTypes.ts";
@@ -92,7 +92,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
     setActionSent(false);
   }
 
-  useEffect(() => {
+  useEffectEvent(() => {
     if (!actionSent){
       return;
     }
@@ -108,7 +108,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
       setActionSent(false);
     }
 
-  }, [actionSent, goalResponse, pumpsGoalResponse, feedback, selectedPumpIndex, pumpsFeedback]);
+  });
 
   const progressBar = (
     <div className="flex flex-row items-center justify-center">

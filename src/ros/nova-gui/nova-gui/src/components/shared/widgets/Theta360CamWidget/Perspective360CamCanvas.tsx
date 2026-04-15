@@ -13,13 +13,14 @@ import GLWrapMode from "../../../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import {Image} from "react-feather";
 import ExtendedDownloadButton from "../../components/ExtendedDownload.tsx";
 import {Tooltip} from "@nextui-org/react";
+import { AngleType } from "./Theta360CamWidget.tsx";
 
 const DEG_TO_RAD = 0.0174532925199;
 export interface WebGL360CamProps {
   image?: HTMLImageElement,
   children?: React.ReactNode,
-  angles: number[],
-  setAngles: React.Dispatch<React.SetStateAction<number[]>>
+  angles: AngleType,
+  setAngles: React.Dispatch<React.SetStateAction<AngleType>>
 }
 
 const enableScroll = () => {
@@ -66,9 +67,10 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   const [mousePos, setMousePos] = useState([0, 0]);
   const [fov, setFov] = useState(90);
   const [widthHeight, setWidthHeight] = useState([0, 0]);
+  const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
 
   // Allow for panning with the mouse
-  const onMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+  const onMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!gl.canvasRef.current)
       return;
 
@@ -92,9 +94,8 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
       x + fov * DEG_TO_RAD * event.movementX / maxResolutionComp,
       y + fov * DEG_TO_RAD * event.movementY / maxResolutionComp,
     ]);
-  }, [fov, gl.canvasRef]);
+  };
 
-  const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
   // Function that converts y values from 0 to 1 into an angle relative to the midpoint of the image
   const yToTheta = useCallback((v: number) => 360* widthHeight[1]/widthHeight[0] * (-v + 0.5) , [widthHeight]);
 
@@ -104,7 +105,7 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
   }, []);
 
   // Allow for grabbing angles
-  const onClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+  const onClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!gl.canvasRef.current)
       return;
 
@@ -114,13 +115,13 @@ const Perspective360CamCanvas: React.FC<WebGL360CamProps> = (props) => {
         return
       }
       // low angle on ctrl click
-      props.setAngles([props.angles[0], theta]);
+      props.setAngles({...props.angles, low: theta});
       return
     }
     // high angle on shift click
-    props.setAngles([theta, props.angles[1]]);
+    props.setAngles({...props.angles, high: theta});
 
-  }, [props, mousePoint]);
+  };
 
   // Create program to project and render image
   const program = useProgram(gl, Vert, Frag);

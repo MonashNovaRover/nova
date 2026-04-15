@@ -26,11 +26,6 @@ export const AutoStatus : React.FC<AutoStatusProps> = () => {
     bifrost.syncWithTopic()
   }, [bifrost]);
 
-  useEffect(() => {
-    console.log(autoStatus)
-
-  }, [autoStatus]);
-
   return (
     <Chip radius='md' size="lg" variant="dot" color={variants[autoStatus][1]} className={`h-10 border-2 ${variants[autoStatus][2]}`}>
       {variants[autoStatus][0]}

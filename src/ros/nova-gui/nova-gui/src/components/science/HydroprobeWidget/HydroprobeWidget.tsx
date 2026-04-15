@@ -28,7 +28,7 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
   useEffect(() => {
     bifrost.syncWithTopic();
     serviceBifrost.syncWithTopic()
-  }, [bifrost]);
+  }, [bifrost, serviceBifrost]);
 
   const requestReading = () => {
     serviceBifrost.callService({});

@@ -6,7 +6,7 @@
 
 import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@nextui-org/react";
 import { HelpCircle } from "react-feather";
-import { useState, useEffect } from "react";
+import { useState, useEffectEvent } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { useSelector } from "react-redux";
@@ -40,12 +40,12 @@ const RamanCCDInputs: React.FC = () => {
 
     const sendRamanRequest = (request: IRosScienceInterfacesRamanSpecRequest) => bifrost.callService(request, { sendToRedux: true });
 
-    useEffect(() => {
+    useEffectEvent(() => {
         bifrost.syncWithTopic();
         if (response.continuousendedsignal == true) {
             setCurrentlyInContinuous(false);
         }
-      }, [bifrost, response.continuousendedsignal]);
+    });
 
     return (
         <Card className="h-40 m-1 p-5 flex flex-row flex-wrap flex-1 space-x-10">

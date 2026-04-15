@@ -18,5 +18,6 @@ export default function useImageTexture(url: string) {
     image.current.src = url;
   }, [url]);
 
+  // eslint-disable-next-line react-hooks/refs
   return image.current;
 }
