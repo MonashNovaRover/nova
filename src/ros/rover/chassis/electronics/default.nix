@@ -31,7 +31,8 @@ buildRosPackage {
     pynmeagps 
     pyrtcm 
     pyubx2
-    wmm-calculator 
+    smbus2 
+    wmm-calculator
     pandas 
     folium 
   ] ++ [ 
