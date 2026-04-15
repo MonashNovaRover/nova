@@ -31,9 +31,9 @@ import {
   IRosArmInterfacesKeyboardPoints,
   IRosNovaInterfacesCartographerCommandResponse,
   IRosNovaInterfacesStatus,
-  IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
   IRosNovaInterfacesRadioStatus, IRosSensorMsgsJointState, IRosRclInterfacesSetParametersResponse,
+  IRosNovaInterfacesGpsData,
 
 } from "../ros/rosTypes";
 
@@ -107,8 +107,8 @@ export interface RootState {
   toolRotatorAngleStore: IRosStdMsgsFloat64;
 
   // Maps Related Stores
-  roverLocationStore: IRosSensorMsgsNavSatFix;
-  baseLocationStore: IRosSensorMsgsNavSatFix;
+  roverLocationStore: IRosNovaInterfacesGpsData;
+  baseLocationStore: IRosNovaInterfacesGpsData;
   cartographerState: CartographerState;
   cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
   autoStatus: IRosNovaInterfacesStatus;

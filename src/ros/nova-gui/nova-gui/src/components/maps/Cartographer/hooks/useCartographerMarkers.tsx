@@ -79,16 +79,21 @@ export const useCartographerMarkers = (map?: Map) => {
     }
 
     if (!roverMarker) {
+      console.log('Creating rover marker with heading:', roverLocation.heading);
       const marker = new Marker({
         element: createRoverIcon(),
+        rotation: roverLocation.heading,
       });
       marker.setLngLat([roverLocation.longitude, roverLocation.latitude]);
       marker.addTo(map);
       setRoverMarker(marker);
     } else {
       roverMarker.setLngLat([roverLocation.longitude, roverLocation.latitude]);
+      console.log('Updating rover marker heading:', roverLocation.heading);
+      roverMarker.setRotation(roverLocation.heading);
+      console.log('Set marker rotation to:', roverLocation.heading);
     }
-  }, [map, roverLocation.latitude, roverLocation.longitude, roverMarker]);
+  }, [map, roverLocation.latitude, roverLocation.longitude, roverLocation.heading, roverMarker]);
 
   // Syncs Markers
   useEffect(() => {

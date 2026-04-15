@@ -48,8 +48,8 @@ export const rosTopicMessages = {
   [RosTopic.TOOL_ROTATOR_ANGLE]: "std_msgs/msg/Float64",
 
   // Maps Related
-  [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
-  [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/GPSData",
+  [RosTopic.BASE_LOCATION]: "nova_interfaces/msg/GPSData",
   [RosTopic.AUTO_STATUS]: "nova_interfaces/msg/Status",
 
   // Other

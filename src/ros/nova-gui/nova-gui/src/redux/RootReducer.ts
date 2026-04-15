@@ -11,7 +11,7 @@ import {
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
 import {cartographerSlice} from "./slices/CartographerSlice";
-import {initialNavSatMessage} from "./models/CartographerState";
+import {initialGPSMessage} from "./models/CartographerState";
 import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
@@ -297,13 +297,13 @@ export const reduxStores = {
     {
       topic: RosTopic.ROVER_LOCATION,
     },
-    initialNavSatMessage
+    initialGPSMessage
   ),
   baseLocationStore: createBifrostStore(
     { 
     topic: RosTopic.BASE_LOCATION 
     }, 
-    initialNavSatMessage
+    initialGPSMessage
   ),
   autoStatus: createBifrostStore(
     {
