@@ -1,4 +1,26 @@
 #!/usr/bin/env python3
+'''
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: Reads magnetometer data and calculates
+the true heading based on GPS coordinates and
+magnetic declination.
+
+Written for the HMC5883L magnetometer, which is
+mounted upside down on the rover, so the magnetic
+heading is flipped by 180 degrees.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: magnetometer_node
+TOPICS:
+  - subscriber: /gps_rover/fix  [NavSatFix]
+  - publisher: /mag/heading     [Float64]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE: 	electronics
+AUTHOR(S):	Terry Tian
+CREATED:	15/04/2026
+EDITED:		15/04/2026
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
+
 import math
 from datetime import date
 import rclpy
