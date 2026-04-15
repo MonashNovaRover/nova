@@ -18,6 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DriveInfo.msg"
   "msg/DriveInput.msg"
   "msg/DriveInputStamped.msg"
+  "msg/GPSData.msg"
   "msg/RadioStatus.msg"
   "msg/RoverPoseGPS.msg"
   "msg/Status.msg"
