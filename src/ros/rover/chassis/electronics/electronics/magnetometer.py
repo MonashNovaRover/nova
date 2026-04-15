@@ -54,6 +54,9 @@ class MagnetometerNode(Node):
 
         magnetic_heading = math.degrees(math.atan2(my, mx)) % 360.0
         true_heading = (magnetic_heading + self.declination_deg) % 360.0
+        self.get_logger().debug(f'Magnetic Heading: {magnetic_heading:.2f}\n°'
+                                f'Declination: {self.declination_deg:.2f}°\n'
+                                f'True Heading: {true_heading:.2f}°\n', throttle_duration_sec=1.0)
 
         msg = Float64()
         msg.data = true_heading
