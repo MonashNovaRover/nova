@@ -14,11 +14,10 @@
 #include <camera_msgs/msg/camera.hpp>
 #include <camera_msgs/msg/cameras.hpp>
 
-#include "cameras/cameras.hpp"
+#include "cameras/globals.hpp"
 #include "cameras/colors.hpp"
 
 using namespace std::placeholders;
-
 
 struct V4lDevice {
   std::string model;
@@ -53,7 +52,7 @@ class CameraDirectory : public rclcpp::Node
 
     // publish once
     this->publish_cameras();
-    RCLCPP_INFO(this->get_logger(), "Polling v4l capture devices every %dms", POLLING_PERIOD);
+    RCLCPP_INFO(this->get_logger(), "%sPolling v4l capture devices every %dms%s", C_QUIET, POLLING_PERIOD, C_RESET);
   }
 
   rclcpp::TimerBase::SharedPtr timer_;
@@ -65,8 +64,7 @@ class CameraDirectory : public rclcpp::Node
   std::string task;
   std::unordered_map<std::string, std::string> serial_overrides;
   std::unordered_map<std::string, std::string> camera_map;
-  size_t last_device_count;
-  bool pretty_print_cameras = true; // pretty print cameras first time run
+  size_t last_device_count = -1;
 
   private: void get_configuration()
   {
@@ -77,15 +75,25 @@ class CameraDirectory : public rclcpp::Node
       serial_remaps[kv.first] = kv.second.as_string();
     }
 
-    platform = this->get_parameter_or<std::string>("platform", "");
-    task = this->get_parameter_or<std::string>("task", "");
-    if (platform.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"platform\" is empty");
-      else RCLCPP_INFO(this->get_logger(), "Using platform root from %s", platform.c_str());
-    if (task.empty()) RCLCPP_INFO(this->get_logger(), "node argument \"task\" is empty");
-      else RCLCPP_INFO(this->get_logger(), "Using task serials from %s", task.c_str());
+    std::stringstream log;
+
+    if (this->get_parameter<std::string>("platform", platform)) {
+      log << C_QUIET << "Using platform root from " << C_SUBTITLE << platform << C_RESET << "\n";
+    } else {
+      log << C_QUIET << "Node argument \"" << C_INPUT << "platform" << C_QUIET << "\" is empty" << C_RESET << "\n";
+    }
+
+    if (this->get_parameter<std::string>("task", task)) {
+      log << C_QUIET << "Using task serials from " << C_SUBTITLE << task << C_RESET;
+    } else {
+      log << C_QUIET << "Node argument \"" << C_INPUT << "task" << C_QUIET << "\" is empty" << C_RESET;
+    }
+
+    // Pretty print cameras
+    RCLCPP_INFO(this->get_logger(), "%s", log.str().c_str());
 
     if (platform.empty()) {
-      RCLCPP_WARN(this->get_logger(), "Skipping serial_overrides...");
+      RCLCPP_WARN(this->get_logger(), "%sSkipping serial_overrides...%s", C_FAIL, C_RESET);
     } else {
       std::map<std::string, std::pair<std::string, std::string>> path_map;
       std::map<std::string, std::string> root_map;
@@ -152,13 +160,17 @@ class CameraDirectory : public rclcpp::Node
   {
     /*
       Add each camera to a cameras message and publish their final serial and dev node.    
-    */
-    std::stringstream log;
-    log << C_MODE << "Detected Cameras:" << C_RESET;
+    */ 
 
     auto message = camera_msgs::msg::Cameras();
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     std::unordered_map<std::string, std::string> new_camera_map;
+
+    std::stringstream log;
+    if (devices.size() != last_device_count) {  
+      log << C_MODE << "Detected Cameras:" << C_RESET;
+    }
+
     for (V4lDevice device : devices) {
       // if device is in blacklist, skip
       if (std::find(blacklist.begin(), blacklist.end(), device.serial) != blacklist.end()) continue;
@@ -176,50 +188,32 @@ class CameraDirectory : public rclcpp::Node
       camera.serial = serial;
       camera.node = device.devname;
       camera.original_serial = device.serial;
-      message.cameras.push_back(camera);
+      message.cameras.emplace_back(camera);
 
-      // Prettify camera serial and info
-      if (pretty_print_cameras)
-      {
-        log << "\n  - " << C_TITLE << serial << C_RESET;
+      if (devices.size() != last_device_count) {
+        log << "\n - " << C_TITLE << serial << C_RESET;
         if (serial != device.serial)
         {
-          log << C_QUIET " remapped from " << device.serial << C_RESET;
+          log << C_QUIET " remapped from " << C_INPUT << device.serial << C_RESET;
         }
         log << C_QUIET " located at " << device.path << C_RESET;
-      };
 
-      // check if new camera or serial changed
-      if (camera_map.find(serial) == camera_map.end())
-      {
-        new_camera_map[serial] = device.devname;
-        if (!pretty_print_cameras)
-        {
-          std::stringstream log_new;
-          log_new << "New camera detected: " << C_TITLE << serial << C_RESET;
-          if (serial != device.serial)
-          {
-            log_new << C_QUIET << " remapped from " << device.serial << C_RESET;
-          }
-          log_new << C_QUIET << " located at " << device.path << C_RESET;
-          RCLCPP_INFO(this->get_logger(), "%s", log_new.str().c_str());
+        // check if new camera or serial changed
+        if (camera_map.find(serial) == camera_map.end()) {
+          new_camera_map[serial] = device.devname;
+          camera_map = new_camera_map;
         }
-        camera_map = new_camera_map;
       }
     }
     if (devices.size() != last_device_count) {
-      RCLCPP_INFO(this->get_logger(), "Publishing %ld Cameras...", devices.size());
+      log << "\n" << C_QUIET "Publishing " << C_SUBTITLE << devices.size() << C_QUIET " Cameras..." << C_RESET;
       last_device_count = devices.size();
       camera_map = new_camera_map;
+
+      // Pretty print cameras
+      RCLCPP_INFO(this->get_logger(), "%s", log.str().c_str());
     }
     publisher_->publish(message);
-
-    // Pretty print cameras first time running
-    if (pretty_print_cameras)
-    {
-      RCLCPP_INFO(this->get_logger(), "%s\n", log.str().c_str());
-      pretty_print_cameras = false;
-    }
   }
 
   private: void service_callback(
@@ -239,6 +233,7 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
   sd_device_enumerator *enumerator = NULL;
   sd_device *device = NULL;
   std::vector<V4lDevice> matches;
+  std::unordered_set<std::string> seen_serials;
 
   // Create new device enumerator object and add filters
   sd_device_enumerator_new(&enumerator);
@@ -263,12 +258,16 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
     v4ldevice.serial = serial;
     v4ldevice.path = path_id;
 
-    if (capabilities && strstr(capabilities, ":capture:")) {
-      matches.push_back(v4ldevice);
+    // Ignore if the serial already exists in cameras. We should fix this eventually
+    // Check if address is a valid camera stream
+    if (capabilities && strstr(capabilities, ":capture:") && (seen_serials.find(serial) == seen_serials.end())) {
+      matches.emplace_back(v4ldevice);
+      seen_serials.emplace(serial);
     }
   }
 
   sd_device_enumerator_unref(enumerator);
+  sd_device_unref(device);
   return matches;
 }
 
@@ -279,3 +278,4 @@ int main(int argc, char * argv[])
   rclcpp::shutdown();
   return 0;
 }
+
