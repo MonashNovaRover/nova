@@ -87,7 +87,7 @@ const NIRProbeFileTable: React.FC<NIRProbeFileTableProps> = ({readingInfo, maxTa
         </TableBody>
       </Table>
     </div>
-  ), [entryRows, tableHeader])
+  ), [entryRows, maxTableHeight, tableHeader])
 
   const PD1Table = useMemo(() => table(NIRProbeReadingType.PD1), [table])
   const PD2Table = useMemo(() => table(NIRProbeReadingType.PD2), [table])

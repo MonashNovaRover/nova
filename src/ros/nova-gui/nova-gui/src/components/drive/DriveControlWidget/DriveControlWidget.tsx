@@ -25,26 +25,27 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
     bifrost.syncWithTopic();
   }, [bifrost]);
 
-  const driveInfo = useSelector(
-    (state: RootState) => state.driveStore);
+  const driveInfo = {
+    locked: useSelector((state: RootState) => state.driveStore.locked),
+    locked_reason: useSelector((state: RootState) => state.driveStore.locked_reason),
+    connected: useSelector((state: RootState) => state.driveStore.connected),
+  }
 
-  const lockedReasons: Record<string, string> = {
-    "1": "Initial State",
-    "2": "Lock Button Pressed",
-    "3": "Excessive BLCMD Errors",
-    "4": "Gamepad Disconnected",
+  const lockedReasons: Record<number, string> = {
+    1: "Initial State",
+    2: "Lock Button Pressed",
+    3: "Excessive BLCMD Errors",
+    4: "Gamepad Disconnected",
   };
   const suppressLockedReasonToast = [1, 2];
 
   const [autolockOverride, setAutolockOverride] = useState(false);
-  const currentLockedReason = lockedReasons[driveInfo.locked_reason.toString()] ?? "Reason Unknown";
+  const currentLockedReason = lockedReasons[driveInfo.locked_reason] ?? "Reason Unknown";
 
   // show toast when locked unexpectedly
-  useEffect(() => {
-    if (!suppressLockedReasonToast.includes(driveInfo.locked_reason) && driveInfo.locked) {
-      toast.error(`Drive Locked due to: ${currentLockedReason}`);
-    }
-  }, [driveInfo.locked_reason, driveInfo.locked]);
+  if (!suppressLockedReasonToast.includes(driveInfo.locked_reason) && driveInfo.locked) {
+    toast.error(`Drive Locked due to: ${currentLockedReason}`);
+  }
 
   // callback to toggle autolock override in teleop drive
   const onAutolockButtonPress = () => {

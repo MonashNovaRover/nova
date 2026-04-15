@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback} from "react";
 import {Button, Card, CardProps, Input, Tooltip} from "@nextui-org/react";
 import {SubCardLabel} from "../../shared/components/Labels.tsx";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
@@ -19,22 +19,11 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         g: string;
         b: string;
     }>("rgbLedStore");
-
-    const [tempR, setTempR] = useState(rgbValues.r);
-    const [tempG, setTempG] = useState(rgbValues.g);
-    const [tempB, setTempB] = useState(rgbValues.b);
-
-    const {r,g,b} = rgbValues;
+    const [tempR, tempG, tempB] = [rgbValues.r, rgbValues.b, rgbValues.g]
 
     const serviceBifrost = useBifrost({service: RosService.RGBInput});
 
-    useEffect(() => {
-        setTempR(rgbValues.r);
-        setTempG(rgbValues.g);
-        setTempB(rgbValues.b);
-    }, [r,g,b]);
-
-    const sendRGBValues = useCallback((flash = false) => {
+    const sendRGBValues = useCallback((flash: boolean = false) => {
         try{
 
             const rValue = Number(tempR);
@@ -58,21 +47,21 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
         }catch (e) {
             console.error("Could not send RGB Values:",e)
         }
-    },[r,g,b,serviceBifrost])
+    }, [tempR, tempG, tempB, serviceBifrost, setRgbValues]);
 
     const handleRChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempR(value)
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setRgbValues({...rgbValues, r: value})
     }, [rgbValues, setRgbValues]);
 
     const handleGChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempG(value)
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setRgbValues({...rgbValues, g: value})
     }, [rgbValues, setRgbValues]);
 
     const handleBChange = useCallback((value: string) => {
         const numValue = Number(value);
-        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setTempB(value)
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) setRgbValues({...rgbValues, b: value})
     }, [rgbValues, setRgbValues]);
 
     const flashGreen = () => {
@@ -146,7 +135,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                           size="sm"
                           className="w-6 h-6 bg-[rgb(255,0,0)]"
                           aria-label="Red"
-                          onPress={() => {setTempR("255"); setTempG("0"); setTempB("0"); }}
+                          onPress={()=>setRgbValues({r: "255", g: "0", b: "0"})}
                         />
                     </Tooltip>
                     <Tooltip content="Green" placement="top">
@@ -155,7 +144,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                           size="sm"
                           className="w-6 h-6 bg-[rgb(0,255,0)]"
                           aria-label="Green"
-                          onPress={() => {setTempR("0"); setTempG("255"); setTempB("0"); }}
+                          onPress={()=>setRgbValues({r: "0", g: "255", b: "0"})}
                         />
                     </Tooltip>
                     <Tooltip content="Blue" placement="top">
@@ -164,7 +153,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                           size="sm"
                           className="w-6 h-6 bg-[rgb(0,0,255)]"
                           aria-label="Blue"
-                          onPress={() => {setTempR("0"); setTempG("0"); setTempB("255"); }}
+                          onPress={()=>setRgbValues({r: "255", g: "0", b: "255"})}
                         />
                     </Tooltip>
                     <Tooltip content="Yellow" placement="top">
@@ -173,7 +162,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                           size="sm"
                           className="w-6 h-6 bg-[rgb(255,255,0)]"
                           aria-label="Yellow"
-                          onPress={() => {setTempR("255"); setTempG("255"); setTempB("0"); }}
+                          onPress={()=>setRgbValues({r: "255", g: "255", b: "0"})}
                         />
                     </Tooltip>
                     <Tooltip content="Pink" placement="top">
@@ -182,9 +171,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                           size="sm"
                           className="w-6 h-6 bg-[rgb(255,105,180)]"
                           aria-label="Pink"
-                          onPress={() =>
-                          {setTempR("255"); setTempG("105"); setTempB("180"); }
-                          }
+                          onPress={()=>setRgbValues({r: "255", g: "105", b: "180"})}
                         />
                     </Tooltip>
                         <Button

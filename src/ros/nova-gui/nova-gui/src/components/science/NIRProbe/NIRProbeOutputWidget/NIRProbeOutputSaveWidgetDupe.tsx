@@ -139,7 +139,7 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
           ...readings[NIRProbeReadingType.PD2],
         ]
       })
-    }, [readings, setReadings, type, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
+    }, [readings, setReadings, sampleLabel, advancedSampleLabel, showAdvanced, nirData]);
   useEffect(() => {
     if (!autosave)
       return;
@@ -152,7 +152,7 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
 
     previousDataRef.current = [...nirData.data];
     save(nirData);
-  }, [autosave, save, nirData.data, previousDataRef]);
+  }, [autosave, save, nirData.data, previousDataRef, nirData]);
 
   const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (+e.target.value !== 0)
