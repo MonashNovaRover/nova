@@ -12,6 +12,7 @@
     // import ./auto { inherit pkgs; }
     // import ./chassis { inherit pkgs; }
     // import ./drive { inherit pkgs; }
+    // import ./drone { inherit pkgs; }
     // import ./hardware_interfaces { inherit pkgs; }
     // import ./nova_generic { inherit pkgs; }
     // import ./old_inputs { inherit pkgs; }

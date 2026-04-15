@@ -79,9 +79,9 @@
 , nova-science-bringup ? throw "nova-science-bringup is needed, but not available!"
 , nova-arm-kinematics ? throw "nova-arm-kinematics is needed, but not available!"
 , nova-locked-publisher
-
 , nova-cameras
 , nova-camera-msgs
+, mavros
   # Configuration options
   ## Include graphical applications in the workspace.
 , graphical ? true
