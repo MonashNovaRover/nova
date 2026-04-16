@@ -59,6 +59,12 @@ thrustmaster_left:
           from: "l_btn_bottom_l2_state"
         unlock:
           from: "l_btn_bottom_l5_state"
+        # Analysis Arm
+        activate_analysis_arm:
+          from: "r_btn_bottom_r3_state"
+        # CBeam
+        activate_cbeam:
+          from: "r_btn_bottom_r4_state"
 
 thrustmaster_right:
   ros__parameters:
@@ -101,10 +107,10 @@ thrustmaster_right:
 
       buttons:
         # Auger
-        activate_analysis_arm:
-          from: "r_btn_bottom_l4_state"
-        activate_cbeam:
-          from: "r_btn_bottom_l1_state"
+        activate_auger_left:
+          from: "r_btn_bottom_r3_state"
+        activate_auger_right:
+          from: "r_btn_bottom_r4_state"
         auger_drill:
           from: "r_btn_thumb_u_state"
         auger_drill_clockwise:
