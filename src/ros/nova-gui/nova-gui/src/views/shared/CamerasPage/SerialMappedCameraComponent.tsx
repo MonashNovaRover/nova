@@ -10,8 +10,8 @@ import DriveCameraComponent from "../../../components/cameras/CameraComponent/sp
 import WheelTelemetryCameraComponent
   from "../../../components/cameras/CameraComponent/special/WheelTelemetryCameraComponent.tsx";
 import SiteSelectCameraComponent from "../../../components/cameras/CameraComponent/special/SiteSelectCameraComponent.tsx";
-import ActivatedNodesCameraComponent
-  from "../../../components/cameras/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
+import URCActivatedNodesCameraComponent
+  from "../../../components/cameras/CameraComponent/special/URCActivatedNodesCameraComponent.tsx";
 import DepthSensor
   from "../../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
 import MicroscopeScaleOverlayedCameraComponent
@@ -22,6 +22,7 @@ import DriveControlCameraComponent
   from "../../../components/cameras/CameraComponent/special/DriveControlCameraComponent.tsx";
 import ScienceCombinedCameraComponent
   from "../../../components/cameras/CameraComponent/special/ScienceCombinedCameraComponent.tsx";
+import ARCActivatedNodesCameraComponent from "../../../components/cameras/CameraComponent/special/ARCActivatedNodesCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
@@ -31,10 +32,11 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.DRIVE_TELEMETRY]: DriveCameraComponent,
   [CameraSerials.DRIVE_CONTROL]: DriveControlCameraComponent,
   [CameraSerials.SITE_SELECT]: SiteSelectCameraComponent,
-  [CameraSerials.URC_ACTIVATED_NODES]: ActivatedNodesCameraComponent,
+  [CameraSerials.URC_ACTIVATED_NODES]: URCActivatedNodesCameraComponent,
   [CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS]: DepthSensor,
   [CameraSerials.SCIENCE_MICROSCOPE]: MicroscopeScaleOverlayedCameraComponent,
   [CameraSerials.SCIENCE_POWER_CYCLE]: PowerCycleCameraComponent,
+  [CameraSerials.ARC_ACTIVATED_NODES]: ARCActivatedNodesCameraComponent,
   [CameraSerials.SCIENCE_COMBINED]: ScienceCombinedCameraComponent,
 }
 
