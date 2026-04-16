@@ -1,5 +1,7 @@
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSDurabilityPolicy
 from teleop_python_utils import Button
+from nova_interfaces.msg import ActiveNodeStatus
 
 class Activation:
     """
@@ -25,7 +27,29 @@ class Activation:
         for but in inactive_button_pool:
             but.add_callback(self.deactivate)
 
+        # Publisher for active controller telemetry
+        # Keep last message in the topic for any new subscribers (can publish fewer messages)
+        qos_profile = QoSProfile(
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL
+        )
+        self.active_node_publisher = self.node.create_publisher(ActiveNodeStatus, "/activated_nodes", qos_profile)
+
         self.node.get_logger().info(f"{self.node.get_name()} is {"ACTIVE" if self.active else "INACTIVE"}")
+        self.publish_msg()
+
+    def publish_msg(self):
+        """ Publishes message containing name and active status of controller node """
+        # Creating active node msg data type
+        msg = ActiveNodeStatus()
+
+        msg.name = self.node.get_name()
+        msg.active = self.is_active()
+        msg.locked = False
+
+        # Sending message over topic
+        self.active_node_publisher.publish(msg)
 
     def activate(self):
         """ Activates the system """
@@ -33,11 +57,15 @@ class Activation:
             self.node.get_logger().info(f"{self.node.get_name()} ACTIVATED")
         self.active = True
 
+        self.publish_msg()
+
     def deactivate(self):
         """ Deactivates the system """
         if self.active:
             self.node.get_logger().info(f"{self.node.get_name()} DEACTIVATED")
         self.active = False
+
+        self.publish_msg()
 
     def is_active(self):
         return self.active

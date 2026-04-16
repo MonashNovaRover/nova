@@ -56,4 +56,5 @@ export const rosTopicMessages = {
   [RosTopic.BATTERY_STATE]: "sensor_msgs/msg/BatteryState",
   [RosTopic.ACTIVATED_NODES]: "nova_interfaces/msg/ActiveNodeStatus",
   [RosTopic.RADIO_STATUS]: "nova_interfaces/msg/RadioStatus",
+  [RosTopic.LOCKED_STATUS]: "nova_interfaces/msg/LockedStatus",
 };
