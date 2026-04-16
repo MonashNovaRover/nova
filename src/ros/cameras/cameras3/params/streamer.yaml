@@ -23,10 +23,6 @@ camera_streamer:
 
       # Science
       science_microscope:
-        pipeline_type: vpXsoftware
-        mime: video/x-raw
-        width: 640
-        framerate: 25
         meta: Science - Microscope
       science_gantry:
         meta: Science - Gantry
@@ -62,10 +58,10 @@ camera_streamer:
           mime: image/jpeg
           width: 1280
           height: 720
-          framerate: 30
           downscale: 2
+          framerate: 30
           cpu_usage: 0
-          bitrate: 512
+          bitrate: 384
         super:
           pipeline_type: h264software
           mime: image/jpeg
@@ -78,46 +74,37 @@ camera_streamer:
           bitrate: 3072
           threads: 6
           gop: 3
-        snail:
-          pipeline_type: vp9software
-          mime: image/jpeg
-          width: 640
-          height: 480
-          framerate: 30
-          downscale: 4
-          cpu_usage: 0
-          bitrate: 192
         far:
           pipeline_type: vp9software
-          width: 640
-          height: 480
+          width: 1280
+          height: 720
+          downscale: 3
           framerate: 30
-          downscale: 10
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 48
+          bitrate: 128
         dod:
           pipeline_type: vp9software 
-          width: 640
-          height: 480
+          width: 1280
+          height: 720
+          downscale: 8
           framerate: 30
-          downscale: 10
           downrate: 3
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 8
+          bitrate: 16
           greyscale: true
 
       openaicam_openaicam_2505121128:
         nav:
           pipeline_type: vp8software
           mime: image/jpeg
-          width: 1280
-          height: 720
+          width: 1920
+          height: 1080
+          downscale: 3
           framerate: 30
-          downscale: 2
           cpu_usage: 0
-          bitrate: 512
+          bitrate: 384
         super:
           pipeline_type: h264software
           mime: image/jpeg
@@ -130,34 +117,25 @@ camera_streamer:
           bitrate: 3072
           threads: 6
           gop: 3
-        snail:
-          pipeline_type: vp9software
-          mime: image/jpeg
-          width: 1280
-          height: 720
-          framerate: 30
-          downscale: 6
-          cpu_usage: 0
-          bitrate: 192
         far:
           pipeline_type: vp9software
-          width: 1280
-          height: 720
+          width: 1920
+          height: 1080
+          downscale: 4
           framerate: 30
-          downscale: 12
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 48
+          bitrate: 128
         dod:
-          pipeline_type: vp9software
-          width: 1280
-          height: 720
-          framerate: 30
+          pipeline_type: vp9software 
+          width: 1920
+          height: 1080
           downscale: 12
+          framerate: 30
           downrate: 3
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 8
+          bitrate: 16
           greyscale: true
 
       webcamvendor_SK_series1_20220325JWGD2093:
@@ -171,30 +149,21 @@ camera_streamer:
           width: 1920
           height: 1080
           framerate: 30
-        snail:
+        far:
           pipeline_type: h264passthrough
           width: 320
           height: 240
           framerate: 30
-        far:
-          pipeline_type: vp9software
-          width: 320
-          height: 240
-          framerate: 30
-          downscale: 5
-          cpu_usage: 10
-          jpegdec_method: float
-          bitrate: 48
         dod:
-          pipeline_type: vp9software
-          width: 320
-          height: 240
+          pipeline_type: vp9software 
+          width: 1920
+          height: 1080
+          downscale: 12
           framerate: 30
-          downscale: 10
           downrate: 3
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 8
+          bitrate: 16
           greyscale: true
 
       HZ_USB_Camera_20220301104:
@@ -203,10 +172,10 @@ camera_streamer:
           mime: image/jpeg
           width: 1024
           height: 768
-          framerate: 30
           downscale: 2
+          framerate: 30
           cpu_usage: 0
-          bitrate: 512
+          bitrate: 384
         super:
           pipeline_type: h264software
           mime: image/jpeg
@@ -218,45 +187,37 @@ camera_streamer:
           bitrate: 4096
           threads: 6
           gop: 3
-        snail:
-          pipeline_type: vp9software
-          mime: image/jpeg
-          width: 640
-          height: 480
-          framerate: 30
-          downscale: 4
-          cpu_usage: 0
-          bitrate: 192
         far:
           pipeline_type: vp9software
-          width: 640
-          height: 480
+          width: 1024
+          height: 768
+          downscale: 3
           framerate: 30
-          downscale: 10
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 48
+          bitrate: 128
         dod:
           pipeline_type: vp9software
-          width: 640
-          height: 480
+          width: 1024
+          height: 768
+          downscale: 3
           framerate: 30
-          downscale: 10
           downrate: 3
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 8
+          bitrate: 16
           greyscale: true
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         nav:
           pipeline_type: vp8software
           mime: image/jpeg
-          width: 640
-          height: 360
+          width: 1280
+          height: 720
+          downscale: 2
           framerate: 30
-          cpu_usage: 5
-          bitrate: 512
+          cpu_usage: 0
+          bitrate: 384
         super:
           pipeline_type: h264software
           mime: video/x-raw
@@ -268,33 +229,25 @@ camera_streamer:
           bitrate: 2048
           threads: 6
           gop: 3
-        snail:
-          pipeline_type: vp9software
-          mime: image/jpeg
-          width: 160
-          height: 120
-          framerate: 30
-          cpu_usage: 0
-          bitrate: 192
         far:
           pipeline_type: vp9software
-          width: 320
-          height: 240
+          width: 1280
+          height: 720
+          downscale: 3
           framerate: 30
-          downscale: 5
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 48
+          bitrate: 128
         dod:
-          pipeline_type: vp9software
-          width: 320
-          height: 240
+          pipeline_type: vp9software 
+          width: 1280
+          height: 720
+          downscale: 8
           framerate: 30
-          downscale: 5
           downrate: 3
           cpu_usage: 10
           jpegdec_method: float
-          bitrate: 8
+          bitrate: 16
           greyscale: true
 
     defaults:
@@ -304,12 +257,14 @@ camera_streamer:
         width: 1280
         height: 720
         framerate: 30
+        verify_resolution: false
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
         width: 1920
         height: 1080
         framerate: 30
+        verify_resolution: false
         payload_quirk: true
 
       HZ_USB_Camera_20220301104:
@@ -317,6 +272,7 @@ camera_streamer:
         width: 1024
         height: 768
         framerate: 30
+        verify_resolution: false
         brightness: 255
 
       # Legacy
@@ -325,7 +281,19 @@ camera_streamer:
         width: 800
         height: 600
         framerate: 30
+        verify_resolution: false
 
+      GenesysLogic_Technology_Co.__Ltd._USB2.0_UVC_PC_Camera:
+        pipeline_type: vp9software
+        mime: video/x-raw
+        width: 640
+        height: 480
+        framerate: 25
+        cpu_usage: 7
+        bitrate: 1024
+        threads: 6
+        gop: 3
+        verify_resolution: false
 
       # Name violates yaml rules
       # Ricoh_Company__Ltd._RICOH_THETA_Z1_34122798:
