@@ -233,7 +233,7 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
   sd_device_enumerator *enumerator = NULL;
   sd_device *device = NULL;
   std::vector<V4lDevice> matches;
-  std::unordered_set<std::string> seen_serials;
+  //std::unordered_set<std::string> seen_serials;
 
   // Create new device enumerator object and add filters
   sd_device_enumerator_new(&enumerator);
@@ -260,9 +260,9 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
 
     // Ignore if the serial already exists in cameras. We should fix this eventually
     // Check if address is a valid camera stream
-    if (capabilities && strstr(capabilities, ":capture:") && (seen_serials.find(serial) == seen_serials.end())) {
+    if (capabilities && strstr(capabilities, ":capture:")) {
       matches.emplace_back(v4ldevice);
-      seen_serials.emplace(serial);
+      //seen_serials.emplace(serial);
     }
   }
 
