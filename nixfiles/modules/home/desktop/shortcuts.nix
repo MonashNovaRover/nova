@@ -14,7 +14,7 @@ in
         ]
         ++ lib.optional config.nova.desktop.browser.enable "chromium-browser.desktop"
         ++ [
-          "codium.desktop"
+          "code.desktop"
         ];
       };
     };
