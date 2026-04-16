@@ -9,8 +9,6 @@ import DriveCameraComponent from "../../../components/cameras/CameraComponent/sp
 import WheelTelemetryCameraComponent
   from "../../../components/cameras/CameraComponent/special/WheelTelemetryCameraComponent.tsx";
 import SiteSelectCameraComponent from "../../../components/cameras/CameraComponent/special/SiteSelectCameraComponent.tsx";
-import URCActivatedNodesCameraComponent
-  from "../../../components/cameras/CameraComponent/special/URCActivatedNodesCameraComponent.tsx";
 import DepthSensor
   from "../../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
 import MicroscopeScaleOverlayedCameraComponent
