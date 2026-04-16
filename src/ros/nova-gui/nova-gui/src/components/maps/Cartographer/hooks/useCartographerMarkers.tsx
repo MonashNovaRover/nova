@@ -4,6 +4,7 @@ import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.t
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import roverIcon from "../../../../assets/rover-top-down-dark.png";
+import droneIcon from "../../../../assets/drone-top-down.png";
 import novaLogo from "../../../../assets/nova-logo.png";
 import { useEffect, useState, RefObject } from "react";
 import { MapInteractionMode } from "../../../../redux/models/CartographerState.ts";
@@ -11,6 +12,7 @@ import { MapInteractionMode } from "../../../../redux/models/CartographerState.t
 export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
   const [roverMarker, setRoverMarker] = useState<Marker>();
   const [baseMarker, setBaseMarker] = useState<Marker>();
+  const [droneMarker, setDroneMarker] = useState<Marker>();
 
 
   const [pointMarkers, setPointMarkers] = useState<Marker[]>([]);
@@ -27,6 +29,10 @@ export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
     topic: RosTopic.BASE_LOCATION,
   });
 
+  const droneLocationBifrost = useBifrost({
+    topic: RosTopic.DRONE_LOCATION,
+  });
+
   useEffect(() => {
     roverLocationBifrost.syncWithTopic();
   }, [roverLocationBifrost]);
@@ -35,12 +41,20 @@ export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
     baseLocationBifrost.syncWithTopic();
   }, [baseLocationBifrost]);
 
+  useEffect(() => {
+    droneLocationBifrost.syncWithTopic();
+  }, [droneLocationBifrost]);
+
   const roverLocation = useSelector(
     (state: RootState) => state.roverLocationStore
   );
 
   const baseLocationStore = useSelector(
     (state: RootState) => state.baseLocationStore
+  );
+
+  const droneLocation = useSelector(
+    (state: RootState) => state.droneLocationStore
   );
 
   useEffect(() => {
@@ -75,6 +89,7 @@ export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
   useEffect(() => {
     if (!mapRef.current) {
       setRoverMarker(undefined);
+      setDroneMarker(undefined);
       return;
     }
 
@@ -93,7 +108,26 @@ export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
       roverMarker.setRotation(roverLocation.heading);
       console.log('Set marker rotation to:', roverLocation.heading);
     }
-  }, [mapRef, roverLocation.latitude, roverLocation.longitude, roverLocation.heading, roverMarker]);
+
+    if (!droneMarker) {
+      console.log('Creating drone marker with heading:', droneLocation.heading);
+      const marker = new Marker({
+        element: createDroneIcon(),
+        rotation: droneLocation.heading,
+      });
+      marker.setLngLat([droneLocation.longitude, droneLocation.latitude]);
+      marker.addTo(mapRef.current);
+      setDroneMarker(marker);
+    } else {
+      droneMarker.setLngLat([droneLocation.longitude, droneLocation.latitude]);
+      console.log('Updating drone marker heading:', droneLocation.heading);
+      droneMarker.setRotation(droneLocation.heading);
+      console.log('Set marker rotation to:', droneLocation.heading);
+    }
+
+  }, [mapRef, 
+    roverLocation.latitude, roverLocation.longitude, roverLocation.heading, roverMarker,
+    droneLocation.latitude, droneLocation.longitude, droneLocation.heading, droneMarker]);
 
   // Syncs Markers
   useEffect(() => {
@@ -170,6 +204,13 @@ export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
 const createRoverIcon = () => {
   const imgElement = document.createElement("img");
   imgElement.src = roverIcon;
+  imgElement.className = "w-14";
+  return imgElement;
+};
+
+const createDroneIcon = () => {
+  const imgElement = document.createElement("img");
+  imgElement.src = droneIcon;
   imgElement.className = "w-14";
   return imgElement;
 };

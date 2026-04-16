@@ -34,6 +34,10 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
     topic: RosTopic.BASE_LOCATION,
   });
 
+  const droneLocationBifrost = useBifrost({
+    topic: RosTopic.DRONE_LOCATION,
+  });
+
   const { mapInteractionMode, mousePosition, newMarkerModal, measure } =
     useSelector((state: RootState) => state.cartographerState);
 
@@ -44,6 +48,10 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
   useEffect(() => {
     baseLocationBifrost.syncWithTopic();
   }, [baseLocationBifrost]);
+
+  useEffect(() => {
+    droneLocationBifrost.syncWithTopic();
+  }, [droneLocationBifrost]);
 
   const { setPoints, setInteractionMode, closeNewModal, clearMeasurements } =
     useCartographerActions();

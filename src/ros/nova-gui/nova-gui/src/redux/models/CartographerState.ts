@@ -39,6 +39,8 @@ export interface CartographerState {
   };
   centerOnRover: boolean;
   trackRover: boolean;
+  centerOnDrone: boolean;
+  trackDrone: boolean;
 }
 
 export const initialGPSMessage = <IRosNovaInterfacesGpsData>{

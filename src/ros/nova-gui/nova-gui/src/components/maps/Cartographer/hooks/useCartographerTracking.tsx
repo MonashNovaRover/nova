@@ -13,7 +13,7 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
   //   const [trace, setTrace] = useLocalStorage<MapCoordinate[]>("roverTrace", []);
   const [trace, setTrace] = useState<MapCoordinate[]>([]);
 
-  const { measure, centerOnRover, trackRover } = useSelector(
+  const { measure, centerOnRover, trackRover, centerOnDrone, trackDrone } = useSelector(
     (state: RootState) => state.cartographerState
   );
 
@@ -25,15 +25,29 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
     topic: RosTopic.ROVER_LOCATION,
   });
 
+  const droneLocationBifrost = useBifrost({
+    topic: RosTopic.DRONE_LOCATION,
+  });
+
   useEffect(() => {
     roverLocationBifrost.syncWithTopic();
   }, [roverLocationBifrost]);
+
+  useEffect(() => {
+    droneLocationBifrost.syncWithTopic();
+  }, [droneLocationBifrost]);
 
   const roverLocation = useSelector(
     (state: RootState) => state.roverLocationStore
   );
 
+  const droneLocation = useSelector(
+    (state: RootState) => state.droneLocationStore
+  );
+
   const deBouncedRoverLocation = useDebounce(roverLocation, 100);
+
+  const deBouncedDroneLocation = useDebounce(droneLocation, 100);
 
   useEffect(() => {
     if (trackRover) {
@@ -47,12 +61,31 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
   }, [deBouncedRoverLocation.latitude, deBouncedRoverLocation.longitude]);
 
   useEffect(() => {
+    if (trackDrone) {
+      addPoint({
+        lat: deBouncedDroneLocation.latitude,
+        long: deBouncedDroneLocation.longitude,
+      });
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deBouncedDroneLocation.latitude, deBouncedDroneLocation.longitude]);
+
+  useEffect(() => {
     if (!mapRef.current || trackRover) return;
     const source = mapRef.current.getSource("trace") as GeoJSONSource;
     if (!source) return;
 
     source.setData(getLineGeoJSONData([]));
   }, [trackRover, mapRef]);
+
+  useEffect(() => {
+    if (!mapRef.current || trackDrone) return;
+    const source = mapRef.current.getSource("trace") as GeoJSONSource;
+    if (!source) return;
+
+    source.setData(getLineGeoJSONData([]));
+  }, [trackDrone, mapRef]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -84,4 +117,15 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
       ]);
     }
   }, [centerOnRover, deBouncedRoverLocation, mapRef]);
+
+  // Drone Centering
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (centerOnDrone) {
+      mapRef.current.setCenter([
+        deBouncedDroneLocation.longitude,
+        deBouncedDroneLocation.latitude,
+      ]);
+    }
+  }, [centerOnDrone, deBouncedDroneLocation, mapRef]);
 };

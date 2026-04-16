@@ -314,6 +314,12 @@ export const reduxStores = {
     }, 
     initialGPSMessage
   ),
+  droneLocationStore: createBifrostStore(
+    {
+      topic: RosTopic.DRONE_LOCATION,
+    },
+    initialNavSatMessage
+  ),
   autoStatus: createBifrostStore(
     {
       topic: RosTopic.AUTO_STATUS
