@@ -167,7 +167,7 @@ class CameraDirectory : public rclcpp::Node
     std::unordered_map<std::string, std::string> new_camera_map;
 
     std::stringstream log;
-    if (devices.size() != last_device_count) {  
+    if (devices.size() != last_device_count) {
       log << C_MODE << "Detected Cameras:" << C_RESET;
     }
 
@@ -183,9 +183,15 @@ class CameraDirectory : public rclcpp::Node
       if (serial_remaps.find(serial) != serial_remaps.end()){
         serial = serial_remaps[serial];
       }
+      
+      // Find how many of the current serial exist
+      const int serial_count = new_camera_map.count(device.serial);
+
       // add to message
       auto camera = camera_msgs::msg::Camera();
-      camera.serial = serial;
+
+      // support multiple cameras of the same type
+      camera.serial = serial + std::to_string(serial_count);
       camera.node = device.devname;
       camera.original_serial = device.serial;
       message.cameras.emplace_back(camera);
@@ -233,7 +239,6 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
   sd_device_enumerator *enumerator = NULL;
   sd_device *device = NULL;
   std::vector<V4lDevice> matches;
-  //std::unordered_set<std::string> seen_serials;
 
   // Create new device enumerator object and add filters
   sd_device_enumerator_new(&enumerator);

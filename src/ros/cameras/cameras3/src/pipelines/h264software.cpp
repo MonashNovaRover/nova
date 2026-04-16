@@ -151,7 +151,7 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", default_string);
 
-  props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", false);
+  props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", true);
 
   // filter
   default_string = "NV12";

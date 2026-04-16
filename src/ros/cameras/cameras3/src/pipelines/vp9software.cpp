@@ -148,7 +148,7 @@ vp9softwarePipelineProperties* get_vp9software_pipeline_properties(rclcpp::Node*
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", "mmap");
 
-  props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", false);
+  props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", true);
 
   // filter
   props->format = "I420";
