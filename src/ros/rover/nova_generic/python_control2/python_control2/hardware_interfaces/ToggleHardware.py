@@ -8,7 +8,7 @@ from teleop_python_utils import EventCollection
 
 class ToggleHardware(HardwareInterface):
 
-    def __init__(self, contexts:Contexts,can_id:int, on_command:int, off_command:int, on_state:int=1, off_state:int=0; init_state:int=0):
+    def __init__(self, contexts:Contexts,can_id:int, on_command:int = 1, off_command:int=0, on_state:int=1, off_state:int=0; init_state:int=0):
         super().__init__(contexts)
         self.bus = contexts[jcan.Bus]
         self.state = init_state 
@@ -32,9 +32,6 @@ class ToggleHardware(HardwareInterface):
 
     def on_write(self, now: float, period: float):
         pass
-
-    def get_state(self):
-        return self.state
 
     def on_toggle(self):
         match self.state:
