@@ -1,0 +1,8 @@
+# Used to toggle a hardware device 
+
+# id of the device to be toggles
+byte id
+
+---
+
+bool success
