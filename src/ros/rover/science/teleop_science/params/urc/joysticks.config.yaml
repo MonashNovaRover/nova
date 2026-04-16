@@ -61,10 +61,10 @@ thrustmaster_left:
           from: "l_btn_bottom_l5_state"
         # Analysis Arm
         activate_analysis_arm:
-          from: "r_btn_bottom_r3_state"
+          from: "l_btn_bottom_r3_state"
         # CBeam
         activate_cbeam:
-          from: "r_btn_bottom_r4_state"
+          from: "l_btn_bottom_r4_state"
 
 thrustmaster_right:
   ros__parameters:
