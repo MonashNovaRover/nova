@@ -46,6 +46,7 @@ CallbackReturn LockedPublisher::on_configure(const State &)
     qos_profile.reliable();
   else
     qos_profile.best_effort();
+  qos_profile.transient_local();
 
   publisher_ = get_node()->create_publisher<nova_interfaces::msg::LockedStatus>(params_.topic, qos_profile);
 

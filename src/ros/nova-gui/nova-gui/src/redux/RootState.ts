@@ -33,10 +33,9 @@ import {
   IRosNovaInterfacesStatus,
   IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
-  IRosNovaInterfacesRadioStatus, IRosSensorMsgsJointState, IRosRclInterfacesSetParametersResponse,
-
   IRosNovaInterfacesRadioStatus,
   IRosSensorMsgsJointState,
+  IRosRclInterfacesSetParametersResponse,
   IRosNovaInterfacesLockedStatus,
 } from "../ros/rosTypes";
 
