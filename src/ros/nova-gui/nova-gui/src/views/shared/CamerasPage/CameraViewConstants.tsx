@@ -47,11 +47,13 @@ export enum CameraSerials {
   SCIENCE_MICROSCOPE = "science_microscope",
   SCIENCE_GIMBAL = "science_gimbal_cam",
 
+  ARC_ACTIVATED_NODES = "arc_activated_nodes",
+
   URC_SCIENCE_UV_VIS = "science_spectroscope",
   URC_SCIENCE_CUVETTE = "science_cuvettes",
   URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
   URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
-  URC_ACTIVATED_NODES = "activated_nodes",
+  URC_ACTIVATED_NODES = "urc_activated_nodes",
   URC_SCIENCE_AUGER_DEPTH_SENSORS = "science_auger_depth_sensors",
 
   AUTO_OAK = "oak-rgb",
@@ -98,7 +100,6 @@ const urcScienceCams = [
 const driveCams = [
   CameraSerials.WHEEL_TELEMETRY,
   CameraSerials.DRIVE_TELEMETRY,
-  CameraSerials.DRIVE_CONTROL,
 ]
 
 const autoCams = [
@@ -168,7 +169,7 @@ export const excavation_and_construction_views: CameraViewConfig[] = [
 
 export const space_resources_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...mastCams, ...arcScienceCams, ...driveCams, CameraSerials.SCIENCE_COMBINED],
+    cameraSerials: [...mastCams, ...arcScienceCams, ...driveCams, CameraSerials.SITE_SELECT, CameraSerials.SCIENCE_POWER_CYCLE, CameraSerials.ARC_ACTIVATED_NODES],
     viewTitle: "All Cams",
   },
   {

@@ -353,6 +353,13 @@ export const reduxStores = {
     }
   ),
 
+  lockedStatusStore: createBifrostStore(
+    { topic: RosTopic.LOCKED_STATUS },
+    {
+      locked: true
+    }
+  ),
+
   radioStore: createBifrostStore(
     { topic: RosTopic.RADIO_STATUS },
     {
