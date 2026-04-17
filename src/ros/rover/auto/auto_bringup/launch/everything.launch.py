@@ -55,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
     use_respawn = LaunchConfiguration('use_respawn')
-    fastlivo2 = LaunchConfiguration('fastlivo2')
+    lidar = LaunchConfiguration('lidar')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
     mppi_config = LaunchConfiguration('mppi_config')
 
@@ -104,6 +104,13 @@ def launch_setup(context, *args, **kwargs):
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
         ),
         IncludeLaunchDescription(
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'realsense.launch.py'])),
+            launch_arguments={
+                'comp': comp,
+                'sim': gazebo,
+            }.items()
+        ),
+        IncludeLaunchDescription(
             condition=IfCondition(localization),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
@@ -130,9 +137,10 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
         IncludeLaunchDescription(
-            condition=IfCondition(fastlivo2),
+            condition=IfCondition(lidar),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'lidar.launch.py'])),
             launch_arguments={
+                'comp': comp,
                 'fastlivo2_params': fastlivo2_params,
                 'sim': gazebo,
             }.items(),
@@ -224,9 +232,9 @@ def generate_launch_description():
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
         DeclareLaunchArgument(
-            name='fastlivo2',
+            name='lidar',
             default_value='True',
-            description='Launch FAST-LIVO2?',
+            description='Launch LiDAR nodes?',
         ),
         DeclareLaunchArgument(
             name='fastlivo2_params',

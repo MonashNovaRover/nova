@@ -22,7 +22,7 @@ controller_server:
       vx_std: 0.3   # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
       vy_std: 0.2   # only used in Omni motion model
       wz_std: 0.6   # similar to vx_std, higher values allow trajectories with higher rotation
-      vx_max: 0.7   # max linear velocity, ~3.6 km/h
+      vx_max: 0.7   # max linear velocity, ~2.52 km/h
       vx_min: -0.49 # vx_max * 0.7
       vy_max: 0.5   # only used in Omni motion model
       wz_max: 0.78  # max angular velocity (rad/s), ~90 degrees/s

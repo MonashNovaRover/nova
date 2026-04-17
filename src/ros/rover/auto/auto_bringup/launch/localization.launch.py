@@ -113,7 +113,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rl_params, {'use_sim_time': gazebo}],
                     remappings=[('odometry/filtered', 'odometry/global'),
                                 ('gps/fix', 'gps_rover/fix'),
-                                ('imu', 'oak/imu/transformed')],
+                                ('imu', 'livox/imu')],
                 ),
             ],
         ),

@@ -93,22 +93,25 @@ def launch_setup(context, *args, **kwargs):
     mask = LaunchConfiguration('mask')
     ground_seg = LaunchConfiguration('ground_seg')
     tfs = LaunchConfiguration('tfs')
-    fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
     img_en = int(LaunchConfiguration('img_en').perform(context).lower() == 'true')
     sim = LaunchConfiguration('sim')
     uncompress_img = LaunchConfiguration('uncompress_img')
     shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
 
-    # ground seg params are different for arch and urc
+    # comp defaults
     if comp == 'arch':
+        fastlivo2 = 'True'
         ground_seg_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'ground_segmentation.yaml'])
     elif comp == 'urc':
+        fastlivo2 = 'False'
         ground_seg_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'ground_segmentation.yaml'])
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
     
-    # ground seg params override
+    # comp defaults overrides
+    if LaunchConfiguration('fastlivo2').perform(context) != '':
+        fastlivo2 = LaunchConfiguration('fastlivo2')
     if LaunchConfiguration('ground_seg_params').perform(context) != '':
         ground_seg_params = LaunchConfiguration('ground_seg_params')
 
@@ -368,9 +371,10 @@ def generate_launch_description():
             default_value='True',
             description='Publish Nav2-required transforms? (map -> odom -> base_link)',
         ),
+        # argument with comp default
         DeclareLaunchArgument(
             name='fastlivo2',
-            default_value='True',
+            default_value='',
             description='Use FAST-LIVO2?',
         ),
         DeclareLaunchArgument(
