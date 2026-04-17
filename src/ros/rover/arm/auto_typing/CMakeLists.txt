@@ -32,6 +32,7 @@ find_package(OpenCV REQUIRED)
 
 # Add all Python executables to this list
 install(PROGRAMS
+  auto_typing/camera_info_publisher.py
   auto_typing/keyboard_localiser.py
   auto_typing/typing_sequencer.py
   auto_typing/pokey.py
