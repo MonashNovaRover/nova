@@ -37,7 +37,7 @@ class DroneGPS(Node):
         self.gps_connected = False
 
         # declare parameters
-        self.declare_parameter(self.DEVICE_PARAM, "/dev/ttyACM1")
+        self.declare_parameter(self.DEVICE_PARAM, "udp:127.0.0.1:14551")
         self.declare_parameter(self.BAUD_PARAM, 460800)
         self.declare_parameter(self.TIMEOUT_PARAM, 0.2)
         # Create connection object
