@@ -139,6 +139,8 @@ export const cartographerSlice = createSlice({
     },
     centerOnRover: false,
     trackRover: false,
+    centerOnDrone: false,
+    trackDrone: false,
   },
   name: "CartographerReducer",
 });
