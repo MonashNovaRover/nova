@@ -22,7 +22,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  drone_gps/gps.py
+  drone_gps/drone_gps.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
