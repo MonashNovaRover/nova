@@ -33,11 +33,8 @@ class DroneGPS(Node):
         super().__init__("DroneGPS")
         
         # define variables
-        
-        # add publishers
-        self.gps_publisher = self.create_publisher(NavSatFix, '/drone_gps/fix', 10)
-        
-        # add services
+        self.connected = False
+        self.gps_connected = False
 
         # declare parameters
         self.declare_parameter(self.DEVICE_PARAM, "/dev/ttyACM1")
@@ -48,11 +45,14 @@ class DroneGPS(Node):
             self.get_parameter(self.DEVICE_PARAM).value, 
             baud=self.get_parameter(self.BAUD_PARAM).value)
         
+        # add publishers
+        self.gps_publisher = self.create_publisher(NavSatFix, '/drone_gps/fix', 10)
+        
         # create a timer
         self.PERIOD = 0.5
         self.update_timer = self.create_timer(self.PERIOD, lambda: self.update(self.PERIOD))
 
-        self.connected = False
+
         self.get_logger().info(f"{self.get_name()} started.")
 
     def connect(self):
@@ -63,18 +63,26 @@ class DroneGPS(Node):
         self.get_logger().info(f"{self.get_name()} connected!")
         return True
 
+    def get_gps(self, msg):
+        if (not self.gps_connected):
+            self.get_logger().info(f"{self.get_name()} Fetching GPS...")
+            location = self.connection.location()
+            self.gps_connected = True
+            self.get_logger().info(f"{self.get_name()} GPS connected")
+        else:
+            location = self.connection.location()
+        
+        msg.latitude, msg.longitude, msg.altitude = location.lat, location.lng, location.alt
+
     def update(self, delta_time):
-        if (self.connected is False):
+        if (not self.connected):
             if (self.connect() is False):
                 return
 
         # Construct the message you want to send
         msg = NavSatFix()
-
-        location = self.connection.location()
-
-        # get the 
-        msg.latitude, msg.longitude, msg.altitude = location.lat, location,lng, location.alt
+            
+        self.get_gps(msg)
         
         # Publish the message
         self.gps_publisher.publish(msg)
