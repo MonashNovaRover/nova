@@ -85,7 +85,6 @@ in
           N3 = "ssh -C -Y nova@10.0.2.13";
 
           # Application 
-          code = "codium";
           urdf-tool = "nom-shell ${cfg.nixfileDir}/modules/home/macros/urdf-tool.nix";
 
           # Nano v Vim
