@@ -34,8 +34,19 @@
         <!-- all calculations are derived from blcmd_hardware2.cpp -->
 
         <!-- constants -->
+
+        <!-- to experimentally determine as theoretical values appear to be wrong :( -->
+        <xacro:property name="velocity_command_slope_multiplier" value="1"/>
+        <xacro:property name="velocity_telemetry_slope_multiplier" value="1"/>
+        <xacro:property name="position_command_slope_multiplier" value="1"/>
+        <xacro:property name="position_command_intercept_multiplier" value="1"/>
+        <xacro:property name="position_telemetry_slope_multiplier" value="1"/>
+        <xacro:property name="position_telemetry_intercept_multiplier" value="1"/>
+
         <xacro:property name="signed_16_bit_integer_limit" value="${2**15 - 1}"/>
         <xacro:property name="reversed_multiplier" value="${-1 if reversed else 1}"/>
+
+        <!-- calculations -->
 
         <!-- display radians or degrees -->
         <xacro:if value="${unit_radians}">
@@ -50,18 +61,15 @@
         </xacro:unless>
 
         <!-- effort -->
-
         <xacro:property name="effort_slope" value="${1 / signed_16_bit_integer_limit * reversed_multiplier}"/>
 
         <!-- velocity -->
-
         <xacro:property name="max_velocity" value="${ (clock_rate) / (min_interval * revolution_pulses * gear_ratio) * 2 * pi }"/>
 
         <xacro:property name="velocity_command_slope" value="${ max_velocity / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
         <xacro:property name="velocity_telemetry_slope" value="${ (max_velocity * -1 * 0.5) / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
 
         <!-- position -->
-
         <xacro:if value="${interpret_position}">
             <xacro:property name="position_slope" value="${(2 * pi) / (reversed_multiplier * resolver_reduction * res_ticks_per_rev) * conversion_multiplier}"/>
             <xacro:property name="position_intercept" value="${position_slope * -zero_offset}"/>
@@ -81,16 +89,16 @@
                 drive_at_current_slope="${effort_slope}"
                 telemetry_packet_1_effort_slope="${effort_slope}"
 
-                drive_at_speed_slope="${velocity_command_slope}"
+                drive_at_speed_slope="${velocity_command_slope * velocity_command_slope_multiplier}"
                 drive_at_speed_unit="${angular_velocity_unit}"
-                telemetry_packet_1_velocity_slope="${velocity_telemetry_slope}"
+                telemetry_packet_1_velocity_slope="${velocity_telemetry_slope * velocity_telemetry_slope_multiplier}"
                 telemetry_packet_1_velocity_unit="${angular_velocity_unit}"
 
-                drive_to_position_intercept="${position_intercept}"
-                drive_to_position_slope="${position_slope}"
+                drive_to_position_intercept="${position_intercept * position_command_intercept_multiplier}"
+                drive_to_position_slope="${position_slope * position_command_slope_multiplier}"
                 drive_to_position_unit="${angle_unit}"
-                telemetry_packet_3_resolver_position_intercept="${position_intercept}"
-                telemetry_packet_3_resolver_position_slope="${position_slope}"
+                telemetry_packet_3_resolver_position_intercept="${position_intercept * position_telemetry_intercept_multiplier}"
+                telemetry_packet_3_resolver_position_slope="${position_slope * position_telemetry_slope_multiplier}"
                 telemetry_packet_3_resolver_position_unit="${angle_unit}"
         />
 
