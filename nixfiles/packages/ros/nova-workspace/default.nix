@@ -82,6 +82,8 @@
 , nova-cameras
 , nova-camera-msgs
 , nova-drone-gps
+, mission-planner
+, mavproxy
   # Configuration options
   ## Include graphical applications in the workspace.
 , graphical ? true
@@ -195,6 +197,8 @@ in
   prebuiltPackages = (lib.optionalAttrs graphical {
     inherit
       rviz2
+      mission-planner
+      mavproxy
       ros-gz
       gz-ros2-control
       gps-umd
