@@ -6,7 +6,7 @@ import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
 import SensorDataDisplay from "../SensorDataDisplay.tsx";
-import HeaterControl from "./HeaterControl.tsx";
+import ThermalControl from "./ThermalControl.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 export interface HeaterWidgetWidgetProps extends CardProps {
@@ -18,7 +18,7 @@ export interface HeaterWidgetWidgetProps extends CardProps {
  * @constructor
  */
 const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
-  const bifrost = useBifrost({topic:RosTopic.KILN_DATA, service: RosService.HEATER});
+  const bifrost = useBifrost({topic:RosTopic.KILN_DATA, service: RosService.KILN_COMMAND});
   const tempReadings = useSelector((state: RootState) => state.kilnData);
   const [targetTemp, setTargetTemp] = useGenericStore<number>("targetTemp");
 
@@ -36,15 +36,15 @@ const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
   const setHeaterStatus = (state: boolean) => sendCommand(state, targetTemp)
 
   return <Card {...props}>
-    <CardHeader>NTC Temperature Sensors</CardHeader>
+    <CardHeader className="pb-0">Temperature Sensors</CardHeader>
     <CardBody>
       <SensorDataDisplay values={tempReadings.temp} labels={["Heater", "Dirt"]} suffixes={["°C", "°C"]}/>
     </CardBody>
-    <div className="m-3">
+    <div className="mx-3 my-1">
       <Divider/>
     </div>
     <CardBody>
-      <HeaterControl
+      <ThermalControl
         currentHeaterStatus={tempReadings.state}
         setHeaterStatus={setHeaterStatus}
         targetTemp={targetTemp}

@@ -5,7 +5,7 @@ import { RosService } from "../../../ros/services/rosService.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
-import HeaterControl from "../HeaterWidget/HeaterControl.tsx";
+import ThermalControl from "./ThermalControl.tsx";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import KilnChart from "./KilnChart.tsx";
 
@@ -37,7 +37,7 @@ const KilnWidget: React.FC<KilnWidgetWidgetProps> = (props) => {
 
     return <Card {...props}>
         <CardBody className="flex flex-col gap-4">
-            <HeaterControl
+            <ThermalControl
                 heaterName="Kiln"
                 currentHeaterStatus={tempReadings.state}
                 setHeaterStatus={setKilnStatus}
