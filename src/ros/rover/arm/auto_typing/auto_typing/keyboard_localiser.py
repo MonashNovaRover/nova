@@ -26,10 +26,11 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
-from geometry_msgs.msg import PointStamped, TransformStamped
-from arm_interfaces.srv import KeyPosition, StringTrigger
+from geometry_msgs.msg import TransformStamped
+from arm_interfaces.srv import KeyPosition
 from arm_interfaces.msg import KeyboardPoints
 from sensor_msgs.msg import Image
+from aruco_opencv_msgs.msg import ArucoDetection
 
 import rclpy
 from rclpy.node import Node
@@ -42,7 +43,6 @@ import math
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import cv2
-from cv_bridge import CvBridge
 
 # Expected keyboard size:
 KEYBOARD = (123, 354, 37) # (L, W, H) in mm 
@@ -83,10 +83,8 @@ In separate terminal:
 """
 
 KEY_SERVICE_NAME = '/arm/keyboard/pub_key_position'
-IMAGE_TOPIC = '/arm/periscope'
-DEBUG_TOPIC = '/arm/keyboard/image'
+ARUCO_TOPIC = '/arm/aruco/detections'
 POINT_TOPIC = '/arm/keyboard/points'
-
 
 class KeyboardLocaliser(Node):
     def __init__(self):
@@ -94,10 +92,8 @@ class KeyboardLocaliser(Node):
 
         # Choose whether to use auto transform or manual align transform
         self.node_is_auto = self.declare_parameter('using_auto', True).get_parameter_value().bool_value
-        # Do we publish the debug image or keyboard points to GUI
-        self.do_debug = self.declare_parameter('debug_image', True).get_parameter_value().bool_value
+        # Publisher for keyboard points to GUI
         self.point_pub = self.create_publisher(KeyboardPoints, POINT_TOPIC, 10)
-        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10) if self.do_debug else None
 
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
@@ -127,15 +123,19 @@ class KeyboardLocaliser(Node):
         self.camera_resolution = width, height
 
         # keyboard pose analysis initalisation
-        self.camera_frame = self.declare_parameter('camera_frame', 'arm_end_periscope_optical').get_parameter_value().string_value
-        self.view = None
-        self.view_sub = self.create_subscription(Image, IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
+        self.camera_frame = self.declare_parameter('camera_frame', 'image_frame').get_parameter_value().string_value
+
+        self.aruco_ids = list(self.declare_parameter('aruco_ids', [1, 4, 3, 2]).get_parameter_value().integer_array_value)
+        self.aruco_topic = self.declare_parameter('aruco_topic', ARUCO_TOPIC).get_parameter_value().string_value
+        self.aruco_sub = self.create_subscription(ArucoDetection, self.aruco_topic, self.aruco_callback, qos_profile=qos_profile_sensor_data)
+
         self.keyboard_points = np.array([   # Corner points of the keyboard relative to the keyboard frame in mm (center of keyboard)
             [-KEYBOARD[1]/2, -KEYBOARD[0]/2, 0],    # top-left
             [KEYBOARD[1]/2,  -KEYBOARD[0]/2, 0],    # top-right
             [KEYBOARD[1]/2,  KEYBOARD[0]/2, 0],     # bottom-right
             [-KEYBOARD[1]/2, KEYBOARD[0]/2, 0]      # bottom-left
         ], dtype=np.float32)
+        self.keyboard_points_m = self.keyboard_points / 1000.0
 
         # OpenCV filter params
         self.dark_threshold = self.declare_parameter('dark_threshold', 120).get_parameter_value().integer_value
@@ -176,19 +176,6 @@ class KeyboardLocaliser(Node):
         response.success = True
         return response
 
-
-    def get_transform_to_base_link(self, key_pos):
-        """ 
-        Auto transform functionality to automatically transform key position 
-        from relative to keyboard frame to relative to base link 
-        so that position can be fed directly to path planner/ik
-        """
-        try:
-            base_to_keyboard = self.tf_buffer.lookup_transform(self.base_frame, self.keyboard_frame, key_pos.header.stamp)
-            transformed_point = tf2_geometry_msgs.do_transform_point(key_pos, base_to_keyboard)
-        except:
-            return None
-
     def publish_aligned_tf(self) -> None:
         '''Publish the transform of the keyboard through the alignment method'''
         if self.node_is_auto:
@@ -205,103 +192,38 @@ class KeyboardLocaliser(Node):
 
     def publish_analysis_tf(self) -> None:
         '''Publish the transform of the keyboard through the solvePnP method'''
-        if self.view is None or not self.node_is_auto:
+        if not self.node_is_auto:
             return
         transform = self.estimate_pose()
         if transform is None:
             return None
         self.transform_broadcaster.sendTransform(transform)
 
-    def view_callback(self, view) -> None:
-        """ Callback when Image is recieved (Stores msg for retrieval) """
-        self.view = view
+    def aruco_callback(self, detection: ArucoDetection) -> None:
+        """Store latest ArUco detections"""
+        self.aruco_detection = detection
         self.publish_analysis_tf()
     
-    def msg_to_mat(self, logger, img, encoding) -> np.ndarray:
-        """Converts Image msg to cv2 frame"""
-        mat = None
-        try:
-            mat = CvBridge().imgmsg_to_cv2(img, encoding)
-        except Exception as e:
-            logger.error(str(e))
-        return mat
-
     def get_corners(self) -> None | np.ndarray:
         """ Get the sorted corners of the keyboard from the image msg """
-        image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
-
-        # Get filtered mask
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
-
-        # filter for dark colours (black keyboard)
-        _, mask = cv2.threshold(v, self.dark_threshold, 255, cv2.THRESH_BINARY_INV)
-
-        # close small gaps in mask
-        kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
-        mask_closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel_close, iterations=2)
-
-        # filter out irregular blobs
-        kern_neck = cv2.getStructuringElement(cv2.MORPH_RECT, (3, self.kernel_size))
-        mask_pruned = cv2.morphologyEx(mask_closed, cv2.MORPH_OPEN, kern_neck, iterations=1)
-        kern_blip = cv2.getStructuringElement(cv2.MORPH_RECT, (self.kernel_size, 3))
-        mask_blip = cv2.morphologyEx(mask_pruned, cv2.MORPH_OPEN, kern_blip, iterations=1)
-        
-        # Get largest contour's hull
-        approx = None
-        contours, _ = cv2.findContours(mask_blip, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if contours:
-            hull = cv2.convexHull(max(contours, key=cv2.contourArea))
-            # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
-            approx = cv2.approxPolyDP(hull, 0.02 * cv2.arcLength(hull, True), True)
-
-        # Sort the points in order: top-left, top-right, bottom-right, bottom-left
-        def sort_corners(approx) -> np.ndarray:
-            if approx is None or len(approx) != 4:
-                return None
-            # Extract and reshape points to 2D array
-            pts = approx.reshape(4, 2)
-
-            sorted_pts = np.zeros((4, 2), dtype="float32")
-            s = pts.sum(axis=1)
-            diff = np.diff(pts, axis=1)
-            sorted_pts[0] = pts[np.argmin(s)]       # top-left
-            sorted_pts[2] = pts[np.argmax(s)]       # bottom-right
-            sorted_pts[1] = pts[np.argmin(diff)]    # top-right
-            sorted_pts[3] = pts[np.argmax(diff)]    # bottom-left
-            return sorted_pts
-
-        image_points = sort_corners(approx)
-        self.pub_debug_image(image, image_points)
-        return image_points
+        return None
     
-    def pub_debug_image(self, img, points) -> None:
-        # Publish points and draw each point
+    def pub_keyboard_points(self, img, points) -> None:
+        # Publish points
         if points is not None:
             kb_msg = KeyboardPoints()
             kb_msg.points = [int(i) for point in points for i in point]
             kb_msg.width, kb_msg.height = self.camera_resolution
             self.point_pub.publish(kb_msg)
-            for point in points:
-                cv2.circle(img, (int(point[0]), int(point[1])), radius=5, color=(0, 255, 0), thickness=-1)
-
-        if not self.do_debug:
-            return
-
-        # Convert OpenCV image -> ROS Image
-        output_msg = CvBridge().cv2_to_imgmsg(img, encoding="bgr8")
-
-        # Publish the image
-        self.debug_pub.publish(output_msg)
         
     def estimate_pose(self) -> None | TransformStamped:
         """Estimate pose of keyboard and return its transform"""
         ## run solvePnP
-        image_points = self.get_corners()
-        if image_points is None:
-            return None
+        # image_points = self.get_corners()
+        # if image_points is None:
+        #     return None
 
-        success, rvec, tvec = cv2.solvePnP(self.keyboard_points, image_points, self.camera_matrix, self.dist_coeffs)
+        # success, rvec, tvec = cv2.solvePnP(self.keyboard_points, image_points, self.camera_matrix, self.dist_coeffs)
         
         # Convert to rotation matrix then to quaternion 
         rotation_matrix, _ = cv2.Rodrigues(rvec)
