@@ -80,8 +80,7 @@ camera_streamer:
           height: 720
           downscale: 3
           framerate: 30
-          cpu_usage: 10
-          jpegdec_method: float
+          cpu_usage: 0
           bitrate: 128
         dod:
           pipeline_type: vp9software 
@@ -123,8 +122,7 @@ camera_streamer:
           height: 1080
           downscale: 4
           framerate: 30
-          cpu_usage: 10
-          jpegdec_method: float
+          cpu_usage: 0
           bitrate: 128
         dod:
           pipeline_type: vp9software 
@@ -146,8 +144,8 @@ camera_streamer:
           framerate: 30
         super:
           pipeline_type: h264passthrough
-          width: 1920
-          height: 1080
+          width: 1280
+          height: 960
           framerate: 30
         far:
           pipeline_type: h264passthrough
@@ -193,8 +191,7 @@ camera_streamer:
           height: 768
           downscale: 3
           framerate: 30
-          cpu_usage: 10
-          jpegdec_method: float
+          cpu_usage: 0
           bitrate: 128
         dod:
           pipeline_type: vp9software
@@ -235,8 +232,7 @@ camera_streamer:
           height: 720
           downscale: 3
           framerate: 30
-          cpu_usage: 10
-          jpegdec_method: float
+          cpu_usage: 0
           bitrate: 128
         dod:
           pipeline_type: vp9software 
