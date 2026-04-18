@@ -9,8 +9,11 @@ import { fixupPluginRules } from "@eslint/compat";
 export default tseslint.config({
     // Ignore copied ORT runtime files that are vendored from node_modules.
     ignores: [
+        "public/**",
+        "assets/**",
+        "dist/**",
+        "node_modules/**",
         "src/components/auto/ObjectDetection/ort/**",
-        "public/ort/**",
     ],
     extends: [
         eslint.configs.recommended,
