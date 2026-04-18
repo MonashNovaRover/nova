@@ -50,7 +50,7 @@ export enum RosTopic {
 
   // Mapping Related Topics
   ROVER_LOCATION = "/gps_rover/fix_custom",
-  BASE_LOCATION = "/gps_base/fix",
+  BASE_LOCATION = "/gps_base/fix_custom",
   AUTO_STATUS = "/auto/status",
 
   // Other Topics

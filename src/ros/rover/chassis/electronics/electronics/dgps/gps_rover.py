@@ -24,17 +24,14 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from serial import Serial
-from pynmeagps import NMEAReader, NMEAMessage
-from pyrtcm import RTCMMessage
+from pynmeagps import NMEAReader
 import re
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
-from rclpy.logging import LoggingSeverity
 from std_msgs.msg import UInt8MultiArray, Float64
 from sensor_msgs.msg import NavSatFix
 from nova_interfaces.msg import GPSData
-import logging
 
 class GPSRover(Node):
     def __init__(self):
