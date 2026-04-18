@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- messages associated with the taipan (new arm) payload/system (uninterpreted, raw values) -->
+
+<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<!-- include board macros -->
+	<xacro:include filename="../boards/blcmd.kcd.xacro"/>
+	<xacro:include filename="../boards/qcmd.kcd.xacro"/>
+
+	<xacro:macro name="taipan_system">
+		<xacro:blcmd_board blcmd_id="1" blcmd_node_id="${TAIPAN_J1_BLCMD_NODE_ID}" joint_name="taipan_j1"/>
+		<xacro:blcmd_board blcmd_id="2" blcmd_node_id="${TAIPAN_J2_BLCMD_NODE_ID}" joint_name="taipan_j2"/>
+		<xacro:blcmd_board blcmd_id="3" blcmd_node_id="${TAIPAN_J3_BLCMD_NODE_ID}" joint_name="taipan_j3"/>
+		<xacro:blcmd_board blcmd_id="4" blcmd_node_id="${TAIPAN_J4_BLCMD_NODE_ID}" joint_name="taipan_j4"/>
+		<xacro:blcmd_board blcmd_id="5" blcmd_node_id="${TAIPAN_J5_BLCMD_NODE_ID}" joint_name="taipan_j5"/>
+		<xacro:blcmd_board blcmd_id="6" blcmd_node_id="${TAIPAN_J6_BLCMD_NODE_ID}" joint_name="taipan_j6"/>
+		<xacro:qcmd_board qcmd_node_id="${TAIPAN_QCMD_NODE_ID}"
+			  odd_qcmd_id="D"
+			  odd_motor_1_joint_name="motor_1_not_used"
+			  odd_motor_2_joint_name="motor_2_not_used"
+			  even_qcmd_id="C"
+			  even_motor_1_joint_name="taipan_end_effector_lead_left"
+			  even_motor_2_joint_name="taipan_linear_actuator"/>
+	</xacro:macro>
+</wrapper>

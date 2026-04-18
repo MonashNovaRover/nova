@@ -7,7 +7,8 @@
         <xacro:property name="ORIN_NODE_ID" value="0" scope="global"/>
         <Node id="${ORIN_NODE_ID}" name="orin"/>
 
-        <!-- TODO: add blcmd node ids for arm -->
+        <!-- wheel blcmd nodes -->
+
         <xacro:property name="FLW_BLCMD_NODE_ID" value="1" scope="global"/>
         <Node id="${FLW_BLCMD_NODE_ID}" name="front_left_wheel"/>
 
@@ -20,6 +21,8 @@
         <xacro:property name="FRW_BLCMD_NODE_ID" value="4" scope="global"/>
         <Node id="${FRW_BLCMD_NODE_ID}" name="front_right_wheel"/>
 
+        <!-- pivot blcmd nodes -->
+
         <xacro:property name="FLP_BLCMD_NODE_ID" value="5" scope="global"/>
         <Node id="${FLP_BLCMD_NODE_ID}" name="front_left_pivot"/>
 
@@ -31,5 +34,29 @@
 
         <xacro:property name="FRP_BLCMD_NODE_ID" value="8" scope="global"/>
         <Node id="${FRP_BLCMD_NODE_ID}" name="front_right_pivot"/>
+
+        <!-- taipan (new arm) blcmd nodes -->
+
+        <xacro:property name="TAIPAN_J1_BLCMD_NODE_ID" value="9" scope="global"/>
+        <Node id="${TAIPAN_J1_BLCMD_NODE_ID}" name="taipan_j1"/>
+
+        <xacro:property name="TAIPAN_J2_BLCMD_NODE_ID" value="10" scope="global"/>
+        <Node id="${TAIPAN_J2_BLCMD_NODE_ID}" name="taipan_j2"/>
+
+        <xacro:property name="TAIPAN_J3_BLCMD_NODE_ID" value="11" scope="global"/>
+        <Node id="${TAIPAN_J3_BLCMD_NODE_ID}" name="taipan_j3"/>
+
+        <xacro:property name="TAIPAN_J4_BLCMD_NODE_ID" value="12" scope="global"/>
+        <Node id="${TAIPAN_J4_BLCMD_NODE_ID}" name="taipan_j4"/>
+
+        <xacro:property name="TAIPAN_J5_BLCMD_NODE_ID" value="13" scope="global"/>
+        <Node id="${TAIPAN_J5_BLCMD_NODE_ID}" name="taipan_j5"/>
+
+        <xacro:property name="TAIPAN_J6_BLCMD_NODE_ID" value="14" scope="global"/>
+        <Node id="${TAIPAN_J6_BLCMD_NODE_ID}" name="taipan_j6"/>
+
+        <xacro:property name="TAIPAN_QCMD_NODE_ID" value="15" scope="global"/>
+        <Node id="${TAIPAN_QCMD_NODE_ID}" name="taipan_qcmd"/>
+
     </xacro:macro>
 </wrapper>
