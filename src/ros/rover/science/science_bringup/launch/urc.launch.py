@@ -98,6 +98,16 @@ def launch_setup(context, *args, **kwargs):
 
 
         # Science Belly - Nodes for components in the belly
+        Node(
+            name='pumps',
+            package='science',
+            executable='pumps.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
 
         # Misc - Nodes for misc components

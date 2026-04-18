@@ -37,6 +37,7 @@ import {
   IRosSensorMsgsJointState,
   IRosRclInterfacesSetParametersResponse,
   IRosNovaInterfacesLockedStatus,
+  IRosScienceInterfacesPumpStatus,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -107,6 +108,7 @@ export interface RootState {
   auger1DepthSensorStore: IRosStdMsgsBool;
   auger2DepthSensorStore: IRosStdMsgsBool;
   toolRotatorAngleStore: IRosStdMsgsFloat64;
+  pumpsStatusStore: IRosScienceInterfacesPumpStatus;
 
   // Maps Related Stores
   roverLocationStore: IRosSensorMsgsNavSatFix;
@@ -131,6 +133,7 @@ export interface RootState {
   windowWideWASD : GenericStoreState<boolean>;
   toolRotatorPresets: GenericStoreState<PresetPositions>
   toolRotatorTwitchStep: GenericStoreState<number>;
+  pumpDefaultDurations: GenericStoreState<Record<string, number>>;
 
   batteryStore: IRosSensorMsgsBatteryState;
 

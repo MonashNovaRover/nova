@@ -30,12 +30,15 @@ class QCMDHardware(HardwareInterface):
     reversed: bool
     max_effort: float
     max_effort_can: int
+    send_single_zero: bool
+    _last_sent_data: int
 
     def __init__(self, contexts: Contexts,
                  joint: str="",
                  can_id: int=0,
                  reversed: bool=False,
-                 max_effort: float=1.0, max_effort_can: int=0x7FFF):
+                 max_effort: float=1.0, max_effort_can: int=0x7FFF,
+                 send_single_zero: bool=False):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -54,6 +57,9 @@ class QCMDHardware(HardwareInterface):
         self.declare_parameter("reversed", reversed, "Whether the output should be reversed")
         self.declare_parameter("max_effort", max_effort, "Max percentage of output to send")
         self.declare_parameter("max_effort_can", max_effort_can, "Max CAN message value that can be sent")
+        self.declare_parameter("send_single_zero", send_single_zero, "Only send one zero command instead of spamming zeros")
+
+        self._last_sent_data = None
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Used to set up your HardwareInterface. Run once before any other class method.
@@ -72,6 +78,7 @@ class QCMDHardware(HardwareInterface):
 
         self.max_effort = self.get_parameter("max_effort").value
         self.max_effort_can = self.get_parameter("max_effort_can").value
+        self.send_single_zero = self.get_parameter("send_single_zero").value
 
         # Get command interfaces
         self.effort_cmd = command_interfaces[self.joint + "/effort"]
@@ -96,6 +103,19 @@ class QCMDHardware(HardwareInterface):
         :param period: The time elapsed since the last update, in seconds.
         """
         frame = self.construct_frame()
+
+        # If send_single_zero is enabled, check if we should skip sending
+        if self.send_single_zero:
+            # Extract the data value from the frame (big-endian signed short)
+            current_data = int.from_bytes(bytes(frame.data), byteorder='big', signed=True)
+
+            # If current data is zero and last sent was also zero, skip sending
+            if current_data == 0 and self._last_sent_data == 0:
+                return
+
+            # Update last sent data and send the frame
+            self._last_sent_data = current_data
+
         self.bus.send(frame)
 
     def construct_frame(self) -> jcan.Frame:
