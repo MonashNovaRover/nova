@@ -286,6 +286,15 @@ export const reduxStores = {
     { topic: RosTopic.TOOL_ROTATOR_ANGLE },
     { data: 240.0 }
   ),
+  pumpsStatusStore: createBifrostStore(
+    { topic: RosTopic.PUMPS_STATUS },
+    {
+      running: false,
+      pump: "",
+      time_elapsed: 0,
+      time_target: 0,
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
@@ -390,6 +399,16 @@ export const reduxStores = {
   toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 240.0, microscope: 0.0, nir_probe: 120.0} as PresetPositions),
   toolRotatorTwitchStep: createGenericStore("toolRotatorTwitchStep", 5.0),
   toolRotatorKeyboardControl: createGenericStore("toolRotatorKeyboardControl", false),
+  pumpDefaultDurations: createGenericStore("pumpDefaultDurations", {
+    fill_shots: 10,
+    fill_cuvettes_prime: 10,
+    fill_cuvettes: 10,
+    flush_shots: 10,
+    flush_cuvettes: 10,
+    flush_all: 10,
+    empty_shots: 10,
+    empty_cuvettes: 10,
+  }),
 };
 
 // all store reducers

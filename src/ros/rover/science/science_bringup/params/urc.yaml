@@ -104,6 +104,25 @@ cbeam:
 # Science Belly - Nodes for components in the belly
 
 
+# Science Belly - Nodes for components in the belly
+pumps:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        max_effort: 0.75
+        publish_rate: 5
+    hardware:
+      cache_to_shot_pump:
+        can_id: 0x000 #TODO: update all
+      shot_to_inner_pump:
+        can_id: 0x000
+      shot_to_outer_pump:
+        can_id: 0x000
+      shot_to_electrochem_pump:
+        can_id: 0x000
+
 # Misc - Nodes for misc components
 scimbal_cam:
   ros__parameters:
