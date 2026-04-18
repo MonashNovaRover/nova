@@ -189,7 +189,7 @@ class CameraDirectory : public rclcpp::Node
       }
 
       // Find how many of the current serial exist
-      const int serial_count = new_camera_map.count(device.serial);
+      //const int serial_count = new_camera_map.count(device.serial);
 
       // support multiple cameras of the same type
       //camera.serial = serial + std::to_string(serial_count);

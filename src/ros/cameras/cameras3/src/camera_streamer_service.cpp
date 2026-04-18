@@ -83,6 +83,7 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
   std::unordered_map<std::string, Pipeline*> pipelines;
+  std::unordered_set<std::string> profiles = {"navigation", "super", "snail", "emergency"};
 
   private: void start_pipeline(Pipeline* pipeline)
   {
@@ -255,12 +256,29 @@ class CameraStreamer : public rclcpp::Node
     const std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Request> request,
     std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Response> response)  
   {
-    response->success = true;
-    for (std::string serial : request->serials) {
+      response->success = false;
+      for (std::string serial : request->serials) {
       if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
         Pipeline* pipeline = pipelines[serial];
-        // Set profile
-        pipeline->camera->profile = request->profile;
+
+        // From task profile
+        std::string task;
+        if (this->get_parameter("task", task)) {
+          if (this->get_parameter<std::string>((std::string(TASK_PROFILE_PREFIX) + "." + task + "." + request->profile + "." + pipeline->camera->serial).c_str(), pipeline->camera->profile)) {
+            response->success = true;
+          }
+        }
+        // Set directly
+        if (!response->success) {
+          std::string validate_profile;
+          if ((this->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + request->profile).c_str(), validate_profile)) || (profiles.find(request->profile) != profiles.end())) {
+            pipeline->camera->profile = request->profile;
+            response->success = true;
+          } else {
+            RCLCPP_ERROR(this->get_logger(), "%sWrong profile %s%s%s given to pipeline of: %s%s%s", C_QUIET, C_FAIL, request->profile.c_str(), C_QUIET, C_FAIL, serial.c_str(), C_RESET);
+            return;
+          }
+        }
         
         // Switch to the profile
         bool autostart;
@@ -277,8 +295,6 @@ class CameraStreamer : public rclcpp::Node
           RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_INPUT, pipeline->camera->profile.c_str(), C_RESET);
           pipeline->gst_pipeline = nullptr;
         }
-      } else {
-        response->success = false;
       }
     }
   }
