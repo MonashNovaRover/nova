@@ -26,7 +26,7 @@ let
       {
         name = "MAVProxy";
         platform = base;
-        cmd = "~/Builds/drone/bin/mavproxy.py --master=/dev/ttyACM$usb_id --baudrate 115200 --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551";
+        cmd = "~/Builds/drone/bin/mavproxy.py --master=/dev/ttyACM$usb_id --baudrate 115200 --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551 --logfile ~/mavlogs/mav.tlog";
       }
 
       {
