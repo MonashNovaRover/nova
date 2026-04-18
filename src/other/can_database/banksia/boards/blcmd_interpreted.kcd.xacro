@@ -37,7 +37,7 @@
     position_command_intercept_multiplier:=1
     position_telemetry_slope_multiplier:=1
     position_telemetry_intercept_multiplier:=1">
-        
+
         <!-- all calculations are derived from blcmd_hardware2.cpp -->
 
         <!-- constants -->
@@ -66,7 +66,7 @@
         <xacro:property name="max_velocity" value="${ (clock_rate) / (min_interval * revolution_pulses * gear_ratio) * 2 * pi }"/>
 
         <xacro:property name="velocity_command_slope" value="${ max_velocity / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
-        <xacro:property name="velocity_telemetry_slope" value="${ (max_velocity * -1 * 0.5) / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
+        <xacro:property name="velocity_telemetry_slope" value="${ max_velocity / signed_16_bit_integer_limit * reversed_multiplier * conversion_multiplier}"/>
 
         <!-- position -->
         <xacro:if value="${interpret_position}">
