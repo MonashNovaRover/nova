@@ -29,7 +29,6 @@ TODO:
 from geometry_msgs.msg import TransformStamped
 from arm_interfaces.srv import KeyPosition
 from arm_interfaces.msg import KeyboardPoints
-from sensor_msgs.msg import Image
 from aruco_opencv_msgs.msg import ArucoDetection
 
 import rclpy
@@ -37,7 +36,6 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster
-import tf2_geometry_msgs
 
 import math
 import numpy as np
@@ -83,7 +81,7 @@ In separate terminal:
 """
 
 KEY_SERVICE_NAME = '/arm/keyboard/pub_key_position'
-ARUCO_TOPIC = '/arm/aruco/detections'
+ARUCO_TOPIC = '/aruco_detections'
 POINT_TOPIC = '/arm/keyboard/points'
 
 class KeyboardLocaliser(Node):
@@ -109,8 +107,8 @@ class KeyboardLocaliser(Node):
 
         # calibrated camera intrinsics
         hfov = self.declare_parameter('hfov', 61.3727248).get_parameter_value().double_value
-        width = self.declare_parameter('image_width', 1280).get_parameter_value().integer_value
-        height = self.declare_parameter('image_height', 720).get_parameter_value().integer_value
+        width = self.declare_parameter('image_width', 640).get_parameter_value().integer_value
+        height = self.declare_parameter('image_height', 480).get_parameter_value().integer_value
         focal_length = width / 2 / math.tan(math.radians(hfov)/2) # for defaults = 1078.467509; 
         image_center = (width//2, height//2)
         self.camera_matrix = np.array([
@@ -125,6 +123,7 @@ class KeyboardLocaliser(Node):
         # keyboard pose analysis initalisation
         self.camera_frame = self.declare_parameter('camera_frame', 'image_frame').get_parameter_value().string_value
 
+        self.aruco_detection = None
         self.aruco_ids = list(self.declare_parameter('aruco_ids', [1, 4, 3, 2]).get_parameter_value().integer_array_value)
         self.aruco_topic = self.declare_parameter('aruco_topic', ARUCO_TOPIC).get_parameter_value().string_value
         self.aruco_sub = self.create_subscription(ArucoDetection, self.aruco_topic, self.aruco_callback, qos_profile=qos_profile_sensor_data)
@@ -136,10 +135,6 @@ class KeyboardLocaliser(Node):
             [-KEYBOARD[1]/2, KEYBOARD[0]/2, 0]      # bottom-left
         ], dtype=np.float32)
         self.keyboard_points_m = self.keyboard_points / 1000.0
-
-        # OpenCV filter params
-        self.dark_threshold = self.declare_parameter('dark_threshold', 120).get_parameter_value().integer_value
-        self.kernel_size = self.declare_parameter('kernel_size', 100).get_parameter_value().integer_value
 
         # tf2 initalisation
         self.tf_buffer = Buffer()
@@ -209,6 +204,8 @@ class KeyboardLocaliser(Node):
         Return marker centre positions as [x,y,z] in order
         """        
         marker_lookup = {marker.marker_id: marker for marker in self.aruco_detection.markers}
+        if any(marker_id not in marker_lookup for marker_id in self.aruco_ids):
+            return None
 
         ordered_points = []
         for marker_id in self.aruco_ids:
@@ -222,22 +219,86 @@ class KeyboardLocaliser(Node):
             )
 
         return np.array(ordered_points, dtype=np.float32)
-        
-    def pub_keyboard_corners(self, points) -> None:
-        """ Get the sorted corners of the keyboard from the image msg """
+    
+    def estimate_rigid_transform(self, src_points: np.ndarray, dst_points: np.ndarray):
+        """
+        https://en.wikipedia.org/wiki/Kabsch_algorithm
+        Estimates the rigid transform to map src_points -> dst_points using Kabsch's
+        Returns rotation matrix and translation vector such that dst_points = R @ src_points + t
+        """
 
-        detected_points_m = self.get_aruco_corners()
+        # Make sure that the two sets of points have the same dimensions and at least 3 points
+        if src_points.shape != dst_points.shape or src_points.shape[0] < 3:
+            return None, None
+
+        # Get the average position/centroids of each set of points A (source) and B (destination)
+        src_centroid = np.mean(src_points, axis=0) # C_A
+        dst_centroid = np.mean(dst_points, axis=0) # C_B
+
+        # Center each centroid at the origin
+        src_centered = src_points - src_centroid # A'
+        dst_centered = dst_points - dst_centroid # B'
+
+        # Calculate the covariance matrix H = (A')^T*(B') which rotates the source points
+        # such that they are aligned with the destination points about the origin
+        H = src_centered.T @ dst_centered
+
+        # Use SVD to to get U and V^T such that H = U*S*V^T
+        # U represents the orientation of the source points
+        # V represents the orientation of the destination points
+        # S represents scaling/stretching (not used, as this is a rigid transform)
+        U, S, VT = np.linalg.svd(H)
+        
+        # Apply determinant to account for reflections
+        if np.linalg.det(VT.T @ U.T) < 0:
+            VT[2, :] *= -1
+
+        # Calculate the rotation matrix R = V*U^T
+        # U^T rotates the source points to align with the orientation of the standard x, y, z axes, then
+        # VT rotates these points to align with the destination points
+        R = VT.T @ U.T
+
+        # Calculate the translation vector t = C_B - R*C_A
+        # R*C_A rotates the source centroid to align with the destination orientation
+        t = dst_centroid - R @ src_centroid
+
+        return R.astype(np.float32), t.reshape(3, 1).astype(np.float32)
+        
+    def get_corners(self, rmat, tvec) -> None:
+        """ Publish keyboard corners by projecting the known keyboard points to image space"""        
+
+        rvec, _ = cv2.Rodrigues(rmat)
+        image_points, _ = cv2.projectPoints(
+            self.keyboard_points_m,
+            rvec,
+            tvec,
+            self.camera_matrix,
+            self.dist_coeffs
+        )
+        image_points = image_points.reshape(-1, 2).astype(np.float32)
 
         # Publish points
-        if points is not None:
+        if image_points is not None:
             kb_msg = KeyboardPoints()
-            kb_msg.points = [int(i) for point in points for i in point]
+            kb_msg.points = [int(i) for point in image_points for i in point]
             kb_msg.width, kb_msg.height = self.camera_resolution
             self.point_pub.publish(kb_msg)
         
     def estimate_pose(self) -> None | TransformStamped:
         """Estimate pose of keyboard and return its transform"""
-        self.pub_keyboard_corners()
+        detected_points_m = self.get_aruco_corners()
+        if detected_points_m is None:
+            return None
+        
+        # Get the rotation matrix and translation vector
+        rmat, tvec = self.estimate_rigid_transform(self.keyboard_points_m, detected_points_m)
+        if rmat is None or tvec is None:
+            self.pub_keyboard_points(None)
+            return None
+
+        # Publish keyboard corner points to gui
+        self.get_corners(rmat, tvec)
+
         ## run solvePnP
         # image_points = self.get_corners()
         # if image_points is None:
