@@ -78,7 +78,7 @@ GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelin
   set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
 
   // 3. Add elements to pipeline
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, scalefilter, webrtc, NULL);
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, tee, queue1, rossink, queue2, scalefilter, webrtc, NULL);
   if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
@@ -105,9 +105,13 @@ GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelin
       if (sink_pad) gst_object_unref(sink_pad);
   }), convert);
 
-  if (!link_elements(streamer_node, convert, scalefilter, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, convert, tee, props->serial)) return nullptr;
 
   // connect to ros topic
+  if (!link_elements(streamer_node, tee, queue1, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, queue1, rossink, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, tee, queue2, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, queue2, scalefilter, props->serial)) return nullptr;
   
 
   // Enable crop and/or clock
@@ -183,6 +187,7 @@ v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node*
   props->method = set_property(streamer_node, camera->serial, profile, camera->original_serial, "method", default_string);
 
   // rossink
+  default_string = camera->serial;
   props->ros_topic = set_property(streamer_node, camera->serial, profile, camera->original_serial, "ros_topic", default_string);
 
   // scale

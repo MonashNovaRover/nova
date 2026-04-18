@@ -4,10 +4,11 @@ camera_streamer:
       # Development cameras
       anthony-cam:
         pipeline_type: v4lrostopic
-        width: 1280
-        height: 720
-        framerate: 30
-        ros_topic: /anthony/cam
+        width: 640
+        height: 480
+        framerate: 10
+        mime: image/jpeg
+        ros_topic: anthony
 
       # Mast
       mast_backward:
