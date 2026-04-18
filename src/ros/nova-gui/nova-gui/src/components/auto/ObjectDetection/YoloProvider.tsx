@@ -24,6 +24,8 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
 
   // Run detection whenever refs are available.
   const detections = useYoloDetection({
+    // Preserve the existing mutable ref registration flow because the state-based rewrite broke overlays.
+    // eslint-disable-next-line react-hooks/refs
     videoRefs: videoRefs.current,
     modelPath: `/models/${ActiveYoloConfig.modelName}`,
     inputSize: 640,

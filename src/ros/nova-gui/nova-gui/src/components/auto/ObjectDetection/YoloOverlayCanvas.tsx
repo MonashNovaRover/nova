@@ -95,6 +95,8 @@ export default function YoloOverlayCanvas({
     <AutosizedCanvas
       canvasRef={canvasRef}
       // Match canvas size to the video element.
+      // Preserve the existing overlay sizing behavior that matches the working YOLO path.
+      // eslint-disable-next-line react-hooks/refs
       sizeTarget={videoRef.current}
       className="absolute inset-0 pointer-events-none"
     />

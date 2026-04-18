@@ -26,6 +26,8 @@ function YoloVideoLayer({ videoRef, filters }: CameraVideoProps) {
     }
     const index = registerVideoRef(videoRef);
     registeredRef.current = true;
+    // Preserve the working one-time camera registration flow used by the YOLO overlay.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCameraIndex(index);
   }, [registerVideoRef, videoRef]);
 

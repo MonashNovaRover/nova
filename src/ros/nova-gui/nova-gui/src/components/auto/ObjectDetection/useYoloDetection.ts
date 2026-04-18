@@ -83,6 +83,8 @@ export function useYoloDetection({
     let running = true;
     const minUpdateIntervalMs = 250;
     let lastUpdate = 0;
+    pendingBatchIndicesRef.current = new Map<number, number[]>();
+    const pendingBatchIndices = pendingBatchIndicesRef.current;
     // Track the last decoded frame per video to skip duplicates.
     const lastTimes = new WeakMap<HTMLVideoElement, number>();
 
@@ -108,8 +110,8 @@ export function useYoloDetection({
       if (event.data.type === "result") {
         const result = event.data;
         inFlightRef.current = false;
-        const batchIndices = pendingBatchIndicesRef.current.get(result.batchId) ?? [];
-        pendingBatchIndicesRef.current.delete(result.batchId);
+        const batchIndices = pendingBatchIndices.get(result.batchId) ?? [];
+        pendingBatchIndices.delete(result.batchId);
         const now = performance.now();
         if (now - lastUpdate >= minUpdateIntervalMs) {
           lastUpdate = now;
@@ -164,7 +166,7 @@ export function useYoloDetection({
           try {
             inFlightRef.current = true;
             const batchId = batchIdRef.current++;
-            pendingBatchIndicesRef.current.set(
+            pendingBatchIndices.set(
               batchId,
               videosToUse.map(({ index }) => index)
             );
@@ -174,7 +176,7 @@ export function useYoloDetection({
             // Transfer ownership of ImageBitmaps to avoid copies.
             workerRef.current.postMessage(frameMessage, frames);
           } catch (error) {
-            pendingBatchIndicesRef.current.delete(batchIdRef.current - 1);
+            pendingBatchIndices.delete(batchIdRef.current - 1);
             inFlightRef.current = false;
             console.error("YOLO frame capture error", error);
           }
@@ -188,7 +190,7 @@ export function useYoloDetection({
 
     return () => {
       running = false;
-      pendingBatchIndicesRef.current.clear();
+      pendingBatchIndices.clear();
       workerRef.current?.terminate();
       workerRef.current = null;
     };
