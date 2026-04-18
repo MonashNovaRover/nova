@@ -1,11 +1,17 @@
-import {Button, Card, CardBody, CardHeader, CardProps, Input, Progress} from "@nextui-org/react";
-import React, { useEffectEvent, useState } from "react";
-import SegmentedPicker from "../../shared/components/SegmentedPicker/SegmentedPicker.tsx";
-import { RosAction } from "../../../ros/actions/RosAction.ts";
-import { IRosScienceInterfacesPumpsActionFeedback, IRosScienceInterfacesPumpsActionGoal, IRosScienceInterfacesPumpsActionResult } from "../../../ros/rosTypes.ts";
-import { useRosAction } from "../../../hooks/ros/useRosAction.ts";
-import toast from "react-hot-toast";
-import {Database, MoreHorizontal, Search, Square} from "react-feather";
+import {
+  Button, Card, CardBody, CardHeader, CardProps, Input, Progress, Select, SelectItem,
+  SharedSelection, useDisclosure
+} from "@nextui-org/react";
+import React, {useCallback, useEffect, useState} from "react";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import { RosService } from "../../../ros/services/rosService.ts";
+import { RosTopic } from "../../../ros/topics/rosTopic.ts";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/RootState.ts";
+import {Database, MoreHorizontal, Square, Zap} from "react-feather";
+import { useGenericStore } from "../../../hooks/useGenericStore.ts";
+import PumpsModal from "./PumpsModal.tsx";
+import {Radioactive, RecordCircle, RecordCircleFill} from "react-bootstrap-icons";
 
 export interface PumpsWidgetProps extends CardProps {}
 
@@ -69,10 +75,10 @@ export const PUMPS: PumpData[] = [
 
 const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
   const [selectedPump, setSelectedPump] = useState<PumpData>(PUMPS[0]);
-  const [duration, setDuration] = useState<string>("");
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [defaultDurations, _] = useGenericStore<Record<string, number>>("pumpDefaultDurations");
+  const [duration, setDuration] = useState<string>(defaultDurations[selectedPump.value]?.toString() ?? "10");
 
   const bifrostRun = useBifrost({ service: RosService.PUMPS_RUN });
   const bifrostStop = useBifrost({ service: RosService.PUMPS_STOP });
@@ -82,15 +88,21 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
 
   useEffect(() => {
     bifrostStatus.syncWithTopic();
-  }, []);
+  }, [bifrostStatus]);
 
   // Prefill duration when pump selection changes
-  useEffect(() => {
-    const defaultDuration = defaultDurations[selectedPump.value];
+  const onSelectedPumpChange = useCallback((keys: SharedSelection) => {
+    // Update selectedPump state
+    const selected = Array.from(keys)[0] as string;
+    const pump = PUMPS.find(p => p.value === selected) ?? PUMPS[0];
+    if (selected) setSelectedPump(pump);
+
+    // Update the duration state based on the selected pump's default duration
+    const defaultDuration = defaultDurations[pump.value];
     if (defaultDuration !== undefined) {
       setDuration(defaultDuration.toString());
     }
-  }, [selectedPump, defaultDurations]);
+  }, [defaultDurations, setSelectedPump]);
 
   const runPump = () => {
     const durationNum = Number(duration);
@@ -116,7 +128,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
     <Input
       className="col-span-2"
       label="Duration"
-      placeholder="0.0s (default: 10s)"
+      placeholder="0.0s"
       value={duration}
       onValueChange={setDuration}
       isDisabled={pumpStatus.running}
@@ -132,7 +144,9 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
     <div className="flex flex-row items-center justify-center">
       {selectedPump.leftIcon}
       <Progress
+        disableAnimation
         color="secondary"
+        aria-label="Pump Progress"
         value={pumpStatus.running ? pumpStatus.time_elapsed : 0}
         maxValue={pumpStatus.running && pumpStatus.time_target > 0 ? pumpStatus.time_target : 1}
       />
@@ -175,10 +189,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
             label="Select Pump"
             className="col-span-3"
             selectedKeys={[selectedPump.value]}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string;
-              if (selected) setSelectedPump(PUMPS.find(p => p.value === selected) ?? PUMPS[0]);
-            }}
+            onSelectionChange={onSelectedPumpChange}
             isDisabled={pumpStatus.running}
           >
             {PUMPS.map((pump) => (

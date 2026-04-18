@@ -1,13 +1,5 @@
-import {
-  Button,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@nextui-org/react";
-import React, { useEffect, useState } from "react";
+import {Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@nextui-org/react";
+import React, { useState } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import {PUMPS} from "./PumpsWidget.tsx";
 
@@ -16,21 +8,19 @@ export interface PumpsModalProps {
   onOpenChange: (isOpen: boolean) => void
 }
 
-
 const PumpsModal: React.FC<PumpsModalProps> = ({isOpen, onOpenChange}: PumpsModalProps) => {
   const [defaultDurations, setDefaultDurations] = useGenericStore<Record<string, number>>("pumpDefaultDurations");
-  const [editingDurations, setEditingDurations] = useState<Record<string, string>>({});
 
-  // Initialize editing durations when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      const initial: Record<string, string> = {};
-      PUMPS.forEach(pump => {
-        initial[pump.value] = (defaultDurations[pump.value] ?? 10).toString();
-      });
-      setEditingDurations(initial);
-    }
-  }, [isOpen, defaultDurations]);
+  // Converts default durations to a format that can be used by the Input component
+  const getEditingDurations = (): Record<string, string> => {
+    const initial: Record<string, string> = {};
+    PUMPS.forEach(pump => {
+      initial[pump.value] = (defaultDurations[pump.value] ?? 10).toString();
+    });
+    return initial;
+  }
+
+  const [editingDurations, setEditingDurations] = useState<Record<string, string>>(getEditingDurations());
 
   const saveDefaultDurations = () => {
     const newDurations: Record<string, number> = {};
@@ -77,7 +67,10 @@ const PumpsModal: React.FC<PumpsModalProps> = ({isOpen, onOpenChange}: PumpsModa
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose}>
+              <Button color="danger" variant="light" onPress={() => {
+                setEditingDurations(getEditingDurations());
+                onClose()
+              }}>
                 Cancel
               </Button>
               <Button
