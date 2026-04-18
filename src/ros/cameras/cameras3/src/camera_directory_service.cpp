@@ -13,6 +13,7 @@
 #include "std_srvs/srv/empty.hpp"
 #include <camera_msgs/msg/camera.hpp>
 #include <camera_msgs/msg/cameras.hpp>
+#include "properties/common.hpp"
 
 #include "cameras/globals.hpp"
 #include "cameras/colors.hpp"

@@ -70,7 +70,7 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
  * Retrieve ros2 parameters for h264passthrough pipeline or sets defaults
 */
 
-h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera, const std::string pipeline_type, const std::string profile)
+h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
   // 0. Initialize constants
   h264passthroughPipelineProperties* props = new h264passthroughPipelineProperties;
@@ -86,7 +86,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 
   props->io_mode = 4; // dmabuf
 
-  props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", false);
+  props->verify_resolution = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "verify_resolution", false);
 
   // rate
   props->downrate = 1; // Do not change framerate
@@ -94,35 +94,35 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   // filter
   props->mime = "video/x-h264";
 
-  props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
-  props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
-  props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
-  props->framerate_denominator = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate_denominator", 1);
-  props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
-  props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
+  props->brightness = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "contrast", 0);
+  props->framerate = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "framerate", 30);
+  props->framerate_denominator = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "framerate_denominator", 1);
+  props->height = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "height", 720);
+  props->width = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "width", 1280);
 
   // payloader
-  props->payload_quirk = set_property(streamer_node, camera->serial, profile, camera->original_serial, "payload_quirk", false);
+  props->payload_quirk = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "payload_quirk", false);
 
   // webrtc
   default_string = "gcc";
-  props->congestion_control = set_property(streamer_node, camera->serial, profile, camera->original_serial, "congestion_control", default_string);
+  props->congestion_control = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "congestion_control", default_string);
   props->video_caps = "video/x-h264";
 
-  props->bitrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "bitrate", 4096);
+  props->bitrate = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "bitrate", 4096);
 
-  props->do_fec = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_fec", false);
-  props->do_retransmission = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_retransmission", false);
+  props->do_fec = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "do_fec", false);
+  props->do_retransmission = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "do_retransmission", false);
 
   // 2. Finalize props
   if (props->verify_resolution) {
     if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
-        RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+        RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, camera->pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, camera->profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
     } else {
-        RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution!%s Fallback pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_FAIL, C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+        RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution!%s Fallback pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_FAIL, C_QUIET, C_INPUT, camera->pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, camera->profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
     }
   } else {
-      RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+      RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, camera->pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, camera->profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
   }
 
   return props;

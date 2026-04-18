@@ -4,6 +4,7 @@
 #include <string>
 #include <stdlib.h>
 #include <gst/gst.h>
+#include <camera_msgs/msg/camera.hpp>
 #include "pipelines/properties.hpp"
 
 bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, const std::string serial);
