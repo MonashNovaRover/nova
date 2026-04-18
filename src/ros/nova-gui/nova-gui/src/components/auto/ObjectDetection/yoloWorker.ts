@@ -259,13 +259,13 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
     const detections = postprocess(Object.values(output)[0], batch);
     const t3 = performance.now();
 
-    console.log("YOLO timings (batch)", {
-      batch,
-      preprocessMs: Math.round(t1 - t0),
-      runMs: Math.round(t2 - t1),
-      postMs: Math.round(t3 - t2),
-      totalMs: Math.round(t3 - t0),
-    });
+    // console.log("YOLO timings (batch)", {
+    //   batch,
+    //   preprocessMs: Math.round(t1 - t0),
+    //   runMs: Math.round(t2 - t1),
+    //   postMs: Math.round(t3 - t2),
+    //   totalMs: Math.round(t3 - t0),
+    // });
 
     const msg: ResultMessage = {
       type: "result",

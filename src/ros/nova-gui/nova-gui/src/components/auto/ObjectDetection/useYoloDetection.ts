@@ -76,6 +76,8 @@ export function useYoloDetection({
   const inFlightRef = useRef(false);
   // Incrementing id for batches (useful for debugging or ordering).
   const batchIdRef = useRef(0);
+  // Track which camera indices were included in each worker batch.
+  const pendingBatchIndicesRef = useRef(new Map<number, number[]>());
 
   useEffect(() => {
     let running = true;
@@ -105,10 +107,23 @@ export function useYoloDetection({
       if (!running) return;
       if (event.data.type === "result") {
         inFlightRef.current = false;
+        const batchIndices = pendingBatchIndicesRef.current.get(event.data.batchId) ?? [];
+        pendingBatchIndicesRef.current.delete(event.data.batchId);
         const now = performance.now();
         if (now - lastUpdate >= minUpdateIntervalMs) {
           lastUpdate = now;
-          setDetections(event.data.detections);
+          setDetections((previous) => {
+            const next = Array.from(
+              { length: Math.max(previous.length, videoRefs.length) },
+              (_, index) => previous[index] ?? []
+            );
+
+            batchIndices.forEach((cameraIndex, resultIndex) => {
+              next[cameraIndex] = event.data.detections[resultIndex] ?? [];
+            });
+
+            return next;
+          });
         }
       } else if (event.data.type === "error") {
         inFlightRef.current = false;
@@ -125,13 +140,15 @@ export function useYoloDetection({
         }
 
         // Resolve refs to live video elements.
-        const videos = videoRefs.map((r) => r.current).filter(Boolean) as HTMLVideoElement[];
+        const videos = videoRefs
+          .map((ref, index) => ({ index, video: ref.current }))
+          .filter((entry): entry is { index: number; video: HTMLVideoElement } => Boolean(entry.video));
 
         if (videos.length === videoRefs.length) {
           // Only process videos with a decoded frame that has advanced.
           const videosToUse = videos
-            .filter((video) => video.readyState >= 2)
-            .filter((video) => {
+            .filter(({ video }) => video.readyState >= 2)
+            .filter(({ video }) => {
               const last = lastTimes.get(video) ?? -1;
               if (video.currentTime === last) return false;
               lastTimes.set(video, video.currentTime);
@@ -146,12 +163,17 @@ export function useYoloDetection({
           try {
             inFlightRef.current = true;
             const batchId = batchIdRef.current++;
+            pendingBatchIndicesRef.current.set(
+              batchId,
+              videosToUse.map(({ index }) => index)
+            );
             // Capture ImageBitmaps for transfer to the worker.
-            const frames = await Promise.all(videosToUse.map((video) => createImageBitmap(video)));
+            const frames = await Promise.all(videosToUse.map(({ video }) => createImageBitmap(video)));
             const frameMessage: WorkerFrameMessage = { type: "frame", batchId, frames };
             // Transfer ownership of ImageBitmaps to avoid copies.
             workerRef.current.postMessage(frameMessage, frames);
           } catch (error) {
+            pendingBatchIndicesRef.current.delete(batchIdRef.current - 1);
             inFlightRef.current = false;
             console.error("YOLO frame capture error", error);
           }
@@ -165,6 +187,7 @@ export function useYoloDetection({
 
     return () => {
       running = false;
+      pendingBatchIndicesRef.current.clear();
       workerRef.current?.terminate();
       workerRef.current = null;
     };

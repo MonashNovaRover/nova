@@ -27,6 +27,22 @@ The worker reads the model input metadata to determine the expected batch size.
 If the model is fixed to batch `1` and multiple videos are active, it falls back
 to running inference once per video instead of sending a multi-frame batch.
 
+## Model output format
+
+The current postprocessing assumes the ONNX model output is shaped like
+`[batch, boxes, channels]` and that each detection row is ordered as
+`[x1, y1, x2, y2, score, classId]`.
+
+If you swap to a different YOLO export, this is the first place to check:
+
+- `src/components/auto/ObjectDetection/yoloWorker.ts`
+- `postprocess(...)` parses the output tensor
+- `const [, boxes, channels] = output.dims` reads the assumed layout
+- `x1/y1/x2/y2/score/classId` are read from `data[base + 0..5]`
+
+If the new model uses a different output layout, classes/objectness format, or
+box encoding, update `postprocess(...)` to match the exported model.
+
 ## Why the `ort/` folder lives here
 
 ORT loads its `.mjs` and `.wasm` runtime files dynamically. In development, the
