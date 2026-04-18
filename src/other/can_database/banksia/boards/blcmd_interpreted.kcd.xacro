@@ -29,19 +29,18 @@
     interpret_position:=False
     resolver_reduction:=None
     res_ticks_per_rev:=None
-    zero_offset:=None">
+    zero_offset:=None
 
+    velocity_command_slope_multiplier:=1
+    velocity_telemetry_slope_multiplier:=1
+    position_command_slope_multiplier:=1
+    position_command_intercept_multiplier:=1
+    position_telemetry_slope_multiplier:=1
+    position_telemetry_intercept_multiplier:=1">
+        
         <!-- all calculations are derived from blcmd_hardware2.cpp -->
 
         <!-- constants -->
-
-        <!-- to experimentally determine as theoretical values appear to be wrong :( -->
-        <xacro:property name="velocity_command_slope_multiplier" value="1"/>
-        <xacro:property name="velocity_telemetry_slope_multiplier" value="1"/>
-        <xacro:property name="position_command_slope_multiplier" value="1"/>
-        <xacro:property name="position_command_intercept_multiplier" value="1"/>
-        <xacro:property name="position_telemetry_slope_multiplier" value="1"/>
-        <xacro:property name="position_telemetry_intercept_multiplier" value="1"/>
 
         <xacro:property name="signed_16_bit_integer_limit" value="${2**15 - 1}"/>
         <xacro:property name="reversed_multiplier" value="${-1 if reversed else 1}"/>
