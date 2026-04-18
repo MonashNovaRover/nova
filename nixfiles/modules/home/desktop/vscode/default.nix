@@ -22,5 +22,9 @@ in
       };
       mutableExtensionsDir = false;
     };
+
+    dconf.settings."org/gnome/shell".favorite-apps = lib.mkAfter [
+      "code.desktop"
+    ];
   };
 }

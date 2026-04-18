@@ -6,6 +6,7 @@ in
 {
   imports = [
     ./browser.nix
+    ./slack.nix
   ];
 
   options.nova.desktop = {
@@ -15,6 +16,7 @@ in
 
   config = lib.mkIf cfg.enable {
     nova.desktop.browser.enable = true;
+    nova.desktop.slack.enable = true;
 
     services = {
       displayManager.gdm = {
