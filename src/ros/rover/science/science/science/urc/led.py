@@ -9,18 +9,26 @@ from teleop_python_utils import Inputs, EventCollection
 
 class LEDController(Controller):
 
-    def __init__(self, contexts: Contexts, ):
+    def __init__(self, contexts: Contexts, led_list: list[str] = []):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         """
         super().__init__(contexts)
-        
+        self.led_list = led_list
+
         #setup service 
-        self.toggle_service = self.node.create_service
- 
-        
+        self.toggle_service = self.node.create_service(Toggle,"/science/leds/toggle", self.led_toggle_callback)
+
+        #led toggle event for leds in led list
+        if EventCollection in contexts:
+            events = contexts[EventCollection]
+            for led in led_list:
+                self.led_events[led] = events.get(f"{led}/toggle")
+        else:
+            self.logger.error("Could not find EventCollection in the python control contexts, cannot toggle LEDs")
+
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -42,13 +50,22 @@ class LEDController(Controller):
         """
         pass
 
+    def led_toggle_callback(self, request, response):
+        try:
+            led_event = self.led_events[request.name]
+            led_event.invoke()
+            response.success = True
+        except Exception as e:
+            self.logger.error(f"An error occurred while attempting to toggle led: {e}")
+            response.success = False
+
 
 if __name__ == "__main__":
     rclpy.init()
 
     node = Node("science_leds")
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("controller", LEDController) \
+        .with_controller("controller", LEDController, led_list = ["vis_spec_central_led"]) \
         .with_hardware("vis_spec_central_led", ToggleHardware) \
         .with_jcan() \
         .with_event_collection() \

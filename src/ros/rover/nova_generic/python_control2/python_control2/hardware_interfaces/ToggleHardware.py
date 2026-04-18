@@ -7,17 +7,24 @@ from teleop_python_utils import EventCollection
 
 
 class ToggleHardware(HardwareInterface):
+    """
+    Hardware interface that can be used to toggle devices between an off and an off state 
+    """
 
     def __init__(self, contexts:Contexts,can_id:int, on_command:int = 1, off_command:int=0, on_state:int=1, off_state:int=0; init_state:int=0):
         super().__init__(contexts)
         self.bus = contexts[jcan.Bus]
-        self.state = init_state 
-        self.on_state = on_state
-        self.off_state =off_state
-        self.can_id =self.declare_parameter("can_id", can_id).value
+        
+        #declare parameters 
+        self.can_id  = self.declare_parameter("can_id", can_id, "can id").value
         self.on_command = self.declare_parameter("on_command", on_command, "command to turn on toggleable hardware").value
-        self.off_command = self.declare_parameter("off_command". off_command, "command to turn off toggleable hardware").value
+        self.off_command = self.declare_parameter("off_command", off_command, "command to turn off toggleable hardware").value
+        self.init_state = self.declare_parameter("init_state", init_state, "initial state of the toggleable hardware").value
+        self.on_state = self.declare_parameter("on_state", on_state, "representaion of the on state").value
+        self.off_state = self.declare_parameter("off_state", off_state, "representation of the off state").value
 
+        #initialise state
+        self.state =self.init_state
         #setup a toggle event 
         if EventCollection in contexts:
             events = contexts[EventCollection]
