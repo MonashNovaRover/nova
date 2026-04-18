@@ -9,6 +9,7 @@ import {
   IRosScienceInterfacesKilnData,
   IRosScienceInterfacesNirProbeData,
   IRosScienceInterfacesMicroscopeServoInfo,
+  IRosScienceInterfacesPumpStatus,
   IRosScienceInterfacesRamanSpectrum,
   IRosStdMsgsString,
   IRosStdMsgsBool,
@@ -76,6 +77,7 @@ export interface RosTopicInterfaces {
   [RosTopic.AUGER1_DEPTH_SENSOR]: IRosStdMsgsBool;
   [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
   [RosTopic.TOOL_ROTATOR_ANGLE]: IRosStdMsgsFloat64;
+  [RosTopic.PUMPS_STATUS]: IRosScienceInterfacesPumpStatus;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
