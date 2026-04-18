@@ -24,6 +24,7 @@ def generate_launch_description():
     streamer_params = PathJoinSubstitution([params, "streamer.yaml"])
     platform = LaunchConfiguration("platform")
     task = LaunchConfiguration("task")
+    global_profile = LaunchConfiguration("global_profile")
     port = LaunchConfiguration("port")
 
     return LaunchDescription(
@@ -57,6 +58,11 @@ def generate_launch_description():
                 default_value="",
                 description="The task type. Used for specifying serial overrides for Camera Directory Node",
             ),
+                DeclareLaunchArgument(
+                "global_profile",
+                default_value="",
+                description="The global profile type. Used for specifying the profile to use for each individual serial",
+            ),
             DeclareLaunchArgument(
                 "port",
                 default_value="8443",
@@ -78,7 +84,7 @@ def generate_launch_description():
             Node(
                 package="cameras",
                 executable="camera_streamer_service",
-                parameters=[streamer_params],
+                parameters=[{'task': task, 'global_profile': global_profile}, streamer_params],
             ),
         ]
     )

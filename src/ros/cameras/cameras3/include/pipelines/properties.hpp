@@ -5,7 +5,7 @@
 #include <gst/gst.h>
 #define PIPELINE_PREFIX     "serial_pipelines"
 #define PROFILE_PREFIX     "profiles"
-#define GLOBAL_PROFILE_PREFIX     "global_profile"
+#define TASK_PROFILE_PREFIX "task_profiles"
 #define UNKNOWN_PROFILE_PREFIX "unknown"
 #define DEFAULT_PREFIX     "defaults"
 
@@ -51,6 +51,7 @@ struct softwareEncProperties
 
   int cpu_used;
   int gop;
+  int noise;
   int threads;
 };
 

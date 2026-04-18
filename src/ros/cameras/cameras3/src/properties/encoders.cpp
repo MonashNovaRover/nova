@@ -19,7 +19,7 @@ void set_av1enc(GstElement* encode, const int cpu_used, const int threads, const
         NULL);
 }
 
-void set_vp8enc(GstElement* encode, const int cpu_used, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
+void set_vp8enc(GstElement* encode, const int cpu_used, const int noise, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
     g_object_set(encode,
         "deadline", 1, // 1 for lowest latency
         "cpu-used", (
@@ -34,7 +34,8 @@ void set_vp8enc(GstElement* encode, const int cpu_used, const int threads, const
           cpu_used == 8 ? 8:
           cpu_used == 9 ? 12:
           cpu_used == 10 ? 16:
-          0 ), // Fastest -16, 16 Slowest 
+          0 ), // Fastest -16, 16 Slowest
+        "noise-sensitivity", noise, // Noise filter
         "end-usage", 1, // constant bitrate
         "threads", std::clamp(threads, 1, num_cores), // 1 is best for cpu and compression ratio
         "target-bitrate", std::clamp(bitrate, 1, 4096)*1000,
@@ -42,11 +43,12 @@ void set_vp8enc(GstElement* encode, const int cpu_used, const int threads, const
         "buffer-optimal-size", gop*1000,        // Buffer size for GOP
         "lag-in-frames", 0, // Do not lookahead
         "error-resilient", 1,
+        "tuning", 1, // Tune for ssim, better for low bitrate/ blur
         NULL);
 }
 
 
-void set_vp9enc(GstElement* encode, const int cpu_used, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
+void set_vp9enc(GstElement* encode, const int cpu_used, const int noise, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
     g_object_set(encode,
         "deadline", 1, // 1 for lowest latency
         "cpu-used", (
@@ -61,7 +63,8 @@ void set_vp9enc(GstElement* encode, const int cpu_used, const int threads, const
           cpu_used == 8 ? 8:
           cpu_used == 9 ? 12:
           cpu_used == 10 ? 16:
-          0 ), // Fastest -16, 16 Slowest 
+          0 ), // Fastest -16, 16 Slowest
+        "noise-sensitivity", noise, // Noise filter
         "end-usage", 1, // constant bitrate
         "threads", std::clamp(threads, 1, num_cores), // 1 is best for cpu and compression ratio
         "target-bitrate", std::clamp(bitrate, 1, 4096)*1000,
@@ -69,22 +72,23 @@ void set_vp9enc(GstElement* encode, const int cpu_used, const int threads, const
         "buffer-optimal-size", gop*1000,        // Buffer size for GOP
         "lag-in-frames", 0, // Do not lookahead
         "error-resilient", 1,
+        "tuning", 1, // Tune for ssim, better for low bitrate/ blur
         "aq-mode", 3, // cyclic refresh aq mode, low latency low bitrate
-        "tile-columns", 0,
-        "tile-rows", 0,
         NULL);
 }
 
-void set_x264enc(GstElement* encode, const int cpu_used, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
+void set_x264enc(GstElement* encode, const int cpu_used, const int noise, const int threads, const int bitrate, const int gop, const int framerate, const int framerate_denominator, const int downrate) {
     g_object_set(encode,
         "tune", 0x00000004, // zerolatency
-        "speed-preset", std::clamp(cpu_used, 1, 10), 
+        "speed-preset", std::clamp(cpu_used, 1, 10),
+        "noise-reduction", noise, // Noise filter
         "threads", std::clamp(threads, 1, num_cores), // 1 is best for cpu and compression ratio
         "bitrate", std::clamp(bitrate, 1, 4096),
         "key-int-max", (int) gop * (int) ((float) framerate/ (float) framerate_denominator/ (float) downrate + 1.0), // Largest GOP
         "vbv-buf-capacity", gop*1125,        // Buffer size for GOP
         "b-adapt", false, // Do not allow b frames
         "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
+        "psy-tune", 5, // Tune for ssim, better for low bitrate/ blur
         NULL);
 }
 

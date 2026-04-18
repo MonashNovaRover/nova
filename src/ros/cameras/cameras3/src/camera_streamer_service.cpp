@@ -121,8 +121,16 @@ class CameraStreamer : public rclcpp::Node
   private: void get_profile(Pipeline* pipeline) {
     // From serial
     if (this->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".profile").c_str(), pipeline->profile)) return;
+    // From task profile
+    std::string task, global_profile;
+    if (this->get_parameter("task", task) && this->get_parameter("global_profile", global_profile)) {
+      if (this->get_parameter<std::string>((std::string(TASK_PROFILE_PREFIX) + "." + task + "." + global_profile + "." + pipeline->camera->serial).c_str(), pipeline->profile)) return;
+    }
     // From global
-    if (this->get_parameter<std::string>(GLOBAL_PROFILE_PREFIX, pipeline->profile)) return;
+    if (!global_profile.empty()) {
+      pipeline->profile = global_profile;
+      return;
+    }
     // From default
     if (this->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".profile").c_str(), pipeline->profile)) return;
     // If no profile found

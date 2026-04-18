@@ -175,6 +175,9 @@ class CameraDirectory : public rclcpp::Node
       // if device is in blacklist, skip
       if (std::find(blacklist.begin(), blacklist.end(), device.serial) != blacklist.end()) continue;
 
+      // add to message
+      auto camera = camera_msgs::msg::Camera();
+
       // get final serial with remaps and overrides
       std::string serial = device.serial;
       if (serial_overrides.find(device.path) != serial_overrides.end()){
@@ -183,15 +186,13 @@ class CameraDirectory : public rclcpp::Node
       if (serial_remaps.find(serial) != serial_remaps.end()){
         serial = serial_remaps[serial];
       }
-      
+
       // Find how many of the current serial exist
       const int serial_count = new_camera_map.count(device.serial);
 
-      // add to message
-      auto camera = camera_msgs::msg::Camera();
-
       // support multiple cameras of the same type
-      camera.serial = serial + std::to_string(serial_count);
+      //camera.serial = serial + std::to_string(serial_count);
+      camera.serial = serial;
       camera.node = device.devname;
       camera.original_serial = device.serial;
       message.cameras.emplace_back(camera);
