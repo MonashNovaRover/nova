@@ -16,5 +16,9 @@ in
         "ddkjiahejlhfcafbddmgiahcphecmpfh" # ublock origin lite
       ];
     };
+
+    dconf.settings."org/gnome/shell".favorite-apps = [
+      "chromium-browser.desktop"
+    ];
   };
 }
