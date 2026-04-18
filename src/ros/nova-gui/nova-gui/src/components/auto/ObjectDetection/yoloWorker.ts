@@ -189,7 +189,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
       // Persist configuration in the worker.
       inputSize = size;
       scoreThreshold = threshold;
-      await initSession({ modelPath, inputSize: size, scoreThreshold: threshold, useWebGPU });
+      await initSession({ modelPath, inputSize: size, scoreThreshold: threshold, useWebGPU, type: "init" });
       return;
     }
 

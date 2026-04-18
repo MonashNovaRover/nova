@@ -1,75 +1,57 @@
 # Object Detection (YOLO + ONNX Runtime Web)
 
-This folder implements browser-side YOLO inference using ONNX Runtime Web (ORT).
-The pipeline runs on live camera video elements, converts frames to tensors, runs
-the ONNX model, and draws detections in a canvas overlay.
+This folder implements browser-side YOLO inference for live camera feeds using
+ONNX Runtime Web (ORT). Cameras register their `<video>` refs through
+`YoloProvider`, frames are captured in `useYoloDetection`, inference runs in
+`yoloWorker`, and detections are drawn by `YoloOverlayCanvas`.
 
-## Approach
+## Current flow
 
-- Camera components register their `<video>` refs via `YoloProvider`.
-- `useYoloDetection`:
-  - pulls video frames into an `OffscreenCanvas`
-  - normalizes pixels to float32
-  - builds a tensor shaped `[N, 3, H, W]`
-  - runs ORT inference
-  - postprocesses YOLO output into boxes/classes/scores
-  - updates state for the overlay
+- `YoloProvider.tsx` collects video refs and starts detection with the active model.
+- `useYoloDetection.ts` captures `ImageBitmap`s from ready videos, skips duplicate
+  frames, avoids overlapping requests, and updates detection state on a throttled loop.
+- `yoloWorker.ts` owns ORT session setup, preprocessing, inference, and YOLO output parsing.
+- `YoloOverlayCanvas.tsx` maps model-space boxes back onto the rendered video and draws labels.
 
-## Stack
+## Model and runtime
 
-- React + Vite
-- `onnxruntime-web` (WASM by default, optional WebGPU)
-- Canvas / OffscreenCanvas for preprocessing
+- Active model/labels are selected in `YoloConfig.ts` via `ActiveYoloConfig`.
+- Models are loaded from `/models/${ActiveYoloConfig.modelName}`.
+- Input size is currently fixed to `640`.
+- WASM is the default execution provider. WebGPU is optional via `VITE_ENABLE_WEBGPU=true`,
+  with fallback to WASM if WebGPU session creation fails.
+
+## Batching
+
+The worker reads the model input metadata to determine the expected batch size.
+If the model is fixed to batch `1` and multiple videos are active, it falls back
+to running inference once per video instead of sending a multi-frame batch.
 
 ## Why the `ort/` folder lives here
 
-ORT dynamically loads its `.mjs` loader and `.wasm` binary at runtime. Vite
-serves files in `public/` as-is, but **they cannot be imported from source
-code**. ORT uses dynamic `import()` for its `.mjs` loader, which must be
-resolvable as a module in dev. To satisfy this:
+ORT loads its `.mjs` and `.wasm` runtime files dynamically. In development, the
+worker points `ort.env.wasm.wasmPaths` at:
 
-- In **dev**, we serve the ORT loader files from:
-  `/src/components/auto/ObjectDetection/ort/`
-- In **build**, we serve them from:
-  `/public/ort/` (copied to `dist/` as-is)
+- `/src/components/auto/ObjectDetection/ort/`
 
-This is also why we set:
+In production it points at:
 
-- `ort.env.wasm.wasmPaths` in `useYoloDetection.ts`
+- `/ort/`
 
-References:
-- Vite public assets behavior:
-  https://vite.dev/guide/assets.html
-- ORT `env.wasm.wasmPaths`:
-  https://onnxruntime.ai/docs/tutorials/web/env-flags-and-session-options.html
-
-## WebGPU vs WASM
-
-We default to WASM for compatibility. WebGPU is **optional** and only enabled
-when `VITE_ENABLE_WEBGPU=true`. Many machines/browsers do not have WebGPU
-available or may require enabling developer flags.
-
-## Model input shape and batching
-
-The current model expects a fixed batch size of **1**. If you pass multiple
-cameras at once, ORT will throw:
-
-```
-Got: 14 Expected: 1
-```
-
-To keep things working, the hook runs per-video when the model batch is fixed
-to 1. If you want batching, export a YOLO model with a dynamic batch dimension
-or a fixed batch equal to your camera count.
+This keeps the ORT loader resolvable in dev while still allowing static assets
+to be served in the built app.
 
 ## Files
 
-- `useYoloDetection.ts`: preprocessing, inference loop, postprocess
-- `YoloProvider.tsx`: registers camera refs, provides detections
-- `YoloCameraComponent.tsx`: attaches video + overlay
-- `ort/`: ORT loader and WASM binaries for dev-time module loading
+- `YoloCameraComponent.tsx`: camera wrapper that attaches the detection overlay
+- `YoloConfig.ts`: available model/class-name configs and active model selection
+- `YoloOverlayCanvas.tsx`: overlay drawing and coordinate mapping
+- `YoloProvider.tsx`: context for video registration and detections
+- `useYoloDetection.ts`: main-thread frame capture and worker messaging
+- `yoloWorker.ts`: ORT setup, preprocessing, inference, and postprocessing
+- `ort/`: ORT loader and WASM runtime files used by the worker
 
-## Useful links
+## References
 
 - ORT env flags and `wasmPaths`: https://onnxruntime.ai/docs/tutorials/web/env-flags-and-session-options.html
 - ORT WebGPU execution provider: https://onnxruntime.ai/docs/tutorials/web/ep-webgpu.html
