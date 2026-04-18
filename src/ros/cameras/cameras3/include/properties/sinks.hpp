@@ -23,4 +23,6 @@ template<typename properties> void set_webrtcsink(GstElement* webrtc, const prop
   gst_structure_free(meta);
 }
 
+void set_rostopicsink(GstElement* rossink, const std::string ros_topic);
+
 #endif
