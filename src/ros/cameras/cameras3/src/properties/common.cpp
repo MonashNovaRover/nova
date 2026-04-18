@@ -17,47 +17,44 @@ bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstEl
    return true;
 }
 
-std::string set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const std::string default_value) {
-    std::string value;
+std::string set_property(rclcpp::Node* streamer_node, const camera_msgs::msg::Camera* camera, const std::string element, std::string value) {
     // Check serial for property
-    if (streamer_node->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value)) return value;
+    if (streamer_node->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + camera->serial + "." + element).c_str(), value)) return value;
     // Check profile for property
-    if (!profile.empty()) {
-      if (streamer_node->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value)) return value;
-      if (streamer_node->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value)) return value;
+    if (!camera->profile.empty()) {
+      if (streamer_node->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + camera->original_serial + "." + camera->profile + "." + element).c_str(), value)) return value;
+      if (streamer_node->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + camera->profile + "." + element).c_str(), value)) return value;
     }
     // Check default for property
-    if (streamer_node->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value)) return value;
-    return default_value;
+    if (streamer_node->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + "." + element).c_str(), value)) return value;
+    return value;
 }
 
-int set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const int default_value) {
-    int value;
+int set_property(rclcpp::Node* streamer_node, const camera_msgs::msg::Camera* camera, const std::string element, int value) {
     // Check serial for property
-    if (streamer_node->get_parameter((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value)) return value;
+    if (streamer_node->get_parameter((std::string(PIPELINE_PREFIX) + "." + camera->serial + "." + element).c_str(), value)) return value;
     // Check profile for property
-    if (!profile.empty()) {
-      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value)) return value;;
-      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value)) return value;
+    if (!camera->profile.empty()) {
+      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + camera->original_serial + "." + camera->profile + "." + element).c_str(), value)) return value;;
+      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + camera->profile + "." + element).c_str(), value)) return value;
 
     }
     // Check default for property
-    if (streamer_node->get_parameter((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value)) return value;
-    return default_value;
+    if (streamer_node->get_parameter((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + "." + element).c_str(), value)) return value;
+    return value;
 }
 
-bool set_property(rclcpp::Node* streamer_node, const std::string serial, const std::string profile, const std::string original_serial, const std::string element, const bool default_value) {
-    bool value;
+bool set_property(rclcpp::Node* streamer_node, const camera_msgs::msg::Camera* camera, const std::string element, bool value) {
     // Check serial for property
-    if (streamer_node->get_parameter((std::string(PIPELINE_PREFIX) + "." + serial + "." + element).c_str(), value)) return value;
+    if (streamer_node->get_parameter((std::string(PIPELINE_PREFIX) + "." + camera->serial + "." + element).c_str(), value)) return value;
     // Check profile for property
-    if (!profile.empty()) {
-      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + original_serial + "." + profile + "." + element).c_str(), value)) return value;
-      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + profile + "." + element).c_str(), value)) return value;
+    if (!camera->profile.empty()) {
+      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + camera->original_serial + "." + camera->profile + "." + element).c_str(), value)) return value;
+      if (streamer_node->get_parameter((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + camera->profile + "." + element).c_str(), value)) return value;
     }
     // Check default for property
-    if (streamer_node->get_parameter((std::string(DEFAULT_PREFIX) + "." + original_serial + "." + element).c_str(), value)) return value;
-    return default_value;
+    if (streamer_node->get_parameter((std::string(DEFAULT_PREFIX) + "." + camera->original_serial + "." + element).c_str(), value)) return value;
+    return value;
 }
 
 bool verify_v4lresolution(const std::string device_name, std::string* mime, int* width, int* height, int* framerate, int* framerate_denominator) {

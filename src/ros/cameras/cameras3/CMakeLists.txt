@@ -38,17 +38,9 @@ target_link_libraries(camera_directory_service ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_directory_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp
-
   # Properties
   src/properties/common.cpp
-  src/properties/sources.cpp
-  src/properties/sinks.cpp
-
-  src/properties/capsfilters.cpp
   src/properties/cpufilters.cpp
-
-  src/properties/decoders.cpp
-  src/properties/encoders.cpp
   src/properties/h264.cpp
 
   # Pipelines

@@ -61,12 +61,12 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelin
   }
 
   // 2. Set element properties
-  set_v4lsource(source, props->device, props->io_mode);
-  set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
-  set_convertscale(convert, props->chroma_resampler, props->dither, props->method);
-  set_scalefilter(scalefilter, props->format, props->width, props->height, props->framerate, props->framerate_denominator, props->downscale, props->downrate, props->brightness, props->contrast);
-  if (props->crop43) set_crop43(cropper, crop_width, props->downscale);
-  set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
+  set_v4lsource(source, props);
+  set_srcfilter(srcfilter, props);
+  set_convertscale(convert, props);
+  set_scalefilter(scalefilter, props);
+  if (props->crop43) set_crop43(cropper, props);
+  set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, scalefilter, webrtc, NULL);
@@ -145,53 +145,53 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
   props->device = camera->node;
 
   default_string = "mmap";
-  props->io_mode = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "io_mode", default_string);
+  props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
 
-  props->verify_resolution = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "verify_resolution", true);
+  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", true);
 
   // filter
   default_string = "I420";
-  props->format = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "format", default_string);
+  props->format = set_property(streamer_node, camera, "format", default_string);
   default_string = "image/jpeg";
-  props->mime = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "mime", default_string);
+  props->mime = set_property(streamer_node, camera, "mime", default_string);
 
-  props->brightness = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "brightness", 0);
-  props->contrast = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "contrast", 0);
-  props->framerate = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "framerate", 30);
-  props->framerate_denominator = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "framerate_denominator", 1);
-  props->height = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "height", 720);
-  props->width = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "width", 1280);
+  props->brightness = set_property(streamer_node, camera, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera, "contrast", 0);
+  props->framerate = set_property(streamer_node, camera, "framerate", 30);
+  props->framerate_denominator = set_property(streamer_node, camera, "framerate_denominator", 1);
+  props->height = set_property(streamer_node, camera, "height", 720);
+  props->width = set_property(streamer_node, camera, "width", 1280);
 
   // convert
   default_string = "linear";
-  props->chroma_resampler = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "chroma_resampler", default_string);
+  props->chroma_resampler = set_property(streamer_node, camera, "chroma_resampler", default_string);
   default_string = "sierra-lite";
-  props->dither = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "dither", default_string);
+  props->dither = set_property(streamer_node, camera, "dither", default_string);
   default_string = "bilinear";
-  props->method = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "method", default_string);
+  props->method = set_property(streamer_node, camera, "method", default_string);
 
   // scale
-  props->downscale = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "downscale", 1);
+  props->downscale = set_property(streamer_node, camera, "downscale", 1);
 
   // rate
-  props->downrate = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "downrate", 1);
+  props->downrate = set_property(streamer_node, camera, "downrate", 1);
 
   // cropper
-  props->crop43 = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "crop43", true);
+  props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
   // clock
-  props->show_clock = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "show_clock", false);
+  props->show_clock = set_property(streamer_node, camera, "show_clock", false);
 
   // webrtc
   default_string = "gcc";
-  props->congestion_control = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "congestion_control", default_string);
+  props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
   default_string = "video/x-h264,camera->profile=constrained-baseline"; 
-  props->video_caps = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "video_caps", default_string);
+  props->video_caps = set_property(streamer_node, camera, "video_caps", default_string);
 
-  props->bitrate = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "bitrate", 4096);
+  props->bitrate = set_property(streamer_node, camera, "bitrate", 4096);
 
-  props->do_fec = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "do_fec", false);
-  props->do_retransmission = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "do_retransmission", false);
+  props->do_fec = set_property(streamer_node, camera, "do_fec", false);
+  props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
 
   // 2. Finalize props
   if (props->verify_resolution) {

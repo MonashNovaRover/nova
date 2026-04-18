@@ -40,11 +40,11 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   }
 
   // 2. Set element properties
-  set_v4lsource(source, props->device, props->io_mode);
-  set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
+  set_v4lsource(source, props);
+  set_srcfilter(srcfilter, props);
   if (props->payload_quirk) set_h264payload(payload);
-  set_h264parse(parse);
-  set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
+  set_h264parse(parse, -1);
+  set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, parse, webrtc, NULL);
@@ -86,7 +86,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 
   props->io_mode = 4; // dmabuf
 
-  props->verify_resolution = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "verify_resolution", false);
+  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // rate
   props->downrate = 1; // Do not change framerate
@@ -94,25 +94,25 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   // filter
   props->mime = "video/x-h264";
 
-  props->brightness = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "brightness", 0);
-  props->contrast = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "contrast", 0);
-  props->framerate = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "framerate", 30);
-  props->framerate_denominator = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "framerate_denominator", 1);
-  props->height = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "height", 720);
-  props->width = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "width", 1280);
+  props->brightness = set_property(streamer_node, camera, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera, "contrast", 0);
+  props->framerate = set_property(streamer_node, camera, "framerate", 30);
+  props->framerate_denominator = set_property(streamer_node, camera, "framerate_denominator", 1);
+  props->height = set_property(streamer_node, camera, "height", 720);
+  props->width = set_property(streamer_node, camera, "width", 1280);
 
   // payloader
-  props->payload_quirk = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "payload_quirk", false);
+  props->payload_quirk = set_property(streamer_node, camera, "payload_quirk", false);
 
   // webrtc
   default_string = "gcc";
-  props->congestion_control = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "congestion_control", default_string);
+  props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
   props->video_caps = "video/x-h264";
 
-  props->bitrate = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "bitrate", 4096);
+  props->bitrate = set_property(streamer_node, camera, "bitrate", 4096);
 
-  props->do_fec = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "do_fec", false);
-  props->do_retransmission = set_property(streamer_node, camera->serial, camera->profile, camera->original_serial, "do_retransmission", false);
+  props->do_fec = set_property(streamer_node, camera, "do_fec", false);
+  props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
 
   // 2. Finalize props
   if (props->verify_resolution) {
