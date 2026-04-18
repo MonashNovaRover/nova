@@ -160,11 +160,13 @@ class BLCMDStatusMonitor(Node):
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
 
-        #request all zero positons
-        for pivot_id in self.auto_reset_pivot_blmcd_ids:
-            self.bus.send(
-                jcan.Frame(id=0x009 | pivot_id << 4, data=[0xf])
-            )
+        # store all "initial" zero positions for pivot reset later
+        # (for some reason we can't do this just before resetting a pivot)
+        if self.enable_auto_blcmd_reset:
+            for pivot_id in self.auto_reset_pivot_blmcd_ids:
+                self.bus.send(
+                    jcan.Frame(id=0x009 | pivot_id << 4, data=[0xf])
+                )
 
     def run_callbacks(self):
         self.bus.spin()
@@ -231,19 +233,18 @@ class BLCMDStatusMonitor(Node):
         def callback(frame):
             now = self.get_clock().now()
 
+            # don't do anything if this isn't a response containing zero position
+            if frame.data[0] != 0xf:
+                return
+
             # save all pivot zeros on startup
             if self.pivot_zeros[blcmd_id] is None:
                 self.pivot_zeros[blcmd_id] = frame.data[1:3]
-                return
 
             # don't do anything if there wasn't a recent enough request for pivot zero
             if (blcmd_id not in self.blcmd_pivot_reset_times
               or self.blcmd_pivot_reset_times[blcmd_id] is None
               or now - self.blcmd_pivot_reset_times[blcmd_id] > Duration(seconds=self.blcmd_zero_response_timeout)):
-                return
-
-            # don't do anything if this isn't a response containing zero position
-            if frame.data[0] != 0xf:
                 return
 
             self.get_logger().info(f'Response received for BLCMD zero position, resetting pivot BLCMD {blcmd_id}')
