@@ -11,13 +11,21 @@ teleop_science:
     control_modes:
       names: [
         # First in the list gets activated at startup
-        "input_publisher_mode"
+        "input_publisher_mode",
+        "locked_publisher"
       ]
 
       # Declare types for the modes
+      # Publishes input from teleop
       input_publisher_mode:
         display_name: "Input Publisher Control Mode"
         type: "input_publisher_mode/InputPublisherMode"
+        active: true
+
+      # Publishes the current locked status
+      locked_publisher:
+        display_name: "Locked Status Publisher"
+        type: "locked_publisher/LockedPublisher"
         active: true
 
     # Add lock and unlock commands
@@ -49,6 +57,10 @@ teleop_science:
         type: log
         message: "Unlocked"
 
+locked_publisher:
+  ros__parameters:
+    topic: "/locked_status"
+
 input_publisher_mode:
   ros__parameters:
     input_names_topic: "/science/input"
@@ -63,9 +75,12 @@ input_publisher_mode:
       - "cbeam_actuation"
     button_names:
       # Auger
-      - "activate_cbeam"
       - "auger_drill"
       - "auger_drill_clockwise"
       - "auger_drill_anticlockwise"
+      - "activate_auger_left"
+      - "activate_auger_right"
       # Analysis Arm
       - "activate_analysis_arm"
+      # CBeam
+      - "activate_cbeam"
