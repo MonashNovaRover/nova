@@ -106,9 +106,10 @@ export function useYoloDetection({
     worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       if (!running) return;
       if (event.data.type === "result") {
+        const result = event.data;
         inFlightRef.current = false;
-        const batchIndices = pendingBatchIndicesRef.current.get(event.data.batchId) ?? [];
-        pendingBatchIndicesRef.current.delete(event.data.batchId);
+        const batchIndices = pendingBatchIndicesRef.current.get(result.batchId) ?? [];
+        pendingBatchIndicesRef.current.delete(result.batchId);
         const now = performance.now();
         if (now - lastUpdate >= minUpdateIntervalMs) {
           lastUpdate = now;
@@ -119,7 +120,7 @@ export function useYoloDetection({
             );
 
             batchIndices.forEach((cameraIndex, resultIndex) => {
-              next[cameraIndex] = event.data.detections[resultIndex] ?? [];
+              next[cameraIndex] = result.detections[resultIndex] ?? [];
             });
 
             return next;
