@@ -11,6 +11,11 @@
 
 		<!-- from ros2_control.xacro: -->
 
+		<!-- constants for all blcmds -->
+
+		<!-- whyyyyyy electrical why is this needed -->
+		<xacro:property name="velocity_telemetry_slope_adjustment" value="${-1 * 0.5}"/>
+
 		<!-- constants for wheels -->
 		<xacro:property name="wheel_clock_rate" value="100000000"/>
 		<xacro:property name="wheel_revolution_pulses" value="8192"/>
@@ -33,29 +38,32 @@
 		   clock_rate="${wheel_clock_rate}"
 		   revolution_pulses="${wheel_revolution_pulses}"
 		   min_interval="${wheel_min_interval}"
-		   gear_ratio="${wheel_gear_ratio}"/>
+		   gear_ratio="${wheel_gear_ratio}"
+		   velocity_telemetry_slope_multiplier="${velocity_telemetry_slope_adjustment}"/>
 
 		<xacro:blcmd_interpreted_board blcmd_id="2" blcmd_node_id="${BLW_BLCMD_NODE_ID}" joint_name="blw"
 		   reversed="True"
 		   clock_rate="${wheel_clock_rate}"
 		   revolution_pulses="${wheel_revolution_pulses}"
 		   min_interval="${wheel_min_interval}"
-		   gear_ratio="${wheel_gear_ratio}"/>
+		   gear_ratio="${wheel_gear_ratio}"
+		   velocity_telemetry_slope_multiplier="${velocity_telemetry_slope_adjustment}"/>
 
 		<xacro:blcmd_interpreted_board blcmd_id="3" blcmd_node_id="${BRW_BLCMD_NODE_ID}" joint_name="brw"
 		   reversed="False"
 		   clock_rate="${wheel_clock_rate}"
 		   revolution_pulses="${wheel_revolution_pulses}"
 		   min_interval="${wheel_min_interval}"
-		   gear_ratio="${wheel_gear_ratio}"/>
+		   gear_ratio="${wheel_gear_ratio}"
+		   velocity_telemetry_slope_multiplier="${velocity_telemetry_slope_adjustment}"/>
 
 		<xacro:blcmd_interpreted_board blcmd_id="4" blcmd_node_id="${FRW_BLCMD_NODE_ID}" joint_name="frw"
 		   reversed="False"
 		   clock_rate="${wheel_clock_rate}"
 		   revolution_pulses="${wheel_revolution_pulses}"
 		   min_interval="${wheel_min_interval}"
-		   gear_ratio="${wheel_gear_ratio}"/>
-
+		   gear_ratio="${wheel_gear_ratio}"
+		   velocity_telemetry_slope_multiplier="${velocity_telemetry_slope_adjustment}"/>
 
 		<xacro:blcmd_interpreted_board blcmd_id="5" blcmd_node_id="${FLP_BLCMD_NODE_ID}" joint_name="flp"
 		   reversed="True"
@@ -63,6 +71,7 @@
 		   revolution_pulses="${pivot_revolution_pulses}"
 		   min_interval="${pivot_min_interval}"
 		   gear_ratio="${pivot_gear_ratio}"
+		   velocity_telemetry_slope_multiplier="${velocity_telemetry_slope_adjustment}"
 
 		   interpret_position="True"
 		   resolver_reduction="${resolver_reduction}"
@@ -75,6 +84,7 @@
 		   revolution_pulses="${pivot_revolution_pulses}"
 		   min_interval="${pivot_min_interval}"
 		   gear_ratio="${pivot_gear_ratio}"
+		   velocity_telemetry_slope_multiplier="${velocity_telemetry_slope_adjustment}"
 
 		   interpret_position="True"
 		   resolver_reduction="${resolver_reduction}"
@@ -87,6 +97,7 @@
 		   revolution_pulses="${pivot_revolution_pulses}"
 		   min_interval="${pivot_min_interval}"
 		   gear_ratio="${pivot_gear_ratio}"
+		   velocity_telemetry_slope_multiplier="${velocity_telemetry_slope_adjustment}"
 
 		   interpret_position="True"
 		   resolver_reduction="${resolver_reduction}"
@@ -99,6 +110,7 @@
 		   revolution_pulses="${pivot_revolution_pulses}"
 		   min_interval="${pivot_min_interval}"
 		   gear_ratio="${pivot_gear_ratio}"
+		   velocity_telemetry_slope_multiplier="${velocity_telemetry_slope_adjustment}"
 
 		   interpret_position="True"
 		   resolver_reduction="${resolver_reduction}"
