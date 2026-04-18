@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- messages associated with the taipan (new arm) system/payload (interpreted using blcmd_interpreted_board)  -->
+
+<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<!-- include board macros -->
+	<xacro:include filename="../boards/blcmd_interpreted.kcd.xacro"/>
+	<xacro:include filename="../boards/qcmd.kcd.xacro"/>
+
+	<xacro:macro name="taipan_interpreted_system">
+
+		<!-- shared constants -->
+
+		<xacro:property name="clock_rate" value="100000000"/>
+		<xacro:property name="revolution_pulses" value="8192"/>
+		<xacro:property name="res_ticks_per_rev" value="4096"/>
+
+		<!-- blcmd messages -->
+
+		<xacro:blcmd_interpreted_board blcmd_id="1" blcmd_node_id="${TAIPAN_J1_BLCMD_NODE_ID}" joint_name="taipan_j1"
+		   reversed="False"
+		   clock_rate="${clock_rate}"
+		   revolution_pulses="${revolution_pulses}"
+		   min_interval="233"
+		   gear_ratio="100.0"
+
+		   interpret_position="True"
+		   resolver_reduction="4"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="8192"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="2" blcmd_node_id="${TAIPAN_J2_BLCMD_NODE_ID}" joint_name="taipan_j2"
+		   reversed="False"
+		   clock_rate="${clock_rate}"
+		   revolution_pulses="${revolution_pulses}"
+		   min_interval="233"
+		   gear_ratio="100.0"
+
+		   interpret_position="True"
+		   resolver_reduction="5.375"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="11934"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="3" blcmd_node_id="${TAIPAN_J3_BLCMD_NODE_ID}" joint_name="taipan_j3"
+		   reversed="True"
+		   clock_rate="${clock_rate}"
+		   revolution_pulses="${revolution_pulses}"
+		   min_interval="233"
+		   gear_ratio="100.0"
+
+		   interpret_position="True"
+		   resolver_reduction="5.375"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="8217"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="4" blcmd_node_id="${TAIPAN_J4_BLCMD_NODE_ID}" joint_name="taipan_j4"
+		   reversed="False"
+		   clock_rate="${clock_rate}"
+		   revolution_pulses="${revolution_pulses}"
+		   min_interval="122"
+		   gear_ratio="8.0"
+
+		   interpret_position="True"
+		   resolver_reduction="4"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="8192"/>
+
+
+		<xacro:blcmd_interpreted_board blcmd_id="5" blcmd_node_id="${TAIPAN_J5_BLCMD_NODE_ID}" joint_name="taipan_j5"
+		   reversed="False"
+		   clock_rate="${clock_rate}"
+		   revolution_pulses="${revolution_pulses}"
+		   min_interval="122"
+		   gear_ratio="10.0"
+
+		   interpret_position="True"
+		   resolver_reduction="1.25"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="8192"/>
+
+		<xacro:blcmd_interpreted_board blcmd_id="6" blcmd_node_id="${TAIPAN_J6_BLCMD_NODE_ID}" joint_name="taipan_j6"
+		   reversed="False"
+		   clock_rate="${clock_rate}"
+		   revolution_pulses="${revolution_pulses}"
+		   min_interval="122"
+		   gear_ratio="10.0"
+
+		   interpret_position="True"
+		   resolver_reduction="1.25"
+		   res_ticks_per_rev="${res_ticks_per_rev}"
+		   zero_offset="8192"/>
+
+		<xacro:qcmd_board qcmd_node_id="${TAIPAN_QCMD_NODE_ID}"
+		   odd_qcmd_id="D"
+		   odd_motor_1_joint_name="motor_1_not_used"
+		   odd_motor_2_joint_name="motor_2_not_used"
+		   even_qcmd_id="C"
+		   even_motor_1_joint_name="taipan_end_effector_lead_left"
+		   even_motor_2_joint_name="taipan_linear_actuator"
+		   interpret="True"/>
+
+	</xacro:macro>
+</wrapper>

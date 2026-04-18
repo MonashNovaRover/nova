@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- messages sent to/from a qcmd -->
+<!-- if interpret = True, then all numbers will be scaled to a value between 0 and 1, inclusive -->
+
+<wrapper xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="qcmd_board" params="
+    qcmd_node_id
+
+    odd_qcmd_id
+    odd_motor_1_joint_name
+    odd_motor_2_joint_name
+
+    even_qcmd_id
+    even_motor_1_joint_name
+    even_motor_2_joint_name
+
+    interpret:=False
+    ">
+
+        <!-- constants -->
+
+        <xacro:if value="${interpret}">
+            <xacro:property name="signed_16_bit_integer_limit" value="${2**15 - 1}"/>
+            <xacro:property name="effort_command_slope" value="${1 / signed_16_bit_integer_limit}"/>
+
+            <xacro:property name="unsigned_7_bit_integer_limit" value="${2**7 - 1}"/>
+            <xacro:property name="set_current_limit_slope" value="${1 / unsigned_7_bit_integer_limit}"/>
+
+            <xacro:property name="unsigned_12_bit_integer_limit" value="${2**12 - 1}"/>
+            <xacro:property name="current_feedback_slope" value="${1 / unsigned_12_bit_integer_limit}"/>
+        </xacro:if>
+        <xacro:unless value="${interpret}">
+            <xacro:property name="effort_command_slope" value="1"/>
+            <xacro:property name="set_current_limit_slope" value="1"/>
+            <xacro:property name="current_feedback_slope" value="1"/>
+        </xacro:unless>
+
+        <!-- macros for repetitive consumer/producer tags -->
+
+        <xacro:macro name="consumer_qcmd">
+            <Consumer>
+                <NodeRef id="${qcmd_node_id}"/>
+            </Consumer>
+        </xacro:macro>
+        <xacro:macro name="producer_orin">
+            <Producer>
+                <NodeRef id="${ORIN_NODE_ID}"/>
+            </Producer>
+        </xacro:macro>
+        <xacro:macro name="consumer_orin">
+            <Consumer>
+                <NodeRef id="${ORIN_NODE_ID}"/>
+            </Consumer>
+        </xacro:macro>
+        <xacro:macro name="producer_qcmd">
+            <Producer>
+                <NodeRef id="${qcmd_node_id}"/>
+            </Producer>
+        </xacro:macro>
+
+        <!-- macro for messages to/from a single PIC on the QCMD (has 2 PICs) -->
+
+        <xacro:macro name="qcmd_pic_messages" params="
+            pic_id
+            motor_1_joint_name
+            motor_2_joint_name
+            ">
+
+            <!-- ping request and response -->
+
+            <Message id="0x0${pic_id}0" name="qcmd_pic_${pic_id}_ping_request">
+                <xacro:producer_orin/>
+            </Message>
+
+            <Message id="0x4${pic_id}0" name="qcmd_pic_${pic_id}_ping_response">
+                <xacro:producer_qcmd/>
+            </Message>
+
+            <!-- drive at effort -->
+
+            <Message id="0x0${pic_id}1" name="${motor_1_joint_name}_drive_at_effort">
+                <xacro:producer_orin/>
+                <Signal name="effort" offset="0" length="16" endianess="big">
+                    <xacro:consumer_qcmd/>
+                    <Value type="signed" slope="${effort_command_slope}" intercept="0" unit=""/>
+                </Signal>
+            </Message>
+
+            <Message id="0x0${pic_id}2" name="${motor_2_joint_name}_drive_at_effort">
+                <xacro:producer_orin/>
+                <Signal name="effort" offset="0" length="16" endianess="big">
+                    <xacro:consumer_qcmd/>
+                    <Value type="signed" slope="${effort_command_slope}" intercept="0" unit=""/>
+                </Signal>
+            </Message>
+
+            <!-- set current limits -->
+
+            <Message id="0x0${pic_id}3" name="${motor_1_joint_name}_set_current_limit">
+                <xacro:producer_orin/>
+                <Signal name="current_limit" offset="1" length="7" endianess="big">
+                    <xacro:consumer_qcmd/>
+                    <Value type="unsigned" slope="${set_current_limit_slope}" intercept="0" unit=""/>
+                </Signal>
+            </Message>
+
+            <Message id="0x0${pic_id}4" name="${motor_2_joint_name}_set_current_limit">
+                <xacro:producer_orin/>
+                <Signal name="current_limit" offset="1" length="7" endianess="big">
+                    <xacro:consumer_qcmd/>
+                    <Value type="unsigned" slope="${set_current_limit_slope}" intercept="0" unit=""/>
+                </Signal>
+            </Message>
+
+            <!-- qcmd telemetry -->
+
+            <Message id="0x4${pic_id}1" name="${motor_1_joint_name}_telemetry">
+                <xacro:producer_qcmd/>
+                <Signal name="snsout" offset="2" length="1" endianess="big">
+                    <xacro:consumer_orin/>
+                </Signal>
+                <Signal name="nfault" offset="3" length="1" endianess="big">
+                    <xacro:consumer_orin/>
+                </Signal>
+                <Signal name="current_feedback" offset="4" length="12" endianess="big">
+                    <xacro:consumer_orin/>
+                    <Value type="unsigned" slope="${current_feedback_slope}" intercept="0" unit=""/>
+                </Signal>
+            </Message>
+
+            <Message id="0x4${pic_id}2" name="${motor_2_joint_name}_telemetry">
+                <xacro:producer_qcmd/>
+                <Signal name="snsout" offset="2" length="1" endianess="big">
+                    <xacro:consumer_orin/>
+                </Signal>
+                <Signal name="nfault" offset="3" length="1" endianess="big">
+                    <xacro:consumer_orin/>
+                </Signal>
+                <Signal name="current_feedback" offset="4" length="12" endianess="big">
+                    <xacro:consumer_orin/>
+                    <Value type="unsigned" slope="${current_feedback_slope}" intercept="0" unit=""/>
+                </Signal>
+            </Message>
+
+        </xacro:macro>
+
+        <!-- include messages to/from both pics on qcmd -->
+
+        <xacro:qcmd_pic_messages pic_id="${odd_qcmd_id}"
+             motor_1_joint_name="${odd_motor_1_joint_name}"
+             motor_2_joint_name="${odd_motor_2_joint_name}"/>
+
+        <xacro:qcmd_pic_messages pic_id="${even_qcmd_id}"
+             motor_1_joint_name="${even_motor_1_joint_name}"
+             motor_2_joint_name="${even_motor_2_joint_name}"/>
+
+    </xacro:macro>
+</wrapper>
+
