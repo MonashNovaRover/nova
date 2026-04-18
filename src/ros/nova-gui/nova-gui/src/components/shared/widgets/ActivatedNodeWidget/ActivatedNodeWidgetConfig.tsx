@@ -7,26 +7,24 @@ export interface ActivatedNodeConfig {
   icon: ReactNode
 }
 
-// Note that PC2 nodes names are in snake_case whereas PC node names are in PascalCase
-
 export const URCActivatedNodeConfig: ActivatedNodeConfig[] = [
   {
-    name: "Auger1",
+    name: "auger_left",
     displayName: "Left Auger",
     icon: <ArrowDownLeft/>,
   },
   {
-    name: "Auger2",
+    name: "auger_right",
     displayName: "Right Auger",
     icon: <ArrowDownRight/>,
   },
   {
-    name: "CBeam",
+    name: "cbeam",
     displayName: "C Beam",
     icon: <Pocket/>,
   },
   {
-    name: "AnalysisArm",
+    name: "analysis_arm",
     displayName: "Analysis Arm",
     icon: <Search/>,
   },

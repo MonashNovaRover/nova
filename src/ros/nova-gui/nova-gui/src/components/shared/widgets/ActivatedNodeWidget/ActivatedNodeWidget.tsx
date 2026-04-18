@@ -39,7 +39,7 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
         setCurrentStatus(currentStatus.map((v, i) => i === index ? activeStatusMessage.active : v))
       }
     })
-  }, [activeStatusMessage, setCurrentStatus, props.config]);
+  }, [activeStatusMessage, currentStatus, setCurrentStatus, props.config]);
 
   // Message to show when locked
   const lockedMessage = (
