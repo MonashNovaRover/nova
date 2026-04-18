@@ -9,7 +9,7 @@ periscope_camera_info_publisher:
     hfov: 61.3727248
     image_width: 640 #1280
     image_height: 480 #720
-    distortion_matrix: [0.59680899,-2.13821558,-0.01071933,0.0900803,4.94332294]
+    distortion_matrix: [0.0, 0.0, 0.0, 0.0, 0.0]
 
 keyboard_localiser:
   ros__parameters:
@@ -30,11 +30,7 @@ keyboard_localiser:
     hfov: 61.3727248
     image_width: 640 #1280
     image_height: 480 #720
-    distortion_matrix: [0.59680899,-2.13821558,-0.01071933,0.0900803,4.94332294]
-
-    # OpenCV filter params
-    dark_threshold: 120 # 0-255
-    kernel_size: 100
+    distortion_matrix: [0.0, 0.0, 0.0, 0.0, 0.0]
 
     # ArUco marker params
     aruco_topic: /aruco_detections
