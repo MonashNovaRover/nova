@@ -4,6 +4,7 @@
   pythonPackages,
   launch,
   launch-ros,
+  nova-interfaces
 }:
 
 buildRosPackage {
@@ -21,6 +22,7 @@ buildRosPackage {
   propagatedBuildInputs = [
     launch
     launch-ros
+    nova-interfaces
   ] ++ (with pythonPackages; [
     pymavlink
   ]);

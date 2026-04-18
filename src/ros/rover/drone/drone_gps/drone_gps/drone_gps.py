@@ -21,7 +21,7 @@ EDITED:         15/4/2026
 import rclpy
 from rclpy.node import Node
 from pymavlink import mavutil
-from sensor_msgs.msg import NavSatFix
+from nova_interfaces.msg import GPSData
 
 class DroneGPS(Node):
     DEVICE_PARAM = "device"
@@ -46,7 +46,7 @@ class DroneGPS(Node):
             baud=self.get_parameter(self.BAUD_PARAM).value)
         
         # add publishers
-        self.gps_publisher = self.create_publisher(NavSatFix, '/drone_gps/fix', 10)
+        self.gps_publisher = self.create_publisher(GPSData, '/drone_gps/fix', 10)
         
         # create a timer
         self.PERIOD = 0.5
@@ -66,13 +66,22 @@ class DroneGPS(Node):
     def get_gps(self, msg):
         if (not self.gps_connected):
             self.get_logger().info(f"{self.get_name()} Fetching GPS...")
-            location = self.connection.location()
+            pos_msg = self.connection.recv_match(type="GLOBAL_POSITION_INT")
             self.gps_connected = True
             self.get_logger().info(f"{self.get_name()} GPS connected")
         else:
-            location = self.connection.location()
+            pos_msg = self.connection.recv_match(type="GLOBAL_POSITION_INT")
         
-        msg.latitude, msg.longitude, msg.altitude = location.lat, location.lng, location.alt
+        # Position
+        msg.latitude = pos_msg.lat / 1e7
+        msg.longitude = pos_msg.lon / 1e7
+        msg.altitude = pos_msg.relative_alt / 1000.0
+
+        if pos_msg.hdg == 65535:
+            msg.heading = -1.0
+        else:
+            msg.heading = pos_msg.hdg / 100.0
+
 
     def update(self, delta_time):
         if (not self.connected):
@@ -80,17 +89,25 @@ class DroneGPS(Node):
                 return
 
         # Construct the message you want to send
-        msg = NavSatFix()
+        msg = GPSData()
             
         self.get_gps(msg)
         
         # Publish the message
         self.gps_publisher.publish(msg)
 
+    def destroy_node(self):
+        try:
+            self.connection.close()
+        except Exception:
+            pass
+        super().destroy_node()
+
 def main():
     rclpy.init()
     node = DroneGPS()
     rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
