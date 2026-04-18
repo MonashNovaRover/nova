@@ -23,7 +23,7 @@ jobs:
       # Option 1 - will run eslint over the whole project and display all issues
       - name: yarn lint
         working-directory: src/ros/nova-gui/nova-gui
-        run: yarn lint
+        run: yarn lint:ci
 
       # Option 2 - will only display issues that were generated from the raised PR
 #      - uses: reviewdog/action-eslint@v1
