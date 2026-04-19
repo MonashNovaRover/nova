@@ -22,7 +22,7 @@ def launch_setup(context, *args, **kwargs):
     return [
         Node(
             package='drone_gps',
-            executable='gps.py',
+            executable='drone_gps.py',
             name='drone_gps',
             output='screen',
             parameters=[{'use_sim_time': sim}],

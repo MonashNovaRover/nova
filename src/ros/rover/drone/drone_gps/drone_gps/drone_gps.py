@@ -3,13 +3,13 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: connect to MAVLink UDP port opened by MAVProxy.
 Use this connection to read location (lat, long, alt) from
-the drone and publish this to ros2 topic /drone_gps/fix
+the drone and publish this to ros2 topic /gps_drone/fix_custom
 so that the cartographer can read this and add the
 drone to the GUI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: drone_gps
+NODE: gps_drone
 TOPICS:
-  - publisher: /drone_gps/fix [NavSatFix]
+  - publisher: /gps_drone/fix_custom [GPSData]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        drone
 AUTHOR(S):      Henry Law, Victor Bartlinski
@@ -30,7 +30,7 @@ class DroneGPS(Node):
 
 
     def __init__(self):
-        super().__init__("DroneGPS")
+        super().__init__("gps_drone")
         
         # define variables
         self.connected = False
@@ -46,7 +46,7 @@ class DroneGPS(Node):
             baud=self.get_parameter(self.BAUD_PARAM).value)
         
         # add publishers
-        self.gps_publisher = self.create_publisher(GPSData, '/drone_gps/fix', 10)
+        self.gps_publisher = self.create_publisher(GPSData, '/gps_drone/fix_custom', 10)
         
         # create a timer
         self.PERIOD = 0.5
