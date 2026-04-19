@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useLayoutEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {Button, Card, CardBody, CardHeader, Tooltip} from "@nextui-org/react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
@@ -27,6 +27,7 @@ function numsToBlobContent(data: number[]) {
   return [ab]
 }
 
+export type AngleType = {low: number, high: number}
 
 const Theta360CamWidget: React.FC = () => {
   const bifrost = useBifrost({
@@ -34,7 +35,10 @@ const Theta360CamWidget: React.FC = () => {
     service: RosService.THETA_360_CAM_CAPTURE,
   });
 
-  const imageMessage = useSelector((state: RootState) => state.theta360CamStore);
+  const imageMessage = {
+    data: useSelector((state: RootState) => state.theta360CamStore.data),
+    format: useSelector((state: RootState) => state.theta360CamStore.format),
+  };
   //const imageRef = useRef<HTMLImageElement>(new Image(5376, 2388));
   //const imageRef = useRef<HTMLVideoElement>(null);
   //useWebcam(imageRef);
@@ -42,14 +46,10 @@ const Theta360CamWidget: React.FC = () => {
   //const image = useImageTexture(monkey);
 
   // const imageRef = useRef<HTMLImageElement>(null);\
-  const [image, setImage] = useState<HTMLImageElement>(() => new Image())
-  const [angles, setAngles] = useState([0, 0]);
+  const image = new Image();
+  image.src= imageMessage.data.length !== 0 ? `data:image/${imageMessage.format};base64,` + imageMessage.data : monkey;
 
-  const url = monkey;
-
-  useLayoutEffect(() => {
-    image.src = url;
-  }, []);
+  const [angles, setAngles] = useState({low: 0, high: 0});
 
   // Used to select between perspective and panoramic canvases
   const [canvasIndex, setCanvasIndex] = useState<number>(0);
@@ -60,14 +60,9 @@ const Theta360CamWidget: React.FC = () => {
 
   // Update the image to contain the data from imageData whenever it changes
   // TODO: Test this, and performance test to ensure no unnecessary re-renders
-  useEffect(() => {
-    if (imageMessage.data.length == 0)
-      return;
-
-    const newImage = new Image();
-    newImage.src = `data:image/${imageMessage.format};base64,` + imageMessage.data;
-    setImage(newImage);
-  }, [imageMessage]);
+  // To test this use this command: 
+  //  mros2 run image_publisher image_publisher_node /mnt/c/Users/Anthony/Pictures/universetemple.jpg --ros-args -r /image_raw/compressed:=/science/theta360cam/image
+  // This runs master build ros2's image_publisher node which the image u specify and the compressed topic remapped to the theta360cam topic
 
   // When called, will capture a new image
   const capture = useCallback(() => {
@@ -123,10 +118,3 @@ const Theta360CamWidget: React.FC = () => {
 }
 
 export default Theta360CamWidget;
-
-
-
-
-
-
-

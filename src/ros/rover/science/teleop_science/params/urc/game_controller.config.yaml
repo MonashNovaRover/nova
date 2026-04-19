@@ -75,3 +75,7 @@ game_controller_source:
           from: "DPAD_LEFT"
         auger_drill:
           from: "DPAD_DOWN"
+        activate_auger_left:
+          from: "DPAD_DOWN"
+        activate_auger_right:
+          from: "DPAD_RIGHT"

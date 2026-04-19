@@ -36,6 +36,7 @@ const RawAutosizedGLCanvas: React.FC<AutosizedGLCanvasPros> = (props) => {
     </div>
   );
 
+  /* eslint-disable react-hooks/refs */
   const canvasContainer = (
     <div className={"absolute top-0 left-0 right-0 bottom-0 overflow-hidden " + (drawChildrenBelow ? "z-10" : "")}>
       <canvas ref={gl.canvasRef} {...canvasProps}
@@ -43,6 +44,8 @@ const RawAutosizedGLCanvas: React.FC<AutosizedGLCanvasPros> = (props) => {
               />
     </div>
   );
+  // i couldnt figure out how to fix the "Error: Cannot access refs during render" linting error for gl.canvasRef
+  /* eslint-enable react-hooks/refs */
 
   return (
     <div className={"relative overflow-hidden " + className + (drawChildrenBelow ? "flex flex-col-reverse" : "" )}>

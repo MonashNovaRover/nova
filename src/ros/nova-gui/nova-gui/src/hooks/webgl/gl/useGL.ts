@@ -10,6 +10,7 @@ const useGL_aux = (): GLState => {
   if (gl.current === undefined)
     gl.current = new GLState(canvasRef);
 
+  // eslint-disable-next-line react-hooks/refs
   return gl.current!;
 }
 
@@ -32,6 +33,7 @@ const useGL = (webContextAttributes?: WebGLContextAttributes )
 
     // Add event listeners to the canvas element
 
+    // eslint-disable-next-line react-hooks/immutability
     gl.context = gl.canvasRef.current.getContext("webgl2", {
       ...webContextAttributes,
     }) ?? undefined;

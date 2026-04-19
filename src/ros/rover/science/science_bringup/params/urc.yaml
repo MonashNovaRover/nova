@@ -5,18 +5,33 @@
 
 # Analysis Arm - Nodes for components on the analysis arm
 
-time_of_flight_sensor:
+analysis_arm:
   ros__parameters:
     can_bus: "can1"
-    update_rate: 3
+    active: false
+    active_button: "activate_analysis_arm"
+    inactive_button_pool: [ "activate_cbeam" ]
     controllers:
       controller:
-        minimum_range: 10
-        maximum_range: 100
+        actuation_axis: "analysis_arm_actuation"
     hardware:
-      tof_sensor:
-        can_id: 0x4E1
-        unit: "distance"
+      actuation:
+        can_id: 0x032
+        max_effort: 1.0
+        reversed: false
+
+#time_of_flight_sensor:
+#  ros__parameters:
+#    can_bus: "can1"
+#    update_rate: 3
+#    controllers:
+#      controller:
+#        minimum_range: 10
+#        maximum_range: 100
+#    hardware:
+#      tof_sensor:
+#        can_id: 0x4E1
+#        unit: "distance"
 
 nir_probe:
   ros__parameters:
@@ -47,34 +62,34 @@ auger_left:
     inactive_button_pool: [ "activate_auger_right" ]
     hardware:
       actuation:
-        can_id: 0x031
+        can_id: 0x0D2
         max_effort: 1.0
         reversed: false
       drill:
-        can_id: 0x041
+        can_id: 0x0C2
         max_effort: 0.9
         reversed: false
 
 auger_right:
   ros__parameters:
     can_bus: "can1"
-    active: true
+    active: false
     active_button: "activate_auger_right"
     inactive_button_pool: [ "activate_auger_left" ]
     hardware:
       actuation:
-        can_id: 0x031
+        can_id: 0x0D1
         max_effort: 1.0
         reversed: false
       drill:
-        can_id: 0x041
+        can_id: 0x0C1
         max_effort: 0.9
         reversed: false
 
 cbeam:
   ros__parameters:
     can_bus: "can1"
-    active: false
+    active: true
     active_button: "activate_cbeam"
     inactive_button_pool: [ "activate_analysis_arm" ]
     controllers:
@@ -82,32 +97,31 @@ cbeam:
         actuation_axis: "cbeam_actuation"
     hardware:
       actuation:
-        can_id: 0x042
+        can_id: 0x041
         max_effort: 1.0
         reversed: false
 
-kiln:
+# Science Belly - Nodes for components in the belly
+
+
+# Science Belly - Nodes for components in the belly
+pumps:
   ros__parameters:
     can_bus: "can1"
-    update_rate: 5
+    update_rate: 10
     controllers:
       controller:
-        command_service: "/science/kiln_command"
-        data_topic: "/science/kiln_data"
-        temp_sensors: [ "kiln_sensor", "condenser_sensor" ]
-        heaters: [ "left_heater", "right_heater" ]
+        max_effort: 0.75
+        publish_rate: 5
     hardware:
-      kiln_sensor:
-        can_id: 0x4E1
-        unit: "temperature"
-      left_heater:
-        can_id: 0x0C1
-        max_effort: 1.0
-        reversed: false
-      right_heater:
-        can_id: 0x0D2
-        max_effort: 1.0
-        reversed: false
+      cache_to_shot_pump:
+        can_id: 0x000 #TODO: update all
+      shot_to_inner_pump:
+        can_id: 0x000
+      shot_to_outer_pump:
+        can_id: 0x000
+      shot_to_electrochem_pump:
+        can_id: 0x000
 
 # Misc - Nodes for misc components
 scimbal_cam:

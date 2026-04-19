@@ -35,10 +35,12 @@ import {
   IRosScienceInterfacesSetPositionPresetsResponse,
   IRosScienceInterfacesSetPositionRequest,
   IRosScienceInterfacesSetPositionResponse,
-  IRosScienceInterfacesPowerCycleRequest, 
+  IRosScienceInterfacesPowerCycleRequest,
   IRosScienceInterfacesPowerCycleResponse,
   IRosRclInterfacesSetParametersRequest,
   IRosRclInterfacesSetParametersResponse,
+  IRosScienceInterfacesRunPumpRequest,
+  IRosScienceInterfacesRunPumpResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -200,6 +202,14 @@ export interface RosServiceInterface {
   [RosService.POWER_CYCLE_SCIENCE]:  RosServiceMessage<
     IRosScienceInterfacesPowerCycleRequest,
     IRosScienceInterfacesPowerCycleResponse
+  >;
+  [RosService.PUMPS_RUN]: RosServiceMessage<
+    IRosScienceInterfacesRunPumpRequest,
+    IRosScienceInterfacesRunPumpResponse
+  >;
+  [RosService.PUMPS_STOP]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
   >;
 
   // General

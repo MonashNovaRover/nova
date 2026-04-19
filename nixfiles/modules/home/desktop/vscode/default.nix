@@ -15,12 +15,16 @@ in
   config = lib.mkIf cfg.enable {
     programs.vscode = {
       enable = true;
-      package = pkgs.vscodium;
+      package = pkgs.vscode;
       profiles.default = {
         enableUpdateCheck = false;
         enableExtensionUpdateCheck = false;
       };
       mutableExtensionsDir = false;
     };
+
+    dconf.settings."org/gnome/shell".favorite-apps = lib.mkAfter [
+      "code.desktop"
+    ];
   };
 }

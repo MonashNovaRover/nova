@@ -5,10 +5,10 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import roverIcon from "../../../../assets/rover-top-down-dark.png";
 import novaLogo from "../../../../assets/nova-logo.png";
-import { useEffect, useState } from "react";
+import { useEffect, useState, RefObject } from "react";
 import { MapInteractionMode } from "../../../../redux/models/CartographerState.ts";
 
-export const useCartographerMarkers = (map?: Map) => {
+export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
   const [roverMarker, setRoverMarker] = useState<Marker>();
   const [baseMarker, setBaseMarker] = useState<Marker>();
 
@@ -44,7 +44,7 @@ export const useCartographerMarkers = (map?: Map) => {
   );
 
   useEffect(() => {
-    if (!map){
+    if (!mapRef.current){
       setBaseMarker(undefined);
       return;
     } 
@@ -57,7 +57,7 @@ export const useCartographerMarkers = (map?: Map) => {
         baseLocationStore.longitude,
         baseLocationStore.latitude,
       ]);
-      marker.addTo(map);
+      marker.addTo(mapRef.current);
       setBaseMarker(marker);
     } else {
       baseMarker.setLngLat([
@@ -69,11 +69,11 @@ export const useCartographerMarkers = (map?: Map) => {
     baseLocationStore.latitude,
     baseLocationStore.longitude,
     baseMarker,
-    map,
+    mapRef,
   ]);
 
   useEffect(() => {
-    if (!map) {
+    if (!mapRef.current) {
       setRoverMarker(undefined);
       return;
     }
@@ -83,16 +83,16 @@ export const useCartographerMarkers = (map?: Map) => {
         element: createRoverIcon(),
       });
       marker.setLngLat([roverLocation.longitude, roverLocation.latitude]);
-      marker.addTo(map);
+      marker.addTo(mapRef.current);
       setRoverMarker(marker);
     } else {
       roverMarker.setLngLat([roverLocation.longitude, roverLocation.latitude]);
     }
-  }, [map, roverLocation.latitude, roverLocation.longitude, roverMarker]);
+  }, [mapRef, roverLocation.latitude, roverLocation.longitude, roverMarker]);
 
   // Syncs Markers
   useEffect(() => {
-    if (!map) {
+    if (!mapRef.current) {
       setPointMarkers([])
       return;
     }
@@ -127,7 +127,7 @@ export const useCartographerMarkers = (map?: Map) => {
             ? `${point.name} ( ${point.labelName} )`
             : `${point.name}`)
         )
-        .addTo(map)
+        .addTo(mapRef.current!)
         .togglePopup();
       return marker;
     });
@@ -142,11 +142,11 @@ export const useCartographerMarkers = (map?: Map) => {
     console.log("Removed Point Markers", removedPointMarkers)
     console.log("New Point Markers", newMarkers)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, points]);
+  }, [mapRef, points]);
 
   useEffect(() => {
-    if (!map) return;
-    const canvas = map.getCanvas();
+    if (!mapRef.current) return;
+    const canvas = mapRef.current.getCanvas();
     switch (mapInteractionMode) {
       case MapInteractionMode.PAN:
         canvas.style.cursor = "pointer";
@@ -159,7 +159,7 @@ export const useCartographerMarkers = (map?: Map) => {
       default:
         break;
     }
-  }, [map, mapInteractionMode]);
+  }, [mapRef, mapInteractionMode]);
 };
 
 const createRoverIcon = () => {

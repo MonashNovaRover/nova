@@ -12,6 +12,7 @@ const useEffectQueue = <T extends unknown[]>() : EffectQueue<T> => {
 
   // Since we never reassign the queueRef, we can return the .current value directly, as it never changes.
   // https://dev.to/thoughtspile/can-we-useref-but-without-the-current-lets-try-4mam
+  // eslint-disable-next-line react-hooks/refs
   return queueRef.current!;
 }
 

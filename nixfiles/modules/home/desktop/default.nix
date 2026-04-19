@@ -11,6 +11,7 @@ in
     ./fonts.nix
     ./keybindings.nix
     ./shortcuts.nix
+    ./slack.nix
     ./terminal.nix
     ./vscode
   ];

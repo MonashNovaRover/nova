@@ -9,6 +9,7 @@ function useProgram_aux(gl: GLState, vert: string, frag: string, options: GLProg
   if (programRef.current === undefined)
     programRef.current = new GLProgramState(gl, vert, frag, options);
 
+  // eslint-disable-next-line react-hooks/refs
   return programRef.current!;
 }
 
@@ -30,16 +31,19 @@ export default function useProgram(gl: GLState, vert: string, frag: string, opti
   const program = useProgram_aux(gl, vert, frag, filledOptions);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     program.vertexCount = filledOptions.vertexCount;
     program.queue.push(); // Trigger a re-render
   }, [filledOptions.vertexCount, program]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     program.vertexFirst = filledOptions.vertexFirst;
     program.queue.push(); // Trigger a re-render
   }, [filledOptions.vertexFirst, program]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     program.drawMode = filledOptions.drawMode;
   }, [filledOptions.drawMode, program]);
 

@@ -17,7 +17,7 @@ in
       ];
 
       userSettings = {
-        "cmake.configureOnOpen" = true;
+        "cmake.configureOnOpen" = false;
       };
     };
   };

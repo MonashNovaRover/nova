@@ -7,4 +7,5 @@ string name
 bool active
 
 # locked status
+# [DEPRECATED] please get locked status from teleop
 bool locked

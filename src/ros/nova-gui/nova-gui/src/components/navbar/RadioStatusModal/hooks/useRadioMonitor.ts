@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { useSelector } from "react-redux";
 
 import { RootState } from "../../../../redux/RootState.ts";
@@ -24,7 +24,7 @@ export function useRadioMonitor(monitorTimeout: number = MONITOR_TIMEOUT): Radio
   const [health, setHealth] = useState(RadioConnectionStatus.STARTING);
   const [updateTime, setUpdateTime] = useState<number | null>(null);
 
-  useEffect(() => {
+  useEffectEvent(() => {
     // Check if we've received any data yet
     if (!radioStatus.stamp) {
       setHealth(RadioConnectionStatus.STARTING);
@@ -48,7 +48,7 @@ export function useRadioMonitor(monitorTimeout: number = MONITOR_TIMEOUT): Radio
     // Strong
     setHealth(RadioConnectionStatus.STRONG);
 
-  }, [radioStatus]);
+  });
 
   // Check whether monitor is still publishing data 
   useEffect(() => {

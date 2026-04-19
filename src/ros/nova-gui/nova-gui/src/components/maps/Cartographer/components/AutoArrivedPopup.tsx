@@ -22,11 +22,13 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
     bifrost.syncWithTopic()
   }, [bifrost]);
 
+  if (autoStatus === IRosNovaInterfacesStatusConst.ARRIVED_SUCCESSFULLY && lastStatus != autoStatus) {
+    setArrivedLocation(roverLocation)
+    setIsOpen(true)
+    setLastStatus(autoStatus)
+  }
+
   useEffect(() => {
-    if (autoStatus === IRosNovaInterfacesStatusConst.ARRIVED_SUCCESSFULLY && lastStatus != autoStatus) {
-      setArrivedLocation(roverLocation)
-      setIsOpen(true)
-    }
     setLastStatus(autoStatus)
   }, [autoStatus]);
 

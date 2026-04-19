@@ -1,8 +1,7 @@
 import {FC, memo, useMemo} from "react";
 import {BaseCameraComponentProps, CameraComponent} from "../../../components/cameras/CameraComponent/CameraComponent.tsx";
-import {CameraSerials} from "./CameraPageConstants.tsx";
+import {CameraSerials} from "./CameraViewConstants.tsx";
 import BarOverlayedCameraComponent from "../../../components/cameras/CameraComponent/special/BarOverlayedCameraComponent.tsx";
-//import KeyboardOverlayedCameraComponent from "../../../components/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
 import {
   GimbalOverlayedCameraComponent
 } from "../../../components/cameras/CameraComponent/special/GimbalOverlayedCameraComponent.tsx";
@@ -10,8 +9,6 @@ import DriveCameraComponent from "../../../components/cameras/CameraComponent/sp
 import WheelTelemetryCameraComponent
   from "../../../components/cameras/CameraComponent/special/WheelTelemetryCameraComponent.tsx";
 import SiteSelectCameraComponent from "../../../components/cameras/CameraComponent/special/SiteSelectCameraComponent.tsx";
-import ActivatedNodesCameraComponent
-  from "../../../components/cameras/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
 import DepthSensor
   from "../../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
 import MicroscopeScaleOverlayedCameraComponent
@@ -22,6 +19,10 @@ import DriveControlCameraComponent
   from "../../../components/cameras/CameraComponent/special/DriveControlCameraComponent.tsx";
 import ScienceCombinedCameraComponent
   from "../../../components/cameras/CameraComponent/special/ScienceCombinedCameraComponent.tsx";
+import ActivatedNodesCameraComponent from "../../../components/cameras/CameraComponent/special/ActivatedNodesCameraComponent.tsx";
+import {
+  ARCActivatedNodeConfig, URCActivatedNodeConfig
+} from "../../../components/shared/widgets/ActivatedNodeWidget/ActivatedNodeWidgetConfig.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
@@ -31,10 +32,11 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.DRIVE_TELEMETRY]: DriveCameraComponent,
   [CameraSerials.DRIVE_CONTROL]: DriveControlCameraComponent,
   [CameraSerials.SITE_SELECT]: SiteSelectCameraComponent,
-  [CameraSerials.URC_ACTIVATED_NODES]: ActivatedNodesCameraComponent,
+  [CameraSerials.URC_ACTIVATED_NODES]: ActivatedNodesCameraComponent(URCActivatedNodeConfig),
   [CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS]: DepthSensor,
   [CameraSerials.SCIENCE_MICROSCOPE]: MicroscopeScaleOverlayedCameraComponent,
   [CameraSerials.SCIENCE_POWER_CYCLE]: PowerCycleCameraComponent,
+  [CameraSerials.ARC_ACTIVATED_NODES]: ActivatedNodesCameraComponent(ARCActivatedNodeConfig),
   [CameraSerials.SCIENCE_COMBINED]: ScienceCombinedCameraComponent,
 }
 
@@ -47,6 +49,7 @@ const cameraSerialToComponent: (serial: string) => FC<BaseCameraComponentProps> 
 
 const SerialMappedCameraComponentUnmemoed: FC<BaseCameraComponentProps> = (props) => {
   const SerialMappedComponent = useMemo(() => cameraSerialToComponent(props.cameraSerial), [props.cameraSerial]);
+  // eslint-disable-next-line react-hooks/static-components
   return <SerialMappedComponent {...props}></SerialMappedComponent>
 }
 

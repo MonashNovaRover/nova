@@ -9,6 +9,7 @@ import {
   IRosScienceInterfacesKilnData,
   IRosScienceInterfacesNirProbeData,
   IRosScienceInterfacesMicroscopeServoInfo,
+  IRosScienceInterfacesPumpStatus,
   IRosScienceInterfacesRamanSpectrum,
   IRosStdMsgsString,
   IRosStdMsgsBool,
@@ -27,6 +28,7 @@ import {
   IRosScienceInterfacesEffortStatus,
   IRosSensorMsgsJointState,
   IRosStdMsgsFloat64,
+  IRosNovaInterfacesLockedStatus,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -75,6 +77,7 @@ export interface RosTopicInterfaces {
   [RosTopic.AUGER1_DEPTH_SENSOR]: IRosStdMsgsBool;
   [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
   [RosTopic.TOOL_ROTATOR_ANGLE]: IRosStdMsgsFloat64;
+  [RosTopic.PUMPS_STATUS]: IRosScienceInterfacesPumpStatus;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
@@ -88,4 +91,5 @@ export interface RosTopicInterfaces {
   [RosTopic.BATTERY_STATE]: IRosSensorMsgsBatteryState;
   [RosTopic.ACTIVATED_NODES]: IRosNovaInterfacesActiveNodeStatus;
   [RosTopic.RADIO_STATUS]: IRosNovaInterfacesRadioStatus;
+  [RosTopic.LOCKED_STATUS]: IRosNovaInterfacesLockedStatus;
 }

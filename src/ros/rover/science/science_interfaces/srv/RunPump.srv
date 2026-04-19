@@ -1,0 +1,7 @@
+# Request
+string pump
+float32 duration
+---
+# Response
+bool success
+string message

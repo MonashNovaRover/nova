@@ -7,11 +7,13 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint .",
+    "lint:ci": "eslint . --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/react": "^0.3.2",
     "@dnd-kit/sortable": "^10.0.0",
     "@eslint/js": "^10.0.1",
     "@maptiler/sdk": "^3.11.0",

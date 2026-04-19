@@ -11,13 +11,21 @@ teleop_science:
     control_modes:
       names: [
         # First in the list gets activated at startup
-        "input_publisher_mode"
+        "input_publisher_mode",
+        "locked_publisher"
       ]
 
       # Declare types for the modes
+      # Publishes input from teleop
       input_publisher_mode:
         display_name: "Input Publisher Control Mode"
         type: "input_publisher_mode/InputPublisherMode"
+        active: true
+
+      # Publishes the current locked status
+      locked_publisher:
+        display_name: "Locked Status Publisher"
+        type: "locked_publisher/LockedPublisher"
         active: true
 
     # Add lock and unlock commands
@@ -48,6 +56,10 @@ teleop_science:
         on: "locked/up"
         type: log
         message: "Unlocked"
+
+locked_publisher:
+  ros__parameters:
+    topic: "/locked_status"
 
 input_publisher_mode:
   ros__parameters:

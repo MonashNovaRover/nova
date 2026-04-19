@@ -46,6 +46,7 @@ export enum RosTopic {
   AUGER1_DEPTH_SENSOR = "/science/auger_depth/Auger1",
   AUGER2_DEPTH_SENSOR = "/science/auger_depth/Auger2",
   TOOL_ROTATOR_ANGLE = "/science/tool_rotator/position",
+  PUMPS_STATUS = "/science/pumps/status",
 
   // Mapping Related Topics
   ROVER_LOCATION = "/gps_rover/fix",
@@ -55,5 +56,6 @@ export enum RosTopic {
   // Other Topics
   BATTERY_STATE = "/battery_state",
   ACTIVATED_NODES = "/activated_nodes",
-  RADIO_STATUS = "/chassis/radio_status"
+  RADIO_STATUS = "/chassis/radio_status",
+  LOCKED_STATUS = "/locked_status",
 }

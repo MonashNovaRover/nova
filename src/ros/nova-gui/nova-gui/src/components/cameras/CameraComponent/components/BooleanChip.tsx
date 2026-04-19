@@ -33,7 +33,7 @@ export const BooleanChip = (props: BooleanChip) => {
     <Chip
       variant={variant}
       size={size}
-      className="rounded-md"
+      className="rounded-md text-white"
       color={boolean ? trueColor : falseColor}
     >
       {boolean ? trueText : falseText}

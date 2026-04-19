@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PeerMessage, ServerMessage } from "./serverMessages.ts";
 import useWebSocket from "react-use-websocket";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../../redux/RootState.ts";
+import { RootState } from "../../../redux/RootState.ts";
 import toast from "react-hot-toast";
 
 export enum StreamingState {

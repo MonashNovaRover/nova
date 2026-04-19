@@ -1,5 +1,5 @@
 import { GeoJSONSource, Map } from "@maptiler/sdk";
-import { useEffect, useState } from "react";
+import { useEffect, useState, RefObject } from "react";
 // import { useLocalStorage } from "../../nir-probe/hooks/useLocalStorage";
 import { MapCoordinate } from "../../../../redux/models/CartographerState.ts";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
@@ -9,7 +9,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { getLineGeoJSONData } from "../utils/geojson.ts";
 import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
 
-export const useCartographerTracking = (map?: Map) => {
+export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
   //   const [trace, setTrace] = useLocalStorage<MapCoordinate[]>("roverTrace", []);
   const [trace, setTrace] = useState<MapCoordinate[]>([]);
 
@@ -47,41 +47,41 @@ export const useCartographerTracking = (map?: Map) => {
   }, [deBouncedRoverLocation.latitude, deBouncedRoverLocation.longitude]);
 
   useEffect(() => {
-    if (!map || trackRover) return;
-    const source = map.getSource("trace") as GeoJSONSource;
+    if (!mapRef.current || trackRover) return;
+    const source = mapRef.current.getSource("trace") as GeoJSONSource;
     if (!source) return;
 
     source.setData(getLineGeoJSONData([]));
-  }, [trackRover, map]);
+  }, [trackRover, mapRef]);
 
   useEffect(() => {
-    if (!map) return;
-    const source = map.getSource("trace") as GeoJSONSource;
+    if (!mapRef.current) return;
+    const source = mapRef.current.getSource("trace") as GeoJSONSource;
     if (!source) return;
 
     source.setData(getLineGeoJSONData(trace));
-  }, [trace, map]);
+  }, [trace, mapRef]);
 
   // Measure Line Augmentation
   useEffect(() => {
-    if (!map) return;
-    const source = map.getSource("measureLine") as GeoJSONSource;
+    if (!mapRef.current) return;
+    const source = mapRef.current.getSource("measureLine") as GeoJSONSource;
     if (!source) return;
     if (measure.from && measure.to) {
       source.setData(getLineGeoJSONData([measure.from, measure.to]));
     } else {
       source.setData(getLineGeoJSONData([]));
     }
-  }, [measure, map]);
+  }, [measure, mapRef]);
 
   // Rover Centering
   useEffect(() => {
-    if (!map) return;
+    if (!mapRef.current) return;
     if (centerOnRover) {
-      map.setCenter([
+      mapRef.current.setCenter([
         deBouncedRoverLocation.longitude,
         deBouncedRoverLocation.latitude,
       ]);
     }
-  }, [centerOnRover, deBouncedRoverLocation, map]);
+  }, [centerOnRover, deBouncedRoverLocation, mapRef]);
 };
