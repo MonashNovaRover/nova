@@ -14,4 +14,5 @@ with pkgs;
   teleop-turtle = callPackage ./teleop_turtle { };
 }
 // import ./arm_controllers { inherit pkgs; }
+// import ./arm_controllers_old { inherit pkgs; }
 // import ./arm_control_modes { inherit pkgs; }

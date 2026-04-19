@@ -18,7 +18,7 @@ CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command, IfElseSubstitution
 from launch.conditions import UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -33,6 +33,7 @@ def launch_setup(context, *args, **kwargs):
     angle = LaunchConfiguration('angle')
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
+    legacy_controllers = LaunchConfiguration('legacy_controllers')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     arm = LaunchConfiguration('arm').perform(context)
@@ -40,6 +41,11 @@ def launch_setup(context, *args, **kwargs):
     use_local_mesh = LaunchConfiguration('use_local_mesh')
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
     robot_name = LaunchConfiguration('robot_name')
+    path_planner_controller_name = IfElseSubstitution(
+        condition=legacy_controllers,
+        if_value='nova_path_planner_old',
+        else_value='nova_path_planner',
+    )
 
     return [
         # Node( # TODO: only when arm is enabled
@@ -50,7 +56,7 @@ def launch_setup(context, *args, **kwargs):
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_path_planner', '--inactive'],
+            arguments=[path_planner_controller_name, '--inactive'],
         ),
         Node(
             package='robot_state_publisher',
@@ -94,8 +100,17 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'controllers.yaml']),
+            default_value=IfElseSubstitution(
+                condition=LaunchConfiguration('legacy_controllers'),
+                if_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'old.controllers_old.yaml']),
+                else_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'old.controllers.yaml']),
+            ),
             description='Absolute path to controller params file',
+        ),
+        DeclareLaunchArgument(
+            name='legacy_controllers',
+            default_value='False',
+            description='Use the preserved _old controller stack.',
         ),
         DeclareLaunchArgument(
             name='gazebo',

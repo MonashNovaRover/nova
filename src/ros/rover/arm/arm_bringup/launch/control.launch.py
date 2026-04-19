@@ -44,6 +44,7 @@ def launch_setup(context, *args, **kwargs):
 
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
+    legacy_controllers = LaunchConfiguration('legacy_controllers')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     arm = LaunchConfiguration('arm').perform(context)
@@ -53,6 +54,26 @@ def launch_setup(context, *args, **kwargs):
     urdf = LaunchConfiguration('urdf')
     rviz = LaunchConfiguration('rviz').perform(context)
     fixed_frame = 'base_link'
+    arm_velocity_controller_name = IfElseSubstitution(
+        condition=legacy_controllers,
+        if_value='nova_arm_velocity_controller_old',
+        else_value='nova_arm_velocity_controller',
+    )
+    arm_position_controller_name = IfElseSubstitution(
+        condition=legacy_controllers,
+        if_value='nova_arm_position_controller_old',
+        else_value='nova_arm_position_controller',
+    )
+    end_effector_velocity_controller_name = IfElseSubstitution(
+        condition=legacy_controllers,
+        if_value='nova_end_effector_velocity_controller_old',
+        else_value='nova_end_effector_velocity_controller',
+    )
+    twistmapper_controller_name = IfElseSubstitution(
+        condition=legacy_controllers,
+        if_value='nova_twistmapper_old',
+        else_value='nova_twistmapper',
+    )
 
     show_colours_additional_env = {
         # Show colors in the terminal output
@@ -82,19 +103,19 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
+                    arguments=[arm_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive', "-c", "/arm/controller_manager"],
+                    arguments=[arm_position_controller_name, twistmapper_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_end_effector_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
+                    arguments=[end_effector_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 IncludeLaunchDescription(
@@ -193,8 +214,17 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
+            default_value=IfElseSubstitution(
+                condition=LaunchConfiguration('legacy_controllers'),
+                if_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers_old.yaml']),
+                else_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
+            ),
             description='Absolute path to controller params file',
+        ),
+        DeclareLaunchArgument(
+            name='legacy_controllers',
+            default_value='False',
+            description='Use the preserved _old controller stack.',
         ),
         DeclareLaunchArgument(
             name='gazebo',

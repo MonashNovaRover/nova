@@ -1,0 +1,204 @@
+# Legacy controllers for the new arm
+arm:
+  controller_manager:
+    ros__parameters:
+      update_rate: 20
+      use_sim_time: false
+
+      nova_arm_velocity_controller_old:
+        type: nova_arm_controller_old/NovaArmControllerOld
+
+      nova_arm_position_controller_old:
+        type: nova_arm_controller_old/NovaArmControllerOld
+
+      nova_end_effector_velocity_controller_old:
+        type: nova_arm_controller_old/NovaArmControllerOld
+
+      nova_twistmapper_old:
+        type: nova_twistmapper_old/NovaTwistmapperOld
+
+      nova_path_planner_old:
+        type: nova_path_planner_old/NovaPathPlannerOld
+
+      joint_state_broadcaster_arm:
+        type: joint_state_broadcaster/JointStateBroadcaster
+
+      joint_state_broadcaster_end_effector:
+        type: joint_state_broadcaster/JointStateBroadcaster
+
+  nova_arm_velocity_controller_old:
+    ros__parameters:
+      topic: "/arm/joint_velocity_command"
+      joint_names:
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
+      use_position_control: false
+      use_collision_limits: false
+      do_4bar: true
+      j2_minus_j3:
+        j2_idx: 1
+        j3_idx: 2
+        max_position: 0.8487
+        min_position: -1.0
+      velocity_feedback: true
+      position_feedback: true
+      use_limits: true
+      joint_limits:
+        j1:
+          has_position_limits: true
+          max_position: 1.57
+          min_position: -1.57
+        j2:
+          has_position_limits: true
+          max_position: 2.35
+          min_position: -1.6364
+        j3:
+          has_position_limits: true
+          max_position: 2.9
+          min_position: -0.6535
+        j4:
+          has_position_limits: true
+          max_position: 3.14
+          min_position: -3.14
+        j5:
+          has_position_limits: true
+          max_position: -0.1153
+          min_position: -2.44
+        j6:
+          has_position_limits: true
+          max_position: 6.0
+          min_position: -6.0
+
+  nova_arm_position_controller_old:
+    ros__parameters:
+      topic: "/arm/joint_position_command"
+      joint_names:
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
+      use_position_control: true
+      velocity_feedback: true
+      position_feedback: true
+      use_collision_limits: false
+      do_4bar: true
+      j2_minus_j3:
+        j2_idx: 1
+        j3_idx: 2
+        max_position: 0.8487
+        min_position: -1.0
+      use_limits: true
+      joint_limits:
+        j1:
+          has_position_limits: true
+          max_position: 1.57
+          min_position: -1.57
+          has_velocity_limits: true
+          max_velocity: 0.2
+        j2:
+          has_position_limits: true
+          max_position: 2.35
+          min_position: -1.6364
+          has_velocity_limits: true
+          max_velocity: 0.2
+        j3:
+          has_position_limits: true
+          max_position: 2.9
+          min_position: -0.6535
+          has_velocity_limits: true
+          max_velocity: 0.2
+        j4:
+          has_position_limits: true
+          max_position: 3.14
+          min_position: -3.14
+          has_velocity_limits: true
+          max_velocity: 0.1
+        j5:
+          has_position_limits: true
+          max_position: -0.1153
+          min_position: -2.44
+          has_velocity_limits: true
+          max_velocity: 0.1
+        j6:
+          has_position_limits: true
+          max_position: 6.0
+          min_position: -6.0
+          has_velocity_limits: true
+          max_velocity: 0.1
+
+  nova_end_effector_velocity_controller_old:
+    ros__parameters:
+      topic: "/arm/end_effector_joint_velocity_command"
+      joint_names:
+        - lead_left
+        - la_prismatic
+      use_position_control: false
+      use_collision_limits: false
+      use_limits: true
+      velocity_feedback: false
+      position_feedback: false
+      joint_limits:
+        lead_left:
+          has_velocity_limits: true
+          max_velocity: 10000.0
+        la_prismatic:
+          has_velocity_limits: true
+          max_velocity: 100000.0
+
+  nova_twistmapper_old:
+    ros__parameters:
+      chained_controller_name: "nova_arm_position_controller_old"
+      twist_stamped_topic: "/arm/task_space_twist_command"
+      joint_names:
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
+      kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
+      kinematics_solver_timeout: 0.02
+      kinematics_base_frame: "arm_kinematics_origin"
+      kinematics_endeffector_frame: "endeffector_kinematics"
+      add_chain_to_srdf: false
+      add_allowed_collisions_to_srdf: false
+      publish_debug_frames: false
+
+  nova_path_planner_old:
+    ros__parameters:
+      chained_controller_name: ""
+      joint_names:
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
+      kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
+      kinematics_solver_timeout: 1.0
+      kinematics_base_frame: "arm_kinematics_origin"
+      kinematics_endeffector_frame: "endeffector_kinematics"
+      add_chain_to_srdf: false
+      add_allowed_collisions_to_srdf: false
+
+  joint_state_broadcaster_arm:
+    ros__parameters:
+      interfaces:
+         ["position", "velocity"]
+
+      joints: ["j1", "j2", "j3", "j4", "j5", "j6"]
+      use_local_topics: false
+
+  joint_state_broadcaster_end_effector:
+    ros__parameters:
+      interfaces:
+         ["velocity"]
+
+      joints: ["la_prismatic", "lead_left"]
+      use_local_topics: false

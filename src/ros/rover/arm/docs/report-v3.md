@@ -525,29 +525,36 @@ The report should end with a sharper critical path.
      back to `_old` while replacements are being developed
    - treat this as a compatibility branch in-tree, not as the preferred long-term architecture
 
-1. Fix collision parity in `arm_kinematics`
+1. Redesign error types in `arm_kinematics`
+   - replace `enum class Kind` + optional data fields in `JointMapBuildError` and `MakeTreeError`
+     with `std::variant`-based designs: one concrete nested struct per failure mode, each with
+     its own `format()` method and exactly the data it needs
+   - remove `unwrap_make_tree_result` in `plugin_loader.cpp`; propagate typed `MakeTreeError`
+     through `make_collision_manager()`'s `tl::expected` return instead of throwing
+
+2. Fix collision parity in `arm_kinematics`
    - zero/default-pose ACM generation
    - explicit allowed-pair configuration
    - pair-collection bug fix
    - structured setup diagnostics
 
-2. Add `arm_kinematics::ros2_control` helpers
+3. Add `arm_kinematics::ros2_control` helpers
    - simple name construction
    - ordered ref acquisition
    - per-joint bundled acquisition
 
-3. Migrate `nova_arm_controller`
+4. Migrate `nova_arm_controller`
    - validate collision parity
    - validate helper design
 
-4. Migrate `nova_twistmapper`
+5. Migrate `nova_twistmapper`
    - position IK mode first
    - keep twist-frame tree swap
 
-5. Refactor planner-facing IK API
+6. Refactor planner-facing IK API
    - MoveIt-shaped planner boundary replaced with explicit `expected` result
 
-6. Migrate `nova_path_planner`
+7. Migrate `nova_path_planner`
    - shared corrected path-collision helper
    - `arm_kinematics` FK / IK / collision backend
 

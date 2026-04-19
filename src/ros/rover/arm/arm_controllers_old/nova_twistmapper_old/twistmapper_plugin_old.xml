@@ -1,0 +1,7 @@
+<library path="nova_twistmapper_old">
+  <class name="nova_twistmapper_old/NovaTwistmapperOld" type="nova_twistmapper_old::NovaTwistmapperOld" base_class_type="controller_interface::ControllerInterface">
+  <description>
+    Controller to convert twist messages to a virtual target end effector pose for the arm
+  </description>
+  </class>
+</library>
