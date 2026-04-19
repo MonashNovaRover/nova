@@ -211,7 +211,7 @@ TEST_F(SimpleUrdfTests, MakeTreeProducesCorrectFrameTransforms)
     std::string("base_link"),
     frames);
 
-  ASSERT_TRUE(result.has_value()) << "make_tree failed: " << result.error().message;
+  ASSERT_TRUE(result.has_value()) << "make_tree failed: " << result.error().format();
   auto tree_ = std::move(result.value().tree);
   ASSERT_TRUE(tree_) << "make_tree returned null tree";
 
@@ -441,7 +441,7 @@ TEST_F(FixedJointUrdfTest, ForwardFromRoot)
   }
 
   auto result = plugin_->make_tree(inputs, "base", frame_names_);
-  ASSERT_TRUE(result.has_value()) << "make_tree failed: " << result.error().message;
+  ASSERT_TRUE(result.has_value()) << "make_tree failed: " << result.error().format();
   auto tree = std::move(result.value().tree);
   const auto & order = result.value().frame_order;
   ASSERT_TRUE(tree) << "Failed to make tree";
@@ -466,7 +466,7 @@ TEST_F(FixedJointUrdfTest, ForwardFromRootWithActuations)
     span<const NamedStateInterfaceDefinition>(named_inputs.data(), named_inputs.size()),
     "base",
     {frame_names_});
-  ASSERT_TRUE(result.has_value()) << "make_tree failed: " << result.error().message;
+  ASSERT_TRUE(result.has_value()) << "make_tree failed: " << result.error().format();
   auto tree = std::move(result.value().tree);
   const auto & order = result.value().frame_order;
   ASSERT_TRUE(tree) << "Failed to make tree";
@@ -506,7 +506,7 @@ TEST_F(FixedJointUrdfTest, BackwardFromAll)
       base_name,
       frame_names_);
     ASSERT_TRUE(result.has_value())
-      << "make_tree failed from base \"" << base_name << "\": " << result.error().message;
+      << "make_tree failed from base \"" << base_name << "\": " << result.error().format();
     auto tree = std::move(result.value().tree);
     const auto & order = result.value().frame_order;
     ASSERT_TRUE(tree) << "Failed to make tree from base \"" << base_name << "\"";
@@ -555,7 +555,7 @@ TEST_F(FixedJointUrdfTest, StressTest)
     std::cout << "Tree construction took " << tree_us << " µs\n";
 
     ASSERT_TRUE(result.has_value())
-      << "make_tree failed from base \"" << base_name << "\": " << result.error().message;
+      << "make_tree failed from base \"" << base_name << "\": " << result.error().format();
     auto tree = std::move(result.value().tree);
     ASSERT_TRUE(tree) << "Failed to make tree from base \"" << base_name << "\"";
 

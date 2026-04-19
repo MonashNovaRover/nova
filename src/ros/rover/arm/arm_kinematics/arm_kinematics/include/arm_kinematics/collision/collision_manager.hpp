@@ -6,8 +6,8 @@
 #define ARM_KINEMATICS_COLLISION_MANAGER_HPP
 
 #include "arm_kinematics/visibility_control.h"
+#include "arm_kinematics/collision/collision_build_error.hpp"
 #include "discrete_collision_plugin.hpp"
-#include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 
 namespace arm_kinematics {
 
@@ -38,9 +38,9 @@ private:
  * \param loader The plugin loader to use to load the collision plugin instance
  * \param fk The FK plugin to make a tree to determine the poses for all colliders
  * \param joint_names The names of joints actuated in the fk tree provided as argument to .update_poses()
- * \returns The CollisionManager if everything could be created. An error message otherwise.
+ * \returns The CollisionManager if everything could be created. A structured build error otherwise.
  */
-static tl::expected<CollisionManager, const char *> make_collision_manager(
+static tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   PluginLoader & loader,
   const ForwardKinematicsPlugin::SharedPtr & fk,
   const std::vector<std::string> & joint_names);
@@ -51,9 +51,9 @@ static tl::expected<CollisionManager, const char *> make_collision_manager(
  * \param loader The plugin loader to use to load the collision plugin instance
  * \param fk The FK plugin to make a tree to determine the poses for all colliders
  * \note joint_names are retrieved from loader.get_kinematics_params()->joint_names in this overload.
- * \returns The CollisionManager if everything could be created. An error message otherwise.
+ * \returns The CollisionManager if everything could be created. A structured build error otherwise.
  */
-static tl::expected<CollisionManager, const char *> make_collision_manager(
+static tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   PluginLoader & loader,
   const ForwardKinematicsPlugin::SharedPtr & fk);
 

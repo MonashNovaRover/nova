@@ -6,6 +6,9 @@
 #define ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP
 
 #include <string>
+#include <type_traits>
+#include <utility>
+#include <variant>
 #include <vector>
 
 #include "arm_kinematics/joint_map/joint_map.hpp"
@@ -22,56 +25,43 @@ namespace arm_kinematics {
 /**
  * Error returned by `JointMapBuilder::build_expected` when a request cannot be satisfied.
  *
- * Three failure modes are surfaced:
- * - **MissingInputs:** one or more requested outputs are not derivable from the supplied inputs.
- *   `unproducible_outputs` lists which outputs failed; `resolutions` carries actionable hints
- *   from `compute_missing_input_resolutions`.
- * - **Ambiguous:** one or more requested outputs have multiple viable producers (or
- *   transitively depend on something that does) and the reachability algorithm refuses to
- *   silently pick a winner. `ambiguous_interfaces` lists the upstream conflicts the user must
- *   resolve.
- * - **UnknownJoint:** one or more `JointId`s in the request definitions are not registered in
- *   the builder's `TransmissionAnalysis`. `unknown_joints` lists the bad ids. This is
- *   distinct from `MissingInputs` because the user's bug is "I passed a definition whose
- *   joint doesn't exist", not "I forgot to supply some inputs".
- *
- * **Precedence when multiple failure modes apply.** UnknownJoint is checked first (validation
- * is cheap and an unregistered joint makes everything else moot). Then Ambiguous wins over
- * MissingInputs — the user fixes ambiguities first and retries.
+ * The error is a tagged `std::variant` with one payload per failure mode. This avoids the
+ * old "enum discriminator + mostly-empty fields" shape and makes the compiler enforce which
+ * payload exists for a given failure.
  */
 struct JointMapBuildError {
-  enum class Kind {
-    /// Needed outputs are not derivable from the given inputs.
-    MissingInputs,
-    /// One or more needed interfaces have multiple viable producers (directly or transitively).
-    Ambiguous,
-    /// One or more `JointId`s in the request definitions are not registered in the analysis.
-    UnknownJoint,
+  struct MissingInputs {
+    std::vector<StateInterfaceDefinition> unproducible_outputs{};
+    std::vector<MissingInputResolution> resolutions{};
+
+    [[nodiscard]] std::string format() const;
   };
-  Kind kind = Kind::MissingInputs;
 
-  /// Human-readable message. Should reference `TransmissionInstance::name` when identifying
-  /// transmissions in ambiguity reports or resolution hints, so users see
-  /// "transmission `differential_left`" rather than "transmission 3".
-  std::string message{};
+  struct Ambiguous {
+    std::vector<producers::AmbiguousInterface> ambiguous_interfaces{};
 
-  /// Populated when `kind == MissingInputs`. Each entry is a needed output that the algorithm
-  /// could not derive from the requested inputs. Empty when `kind == Ambiguous`.
-  std::vector<StateInterfaceDefinition> unproducible_outputs{};
+    [[nodiscard]] std::string format() const;
+  };
 
-  /// Populated when `kind == MissingInputs`. Optional rich-error hints — one entry per
-  /// unproducible output — describing what could be supplied to unblock it. May be empty.
-  std::vector<MissingInputResolution> resolutions{};
+  struct UnknownJoint {
+    std::vector<JointId> unknown_joints{};
 
-  /// Populated when `kind == Ambiguous`. Each entry is one ambiguous interface that the
-  /// requested outputs transitively depend on (directly or via the producer chain). Sliced
-  /// from the reachability's full ambiguity list — unrelated ambiguities elsewhere in the
-  /// analysis are not reported.
-  std::vector<producers::AmbiguousInterface> ambiguous_interfaces{};
+    [[nodiscard]] std::string format() const;
+  };
 
-  /// Populated when `kind == UnknownJoint`. Each entry is a `JointId` from the request that
-  /// is not registered in the analysis's joint order.
-  std::vector<JointId> unknown_joints{};
+  using Variant = std::variant<MissingInputs, Ambiguous, UnknownJoint>;
+  Variant value;
+
+  template <
+    typename T,
+    typename Decayed = std::decay_t<T>,
+    typename = std::enable_if_t<!std::is_same_v<Decayed, JointMapBuildError>>>
+  JointMapBuildError(T && t)
+  : value(std::forward<T>(t))
+  {
+  }
+
+  [[nodiscard]] std::string format() const;
 };
 
 /**
@@ -108,7 +98,7 @@ public:
    * implementation detail of the builder — callers never need to pre-register state interfaces.
    *
    * Any registered joint paired with any `InterfaceId` is a valid request. A `JointId` that is
-   * not registered in the analysis returns `Kind::UnknownJoint`.
+   * not registered in the analysis returns `JointMapBuildError::UnknownJoint`.
    *
    * \warning Not real-time safe — performs allocation and graph analysis. Call once at setup
    * time and reuse the resulting `JointMap` at runtime.

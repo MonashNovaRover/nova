@@ -13,6 +13,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "arm_kinematics/joint_map/compute_transmission.hpp"
@@ -159,6 +160,27 @@ bool approx_equal(double a, double b)
   return std::abs(a - b) <= kTolerance + kTolerance * std::max(std::abs(a), std::abs(b));
 }
 
+const JointMapBuildError::MissingInputs & expect_missing_inputs(const JointMapBuildError & err)
+{
+  const auto * value = std::get_if<JointMapBuildError::MissingInputs>(&err.value);
+  EXPECT_NE(value, nullptr);
+  return *value;
+}
+
+const JointMapBuildError::Ambiguous & expect_ambiguous(const JointMapBuildError & err)
+{
+  const auto * value = std::get_if<JointMapBuildError::Ambiguous>(&err.value);
+  EXPECT_NE(value, nullptr);
+  return *value;
+}
+
+const JointMapBuildError::UnknownJoint & expect_unknown_joint(const JointMapBuildError & err)
+{
+  const auto * value = std::get_if<JointMapBuildError::UnknownJoint>(&err.value);
+  EXPECT_NE(value, nullptr);
+  return *value;
+}
+
 }  // namespace
 
 class DefaultJointMapBuilderTest : public ::testing::Test
@@ -264,8 +286,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_MissingInputs_OutputUnreachable)
     std::vector<StateInterfaceDefinition>{def_of(analysis, c)});
 
   ASSERT_FALSE(result.has_value());
-  const auto & err = result.error();
-  EXPECT_EQ(err.kind, JointMapBuildError::Kind::MissingInputs);
+  const auto & err = expect_missing_inputs(result.error());
   ASSERT_EQ(err.unproducible_outputs.size(), 1u);
   EXPECT_EQ(err.unproducible_outputs[0], def_of(analysis, c));
   EXPECT_EQ(err.resolutions.size(), 1u);  // stub returns one entry per missing
@@ -292,8 +313,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_DirectAmbiguity_OutputItselfAmbiguous)
     std::vector<StateInterfaceDefinition>{def_of(analysis, x)});
 
   ASSERT_FALSE(result.has_value());
-  const auto & err = result.error();
-  EXPECT_EQ(err.kind, JointMapBuildError::Kind::Ambiguous);
+  const auto & err = expect_ambiguous(result.error());
   ASSERT_EQ(err.ambiguous_interfaces.size(), 1u);
   EXPECT_EQ(err.ambiguous_interfaces[0].interface, def_of(analysis, x));
   EXPECT_EQ(err.ambiguous_interfaces[0].candidates.size(), 2u);
@@ -322,8 +342,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_TransitiveAmbiguity_OutputDownstreamOfA
     std::vector<StateInterfaceDefinition>{def_of(analysis, y)});
 
   ASSERT_FALSE(result.has_value());
-  const auto & err = result.error();
-  EXPECT_EQ(err.kind, JointMapBuildError::Kind::Ambiguous);
+  const auto & err = expect_ambiguous(result.error());
   ASSERT_EQ(err.ambiguous_interfaces.size(), 1u);
   EXPECT_EQ(err.ambiguous_interfaces[0].interface, def_of(analysis, x));  // The relevant ambiguity
 }
@@ -401,12 +420,9 @@ TEST_F(DefaultJointMapBuilderTest, Error_UnknownJoint_BogusOutputJointId)
     std::vector<StateInterfaceDefinition>{bogus_def});
 
   ASSERT_FALSE(result.has_value());
-  const auto & err = result.error();
-  EXPECT_EQ(err.kind, JointMapBuildError::Kind::UnknownJoint);
+  const auto & err = expect_unknown_joint(result.error());
   ASSERT_EQ(err.unknown_joints.size(), 1u);
   EXPECT_EQ(err.unknown_joints[0], bogus_joint);
-  EXPECT_TRUE(err.unproducible_outputs.empty());
-  EXPECT_TRUE(err.ambiguous_interfaces.empty());
 }
 
 TEST_F(DefaultJointMapBuilderTest, Error_UnknownJoint_BogusInputJointId)
@@ -423,8 +439,8 @@ TEST_F(DefaultJointMapBuilderTest, Error_UnknownJoint_BogusInputJointId)
     std::vector<StateInterfaceDefinition>{def_of(analysis, a)});
 
   ASSERT_FALSE(result.has_value());
-  EXPECT_EQ(result.error().kind, JointMapBuildError::Kind::UnknownJoint);
-  EXPECT_EQ(result.error().unknown_joints[0], bogus_joint);
+  const auto & err = expect_unknown_joint(result.error());
+  EXPECT_EQ(err.unknown_joints[0], bogus_joint);
 }
 
 // ===========================================================================
@@ -656,8 +672,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_SecondOrderAmbiguity_ReportedThroughBui
     std::vector<StateInterfaceDefinition>{def_of(analysis, x)});
 
   ASSERT_FALSE(result.has_value());
-  const auto & err = result.error();
-  EXPECT_EQ(err.kind, JointMapBuildError::Kind::Ambiguous);
+  const auto & err = expect_ambiguous(result.error());
   // x and b should both appear in ambiguous_interfaces (x directly, b transitively).
   // Note: the exact contents depend on the diagnose attribution walk; both should be
   // reported because x is directly requested and b is in x's potential producer chain
@@ -816,8 +831,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_EmptyInputs_AllOutputsUnreachable)
     std::vector<StateInterfaceDefinition>{def_of(analysis, a)});
 
   ASSERT_FALSE(result.has_value());
-  const auto & err = result.error();
-  EXPECT_EQ(err.kind, JointMapBuildError::Kind::MissingInputs);
+  const auto & err = expect_missing_inputs(result.error());
   ASSERT_EQ(err.unproducible_outputs.size(), 1u);
   EXPECT_EQ(err.unproducible_outputs[0], def_of(analysis, a));
 }
@@ -855,12 +869,10 @@ TEST_F(DefaultJointMapBuilderTest, Error_ManyAmbiguousOutputs_MessageIsTruncated
     std::vector<StateInterfaceDefinition>{def_of(analysis, a)}, outputs);
 
   ASSERT_FALSE(result.has_value());
-  const auto & err = result.error();
-  EXPECT_EQ(err.kind, JointMapBuildError::Kind::Ambiguous);
+  const auto & err = expect_ambiguous(result.error());
   // All 8 should be in ambiguous_interfaces.
   EXPECT_EQ(err.ambiguous_interfaces.size(), 8u);
   // Message should reference truncation ("...and N more") when listing 8 entries (cap is 5).
-  EXPECT_NE(err.message.find("and 3 more"), std::string::npos);
-  // Message should mention how many outputs are affected.
-  EXPECT_NE(err.message.find("8 requested output"), std::string::npos);
+  EXPECT_NE(result.error().format().find("and 3 more"), std::string::npos);
+  EXPECT_NE(result.error().format().find("8 ambiguous interface"), std::string::npos);
 }

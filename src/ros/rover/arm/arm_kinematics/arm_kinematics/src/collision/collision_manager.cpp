@@ -5,7 +5,24 @@
 #include "arm_kinematics/collision/collision_manager.hpp"
 #include "arm_kinematics/plugin_loader.hpp"
 
+#include <variant>
+
 namespace arm_kinematics {
+
+std::string MakeCollisionError::MakeTreeFailed::format() const
+{
+  return "CollisionManager build failed while creating the FK tree: " + error.format();
+}
+
+std::string MakeCollisionError::CollisionPluginInitFailed::format() const
+{
+  return detail;
+}
+
+std::string MakeCollisionError::format() const
+{
+  return std::visit([](const auto & error) { return error.format(); }, value);
+}
 
 CollisionManager::CollisionManager(
   ForwardKinematicsPlugin::Tree::SharedPtr tree,
@@ -25,15 +42,16 @@ void CollisionManager::update_poses(const std::vector<double> & joint_states) {
   plugin_->update_poses(0, {collider_poses_.data(), collider_poses_.size()});
 }
 
-tl::expected<CollisionManager, const char *> make_collision_manager(
+tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   PluginLoader & loader,
   const ForwardKinematicsPlugin::SharedPtr & fk,
   const std::vector<std::string> & joint_names)
 {
-  auto [tree, plugin] = loader.make_collision(joint_names, fk);
-
-  if (!tree)
-    return tl::unexpected("Failed to create fk tree and/or collision plugin.");
+  auto result = loader.make_collision(joint_names, fk);
+  if (!result) {
+    return tl::unexpected(std::move(result.error()));
+  }
+  auto [tree, plugin] = std::move(result.value());
 
   return CollisionManager{
     std::move(tree),
@@ -41,7 +59,7 @@ tl::expected<CollisionManager, const char *> make_collision_manager(
   };
 }
 
-tl::expected<CollisionManager, const char *> make_collision_manager(
+tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   PluginLoader & loader,
   const ForwardKinematicsPlugin::SharedPtr & fk)
 {

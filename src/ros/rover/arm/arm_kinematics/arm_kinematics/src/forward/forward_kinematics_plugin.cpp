@@ -4,10 +4,11 @@
 
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 
-#include <optional>
+#include <algorithm>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <urdf/model.h>
@@ -15,6 +16,42 @@
 #include "arm_kinematics/common/robot_model.hpp"
 
 namespace arm_kinematics {
+
+std::string ForwardKinematicsPlugin::MakeTreeError::JointMapBuildFailed::format() const
+{
+  return "ForwardKinematicsPlugin::make_tree: joint map builder rejected the request: " +
+         error.format();
+}
+
+std::string ForwardKinematicsPlugin::MakeTreeError::FrameTreeFailed::format() const
+{
+  return "ForwardKinematicsPlugin::make_tree: failed to build compute frame tree: " + detail;
+}
+
+std::string ForwardKinematicsPlugin::MakeTreeError::UnknownJoint::format() const
+{
+  std::ostringstream oss;
+  oss << "ForwardKinematicsPlugin::make_tree: " << unknown_joint_names.size()
+      << " requested joint name(s) are not registered in the FK plugin analysis: [";
+  constexpr std::size_t kMaxFormatted = 5;
+  const std::size_t shown = std::min(unknown_joint_names.size(), kMaxFormatted);
+  for (std::size_t i = 0; i < shown; ++i) {
+    if (i > 0) {
+      oss << ", ";
+    }
+    oss << unknown_joint_names[i];
+  }
+  if (unknown_joint_names.size() > shown) {
+    oss << ", ...and " << (unknown_joint_names.size() - shown) << " more";
+  }
+  oss << "]";
+  return oss.str();
+}
+
+std::string ForwardKinematicsPlugin::MakeTreeError::format() const
+{
+  return std::visit([](const auto & error) { return error.format(); }, value);
+}
 
 bool ForwardKinematicsPlugin::initialize(
   const KinematicsNodeInterfaces & node_interfaces,
@@ -56,28 +93,12 @@ ForwardKinematicsPlugin::make_tree(
 
   if (!resolved) {
     const auto & unknown = resolved.error();
-    std::ostringstream oss;
-    oss << "ForwardKinematicsPlugin::make_tree: " << unknown.size()
-        << " requested state interface(s) reference joint names not registered in the FK "
-        << "plugin's analysis (joint name not in URDF): [";
-    constexpr std::size_t kMaxFormatted = 5;
-    const std::size_t shown = std::min(unknown.size(), kMaxFormatted);
-    for (std::size_t i = 0; i < shown; ++i) {
-      if (i > 0) oss << ", ";
-      oss << unknown[i].joint_name << "/" << unknown[i].interface_id.name;
+    std::vector<std::string> unknown_joint_names;
+    unknown_joint_names.reserve(unknown.size());
+    for (const auto & entry : unknown) {
+      unknown_joint_names.push_back(entry.joint_name + "/" + entry.interface_id.name);
     }
-    if (unknown.size() > shown) {
-      oss << ", ...and " << (unknown.size() - shown) << " more";
-    }
-    oss << "]";
-    JointMapBuildError joint_map_err{};
-    joint_map_err.kind = JointMapBuildError::Kind::UnknownJoint;
-    joint_map_err.message = oss.str();
-    MakeTreeError err{};
-    err.kind = MakeTreeError::Kind::UnknownJoint;
-    err.message = joint_map_err.message;
-    err.joint_map_error = std::move(joint_map_err);
-    return tl::unexpected(std::move(err));
+    return tl::unexpected(MakeTreeError::UnknownJoint{std::move(unknown_joint_names)});
   }
 
   // Build StateInterfaceDefinitions from the resolved JointIds + the original interface ids.

@@ -28,20 +28,6 @@ std::vector<NamedStateInterfaceDefinition> joint_names_to_position_named_interfa
   return result;
 }
 
-// Unwrap a tl::expected result from `fk->make_tree(...)`. On failure, throw a runtime_error
-// with the JointMapBuildError's message field. The caller of make_collision can catch this if
-// they want graceful handling; otherwise the failure surfaces loudly.
-ForwardKinematicsPlugin::MakeTreeResult unwrap_make_tree_result(
-  tl::expected<ForwardKinematicsPlugin::MakeTreeResult, ForwardKinematicsPlugin::MakeTreeError> result)
-{
-  if (!result.has_value()) {
-    throw std::runtime_error(
-      "PluginLoader::make_collision: ForwardKinematicsPlugin::make_tree failed: " +
-      result.error().message);
-  }
-  return std::move(result.value());
-}
-
 }  // namespace
 
 PluginLoader::PluginLoader(
@@ -122,25 +108,36 @@ DiscreteCollisionPlugin::SharedPtr PluginLoader::make_collision(
   return nullptr;
 }
 
-PluginLoader::MakeCollisionResult PluginLoader::make_collision(
+tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader::make_collision(
   const std::vector<std::string> & joint_names,
   const ForwardKinematicsPlugin::SharedPtr & fk)
 {
   const auto & urdf_model = robot_model_->get_urdf_model();
   auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
   const auto named_inputs = joint_names_to_position_named_interfaces(joint_names);
-  auto [tree, order] = unwrap_make_tree_result(fk->make_tree(
+  auto tree_result = fk->make_tree(
     span<const NamedStateInterfaceDefinition>(named_inputs.data(), named_inputs.size()),
     urdf_model.getRoot()->name,
-    std::move(frames)));
+    std::move(frames));
+  if (!tree_result) {
+    return tl::unexpected(MakeCollisionError::MakeTreeFailed{std::move(tree_result.error())});
+  }
+  auto [tree, order] = std::move(tree_result.value());
+
+  auto collision = make_collision(order.reorder(std::move(colliders)), std::move(acm));
+  if (!collision) {
+    return tl::unexpected(MakeCollisionError::CollisionPluginInitFailed{
+      "PluginLoader::make_collision: failed to initialize collision plugin from configured parameters.",
+    });
+  }
 
   return MakeCollisionResult{
     std::move(tree),
-    make_collision(order.reorder(std::move(colliders)), std::move(acm))
+    std::move(collision)
   };
 }
 
-PluginLoader::MakeCollisionResult PluginLoader::make_collision(
+tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader::make_collision(
   const std::string & name,
   const std::vector<std::string> & joint_names,
   const ForwardKinematicsPlugin::SharedPtr & fk)
@@ -151,14 +148,25 @@ PluginLoader::MakeCollisionResult PluginLoader::make_collision(
   const auto & urdf_model = robot_model_->get_urdf_model();
   auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
   const auto named_inputs = joint_names_to_position_named_interfaces(joint_names);
-  auto [tree, order] = unwrap_make_tree_result(fk->make_tree(
+  auto tree_result = fk->make_tree(
     span<const NamedStateInterfaceDefinition>(named_inputs.data(), named_inputs.size()),
     urdf_model.getRoot()->name,
-    frames));
+    frames);
+  if (!tree_result) {
+    return tl::unexpected(MakeCollisionError::MakeTreeFailed{std::move(tree_result.error())});
+  }
+  auto [tree, order] = std::move(tree_result.value());
+
+  auto collision = make_collision(name, order.reorder(std::move(colliders)), std::move(acm));
+  if (!collision) {
+    return tl::unexpected(MakeCollisionError::CollisionPluginInitFailed{
+      "PluginLoader::make_collision: failed to initialize collision plugin \"" + name + "\".",
+    });
+  }
 
   return MakeCollisionResult{
     std::move(tree),
-    make_collision(name, order.reorder(std::move(colliders)), std::move(acm))
+    std::move(collision)
   };
 }
 

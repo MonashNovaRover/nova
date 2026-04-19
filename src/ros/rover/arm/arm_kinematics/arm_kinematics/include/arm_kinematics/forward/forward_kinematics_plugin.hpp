@@ -6,8 +6,10 @@
 #define ARM_KINEMATICS_FORWARD_KINEMATICS_PLUGIN_HPP
 
 #include <arm_kinematics/visibility_control.h>
-#include <optional>
 #include <string>
+#include <type_traits>
+#include <utility>
+#include <variant>
 #include <vector>
 #include <urdf/model.h>
 #include <arm_kinematics/common/kinematics_base.hpp>
@@ -69,31 +71,41 @@ public:
   };
 
   /**
-   * Error returned by `make_tree` when tree construction cannot complete. Tree construction
-   * has several distinct failure modes — joint-map construction failure, frame-tree
-   * construction failure, name-resolution failure for the convenience overload — and squashing
-   * them all into one type would lose actionable detail. The `kind` discriminator says which
-   * failure occurred; `joint_map_error` is populated when the underlying cause is a structured
-   * `JointMapBuildError` (kinds `JointMapBuildFailed` and `UnknownJoint`).
+   * Error returned by `make_tree` when tree construction cannot complete. Each failure mode
+   * has its own payload in the variant so callers must explicitly handle the shape they see.
    */
   struct MakeTreeError {
-    enum class Kind {
-      /// The joint map builder rejected the request. `joint_map_error` carries the structured
-      /// reason (missing inputs, ambiguity, unknown joint from the builder's perspective).
-      JointMapBuildFailed,
-      /// `AnalysisTree::make_compute_frame_tree()` failed (e.g. unresolved frame parent, bad
-      /// link reference). The error string from the analysis tree lives in `message`.
-      FrameTreeFailed,
-      /// One or more joint names in the request could not be resolved against the FK plugin's
-      /// analysis (joint name not in URDF). `joint_map_error` is populated with the equivalent
-      /// `JointMapBuildError::Kind::UnknownJoint` slice.
-      UnknownJoint,
+    struct JointMapBuildFailed {
+      JointMapBuildError error;
+
+      [[nodiscard]] std::string format() const;
     };
-    Kind kind = Kind::JointMapBuildFailed;
-    std::string message{};
-    /// Populated when `kind` is `JointMapBuildFailed` or `UnknownJoint`. Empty for
-    /// `FrameTreeFailed`.
-    std::optional<JointMapBuildError> joint_map_error{};
+
+    struct FrameTreeFailed {
+      std::string detail{};
+
+      [[nodiscard]] std::string format() const;
+    };
+
+    struct UnknownJoint {
+      std::vector<std::string> unknown_joint_names{};
+
+      [[nodiscard]] std::string format() const;
+    };
+
+    using Variant = std::variant<JointMapBuildFailed, FrameTreeFailed, UnknownJoint>;
+    Variant value;
+
+    template <
+      typename T,
+      typename Decayed = std::decay_t<T>,
+      typename = std::enable_if_t<!std::is_same_v<Decayed, MakeTreeError>>>
+    MakeTreeError(T && t)
+    : value(std::forward<T>(t))
+    {
+    }
+
+    [[nodiscard]] std::string format() const;
   };
 
   /**
@@ -155,8 +167,8 @@ public:
    *   tree. Must already have its analysis populated with all the joints/state interfaces the
    *   FK tree references.
    * \returns A `tl::expected` wrapping the tree on success, or a `MakeTreeError` on failure.
-   *   Failure modes include joint-map construction failure (`JointMapBuildFailed` — wraps the
-   *   underlying `JointMapBuildError`) and frame-tree construction failure (`FrameTreeFailed`).
+   *   Failure modes include joint-map construction failure (`JointMapBuildFailed`) and
+   *   frame-tree construction failure (`FrameTreeFailed`).
    *
    * \warning Likely expensive, and obviously not real-time safe.
    * \note From testing, takes < .1 millisecond on a simple URDF.
@@ -175,9 +187,8 @@ public:
    * before delegating to the main overload above.
    *
    * Default implementation looks up each joint name in `get_transmission_analysis()`. If any
-   * joint name is unknown, returns a `MakeTreeError` with `Kind::UnknownJoint` (the wrapped
-   * `joint_map_error` carries a `JointMapBuildError::Kind::UnknownJoint` slice with the full
-   * list of unresolvable entries).
+   * joint name is unknown, returns a `MakeTreeError::UnknownJoint` carrying the unresolved
+   * names.
    *
    * Subclasses can override if they want a different resolution policy.
    *

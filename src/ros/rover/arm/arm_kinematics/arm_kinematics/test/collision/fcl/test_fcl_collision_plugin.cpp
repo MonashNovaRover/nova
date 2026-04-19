@@ -149,7 +149,7 @@ protected:
       "base_link",
       frames);
     ASSERT_TRUE(make_tree_result.has_value())
-      << "make_tree failed: " << make_tree_result.error().message;
+      << "make_tree failed: " << make_tree_result.error().format();
     auto tree = std::move(make_tree_result.value().tree);
     const auto & order = make_tree_result.value().frame_order;
 
@@ -187,5 +187,4 @@ TEST_F(SimpleUrdfCollisionTests, SimpleCollisions)
   manager_.update_poses({-2,-2});
   ASSERT_TRUE(manager_.collide()) << "Collision not found when there should be a collision!";
 }
-
 

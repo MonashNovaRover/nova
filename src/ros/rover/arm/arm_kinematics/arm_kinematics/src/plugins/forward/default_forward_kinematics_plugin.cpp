@@ -59,28 +59,7 @@ DefaultForwardKinematicsPlugin::make_tree(
     // internal inconsistency between the URDF (which feeds the analysis) and the analysis
     // tree (which feeds the FK subtree).
     const auto & unknown = joint_id_result.error();
-    std::ostringstream oss;
-    oss << "DefaultForwardKinematicsPlugin::make_tree: " << unknown.size()
-        << " joint(s) referenced by the FK analysis subtree are not registered in the FK "
-        << "plugin's transmission analysis: [";
-    constexpr std::size_t kMaxFormatted = 5;
-    const std::size_t shown = std::min(unknown.size(), kMaxFormatted);
-    for (std::size_t i = 0; i < shown; ++i) {
-      if (i > 0) oss << ", ";
-      oss << unknown[i];
-    }
-    if (unknown.size() > shown) {
-      oss << ", ...and " << (unknown.size() - shown) << " more";
-    }
-    oss << "]";
-    JointMapBuildError joint_map_err{};
-    joint_map_err.kind = JointMapBuildError::Kind::UnknownJoint;
-    joint_map_err.message = oss.str();
-    MakeTreeError err{};
-    err.kind = MakeTreeError::Kind::UnknownJoint;
-    err.message = joint_map_err.message;
-    err.joint_map_error = std::move(joint_map_err);
-    return tl::unexpected(std::move(err));
+    return tl::unexpected(MakeTreeError::UnknownJoint{unknown});
   }
 
   // Build the position-interface StateInterfaceDefinitions from the resolved JointIds.
@@ -98,11 +77,7 @@ DefaultForwardKinematicsPlugin::make_tree(
   // silently substituting an empty tree.
   auto compute_frame_tree = subtree.make_compute_frame_tree();
   if (!compute_frame_tree.has_value()) {
-    MakeTreeError err{};
-    err.kind = MakeTreeError::Kind::FrameTreeFailed;
-    err.message = std::string{"DefaultForwardKinematicsPlugin::make_tree: failed to build "
-                              "compute frame tree: "} + std::string{compute_frame_tree.error()};
-    return tl::unexpected(std::move(err));
+    return tl::unexpected(MakeTreeError::FrameTreeFailed{std::string{compute_frame_tree.error()}});
   }
 
   // Build the runtime joint map via the builder API.
@@ -110,12 +85,7 @@ DefaultForwardKinematicsPlugin::make_tree(
     input_state_interfaces,
     span<const StateInterfaceDefinition>(mapper_output_defs.data(), mapper_output_defs.size()));
   if (!joint_map_result.has_value()) {
-    MakeTreeError err{};
-    err.kind = MakeTreeError::Kind::JointMapBuildFailed;
-    err.message = "DefaultForwardKinematicsPlugin::make_tree: joint map builder rejected the "
-                  "request: " + joint_map_result.error().message;
-    err.joint_map_error = std::move(joint_map_result.error());
-    return tl::unexpected(std::move(err));
+    return tl::unexpected(MakeTreeError::JointMapBuildFailed{std::move(joint_map_result.error())});
   }
 
   auto ptr = std::make_unique<TreeImpl>(

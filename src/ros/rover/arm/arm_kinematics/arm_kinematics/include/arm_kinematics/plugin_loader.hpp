@@ -8,10 +8,11 @@
 #include <pluginlib/class_loader.hpp>
 
 #include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/collision/collision_build_error.hpp"
+#include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 #include "arm_kinematics/visibility_control.h"
-#include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 
 namespace arm_kinematics {
 
@@ -72,11 +73,11 @@ public:
 
   /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, using the plugin name defined in the
   /// `kinematics.collision_plugin` parameter
-  MakeCollisionResult make_collision(
+  tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
     const std::vector<std::string> & joint_names,
     const ForwardKinematicsPlugin::SharedPtr & fk);
   /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, manually specifying the plugin name.
-  MakeCollisionResult make_collision(
+  tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
     const std::string & name,
     const std::vector<std::string> & joint_names,
     const ForwardKinematicsPlugin::SharedPtr & fk);
