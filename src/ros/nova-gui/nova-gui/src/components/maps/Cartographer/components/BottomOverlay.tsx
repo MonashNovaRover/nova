@@ -131,6 +131,19 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   value={String(vehicles[focusVehicle].location.heading)}
                   placeholder={`${vehicles[focusVehicle].label} Heading`}
                   label={`${vehicles[focusVehicle].label} Heading`}/>
+                <Select
+                  selectedKeys={[mapTile]}
+                  label="Map Tiles"
+                  placeholder="Select Tiles"
+                  onChange={(e) => setMapTile(e.target.value as MapTile)}
+                  >
+                  {Object.values(MapTile).map((tile) => (
+                    <SelectItem
+                      key={tile} >
+                      {tile}
+                    </SelectItem>
+                  ))}
+                </Select>
                 </div>
                 <div className="flex flex-row gap-3 items-center">
                 {bottomOverlayComponents.map((component, index) => (
@@ -164,19 +177,6 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 >
                   {focusVehicle == Vehicle.ROVER ? <Twitter /> : <Truck />}
                 </ToolTipButton>
-                <Select
-                  selectedKeys={[mapTile]}
-                  label="Map Tiles"
-                  placeholder="Select Tiles"
-                  onChange={(e) => setMapTile(e.target.value as MapTile)}
-                  >
-                  {Object.values(MapTile).map((tile) => (
-                    <SelectItem
-                      key={tile} >
-                      {tile}
-                    </SelectItem>
-                  ))}
-                </Select>
                 <Button
                   variant="shadow"
                   isIconOnly
