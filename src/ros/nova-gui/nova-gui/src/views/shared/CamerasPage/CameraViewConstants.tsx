@@ -1,6 +1,9 @@
+import {ProfileOption} from "./CameraProfileConstants.ts";
+
 export interface CameraViewConfig {
   viewTitle: string;
   cameraSerials: string[];
+  cameraPrests?: ProfileOption[];
 }
 
 export enum ARCCompModes {

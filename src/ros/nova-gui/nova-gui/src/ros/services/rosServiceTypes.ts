@@ -41,6 +41,8 @@ import {
   IRosRclInterfacesSetParametersResponse,
   IRosScienceInterfacesRunPumpRequest,
   IRosScienceInterfacesRunPumpResponse,
+  IRosCameraMsgsCameraProfileSelectionRequest,
+  IRosCameraMsgsCameraProfileSelectionResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -86,6 +88,10 @@ export interface RosServiceInterface {
   [RosService.STOP_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
+  >;
+  [RosService.PRESET_CAMS]: RosServiceMessage<
+    IRosCameraMsgsCameraProfileSelectionRequest,
+    IRosCameraMsgsCameraProfileSelectionResponse
   >;
   [RosService.GET_IP_LIST]: RosServiceMessage<
     EmptyMessage,
