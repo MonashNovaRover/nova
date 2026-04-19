@@ -321,9 +321,92 @@ That applies especially to:
 - collision-manager construction
 - planner-facing IK calls
 
-The report should explicitly say that exception-style failure in the integration path should
-be removed or pushed behind a boundary that converts it into structured failures before
-controllers see it.
+There is a concrete example already in the codebase.
+
+`arm_kinematics/arm_kinematics/src/plugin_loader.cpp:38` contains a helper,
+`unwrap_make_tree_result`, that converts a `tl::expected` failure from
+`ForwardKinematicsPlugin::make_tree()` into a `std::runtime_error` throw. This helper is
+called from `make_collision`, so any controller calling `make_collision_manager()` during
+`on_configure` will get an unhandled exception rather than a structured failure if the FK
+tree cannot be built.
+
+The fix is to remove `unwrap_make_tree_result` and propagate the typed `MakeTreeError`
+through `make_collision_manager()`'s own `tl::expected` return — no string flattening:
+
+```cpp
+auto tree_result = fk->make_tree(...);
+if (!tree_result) {
+  return tl::unexpected(
+    MakeTreeError{MakeTreeError::JointMapBuildFailed{std::move(tree_result.error())}});
+}
+```
+
+That makes `make_collision_manager()` consistent with the rest of the `arm_kinematics` API
+and removes a hidden exception crossing from library code into controller `on_configure`.
+
+### Error type redesign
+
+This fix also motivates a broader redesign of `JointMapBuildError` and `MakeTreeError`.
+
+The current shape — `enum class Kind` discriminator plus optional data fields on a shared
+struct — is error-prone: the compiler does not prevent accessing `unproducible_outputs` when
+`kind == Ambiguous`. The better shape is `std::variant` with one concrete type per failure
+mode. Each concrete type lives as a nested struct, carries exactly its own data, and has a
+`format() const` method. The outer struct holds the variant and provides a templated
+converting constructor so callers never need to touch the `.value` member directly:
+
+```cpp
+struct JointMapBuildError {
+  struct MissingInputs {
+    std::vector<StateInterfaceDefinition> unproducible_outputs;
+    std::vector<MissingInputResolution>   resolutions;
+    std::string format() const;
+  };
+  struct Ambiguous {
+    std::vector<producers::AmbiguousInterface> ambiguous_interfaces;
+    std::string format() const;
+  };
+  struct UnknownJoint {
+    std::vector<JointId> unknown_joints;
+    std::string format() const;
+  };
+
+  using Variant = std::variant<MissingInputs, Ambiguous, UnknownJoint>;
+  Variant value;
+
+  template <typename T>
+  JointMapBuildError(T && t) : value(std::forward<T>(t)) {}
+};
+```
+
+`MakeTreeError` follows the same pattern:
+
+```cpp
+struct MakeTreeError {
+  struct JointMapBuildFailed { JointMapBuildError error; std::string format() const; };
+  struct FrameTreeFailed     { std::string detail;       std::string format() const; };
+  struct UnknownJoint        { std::vector<JointId> unknown_joints; std::string format() const; };
+
+  using Variant = std::variant<JointMapBuildFailed, FrameTreeFailed, UnknownJoint>;
+  Variant value;
+
+  template <typename T>
+  MakeTreeError(T && t) : value(std::forward<T>(t)) {}
+};
+```
+
+With this shape, constructing and returning errors is direct:
+
+```cpp
+return tl::unexpected(JointMapBuildError::MissingInputs{unproducible, resolutions});
+```
+
+And consuming them is explicit via `std::visit`, with no risk of accessing the wrong fields:
+
+```cpp
+std::visit([](const auto & e) { RCLCPP_ERROR(logger, "%s", e.format().c_str()); },
+           err.value);
+```
 
 ## Revised Utility Proposal
 
@@ -485,7 +568,6 @@ Create a parallel legacy tree:
 - keep the runtime-facing names explicit so `ros2_control` configs can choose between the new
   controller and the legacy `_old` controller without ambiguity
 
-Examples of things that likely need renaming in the copied tree:
 
 - package names in `package.xml`
 - CMake project / install/export names where relevant
