@@ -83,7 +83,7 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
   std::unordered_map<std::string, Pipeline*> pipelines;
-  std::unordered_set<std::string> profiles = {"navigation", "super", "snail", "emergency"};
+  const std::unordered_set<std::string> profiles = {"default", "super", "snail", "emergency"};
 
   private: void start_pipeline(Pipeline* pipeline)
   {
@@ -144,13 +144,13 @@ class CameraStreamer : public rclcpp::Node
     // From serial
     if (this->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".profile").c_str(), pipeline->camera->profile)) return;
     // From task profile
-    std::string task, global_profile;
-    if (this->get_parameter("task", task) && this->get_parameter("global_profile", global_profile)) {
-      if (this->get_parameter<std::string>((std::string(TASK_PROFILE_PREFIX) + "." + task + "." + global_profile + "." + pipeline->camera->serial).c_str(), pipeline->camera->profile)) return;
+    std::string task, preset;
+    if (this->get_parameter("task", task) && this->get_parameter("preset", preset)) {
+      if (this->get_parameter<std::string>((std::string(PRESET_PREFIX) + "." + task + "." + preset + "." + pipeline->camera->serial).c_str(), pipeline->camera->profile)) return;
     }
     // From global
-    if (!global_profile.empty()) {
-      pipeline->camera->profile = global_profile;
+    if (!preset.empty()) {
+      pipeline->camera->profile = preset;
       return;
     }
     // From default
@@ -181,11 +181,10 @@ class CameraStreamer : public rclcpp::Node
         // Get pipeline_type
         this->get_pipeline_type(pipeline);
 
+        // Switch to the profile
         bool autostart;
-        this->get_parameter_or("autostart", autostart, true);
-
         // auto start if true
-        if (autostart) {
+        if (this->get_parameter("autostart", autostart)) {
           this->start_pipeline(pipeline);
         } else {
           pipeline->gst_pipeline = nullptr;
@@ -256,43 +255,45 @@ class CameraStreamer : public rclcpp::Node
     const std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Request> request,
     std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Response> response)  
   {
-      response->success = false;
-      for (std::string serial : request->serials) {
+    response->success = true;
+    for (std::string serial : request->serials) { 
       if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
         Pipeline* pipeline = pipelines[serial];
+        bool correct_camera = false;
 
-        // From task profile
+        // From presets
+        RCLCPP_INFO(this->get_logger(), "%s, %s", serial.c_str(), request->profile.c_str());
         std::string task;
         if (this->get_parameter("task", task)) {
-          if (this->get_parameter<std::string>((std::string(TASK_PROFILE_PREFIX) + "." + task + "." + request->profile + "." + pipeline->camera->serial).c_str(), pipeline->camera->profile)) {
-            response->success = true;
+          if (this->get_parameter<std::string>((std::string(PRESET_PREFIX) + "." + task + "." + request->profile + "." + pipeline->camera->serial).c_str(), pipeline->camera->profile)){
+            correct_camera = true;
           }
         }
+
         // Set directly
-        if (!response->success) {
+        if (!correct_camera) {
           std::string validate_profile;
-          if ((this->get_parameter<std::string>((std::string(PROFILE_PREFIX) + "." + std::string(UNKNOWN_PROFILE_PREFIX) + "." + request->profile).c_str(), validate_profile)) || (profiles.find(request->profile) != profiles.end())) {
+          if (profiles.find(request->profile) != profiles.end()) {
             pipeline->camera->profile = request->profile;
-            response->success = true;
           } else {
             RCLCPP_ERROR(this->get_logger(), "%sWrong profile %s%s%s given to pipeline of: %s%s%s", C_QUIET, C_FAIL, request->profile.c_str(), C_QUIET, C_FAIL, serial.c_str(), C_RESET);
+            response->success = false;
             return;
           }
         }
+
+        response->success = true;
         
         // Switch to the profile
         bool autostart;
-        this->get_parameter_or("autostart", autostart, true);
-
         // auto start if true
-        if (autostart) {
+        if (this->get_parameter("autostart", autostart)) {
           gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
           gst_object_unref(pipeline->gst_pipeline);
           pipeline->gst_pipeline = nullptr;
-          RCLCPP_INFO(this->get_logger(), "%sRestarting %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_INPUT, pipeline->camera->profile.c_str(), C_RESET);
           this->start_pipeline(pipeline);
         } else {
-          RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_INPUT, pipeline->camera->profile.c_str(), C_RESET);
+          RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
           pipeline->gst_pipeline = nullptr;
         }
       }

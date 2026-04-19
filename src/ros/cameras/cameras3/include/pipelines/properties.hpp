@@ -3,11 +3,11 @@
 
 #include <string>
 #include <gst/gst.h>
-#define PIPELINE_PREFIX     "serial_pipelines"
-#define PROFILE_PREFIX     "profiles"
-#define TASK_PROFILE_PREFIX "task_profiles"
-#define UNKNOWN_PROFILE_PREFIX "unknown"
-#define DEFAULT_PREFIX     "defaults"
+#define PIPELINE_PREFIX         "serial_pipelines"
+#define PROFILE_PREFIX          "profiles"
+#define PRESET_PREFIX           "presets"
+#define UNKNOWN_PROFILE_PREFIX  "unknown"
+#define DEFAULT_PREFIX          "defaults"
 
 struct Properties
 {

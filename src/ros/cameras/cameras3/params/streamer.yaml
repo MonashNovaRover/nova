@@ -1,8 +1,6 @@
 camera_streamer:
   ros__parameters:
-    autostart: true
     serial_pipelines:
-
       # Development cameras
       anthony-cam:
         pipeline_type: h264passthrough
@@ -254,7 +252,7 @@ camera_streamer:
           bitrate: 32
           greyscale: true
 
-    task_profiles:
+    presets:
       #ap:
       delivery:
         drive:
