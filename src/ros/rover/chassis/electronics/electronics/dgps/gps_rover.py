@@ -7,9 +7,9 @@ base (ublox) GPS and writes data to the rover
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: gps_rover
 TOPICS:
-  - subscriber: /gps_base/rtcm  [UInt8MultiArray]
-  - publisher: /gps_rover/fix   [NavSatFix]
-  - publisher: /fix             [NavSatFix]
+  - subscriber: /gps_base/rtcm        [UInt8MultiArray]
+  - publisher: /gps_rover/fix         [NavSatFix]
+  - publisher: /gps_rover/fix_custom  [GPSData]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Victor Bartlinski
@@ -24,16 +24,14 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from serial import Serial
-from pynmeagps import NMEAReader, NMEAMessage
-from pyrtcm import RTCMMessage
+from pynmeagps import NMEAReader
 import re
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
-from rclpy.logging import LoggingSeverity
-from std_msgs.msg import UInt8MultiArray
+from std_msgs.msg import UInt8MultiArray, Float64
 from sensor_msgs.msg import NavSatFix
-import logging
+from nova_interfaces.msg import GPSData
 
 class GPSRover(Node):
     def __init__(self):
@@ -72,7 +70,13 @@ class GPSRover(Node):
         self.sub_rtcm = self.create_subscription(
             UInt8MultiArray, 
             'gps_base/rtcm', 
-            self.sub_rtcm_callback, 
+            self.sub_rtcm_callback,
+            QoSPresetProfiles.SENSOR_DATA.value, 
+        )
+        self.sub_heading = self.create_subscription(
+            Float64, 
+            'mag/heading', 
+            self.sub_heading_callback, 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pub_pose = self.create_publisher(
@@ -80,7 +84,13 @@ class GPSRover(Node):
             '/gps_rover/fix', 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
+        self.pub_pose_custom = self.create_publisher(
+            GPSData, 
+            '/gps_rover/fix_custom', 
+            QoSPresetProfiles.SENSOR_DATA.value, 
+        )
         self.pose = NavSatFix()
+        self.pose_custom = GPSData()
         self.pose.header.frame_id = 'gps'
         self.timer = self.create_timer(1/self.publisher_rate, self.loop)
 
@@ -101,8 +111,8 @@ class GPSRover(Node):
         msg_binary = bytes(msg.data)
         self.ser.write(msg_binary)
 
-    def pub_pose_callback(self):
-        self.pub_pose.publish(self.pose)
+    def sub_heading_callback(self, msg : Float64):
+        self.pose_custom.heading = msg.data
 
     def parse_nmea(self) -> None:
         self.get_logger().debug(f'Parsing NMEA message...')
@@ -189,9 +199,17 @@ class GPSRover(Node):
             return
         self.get_logger().debug(f'NMEA message parsed!')
 
+        # Copy data to custom message
+        self.pose_custom.header = self.pose.header
+        self.pose_custom.status = self.pose.status
+        self.pose_custom.latitude = self.pose.latitude
+        self.pose_custom.longitude = self.pose.longitude
+        self.pose_custom.altitude = self.pose.altitude
+
     def loop(self) -> None:
         self.parse_nmea()
-        self.pub_pose_callback()
+        self.pub_pose.publish(self.pose)
+        self.pub_pose_custom.publish(self.pose_custom)
 
 def main (args = None):
     rclpy.init(args = args)

@@ -101,6 +101,16 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   value={String(rover.longitude)}
                   placeholder={`Rover Longitude`}
                   label="Rover Longitude"/>
+                  <CopyableInput
+                  readOnly
+                  value={String(rover.altitude)}
+                  placeholder={`Rover Altitude`}
+                  label="Rover Altitude"/>
+                  <CopyableInput
+                  readOnly
+                  value={String(rover.heading)}
+                  placeholder={`Rover Heading`}
+                  label="Rover Heading"/>
                 <Select
                   selectedKeys={[mapTile]}
                   label="Map Tiles"

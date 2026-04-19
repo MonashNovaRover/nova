@@ -49,8 +49,8 @@ export const rosTopicMessages = {
   [RosTopic.PUMPS_STATUS]: "science_interfaces/msg/PumpStatus",
 
   // Maps Related
-  [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
-  [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/GPSData",
+  [RosTopic.BASE_LOCATION]: "nova_interfaces/msg/GPSData",
   [RosTopic.AUTO_STATUS]: "nova_interfaces/msg/Status",
 
   // Other

@@ -22,13 +22,13 @@ import {
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
   IRosNovaInterfacesStatus,
-  IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
   IRosNovaInterfacesRadioStatus,
   IRosScienceInterfacesEffortStatus,
   IRosSensorMsgsJointState,
   IRosStdMsgsFloat64,
   IRosNovaInterfacesLockedStatus,
+  IRosNovaInterfacesGpsData,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -83,8 +83,8 @@ export interface RosTopicInterfaces {
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 
   // Maps Related
-  [RosTopic.ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
-  [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
+  [RosTopic.ROVER_LOCATION]: IRosNovaInterfacesGpsData;
+  [RosTopic.BASE_LOCATION]: IRosNovaInterfacesGpsData;
   [RosTopic.AUTO_STATUS]: IRosNovaInterfacesStatus;
 
   // Other
