@@ -122,6 +122,14 @@ export const cartographerSlice = createSlice({
       ...state,
       trackRover: !state.trackRover,
     }),
+    TOGGLE_DRONE_CENTER: (state: CartographerState) => ({
+      ...state,
+      centerOnDrone: !state.centerOnDrone,
+    }),
+    TOGGLE_TRACK_DRONE: (state: CartographerState) => ({
+      ...state,
+      trackDrone: !state.trackDrone,
+    }),
     SET_POINTS: (state: CartographerState, action: PayloadAction<MapPoint[]>) => ({
         ...state,
         points: [...action.payload],
