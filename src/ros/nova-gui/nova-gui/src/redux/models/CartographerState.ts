@@ -24,6 +24,11 @@ export enum GoalType {
   OBJECT = 2,
 }
 
+export enum Vehicle {
+  ROVER = 0,
+  DRONE = 1,
+}
+
 export interface CartographerState {
   points: MapPoint[];
   mapInteractionMode: MapInteractionMode;
@@ -41,6 +46,7 @@ export interface CartographerState {
   trackRover: boolean;
   centerOnDrone: boolean;
   trackDrone: boolean;
+  focusVehicle: Vehicle;
 }
 
 export const initialGPSMessage = <IRosNovaInterfacesGpsData>{

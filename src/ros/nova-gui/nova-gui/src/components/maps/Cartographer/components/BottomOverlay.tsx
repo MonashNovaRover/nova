@@ -18,11 +18,11 @@ import { ChevronCompactDown, ChevronCompactUp, ChevronDoubleDown, ChevronDoubleU
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { AnimatePresence, motion } from "framer-motion";
-import { Navigation, Trash } from "react-feather";
+import { Navigation, Trash, Truck, Twitter } from "react-feather";
 import { ToolTipButton } from "../../../shared/components/TooltipButton.tsx";
 import { useCartographerActions } from "../../../../redux/actions/useCartographerActions.ts";
 import { MapTile } from "../config.tsx";
-import { MapPoint } from "../../../../redux/models/CartographerState.ts";
+import { MapPoint, Vehicle } from "../../../../redux/models/CartographerState.ts";
 import React from "react";
 
 interface BottomOverlayProps {
@@ -35,14 +35,34 @@ interface BottomOverlayProps {
 export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = []}) => {
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const { points, centerOnRover, trackRover } = useSelector(
+  const { points, centerOnRover, trackRover, centerOnDrone, trackDrone, focusVehicle } = useSelector(
     (state: RootState) => state.cartographerState
   );
   const rover = useSelector((state: RootState) => state.roverLocationStore)
   const base = useSelector((state: RootState) => state.baseLocationStore)
+  const drone = useSelector((state: RootState) => state.droneLocationStore)
 
-  const { toggleRoverCentering, toggleRoverTracking } =
+  const { toggleRoverCentering, toggleRoverTracking, toggleDroneCentering, toggleDroneTracking, handleFocusVehicle } =
     useCartographerActions();
+
+  const vehicles = {
+    [Vehicle.ROVER]: {
+      label: "Rover",
+      location: rover,
+      track: trackRover,
+      centerOn: centerOnRover,
+      toggleTracking: toggleRoverTracking,
+      toggleCentering: toggleRoverCentering,
+    },
+    [Vehicle.DRONE]: {
+      label: "Drone",
+      location: drone,
+      track: trackDrone,
+      centerOn: centerOnDrone,
+      toggleTracking: toggleDroneTracking,
+      toggleCentering: toggleDroneCentering,
+    },
+  };
   
   const toggleOverlay = () => {
     setOverlayVisible(!overlayVisible);
@@ -93,24 +113,57 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   label="Base Longitude"/>
                 <CopyableInput
                   readOnly
-                  value={String(rover.latitude)}
-                  placeholder={`Rover Latitude`}
-                  label="Rover Latitude"/>
+                  value={String(vehicles[focusVehicle].location.latitude)}
+                  placeholder={`${vehicles[focusVehicle].label} Latitude`}
+                  label={`${vehicles[focusVehicle].label} Latitude`}/>
                 <CopyableInput
                   readOnly
-                  value={String(rover.longitude)}
-                  placeholder={`Rover Longitude`}
-                  label="Rover Longitude"/>
+                  value={String(vehicles[focusVehicle].location.longitude)}
+                  placeholder={`${vehicles[focusVehicle].label} Longitude`}
+                  label={`${vehicles[focusVehicle].label} Longitude`}/>
                   <CopyableInput
                   readOnly
-                  value={String(rover.altitude)}
-                  placeholder={`Rover Altitude`}
-                  label="Rover Altitude"/>
+                  value={String(vehicles[focusVehicle].location.altitude)}
+                  placeholder={`${vehicles[focusVehicle].label} Altitude`}
+                  label={`${vehicles[focusVehicle].label} Altitude`}/>
                   <CopyableInput
                   readOnly
-                  value={String(rover.heading)}
-                  placeholder={`Rover Heading`}
-                  label="Rover Heading"/>
+                  value={String(vehicles[focusVehicle].location.heading)}
+                  placeholder={`${vehicles[focusVehicle].label} Heading`}
+                  label={`${vehicles[focusVehicle].label} Heading`}/>
+                </div>
+                <div className="flex flex-row gap-3 items-center">
+                {bottomOverlayComponents.map((component, index) => (
+                  <React.Fragment key={index}>
+                    {component}
+                  </React.Fragment>
+                ))}
+                <Button
+                  variant="shadow"
+                  fullWidth
+                  color={vehicles[focusVehicle].track ? "primary" : "default"}
+                  onClick={vehicles[focusVehicle].toggleTracking}
+                >
+                  {focusVehicle == Vehicle.ROVER ? "Track Rovey" : "Track Droney"}
+                </Button>
+                <ToolTipButton
+                  tooltipContent={`Center ${vehicles[focusVehicle].label}`}
+                  isIconOnly
+                  variant="shadow"
+                  color={vehicles[focusVehicle].centerOn ? "primary" : "default"}
+                  onClick={vehicles[focusVehicle].toggleCentering}
+                >
+                  <Navigation className="w-5" />
+                  {/* https://feathericons.com/ */}
+                </ToolTipButton>
+                <ToolTipButton
+                  tooltipContent={focusVehicle == Vehicle.ROVER ? "Focus Drone" : "Focus Rover"}
+                  isIconOnly
+                  variant="shadow"
+                  onClick={handleFocusVehicle}
+                >
+                  {focusVehicle == Vehicle.ROVER ? <Twitter /> : <Truck />}
+                </ToolTipButton>
                 <Select
                   selectedKeys={[mapTile]}
                   label="Map Tiles"
@@ -124,30 +177,6 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                     </SelectItem>
                   ))}
                 </Select>
-                </div>
-                <div className="flex flex-row gap-3 items-center">
-                {bottomOverlayComponents.map((component, index) => (
-                  <React.Fragment key={index}>
-                    {component}
-                  </React.Fragment>
-                ))}
-                <Button
-                  variant="shadow"
-                  fullWidth
-                  color={trackRover ? "primary" : "default"}
-                  onClick={toggleRoverTracking}
-                >
-                  Track Rovey
-                </Button>
-                <ToolTipButton
-                  tooltipContent="Center Rover"
-                  isIconOnly
-                  variant="shadow"
-                  color={centerOnRover ? "primary" : "default"}
-                  onClick={toggleRoverCentering}
-                >
-                  <Navigation className="w-5" />
-                </ToolTipButton>
                 <Button
                   variant="shadow"
                   isIconOnly

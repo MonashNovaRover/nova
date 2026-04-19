@@ -4,6 +4,7 @@ import {
   MapCoordinate,
   MapInteractionMode,
   MapPoint,
+  Vehicle,
 } from "../models/CartographerState";
 
 export const cartographerSlice = createSlice({
@@ -130,6 +131,30 @@ export const cartographerSlice = createSlice({
       ...state,
       trackDrone: !state.trackDrone,
     }),
+    HANDLE_FOCUS_VEHICLE: (state: CartographerState) => {
+      switch (state.focusVehicle) {
+        case Vehicle.ROVER: {
+          return {
+            ...state,
+            centerOnRover: false,
+            centerOnDrone: state.centerOnRover ? true: false,
+            focusVehicle: Vehicle.DRONE,
+          };
+        }
+
+        case Vehicle.DRONE: {
+          return {
+            ...state,
+            centerOnDrone: false,
+            centerOnRover: state.centerOnDrone ? true: false,
+            focusVehicle: Vehicle.ROVER,
+          };
+        }
+
+        default:
+          return state;
+      }
+    },
     SET_POINTS: (state: CartographerState, action: PayloadAction<MapPoint[]>) => ({
         ...state,
         points: [...action.payload],
@@ -149,6 +174,7 @@ export const cartographerSlice = createSlice({
     trackRover: false,
     centerOnDrone: false,
     trackDrone: false,
+    focusVehicle: Vehicle.ROVER,
   },
   name: "CartographerReducer",
 });
