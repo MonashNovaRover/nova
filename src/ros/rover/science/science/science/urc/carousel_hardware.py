@@ -14,21 +14,20 @@ EDITED:         23/01/25
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import jcan
+from python_control2 import Interface, InterfaceCollection, HardwareInterface, Contexts
+from python_control2.hardware_interfaces import PositionalServoHardware
 
-from ..controller_manager.Interface import Interface, InterfaceCollection
-from .HardwareInterface import HardwareInterface
-from ..controller_manager.Contexts import Contexts
 
-class PositionalServoHardware(HardwareInterface):
-    pos_cmd: Interface
+class CarouselHardware(HardwareInterface):
+    target_pos_cmd: Interface
+    forward_pos_cmd: Interface
     can_id: int
 
     def __init__(self, contexts: Contexts,
-                 can_id: int=0x000,
-                 angular_limit: float=180.0,
-                 gear_ratio: float=1.0,
-                 min_angle_can: int=0x00,
-                 max_angle_can: int=0xFF):
+                 zero_cmd_can_id: int=0x000,
+                 zero_cmd_can_msg: list[int]=[0x00],
+                 zero_rec_can_id: int=0x000,
+                 zero_rec_can_msg: list[int]=[0x00]):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -38,13 +37,17 @@ class PositionalServoHardware(HardwareInterface):
 
         self.bus = contexts[jcan.Bus]
 
-        self.last = None
+        # Declare Parameters
+        self.declare_parameter("zero_cmd_can_id", zero_cmd_can_id, "CAN ID of the zero command")
+        self.declare_parameter("zero_cmd_can_msg", zero_cmd_can_msg, "CAN message to send should be a valid length and of the form 0x0000 (multiple of two hex digits)")
+        self.declare_parameter("zero_rec_can_id", zero_rec_can_id, "CAN ID of the zero command")
+        self.declare_parameter("zero_rec_can_msg", zero_rec_can_msg, "CAN message to send should be a valid length and of the form 0x0000 (multiple of two hex digits)")
+        # self.declare_parameter("gear_ratio", gear_ratio, "Gear ratio of the servo")
+        # self.declare_parameter("min_angle_can", min_angle_can, "Min CAN message value that can be sent")
+        # self.declare_parameter("max_angle_can", max_angle_can, "Max CAN message value that can be sent")
 
-        self.declare_parameter("can_id", can_id, "CAN ID of the servo")
-        self.declare_parameter("angular_limit", angular_limit, "Angular limit of the servo in degrees")
-        self.declare_parameter("gear_ratio", gear_ratio, "Gear ratio of the servo")
-        self.declare_parameter("min_angle_can", min_angle_can, "Min CAN message value that can be sent")
-        self.declare_parameter("max_angle_can", max_angle_can, "Max CAN message value that can be sent")
+        # Initialise composed hardware interfaces
+        self.servo = PositionalServoHardware(contexts, angular_limit=360).construct(contexts, name=self.name)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Used to set up your HardwareInterface. Run once before any other class method.
