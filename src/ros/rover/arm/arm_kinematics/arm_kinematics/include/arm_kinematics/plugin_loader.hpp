@@ -69,6 +69,7 @@ public:
   struct MakeCollisionResult {
     ForwardKinematicsPlugin::Tree::SharedPtr fk_tree;
     DiscreteCollisionPlugin::SharedPtr collision;
+    std::vector<std::string> parent_link_names;
   };
 
   /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, using the plugin name defined in the

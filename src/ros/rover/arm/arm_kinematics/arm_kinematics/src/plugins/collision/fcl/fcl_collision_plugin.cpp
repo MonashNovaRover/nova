@@ -125,7 +125,7 @@ bool FclCollisionPlugin::collide(
   };
 
   manager_.update();
-  manager_.collide(&query, collide_with_acm);
+  manager_.collide(&query, collide_with_acm_and_pairs);
 
   return query.hit;
 }

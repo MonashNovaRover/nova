@@ -114,6 +114,7 @@ tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader
 {
   const auto & urdf_model = robot_model_->get_urdf_model();
   auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
+  auto parent_link_names = frames.parent_link_names;
   const auto named_inputs = joint_names_to_position_named_interfaces(joint_names);
   auto tree_result = fk->make_tree(
     span<const NamedStateInterfaceDefinition>(named_inputs.data(), named_inputs.size()),
@@ -133,7 +134,8 @@ tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader
 
   return MakeCollisionResult{
     std::move(tree),
-    std::move(collision)
+    std::move(collision),
+    order.reorder(std::move(parent_link_names))
   };
 }
 
@@ -147,6 +149,7 @@ tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader
 
   const auto & urdf_model = robot_model_->get_urdf_model();
   auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
+  auto parent_link_names = frames.parent_link_names;
   const auto named_inputs = joint_names_to_position_named_interfaces(joint_names);
   auto tree_result = fk->make_tree(
     span<const NamedStateInterfaceDefinition>(named_inputs.data(), named_inputs.size()),
@@ -166,7 +169,8 @@ tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader
 
   return MakeCollisionResult{
     std::move(tree),
-    std::move(collision)
+    std::move(collision),
+    order.reorder(std::move(parent_link_names))
   };
 }
 

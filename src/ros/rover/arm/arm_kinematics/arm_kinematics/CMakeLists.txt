@@ -73,6 +73,7 @@ add_library(${PROJECT_NAME} SHARED
   src/collision/discrete_collision_plugin.cpp
   src/plugins/collision/fcl/fcl_collision_plugin.cpp
   src/collision/allowed_collision_matrix.cpp
+  src/collision/collision_utilities.cpp
   src/plugins/collision/fcl/geometry_cache.cpp
   src/forward/frame_definitions.cpp
   src/forward/utilities/compute_joint_tree.cpp
@@ -104,6 +105,7 @@ install(FILES plugins.xml
 set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
   test/collision/fcl/test_fcl_collision_plugin.cpp
+  test/collision/test_collision_utilities.cpp
   test/common/test_robot_model_urdf.cpp
   test/forward/eigen/test_eigen_make_tree.cpp
   test/joint_map/test_default_joint_map_builder.cpp

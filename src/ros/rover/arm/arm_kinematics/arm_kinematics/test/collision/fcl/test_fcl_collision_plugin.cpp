@@ -6,6 +6,7 @@
 #include <urdf_model/model.h>
 #include <Eigen/Geometry>
 
+#include <pluginlib/class_loader.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include "arm_kinematics/forward/utilities/compute_joint_tree.hpp"
@@ -19,9 +20,12 @@
 #include "arm_kinematics/utilities/reordered.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/collision/collision_manager.hpp"
+#include "arm_kinematics/collision/collision_config.hpp"
+#include "arm_kinematics/collision/collision_utilities.hpp"
 #include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 #include "arm_kinematics/plugins/collision/fcl/fcl_collision_plugin.hpp"
 #include "arm_kinematics/collision/collider_definitions.hpp"
+#include "arm_kinematics/plugin_loader.hpp"
 
 using arm_kinematics::ComputeFrameTree;
 using arm_kinematics::ComputeJointTree;
@@ -133,6 +137,7 @@ protected:
 
     auto collision = std::make_shared<FclCollisionPlugin>();
     auto [colliders, frames, acm] = arm_kinematics::ColliderDefinitions(robot_model_->get_urdf_model());
+    parent_link_names_ = frames.parent_link_names;
 
     // Build position-interface NamedStateInterfaceDefinitions for the joint inputs and call
     // the new make_tree convenience overload, which returns tl::expected<MakeTreeResult, ...>.
@@ -152,11 +157,14 @@ protected:
       << "make_tree failed: " << make_tree_result.error().format();
     auto tree = std::move(make_tree_result.value().tree);
     const auto & order = make_tree_result.value().frame_order;
+    parent_link_names_ = order.reorder(std::move(parent_link_names_));
 
     init_result_ = collision->initialize(*node_, order.reorder(std::move(colliders)), std::move(acm));
     ASSERT_TRUE(init_result_);
 
-    manager_ = arm_kinematics::CollisionManager(std::move(tree), std::move(collision));
+    tree_ = std::move(tree);
+    collision_plugin_ = collision;
+    manager_ = arm_kinematics::CollisionManager(tree_, collision_plugin_);
   }
 
   void TearDown() override {
@@ -173,6 +181,9 @@ protected:
   bool init_result_ = false;
 
   arm_kinematics::CollisionManager manager_{};
+  ForwardKinematicsPlugin::Tree::SharedPtr tree_{};
+  arm_kinematics::DiscreteCollisionPlugin::SharedPtr collision_plugin_{};
+  std::vector<std::string> parent_link_names_{};
 
   std::vector<std::string> joint_names_ = {"j1", "j2"};
 };
@@ -188,3 +199,79 @@ TEST_F(SimpleUrdfCollisionTests, SimpleCollisions)
   ASSERT_TRUE(manager_.collide()) << "Collision not found when there should be a collision!";
 }
 
+TEST_F(SimpleUrdfCollisionTests, CollideWithPairsReturnsDetectedColliderIndices)
+{
+  ASSERT_TRUE(init_result_) << "Failed to init either fk or collision plugin";
+
+  manager_.update_poses({-2, -2});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  ASSERT_TRUE(manager_.collide(colliding_pairs));
+  ASSERT_FALSE(colliding_pairs.empty());
+  EXPECT_EQ(colliding_pairs[0], std::make_pair(std::size_t{0}, std::size_t{1}));
+}
+
+TEST_F(SimpleUrdfCollisionTests, ProbeAndAllowCollisionsAllowsPairsAtConfiguredPose)
+{
+  ASSERT_TRUE(init_result_) << "Failed to init either fk or collision plugin";
+
+  arm_kinematics::probe_and_allow_collisions(
+    *collision_plugin_,
+    *tree_,
+    std::vector<double>{-2.0, -2.0});
+
+  manager_.update_poses({-2, -2});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  EXPECT_FALSE(manager_.collide(colliding_pairs));
+  EXPECT_TRUE(colliding_pairs.empty());
+  EXPECT_TRUE(collision_plugin_->get_allowed_collision_matrix().get(0, 1));
+}
+
+TEST_F(SimpleUrdfCollisionTests, MakeCollisionManagerWithConfigProbesDefaultPose)
+{
+  arm_kinematics::PluginLoader loader(*node_, robot_description_);
+  std::shared_ptr<arm_kinematics::ForwardKinematicsPlugin> fk;
+  try {
+    fk = loader.make_fk("arm_kinematics/DefaultForwardKinematicsPlugin");
+  } catch (const pluginlib::PluginlibException & e) {
+    GTEST_SKIP() << "pluginlib unavailable in this environment: " << e.what();
+  }
+  ASSERT_TRUE(fk);
+
+  arm_kinematics::CollisionConfig config;
+  config.default_pose_overrides["j1"] = -2.0;
+  config.default_pose_overrides["j2"] = -2.0;
+
+  auto manager_result = arm_kinematics::make_collision_manager(loader, fk, joint_names_, config);
+  ASSERT_TRUE(manager_result.has_value()) << manager_result.error().format();
+
+  auto manager = std::move(manager_result.value());
+  manager.update_poses({-2.0, -2.0});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  EXPECT_FALSE(manager.collide(colliding_pairs));
+  EXPECT_TRUE(colliding_pairs.empty());
+}
+
+TEST_F(SimpleUrdfCollisionTests, MakeCollisionManagerWithConfigAllowsPairsByLink)
+{
+  arm_kinematics::PluginLoader loader(*node_, robot_description_);
+  std::shared_ptr<arm_kinematics::ForwardKinematicsPlugin> fk;
+  try {
+    fk = loader.make_fk("arm_kinematics/DefaultForwardKinematicsPlugin");
+  } catch (const pluginlib::PluginlibException & e) {
+    GTEST_SKIP() << "pluginlib unavailable in this environment: " << e.what();
+  }
+  ASSERT_TRUE(fk);
+
+  arm_kinematics::CollisionConfig config;
+  config.generate_from_default_pose = false;
+  config.allowed_pairs.emplace_back("link1", "link2");
+
+  auto manager_result = arm_kinematics::make_collision_manager(loader, fk, joint_names_, config);
+  ASSERT_TRUE(manager_result.has_value()) << manager_result.error().format();
+
+  auto manager = std::move(manager_result.value());
+  manager.update_poses({-2.0, -2.0});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  EXPECT_FALSE(manager.collide(colliding_pairs));
+  EXPECT_TRUE(colliding_pairs.empty());
+}
