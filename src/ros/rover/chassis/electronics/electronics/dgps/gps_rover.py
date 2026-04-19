@@ -45,7 +45,7 @@ class GPSRover(Node):
         ).value
         self.port_name = self.declare_parameter(
             name='port_name', 
-            value='/dev/ttyUSB1', 
+            value='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0', 
         ).value
         self.gps_module = self.declare_parameter(
             name='gps_module', 
@@ -171,6 +171,10 @@ class GPSRover(Node):
                                 0.0, 0.0, 0.0
                             ]
                             self.pose.position_covariance_type = 0
+                    elif msg_parsed.talker == 'GN' and msg_parsed.msgID == 'GGA':
+                        if msg_parsed.quality > 0:
+                            # Valid fix
+                            self.pose.altitude = float(msg_parsed.alt)
                     elif msg_parsed.talker == 'GN' and msg_parsed.msgID == 'RMC':
                         if msg_parsed.status == 'A':
                             # Valid
@@ -190,6 +194,7 @@ class GPSRover(Node):
                         \traw: {msg_str}
                         \tlat: {self.pose.latitude:8.3f}
                         \tlon: {self.pose.longitude:8.3f}
+                        \talt: {self.pose.altitude:8.3f}
                     '''
 
                 except Exception as e:
