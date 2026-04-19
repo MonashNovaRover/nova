@@ -25,15 +25,27 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
         container: mapContainer.current ?? "ERROR"
     });
     newMap.on("load", ()=>{
-      newMap.addSource("trace", getLineGeoJSONSource([]));
+      newMap.addSource("roverTrace", getLineGeoJSONSource([]));
+      newMap.addSource("droneTrace", getLineGeoJSONSource([]));
       newMap.addSource("measureLine", getLineGeoJSONSource([]));
 
       newMap.addLayer({
-        id: "trace",
+        id: "rover-trace",
         type: "line",
-        source: "trace",
+        source: "roverTrace",
         paint: {
           "line-color": "red",
+          "line-opacity": 0.75,
+          "line-width": 3,
+        },
+      });
+
+      newMap.addLayer({
+        id: "drone-trace",
+        type: "line",
+        source: "droneTrace",
+        paint: {
+          "line-color": "blue",
           "line-opacity": 0.75,
           "line-width": 3,
         },

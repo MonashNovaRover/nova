@@ -11,14 +11,19 @@ import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
 
 export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
   //   const [trace, setTrace] = useLocalStorage<MapCoordinate[]>("roverTrace", []);
-  const [trace, setTrace] = useState<MapCoordinate[]>([]);
+  const [roverTrace, setRoverTrace] = useState<MapCoordinate[]>([]);
+  const [droneTrace, setDroneTrace] = useState<MapCoordinate[]>([]);
 
   const { measure, centerOnRover, trackRover, centerOnDrone, trackDrone } = useSelector(
     (state: RootState) => state.cartographerState
   );
 
-  const addPoint = (point: MapCoordinate) => {
-    setTrace([...trace, point]);
+  const addRoverPoint = (point: MapCoordinate) => {
+    setRoverTrace([...roverTrace, point]);
+  };
+
+  const addDronePoint = (point: MapCoordinate) => {
+    setDroneTrace([...droneTrace, point]);
   };
 
   const roverLocationBifrost = useBifrost({
@@ -51,7 +56,7 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
 
   useEffect(() => {
     if (trackRover) {
-      addPoint({
+      addRoverPoint({
         lat: deBouncedRoverLocation.latitude,
         long: deBouncedRoverLocation.longitude,
       });
@@ -62,7 +67,7 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
 
   useEffect(() => {
     if (trackDrone) {
-      addPoint({
+      addDronePoint({
         lat: deBouncedDroneLocation.latitude,
         long: deBouncedDroneLocation.longitude,
       });
@@ -73,7 +78,7 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
 
   useEffect(() => {
     if (!mapRef.current || trackRover) return;
-    const source = mapRef.current.getSource("trace") as GeoJSONSource;
+    const source = mapRef.current.getSource("roverTrace") as GeoJSONSource;
     if (!source) return;
 
     source.setData(getLineGeoJSONData([]));
@@ -81,7 +86,7 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
 
   useEffect(() => {
     if (!mapRef.current || trackDrone) return;
-    const source = mapRef.current.getSource("trace") as GeoJSONSource;
+    const source = mapRef.current.getSource("droneTrace") as GeoJSONSource;
     if (!source) return;
 
     source.setData(getLineGeoJSONData([]));
@@ -89,11 +94,19 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>) => {
 
   useEffect(() => {
     if (!mapRef.current) return;
-    const source = mapRef.current.getSource("trace") as GeoJSONSource;
+    const source = mapRef.current.getSource("roverTrace") as GeoJSONSource;
     if (!source) return;
 
-    source.setData(getLineGeoJSONData(trace));
-  }, [trace, mapRef]);
+    source.setData(getLineGeoJSONData(roverTrace));
+  }, [roverTrace, mapRef]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const source = mapRef.current.getSource("droneTrace") as GeoJSONSource;
+    if (!source) return;
+
+    source.setData(getLineGeoJSONData(droneTrace));
+  }, [droneTrace, mapRef]);
 
   // Measure Line Augmentation
   useEffect(() => {
