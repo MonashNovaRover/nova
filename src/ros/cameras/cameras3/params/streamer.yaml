@@ -61,16 +61,16 @@ camera_streamer:
           noise: 6
           bitrate: 512
         super:
-          pipeline_type: h264software
+          pipeline_type: vp9software
           mime: image/jpeg
           width: 1920
           height: 1080
           framerate: 30
           downrate: 3
-          crop43: false
-          cpu_usage: 9
+          crop43: true
+          cpu_usage: 2
           jpegdec_method: float
-          bitrate: 3072
+          bitrate: 2048
           threads: 6
           gop: 3
         snail: 
