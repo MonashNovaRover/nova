@@ -49,8 +49,8 @@ export enum RosTopic {
   PUMPS_STATUS = "/science/pumps/status",
 
   // Mapping Related Topics
-  ROVER_LOCATION = "/gps_rover/fix",
-  BASE_LOCATION = "/gps_base/fix",
+  ROVER_LOCATION = "/gps_rover/fix_custom",
+  BASE_LOCATION = "/gps_base/fix_custom",
   AUTO_STATUS = "/auto/status",
 
   // Other Topics
