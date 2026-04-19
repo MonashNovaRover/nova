@@ -1,5 +1,5 @@
 camera_streamer:
-  ros__parameters:
+  ros__parameters:  
     serial_pipelines:
       # Development cameras
       anthony-cam:
@@ -50,7 +50,7 @@ camera_streamer:
 
     profiles:
       unknown:
-        navigation:
+        default:
           pipeline_type: vp8software
           mime: image/jpeg
           width: 1920
@@ -66,6 +66,7 @@ camera_streamer:
           width: 1920
           height: 1080
           framerate: 30
+          downrate: 3
           crop43: false
           cpu_usage: 9
           jpegdec_method: float
@@ -78,6 +79,7 @@ camera_streamer:
           height: 480
           downscale: 2
           framerate: 30
+          downrate: 2
           cpu_usage: 7
           noise: 6
           bitrate: 128
@@ -94,7 +96,7 @@ camera_streamer:
           greyscale: true
 
       openaicam_openaicam_2505121128:
-        navigation:
+        default:
           pipeline_type: vp8software
           mime: image/jpeg
           width: 1920
@@ -123,6 +125,7 @@ camera_streamer:
           height: 1080
           downscale: 4
           framerate: 30
+          downrate: 2
           cpu_usage: 7
           noise: 6
           bitrate: 128
@@ -139,7 +142,7 @@ camera_streamer:
           greyscale: true
 
       webcamvendor_SK_series1_20220325JWGD2093:
-        navigation:
+        default:
           pipeline_type: h264passthrough
           width: 640
           height: 480
@@ -153,6 +156,7 @@ camera_streamer:
           pipeline_type: h264passthrough
           width: 320
           height: 240
+          downrate: 2
           framerate: 30
         emergency:
           pipeline_type: vp9software
@@ -167,7 +171,7 @@ camera_streamer:
           greyscale: true
 
       HZ_USB_Camera_20220301104:
-        navigation:
+        default:
           pipeline_type: vp8software
           mime: image/jpeg
           width: 1024
@@ -195,6 +199,7 @@ camera_streamer:
           height: 480
           downscale: 2
           framerate: 30
+          downrate: 2
           cpu_usage: 7
           noise: 6
           bitrate: 128
@@ -211,7 +216,7 @@ camera_streamer:
           greyscale: true
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
-        navigation:
+        default:
           pipeline_type: vp8software
           width: 1280
           height: 720
@@ -222,10 +227,11 @@ camera_streamer:
           bitrate: 512
         super:
           pipeline_type: vp9software
-          mime: video/x-raw
-          width: 1280
-          height: 800
-          framerate: 10
+          mime: image/jpeg
+          width: 800
+          height: 600
+          framerate: 30
+          downrate: 3
           cpu_usage: 4
           jpegdec_method: float
           bitrate: 2048
@@ -237,6 +243,7 @@ camera_streamer:
           height: 720
           downscale: 3
           framerate: 30
+          downrate: 2
           cpu_usage: 7
           noise: 6
           bitrate: 128
@@ -253,13 +260,13 @@ camera_streamer:
           greyscale: true
 
     presets:
-      #ap:
+      # auto:
       delivery:
         drive:
-          mast_forward: navigation
-          mast_backward: navigation
-          mast_arm_stow: navigation
-          mast_down: navigation
+          mast_forward: default
+          mast_backward: default
+          mast_arm_stow: default
+          mast_down: default
           arm_end_periscope: snail
           arm_end_top: snail
           arm_end_finger: snail
@@ -269,13 +276,12 @@ camera_streamer:
           mast_backward: snail
           mast_arm_stow: snail
           mast_down: snail
-          arm_end_periscope: navigation
-          arm_end_top: navigation
-          arm_end_finger: navigation
-          arm_end_side: navigation
-      #auto:
+          arm_end_periscope: default
+          arm_end_top: default
+          arm_end_finger: default
+          arm_end_side: default
 
-      #science:
+      # science:
 
     defaults:
       # Waveshare

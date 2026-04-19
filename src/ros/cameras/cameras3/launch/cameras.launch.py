@@ -56,7 +56,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "task",
-                default_value="outreach",
+                default_value="delivery",
                 description="The task type. Used for specifying serial overrides for Camera Directory Node",
             ),
                 DeclareLaunchArgument(
