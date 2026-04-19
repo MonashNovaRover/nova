@@ -17,6 +17,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
   "msg/ActuatorLimit.msg"
   "msg/BMESensor.msg"
+  "msg/CarouselFeedback.msg"
   "msg/EMCData.msg"
   "msg/HydraprobeData.msg"
   "msg/EffortStatus.msg"
@@ -33,6 +34,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Service definitions
   "srv/CacheCommand.srv"
   "srv/EffortCommand.srv"
+  "srv/IncrementZero.srv"
   "srv/KilnCommand.srv"
   "srv/MoveHydraprobe.srv"
   "srv/MoveMicroscopeServo.srv"
