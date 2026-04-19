@@ -10,4 +10,6 @@
   pyrtcm = callPackage ./pyrtcm { };
   pyubx2 = callPackage ./pyubx2 { };
   minimalmodbus = callPackage ./minimalmodbus { };
+  geomaglib = callPackage ./geomaglib { };
+  wmm-calculator = callPackage ./wmm-calculator { };
 }

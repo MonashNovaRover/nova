@@ -31,13 +31,13 @@ import {
   IRosArmInterfacesKeyboardPoints,
   IRosNovaInterfacesCartographerCommandResponse,
   IRosNovaInterfacesStatus,
-  IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
   IRosNovaInterfacesRadioStatus,
   IRosSensorMsgsJointState,
   IRosRclInterfacesSetParametersResponse,
   IRosNovaInterfacesLockedStatus,
   IRosScienceInterfacesPumpStatus,
+  IRosNovaInterfacesGpsData,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -111,8 +111,8 @@ export interface RootState {
   pumpsStatusStore: IRosScienceInterfacesPumpStatus;
 
   // Maps Related Stores
-  roverLocationStore: IRosSensorMsgsNavSatFix;
-  baseLocationStore: IRosSensorMsgsNavSatFix;
+  roverLocationStore: IRosNovaInterfacesGpsData;
+  baseLocationStore: IRosNovaInterfacesGpsData;
   cartographerState: CartographerState;
   cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
   autoStatus: IRosNovaInterfacesStatus;
