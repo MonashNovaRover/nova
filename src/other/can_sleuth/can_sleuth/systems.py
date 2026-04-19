@@ -11,14 +11,21 @@ EDITED BY: Orlando Chamberlain
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
+import random
+import os
+
 from can_sleuth.devices import blcmd
 from can_sleuth.devices import blcmd_emulator
 from can_sleuth.devices import sensor_emulator
-import random
 
 from can_sleuth.devices import led as LED #gotta rename some things
 from can_sleuth.devices import battery
 from can_sleuth.devices import battery_emulator
+
+def assert_vcan(interface):
+    if not os.path.isdir(f"/sys/devices/virtual/net/{interface}"):
+        raise ValueError(f"{interface} is not a virtual device, refusing to emulate.")
+
 
 # Interface specifies the bus (usually a canbus) that the system/payload is connected to,
 # emulate indicates if in addition to tracing the state of the system/payload, if we should
@@ -32,6 +39,7 @@ def taipan_spherical(interface="can1", emulate=False):
             ]
 
     if emulate:
+        assert_vcan(interface)
         devices += [
             blcmd_emulator.BLCMDEmulator(f"J{x}", x, interface, multiturn=True) for x in range(1,6+1)
             ]
@@ -65,6 +73,7 @@ def drive25_26(interface="can0", emulate=False):
     for id_ in names.keys():
         devices.append(blcmd.BLCMD(names[id_], id_, interface))
     if emulate:
+        assert_vcan(interface)
         for id_ in names.keys():
             hasResolver = names[id_][2] == "P" # only pivots have resolvers/abcoder
             devices.append(blcmd_emulator.BLCMDEmulator(names[id_], id_, interface, hasResolver=hasResolver))
@@ -87,6 +96,7 @@ def science25_26(interface="can1", emulate=False):
         return random.randint(-32767, 32767)
 
 
+    assert_vcan(interface)
     currentSensor = sensor_emulator.SensorEmulator("current sensor_emulator", canId, interface, "current", "amps", 0, update_function)
 
     return [currentSensor]
