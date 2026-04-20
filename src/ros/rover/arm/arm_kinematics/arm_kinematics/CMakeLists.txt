@@ -107,6 +107,7 @@ install(FILES plugins.xml
 set(TEST_KINEMATICS_SOURCE_FILES
   test/collision/fcl/test_allowed_collision_matrix.cpp
   test/collision/fcl/test_fcl_collision_plugin.cpp
+  test/collision/test_collision_path.cpp
   test/collision/test_collision_utilities.cpp
   test/common/test_robot_model_urdf.cpp
   test/forward/eigen/test_eigen_make_tree.cpp
@@ -119,6 +120,7 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/ros2_control/test_interface_names.cpp
   test/ros2_control/test_interface_refs.cpp
   test/ros2_control/test_joint_interface_bundle.cpp
+  test/utilities/test_interface_id.cpp
   test/main.cpp
 )
 #if(NIX_DO_CHECK)

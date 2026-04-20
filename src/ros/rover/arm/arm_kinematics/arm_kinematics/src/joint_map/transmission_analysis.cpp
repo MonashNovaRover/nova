@@ -28,11 +28,11 @@ namespace {
 void populate_default_projection_rules(std::unordered_map<InterfaceId, AffineProjectionRule> & registry)
 {
   // Position: q_b = m·q_a + o
-  registry.emplace(InterfaceId{"position"}, AffineProjectionRule{1.0, 1.0, false});
+  registry.emplace(InterfaceId::Position(), AffineProjectionRule{1.0, 1.0, false});
   // Velocity: v_b = m·v_a   (offset drops under d/dt)
-  registry.emplace(InterfaceId{"velocity"}, AffineProjectionRule{1.0, 0.0, false});
+  registry.emplace(InterfaceId::Velocity(), AffineProjectionRule{1.0, 0.0, false});
   // Acceleration: a_b = m·a_a
-  registry.emplace(InterfaceId{"acceleration"}, AffineProjectionRule{1.0, 0.0, false});
+  registry.emplace(InterfaceId::Acceleration(), AffineProjectionRule{1.0, 0.0, false});
 }
 
 // Tolerance for floating-point equality checks on composed affine coefficients. Used in the

@@ -10,6 +10,7 @@
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/collision/collision_build_error.hpp"
 #include "arm_kinematics/collision/collision_config.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 #include "discrete_collision_plugin.hpp"
 
 namespace arm_kinematics {
@@ -73,6 +74,22 @@ tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   PluginLoader & loader,
   const ForwardKinematicsPlugin::SharedPtr & fk,
   const CollisionConfig & config);
+
+/**
+ * Interpolate between two joint states, checking self-collision at each intermediate state and
+ * the endpoint.
+ *
+ * The starting state is not checked separately. Intermediate states are chosen such that the
+ * maximum per-joint displacement between successive checks does not exceed `step_size`.
+ *
+ * \throws std::invalid_argument if `start` and `end` differ in size, or if `step_size <= 0`.
+ */
+ARM_KINEMATICS_PUBLIC
+bool check_path_collision(
+  CollisionManager & manager,
+  span<const double> start,
+  span<const double> end,
+  double step_size);
 
 } // arm_kinematics
 

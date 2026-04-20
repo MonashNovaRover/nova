@@ -7,6 +7,8 @@
 #include "arm_kinematics/plugin_loader.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <stdexcept>
 #include <variant>
 
 namespace arm_kinematics {
@@ -113,6 +115,45 @@ tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   const CollisionConfig & config)
 {
   return make_collision_manager(loader, fk, loader.get_kinematics_params()->joint_names, config);
+}
+
+bool check_path_collision(
+  CollisionManager & manager,
+  const span<const double> start,
+  const span<const double> end,
+  const double step_size)
+{
+  if (start.size() != end.size()) {
+    throw std::invalid_argument("check_path_collision() received start/end vectors with different sizes");
+  }
+  if (step_size <= 0.0) {
+    throw std::invalid_argument("check_path_collision() requires step_size > 0");
+  }
+
+  double max_displacement = 0.0;
+  for (std::size_t i = 0; i < start.size(); ++i) {
+    max_displacement = std::max(max_displacement, std::abs(end[i] - start[i]));
+  }
+
+  const int iterations = static_cast<int>(std::ceil(max_displacement / step_size));
+  std::vector<double> intermediate_positions(start.size(), 0.0);
+
+  for (int i = 1; i < iterations; ++i) {
+    const double interpolator = static_cast<double>(i) / static_cast<double>(iterations);
+    const double one_minus_interpolator = 1.0 - interpolator;
+
+    for (std::size_t j = 0; j < intermediate_positions.size(); ++j) {
+      intermediate_positions[j] = start[j] * one_minus_interpolator + end[j] * interpolator;
+    }
+
+    manager.update_poses(intermediate_positions);
+    if (manager.collide()) {
+      return true;
+    }
+  }
+
+  manager.update_poses(std::vector<double>(end.begin(), end.end()));
+  return manager.collide();
 }
 
 } // arm_kinematics

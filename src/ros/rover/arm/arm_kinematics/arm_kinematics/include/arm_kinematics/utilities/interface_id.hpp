@@ -56,6 +56,30 @@ struct InterfaceId {
   {
   }
 
+  [[nodiscard]] static const InterfaceId & Position()
+  {
+    static const InterfaceId value{"position"};
+    return value;
+  }
+
+  [[nodiscard]] static const InterfaceId & Velocity()
+  {
+    static const InterfaceId value{"velocity"};
+    return value;
+  }
+
+  [[nodiscard]] static const InterfaceId & Acceleration()
+  {
+    static const InterfaceId value{"acceleration"};
+    return value;
+  }
+
+  [[nodiscard]] static const InterfaceId & Effort()
+  {
+    static const InterfaceId value{"effort"};
+    return value;
+  }
+
   bool operator==(const InterfaceId & other) const noexcept
   {
     // Hash check first for speed; name compare for collision safety.
