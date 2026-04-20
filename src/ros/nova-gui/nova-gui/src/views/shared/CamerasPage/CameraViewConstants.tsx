@@ -81,6 +81,7 @@ const armCams = [
   CameraSerials.ARM_END_FINGER,
   CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_END_SIDE,
+  CameraSerials.ARM_GIMBAL,
 ];
 
 const ecCams = [
