@@ -25,7 +25,6 @@ TODO:
 '''
 from serial import Serial
 from pynmeagps import NMEAReader
-import re
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
@@ -45,7 +44,7 @@ class GPSRover(Node):
         ).value
         self.port_name = self.declare_parameter(
             name='port_name', 
-            value='/dev/ttyUSB1', 
+            value='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0', 
         ).value
         self.gps_module = self.declare_parameter(
             name='gps_module', 
@@ -135,30 +134,14 @@ class GPSRover(Node):
             if self.gps_module == 'skytraq':
                 try:
                     msg_str = str(msg_parsed)
-                    if 'lat=' in msg_str:
-                        match_lat = re.search(r'lat=([-\d.]+)', msg_str)
-                        match_lon = re.search(r'lon=([-\d.]+)', msg_str)
-                        latitude = 0
-                        longtitude = 0
-
-                        if match_lat:
-                            latitude = -1 * abs(float(match_lat.group(1)))
-                        
-                        if match_lon:
-                            longtitude = abs(float(match_lon.group(1)))
-
-                        if match_lat or match_lon:
-                            self.pose.status.status = 0
-                            self.pose.status.service = 0
-                            self.pose.position_covariance = [
-                                0.0, 0.0, 0.0,
-                                0.0, 0.0, 0.0,
-                                0.0, 0.0, 0.0
-                            ]
-                            self.pose.position_covariance_type = 0
-                            self.pose.latitude, self.pose.longitude = latitude, longtitude
+                    if msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
+                        if msg_parsed.quality > 0:
+                            # Valid fix
+                            self.pose.latitude = float(msg_parsed.lat)
+                            self.pose.longitude = float(msg_parsed.lon)
+                            self.pose.altitude = float(msg_parsed.alt)
                         else:
-                            self.get_logger().warn(f'❌ GPS data is not available!', throttle_duration_sec=2)
+                            self.get_logger().warn(f'❌ GPS (GGA) data is not available!', throttle_duration_sec=2)
                     if msg_parsed.talker == 'P' and msg_parsed.msgID == 'STI' and msg_parsed.msgId == '036':
                         # We are dealing with a PSTI036 message, which contains orientation information
                         if msg_parsed.mode == 'R':
@@ -190,6 +173,7 @@ class GPSRover(Node):
                         \traw: {msg_str}
                         \tlat: {self.pose.latitude:8.3f}
                         \tlon: {self.pose.longitude:8.3f}
+                        \talt: {self.pose.altitude:8.3f}
                     '''
 
                 except Exception as e:
