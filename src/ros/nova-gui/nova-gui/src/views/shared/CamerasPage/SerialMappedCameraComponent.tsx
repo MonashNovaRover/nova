@@ -28,7 +28,7 @@ import YoloCameraComponent from "../../../components/auto/ObjectDetection/YoloCa
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
-  //[CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent,
+  // [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent,
   [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent,
   [CameraSerials.WHEEL_TELEMETRY]: WheelTelemetryCameraComponent,
   [CameraSerials.DRIVE_TELEMETRY]: DriveCameraComponent,
