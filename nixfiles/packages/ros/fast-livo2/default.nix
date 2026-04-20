@@ -73,7 +73,8 @@ buildRosPackage {
   postPatch = ''
     # Change ROOT_DIR from FAST-LIVO2 to /home/user/.ros
     # Needed for saving .pcd files from FAST-LIVO2.
-    export USER_HOME_DIR=${builtins.getEnv "HOME"}
+    # TODO: patch it to get the $HOME env var at runtime
+    export USER_HOME_DIR=/home/nova
     sed -i CMakeLists.txt \
       -e 's@''${CMAKE_CURRENT_SOURCE_DIR}@$ENV{USER_HOME_DIR}/.ros@g'
 
