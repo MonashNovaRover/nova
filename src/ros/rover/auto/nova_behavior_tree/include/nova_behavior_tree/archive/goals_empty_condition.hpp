@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GOALS_EMPTY_CONDITION_HPP_
-#define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GOALS_EMPTY_CONDITION_HPP_
+#ifndef NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__GOALS_EMPTY_CONDITION_HPP_
+#define NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__GOALS_EMPTY_CONDITION_HPP_
 
 #include <vector>
 #include <string>
@@ -92,4 +92,4 @@ namespace nova_behavior_tree
 
 } // namespace nova_behavior_tree
 
-#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GOALS_EMPTY_CONDITION_HPP_
+#endif // NOVA_BEHAVIOR_TREE__PLUGINS__CONDITION__GOALS_EMPTY_CONDITION_HPP_

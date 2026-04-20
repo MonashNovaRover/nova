@@ -13,7 +13,6 @@
       <input_port name="search_radius">Search radius in m</input_port>
       <input_port name="search_corners">Search corners (e.g. 3 for triangle, 4 for square)</input_port>
       <input_port name="edge_offset">Offset to place goals from the edge of the search radius</input_port>
-      <input_port name="current_pose">Current pose of the rover</input_port>
       <input_port name="input_goals">Goals vector to add search goals into</input_port>
       <output_port name="output_goals">Goals with new search goals added</output_port>
     </Action>
@@ -194,13 +193,6 @@
 
     <Condition ID="GoalsEmpty">
       <input_port name="goals">Waypoints</input_port>
-    </Condition>
-
-    <Condition ID="ArePosesNear">
-      <input_port name="ref_pose">Destination pose</input_port>
-      <input_port name="target_pose">Target pose to compare</input_port>
-      <input_port name="global_frame">Global reference frame</input_port>
-      <input_port name="tolerance">Distance tolerance (m)</input_port>
     </Condition>
 
     <!-- ############################### CONTROL NODES ################################ -->

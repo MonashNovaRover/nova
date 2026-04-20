@@ -22,8 +22,8 @@
       perspectiveRemovePixelPerCell: 4
       polygonalApproxAccuracyRate: 0.03
     board_descriptions_path: ''
-    cam_base_topic: /oak/rgb/image_rect
-    image_is_rectified: true # Only true if subscribed to '/oak/rgb/image_rect' or rectified-image equivalent.
+    cam_base_topic: /d415/color
+    image_is_rectified: true
     image_sub_qos:
       depth: 1
       durability: 2
