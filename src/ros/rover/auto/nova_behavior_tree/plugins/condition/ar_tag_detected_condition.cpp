@@ -55,7 +55,7 @@ namespace nova_behavior_tree
     {
       for (const auto &id : goal_ids_)
       {
-        RCLCPP_INFO(node_->get_logger(), "📍 AR tag %i found, setting goal.", id);
+        RCLCPP_INFO(node_->get_logger(), "📍 AR tag %i detected.", id);
       }
     }
 

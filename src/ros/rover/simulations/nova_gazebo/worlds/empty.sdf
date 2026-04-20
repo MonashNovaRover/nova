@@ -1,15 +1,32 @@
 <?xml version="1.0" ?>
 <sdf version="1.6" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <world name="empty">
+  <world name="auto">
     <xacro:include filename="includes/world_base.xacro"/>
     <xacro:nova_world_physics/>
     <xacro:nova_world_plugins/>
-    <xacro:nova_world_spherical_coordinates
-      latitude_deg="38.406863"
-      longitude_deg="-110.791055"
-      elevation="1370.0"
-      heading_deg="180"/>
     <xacro:nova_world_directional_sun cast_shadows="true"/>
+    <xacro:nova_world_scene shadows="false"/>
+    <xacro:nova_world_spherical_coordinates
+      latitude_deg="38.367167"
+      longitude_deg="-110.714849"
+      elevation="1370.0192172613349"
+      heading_deg="0"
+      world_frame_orientation="ENU"/>
+    <xacro:nova_world_orbit_camera_gui camera_pose="0 0 34 0 1.570796 0"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
 
     <model name="ground_plane">
       <static>true</static>
@@ -37,6 +54,5 @@
         </visual>
       </link>
     </model>
-
   </world>
 </sdf>

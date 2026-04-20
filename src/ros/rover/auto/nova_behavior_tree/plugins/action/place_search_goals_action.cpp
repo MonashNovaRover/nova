@@ -20,11 +20,13 @@
  */
 
 #include <string>
+#include <cmath>
 
 #include "rclcpp/logging.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
-#include "tf2/LinearMath/Vector3.h"
-#include "tf2/LinearMath/Quaternion.h"
+#include "tf2/LinearMath/Vector3.hpp"
+#include "tf2/LinearMath/Quaternion.hpp"
+#include "tf2/utils.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 #include "nova_behavior_tree/action/place_search_goals_action.hpp"
@@ -58,52 +60,29 @@ namespace nova_behavior_tree
     }
       
     getInput("input_goals", input_goals_);
-
-    get_reference_pose();        
     place_search_goals();
 
     return BT::NodeStatus::SUCCESS;
   }
 
-  void PlaceSearchGoalsAction::get_reference_pose()
-  {
-    if (input_goals_.size() == 1)
-    {
-      getInput("current_pose", reference_pose_);
-    }
-    else
-    {
-      reference_pose_ = input_goals_[input_goals_.size() - 2];
-    }
-  }
-
   void PlaceSearchGoalsAction::place_search_goals()
   {
-    // initial direction is the normal from the reference to the goal
-    tf2::Vector3 reference;
+    Goal centre_goal = input_goals_.back();
     tf2::Vector3 centre;
-    tf2::fromMsg(reference_pose_.pose.position, reference);
-    tf2::fromMsg(input_goals_.back().pose.position, centre);
+    tf2::fromMsg(centre_goal.pose.position, centre);
 
-    tf2::Vector3 dir = (centre - reference).normalized();
+    double yaw = tf2::getYaw(centre_goal.pose.orientation);
+    tf2::Vector3 dir = tf2::Vector3(std::cos(yaw), std::sin(yaw), 0);
     for (int i = 0; i < search_corners_ + 1; ++i)
     {
       // rotate the direction vector by (360 / search_corners) degrees
-      double angle;
-      if (i == search_corners_)
-      {
-        angle = utils::nav2::radians(((360 / search_corners_) * i) - 10);
-      }
-      else
-      {
-        angle = utils::nav2::radians((360 / search_corners_) * i);
-      }
+      double angle = utils::nav2::radians((360 / search_corners_) * i);
       tf2::Vector3 rotated_dir = dir.rotate(tf2::Vector3(0, 0, 1), angle);
 
       // calculate the new goal's position
       tf2::Vector3 new_goal_pos = centre + (rotated_dir * (search_radius_ - edge_offset_));
       geometry_msgs::msg::PoseStamped new_goal;
-      new_goal.header.frame_id = reference_pose_.header.frame_id;
+      new_goal.header.frame_id = centre_goal.header.frame_id;
       new_goal.header.stamp = node_->get_clock()->now();
       tf2::toMsg(new_goal_pos, new_goal.pose.position);
       // set the new goal's orientation
