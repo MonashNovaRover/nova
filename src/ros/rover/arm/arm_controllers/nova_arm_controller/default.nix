@@ -17,7 +17,7 @@
 , tf2-msgs
 , geometry-msgs
 , nova-interfaces
-, arm-kinematics
+, nova-arm-kinematics
 }:
 
 buildRosPackage {
@@ -48,7 +48,7 @@ buildRosPackage {
     tf2-msgs
     geometry-msgs
     nova-interfaces
-    arm-kinematics
+    nova-arm-kinematics
   ];
 }
 
