@@ -102,9 +102,11 @@ def launch_setup(context, *args, **kwargs):
     # comp defaults
     if comp == 'arch':
         fastlivo2 = 'True'
+        tfs = 'True'
         ground_seg_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'ground_segmentation.yaml'])
     elif comp == 'urc':
         fastlivo2 = 'False'
+        tfs = 'False'
         ground_seg_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'ground_segmentation.yaml'])
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
@@ -112,6 +114,8 @@ def launch_setup(context, *args, **kwargs):
     # comp defaults overrides
     if LaunchConfiguration('fastlivo2').perform(context) != '':
         fastlivo2 = LaunchConfiguration('fastlivo2')
+    if LaunchConfiguration('tfs').perform(context) != '':
+        tfs = LaunchConfiguration('tfs')
     if LaunchConfiguration('ground_seg_params').perform(context) != '':
         ground_seg_params = LaunchConfiguration('ground_seg_params')
 
@@ -366,9 +370,10 @@ def generate_launch_description():
             default_value='',
             description='Full path to the parameters file to use for ground segmentation',
         ),
+        # argument with comp default
         DeclareLaunchArgument(
             name='tfs',
-            default_value='True',
+            default_value='',
             description='Publish Nav2-required transforms? (map -> odom -> base_link)',
         ),
         # argument with comp default
