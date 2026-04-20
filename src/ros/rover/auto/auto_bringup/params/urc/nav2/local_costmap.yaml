@@ -20,7 +20,7 @@ local_costmap:
       track_unknown_space: false
       always_send_full_costmap: True # SnapInCollisionGoals needs this to work
       trinary_costmap: true
-      plugins: ["voxel_layer", "denoise_layer", "inflation_layer"]
+      plugins: ["stvl_layer", "denoise_layer", "inflation_layer"]
       
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
