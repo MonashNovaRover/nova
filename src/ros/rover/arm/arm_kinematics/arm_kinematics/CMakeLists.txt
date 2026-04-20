@@ -86,6 +86,9 @@ add_library(${PROJECT_NAME} SHARED
   src/common/robot_model.cpp
   src/plugins/inverse/banksia_ik_plugin.cpp
   src/kinematics.cpp
+  src/ros2_control/interface_lookup_error.cpp
+  src/ros2_control/interface_refs.cpp
+  src/ros2_control/joint_interface_bundle.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)  # Require C++17
@@ -114,6 +117,9 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/joint_map/test_transmission_analysis.cpp
   test/joint_map/test_transmission_analysis_urdf_import.cpp
   test/joint_map/test_transmission_reachability.cpp
+  test/ros2_control/test_interface_names.cpp
+  test/ros2_control/test_interface_refs.cpp
+  test/ros2_control/test_joint_interface_bundle.cpp
   test/main.cpp
 )
 #if(NIX_DO_CHECK)
