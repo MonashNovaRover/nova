@@ -13,7 +13,6 @@
 #include "std_srvs/srv/empty.hpp"
 #include <camera_msgs/msg/camera.hpp>
 #include <camera_msgs/msg/cameras.hpp>
-#include "properties/common.hpp"
 
 #include "cameras/globals.hpp"
 #include "cameras/colors.hpp"
@@ -177,7 +176,7 @@ class CameraDirectory : public rclcpp::Node
       if (std::find(blacklist.begin(), blacklist.end(), device.serial) != blacklist.end()) continue;
 
       // add to message
-      auto camera = camera_msgs::msg::Camera();
+      camera_msgs::msg::Camera camera = camera_msgs::msg::Camera();
 
       // get final serial with remaps and overrides
       std::string serial = device.serial;

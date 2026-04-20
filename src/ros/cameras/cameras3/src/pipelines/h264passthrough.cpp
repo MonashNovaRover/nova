@@ -88,6 +88,9 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
 
   props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
+  // scale
+  props->downscale = 1; // Do not change scale
+
   // rate
   props->downrate = 1; // Do not change framerate
 
@@ -115,15 +118,7 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
 
   // 2. Finalize props
-  if (props->verify_resolution) {
-    if (verify_v4lresolution(props->device, &props->mime, &props->width, &props->height, &props->framerate, &props->framerate_denominator)) {
-        RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, camera->pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, camera->profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-    } else {
-        RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution!%s Fallback pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_FAIL, C_QUIET, C_INPUT, camera->pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, camera->profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-    }
-  } else {
-      RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, camera->pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, camera->profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
-  }
+  display_resolution(streamer_node, props, camera, 0);
 
   return props;
 }

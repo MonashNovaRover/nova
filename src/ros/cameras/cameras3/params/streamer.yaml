@@ -13,7 +13,7 @@ camera_streamer:
         meta : Mast - Backwards
       mast_arm_stow:
         meta: Mast - Arm Stow
-      mast_down:
+      mast_belly:
         meta: Mast - Down
       mast_forward:
         meta: Mast - Forwards
@@ -67,7 +67,6 @@ camera_streamer:
           height: 1080
           framerate: 30
           downrate: 3
-          crop43: true
           cpu_usage: 2
           jpegdec_method: float
           bitrate: 2048
@@ -113,7 +112,6 @@ camera_streamer:
           height: 1080
           framerate: 30
           downrate: 3
-          crop43: true
           cpu_usage: 2
           jpegdec_method: float
           bitrate: 2048
@@ -266,7 +264,7 @@ camera_streamer:
           mast_forward: default
           mast_backward: default
           mast_arm_stow: default
-          mast_down: default
+          mast_belly: default
           arm_end_periscope: snail
           arm_end_top: snail
           arm_end_finger: snail
@@ -275,7 +273,7 @@ camera_streamer:
           mast_forward: snail
           mast_backward: snail
           mast_arm_stow: snail
-          mast_down: snail
+          mast_belly: snail
           arm_end_periscope: default
           arm_end_top: default
           arm_end_finger: default

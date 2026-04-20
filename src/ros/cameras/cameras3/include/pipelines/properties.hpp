@@ -33,6 +33,7 @@ struct capsProperties
   int brightness;
   int contrast;
   int downrate;
+  int downscale;
   int height;
   int framerate;
   int framerate_denominator;
@@ -79,10 +80,7 @@ struct cpuFiltersProperties
   std::string dither;
   std::string method;
 
-  int downscale;
-
   bool greyscale;
-
   bool crop43;
 };
 

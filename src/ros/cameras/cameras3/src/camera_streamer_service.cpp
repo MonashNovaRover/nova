@@ -22,6 +22,7 @@
 #include <camera_msgs/msg/cameras.hpp>
 
 #include "cameras/globals.hpp"
+#include "properties/common.hpp"
 #include "pipelines/properties.hpp"
 
 #include "cameras/colors.hpp"
@@ -140,25 +141,6 @@ class CameraStreamer : public rclcpp::Node
     pipeline->camera->pipeline_type = default_string;
   }
 
-  private: void get_profile(Pipeline* pipeline) {
-    // From serial
-    if (this->get_parameter<std::string>((std::string(PIPELINE_PREFIX) + "." + pipeline->camera->serial + ".profile").c_str(), pipeline->camera->profile)) return;
-    // From task profile
-    std::string task, preset;
-    if (this->get_parameter("task", task) && this->get_parameter("preset", preset)) {
-      if (this->get_parameter<std::string>((std::string(PRESET_PREFIX) + "." + task + "." + preset + "." + pipeline->camera->serial).c_str(), pipeline->camera->profile)) return;
-    }
-    // From global
-    if (!preset.empty()) {
-      pipeline->camera->profile = preset;
-      return;
-    }
-    // From default
-    if (this->get_parameter<std::string>((std::string(DEFAULT_PREFIX) + "." + pipeline->camera->original_serial + ".profile").c_str(), pipeline->camera->profile)) return;
-    // If no profile found
-    pipeline->camera->profile = "";
-  }
-
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
   {
     for (camera_msgs::msg::Camera camera : msg.cameras) {
@@ -176,7 +158,7 @@ class CameraStreamer : public rclcpp::Node
         pipeline->camera->original_serial = camera.original_serial;
 
         // Get pipeline
-        this->get_profile(pipeline);
+        get_profile(this, pipeline->camera);
 
         // Get pipeline_type
         this->get_pipeline_type(pipeline);
@@ -262,7 +244,6 @@ class CameraStreamer : public rclcpp::Node
         bool correct_camera = false;
 
         // From presets
-        RCLCPP_INFO(this->get_logger(), "%s, %s", serial.c_str(), request->profile.c_str());
         std::string task;
         if (this->get_parameter("task", task)) {
           if (this->get_parameter<std::string>((std::string(PRESET_PREFIX) + "." + task + "." + request->profile + "." + pipeline->camera->serial).c_str(), pipeline->camera->profile)){
@@ -291,6 +272,7 @@ class CameraStreamer : public rclcpp::Node
           gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
           gst_object_unref(pipeline->gst_pipeline);
           pipeline->gst_pipeline = nullptr;
+          this->get_pipeline_type(pipeline);
           this->start_pipeline(pipeline);
         } else {
           RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);

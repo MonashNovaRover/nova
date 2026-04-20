@@ -85,7 +85,7 @@ def generate_launch_description():
             Node(
                 package="cameras",
                 executable="camera_directory_service",
-                parameters=[{'platform': platform, 'task': task}, directory_params],
+                parameters=[{'platform': platform, 'task': task, 'preset': preset}, directory_params, streamer_params],
             ),
             Node(
                 package="cameras",
