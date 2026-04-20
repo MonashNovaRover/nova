@@ -38,6 +38,7 @@ export const CamerasTable = ({refreshAvailabilies}: CamerasTableProps ) => {
       isCompact
       className="hide-scrollbar w-full table-fixed"
       isHeaderSticky
+      aria-label="Cameras Table"
     >
       <TableHeader>
         <TableColumn>Serial</TableColumn>
@@ -51,7 +52,7 @@ export const CamerasTable = ({refreshAvailabilies}: CamerasTableProps ) => {
       >
         {onlineSerials.map((serial) => (
           <TableRow>
-            <TableCell className="flex flex-row gap-3 items-center">
+            <TableCell key={serial + "-name"} className="flex flex-row gap-3 items-center">
               <CircleFill size={12} color="#17c964"/>
               <Tooltip content={serial} showArrow placement="top-start" color="default">
                 <span className="truncate block">
@@ -59,10 +60,10 @@ export const CamerasTable = ({refreshAvailabilies}: CamerasTableProps ) => {
                 </span>
               </Tooltip>
             </TableCell>
-            <TableCell>
+            <TableCell key={serial + "stream"}>
               {booleanChip(serial)}
             </TableCell>
-            <TableCell>
+            <TableCell key={serial + "-actions"}>
               <div className="flex flex-row gap-2 justify-end">
                 <Button
                   isIconOnly
