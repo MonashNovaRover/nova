@@ -181,16 +181,17 @@ controller_interface::return_type NovaTwistmapper::update(
 
   const auto candidate_pose = integrate_twist(current_joint_state_values_, period, twistmapper_pose_);
 
-  if (!kinematics_->ik->get_position_ik(
-        candidate_pose,
-        current_joint_state_values_,
-        ik_solution_))
-  {
+  auto ik_result = kinematics_->ik->get_position_ik(
+    candidate_pose,
+    current_joint_state_values_,
+    ik_solution_);
+  if (!ik_result) {
     RCLCPP_WARN_THROTTLE(
       logger,
       *get_node()->get_clock(),
       200,
-      "Failed to find solution to inverse kinematics.");
+      "Failed to find solution to inverse kinematics: %s",
+      ik_result.error().format().c_str());
     publish_to_tf2(time, twistmapper_pose_);
     return controller_interface::return_type::OK;
   }

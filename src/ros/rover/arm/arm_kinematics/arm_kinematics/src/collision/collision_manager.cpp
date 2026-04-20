@@ -152,7 +152,10 @@ bool check_path_collision(
     }
   }
 
-  manager.update_poses(std::vector<double>(end.begin(), end.end()));
+  for (std::size_t i = 0; i < intermediate_positions.size(); ++i) {
+    intermediate_positions[i] = end[i];
+  }
+  manager.update_poses(intermediate_positions);
   return manager.collide();
 }
 

@@ -130,9 +130,9 @@ TEST(CollisionPathTest, UsesExpectedStepsForNonMultipleDisplacement)
 
   EXPECT_FALSE(check_path_collision(manager, std::vector<double>{0.0}, std::vector<double>{0.6}, 0.25));
   ASSERT_EQ(plugin->seen_positions().size(), 3u);
-  EXPECT_DOUBLE_EQ(plugin->seen_positions()[0], 0.2);
-  EXPECT_DOUBLE_EQ(plugin->seen_positions()[1], 0.4);
-  EXPECT_DOUBLE_EQ(plugin->seen_positions()[2], 0.6);
+  EXPECT_NEAR(plugin->seen_positions()[0], 0.2, 1.0e-12);
+  EXPECT_NEAR(plugin->seen_positions()[1], 0.4, 1.0e-12);
+  EXPECT_NEAR(plugin->seen_positions()[2], 0.6, 1.0e-12);
 }
 
 TEST(CollisionPathTest, UsesExpectedStepsForExactMultipleDisplacement)

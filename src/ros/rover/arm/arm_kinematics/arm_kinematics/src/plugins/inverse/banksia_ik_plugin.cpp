@@ -4,6 +4,8 @@
 
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 
+#include <cmath>
+
 namespace {
   const auto ENDEFFECTOR_BASIS_INVERSE = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5).toRotationMatrix().inverse();
 }
@@ -22,12 +24,23 @@ public:
     return true;
   }
 
-  bool get_position_ik(
+  IKResult get_position_ik(
     const Eigen::Isometry3d & ik_pose,
     const std::vector<double> & ik_seed_state,
     std::vector<double> & solution_state) const override
   {
-    assert(ik_seed_state.size() >= 6);
+    if (ik_seed_state.size() < 6) {
+      return tl::unexpected(IKFailure::InvalidSeed{
+        "Banksia IK expects at least 6 seed joints"});
+    }
+    if (solution_state.size() < 6) {
+      return tl::unexpected(IKFailure::InvalidSeed{
+        "Banksia IK requires a pre-allocated output buffer with at least 6 elements"});
+    }
+    if (!ik_pose.matrix().allFinite()) {
+      return tl::unexpected(IKFailure::InvalidTarget{
+        "target pose contains NaN or Inf"});
+    }
 
     // Adapted from Abby's code
     const auto origin = ik_pose.translation();
@@ -65,7 +78,18 @@ public:
 
     double j1 = atan2(wrist_y, wrist_x);
     double l = sqrt(pow(wrist_x, 2) + pow(wrist_y, 2));
-    double j3a = acos((pow(l, 2) + pow(wrist_z, 2) - pow(l1r, 2) - pow(l2r, 2)) / (2 * l1r * l2r));
+    const double cosine_argument =
+      (pow(l, 2) + pow(wrist_z, 2) - pow(l1r, 2) - pow(l2r, 2)) / (2 * l1r * l2r);
+    if (!std::isfinite(cosine_argument)) {
+      return tl::unexpected(IKFailure::BackendError{
+        "computed elbow cosine argument is non-finite"});
+    }
+    if (cosine_argument < -1.0 || cosine_argument > 1.0) {
+      return tl::unexpected(IKFailure::OutsideWorkspace{
+        "requested pose cannot be reached by the Banksia arm geometry"});
+    }
+
+    double j3a = acos(cosine_argument);
     double j3b = -j3a; // expands to -acos((l^2+wrist_z^2-L1r^2-L2r^2)/(2*L1r*L2r)) as per keenan's notes
     // double j3ao = j3a + M_PI / 2;
     double j3bo = j3b + M_PI / 2;
@@ -90,7 +114,15 @@ public:
     Eigen::Matrix3d r37r = r03_wrist.inverse() * r07r;
 
     double j4 = atan2(r37r(1, 2), r37r(0, 2));
+    if (std::abs(std::cos(j4)) < 1.0e-9) {
+      return tl::unexpected(IKFailure::Singular{
+        "wrist rotation produced cos(j4) ~= 0"});
+    }
     double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
+    if (std::abs(std::cos(j5)) < 1.0e-9) {
+      return tl::unexpected(IKFailure::Singular{
+        "wrist rotation produced cos(j5) ~= 0"});
+    }
     double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
 
     // Old implementation needed to be in the same order as when they get put in a joint group
@@ -106,7 +138,14 @@ public:
     solution_state[4] = j5;
     solution_state[5] = j6;
 
-    return true;
+    for (size_t i = 0; i < 6; ++i) {
+      if (!std::isfinite(solution_state[i])) {
+        return tl::unexpected(IKFailure::BackendError{
+          "Banksia IK produced NaN or Inf joint values"});
+      }
+    }
+
+    return {};
   }
 
   static Eigen::Matrix4d to_matrix4(
