@@ -43,7 +43,7 @@ class WaypointNavigator(Node):
 
         self.filepath = self.declare_parameter(
             name='filepath', 
-            value=os.path.expanduser('~/waypoints.yaml'), 
+            value=os.path.expanduser('~/nova/src/ros/rover/auto/auto_bringup/params/waypoints.yaml'), 
         ).value
         self.waypoints = self.load_yaml_waypoints()
         self.blackboard = dict() # Dictionary to store blackboard data

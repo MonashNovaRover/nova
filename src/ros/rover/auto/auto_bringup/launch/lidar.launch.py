@@ -85,19 +85,39 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('auto_bringup')
     )
 
+    comp = LaunchConfiguration('comp').perform(context).lower()
+
     driver = LaunchConfiguration('driver')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     mask = LaunchConfiguration('mask')
     ground_seg = LaunchConfiguration('ground_seg')
-    ground_seg_params = LaunchConfiguration('ground_seg_params')
     tfs = LaunchConfiguration('tfs')
-    fastlivo2 = LaunchConfiguration('fastlivo2')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
     img_en = int(LaunchConfiguration('img_en').perform(context).lower() == 'true')
     sim = LaunchConfiguration('sim')
     uncompress_img = LaunchConfiguration('uncompress_img')
     shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
+
+    # comp defaults
+    if comp == 'arch':
+        fastlivo2 = 'True'
+        tfs = 'True'
+        ground_seg_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'ground_segmentation.yaml'])
+    elif comp == 'urc':
+        fastlivo2 = 'False'
+        tfs = 'False'
+        ground_seg_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'ground_segmentation.yaml'])
+    else:
+        raise ValueError('"comp" arg must be either "arch" or "urc"')
+    
+    # comp defaults overrides
+    if LaunchConfiguration('fastlivo2').perform(context) != '':
+        fastlivo2 = LaunchConfiguration('fastlivo2')
+    if LaunchConfiguration('tfs').perform(context) != '':
+        tfs = LaunchConfiguration('tfs')
+    if LaunchConfiguration('ground_seg_params').perform(context) != '':
+        ground_seg_params = LaunchConfiguration('ground_seg_params')
 
     img_topic = '/d415/color/image_raw'
     intrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml'])
@@ -120,8 +140,6 @@ def launch_setup(context, *args, **kwargs):
         executable='fastlivo_mapping',
         name='fastlivo2',
         output='screen',
-        # gives 66.67% of CPU under 100% load assuming all other processes have default weight of 100
-        prefix='systemd-run --scope --user -p CPUWeight=200 --unit=fastlivo2',
         parameters=[fastlivo2_rewritten_params, extrinsics_params,
                     {'save_folder': output_dir}],
         remappings=[('/aft_mapped_to_init', '/odometry/filtered')],
@@ -233,8 +251,14 @@ def launch_setup(context, *args, **kwargs):
                 RegisterEventHandler(
                     event_handler=OnProcessExit(
                         target_action=wait_for_topics,
-                        on_exit=[OpaqueFunction(function=block_until_enter_pressed, kwargs={'logger': logger}),
-                                 fastlivo2_node],
+                        on_exit=[
+                            OpaqueFunction(
+                                condition=UnlessCondition(sim),
+                                function=block_until_enter_pressed,
+                                kwargs={'logger': logger}
+                            ),
+                            fastlivo2_node
+                        ],
                     ),
                 ),
                 RegisterEventHandler(
@@ -316,6 +340,11 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='comp',
+            default_value='arch',
+            description='ARCh or URC',
+        ),
+        DeclareLaunchArgument(
             name='local',
             default_value='False',
             description='Whether to use local directories instead of the nix store.',
@@ -335,19 +364,22 @@ def generate_launch_description():
             default_value='True',
             description='Run ground segmentation?',
         ),
+        # argument with comp default
         DeclareLaunchArgument(
             name='ground_seg_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'ground_segmentation.yaml']),
+            default_value='',
             description='Full path to the parameters file to use for ground segmentation',
         ),
+        # argument with comp default
         DeclareLaunchArgument(
             name='tfs',
-            default_value='True',
+            default_value='',
             description='Publish Nav2-required transforms? (map -> odom -> base_link)',
         ),
+        # argument with comp default
         DeclareLaunchArgument(
             name='fastlivo2',
-            default_value='True',
+            default_value='',
             description='Use FAST-LIVO2?',
         ),
         DeclareLaunchArgument(
@@ -357,7 +389,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='img_en',
-            default_value='True',
+            default_value='False',
             description='Enable coloured mapping?',
         ),
         DeclareLaunchArgument(
