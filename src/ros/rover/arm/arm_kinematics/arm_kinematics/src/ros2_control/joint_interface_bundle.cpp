@@ -3,6 +3,7 @@
 #include "arm_kinematics/ros2_control/joint_interface_bundle.hpp"
 
 #include <algorithm>
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
 
 namespace arm_kinematics::ros2_control {
 

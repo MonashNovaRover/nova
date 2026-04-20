@@ -407,9 +407,9 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
   // "collision.*" parameter prefix. See arm_kinematics/collision/collision_utilities.hpp
   // for the supported parameter keys (generate_from_default_pose, default_pose_overrides,
   // allowed_pairs). Do NOT add these to nova_arm_controller_parameter.yaml.
-  kinematics_.emplace(
-    arm_kinematics::PluginLoader{get_node(), get_robot_description()},
-    nullptr);
+  kinematics_ = Kinematics{
+    arm_kinematics::PluginLoader{*get_node(), get_robot_description()},
+    nullptr};
   kinematics_->fk = kinematics_->loader.make_fk();
   if (!kinematics_->fk) {
     RCLCPP_ERROR(logger, "Failed to create FK plugin — cannot set up collision");

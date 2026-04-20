@@ -32,7 +32,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_eigen
   transmission_interface
   fcl
-  kdl_parser
   tinyxml2
 )
 

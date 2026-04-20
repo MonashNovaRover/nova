@@ -9,7 +9,7 @@
 
 #include <hardware_interface/loaned_command_interface.hpp>
 #include <hardware_interface/loaned_state_interface.hpp>
-#include <tl_expected/expected.hpp>
+#include "arm_kinematics/utilities/expected.hpp"
 
 #include "arm_kinematics/ros2_control/interface_lookup_error.hpp"
 #include "arm_kinematics/utilities/span.hpp"

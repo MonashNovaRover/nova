@@ -17,7 +17,6 @@
 , transmission-interface
 , hardware-interface
 , fcl
-, kdl-parser
 , gbenchmark
 }:
 
@@ -54,7 +53,6 @@ buildRosPackage rec {
     transmission-interface
     hardware-interface
     fcl
-    kdl-parser
     gbenchmark
   ];
 

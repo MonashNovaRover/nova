@@ -18,6 +18,7 @@
 , geometry-msgs
 , nova-interfaces
 , nova-arm-kinematics
+, fcl
 }:
 
 buildRosPackage {
@@ -49,6 +50,7 @@ buildRosPackage {
     geometry-msgs
     nova-interfaces
     nova-arm-kinematics
+    fcl
   ];
 }
 

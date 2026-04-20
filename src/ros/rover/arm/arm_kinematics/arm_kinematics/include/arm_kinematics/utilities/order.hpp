@@ -419,7 +419,7 @@ public:
    * in the order, and returns that.
    */
   template<bool B = detail::is_contiguous_lookup_key_v<TValue>, std::enable_if_t<B, int> = 0>
-  [[nodiscard]] reference ensure(const TKey & idx) noexcept
+  reference ensure(const TKey & idx) noexcept
   {
     if (contains_key(idx))
       return (*this)[idx];
@@ -435,7 +435,7 @@ public:
    * @param default_value The value to set for idx if idx has no previous value set
    * @return The value at idx
    */
-  [[nodiscard]] reference ensure(const TKey & idx, const value_type & default_value) noexcept
+  reference ensure(const TKey & idx, const value_type & default_value) noexcept
   {
     if (contains_key(idx))
       return (*this)[idx];

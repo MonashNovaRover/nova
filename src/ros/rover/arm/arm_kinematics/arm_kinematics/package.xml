@@ -17,7 +17,6 @@
   <depend>fcl</depend>
   <depend>geometry_msgs</depend>
   <depend>hardware_interface</depend>
-  <depend>kdl_parser</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>rcpputils</depend>
