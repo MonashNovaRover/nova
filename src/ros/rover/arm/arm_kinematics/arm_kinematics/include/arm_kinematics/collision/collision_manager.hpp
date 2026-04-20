@@ -6,10 +6,15 @@
 #define ARM_KINEMATICS_COLLISION_MANAGER_HPP
 
 #include <limits>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <variant>
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/collision/collision_build_error.hpp"
 #include "arm_kinematics/collision/collision_config.hpp"
+#include "arm_kinematics/utilities/expected.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 #include "discrete_collision_plugin.hpp"
 
@@ -75,17 +80,56 @@ tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   const ForwardKinematicsPlugin::SharedPtr & fk,
   const CollisionConfig & config);
 
+struct ARM_KINEMATICS_PUBLIC PathCollisionError {
+  struct SizeMismatch {
+    size_t start_size{};
+    size_t end_size{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  struct InvalidStepSize {
+    double step_size{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  using Variant = std::variant<SizeMismatch, InvalidStepSize>;
+  Variant value;
+
+  template <
+    typename T,
+    typename Decayed = std::decay_t<T>,
+    typename = std::enable_if_t<!std::is_same_v<Decayed, PathCollisionError>>>
+  PathCollisionError(T && t)
+  : value(std::forward<T>(t))
+  {
+  }
+
+  [[nodiscard]] std::string format() const;
+};
+
+struct ARM_KINEMATICS_PUBLIC PathCollisionScratch {
+  std::vector<double> intermediate_positions{};
+};
+
 /**
  * Interpolate between two joint states, checking self-collision at each intermediate state and
  * the endpoint.
  *
  * The starting state is not checked separately. Intermediate states are chosen such that the
  * maximum per-joint displacement between successive checks does not exceed `step_size`.
- *
- * \throws std::invalid_argument if `start` and `end` differ in size, or if `step_size <= 0`.
  */
 ARM_KINEMATICS_PUBLIC
-bool check_path_collision(
+tl::expected<bool, PathCollisionError> check_path_collision(
+  CollisionManager & manager,
+  span<const double> start,
+  span<const double> end,
+  double step_size,
+  PathCollisionScratch & scratch);
+
+ARM_KINEMATICS_PUBLIC
+tl::expected<bool, PathCollisionError> check_path_collision(
   CollisionManager & manager,
   span<const double> start,
   span<const double> end,

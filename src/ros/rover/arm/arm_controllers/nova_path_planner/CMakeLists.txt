@@ -23,6 +23,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_eigen
   tf2_msgs
   tf2_geometry_msgs
+  tf2_ros
 )
 
 find_package(ament_cmake REQUIRED)

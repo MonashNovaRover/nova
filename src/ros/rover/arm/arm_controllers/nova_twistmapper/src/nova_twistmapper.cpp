@@ -212,12 +212,21 @@ controller_interface::return_type NovaTwistmapper::update(
     return controller_interface::return_type::OK;
   }
 
-  if (arm_kinematics::check_path_collision(
-        kinematics_->collision_manager,
-        current_joint_state_values_,
-        ik_solution_,
-        params_.self_intersection_max_step_size))
-  {
+  const auto collision_result = arm_kinematics::check_path_collision(
+    kinematics_->collision_manager,
+    current_joint_state_values_,
+    ik_solution_,
+    params_.self_intersection_max_step_size,
+    path_collision_scratch_);
+  if (!collision_result) {
+    RCLCPP_ERROR(
+      logger,
+      "Failed to check path collision: %s",
+      collision_result.error().format().c_str());
+    publish_to_tf2(time, twistmapper_pose_);
+    return controller_interface::return_type::OK;
+  }
+  if (*collision_result) {
     RCLCPP_WARN_THROTTLE(
       logger,
       *get_node()->get_clock(),
@@ -333,6 +342,7 @@ controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_
 
   current_joint_state_values_.assign(params_.joint_names.size(), 0.0);
   ik_solution_.assign(params_.joint_names.size(), 0.0);
+  path_collision_scratch_.intermediate_positions.assign(params_.joint_names.size(), 0.0);
   received_twist_stamped_ptr_.set(nullptr);
 
   twist_stamped_sub_ = get_node()->create_subscription<geometry_msgs::msg::TwistStamped>(

@@ -101,7 +101,13 @@ TEST(CollisionPathTest, ReturnsFalseWhenEndpointIsSafe)
     [](double x) { return x >= 1.0; });
   auto manager = make_fake_manager(plugin);
 
-  EXPECT_FALSE(check_path_collision(manager, std::vector<double>{0.0}, std::vector<double>{0.4}, 0.2));
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{0.4},
+    0.2);
+  ASSERT_TRUE(result);
+  EXPECT_FALSE(*result);
 }
 
 TEST(CollisionPathTest, ReturnsTrueWhenEndpointCollides)
@@ -110,7 +116,13 @@ TEST(CollisionPathTest, ReturnsTrueWhenEndpointCollides)
     [](double x) { return x >= 1.0; });
   auto manager = make_fake_manager(plugin);
 
-  EXPECT_TRUE(check_path_collision(manager, std::vector<double>{0.0}, std::vector<double>{1.0}, 2.0));
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{1.0},
+    2.0);
+  ASSERT_TRUE(result);
+  EXPECT_TRUE(*result);
 }
 
 TEST(CollisionPathTest, ReturnsTrueWhenOnlyIntermediateStateCollides)
@@ -119,7 +131,13 @@ TEST(CollisionPathTest, ReturnsTrueWhenOnlyIntermediateStateCollides)
     [](double x) { return x >= 0.35 && x <= 0.45; });
   auto manager = make_fake_manager(plugin);
 
-  EXPECT_TRUE(check_path_collision(manager, std::vector<double>{0.0}, std::vector<double>{0.6}, 0.25));
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{0.6},
+    0.25);
+  ASSERT_TRUE(result);
+  EXPECT_TRUE(*result);
 }
 
 TEST(CollisionPathTest, UsesExpectedStepsForNonMultipleDisplacement)
@@ -128,7 +146,13 @@ TEST(CollisionPathTest, UsesExpectedStepsForNonMultipleDisplacement)
     [](double) { return false; });
   auto manager = make_fake_manager(plugin);
 
-  EXPECT_FALSE(check_path_collision(manager, std::vector<double>{0.0}, std::vector<double>{0.6}, 0.25));
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{0.6},
+    0.25);
+  ASSERT_TRUE(result);
+  EXPECT_FALSE(*result);
   ASSERT_EQ(plugin->seen_positions().size(), 3u);
   EXPECT_NEAR(plugin->seen_positions()[0], 0.2, 1.0e-12);
   EXPECT_NEAR(plugin->seen_positions()[1], 0.4, 1.0e-12);
@@ -141,33 +165,71 @@ TEST(CollisionPathTest, UsesExpectedStepsForExactMultipleDisplacement)
     [](double) { return false; });
   auto manager = make_fake_manager(plugin);
 
-  EXPECT_FALSE(check_path_collision(manager, std::vector<double>{0.0}, std::vector<double>{0.75}, 0.25));
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{0.75},
+    0.25);
+  ASSERT_TRUE(result);
+  EXPECT_FALSE(*result);
   ASSERT_EQ(plugin->seen_positions().size(), 3u);
   EXPECT_DOUBLE_EQ(plugin->seen_positions()[0], 0.25);
   EXPECT_DOUBLE_EQ(plugin->seen_positions()[1], 0.5);
   EXPECT_DOUBLE_EQ(plugin->seen_positions()[2], 0.75);
 }
 
-TEST(CollisionPathTest, ThrowsOnMismatchedJointVectorSizes)
+TEST(CollisionPathTest, ReusesCallerOwnedScratch)
 {
   auto plugin = std::make_shared<FakeCollisionPlugin>(
     [](double) { return false; });
   auto manager = make_fake_manager(plugin);
+  PathCollisionScratch scratch;
+  scratch.intermediate_positions.assign(1, -1.0);
 
-  EXPECT_THROW(
-    check_path_collision(manager, std::vector<double>{0.0}, std::vector<double>{0.0, 1.0}, 0.25),
-    std::invalid_argument);
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{0.75},
+    0.25,
+    scratch);
+  ASSERT_TRUE(result);
+  EXPECT_FALSE(*result);
+  ASSERT_EQ(scratch.intermediate_positions.size(), 1u);
+  EXPECT_DOUBLE_EQ(scratch.intermediate_positions[0], 0.75);
 }
 
-TEST(CollisionPathTest, ThrowsOnNonPositiveStepSize)
+TEST(CollisionPathTest, ReturnsStructuredErrorOnMismatchedJointVectorSizes)
 {
   auto plugin = std::make_shared<FakeCollisionPlugin>(
     [](double) { return false; });
   auto manager = make_fake_manager(plugin);
 
-  EXPECT_THROW(
-    check_path_collision(manager, std::vector<double>{0.0}, std::vector<double>{1.0}, 0.0),
-    std::invalid_argument);
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{0.0, 1.0},
+    0.25);
+  ASSERT_FALSE(result);
+  EXPECT_EQ(
+    result.error().format(),
+    "check_path_collision() received start/end vectors with different sizes (1 vs 2)");
+}
+
+TEST(CollisionPathTest, ReturnsStructuredErrorOnNonPositiveStepSize)
+{
+  auto plugin = std::make_shared<FakeCollisionPlugin>(
+    [](double) { return false; });
+  auto manager = make_fake_manager(plugin);
+
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{1.0},
+    0.0);
+  ASSERT_FALSE(result);
+  EXPECT_EQ(
+    result.error().format(),
+    "check_path_collision() requires step_size > 0, got 0.000000");
 }
 
 }  // namespace

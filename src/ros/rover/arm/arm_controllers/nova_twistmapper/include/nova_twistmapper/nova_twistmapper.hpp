@@ -142,6 +142,7 @@ protected:
     Eigen::Isometry3d::Identity()};
   std::vector<double> current_joint_state_values_{};
   std::vector<double> ik_solution_{};
+  arm_kinematics::PathCollisionScratch path_collision_scratch_{};
 
   bool subscriber_is_active_ = false;
   rclcpp::Time previous_update_timestamp_{0};

@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <stdexcept>
 #include <variant>
 
 namespace arm_kinematics {
@@ -24,6 +23,23 @@ std::string MakeCollisionError::CollisionPluginInitFailed::format() const
 }
 
 std::string MakeCollisionError::format() const
+{
+  return std::visit([](const auto & error) { return error.format(); }, value);
+}
+
+std::string PathCollisionError::SizeMismatch::format() const
+{
+  return
+    "check_path_collision() received start/end vectors with different sizes (" +
+    std::to_string(start_size) + " vs " + std::to_string(end_size) + ")";
+}
+
+std::string PathCollisionError::InvalidStepSize::format() const
+{
+  return "check_path_collision() requires step_size > 0, got " + std::to_string(step_size);
+}
+
+std::string PathCollisionError::format() const
 {
   return std::visit([](const auto & error) { return error.format(); }, value);
 }
@@ -117,17 +133,18 @@ tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   return make_collision_manager(loader, fk, loader.get_kinematics_params()->joint_names, config);
 }
 
-bool check_path_collision(
+tl::expected<bool, PathCollisionError> check_path_collision(
   CollisionManager & manager,
   const span<const double> start,
   const span<const double> end,
-  const double step_size)
+  const double step_size,
+  PathCollisionScratch & scratch)
 {
   if (start.size() != end.size()) {
-    throw std::invalid_argument("check_path_collision() received start/end vectors with different sizes");
+    return tl::unexpected(PathCollisionError::SizeMismatch{start.size(), end.size()});
   }
   if (step_size <= 0.0) {
-    throw std::invalid_argument("check_path_collision() requires step_size > 0");
+    return tl::unexpected(PathCollisionError::InvalidStepSize{step_size});
   }
 
   double max_displacement = 0.0;
@@ -136,27 +153,39 @@ bool check_path_collision(
   }
 
   const int iterations = static_cast<int>(std::ceil(max_displacement / step_size));
-  std::vector<double> intermediate_positions(start.size(), 0.0);
+  if (scratch.intermediate_positions.size() != start.size()) {
+    scratch.intermediate_positions.resize(start.size(), 0.0);
+  }
 
   for (int i = 1; i < iterations; ++i) {
     const double interpolator = static_cast<double>(i) / static_cast<double>(iterations);
     const double one_minus_interpolator = 1.0 - interpolator;
 
-    for (std::size_t j = 0; j < intermediate_positions.size(); ++j) {
-      intermediate_positions[j] = start[j] * one_minus_interpolator + end[j] * interpolator;
+    for (std::size_t j = 0; j < scratch.intermediate_positions.size(); ++j) {
+      scratch.intermediate_positions[j] = start[j] * one_minus_interpolator + end[j] * interpolator;
     }
 
-    manager.update_poses(intermediate_positions);
+    manager.update_poses(scratch.intermediate_positions);
     if (manager.collide()) {
       return true;
     }
   }
 
-  for (std::size_t i = 0; i < intermediate_positions.size(); ++i) {
-    intermediate_positions[i] = end[i];
+  for (std::size_t i = 0; i < scratch.intermediate_positions.size(); ++i) {
+    scratch.intermediate_positions[i] = end[i];
   }
-  manager.update_poses(intermediate_positions);
+  manager.update_poses(scratch.intermediate_positions);
   return manager.collide();
+}
+
+tl::expected<bool, PathCollisionError> check_path_collision(
+  CollisionManager & manager,
+  const span<const double> start,
+  const span<const double> end,
+  const double step_size)
+{
+  PathCollisionScratch scratch;
+  return check_path_collision(manager, start, end, step_size, scratch);
 }
 
 } // arm_kinematics

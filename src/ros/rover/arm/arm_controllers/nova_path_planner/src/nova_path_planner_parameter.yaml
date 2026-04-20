@@ -30,7 +30,7 @@ nova_path_planner:
   kinematics_output_target_frame: {
     type: string,
     default_value: "arm_path_planner_target",
-    description: "Reserved target frame name for path-planner debug output."
+    description: "Name of the TF frame published for the currently planned target pose."
   }
 
   self_intersection_max_step_size: {

@@ -92,35 +92,60 @@ controller_interface::return_type NovaPathPlanner::update(
     return controller_interface::return_type::OK;
   }
 
-  std::shared_ptr<std::queue<std::vector<double>>> path;
-  path_ptr_.get(path);
-
-  if (!path || path->empty()) {
-    RCLCPP_INFO_THROTTLE(logger, *get_node()->get_clock(), 2000, "Executor has no points to send.");
-
-    auto current_jps = std::make_shared<std::vector<double>>();
-    current_jps->resize(registered_joint_handles_.size());
-    for (std::size_t i = 0; i < registered_joint_handles_.size(); ++i) {
-      (*current_jps)[i] = registered_joint_handles_[i].state_pos.get().get_value();
-    }
-    current_jps_ptr_.set(std::move(current_jps));
-
+  if (clear_path_requested_.exchange(false, std::memory_order_acq_rel)) {
+    pending_path_ptr_.set(nullptr);
+    active_path_.reset();
+    active_path_index_ = 0;
+    remaining_path_points_.store(0, std::memory_order_release);
+    is_path_being_executed_.store(false, std::memory_order_release);
     return controller_interface::return_type::OK;
   }
 
-  const auto path_size = path->size();
-  const auto command = path->front();
-  path->pop();
+  if (!active_path_) {
+    std::shared_ptr<const PlannedPath> pending_path;
+    pending_path_ptr_.get(pending_path);
+    if (pending_path) {
+      active_path_ = std::move(pending_path);
+      active_path_index_ = 0;
+      pending_path_ptr_.set(nullptr);
+      remaining_path_points_.store(active_path_->points.size(), std::memory_order_release);
+    }
+  }
+
+  if (!active_path_ || active_path_->points.empty()) {
+    RCLCPP_INFO_THROTTLE(logger, *get_node()->get_clock(), 2000, "Executor has no points to send.");
+    return controller_interface::return_type::OK;
+  }
+
+  if (active_path_index_ >= active_path_->points.size()) {
+    active_path_.reset();
+    active_path_index_ = 0;
+    remaining_path_points_.store(0, std::memory_order_release);
+    is_path_being_executed_.store(false, std::memory_order_release);
+    return controller_interface::return_type::OK;
+  }
+
+  const auto remaining_before_pop = active_path_->points.size() - active_path_index_;
+  const auto & command = active_path_->points[active_path_index_];
+  ++active_path_index_;
 
   RCLCPP_INFO_THROTTLE(
     logger,
     *get_node()->get_clock(),
     10,
-    "Popped path point from queue to send to the command interfaces. (%lu points remaining before pop)",
-    path_size);
+    "Sending path point to the command interfaces. (%zu points remaining before consume)",
+    remaining_before_pop);
 
   for (std::size_t i = 0; i < command.size(); ++i) {
     (void)registered_joint_handles_[i].command.get().set_value(command[i]);
+  }
+
+  const auto remaining_after_pop = active_path_->points.size() - active_path_index_;
+  remaining_path_points_.store(remaining_after_pop, std::memory_order_release);
+  if (remaining_after_pop == 0) {
+    active_path_.reset();
+    active_path_index_ = 0;
+    is_path_being_executed_.store(false, std::memory_order_release);
   }
 
   return controller_interface::return_type::OK;
@@ -147,6 +172,10 @@ controller_interface::CallbackReturn NovaPathPlanner::on_configure(const rclcpp_
     RCLCPP_ERROR(logger, "ee_link_name parameter is empty.");
     return controller_interface::CallbackReturn::ERROR;
   }
+  if (params_.kinematics_output_target_frame.empty()) {
+    RCLCPP_ERROR(logger, "kinematics_output_target_frame parameter is empty.");
+    return controller_interface::CallbackReturn::ERROR;
+  }
   if (params_.action_name.empty()) {
     RCLCPP_ERROR(logger, "action_name parameter is empty.");
     return controller_interface::CallbackReturn::ERROR;
@@ -165,6 +194,9 @@ controller_interface::CallbackReturn NovaPathPlanner::on_configure(const rclcpp_
     RCLCPP_ERROR(logger, "robot_description is empty.");
     return controller_interface::CallbackReturn::ERROR;
   }
+
+  target_pose_tf_broadcaster_ =
+    std::make_shared<tf2_ros::TransformBroadcaster>(tf2_ros::TransformBroadcaster(*get_node()));
 
   kinematics_.emplace();
   kinematics_->loader = arm_kinematics::PluginLoader{*get_node(), robot_description};
@@ -221,8 +253,12 @@ controller_interface::CallbackReturn NovaPathPlanner::on_configure(const rclcpp_
 
   current_joint_state_values_.assign(params_.joint_names.size(), 0.0);
   ik_solution_.assign(params_.joint_names.size(), 0.0);
-  path_ptr_.set(nullptr);
-  current_jps_ptr_.set(nullptr);
+  pending_path_ptr_.set(nullptr);
+  active_path_.reset();
+  active_path_index_ = 0;
+  clear_path_requested_.store(false, std::memory_order_release);
+  remaining_path_points_.store(0, std::memory_order_release);
+  has_target_pose_ = false;
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -302,9 +338,6 @@ controller_interface::CallbackReturn NovaPathPlanner::on_activate(const rclcpp_l
   read_state_pos_values(current_joint_state_values_);
   kinematics_->ee_tree->position_fk(current_joint_state_values_, fk_pose_buffer_);
 
-  auto current_jps = std::make_shared<std::vector<double>>(current_joint_state_values_);
-  current_jps_ptr_.set(std::move(current_jps));
-
   for (auto & joint : registered_joint_handles_) {
     (void)joint.command.get().set_value(joint.state_pos.get().get_value());
   }
@@ -315,6 +348,10 @@ controller_interface::CallbackReturn NovaPathPlanner::on_activate(const rclcpp_l
     std::bind(&NovaPathPlanner::handle_action_goal, this, _1, _2),
     std::bind(&NovaPathPlanner::handle_action_cancelled, this, _1),
     std::bind(&NovaPathPlanner::handle_action_accepted, this, _1));
+
+  if (has_target_pose_) {
+    publish_target_pose_to_tf2(get_node()->get_clock()->now(), target_pose_);
+  }
 
   RCLCPP_INFO(logger, "Path planner action server created.");
   return controller_interface::CallbackReturn::SUCCESS;
@@ -329,8 +366,13 @@ controller_interface::CallbackReturn NovaPathPlanner::on_deactivate(const rclcpp
   }
 
   action_server_.reset();
+  pending_path_ptr_.set(nullptr);
+  active_path_.reset();
+  active_path_index_ = 0;
+  clear_path_requested_.store(false, std::memory_order_release);
+  remaining_path_points_.store(0, std::memory_order_release);
+  is_path_being_executed_.store(false, std::memory_order_release);
   registered_joint_handles_.clear();
-  current_jps_ptr_.set(nullptr);
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -359,14 +401,20 @@ bool NovaPathPlanner::reset()
 
   is_halted = false;
   action_server_.reset();
-  path_ptr_.set(nullptr);
-  current_jps_ptr_.set(nullptr);
+  pending_path_ptr_.set(nullptr);
+  active_path_.reset();
+  active_path_index_ = 0;
   registered_joint_handles_.clear();
   current_joint_state_values_.clear();
   ik_solution_.clear();
   fk_pose_buffer_.assign(1, Eigen::Isometry3d::Identity());
   kinematics_.reset();
-  is_path_being_executed_ = false;
+  clear_path_requested_.store(false, std::memory_order_release);
+  remaining_path_points_.store(0, std::memory_order_release);
+  is_path_being_executed_.store(false, std::memory_order_release);
+  target_pose_tf_broadcaster_.reset();
+  target_pose_ = Eigen::Isometry3d::Identity();
+  has_target_pose_ = false;
 
   return true;
 }
@@ -378,7 +426,7 @@ controller_interface::CallbackReturn NovaPathPlanner::on_shutdown(const rclcpp_l
 
 void NovaPathPlanner::halt()
 {
-  clear_path_ptr();
+  clear_path_execution();
 }
 
 void NovaPathPlanner::read_state_pos_values(std::vector<double> & joint_values) const
@@ -391,18 +439,34 @@ void NovaPathPlanner::read_state_pos_values(std::vector<double> & joint_values) 
 
 std::vector<double> NovaPathPlanner::get_state_pos_values_non_rt() const
 {
-  std::shared_ptr<std::vector<double>> current_jps;
-  current_jps_ptr_.get(current_jps);
-  if (!current_jps) {
-    std::vector<double> joint_values;
-    joint_values.resize(registered_joint_handles_.size());
-    for (std::size_t i = 0; i < registered_joint_handles_.size(); ++i) {
-      joint_values[i] = registered_joint_handles_[i].state_pos.get().get_value();
-    }
-    return joint_values;
+  std::vector<double> joint_values;
+  joint_values.resize(registered_joint_handles_.size());
+  for (std::size_t i = 0; i < registered_joint_handles_.size(); ++i) {
+    joint_values[i] = registered_joint_handles_[i].state_pos.get().get_value();
+  }
+  return joint_values;
+}
+
+void NovaPathPlanner::publish_target_pose_to_tf2(
+  const rclcpp::Time & time,
+  const Eigen::Isometry3d & pose)
+{
+  if (!target_pose_tf_broadcaster_) {
+    return;
   }
 
-  return *current_jps;
+  auto transform_stamped = tf2::eigenToTransform(pose);
+  transform_stamped.header.stamp = time;
+  transform_stamped.child_frame_id = params_.kinematics_output_target_frame;
+  transform_stamped.header.frame_id = params_.base_link_name;
+
+  RCLCPP_INFO_ONCE(
+    get_node()->get_logger(),
+    "Broadcasting path planner target pose as '%s', child of '%s'.",
+    transform_stamped.child_frame_id.c_str(),
+    transform_stamped.header.frame_id.c_str());
+
+  target_pose_tf_broadcaster_->sendTransform(transform_stamped);
 }
 
 rclcpp_action::GoalResponse NovaPathPlanner::handle_action_goal(
@@ -447,7 +511,7 @@ void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal
 
   Eigen::Isometry3d start = Eigen::Isometry3d::Identity();
   if (!try_get_pose_from_forward_kinematics(last_joint_pose, start)) {
-    clear_path_ptr();
+    clear_path_execution();
     result->success = false;
     goal_handle->succeed(result);
     return;
@@ -455,7 +519,7 @@ void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal
 
   if (!(goal->speed > 0.0)) {
     RCLCPP_ERROR(logger, "Goal rejected internally because speed must be > 0.");
-    clear_path_ptr();
+    clear_path_execution();
     result->success = false;
     goal_handle->succeed(result);
     return;
@@ -469,7 +533,7 @@ void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal
   goal_handle->publish_feedback(feedback);
 
   if (!generate_path(start, end, last_joint_pose, goal->speed)) {
-    clear_path_ptr();
+    clear_path_execution();
     result->success = false;
     goal_handle->succeed(result);
     return;
@@ -479,28 +543,23 @@ void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal
   feedback->path_generation_progress = 1.0;
   goal_handle->publish_feedback(feedback);
 
-  bool executing_path = true;
-  while (executing_path) {
+  while (is_path_being_executed_.load(std::memory_order_acquire)) {
     if (goal_handle->is_canceling()) {
-      clear_path_ptr();
+      clear_path_execution();
       goal_handle->canceled(result);
       RCLCPP_INFO(logger, "Goal canceled.");
       return;
     }
 
     if (!rclcpp::ok()) {
-      clear_path_ptr();
+      clear_path_execution();
       return;
     }
-
-    std::shared_ptr<std::queue<std::vector<double>>> current_path;
-    path_ptr_.get(current_path);
-    executing_path = current_path && !current_path->empty();
 
     std::this_thread::yield();
   }
 
-  clear_path_ptr();
+  clear_path_execution();
   result->success = true;
   goal_handle->succeed(result);
   RCLCPP_INFO(logger, "Goal succeeded.");
@@ -559,7 +618,8 @@ bool NovaPathPlanner::generate_path(
   const int pose_count = std::max(2, static_cast<int>(std::floor(execution_time * frequency)) + 1);
   const int pose_count_minus_one = pose_count - 1;
 
-  auto path = std::make_shared<std::queue<std::vector<double>>>();
+  auto path = std::make_shared<PlannedPath>();
+  path->points.reserve(static_cast<std::size_t>(pose_count));
 
   RCLCPP_INFO(
     logger,
@@ -596,31 +656,46 @@ bool NovaPathPlanner::generate_path(
       return false;
     }
 
-    if (arm_kinematics::check_path_collision(
-          kinematics_->collision_manager,
-          last_pushed_pose,
-          ik_solution_,
-          params_.self_intersection_max_step_size))
-    {
+    const auto collision_result = arm_kinematics::check_path_collision(
+      kinematics_->collision_manager,
+      last_pushed_pose,
+      ik_solution_,
+      params_.self_intersection_max_step_size);
+    if (!collision_result) {
+      RCLCPP_ERROR(
+        logger,
+        "Failed to check path collision at t=%f: %s",
+        ik_t,
+        collision_result.error().format().c_str());
+      return false;
+    }
+    if (*collision_result) {
       RCLCPP_ERROR(logger, "IK segment self-intersects at t=%f.", ik_t);
       return false;
     }
 
     last_pushed_pose = ik_solution_;
-    path->push(ik_solution_);
+    path->points.push_back(ik_solution_);
     std::this_thread::yield();
   }
 
-  path_ptr_.set(std::move(path));
+  target_pose_ = end;
+  has_target_pose_ = true;
+  publish_target_pose_to_tf2(get_node()->get_clock()->now(), target_pose_);
+  remaining_path_points_.store(path->points.size(), std::memory_order_release);
+  pending_path_ptr_.set(std::move(path));
   RCLCPP_INFO(logger, "Finished generating the path.");
   return true;
 }
 
-void NovaPathPlanner::clear_path_ptr()
+void NovaPathPlanner::clear_path_execution()
 {
-  std::unique_lock<std::mutex> lock(path_mutex_);
-  path_ptr_.set(nullptr);
-  is_path_being_executed_ = false;
+  pending_path_ptr_.set(nullptr);
+  clear_path_requested_.store(true, std::memory_order_release);
+  if (remaining_path_points_.load(std::memory_order_acquire) == 0) {
+    clear_path_requested_.store(false, std::memory_order_release);
+    is_path_being_executed_.store(false, std::memory_order_release);
+  }
 }
 
 bool NovaPathPlanner::vector_is_finite(const std::vector<double> & values) const noexcept
@@ -705,21 +780,6 @@ inline Eigen::Isometry3d NovaPathPlanner::lerp3(
     t).toRotationMatrix();
 
   return transform;
-}
-
-inline std::vector<double> NovaPathPlanner::lerp(
-  const std::vector<double> & a,
-  const std::vector<double> & b,
-  const double & t)
-{
-  std::vector<double> result;
-  result.reserve(a.size());
-
-  for (std::size_t i = 0; i < a.size(); ++i) {
-    result.push_back((1.0 - t) * a[i] + t * b[i]);
-  }
-
-  return result;
 }
 
 }  // namespace nova_path_planner

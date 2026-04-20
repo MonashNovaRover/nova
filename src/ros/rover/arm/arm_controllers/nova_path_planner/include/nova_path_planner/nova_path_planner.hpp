@@ -19,9 +19,7 @@ EDITED:   21/04/2026
 
 #include <atomic>
 #include <memory>
-#include <mutex>
 #include <optional>
-#include <queue>
 #include <string>
 #include <vector>
 
@@ -33,6 +31,7 @@ EDITED:   21/04/2026
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "realtime_tools/realtime_box.hpp"
+#include "tf2_ros/transform_broadcaster.h"
 
 #include "arm_kinematics/collision/collision_manager.hpp"
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
@@ -102,11 +101,20 @@ protected:
     arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr ee_tree;
   };
 
+  struct PlannedPath
+  {
+    std::vector<std::vector<double>> points{};
+  };
+
   controller_interface::CallbackReturn configure_joints();
 
   void read_state_pos_values(std::vector<double> & joint_values) const;
 
   std::vector<double> get_state_pos_values_non_rt() const;
+
+  void publish_target_pose_to_tf2(
+    const rclcpp::Time & time,
+    const Eigen::Isometry3d & pose);
 
   bool reset();
 
@@ -133,7 +141,7 @@ protected:
     std::vector<double> & last_pushed_pose,
     double speed);
 
-  void clear_path_ptr();
+  void clear_path_execution();
 
   [[nodiscard]] bool vector_is_finite(const std::vector<double> & values) const noexcept;
 
@@ -169,21 +177,21 @@ protected:
     Eigen::Isometry3d d,
     double t);
 
-  static std::vector<double> lerp(
-    const std::vector<double> & a,
-    const std::vector<double> & b,
-    const double & t);
-
   std::vector<JointHandle> registered_joint_handles_{};
 
   std::shared_ptr<ParamListener> param_listener_{};
   Params params_;
 
   rclcpp_action::Server<ArmPlanPath>::SharedPtr action_server_{};
-  realtime_tools::RealtimeBox<std::shared_ptr<std::queue<std::vector<double>>>> path_ptr_{nullptr};
-  realtime_tools::RealtimeBox<std::shared_ptr<std::vector<double>>> current_jps_ptr_{nullptr};
-  std::mutex path_mutex_;
+  realtime_tools::RealtimeBox<std::shared_ptr<const PlannedPath>> pending_path_ptr_{nullptr};
+  std::shared_ptr<const PlannedPath> active_path_{};
+  std::size_t active_path_index_{0};
+  std::atomic<bool> clear_path_requested_{false};
+  std::atomic<std::size_t> remaining_path_points_{0};
   std::atomic<bool> is_path_being_executed_{false};
+  std::shared_ptr<tf2_ros::TransformBroadcaster> target_pose_tf_broadcaster_{};
+  Eigen::Isometry3d target_pose_ = Eigen::Isometry3d::Identity();
+  bool has_target_pose_ = false;
 
   std::optional<Kinematics> kinematics_{};
   arm_kinematics::Isometry3dVector fk_pose_buffer_{
