@@ -31,6 +31,7 @@ import URCGazeboView from "../views/urc/URCGazebo.tsx";
 import HomePageView from "../views/shared/HomePageView.tsx";
 import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../utils/NavigationRoutes.tsx";
 import PageNotFoundView from "../views/shared/PageNotFound.tsx";
+import {YoloProvider} from "../components/auto/ObjectDetection/YoloProvider.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -122,7 +123,9 @@ export const urcRoutes: RouteObject[] = [
   },
   ...Object.values(URCCompModes).map<RouteObject>((comp) => ({
     path: `/urc/cameras/${comp}`,
-    element: <CameraView views={urcCameraSetup[comp]}/>,
+    element: comp == URCCompModes.URC_AUTONOMOUS
+      ? <YoloProvider><CameraView views={urcCameraSetup[comp]}/></YoloProvider>
+      : <CameraView views={urcCameraSetup[comp]} />,
   })),
 ];
 

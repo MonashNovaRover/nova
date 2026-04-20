@@ -34,6 +34,7 @@
     "geolib": "^3.3.4",
     "humanize-string": "^3.1.0",
     "lodash": "^4.17.23",
+    "onnxruntime-web": "^1.24.3",
     "plotly.js-cartesian-dist-min": "^3.4.0",
     "plotly.js-gl3d-dist-min": "^3.3.1",
     "react": "^19.2.4",

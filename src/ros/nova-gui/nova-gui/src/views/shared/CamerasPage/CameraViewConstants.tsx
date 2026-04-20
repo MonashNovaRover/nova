@@ -58,6 +58,10 @@ export enum CameraSerials {
 
   AUTO_OAK = "oak-rgb",
   AUTO_BOOTIE = "bootie-rgb",
+  AUTO_FORWARD = "auto_forward",
+  AUTO_LEFT = "auto_left",
+  AUTO_RIGHT = "auto_right",
+  AUTO_BEHIND = "auto_behind",
 }
 
 export const allCams = [];
@@ -103,8 +107,10 @@ const driveCams = [
 ]
 
 const autoCams = [
-  CameraSerials.AUTO_OAK,
-  CameraSerials.AUTO_BOOTIE,
+  CameraSerials.AUTO_LEFT,
+  CameraSerials.AUTO_FORWARD,
+  CameraSerials.AUTO_RIGHT,
+  CameraSerials.AUTO_BEHIND,
 ]
 
 export const post_landing_views: CameraViewConfig[] = [
@@ -195,12 +201,12 @@ export const autonomous_views: CameraViewConfig[] = [
 
 export const urc_autonomous_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...mastCams, ...driveCams, ...autoCams],
+    cameraSerials: [...autoCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
-    cameraSerials: mastCams,
-    viewTitle: "Mast Cams",
+    cameraSerials: autoCams,
+    viewTitle: "Auto Cams",
   },
 ];
 
