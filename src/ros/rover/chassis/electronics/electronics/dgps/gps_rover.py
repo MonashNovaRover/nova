@@ -25,7 +25,6 @@ TODO:
 '''
 from serial import Serial
 from pynmeagps import NMEAReader
-import re
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
