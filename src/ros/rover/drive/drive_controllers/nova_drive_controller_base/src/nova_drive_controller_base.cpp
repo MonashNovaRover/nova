@@ -41,6 +41,7 @@ namespace nova_drive_controller_base
 using namespace nova_controller_common;
 using controller_interface::interface_configuration_type;
 using controller_interface::InterfaceConfiguration;
+using geometry_msgs::msg::Twist;
 using geometry_msgs::msg::TwistStamped;
 using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
@@ -174,13 +175,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
   const auto age_of_last_command = time - last_received_time_;
   if (age_of_last_command > cmd_vel_command_timeout_)
   {
-    cmds.linear_velocity_x = 0.0;
-    cmds.linear_velocity_y = 0.0;
-    cmds.angular_velocity = 0.0;
-    cmds.left_drive_speeds.assign(wheels_per_side_, 0.0);
-    cmds.right_drive_speeds.assign(wheels_per_side_, 0.0);
-    cmds.left_pivot_positions.assign(PIVOTS_PER_SIDE_, 0.0);
-    cmds.right_pivot_positions.assign(PIVOTS_PER_SIDE_, 0.0);
+    cmds = twist_to_commands(Twist(), base_params_->autonomous_mode, period);
   }
   else
   {
