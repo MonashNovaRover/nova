@@ -34,6 +34,9 @@ from std_srvs.srv import Trigger
 from science_interfaces.srv import IncrementZero
 
 
+ANGULAR_LIMIT = 360
+
+
 class CarouselHardware(HardwareInterface):
     target_pos_cmd: Interface
     forward_pos_cmd: Interface
@@ -200,7 +203,8 @@ class CarouselHardware(HardwareInterface):
 
         # Update carousel position state from servo with inverse zero offset applied
         if self.actual_pos_state:
-            self.forward_pos_state.value = self.actual_pos_state.value - self.zero_offset
+            raw_value = self.actual_pos_state.value - self.zero_offset
+            self.forward_pos_state.value = raw_value % ANGULAR_LIMIT
 
         # Update zeroing in progress state
         if self.zeroing_in_progress_state:
@@ -213,7 +217,8 @@ class CarouselHardware(HardwareInterface):
         """
         # Forward target position to servo with zero offset applied
         if self.target_pos_cmd:
-            self.forward_pos_cmd.value = self.target_pos_cmd.value + self.zero_offset
+            raw_value = self.target_pos_cmd.value + self.zero_offset
+            self.forward_pos_cmd.value = raw_value % ANGULAR_LIMIT
 
         # Call composed hardware interface write
         self.servo.on_write(now, period)
