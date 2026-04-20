@@ -2,10 +2,12 @@
 #define NOVA_ARM_CONTROLLER__SELF_COLLISION_LIMITER_HPP_
 
 #include "arm_kinematics/collision/collision_manager.hpp"
+#include "rclcpp/clock.hpp"
 #include "rclcpp/logger.hpp"
 #include "rclcpp/duration.hpp"
 #include "trajectory_msgs/msg/joint_trajectory_point.hpp"
 #include <cstddef>
+#include <optional>
 
 namespace nova_arm_controller
 {
@@ -18,6 +20,7 @@ public:
   void set_collision_manager(
     arm_kinematics::CollisionManager collision_manager,
     rclcpp::Logger logger,
+    rclcpp::Clock::SharedPtr clock,
     size_t joint_count);
 
   // Returns true if collision was detected (desired state was reverted).
@@ -27,8 +30,9 @@ public:
     const rclcpp::Duration & dt);
 
 private:
-  arm_kinematics::CollisionManager collision_manager_;
+  std::optional<arm_kinematics::CollisionManager> collision_manager_;
   rclcpp::Logger logger_ = rclcpp::get_logger("SelfCollisionLimiter");
+  rclcpp::Clock::SharedPtr clock_;
   size_t joint_count_{0};
 };
 

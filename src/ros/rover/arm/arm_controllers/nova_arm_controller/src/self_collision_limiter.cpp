@@ -7,10 +7,12 @@ namespace nova_arm_controller
 void SelfCollisionLimiter::set_collision_manager(
   arm_kinematics::CollisionManager collision_manager,
   rclcpp::Logger logger,
+  rclcpp::Clock::SharedPtr clock,
   size_t joint_count)
 {
-  collision_manager_ = std::move(collision_manager);
+  collision_manager_.emplace(std::move(collision_manager));
   logger_ = logger;
+  clock_ = std::move(clock);
   joint_count_ = joint_count;
 }
 
@@ -19,6 +21,11 @@ bool SelfCollisionLimiter::enforce(
   trajectory_msgs::msg::JointTrajectoryPoint & desired,
   const rclcpp::Duration & dt)
 {
+  if (!collision_manager_) {
+    RCLCPP_ERROR(logger_, "SelfCollisionLimiter::enforce() called before set_collision_manager()");
+    return false;
+  }
+
   const auto dt_seconds = dt.seconds();
   if (dt_seconds <= 0.0) {
     return false;
@@ -41,13 +48,14 @@ bool SelfCollisionLimiter::enforce(
       : current.positions[i] + desired.velocities[i] * dt_seconds;
   }
 
-  collision_manager_.update_poses(target_positions);
+  collision_manager_->update_poses(target_positions);
 
-  if (!collision_manager_.collide()) {
+  if (!collision_manager_->collide()) {
     return false;
   }
 
-  RCLCPP_WARN(logger_, "Self-collision detected — reverting desired state");
+  RCLCPP_WARN_THROTTLE(logger_, *clock_, 1000,
+    "Self-collision detected - reverting desired state");
   if (has_desired_pos) {
     desired.positions = current.positions;
   }

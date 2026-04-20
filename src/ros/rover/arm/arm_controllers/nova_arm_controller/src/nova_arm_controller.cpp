@@ -403,32 +403,39 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
   }
 
   // Build arm_kinematics collision support.
-  // Collision parameters are read via arm_kinematics::read_collision_config() from the
-  // "collision.*" parameter prefix. See arm_kinematics/collision/collision_utilities.hpp
-  // for the supported parameter keys (generate_from_default_pose, default_pose_overrides,
-  // allowed_pairs). Do NOT add these to nova_arm_controller_parameter.yaml.
-  kinematics_ = Kinematics{
-    arm_kinematics::PluginLoader{*get_node(), get_robot_description()},
-    nullptr};
-  kinematics_->fk = kinematics_->loader.make_fk();
-  if (!kinematics_->fk) {
-    RCLCPP_ERROR(logger, "Failed to create FK plugin — cannot set up collision");
-    return controller_interface::CallbackReturn::ERROR;
+  // Only runs when use_collision_limits=true.
+  // Requires kinematics.forward_kinematics_plugin and kinematics.collision_plugin parameters.
+  // Collision ACM parameters are read from the "collision.*" prefix via
+  // arm_kinematics::read_collision_config() - do NOT add them to nova_arm_controller_parameter.yaml.
+  if (params_.use_collision_limits) {
+    kinematics_ = Kinematics{
+      arm_kinematics::PluginLoader{*get_node(), get_robot_description()},
+      nullptr};
+    kinematics_->fk = kinematics_->loader.make_fk();
+    if (!kinematics_->fk) {
+      RCLCPP_ERROR(logger, "Failed to create FK plugin - cannot set up collision");
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    auto collision_config = arm_kinematics::read_collision_config(
+      get_node()->get_node_parameters_interface());
+
+    auto collision_result = arm_kinematics::make_collision_manager(
+      kinematics_->loader, kinematics_->fk, params_.joint_names, collision_config);
+    if (!collision_result) {
+      RCLCPP_ERROR(logger, "Failed to build collision manager: %s",
+                   collision_result.error().format().c_str());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    collision_limiter.set_collision_manager(
+      std::move(*collision_result),
+      get_node()->get_logger(),
+      get_node()->get_clock(),
+      params_.joint_names.size());
+  } else {
+    RCLCPP_INFO(logger, "Self-collision limiting disabled (use_collision_limits=false)");
   }
-
-  auto collision_config = arm_kinematics::read_collision_config(
-    get_node()->get_node_parameters_interface());
-
-  auto collision_result = arm_kinematics::make_collision_manager(
-    kinematics_->loader, kinematics_->fk, params_.joint_names, collision_config);
-  if (!collision_result) {
-    RCLCPP_ERROR(logger, "Failed to build collision manager: %s",
-                 collision_result.error().format().c_str());
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
-  collision_limiter.set_collision_manager(
-    std::move(*collision_result), get_node()->get_logger(), params_.joint_names.size());
 
   // TODO: setup publishers?
   RCLCPP_INFO(get_node()->get_logger(), "Creating subscriber");
