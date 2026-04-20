@@ -77,6 +77,12 @@ camera_directory:
           payload_2: ec_forklift_forward    # ec hub 3
           payload_1: ec_scraper_leg         # ec hub 4
 
+        auto:
+          mast_arm_stow: auto_left
+          mast_down: auto_right
+          mast_forward: auto_forward
+          mast_backward: auto_behind
+
         example:
           payload_2: science_kiln
           mast_arm_stow: science_microscope
