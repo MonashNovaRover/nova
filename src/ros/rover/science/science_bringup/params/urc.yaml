@@ -123,6 +123,54 @@ pumps:
       shot_to_electrochem_pump:
         can_id: 0x000
 
+carousel_inner:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        initial_position: 0.0
+        hardware_name: "carousel"
+    hardware:
+      carousel:
+        zero_cmd_can_id: 0x0E5
+        zero_cmd_can_msg: [0x10]
+        zero_rec_can_id: 0x4E5
+        zero_rec_can_msg: [0x10]
+      servo:
+        can_id: 0x0E5
+        function_id: 0x01
+      carousel_position_sensor:
+        can_id: 0x4E5
+        function_id: 0x01
+      carousel_load_current_sensor:
+        can_id: 0x4E5
+        function_id: 0x02
+
+carousel_outer:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        initial_position: 0.0
+        hardware_name: "carousel"
+    hardware:
+      carousel:
+        zero_cmd_can_id: 0x0E6
+        zero_cmd_can_msg: [0x10]
+        zero_rec_can_id: 0x4E6
+        zero_rec_can_msg: [0x10]
+      servo:
+        can_id: 0x0E6
+        function_id: 0x01
+      carousel_position_sensor:
+        can_id: 0x4E6
+        function_id: 0x01
+      carousel_load_current_sensor:
+        can_id: 0x4E6
+        function_id: 0x02
+
 # Misc - Nodes for misc components
 scimbal_cam:
   ros__parameters:

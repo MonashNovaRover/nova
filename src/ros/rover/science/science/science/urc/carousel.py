@@ -7,9 +7,9 @@ Is position controlled.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: CarouselController
 TOPICS:
-  - publisher: /science/carousel/feedback   [CarouselFeedback]
+  - publisher: /science/<node_name>/feedback     [CarouselFeedback]
 SERVICES:
-  - service: /science/carousel/set_position [SetPosition]
+  - service: /science/<node_name>/set_position   [SetPosition]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
   - carousel/position         (in degrees)
@@ -60,16 +60,19 @@ class CarouselController(Controller):
         # Track last published message for change detection
         self.last_feedback: Optional[CarouselFeedback] = None
 
+        # Get node name for unique topic names (e.g., carousel_inner, carousel_outer)
+        node_name = self.node.get_name()
+
         # Set up publisher with transient local QoS (keeps last message for new subscribers)
         qos_profile = QoSProfile(
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1,
             durability=QoSDurabilityPolicy.TRANSIENT_LOCAL
         )
-        self.publisher = self.node.create_publisher(CarouselFeedback, "science/carousel/feedback", qos_profile)
+        self.publisher = self.node.create_publisher(CarouselFeedback, f"science/{node_name}/feedback", qos_profile)
 
         # Set up service
-        self.set_position_service = self.node.create_service(SetPosition, "science/carousel/set_position", self.set_position_callback)
+        self.set_position_service = self.node.create_service(SetPosition, f"science/{node_name}/set_position", self.set_position_callback)
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
         """ Used to set up your Controller. Run once before any other class method.
@@ -127,7 +130,7 @@ class CarouselController(Controller):
     def set_position_callback(self, request: SetPosition.Request, response: SetPosition.Response):
         """ Service callback to set the target position """
         self.target_position = request.position
-        self.logger.info(f"Set carousel position to {request.position}°")
+        self.logger.info(f"Set {self.node.get_name()} position to {request.position}°")
         response.success = True
         return response
 

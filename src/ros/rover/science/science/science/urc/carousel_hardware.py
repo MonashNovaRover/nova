@@ -48,8 +48,7 @@ class CarouselHardware(HardwareInterface):
                  zero_cmd_can_id: int=0x000,
                  zero_cmd_can_msg: list[int]=[0x00],
                  zero_rec_can_id: int=0x000,
-                 zero_rec_can_msg: list[int]=[0x00],
-                 sensor_can_id: int=0x000):
+                 zero_rec_can_msg: list[int]=[0x00]):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -69,7 +68,6 @@ class CarouselHardware(HardwareInterface):
         self.declare_parameter("zero_cmd_can_msg", zero_cmd_can_msg, "CAN message to send should be a valid length and of the form 0x0000 (multiple of two hex digits)")
         self.declare_parameter("zero_rec_can_id", zero_rec_can_id, "CAN ID of the zero command")
         self.declare_parameter("zero_rec_can_msg", zero_rec_can_msg, "CAN message to send should be a valid length and of the form 0x0000 (multiple of two hex digits)")
-        self.declare_parameter("sensor_can_id", sensor_can_id, "CAN ID for sensor feedback messages")
 
         # Create services
         self.node.create_service(Trigger, f"science/{self.name}/trigger_zero", self._trigger_zero_callback)
@@ -82,7 +80,6 @@ class CarouselHardware(HardwareInterface):
         self.position_sensor = MultiSensorHardware.construct(
             contexts,
             name=f"{self.name}_position_sensor",
-            can_id=sensor_can_id,
             function_id=0x01,
             interpret_data_list=[lambda data: int.from_bytes(data[0:2], byteorder='big', signed=True)],
             hardware_names=[f"{self.name}"],
@@ -94,7 +91,6 @@ class CarouselHardware(HardwareInterface):
         self.load_current_sensor = MultiSensorHardware.construct(
             contexts,
             name=f"{self.name}_load_current_sensor",
-            can_id=sensor_can_id,
             function_id=0x02,
             interpret_data_list=[
                 lambda data: int.from_bytes(data[0:2], byteorder='big', signed=True),  # Load
