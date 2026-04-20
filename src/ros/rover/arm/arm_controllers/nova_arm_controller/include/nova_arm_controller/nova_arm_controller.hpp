@@ -24,6 +24,9 @@
 #include "joint_limits/joint_saturation_limiter.hpp"
 #include "trajectory_msgs/msg/joint_trajectory_point.hpp"
 #include "nova_arm_controller/self_collision_limiter.hpp"
+#include "arm_kinematics/plugin_loader.hpp"
+#include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
+#include <optional>
 
 #include <nova_arm_controller/nova_arm_controller_parameters.hpp>
 
@@ -77,6 +80,12 @@ protected:
     // float best_effort_rotational_velocity = 0.0;
     // store per joint odometry here maybe?
   };
+
+  struct Kinematics {
+    arm_kinematics::PluginLoader loader;
+    arm_kinematics::ForwardKinematicsPlugin::SharedPtr fk;
+  };
+  std::optional<Kinematics> kinematics_{};
 
   joint_limits::JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint> joint_limiter;
   SelfCollisionLimiter collision_limiter;

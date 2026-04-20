@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "nova_arm_controller/nova_arm_controller.hpp"
+#include "arm_kinematics/collision/collision_manager.hpp"
+#include "arm_kinematics/collision/collision_utilities.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
@@ -49,11 +51,6 @@ controller_interface::CallbackReturn NovaArmController::on_init()
   
   if (!this->joint_limiter.init(params_.joint_names, get_node())) {
     RCLCPP_ERROR(get_node()->get_logger(), "Failed to init joint limiter");
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
-  if (!this->collision_limiter.init(params_.joint_names, get_node(), get_robot_description())) {
-    RCLCPP_ERROR(get_node()->get_logger(), "Failed to init collision limiter");
     return controller_interface::CallbackReturn::ERROR;
   }
 
@@ -404,10 +401,34 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
     return controller_interface::CallbackReturn::ERROR;
   }
-  if (!this->collision_limiter.configure(current)) {
-    RCLCPP_ERROR(logger, "Failed to configure collision limiter!");
+
+  // Build arm_kinematics collision support.
+  // Collision parameters are read via arm_kinematics::read_collision_config() from the
+  // "collision.*" parameter prefix. See arm_kinematics/collision/collision_utilities.hpp
+  // for the supported parameter keys (generate_from_default_pose, default_pose_overrides,
+  // allowed_pairs). Do NOT add these to nova_arm_controller_parameter.yaml.
+  kinematics_.emplace(
+    arm_kinematics::PluginLoader{get_node(), get_robot_description()},
+    nullptr);
+  kinematics_->fk = kinematics_->loader.make_fk();
+  if (!kinematics_->fk) {
+    RCLCPP_ERROR(logger, "Failed to create FK plugin — cannot set up collision");
     return controller_interface::CallbackReturn::ERROR;
   }
+
+  auto collision_config = arm_kinematics::read_collision_config(
+    get_node()->get_node_parameters_interface());
+
+  auto collision_result = arm_kinematics::make_collision_manager(
+    kinematics_->loader, kinematics_->fk, params_.joint_names, collision_config);
+  if (!collision_result) {
+    RCLCPP_ERROR(logger, "Failed to build collision manager: %s",
+                 collision_result.error().format().c_str());
+    return controller_interface::CallbackReturn::ERROR;
+  }
+
+  collision_limiter.set_collision_manager(
+    std::move(*collision_result), get_node()->get_logger(), params_.joint_names.size());
 
   // TODO: setup publishers?
   RCLCPP_INFO(get_node()->get_logger(), "Creating subscriber");
@@ -528,6 +549,7 @@ bool NovaArmController::reset()
 
   // release the old queue
   subscriber_is_active_ = false;
+  kinematics_.reset();
 
   is_halted = false;
   return true;
