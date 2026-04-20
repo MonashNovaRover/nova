@@ -76,6 +76,16 @@ camera_directory:
           payload_3: ec_forklift_down       # ec hub 2
           payload_2: ec_forklift_forward    # ec hub 3
           payload_1: ec_scraper_leg         # ec hub 4
+        delivery:
+          payload_1: arm_end_finger
+          payload_2: arm_end_side
+          payload_3: arm_end_periscope
+          # payload_4: arm_end_top
+          payload:
+            '1:1.0': arm_end_top
+            '2:1.0': arm_wrist
+            # '3:1.0': arm_spare_1
+            # '4:1.0': arm_spare_2
 
         auto:
           mast_arm_stow: auto_left
