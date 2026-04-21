@@ -176,9 +176,34 @@ controller_interface::return_type NovaDriveControllerBase::update(
   if (age_of_last_command > cmd_vel_command_timeout_)
   {
     cmds = twist_to_commands(Twist(), base_params_->autonomous_mode, period);
+
+    if (age_of_last_command < connection_timeout_)
+    {
+      RCLCPP_WARN_THROTTLE(
+        logger, *get_node()->get_clock(), cmd_vel_command_timeout_.seconds() * 1000,
+        "The last received command is %.10f seconds old, which exceeds the allowed timeout of "
+        "%.4f seconds. Publishing zero commands.",
+        age_of_last_command.seconds(), cmd_vel_command_timeout_.seconds());
+    }
+    else if (!disconnected_)
+    {
+      disconnected_ = true;
+      RCLCPP_ERROR(
+        logger, "The last received command is %.10f seconds old, which exceeds the connection timeout of "
+                "%.4f seconds. Connection to the command publisher is assumed to be lost, no further warnings "
+                "will be issued.",
+        age_of_last_command.seconds(), connection_timeout_.seconds());
+    }
   }
   else
   {
+    if (disconnected_)
+    {
+      disconnected_ = false;
+      RCLCPP_INFO(logger, "Connection has been restored! (Received a new command after not receiving any "
+                          "for > %.4f seconds)", connection_timeout_.seconds());
+    }
+
     cmds = twist_to_commands(command_msg_ptr->twist, base_params_->autonomous_mode, period);
   }
 
@@ -345,6 +370,7 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
 
   cmd_vel_receive_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_receive_timeout);
   cmd_vel_command_timeout_ = rclcpp::Duration::from_seconds(base_params_->cmd_vel_command_timeout);
+  connection_timeout_ = rclcpp::Duration::from_seconds(base_params_->connection_timeout);
 
   limiter_drive_ = SpeedLimiter(
     base_params_->drive.has_velocity_limits, base_params_->drive.has_acceleration_limits,
@@ -456,7 +482,6 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_activate(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  is_halted_ = false;
   is_active_ = true;
 
   RCLCPP_INFO(get_node()->get_logger(), "Subscriber and publisher are now active.");

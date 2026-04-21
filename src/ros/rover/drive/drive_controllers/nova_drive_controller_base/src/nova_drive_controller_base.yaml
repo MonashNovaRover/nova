@@ -116,6 +116,13 @@ nova_drive_controller_base:
     default_value: 0.1 # Seconds; teleop publishes at 50Hz i.e. every 0.02 seconds
     description: "Timeout since last commanded velocity from cmd_vel."
 
+  connection_timeout:
+    type: double
+    default_value: 2.0 # Seconds
+    description: >
+      After no commands have been received for this duration, assume connection to the
+      command publisher has been lost.
+
   publish_commanded_velocities:
     type: bool
     default_value: false
