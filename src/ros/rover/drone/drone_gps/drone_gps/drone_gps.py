@@ -67,20 +67,22 @@ class DroneGPS(Node):
         if (not self.gps_connected):
             self.get_logger().info(f"{self.get_name()} Fetching GPS...")
             pos_msg = self.connection.recv_match(type="GLOBAL_POSITION_INT")
-            self.gps_connected = True
-            self.get_logger().info(f"{self.get_name()} GPS connected")
+            if (pos_msg is not None):
+                self.gps_connected = True
+                self.get_logger().info(f"{self.get_name()} GPS connected")
         else:
             pos_msg = self.connection.recv_match(type="GLOBAL_POSITION_INT")
         
-        # Position
-        msg.latitude = pos_msg.lat / 1e7
-        msg.longitude = pos_msg.lon / 1e7
-        msg.altitude = pos_msg.relative_alt / 1000.0
+        if (pos_msg is not None):
+            # Position
+            msg.latitude = pos_msg.lat / 1e7
+            msg.longitude = pos_msg.lon / 1e7
+            msg.altitude = pos_msg.relative_alt / 1000.0
 
-        if pos_msg.hdg == 65535:
-            msg.heading = -1.0
-        else:
-            msg.heading = pos_msg.hdg / 100.0
+            if pos_msg.hdg == 65535:
+                msg.heading = -1.0
+            else:
+                msg.heading = pos_msg.hdg / 100.0
 
 
     def update(self, delta_time):
@@ -90,11 +92,12 @@ class DroneGPS(Node):
 
         # Construct the message you want to send
         msg = GPSData()
-            
+        
         self.get_gps(msg)
         
-        # Publish the message
-        self.gps_publisher.publish(msg)
+        if (msg is not None):
+            # Publish the message
+            self.gps_publisher.publish(msg)
 
     def destroy_node(self):
         try:
