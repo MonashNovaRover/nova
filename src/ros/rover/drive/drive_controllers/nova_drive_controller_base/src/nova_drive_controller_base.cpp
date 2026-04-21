@@ -180,7 +180,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
     if (age_of_last_command < connection_timeout_)
     {
       RCLCPP_WARN_THROTTLE(
-        logger, *get_node()->get_clock(), cmd_vel_command_timeout_.seconds() * 1000,
+        logger, *get_node()->get_clock(), 500,
         "The last received command is %.2f seconds old, which exceeds the allowed timeout of "
         "%.2f seconds. Publishing zero commands.",
         age_of_last_command.seconds(), cmd_vel_command_timeout_.seconds());
@@ -407,7 +407,7 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
 
   // Initialise twist subscriber
   twist_subscriber_ = get_node()->create_subscription<TwistStamped>(
-    DEFAULT_COMMAND_TOPIC_, rclcpp::QoS(10).best_effort(),
+    DEFAULT_COMMAND_TOPIC_, rclcpp::QoS(1).best_effort(),
     [this](const std::shared_ptr<TwistStamped> msg) -> void
     {
       if (!is_active_)

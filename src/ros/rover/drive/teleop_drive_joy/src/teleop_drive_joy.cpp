@@ -142,7 +142,9 @@ void TeleopDriveJoy::initialize_interfaces()
   joy_sub_ = this->create_subscription<sensor_msgs::msg::Joy>(
     params_.input_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joy_callback, this, _1));
   cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(params_.output_topic,
-    rclcpp::QoS(10).best_effort());
+    rclcpp::QoS(1));
+  timer_ = this->create_wall_timer(std::chrono::milliseconds(1000 / params_.teleop_frequency),
+    std::bind(&TeleopDriveJoy::timer_callback, this));
 
   switch_controller_client_ = this->create_client<controller_manager_msgs::srv::SwitchController>(
     "/controller_manager/switch_controller");
@@ -283,11 +285,16 @@ void TeleopDriveJoy::map_button_callbacks()
   };
 }
 
-void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+void TeleopDriveJoy::timer_callback()
 {
+  if (!connected_)
+  {
+    return;
+  }
+
   update_params();
-  handle_button_callbacks(joy_msg);
-  handle_axis_callbacks(joy_msg);
+  handle_button_callbacks(joy_msg_);
+  handle_axis_callbacks(joy_msg_);
 
   if (params_.autolock_enable)
   {
@@ -296,13 +303,18 @@ void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg
 
   if (!locked_)
   {
-    send_drive_command(joy_msg);
+    send_drive_command(joy_msg_);
   }
   else
   {
     send_halt_command();
   }
+}
 
+void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+{
+  joy_msg_ = joy_msg;
+  
   // update connection status
   connection_timer_->reset();
   set_connected(true);
