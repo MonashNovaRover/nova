@@ -228,7 +228,9 @@ private:
         int32_t res_ticks_per_rev = 0;
 
         bool diff_wrist = false;
-        
+
+        /// keep last [effort_telemetry_window_size] received effort telemetry values to calculate moving average from
+        int32_t effort_telemetry_window_size = 1;
     };
 
     std::string BLCMDHardwareLoggerName;
@@ -247,6 +249,9 @@ private:
 
     Params params_;
     int reversed_multiplier_ = 1;
+
+    // store effort telemetry history for each canid (to calculate moving average)
+    std::vector<std::vector<double>> effort_telemetry_window;
 
     hardware_interface::CallbackReturn apply_parameters();
 

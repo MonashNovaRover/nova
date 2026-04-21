@@ -162,6 +162,9 @@ hardware_interface::CallbackReturn BLCMDHardware::on_configure(
         }
         
     }
+
+    effort_telemetry_window = std::vector(params_.canids.size(),
+        std::vector<double>(params_.effort_telemetry_window_size, 0));
     
   return CallbackReturn::SUCCESS;
 }
@@ -625,6 +628,19 @@ hardware_interface::CallbackReturn BLCMDHardware::apply_parameters() {
     params_.diff_wrist= true;
   }
 
+  auto effort_telemetry_window_size_search = info_.hardware_parameters.find("effort_telemetry_window_size");
+  if (effort_telemetry_window_size_search != info_.hardware_parameters.end()) {
+      params_.effort_telemetry_window_size = std::stoi(effort_telemetry_window_size_search->second);
+
+      if (params_.effort_telemetry_window_size < 1) {
+          RCLCPP_ERROR_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+              "Effort telemetry window must be 1 or greater, but got: " << params_.effort_telemetry_window_size);
+          return CallbackReturn::ERROR;
+      }
+
+      RCLCPP_INFO_STREAM(rclcpp::get_logger(BLCMDHardwareLoggerName),
+              "Effort telemetry window size: " << params_.effort_telemetry_window_size);
+  }
   return CallbackReturn::SUCCESS;
 }
 
@@ -756,21 +772,34 @@ bool BLCMDHardware::set_control_interface(
             }
         }
 
+        // only calculate moving average of effort if window size > 1
+        const auto update_effort = [this](int16_t effort, int j)
+        {
+          if (effort_telemetry_window[j].size() > 1) {
+              effort_telemetry_window[j].erase(effort_telemetry_window[j].begin());
+              effort_telemetry_window[j].push_back(effort);
+              hw_efforts_.at(j).state = std::reduce(effort_telemetry_window[j].begin(), effort_telemetry_window[j].end()) / effort_telemetry_window[j].size();
+          }
+          else {
+              hw_efforts_.at(j).state = effort;
+          }
+        };
+
         if(hw_efforts_.at(i).state.has_value()) {
              if (params_.diff_wrist && i == 0) {
                differential_effort_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
                 double converted_value1, converted_value2 = 0.0;
                 differential_convert_from_motors(differential_effort_actual_value1, differential_effort_actual_value2, converted_value1, converted_value2);
-                hw_efforts_.at(0).state = converted_value1;
-                hw_efforts_.at(1).state = converted_value2;
+                update_effort(converted_value1, 0);
+                update_effort(converted_value2, 1);
             } else if (params_.diff_wrist && i == 1) {
                differential_effort_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
                 double converted_value1, converted_value2 = 0.0;
                 differential_convert_from_motors(differential_effort_actual_value1, differential_effort_actual_value2, converted_value1, converted_value2);
-                hw_efforts_.at(0).state = converted_value1;
-                hw_efforts_.at(1).state = converted_value2;
+                update_effort(converted_value1, 0);
+                update_effort(converted_value2, 1);
             } else {
-              hw_efforts_.at(i).state = convert_scaled<int16_t>(&frame.data[2], hw_efforts_.at(i).max);
+                update_effort(convert_scaled<int16_t>(&frame.data[2], hw_efforts_.at(i).max), i);
             }
         }
     }
