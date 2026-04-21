@@ -109,43 +109,18 @@ controller_interface::return_type NovaArmController::update_reference_from_subsc
 }
 
 controller_interface::return_type NovaArmController::update_velocity_reference_from_subscribers() {
-  auto logger = get_node()->get_logger();
-
   RCLCPP_INFO_ONCE(get_node()->get_logger(), "Update velocity reference from subscribers");
 
-  std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
-  received_msg_ptr_.get(last_msg);
+  std::shared_ptr<std::vector<double>> velocities;
+  received_velocity_ptr_.get(velocities);
 
-  if (last_msg == nullptr) {
-    RCLCPP_WARN_ONCE(logger, "Velocity message received was a nullptr.");
+  if (velocities == nullptr) {
+    RCLCPP_WARN_ONCE(get_node()->get_logger(), "No velocity message received yet.");
     return controller_interface::return_type::OK;
   }
 
-  if (last_msg->name.size() != last_msg->velocity.size()) {
-    RCLCPP_WARN(logger, "Velocity message received had a different number of names and velocities.");
-    return controller_interface::return_type::ERROR;
-  }
-
-  // Make map of joint name -> velocity (from message)
-  auto velocities = std::map<std::string, double>();
-  for (unsigned int i = 0; i < last_msg->name.size(); ++i) {
-    velocities[last_msg->name[i]] = last_msg->velocity[i];
-  }
-
-  for (unsigned int i = 0; i < params_.joint_names.size(); i++)
-  {
-    const auto& joint_name = params_.joint_names[i];
-
-    // Ensure the map contains the handle
-    if (velocities.find(joint_name) == velocities.end()) {
-      if (last_msg->name.size() != 0) {
-        RCLCPP_WARN(logger, "Joint '%s' not defined in input message from teleop-arm-joy.", joint_name.c_str());
-      }
-      reference_interfaces_[i] = 0;
-      continue;
-    }
-
-    reference_interfaces_[i] = velocities[joint_name];
+  for (std::size_t i = 0; i < params_.joint_names.size(); ++i) {
+    reference_interfaces_[i] = (*velocities)[i];
   }
 
   return controller_interface::return_type::OK;
@@ -450,16 +425,31 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
           get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
       return;
     }
-    if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-    {
-      RCLCPP_WARN_ONCE(
+
+    if (msg->name.size() != msg->velocity.size()) {
+      RCLCPP_WARN(
           get_node()->get_logger(),
-          "Received message with zero timestamp, setting it to current "
-          "time, this message will only be shown once");
-      msg->header.stamp = get_node()->get_clock()->now();
+          "Velocity message has mismatched name (%zu) and velocity (%zu) sizes, ignoring.",
+          msg->name.size(), msg->velocity.size());
+      return;
     }
 
-    received_msg_ptr_.set(std::move(msg));
+    auto ordered = std::make_shared<std::vector<double>>(params_.joint_names.size(), 0.0);
+    for (std::size_t i = 0; i < params_.joint_names.size(); ++i) {
+      const auto it = std::find(msg->name.begin(), msg->name.end(), params_.joint_names[i]);
+      if (it == msg->name.end()) {
+        if (!msg->name.empty()) {
+          RCLCPP_WARN(
+              get_node()->get_logger(),
+              "Joint '%s' not defined in velocity message, defaulting to 0.",
+              params_.joint_names[i].c_str());
+        }
+      } else {
+        (*ordered)[i] = msg->velocity[std::distance(msg->name.begin(), it)];
+      }
+    }
+
+    received_velocity_ptr_.set(std::move(ordered));
   });
 
   // Set number of reference interface.

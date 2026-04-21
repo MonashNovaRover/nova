@@ -114,7 +114,7 @@ protected:
 
   // Subscription
   rclcpp::Subscription<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr input_subscriber_ = nullptr;
-  realtime_tools::RealtimeBox<std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets>> received_msg_ptr_{nullptr};
+  realtime_tools::RealtimeBox<std::shared_ptr<std::vector<double>>> received_velocity_ptr_{nullptr};
 
   rclcpp::Time previous_update_timestamp_{0};
 
