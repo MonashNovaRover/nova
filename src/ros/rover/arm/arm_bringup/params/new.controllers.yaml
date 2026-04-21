@@ -162,13 +162,25 @@ arm:
         - j4
         - j5
         - j6
-      kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
-      kinematics_solver_timeout: 0.02
-      kinematics_base_frame: "arm_kinematics_origin"
-      kinematics_endeffector_frame: "endeffector_kinematics"
-      add_chain_to_srdf: false
-      add_allowed_collisions_to_srdf: false
+      use_position_control: true
+      cmd_timeout: 0.5
+      velocity_ik_time_step: 0.02
+      use_control_period_for_velocity_ik: false
+      max_velocity_control_period: 0.1
+      fallback_frame_id: "endeffector_kinematics"
       publish_debug_frames: false
+      base_link_name: "arm_kinematics_origin"
+      ee_link_name: "endeffector_kinematics"
+      kinematics_output_target_frame: "arm_twistmapper_target"
+      self_intersection_max_step_size: 0.05
+      kinematics:
+        forward_kinematics_plugin: "arm_kinematics/DefaultForwardKinematicsPlugin"
+        inverse_kinematics_plugin: "arm_kinematics/BanksiaIKPlugin"
+        collision_plugin: "arm_kinematics/FclCollisionPlugin"
+      collision:
+        generate_from_default_pose: true
+        default_pose_overrides: []
+        allowed_pairs: []
 
   nova_path_planner:
     ros__parameters:
@@ -181,12 +193,19 @@ arm:
         - j4
         - j5
         - j6
-      kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
-      kinematics_solver_timeout: 1.0
-      kinematics_base_frame: "arm_kinematics_origin"
-      kinematics_endeffector_frame: "endeffector_kinematics"
-      add_chain_to_srdf: false
-      add_allowed_collisions_to_srdf: false
+      action_name: "/arm/plan_path"
+      base_link_name: "arm_kinematics_origin"
+      ee_link_name: "endeffector_kinematics"
+      kinematics_output_target_frame: "arm_path_planner_target"
+      self_intersection_max_step_size: 0.05
+      kinematics:
+        forward_kinematics_plugin: "arm_kinematics/DefaultForwardKinematicsPlugin"
+        inverse_kinematics_plugin: "arm_kinematics/BanksiaIKPlugin"
+        collision_plugin: "arm_kinematics/FclCollisionPlugin"
+      collision:
+        generate_from_default_pose: true
+        default_pose_overrides: []
+        allowed_pairs: []
 
   joint_state_broadcaster_arm:
     ros__parameters:
