@@ -181,16 +181,16 @@ controller_interface::return_type NovaDriveControllerBase::update(
     {
       RCLCPP_WARN_THROTTLE(
         logger, *get_node()->get_clock(), cmd_vel_command_timeout_.seconds() * 1000,
-        "The last received command is %.10f seconds old, which exceeds the allowed timeout of "
-        "%.4f seconds. Publishing zero commands.",
+        "The last received command is %.2f seconds old, which exceeds the allowed timeout of "
+        "%.2f seconds. Publishing zero commands.",
         age_of_last_command.seconds(), cmd_vel_command_timeout_.seconds());
     }
     else if (!disconnected_)
     {
       disconnected_ = true;
       RCLCPP_ERROR(
-        logger, "The last received command is %.10f seconds old, which exceeds the connection timeout of "
-                "%.4f seconds. Connection to the command publisher is assumed to be lost, no further warnings "
+        logger, "The last received command is %.2f seconds old, which exceeds the connection timeout of "
+                "%.2f seconds. Connection to the command publisher is assumed to be lost, no further warnings "
                 "will be issued.",
         age_of_last_command.seconds(), connection_timeout_.seconds());
     }
@@ -201,7 +201,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
     {
       disconnected_ = false;
       RCLCPP_INFO(logger, "Connection has been restored! (Received a new command after not receiving any "
-                          "for > %.4f seconds)", connection_timeout_.seconds());
+                          "for > %.2f seconds)", connection_timeout_.seconds());
     }
 
     cmds = twist_to_commands(command_msg_ptr->twist, base_params_->autonomous_mode, period);
