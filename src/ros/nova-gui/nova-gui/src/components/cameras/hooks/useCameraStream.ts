@@ -197,7 +197,7 @@ export const useCameraStream = (
       }
       default: {
         if (!erroredOut) {
-          toast.error("Cameras2 Errored Out. Please check Cameras2");
+          toast.error("Cameras Errored Out. Please check Cameras");
           setErroredOut(true);
         }
       }

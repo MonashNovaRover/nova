@@ -24,13 +24,15 @@ def generate_launch_description():
     streamer_params = PathJoinSubstitution([params, "streamer.yaml"])
     platform = LaunchConfiguration("platform")
     task = LaunchConfiguration("task")
+    preset = LaunchConfiguration("preset")
     port = LaunchConfiguration("port")
+    autostart = LaunchConfiguration("autostart")
 
     return LaunchDescription(
         [
             DeclareLaunchArgument(
                 name='local',
-                default_value='False',
+                default_value='True',
                 description='Whether to use local directories instead of the nix store.',
             ),
             DeclareLaunchArgument(
@@ -49,18 +51,28 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "platform",
-                default_value="",
+                default_value="orin",
                 description="The platform type. Used for specifying serial overrides for Camera Directory Node",
             ),
             DeclareLaunchArgument(
                 "task",
-                default_value="",
+                default_value="delivery",
                 description="The task type. Used for specifying serial overrides for Camera Directory Node",
+            ),
+                DeclareLaunchArgument(
+                "preset",
+                default_value="default",
+                description="The global profile type. Used for specifying the profile to use for each individual serial",
             ),
             DeclareLaunchArgument(
                 "port",
                 default_value="8443",
                 description="Specify a port for the gst-webrtc-signalling-server",
+            ),
+            DeclareLaunchArgument(
+                "autostart",
+                default_value="true",
+                description="Specify whether to start camera streaming automatically",
             ),
 
             ExecuteProcess(
@@ -73,12 +85,12 @@ def generate_launch_description():
             Node(
                 package="cameras",
                 executable="camera_directory_service",
-                parameters=[{'platform': platform, 'task': task}, directory_params],
+                parameters=[{'platform': platform, 'task': task, 'preset': preset}, directory_params, streamer_params],
             ),
             Node(
                 package="cameras",
                 executable="camera_streamer_service",
-                parameters=[streamer_params],
+                parameters=[{'task': task, 'preset': preset, 'autostart': autostart}, streamer_params],
             ),
         ]
     )

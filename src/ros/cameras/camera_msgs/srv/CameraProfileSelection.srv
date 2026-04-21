@@ -1,0 +1,4 @@
+string[] serials
+string profile
+---
+bool success

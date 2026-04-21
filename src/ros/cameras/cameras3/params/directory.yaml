@@ -42,7 +42,7 @@ camera_directory:
         # the path corresponds to the slot on a usb hub
         mast:
           '1:1.0': mast_arm_stow
-          '2:1.0': mast_down
+          '2:1.0': mast_belly
           '3:1.0': mast_forward
           '4:1.0': mast_backward
         payload:

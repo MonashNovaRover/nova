@@ -9,6 +9,6 @@ camera_streamer:
       science_microscope.autostart: true
       science_backward.autostart: true
       science_shotglass.autostart: true
-      mast_down.autostart: true
+      mast_belly.autostart: true
       science_spectrometer_top.autostart: true
       science_rock_flipper.autostart: true
