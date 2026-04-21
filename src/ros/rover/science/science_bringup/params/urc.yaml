@@ -167,7 +167,7 @@ carousel_outer:
         zero_increment_service: "/science/carousel_outer/increment_zero"
       servo:
         can_id: 0x0EA
-        function_id: 0x01
+        function_id: 0x02
       carousel_position_sensor:
         can_id: 0x4E6
         function_id: 0x01
