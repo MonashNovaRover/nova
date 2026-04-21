@@ -96,6 +96,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(${PROJECT_NAME} fcl)
 
 # Stuff for plugins
 pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)

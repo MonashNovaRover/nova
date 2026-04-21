@@ -52,7 +52,6 @@ buildRosPackage rec {
     orocos-kdl
     transmission-interface
     hardware-interface
-    fcl
     gbenchmark
   ];
 
@@ -69,6 +68,7 @@ buildRosPackage rec {
     orocos-kdl
     transmission-interface
     hardware-interface
+    fcl
   ];
 
 #  doCheck = true;
