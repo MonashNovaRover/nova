@@ -323,9 +323,13 @@ That keeps the current self-intersection semantics aligned with the existing con
 the command is rejected if the next commanded motion segment would self-intersect.
 
 This is the right minimum behavior, but it is still a discrete approximation. It is sensitive
-to the controller period because the predicted end state is `q + qdot * dt`. That is acceptable
-for a first implementation, but the code should treat `dt` as an explicit input to validate, not
-as an invisible constant.
+to the controller period because the predicted end state is `q + qdot * dt`. The code should
+treat `dt` as an explicit input to validate, not as an invisible constant.
+
+Velocity IK has a second use of time: the numerical `time_step` passed into
+`get_velocity_ik(...)`. That does not have to be the live controller period. The cleaner default
+is a fixed `velocity_ik_time_step`, with an opt-in `use_control_period_for_velocity_ik` parameter
+for operators who explicitly want the live period used for finite differencing.
 
 ### 7. Activate/deactivate/halt behavior must diverge by mode
 
@@ -347,6 +351,7 @@ In velocity mode:
 
 - on activate, command interfaces should be explicitly set to `0.0`
 - on deactivate and inactive halt paths, command interfaces should be explicitly set to `0.0`
+- every rejected update should explicitly set velocity commands to `0.0`
 
 Just stashing a zero twist message is not enough, because that does not itself write zero
 velocity commands to the hardware/chained interfaces.
@@ -387,19 +392,22 @@ Leave the current behavior mostly intact:
 Use the same front half, but branch after twist resolution:
 
 1. read current joint positions
-2. resolve incoming twist into base frame
+2. resolve incoming twist into base frame, rejecting missing/stale/invalid-frame commands
 3. run EE FK on current joint positions to get `current_ee_pose`
 4. call
-   `get_velocity_ik(base_twist, current_ee_pose, current_joint_state_values_, solution_velocities, dt)`
+   `get_velocity_ik(base_twist, current_ee_pose, current_joint_state_values_, solution_velocities, ik_dt)`
 5. compute `predicted_next_joint_positions = current + solution_velocities * dt`
 6. collision-check `current_joint_state_values_ -> predicted_next_joint_positions`
 7. write velocity commands
 8. independently integrate `twistmapper_pose_` for TF/debug target broadcasting
+9. write zero velocity commands on every rejection path instead of preserving the last command
 
 The important separation is:
 
 - `current_ee_pose` is for the IK seed
 - `twistmapper_pose_` remains the controller's desired target/debug pose
+- `ik_dt` is for numerical IK finite differencing
+- `dt` is for one-cycle collision prediction and debug-target integration
 
 Do not collapse those into one variable in velocity mode.
 
@@ -495,6 +503,11 @@ That is exactly why the mode-specific state should be explicit.
    hold current position in position mode, write zeros in velocity mode.
 12. Keep TF target-pose broadcasting in both modes, but do not use that target pose as the
     velocity IK seed.
+13. Add stale-command and abnormal-period safeguards:
+    `cmd_timeout`, `velocity_ik_time_step`, `use_control_period_for_velocity_ik`, and
+    `max_velocity_control_period`.
+14. In velocity mode, write zero velocity commands on missing/stale twist, invalid period,
+    velocity IK failure, non-finite outputs, collision-check failure, or collision rejection.
 
 ## Test Coverage Worth Adding
 
@@ -505,7 +518,11 @@ At minimum:
 3. Seed-pose correctness test: velocity mode uses EE FK of the current joint state, not `twistmapper_pose_`.
 4. Collision-path test: velocity mode collision-checks `current -> current + qdot * dt`.
 5. Lifecycle test: velocity mode writes zero commands on halt/deactivate.
-6. Regression test: position mode behavior is unchanged.
+6. Fail-safe test: velocity mode writes zero commands on stale/no twist, invalid period, IK failure,
+   and collision rejection.
+7. Timestep-policy test: fixed timestep mode passes `velocity_ik_time_step`; live-period mode
+   passes controller `dt`.
+8. Regression test: position mode behavior is unchanged apart from stale-command non-integration.
 
 ## Bottom Line
 
@@ -520,6 +537,8 @@ The real work is in `nova_twistmapper`:
 - seed velocity IK from current EE FK, not from the virtual target pose
 - collision-check the predicted next joint positions
 - make activate/halt semantics safe for velocity commands
+- make velocity-mode update rejection fail safe by writing zero velocity commands
+- add configurable stale-command, abnormal-period, and velocity-IK timestep policy
 
 That is a moderate controller refactor, not a new kinematics-library feature.
 
