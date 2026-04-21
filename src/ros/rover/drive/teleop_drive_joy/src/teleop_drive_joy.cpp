@@ -141,7 +141,8 @@ void TeleopDriveJoy::initialize_interfaces()
 {
   joy_sub_ = this->create_subscription<sensor_msgs::msg::Joy>(
     params_.input_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joy_callback, this, _1));
-  cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(params_.output_topic, 50);
+  cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(params_.output_topic,
+    rclcpp::QoS(10).best_effort());
 
   switch_controller_client_ = this->create_client<controller_manager_msgs::srv::SwitchController>(
     "/controller_manager/switch_controller");

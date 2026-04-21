@@ -407,7 +407,7 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
 
   // Initialise twist subscriber
   twist_subscriber_ = get_node()->create_subscription<TwistStamped>(
-    DEFAULT_COMMAND_TOPIC_, rclcpp::SystemDefaultsQoS(),
+    DEFAULT_COMMAND_TOPIC_, rclcpp::QoS(10).best_effort(),
     [this](const std::shared_ptr<TwistStamped> msg) -> void
     {
       if (!is_active_)
