@@ -11,6 +11,7 @@ EDITED BY:   Codex
 #include "nova_twistmapper/nova_twistmapper.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -93,7 +94,7 @@ InterfaceConfiguration NovaTwistmapper::state_interface_configuration() const
 
 void NovaTwistmapper::read_state_pos_values(std::vector<double> & joint_values) const
 {
-  joint_values.resize(registered_joint_handles_.size());
+  assert(joint_values.size() == registered_joint_handles_.size());
   for (std::size_t i = 0; i < registered_joint_handles_.size(); ++i) {
     joint_values[i] = registered_joint_handles_[i].state_pos.get().get_value();
   }
@@ -825,6 +826,8 @@ bool NovaTwistmapper::reset()
   subscriber_is_active_ = false;
   registered_joint_handles_.clear();
   current_joint_state_values_.clear();
+  joint_values_scratch_.clear();
+  predicted_joint_positions_.clear();
   mode_runtime_.reset();
   fk_pose_buffer_.assign(1, Eigen::Isometry3d::Identity());
 

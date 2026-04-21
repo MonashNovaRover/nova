@@ -111,7 +111,7 @@ protected:
 
   void read_state_pos_values(std::vector<double> & joint_values) const;
 
-  std::vector<double> get_state_pos_values_non_rt() const;
+  void get_state_pos_values_non_rt(std::vector<double> & joint_values) const;
 
   void publish_target_pose_to_tf2(
     const rclcpp::Time & time,
@@ -200,6 +200,7 @@ protected:
     1,
     Eigen::Isometry3d::Identity()};
   std::vector<double> current_joint_state_values_{};
+  std::vector<double> action_joint_state_values_{};
   std::vector<double> ik_solution_{};
 
   bool is_halted = false;

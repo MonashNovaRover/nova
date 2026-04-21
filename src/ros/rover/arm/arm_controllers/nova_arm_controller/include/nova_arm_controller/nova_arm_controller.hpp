@@ -127,10 +127,15 @@ protected:
   void halt();
 
   void get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &);
+  void resize_trajectory_point_storage();
 
   // has there been an update to params since we last configured
   bool pending_param_update = false;
   controller_interface::CallbackReturn hot_param_update();
+
+  trajectory_msgs::msg::JointTrajectoryPoint current_point_{};
+  trajectory_msgs::msg::JointTrajectoryPoint desired_point_{};
+  trajectory_msgs::msg::JointTrajectoryPoint original_desired_point_{};
 
 };
 } // namespace nova_arm_controller

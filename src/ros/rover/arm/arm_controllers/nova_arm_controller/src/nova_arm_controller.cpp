@@ -5,6 +5,9 @@
 #include <vector>
 
 #include "nova_arm_controller/nova_arm_controller.hpp"
+
+#include <cassert>
+
 #include "arm_kinematics/collision/collision_manager.hpp"
 #include "arm_kinematics/collision/collision_utilities.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -126,14 +129,47 @@ controller_interface::return_type NovaArmController::update_velocity_reference_f
   return controller_interface::return_type::OK;
 }
 
+void NovaArmController::resize_trajectory_point_storage()
+{
+  const auto joint_count = params_.joint_names.size();
+
+  auto resize_current = [&](trajectory_msgs::msg::JointTrajectoryPoint & point) {
+    if (params_.position_feedback) {
+      point.positions.assign(joint_count, 0.0);
+    } else {
+      point.positions.clear();
+    }
+
+    if (params_.velocity_feedback) {
+      point.velocities.assign(joint_count, 0.0);
+    } else {
+      point.velocities.clear();
+    }
+  };
+
+  auto resize_command = [&](trajectory_msgs::msg::JointTrajectoryPoint & point) {
+    if (joint_command_type() == HW_IF_POSITION) {
+      point.positions.assign(joint_count, 0.0);
+      point.velocities.clear();
+    } else {
+      point.positions.clear();
+      point.velocities.assign(joint_count, 0.0);
+    }
+  };
+
+  resize_current(current_point_);
+  resize_command(desired_point_);
+  resize_command(original_desired_point_);
+}
+
 // this assumes that the number of joints match
 void NovaArmController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &current) {
   //TODO: maybe try to calculate accel as well - this is needed for jerk limits
   if (params_.position_feedback) {
-    current.positions.resize(params_.joint_names.size());
+    assert(current.positions.size() == params_.joint_names.size());
   }
   if (params_.velocity_feedback) {
-    current.velocities.resize(params_.joint_names.size());
+    assert(current.velocities.size() == params_.joint_names.size());
   }
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
@@ -190,15 +226,9 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::ERROR;
   }
 
-  trajectory_msgs::msg::JointTrajectoryPoint originalDesired, desired, current;
-
-  if (this->joint_command_type() == HW_IF_POSITION) {
-    desired.positions.resize(params_.joint_names.size());
-    originalDesired.positions.resize(params_.joint_names.size());
-  } else { // velocity
-    desired.velocities.resize(params_.joint_names.size());
-    originalDesired.velocities.resize(params_.joint_names.size());
-  }
+  auto & originalDesired = original_desired_point_;
+  auto & desired = desired_point_;
+  auto & current = current_point_;
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
@@ -335,10 +365,9 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 controller_interface::CallbackReturn NovaArmController::hot_param_update() {
   auto logger = get_node()->get_logger();
   // process parameter updates that we can apply without reconfigure
-  trajectory_msgs::msg::JointTrajectoryPoint current;
-  this->get_joint_states(current);
+  this->get_joint_states(current_point_);
   
-  if (!this->joint_limiter.configure(current)) {
+  if (!this->joint_limiter.configure(current_point_)) {
     RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
     return controller_interface::CallbackReturn::ERROR;
   }
@@ -369,10 +398,10 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  trajectory_msgs::msg::JointTrajectoryPoint current;
-  this->get_joint_states(current);
+  resize_trajectory_point_storage();
+  this->get_joint_states(current_point_);
   
-  if (!this->joint_limiter.configure(current)) {
+  if (!this->joint_limiter.configure(current_point_)) {
     RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
     return controller_interface::CallbackReturn::ERROR;
   }
@@ -547,6 +576,9 @@ bool NovaArmController::reset()
   // release the old queue
   subscriber_is_active_ = false;
   kinematics_.reset();
+  current_point_ = trajectory_msgs::msg::JointTrajectoryPoint{};
+  desired_point_ = trajectory_msgs::msg::JointTrajectoryPoint{};
+  original_desired_point_ = trajectory_msgs::msg::JointTrajectoryPoint{};
 
   is_halted = false;
   return true;

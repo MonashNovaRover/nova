@@ -11,6 +11,7 @@ EDITED BY:   Codex
 #include "nova_path_planner/nova_path_planner.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <memory>
 #include <thread>
@@ -252,6 +253,7 @@ controller_interface::CallbackReturn NovaPathPlanner::on_configure(const rclcpp_
     std::move(ee_tree_result->tree));
 
   current_joint_state_values_.assign(params_.joint_names.size(), 0.0);
+  action_joint_state_values_.assign(params_.joint_names.size(), 0.0);
   ik_solution_.assign(params_.joint_names.size(), 0.0);
   pending_path_ptr_.set(nullptr);
   active_path_.reset();
@@ -412,6 +414,7 @@ bool NovaPathPlanner::reset()
   active_path_index_ = 0;
   registered_joint_handles_.clear();
   current_joint_state_values_.clear();
+  action_joint_state_values_.clear();
   ik_solution_.clear();
   fk_pose_buffer_.assign(1, Eigen::Isometry3d::Identity());
   kinematics_.reset();
@@ -437,20 +440,18 @@ void NovaPathPlanner::halt()
 
 void NovaPathPlanner::read_state_pos_values(std::vector<double> & joint_values) const
 {
-  joint_values.resize(registered_joint_handles_.size());
+  assert(joint_values.size() == registered_joint_handles_.size());
   for (std::size_t i = 0; i < registered_joint_handles_.size(); ++i) {
     joint_values[i] = registered_joint_handles_[i].state_pos.get().get_value();
   }
 }
 
-std::vector<double> NovaPathPlanner::get_state_pos_values_non_rt() const
+void NovaPathPlanner::get_state_pos_values_non_rt(std::vector<double> & joint_values) const
 {
-  std::vector<double> joint_values;
-  joint_values.resize(registered_joint_handles_.size());
+  assert(joint_values.size() == registered_joint_handles_.size());
   for (std::size_t i = 0; i < registered_joint_handles_.size(); ++i) {
     joint_values[i] = registered_joint_handles_[i].state_pos.get().get_value();
   }
-  return joint_values;
 }
 
 void NovaPathPlanner::publish_target_pose_to_tf2(
@@ -516,7 +517,8 @@ void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal
   auto result = std::make_shared<ArmPlanPath::Result>();
   auto feedback = std::make_shared<ArmPlanPath::Feedback>();
 
-  std::vector<double> last_joint_pose = get_state_pos_values_non_rt();
+  get_state_pos_values_non_rt(action_joint_state_values_);
+  std::vector<double> last_joint_pose = action_joint_state_values_;
 
   Eigen::Isometry3d start = Eigen::Isometry3d::Identity();
   if (!try_get_pose_from_forward_kinematics(last_joint_pose, start)) {
