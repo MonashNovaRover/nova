@@ -171,7 +171,7 @@ NovaTwistmapper::ResolvedTwist NovaTwistmapper::resolve_base_twist(
     publish_to_tf2(
       time,
       twist_frame,
-      std::string(get_node()->get_name()) + "_twist_frame");
+      debug_twist_frame_child_frame_id_);
   }
 
   arm_kinematics::Twistd local_twist;
@@ -547,6 +547,7 @@ controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_
 
   twistmapper_pose_tf_broadcaster_ =
     std::make_shared<tf2_ros::TransformBroadcaster>(tf2_ros::TransformBroadcaster(*get_node()));
+  debug_twist_frame_child_frame_id_ = std::string(get_node()->get_name()) + "_twist_frame";
 
   kinematics_.emplace();
   kinematics_->loader = arm_kinematics::PluginLoader{*get_node(), robot_description};
@@ -816,6 +817,7 @@ bool NovaTwistmapper::reset()
 
   is_halted = false;
   last_frame_id_.clear();
+  debug_twist_frame_child_frame_id_.clear();
 
   active_twist_frame_tree_.set(nullptr);
   received_twist_stamped_ptr_.set(nullptr);

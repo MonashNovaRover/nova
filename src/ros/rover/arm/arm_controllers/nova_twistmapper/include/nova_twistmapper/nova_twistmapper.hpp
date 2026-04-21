@@ -193,6 +193,7 @@ protected:
   realtime_tools::RealtimeBox<std::shared_ptr<geometry_msgs::msg::TwistStamped>> received_twist_stamped_ptr_{nullptr};
   realtime_tools::RealtimeBox<arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr> active_twist_frame_tree_{nullptr};
   std::string last_frame_id_{};
+  std::string debug_twist_frame_child_frame_id_{};
 
   std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_{};
 
