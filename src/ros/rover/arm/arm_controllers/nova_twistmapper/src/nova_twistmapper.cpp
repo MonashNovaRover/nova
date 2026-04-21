@@ -125,7 +125,7 @@ NovaTwistmapper::make_single_frame_tree(const std::string & frame_name) const
     std::move(tree_result.value().tree));
 }
 
-std::optional<arm_kinematics::Twistd> NovaTwistmapper::resolve_base_twist(
+NovaTwistmapper::ResolvedTwist NovaTwistmapper::resolve_base_twist(
   const std::vector<double> & seed_state,
   const rclcpp::Time & time)
 {
@@ -140,14 +140,27 @@ std::optional<arm_kinematics::Twistd> NovaTwistmapper::resolve_base_twist(
       *get_node()->get_clock(),
       2000,
       "Haven't yet received a TwistStamped message to use for the twistmapper.");
-    return std::nullopt;
+    return {TwistResolutionStatus::NoMessage, arm_kinematics::Twistd::Zero()};
+  }
+
+  const rclcpp::Time command_time{twist_stamped->header.stamp, time.get_clock_type()};
+  const double command_age = (time - command_time).seconds();
+  if (!std::isfinite(command_age) || command_age < 0.0 || command_age > params_.cmd_timeout) {
+    RCLCPP_WARN_THROTTLE(
+      logger,
+      *get_node()->get_clock(),
+      2000,
+      "Latest TwistStamped command is stale or invalid: age %.6f seconds, timeout %.6f seconds.",
+      command_age,
+      params_.cmd_timeout);
+    return {TwistResolutionStatus::StaleMessage, arm_kinematics::Twistd::Zero()};
   }
 
   arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr twist_frame_tree;
   active_twist_frame_tree_.get(twist_frame_tree);
   if (!twist_frame_tree) {
     RCLCPP_ERROR(logger, "Twist frame tree was not configured.");
-    return std::nullopt;
+    return {TwistResolutionStatus::InvalidFrame, arm_kinematics::Twistd::Zero()};
   }
 
   twist_frame_tree->position_fk(seed_state, fk_pose_buffer_);
@@ -167,7 +180,7 @@ std::optional<arm_kinematics::Twistd> NovaTwistmapper::resolve_base_twist(
   base_twist.block<3, 1>(0, 0) = twist_frame.linear() * local_twist.block<3, 1>(0, 0);
   base_twist.block<3, 1>(3, 0) = twist_frame.linear() * local_twist.block<3, 1>(3, 0);
 
-  return base_twist;
+  return {TwistResolutionStatus::Valid, base_twist};
 }
 
 Eigen::Isometry3d NovaTwistmapper::integrate_target_pose(
@@ -222,6 +235,12 @@ bool NovaTwistmapper::write_commands(const std::vector<double> & commands)
   return true;
 }
 
+bool NovaTwistmapper::write_zero_velocity_commands()
+{
+  std::vector<double> zero_commands(registered_joint_handles_.size(), 0.0);
+  return write_commands(zero_commands);
+}
+
 controller_interface::return_type NovaTwistmapper::update_position_mode(
   PositionRuntime & runtime,
   const rclcpp::Time & time,
@@ -229,13 +248,16 @@ controller_interface::return_type NovaTwistmapper::update_position_mode(
 {
   const auto logger = get_node()->get_logger();
 
-  const auto base_twist = resolve_base_twist(current_joint_state_values_, time);
-  if (!base_twist) {
+  const auto resolved_twist = resolve_base_twist(current_joint_state_values_, time);
+  if (resolved_twist.status != TwistResolutionStatus::Valid) {
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
 
-  const auto candidate_pose = integrate_target_pose(*base_twist, period, runtime.target_pose);
+  const auto candidate_pose = integrate_target_pose(
+    resolved_twist.base_twist,
+    period,
+    runtime.target_pose);
 
   auto ik_result = kinematics_->ik->get_position_ik(
     candidate_pose,
@@ -308,34 +330,44 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
 {
   const auto logger = get_node()->get_logger();
   const double dt = period.seconds();
-  if (!std::isfinite(dt) || dt <= 0.0) {
+  if (!std::isfinite(dt) || dt <= 0.0 || dt > params_.max_velocity_control_period) {
     RCLCPP_ERROR_THROTTLE(
       logger,
       *get_node()->get_clock(),
       2000,
-      "Velocity mode requires a finite positive period, got %.9f.",
+      "Velocity mode requires a finite positive period no larger than %.6f seconds, got %.9f.",
+      params_.max_velocity_control_period,
       dt);
+    if (!write_zero_velocity_commands()) {
+      return controller_interface::return_type::ERROR;
+    }
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
 
-  const auto base_twist = resolve_base_twist(current_joint_state_values_, time);
-  if (!base_twist) {
+  const auto resolved_twist = resolve_base_twist(current_joint_state_values_, time);
+  if (resolved_twist.status != TwistResolutionStatus::Valid) {
+    if (!write_zero_velocity_commands()) {
+      return controller_interface::return_type::ERROR;
+    }
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
 
-  const auto candidate_pose = integrate_target_pose(*base_twist, period, runtime.target_pose);
+  const auto candidate_pose = integrate_target_pose(
+    resolved_twist.base_twist,
+    period,
+    runtime.target_pose);
 
   kinematics_->ee_tree->position_fk(current_joint_state_values_, fk_pose_buffer_);
   const Eigen::Isometry3d current_ee_pose = fk_pose_buffer_.front();
 
   auto ik_result = kinematics_->ik->get_velocity_ik(
-    *base_twist,
+    resolved_twist.base_twist,
     current_ee_pose,
     current_joint_state_values_,
     runtime.solution_velocities,
-    dt);
+    params_.use_control_period_for_velocity_ik ? dt : params_.velocity_ik_time_step);
   if (!ik_result) {
     RCLCPP_WARN_THROTTLE(
       logger,
@@ -343,6 +375,9 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
       200,
       "Failed to find solution to inverse velocity kinematics: %s",
       ik_result.error().format().c_str());
+    if (!write_zero_velocity_commands()) {
+      return controller_interface::return_type::ERROR;
+    }
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
@@ -353,12 +388,18 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
       "Velocity IK plugin returned %zu joints, but twistmapper expects %zu.",
       runtime.solution_velocities.size(),
       current_joint_state_values_.size());
+    if (!write_zero_velocity_commands()) {
+      return controller_interface::return_type::ERROR;
+    }
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
 
   if (!vector_is_finite(runtime.solution_velocities)) {
     RCLCPP_ERROR(logger, "Velocity IK plugin returned NaN or Inf joint values.");
+    if (!write_zero_velocity_commands()) {
+      return controller_interface::return_type::ERROR;
+    }
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
@@ -373,6 +414,9 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
 
   if (!vector_is_finite(runtime.predicted_next_positions)) {
     RCLCPP_ERROR(logger, "Predicted next joint positions contain NaN or Inf.");
+    if (!write_zero_velocity_commands()) {
+      return controller_interface::return_type::ERROR;
+    }
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
@@ -388,6 +432,9 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
       logger,
       "Failed to check path collision: %s",
       collision_result.error().format().c_str());
+    if (!write_zero_velocity_commands()) {
+      return controller_interface::return_type::ERROR;
+    }
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
@@ -397,6 +444,9 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
       *get_node()->get_clock(),
       200,
       "Velocity IK solution self intersects.");
+    if (!write_zero_velocity_commands()) {
+      return controller_interface::return_type::ERROR;
+    }
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
@@ -466,8 +516,24 @@ controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_
     RCLCPP_ERROR(logger, "fallback_frame_id parameter is empty.");
     return controller_interface::CallbackReturn::ERROR;
   }
-  if (params_.self_intersection_max_step_size <= 0.0) {
-    RCLCPP_ERROR(logger, "self_intersection_max_step_size must be > 0.");
+  if (!std::isfinite(params_.self_intersection_max_step_size) ||
+    params_.self_intersection_max_step_size <= 0.0)
+  {
+    RCLCPP_ERROR(logger, "self_intersection_max_step_size must be finite and > 0.");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  if (!std::isfinite(params_.cmd_timeout) || params_.cmd_timeout <= 0.0) {
+    RCLCPP_ERROR(logger, "cmd_timeout must be finite and > 0.");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  if (!std::isfinite(params_.velocity_ik_time_step) || params_.velocity_ik_time_step <= 0.0) {
+    RCLCPP_ERROR(logger, "velocity_ik_time_step must be finite and > 0.");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  if (!std::isfinite(params_.max_velocity_control_period) ||
+    params_.max_velocity_control_period <= 0.0)
+  {
+    RCLCPP_ERROR(logger, "max_velocity_control_period must be finite and > 0.");
     return controller_interface::CallbackReturn::ERROR;
   }
 
@@ -582,6 +648,7 @@ controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_
             "Rejecting TwistStamped for unsupported frame_id '%s': %s",
             new_frame_id.c_str(),
             tree_result.error().c_str());
+          received_twist_stamped_ptr_.set(nullptr);
           return;
         }
 
@@ -701,8 +768,7 @@ controller_interface::CallbackReturn NovaTwistmapper::on_activate(const rclcpp_l
       }
     }
   } else {
-    std::vector<double> zero_commands(params_.joint_names.size(), 0.0);
-    if (!write_commands(zero_commands)) {
+    if (!write_zero_velocity_commands()) {
       return controller_interface::CallbackReturn::ERROR;
     }
   }
@@ -791,8 +857,7 @@ void NovaTwistmapper::halt()
     return;
   }
 
-  std::vector<double> zero_commands(registered_joint_handles_.size(), 0.0);
-  (void)write_commands(zero_commands);
+  (void)write_zero_velocity_commands();
 }
 
 void NovaTwistmapper::publish_to_tf2(

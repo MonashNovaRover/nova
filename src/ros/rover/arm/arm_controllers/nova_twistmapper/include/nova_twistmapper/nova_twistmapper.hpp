@@ -91,6 +91,20 @@ protected:
     Velocity,
   };
 
+  enum class TwistResolutionStatus
+  {
+    Valid,
+    NoMessage,
+    StaleMessage,
+    InvalidFrame,
+  };
+
+  struct ResolvedTwist
+  {
+    TwistResolutionStatus status = TwistResolutionStatus::NoMessage;
+    arm_kinematics::Twistd base_twist = arm_kinematics::Twistd::Zero();
+  };
+
   struct JointHandle
   {
     std::string name;
@@ -130,7 +144,7 @@ protected:
 
   void read_state_pos_values(std::vector<double> & joint_values) const;
 
-  [[nodiscard]] std::optional<arm_kinematics::Twistd> resolve_base_twist(
+  [[nodiscard]] ResolvedTwist resolve_base_twist(
     const std::vector<double> & seed_state,
     const rclcpp::Time & time);
 
@@ -154,6 +168,8 @@ protected:
   [[nodiscard]] const Eigen::Isometry3d & target_pose() const;
 
   bool write_commands(const std::vector<double> & commands);
+
+  bool write_zero_velocity_commands();
 
   tl::expected<arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr, std::string>
   make_single_frame_tree(const std::string & frame_name) const;

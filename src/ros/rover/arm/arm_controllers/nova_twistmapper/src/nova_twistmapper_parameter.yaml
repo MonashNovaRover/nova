@@ -15,6 +15,26 @@ nova_twistmapper:
     default_value: true,
     description: "When true, twistmapper sends position commands via get_position_ik(). Otherwise, it sends velocity commands via get_velocity_ik()."
   }
+  cmd_timeout: {
+    type: double,
+    default_value: 0.5,
+    description: "Timeout in seconds after which the latest TwistStamped command is considered stale."
+  }
+  velocity_ik_time_step: {
+    type: double,
+    default_value: 0.02,
+    description: "Fixed numerical time step in seconds used for get_velocity_ik() when use_control_period_for_velocity_ik is false."
+  }
+  use_control_period_for_velocity_ik: {
+    type: bool,
+    default_value: false,
+    description: "When true, use the current controller period as the get_velocity_ik() time step instead of velocity_ik_time_step."
+  }
+  max_velocity_control_period: {
+    type: double,
+    default_value: 0.1,
+    description: "Maximum accepted controller period in seconds for velocity mode before velocity commands are stopped."
+  }
 
   # Twistmapper
   twist_stamped_topic: {
