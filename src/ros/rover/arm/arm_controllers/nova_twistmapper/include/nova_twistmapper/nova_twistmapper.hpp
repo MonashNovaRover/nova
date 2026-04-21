@@ -24,6 +24,7 @@ EDITED:   21/04/2026
 #include <memory>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include <Eigen/Geometry>
@@ -84,6 +85,12 @@ public:
     const rclcpp_lifecycle::State & previous_state) override;
 
 protected:
+  enum class TwistmapperMode
+  {
+    Position,
+    Velocity,
+  };
+
   struct JointHandle
   {
     std::string name;
@@ -100,14 +107,53 @@ protected:
     arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr ee_tree;
   };
 
+  struct PositionRuntime
+  {
+    Eigen::Isometry3d target_pose = Eigen::Isometry3d::Identity();
+    std::vector<double> solution_positions{};
+  };
+
+  struct VelocityRuntime
+  {
+    Eigen::Isometry3d target_pose = Eigen::Isometry3d::Identity();
+    std::vector<double> solution_velocities{};
+    std::vector<double> predicted_next_positions{};
+  };
+
+  using ModeRuntime = std::variant<PositionRuntime, VelocityRuntime>;
+
   controller_interface::CallbackReturn configure_joints();
+
+  [[nodiscard]] TwistmapperMode twistmapper_mode() const noexcept;
+
+  [[nodiscard]] const char * joint_command_type() const noexcept;
 
   void read_state_pos_values(std::vector<double> & joint_values) const;
 
-  Eigen::Isometry3d integrate_twist(
+  [[nodiscard]] std::optional<arm_kinematics::Twistd> resolve_base_twist(
     const std::vector<double> & seed_state,
+    const rclcpp::Time & time);
+
+  [[nodiscard]] Eigen::Isometry3d integrate_target_pose(
+    const arm_kinematics::Twistd & base_twist,
     const rclcpp::Duration & period,
-    const Eigen::Isometry3d & current_target_pose);
+    const Eigen::Isometry3d & current_target_pose) const;
+
+  controller_interface::return_type update_position_mode(
+    PositionRuntime & runtime,
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period);
+
+  controller_interface::return_type update_velocity_mode(
+    VelocityRuntime & runtime,
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period);
+
+  [[nodiscard]] Eigen::Isometry3d & target_pose();
+
+  [[nodiscard]] const Eigen::Isometry3d & target_pose() const;
+
+  bool write_commands(const std::vector<double> & commands);
 
   tl::expected<arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr, std::string>
   make_single_frame_tree(const std::string & frame_name) const;
@@ -133,15 +179,14 @@ protected:
   realtime_tools::RealtimeBox<arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr> active_twist_frame_tree_{nullptr};
   std::string last_frame_id_{};
 
-  Eigen::Isometry3d twistmapper_pose_ = Eigen::Isometry3d::Identity();
   std::shared_ptr<tf2_ros::TransformBroadcaster> twistmapper_pose_tf_broadcaster_{};
 
   std::optional<Kinematics> kinematics_{};
+  std::optional<ModeRuntime> mode_runtime_{};
   arm_kinematics::Isometry3dVector fk_pose_buffer_{
     1,
     Eigen::Isometry3d::Identity()};
   std::vector<double> current_joint_state_values_{};
-  std::vector<double> ik_solution_{};
   arm_kinematics::PathCollisionScratch path_collision_scratch_{};
 
   bool subscriber_is_active_ = false;

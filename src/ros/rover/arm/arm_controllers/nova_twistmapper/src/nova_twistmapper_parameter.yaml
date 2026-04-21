@@ -10,6 +10,11 @@ nova_twistmapper:
     description: "The name of the chainable controller to capture reference interfaces from. Leave empty to use hardware 
     interfaces."
   }
+  use_position_control: {
+    type: bool,
+    default_value: true,
+    description: "When true, twistmapper sends position commands via get_position_ik(). Otherwise, it sends velocity commands via get_velocity_ik()."
+  }
 
   # Twistmapper
   twist_stamped_topic: {
