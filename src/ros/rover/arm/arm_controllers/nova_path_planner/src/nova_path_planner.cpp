@@ -365,13 +365,19 @@ controller_interface::CallbackReturn NovaPathPlanner::on_deactivate(const rclcpp
     is_halted = true;
   }
 
+  // Signal the action thread to exit its while-loop, then join before
+  // touching any members it may be accessing.
+  is_path_being_executed_.store(false, std::memory_order_release);
+  if (action_thread_ && action_thread_->joinable()) {
+    action_thread_->join();
+  }
+
   action_server_.reset();
   pending_path_ptr_.set(nullptr);
   active_path_.reset();
   active_path_index_ = 0;
   clear_path_requested_.store(false, std::memory_order_release);
   remaining_path_points_.store(0, std::memory_order_release);
-  is_path_being_executed_.store(false, std::memory_order_release);
   registered_joint_handles_.clear();
 
   return controller_interface::CallbackReturn::SUCCESS;
@@ -489,7 +495,10 @@ rclcpp_action::GoalResponse NovaPathPlanner::handle_action_goal(
 void NovaPathPlanner::handle_action_accepted(const std::shared_ptr<GoalHandleArmPlanPath> & goal_handle)
 {
   RCLCPP_INFO(get_node()->get_logger(), "Spinning up new thread to handle the action.");
-  std::thread{std::bind(&NovaPathPlanner::execute_action, this, _1), goal_handle}.detach();
+  if (action_thread_ && action_thread_->joinable()) {
+    action_thread_->join();
+  }
+  action_thread_.emplace(&NovaPathPlanner::execute_action, this, goal_handle);
 }
 
 rclcpp_action::CancelResponse NovaPathPlanner::handle_action_cancelled(

@@ -21,6 +21,7 @@ EDITED:   21/04/2026
 #include <memory>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <Eigen/Geometry>
@@ -189,6 +190,7 @@ protected:
   std::atomic<bool> clear_path_requested_{false};
   std::atomic<std::size_t> remaining_path_points_{0};
   std::atomic<bool> is_path_being_executed_{false};
+  std::optional<std::thread> action_thread_{};
   std::shared_ptr<tf2_ros::TransformBroadcaster> target_pose_tf_broadcaster_{};
   Eigen::Isometry3d target_pose_ = Eigen::Isometry3d::Identity();
   bool has_target_pose_ = false;
