@@ -90,6 +90,11 @@ def generate_launch_description():
             description='Angle (in degrees) at which the camera is mounted',
         ),
         DeclareLaunchArgument(
+            name='legacy_controllers',
+            default_value='False',
+            description='Use the preserved _old controller stack.',
+        ),
+        DeclareLaunchArgument(
             name='controllers',
             default_value=IfElseSubstitution(
                 condition=LaunchConfiguration('legacy_controllers'),
@@ -97,11 +102,6 @@ def generate_launch_description():
                 else_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'old.controllers.yaml']),
             ),
             description='Absolute path to controller params file',
-        ),
-        DeclareLaunchArgument(
-            name='legacy_controllers',
-            default_value='False',
-            description='Use the preserved _old controller stack.',
         ),
         DeclareLaunchArgument(
             name='gazebo',

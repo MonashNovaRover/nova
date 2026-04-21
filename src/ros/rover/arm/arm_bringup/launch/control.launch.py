@@ -213,6 +213,11 @@ def generate_launch_description():
             description='whether to use the local rover_description source directory instead of the nix store.',
         ),
         DeclareLaunchArgument(
+            name='legacy_controllers',
+            default_value='False',
+            description='Use the preserved _old controller stack.',
+        ),
+        DeclareLaunchArgument(
             name='controllers',
             default_value=IfElseSubstitution(
                 condition=LaunchConfiguration('legacy_controllers'),
@@ -220,11 +225,6 @@ def generate_launch_description():
                 else_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
             ),
             description='Absolute path to controller params file',
-        ),
-        DeclareLaunchArgument(
-            name='legacy_controllers',
-            default_value='False',
-            description='Use the preserved _old controller stack.',
         ),
         DeclareLaunchArgument(
             name='gazebo',
