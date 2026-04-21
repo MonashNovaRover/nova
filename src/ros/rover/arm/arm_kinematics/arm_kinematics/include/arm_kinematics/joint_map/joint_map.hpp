@@ -7,7 +7,6 @@
 
 #include <memory>
 #include <utility>
-#include <vector>
 
 #include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/visibility_control.h"
@@ -50,11 +49,6 @@ public:
    * \warning inputs and outputs must not point to the same memory, or be any internal storage from the implementation.
    */
   void map(span<const double> inputs, span<double> outputs) const;
-
-  /**
-   * std::vector helper overload for map(span<const double>, span<double>).
-   */
-  void map(const std::vector<double> & inputs, std::vector<double> & outputs) const;
 
   /// The number of elements expected in the input joint space for this map.
   [[nodiscard]] size_t input_count() const noexcept;

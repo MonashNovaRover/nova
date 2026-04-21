@@ -35,13 +35,6 @@ void JointMap::map(span<const double> inputs, span<double> outputs) const
   impl_->map(inputs, outputs);
 }
 
-void JointMap::map(const std::vector<double> & inputs, std::vector<double> & outputs) const
-{
-  map(
-    {inputs.data(), inputs.size()},
-    {outputs.data(), outputs.size()});
-}
-
 size_t JointMap::input_count() const noexcept
 {
   return impl_ ? impl_->input_count() : 0;
