@@ -131,7 +131,6 @@ protected:
   {
     Eigen::Isometry3d target_pose = Eigen::Isometry3d::Identity();
     std::vector<double> solution_velocities{};
-    std::vector<double> predicted_next_positions{};
   };
 
   using ModeRuntime = std::variant<PositionRuntime, VelocityRuntime>;
@@ -203,7 +202,8 @@ protected:
     1,
     Eigen::Isometry3d::Identity()};
   std::vector<double> current_joint_state_values_{};
-  arm_kinematics::PathCollisionScratch path_collision_scratch_{};
+  std::vector<double> joint_values_scratch_{};
+  std::vector<double> predicted_joint_positions_{};
 
   bool subscriber_is_active_ = false;
   rclcpp::Time previous_update_timestamp_{0};

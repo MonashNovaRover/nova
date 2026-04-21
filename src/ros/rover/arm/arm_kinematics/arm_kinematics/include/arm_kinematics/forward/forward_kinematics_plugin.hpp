@@ -63,7 +63,7 @@ public:
      * \warning inputs and outputs must be pre-allocated to the correct size!
      * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
      */
-    virtual void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_poses) = 0;
+    virtual void position_fk(span<const double> joint_states, Isometry3dVector & link_poses) = 0;
 
   protected:
     explicit Tree(const size_t link_count) : link_count(link_count) {}

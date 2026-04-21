@@ -295,7 +295,7 @@ controller_interface::return_type NovaTwistmapper::update_position_mode(
     current_joint_state_values_,
     runtime.solution_positions,
     params_.self_intersection_max_step_size,
-    path_collision_scratch_);
+    joint_values_scratch_);
   if (!collision_result) {
     RCLCPP_ERROR(
       logger,
@@ -404,15 +404,12 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     return controller_interface::return_type::OK;
   }
 
-  if (runtime.predicted_next_positions.size() != current_joint_state_values_.size()) {
-    runtime.predicted_next_positions.resize(current_joint_state_values_.size(), 0.0);
-  }
-  for (std::size_t i = 0; i < runtime.predicted_next_positions.size(); ++i) {
-    runtime.predicted_next_positions[i] =
+  for (std::size_t i = 0; i < predicted_joint_positions_.size(); ++i) {
+    predicted_joint_positions_[i] =
       current_joint_state_values_[i] + runtime.solution_velocities[i] * dt;
   }
 
-  if (!vector_is_finite(runtime.predicted_next_positions)) {
+  if (!vector_is_finite(predicted_joint_positions_)) {
     RCLCPP_ERROR(logger, "Predicted next joint positions contain NaN or Inf.");
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
@@ -424,9 +421,9 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
   const auto collision_result = arm_kinematics::check_path_collision(
     kinematics_->collision_manager,
     current_joint_state_values_,
-    runtime.predicted_next_positions,
+    predicted_joint_positions_,
     params_.self_intersection_max_step_size,
-    path_collision_scratch_);
+    joint_values_scratch_);
   if (!collision_result) {
     RCLCPP_ERROR(
       logger,
@@ -602,7 +599,8 @@ controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_
   last_frame_id_ = params_.fallback_frame_id;
 
   current_joint_state_values_.assign(params_.joint_names.size(), 0.0);
-  path_collision_scratch_.intermediate_positions.assign(params_.joint_names.size(), 0.0);
+  joint_values_scratch_.assign(params_.joint_names.size(), 0.0);
+  predicted_joint_positions_.assign(params_.joint_names.size(), 0.0);
   if (twistmapper_mode() == TwistmapperMode::Position) {
     PositionRuntime runtime;
     runtime.solution_positions.assign(params_.joint_names.size(), 0.0);
@@ -610,7 +608,6 @@ controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_
   } else {
     VelocityRuntime runtime;
     runtime.solution_velocities.assign(params_.joint_names.size(), 0.0);
-    runtime.predicted_next_positions.assign(params_.joint_names.size(), 0.0);
     mode_runtime_ = std::move(runtime);
   }
   received_twist_stamped_ptr_.set(nullptr);

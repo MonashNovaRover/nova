@@ -64,7 +64,7 @@ bool CollisionManager::collide(
   return plugin_->collide(colliding_pairs, max_colliding_pairs);
 }
 
-void CollisionManager::update_poses(const std::vector<double> & joint_states) {
+void CollisionManager::update_poses(const span<const double> joint_states) {
   tree_->position_fk(joint_states, collider_poses_);
   plugin_->update_poses(0, {collider_poses_.data(), collider_poses_.size()});
 }
@@ -138,7 +138,7 @@ tl::expected<bool, PathCollisionError> check_path_collision(
   const span<const double> start,
   const span<const double> end,
   const double step_size,
-  PathCollisionScratch & scratch)
+  span<double> scratch)
 {
   if (start.size() != end.size()) {
     return tl::unexpected(PathCollisionError::SizeMismatch{start.size(), end.size()});
@@ -153,28 +153,22 @@ tl::expected<bool, PathCollisionError> check_path_collision(
   }
 
   const int iterations = static_cast<int>(std::ceil(max_displacement / step_size));
-  if (scratch.intermediate_positions.size() != start.size()) {
-    scratch.intermediate_positions.resize(start.size(), 0.0);
-  }
 
   for (int i = 1; i < iterations; ++i) {
     const double interpolator = static_cast<double>(i) / static_cast<double>(iterations);
     const double one_minus_interpolator = 1.0 - interpolator;
 
-    for (std::size_t j = 0; j < scratch.intermediate_positions.size(); ++j) {
-      scratch.intermediate_positions[j] = start[j] * one_minus_interpolator + end[j] * interpolator;
+    for (std::size_t j = 0; j < scratch.size(); ++j) {
+      scratch[j] = start[j] * one_minus_interpolator + end[j] * interpolator;
     }
 
-    manager.update_poses(scratch.intermediate_positions);
+    manager.update_poses(scratch);
     if (manager.collide()) {
       return true;
     }
   }
 
-  for (std::size_t i = 0; i < scratch.intermediate_positions.size(); ++i) {
-    scratch.intermediate_positions[i] = end[i];
-  }
-  manager.update_poses(scratch.intermediate_positions);
+  manager.update_poses(end);
   return manager.collide();
 }
 
@@ -184,7 +178,7 @@ tl::expected<bool, PathCollisionError> check_path_collision(
   const span<const double> end,
   const double step_size)
 {
-  PathCollisionScratch scratch;
+  std::vector<double> scratch(start.size());
   return check_path_collision(manager, start, end, step_size, scratch);
 }
 

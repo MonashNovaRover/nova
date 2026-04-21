@@ -21,7 +21,7 @@ public:
   {
   }
 
-  void position_fk(const std::vector<double> & joint_states, Isometry3dVector & link_poses) override
+  void position_fk(span<const double> joint_states, Isometry3dVector & link_poses) override
   {
     if (joint_states.size() != 1 || link_poses.size() != 1) {
       throw std::invalid_argument("FakeTree expects one input joint and one output pose");
@@ -183,8 +183,8 @@ TEST(CollisionPathTest, ReusesCallerOwnedScratch)
   auto plugin = std::make_shared<FakeCollisionPlugin>(
     [](double) { return false; });
   auto manager = make_fake_manager(plugin);
-  PathCollisionScratch scratch;
-  scratch.intermediate_positions.assign(1, -1.0);
+  std::vector<double> scratch;
+  scratch.assign(1, -1.0);
 
   const auto result = check_path_collision(
     manager,
@@ -194,8 +194,6 @@ TEST(CollisionPathTest, ReusesCallerOwnedScratch)
     scratch);
   ASSERT_TRUE(result);
   EXPECT_FALSE(*result);
-  ASSERT_EQ(scratch.intermediate_positions.size(), 1u);
-  EXPECT_DOUBLE_EQ(scratch.intermediate_positions[0], 0.75);
 }
 
 TEST(CollisionPathTest, ReturnsStructuredErrorOnMismatchedJointVectorSizes)

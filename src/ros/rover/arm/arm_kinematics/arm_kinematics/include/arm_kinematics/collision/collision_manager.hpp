@@ -36,7 +36,7 @@ struct ARM_KINEMATICS_PUBLIC CollisionManager {
   [[nodiscard]] bool collide(
     std::vector<std::pair<size_t, size_t>> & colliding_pairs,
     size_t max_colliding_pairs = std::numeric_limits<size_t>::max()) const;
-  void update_poses(const std::vector<double> & joint_states);
+  void update_poses(span<const double> joint_states);
 
 private:
   ForwardKinematicsPlugin::Tree::SharedPtr tree_{};
@@ -109,10 +109,6 @@ struct ARM_KINEMATICS_PUBLIC PathCollisionError {
   [[nodiscard]] std::string format() const;
 };
 
-struct ARM_KINEMATICS_PUBLIC PathCollisionScratch {
-  std::vector<double> intermediate_positions{};
-};
-
 /**
  * Interpolate between two joint states, checking self-collision at each intermediate state and
  * the endpoint.
@@ -126,7 +122,7 @@ tl::expected<bool, PathCollisionError> check_path_collision(
   span<const double> start,
   span<const double> end,
   double step_size,
-  PathCollisionScratch & scratch);
+  span<double> scratch);
 
 ARM_KINEMATICS_PUBLIC
 tl::expected<bool, PathCollisionError> check_path_collision(
