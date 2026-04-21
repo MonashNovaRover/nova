@@ -5,8 +5,7 @@
 #include <gst/gst.h>
 
 void set_h264payload(GstElement* payload);
-
-void set_h264parse(GstElement* parse, const int interval = -1);
+void set_h264parse(GstElement* parse, const int interval);
 
 #endif
 

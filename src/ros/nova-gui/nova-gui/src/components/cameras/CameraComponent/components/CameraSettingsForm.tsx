@@ -11,6 +11,8 @@ import { useStreamingBifrost } from "../../hooks/cameraBifrostHooks.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
+import {CameraProfileSelector} from "../../CameraPage/CameraProfileSelector.tsx";
+import {defaultCameraProfileOptions,} from "../../../../views/shared/CamerasPage/CameraProfileConstants.ts";
 
 const snapTo90 = (value: number): number => {
   const remainder = value % 90;
@@ -33,6 +35,7 @@ export const CameraSettingsForm = ({
 
   const onlineCameras = useSelector((state: RootState) => state.camerasStore.cameras);
   const isOnline = onlineCameras.map(v=>v.serial).includes(cameraSerial)
+  const currentProfile = isOnline ? onlineCameras.filter(v=> v.serial === cameraSerial)[0].profile : ""
 
   const cameraStreamerMap = useSelector((state: RootState) => state.cameraStreamerState.cameras);
   const isStreaming = !!cameraStreamerMap[cameraSerial]
@@ -117,6 +120,7 @@ export const CameraSettingsForm = ({
           )}
         </div>
       </div>
+      <CameraProfileSelector serials={[cameraSerial]} options={defaultCameraProfileOptions} currentProfile={currentProfile}/>
       <Slider
         className="max-w-md"
         size="lg"

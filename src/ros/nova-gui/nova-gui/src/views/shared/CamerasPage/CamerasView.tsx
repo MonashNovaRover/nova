@@ -3,6 +3,7 @@ import {CameraViewConfig} from "./CameraViewConstants.tsx";
 import { useState } from "react";
 import {CameraSidebar} from "../../../components/cameras/CameraPage/CameraSidebar.tsx";
 import {CamerasPage} from "../../../components/cameras/CameraPage/CamerasPage.tsx";
+import {defaultCameraProfilePresets} from "./CameraProfileConstants.ts";
 
 export interface CameraViewProps {
   views: CameraViewConfig[];
@@ -25,6 +26,7 @@ export const CameraView = (props: CameraViewProps) => {
           setShowSidebar={setShowSidebar}
           gridSize={gridSize}
           setGridSize={setGridSize}
+          presets={props.views[0].cameraPrests ? props.views[0].cameraPrests : defaultCameraProfilePresets}
         />
         <div className="grow">
           <CamerasPage

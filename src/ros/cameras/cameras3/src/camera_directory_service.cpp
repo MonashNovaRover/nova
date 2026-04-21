@@ -52,7 +52,7 @@ class CameraDirectory : public rclcpp::Node
 
     // publish once
     this->publish_cameras();
-    RCLCPP_INFO(this->get_logger(), "%sPolling v4l capture devices every %dms%s", C_QUIET, POLLING_PERIOD, C_RESET);
+    RCLCPP_INFO(this->get_logger(), "%sPolling v4l capture devices every %s%dms%s", C_QUIET, C_MODE, POLLING_PERIOD, C_RESET);
   }
 
   rclcpp::TimerBase::SharedPtr timer_;
@@ -167,13 +167,16 @@ class CameraDirectory : public rclcpp::Node
     std::unordered_map<std::string, std::string> new_camera_map;
 
     std::stringstream log;
-    if (devices.size() != last_device_count) {  
+    if (devices.size() != last_device_count) {
       log << C_MODE << "Detected Cameras:" << C_RESET;
     }
 
     for (V4lDevice device : devices) {
       // if device is in blacklist, skip
       if (std::find(blacklist.begin(), blacklist.end(), device.serial) != blacklist.end()) continue;
+
+      // add to message
+      camera_msgs::msg::Camera camera = camera_msgs::msg::Camera();
 
       // get final serial with remaps and overrides
       std::string serial = device.serial;
@@ -183,8 +186,13 @@ class CameraDirectory : public rclcpp::Node
       if (serial_remaps.find(serial) != serial_remaps.end()){
         serial = serial_remaps[serial];
       }
-      // add to message
-      auto camera = camera_msgs::msg::Camera();
+
+      // Find how many of the current serial exist
+      //const int serial_count = new_camera_map.count(device.serial);
+
+      // support multiple cameras of the same type
+      //camera.serial = serial + std::to_string(serial_count); 
+
       camera.serial = serial;
       camera.node = device.devname;
       camera.original_serial = device.serial;
@@ -196,7 +204,7 @@ class CameraDirectory : public rclcpp::Node
         {
           log << C_QUIET " remapped from " << C_INPUT << device.serial << C_RESET;
         }
-        log << C_QUIET " located at " << device.path << C_RESET;
+        log << C_QUIET " located at " << C_MODE << device.path << C_RESET;
 
         // check if new camera or serial changed
         if (camera_map.find(serial) == camera_map.end()) {
@@ -233,7 +241,6 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
   sd_device_enumerator *enumerator = NULL;
   sd_device *device = NULL;
   std::vector<V4lDevice> matches;
-  //std::unordered_set<std::string> seen_serials;
 
   // Create new device enumerator object and add filters
   sd_device_enumerator_new(&enumerator);
