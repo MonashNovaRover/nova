@@ -48,6 +48,8 @@ export const rosTopicMessages = {
   [RosTopic.TOOL_ROTATOR_ANGLE]: "std_msgs/msg/Float64",
   [RosTopic.PUMPS_STATUS]: "science_interfaces/msg/PumpStatus",
   [RosTopic.CAROUSEL]: "science_interfaces/msg/NamedPositions",
+  [RosTopic.CAROUSEL_INNER_FEEDBACK]: "science_interfaces/msg/CarouselFeedback",
+  [RosTopic.CAROUSEL_OUTER_FEEDBACK]: "science_interfaces/msg/CarouselFeedback",
 
   // Maps Related
   [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/GPSData",

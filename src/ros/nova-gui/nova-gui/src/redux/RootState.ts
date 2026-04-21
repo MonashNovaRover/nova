@@ -39,6 +39,7 @@ import {
   IRosScienceInterfacesPumpStatus,
   IRosNovaInterfacesGpsData,
   IRosScienceInterfacesNamedPositions,
+  IRosScienceInterfacesCarouselFeedback,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -111,6 +112,8 @@ export interface RootState {
   toolRotatorAngleStore: IRosStdMsgsFloat64;
   pumpsStatusStore: IRosScienceInterfacesPumpStatus;
   carouselStore: IRosScienceInterfacesNamedPositions;
+  carouselInnerFeedback: IRosScienceInterfacesCarouselFeedback;
+  carouselOuterFeedback: IRosScienceInterfacesCarouselFeedback;
 
   // Maps Related Stores
   roverLocationStore: IRosNovaInterfacesGpsData;

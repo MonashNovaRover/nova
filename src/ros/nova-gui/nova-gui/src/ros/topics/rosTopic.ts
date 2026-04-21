@@ -48,6 +48,8 @@ export enum RosTopic {
   TOOL_ROTATOR_ANGLE = "/science/tool_rotator/position",
   PUMPS_STATUS = "/science/pumps/status",
   CAROUSEL = "/science/carousel/position",
+  CAROUSEL_INNER_FEEDBACK = "/science/carousel_inner/feedback",
+  CAROUSEL_OUTER_FEEDBACK = "/science/carousel_outer/feedback",
 
   // Mapping Related Topics
   ROVER_LOCATION = "/gps_rover/fix_custom",

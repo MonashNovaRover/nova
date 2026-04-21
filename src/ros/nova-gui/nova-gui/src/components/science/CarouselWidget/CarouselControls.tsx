@@ -10,6 +10,7 @@ export interface CarouselDialProps {
   showCalibration: boolean
   variant: RING;
   reverse?: boolean
+  disabled?: boolean
 }
 
 const nightyDegrees = [5, 6]
@@ -22,7 +23,7 @@ const degrees = [1, 5, 20]
  * @param showCalibration whether or not to be in calibration mode
  * @constructor
  */
-const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXSteps, showCalibration, variant, reverse}) => {
+const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXSteps, showCalibration, variant, reverse, disabled}) => {
   const reverseNum = reverse ? -1 : 1
 
   const circleIcon = variant == RING.INNER ?
@@ -32,29 +33,29 @@ const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXStep
   const calibratingControls = (
     <div className="col-span-3 flex flex-row justify-center gap-3 place-self-center items-center">
       {degrees.map(val =>
-        <Button isIconOnly onPressStart={() => moveXSteps(-1 * val * reverseNum)}>-{val}°</Button>
+        <Button isIconOnly isDisabled={disabled} onPressStart={() => moveXSteps(-1 * val * reverseNum)}>-{val}°</Button>
       )}
       {circleIcon}
       {degrees.map(val =>
-        <Button isIconOnly onPressStart={() => moveXSteps(val * reverseNum)}>+{val}°</Button>
+        <Button isIconOnly isDisabled={disabled} onPressStart={() => moveXSteps(val * reverseNum)}>+{val}°</Button>
       )}
     </div>
   )
 
   const cuvetteControls = (
     <div className="col-span-3 flex flex-row justify-center gap-3 place-self-center items-center">
-      <Button isIconOnly
+      <Button isIconOnly isDisabled={disabled}
               onPressStart={() => moveXCuvettes(-nightyDegrees[variant] * reverseNum)}><CornerLeftUp/></Button>
-      <Button isIconOnly
+      <Button isIconOnly isDisabled={disabled}
               onPressStart={() => moveXCuvettes(-2 * reverseNum)}><ChevronsLeft/></Button>
-      <Button isIconOnly
+      <Button isIconOnly isDisabled={disabled}
               onPressStart={() => moveXCuvettes(-1 * reverseNum)}><ChevronLeft/></Button>
       {circleIcon}
-      <Button isIconOnly
+      <Button isIconOnly isDisabled={disabled}
               onPressStart={() => moveXCuvettes(1 * reverseNum)}><ChevronRight/></Button>
-      <Button isIconOnly
+      <Button isIconOnly isDisabled={disabled}
               onPressStart={() => moveXCuvettes(2 * reverseNum)}><ChevronsRight/></Button>
-      <Button isIconOnly
+      <Button isIconOnly isDisabled={disabled}
               onPressStart={() => moveXCuvettes(nightyDegrees[variant] * reverseNum)}><CornerRightUp/></Button>
     </div>
   )

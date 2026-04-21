@@ -43,6 +43,8 @@ import {
   IRosCameraMsgsCameraProfileSelectionResponse,
   IRosScienceInterfacesSetNamedPositionsRequest,
   IRosScienceInterfacesSetNamedPositionsResponse,
+  IRosScienceInterfacesIncrementZeroRequest,
+  IRosScienceInterfacesIncrementZeroResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -176,6 +178,22 @@ export interface RosServiceInterface {
   [RosService.CAROUSEL]: RosServiceMessage<
     IRosScienceInterfacesSetNamedPositionsRequest,
     IRosScienceInterfacesSetNamedPositionsResponse
+  >;
+  [RosService.CAROUSEL_INNER_SET_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
+  [RosService.CAROUSEL_OUTER_SET_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
+  [RosService.CAROUSEL_TRIGGER_ZERO]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.CAROUSEL_INCREMENT_ZERO]: RosServiceMessage<
+    IRosScienceInterfacesIncrementZeroRequest,
+    IRosScienceInterfacesIncrementZeroResponse
   >;
   [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
     EmptyMessage,
