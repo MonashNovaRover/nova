@@ -192,10 +192,10 @@ TEST_F(SimpleUrdfCollisionTests, SimpleCollisions)
 {
   ASSERT_TRUE(init_result_) << "Failed to init either fk or collision plugin";
 
-  manager_.update_poses({0,0});
+  manager_.update_poses(std::vector<double>{0, 0});
   ASSERT_FALSE(manager_.collide()) << "Collision found when there should not be a collision!";
 
-  manager_.update_poses({-2,-2});
+  manager_.update_poses(std::vector<double>{-2, -2});
   ASSERT_TRUE(manager_.collide()) << "Collision not found when there should be a collision!";
 }
 
@@ -203,7 +203,7 @@ TEST_F(SimpleUrdfCollisionTests, CollideWithPairsReturnsDetectedColliderIndices)
 {
   ASSERT_TRUE(init_result_) << "Failed to init either fk or collision plugin";
 
-  manager_.update_poses({-2, -2});
+  manager_.update_poses(std::vector<double>{-2, -2});
   std::vector<std::pair<size_t, size_t>> colliding_pairs;
   ASSERT_TRUE(manager_.collide(colliding_pairs));
   ASSERT_FALSE(colliding_pairs.empty());
@@ -219,7 +219,7 @@ TEST_F(SimpleUrdfCollisionTests, ProbeAndAllowCollisionsAllowsPairsAtConfiguredP
     *tree_,
     std::vector<double>{-2.0, -2.0});
 
-  manager_.update_poses({-2, -2});
+  manager_.update_poses(std::vector<double>{-2, -2});
   std::vector<std::pair<size_t, size_t>> colliding_pairs;
   EXPECT_FALSE(manager_.collide(colliding_pairs));
   EXPECT_TRUE(colliding_pairs.empty());
@@ -245,7 +245,7 @@ TEST_F(SimpleUrdfCollisionTests, MakeCollisionManagerWithConfigProbesDefaultPose
   ASSERT_TRUE(manager_result.has_value()) << manager_result.error().format();
 
   auto manager = std::move(manager_result.value());
-  manager.update_poses({-2.0, -2.0});
+  manager.update_poses(std::vector<double>{-2.0, -2.0});
   std::vector<std::pair<size_t, size_t>> colliding_pairs;
   EXPECT_FALSE(manager.collide(colliding_pairs));
   EXPECT_TRUE(colliding_pairs.empty());
@@ -270,7 +270,7 @@ TEST_F(SimpleUrdfCollisionTests, MakeCollisionManagerWithConfigAllowsPairsByLink
   ASSERT_TRUE(manager_result.has_value()) << manager_result.error().format();
 
   auto manager = std::move(manager_result.value());
-  manager.update_poses({-2.0, -2.0});
+  manager.update_poses(std::vector<double>{-2.0, -2.0});
   std::vector<std::pair<size_t, size_t>> colliding_pairs;
   EXPECT_FALSE(manager.collide(colliding_pairs));
   EXPECT_TRUE(colliding_pairs.empty());

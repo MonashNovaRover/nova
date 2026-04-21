@@ -60,6 +60,12 @@ struct span
   {
   }
 
+  template<typename U = T, std::enable_if_t<std::is_const_v<U>, int> = 0>
+  constexpr span(span<element_type> other) noexcept
+  : data_(other.data_), size_(other.size_)
+  {
+  }
+
   [[nodiscard]] constexpr std::size_t size() const noexcept
   {
     return size_;
