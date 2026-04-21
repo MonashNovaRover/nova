@@ -8,7 +8,7 @@ camera_streamer:
         height: 480
         framerate: 10
         mime: image/jpeg
-        ros_topic: anthony
+        ros_topic: anthony/cam
 
       # Mast
       mast_backward:
