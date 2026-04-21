@@ -7,7 +7,7 @@ camera_streamer:
       arm_gimbal:
         autostart: true
         profile: super
-      mast_down:
+      mast_belly:
         autostart: true
         profile: snail
       arm_end_side:

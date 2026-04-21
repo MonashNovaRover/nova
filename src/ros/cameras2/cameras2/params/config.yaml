@@ -38,7 +38,7 @@ camera_streamer:
         meta:
           uiProps:
             name: Mast - Arm Stow
-      mast_down:
+      mast_belly:
         meta:
           uiProps:
             name: Mast - Down

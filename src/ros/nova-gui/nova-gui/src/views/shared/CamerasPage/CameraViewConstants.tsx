@@ -1,6 +1,9 @@
+import {ProfileOption} from "./CameraProfileConstants.ts";
+
 export interface CameraViewConfig {
   viewTitle: string;
   cameraSerials: string[];
+  cameraPrests?: ProfileOption[];
 }
 
 export enum ARCCompModes {
@@ -26,7 +29,7 @@ export enum CameraSerials {
   SCIENCE_COMBINED = "science_combined",
 
   MAST_FISHEYE = "mast_fisheye",
-  MAST_DOWN = "mast_down",
+  MAST_BELLY = "mast_belly",
   MAST_FORWARD = "mast_forward",
   MAST_BACKWARD = "mast_backward",
   MAST_ARM_STOW = "mast_arm_stow",
@@ -67,7 +70,7 @@ export enum CameraSerials {
 export const allCams = [];
 
 const mastCams = [
-  CameraSerials.MAST_DOWN,
+  CameraSerials.MAST_BELLY,
   CameraSerials.MAST_FORWARD,
   CameraSerials.MAST_BACKWARD,
   CameraSerials.MAST_ARM_STOW,
@@ -78,6 +81,7 @@ const armCams = [
   CameraSerials.ARM_END_FINGER,
   CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_END_SIDE,
+  CameraSerials.ARM_GIMBAL,
 ];
 
 const ecCams = [
@@ -130,7 +134,10 @@ export const post_landing_views: CameraViewConfig[] = [
 
 export const urc_equipment_servicing_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...mastCams, ...armCams, ...driveCams],
+    cameraSerials: [
+      CameraSerials.MAST_FORWARD, CameraSerials.ARM_GIMBAL, CameraSerials.ARM_END_TOP, CameraSerials.ARM_END_FINGER,
+      CameraSerials.MAST_BACKWARD, CameraSerials.MAST_BELLY, CameraSerials.ARM_END_PERISCOPE, CameraSerials.ARM_END_SIDE,
+      CameraSerials.MAST_ARM_STOW, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -145,7 +152,10 @@ export const urc_equipment_servicing_views: CameraViewConfig[] = [
 
 export const urc_delivery_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...armCams.slice(0,2), ...mastCams.slice(0,2), ...armCams.slice(2,4), ...mastCams.slice(2,4), ...driveCams],
+    cameraSerials: [
+      CameraSerials.MAST_ARM_STOW, CameraSerials.MAST_FORWARD, CameraSerials.ARM_END_TOP, CameraSerials.ARM_END_FINGER,
+      CameraSerials.MAST_BACKWARD, CameraSerials.MAST_BELLY, CameraSerials.ARM_END_PERISCOPE, CameraSerials.ARM_END_SIDE,
+      CameraSerials.ARM_GIMBAL, ...driveCams],
     viewTitle: "All Cams",
   },
   {

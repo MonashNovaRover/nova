@@ -4,6 +4,17 @@
 #include <string>
 #include <gst/gst.h>
 
-void set_v4lsource(GstElement* source, const std::string device, const std::string io_mode);
+template<typename properties> void set_v4lsource(GstElement* source, const properties props) {
+  g_object_set(source,
+    "device", props->device.c_str(),
+    "io-mode", (
+      props->io_mode == "rw" ? 1 :
+      props->io_mode == "mmap" ? 2 :
+      props->io_mode == "userptr" ? 3 :
+      props->io_mode == "dmabuf" ? 4 :
+      props->io_mode == "dmabuf-import" ? 5 :
+      0),
+  NULL);
+}
 
 #endif

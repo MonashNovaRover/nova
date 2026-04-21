@@ -9,7 +9,7 @@ camera_directory:
       paths:
         mast:
           '1:1.0': mast_arm_stow
-          '2:1.0': mast_down
+          '2:1.0': mast_belly
           '3:1.0': mast_forward
           '4:1.0': mast_backward
         science:
@@ -27,7 +27,7 @@ camera_directory:
           '4.1:1.0': science_cuvettes
         science_urc_mast:
           '1:1.0': mast_arm_stow
-          '2:1.0': mast_down
+          '2:1.0': mast_belly
           '3:1.0': mast_forward
           '4:1.0': mast_backward
         science-arc:
