@@ -116,6 +116,72 @@ struct AxisCallback
   std::function<void(const sensor_msgs::msg::Joy::SharedPtr)> callback;
 };
 
+class RumbleCalculator
+{
+public:
+  RumbleCalculator(std::vector<double> continuous_from_effort_range,
+    std::vector<double> continuous_to_intensity_range,
+    std::chrono::milliseconds continuous_rumble_timeout,
+    double timeout_intensity_change_per_second,
+    std::vector<double> transient_from_effort_change_range,
+    std::vector<double> transient_to_intensity_range,
+    bool continuous_rumble_timeout_enable = true)
+  : continuous_rumble_timeout_enable(continuous_rumble_timeout_enable),
+  continuous_from_effort_range(std::move(continuous_from_effort_range)),
+  continuous_to_intensity_range(std::move(continuous_to_intensity_range)),
+  continuous_rumble_timeout(continuous_rumble_timeout),
+  timeout_intensity_change_per_second(timeout_intensity_change_per_second),
+  transient_from_effort_change_range(std::move(transient_from_effort_change_range)),
+  transient_to_intensity_range(std::move(transient_to_intensity_range))
+  { }
+
+  void update(double effort, rclcpp::Time now);
+
+  double transient_rumble() const;
+
+  double continuous_rumble() const;
+
+  double rumble() const
+  {
+    return std::max(transient_rumble(), continuous_rumble());
+  }
+
+private:
+
+  template <typename T>
+  static T linear_interpolation(T value, const std::vector<T>& from, const std::vector<T>& to)
+  {
+    auto clamped_value = std::clamp(value, from[0], from[1]);
+    return ((clamped_value - from[0]) / (from[1] - from[0])) * (to[1] - to[0]) + to[0];
+  }
+
+  bool continuous_rumble_active() const
+  {
+    return std::abs(effort_history.value().back()) > continuous_from_effort_range[0];
+  }
+
+  int history_depth {2};
+  std::optional<std::vector<double>> effort_history;
+  std::optional<std::vector<rclcpp::Time>> update_history;
+  std::optional<rclcpp::Time> start_continuous_rumble;
+  double timeout_rumble_intensity_adjustment {0};
+
+  // constants for continuous rumble intensity calculations
+
+  // effort (in continuous_from_effort_range) is mapped to intensity (in continuous_to_intensity_range)
+  std::vector<double> continuous_from_effort_range;
+  std::vector<double> continuous_to_intensity_range;
+
+  // constants for timeout to continuous rumbling
+  bool continuous_rumble_timeout_enable {};
+  std::chrono::milliseconds continuous_rumble_timeout;
+  double timeout_intensity_change_per_second;
+
+  // constants for transient rumble intensity calculations
+  std::vector<double> transient_from_effort_change_range; // where effort change is in "effort per second"
+  std::vector<double> transient_to_intensity_range;
+};
+
 /**
  * @class TeleopDriveJoy
  * @brief Class for handling joystick input and publishing drive commands.
@@ -165,6 +231,11 @@ private:
    * @brief Initializes the ros2 interfaces for the TeleopDriveJoy node.
    */
   void initialize_interfaces();
+
+  /**
+   * @brief Initializes gamepad rumble according to parameters
+   */
+  void initialize_gamepad_rumble();
 
   /**
    * @brief Map buttons to their respective callback functions.
@@ -281,7 +352,7 @@ private:
   bool autonomous_mode_;
   bool connected_;
 
-  std::optional<rclcpp::Time> start_rumble_;
+  std::map<std::string, RumbleCalculator> rumble_calculators;
 };
 
 }  // namespace teleop_drive_joy

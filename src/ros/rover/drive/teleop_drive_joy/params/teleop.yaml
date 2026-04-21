@@ -15,12 +15,19 @@ teleop_drive_joy_node:
     lock_on_gamepad_disconnected: true
     gamepad_connection_timeout: 2000
 
-    rumble_enable: true
-    # rumble is currently updated every 50ms (period that drive joint states is published at),
-    # so rumble_delay is actually ceiling(rumble_delay / 50) * 50
-    rumble_delay: 110
-    rumble_joints: [ frw, flw, brw, blw ]
-    rumble_range: [ 0.15, 0.45 ]
+    # continuous gamepad rumble settings
+    continuous_rumble_enable: true
+    continuous_rumble_joints: ["frw", "flw", "brw", "blw", "frp", "flp", "brp", "blp"]
+    continuous_from_effort_range: [ 0.4, 1.0 ]
+    continuous_to_intensity_range: [ 0.0101, 0.3 ]
+    continuous_rumble_timeout: 5000
+    continuous_timeout_intensity_change_per_second: -0.05
+
+    # transient game pad rumble settings
+    transient_rumble_enable: true
+    transient_rumble_joints: [ "frw", "flw", "brw", "blw" ]
+    transient_from_effort_change_range: [ 0.4, 0.6 ] #????????
+    transient_to_intensity_range: [ 0.0101, 0.5 ] #????
 
     speed_limit_max: 1.0
     speed_limit_min: 0.05

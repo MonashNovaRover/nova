@@ -30,6 +30,106 @@ using std::placeholders::_1;
 namespace teleop_drive_joy
 {
 
+void RumbleCalculator::update(double effort, rclcpp::Time now)
+{
+  // update general state
+
+  const auto& optional_append_limit = []<typename T>(T value, std::optional<std::vector<T>>& vector, int limit) {
+    if (not vector.has_value())
+    {
+      vector = { value };
+      return;
+    }
+
+    if (vector->size() < limit)
+    {
+      vector->push_back(value);
+    }
+    else
+    {
+      vector->erase(vector->begin());
+      vector->push_back(value);
+    }
+  };
+
+  optional_append_limit(effort, effort_history, history_depth);
+  optional_append_limit(now, update_history, history_depth);
+
+  // update state for timeout of continuous rumble
+
+  const auto& update_continuous_rumble_timeout = [this, &now]()
+  {
+    if (not start_continuous_rumble.has_value())
+    {
+      start_continuous_rumble = now;
+    }
+
+    // update intensity adjustment if timeout was previously active
+    // condition in this if statement being true implies update_history.size() >= 2
+    else if (now - *start_continuous_rumble >= continuous_rumble_timeout)
+    {
+      timeout_rumble_intensity_adjustment = std::clamp<double>(
+        ((now - (*update_history)[update_history->size() - 2]).seconds()) * timeout_intensity_change_per_second,
+        -1, 0);
+    }
+  };
+
+  if (continuous_rumble_timeout_enable and continuous_rumble_active())
+  {
+    update_continuous_rumble_timeout();
+  }
+  else
+  {
+    start_continuous_rumble.reset();
+    timeout_rumble_intensity_adjustment = 0;
+  }
+}
+
+double RumbleCalculator::transient_rumble() const
+{
+  if (not effort_history.has_value() or effort_history.value().size() < 2
+    or not update_history.has_value() or update_history.value().size() < 2)
+  {
+    return 0;
+  }
+
+  const double last_effort_change = (*effort_history)[effort_history->size() - 1] - (*effort_history)[effort_history->size() - 2];
+  const rclcpp::Duration time_since_last_update = (*update_history)[update_history->size() - 1] - (*update_history)[update_history->size() - 2];
+
+  const double last_effort_rate_of_change = last_effort_change / time_since_last_update.seconds();
+
+  // don't rumble if effort changed towards 0 (rather than away from it)
+  if (std::signbit(effort_history->back()) != std::signbit(last_effort_rate_of_change))
+  {
+    return 0;
+  }
+
+  // don't rumble if effort rate of change was too low
+  if (std::abs(last_effort_rate_of_change) < transient_from_effort_change_range[0])
+  {
+    return 0;
+  }
+
+  double rumble_intensity = linear_interpolation(std::abs(last_effort_rate_of_change),
+    transient_from_effort_change_range, transient_to_intensity_range);
+
+  return rumble_intensity;
+}
+
+double RumbleCalculator::continuous_rumble() const
+{
+  if (not effort_history.has_value() or not continuous_rumble_active())
+  {
+    return 0;
+  }
+
+  double rumble_intensity = linear_interpolation( std::abs(effort_history->back()),
+    continuous_from_effort_range, continuous_to_intensity_range);
+
+  rumble_intensity = std::clamp<double>(rumble_intensity + timeout_rumble_intensity_adjustment, 0, 1);
+  return rumble_intensity;
+}
+
 TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   : Node("teleop_drive_joy_node", options)
   , locked_(true)
@@ -104,6 +204,7 @@ void TeleopDriveJoy::initialize()
   initialize_interfaces();
   map_button_callbacks();
   print_controls();
+  initialize_gamepad_rumble();
 
   // initialize connection timer
   connection_timer_ = this->create_timer(std::chrono::milliseconds(params_.gamepad_connection_timeout), [this]()
@@ -163,6 +264,26 @@ void TeleopDriveJoy::initialize_interfaces()
 
   blcmd_log_sub_ = this->create_subscription<blcmd_interfaces::msg::BLCMDLog>(
     params_.blcmd_log_topic, rclcpp::QoS(1), std::bind(&TeleopDriveJoy::blcmd_log_callback, this, _1));
+}
+
+void TeleopDriveJoy::initialize_gamepad_rumble()
+{
+  const auto add_rumble_calculators = [this](const std::vector<std::string>& joints) -> void
+  {
+    for (const auto joint: joints)
+    {
+      rumble_calculators.try_emplace(joint,
+        params_.continuous_from_effort_range,
+        params_.continuous_to_intensity_range,
+        std::chrono::milliseconds(params_.continuous_rumble_timeout),
+        params_.continuous_timeout_intensity_change_per_second,
+        params_.transient_from_effort_change_range,
+        params_.transient_to_intensity_range);
+    }
+  };
+
+  add_rumble_calculators(params_.continuous_rumble_joints);
+  add_rumble_calculators(params_.transient_rumble_joints);
 }
 
 void TeleopDriveJoy::map_button_callbacks()
@@ -543,13 +664,8 @@ void TeleopDriveJoy::send_drive_info()
 
 void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg)
 {
-  // don't rumble if disabled
-  if (not params_.rumble_enable)
-  {
-    return;
-  }
+  const rclcpp::Time now { this->now() };
 
-  // get max effort of joints in rumble_joints
   const auto joint_effort = [joint_state_msg](const std::string& joint) -> double
   {
     for (int i = 0; i < joint_state_msg->name.size(); ++i)
@@ -562,45 +678,48 @@ void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::S
     return 0.0;
   };
 
-  double max_effort = 0;
-  for (std::string& joint_name : params_.rumble_joints)
+  // don't do anything if rumble is fully disabled
+  if (not params_.continuous_rumble_enable and not params_.transient_rumble_enable)
   {
-    double effort = std::abs(joint_effort(joint_name));
-    if (effort > max_effort)
+    return;
+  }
+
+  // update all rumble calculators
+  for (auto& [joint_name, rumble_calc]: rumble_calculators)
+  {
+    rumble_calc.update(joint_effort(joint_name), now);
+  }
+
+  double max_rumble_intensity {0};
+
+  // calculate continuous and transient rumble intensities, getting max rumble intensity
+  if (params_.continuous_rumble_enable)
+  {
+    for (const auto& joint_name: params_.continuous_rumble_joints)
     {
-      max_effort = effort;
+      double rumble_intensity = rumble_calculators.at(joint_name).continuous_rumble();
+      if (rumble_intensity > max_rumble_intensity)
+      {
+        max_rumble_intensity = rumble_intensity;
+      }
     }
   }
-
-  // map max_effort to values from 0 to 1, assuming its min = rumble_range[0] and max = rumble_range[1]
-  double rumble_intensity = std::clamp((max_effort - params_.rumble_range[0])
-    / (params_.rumble_range[1] - params_.rumble_range[0]), 0.0, 1.0);
-
-  if (rumble_intensity > 0)
+  if (params_.transient_rumble_enable)
   {
-    if (not start_rumble_)
+    for (const auto& joint_name: params_.transient_rumble_joints)
     {
-      start_rumble_ = this->now();
+      double rumble_intensity = rumble_calculators.at(joint_name).transient_rumble();
+      if (rumble_intensity > max_rumble_intensity)
+      {
+        max_rumble_intensity = rumble_intensity;
+      }
     }
-  }
-  else
-  {
-    start_rumble_.reset();
-  }
-
-  RCLCPP_DEBUG(this->get_logger(), "Game pad rumble calculations: rumble_intensity = %.2f, max_effort = %.2f", rumble_intensity, max_effort);
-
-  // don't rumble if rumble_delay has not yet passed
-  if (not start_rumble_ or start_rumble_.value()
-    > this->now() - rclcpp::Duration(std::chrono::milliseconds(params_.rumble_delay)))
-  {
-    rumble_intensity = 0;
   }
 
   sensor_msgs::msg::JoyFeedback msg {};
   msg.type = sensor_msgs::msg::JoyFeedback::TYPE_RUMBLE;
   msg.id = 0;
-  msg.intensity = static_cast<float>(rumble_intensity);
+  msg.intensity = static_cast<float>(max_rumble_intensity);
   joy_feedback_pub_->publish(msg);
 }
 

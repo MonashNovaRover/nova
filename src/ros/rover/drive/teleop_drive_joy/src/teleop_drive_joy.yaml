@@ -63,27 +63,52 @@ teleop_drive_joy:
     default_value: 2000
     description: "Gamepad is considered disconnected after this many milliseconds since receiving the last joy message"
 
-  rumble_enable:
+  # continuous gamepad rumble settings
+  continuous_rumble_enable:
     type: bool
     default_value: true
-    description: "Enable controller rumbling if wheel effort is sufficiently high"
-  rumble_range:
+    description: "Enable 'continuous rumble' mode for the gamepad (see drive operator guide for more details)"
+  continuous_rumble_joints:
+    type: string_array
+    default_value: ["frw", "flw", "brw", "blw", "frp", "flp", "brp", "blp"]
+    description: "Joints in joint states from which rumble intensities are calculated for when in continuous mode"
+  continuous_from_effort_range:
     type: double_array
     default_value: [0.4, 0.8]
-    description: >
-      Game pad rumble intensity increases proportionally to increases in wheel effort within rumble range. 
-      If effort is less than rumble range, game pad will not rumble. 
-      If effort is greater than rumble range, game pad will have maximum rumble.
-      Both rumble intensity and wheel effort can vary from 0 to 1.
-  rumble_joints:
-    type: string_array
-    default_value: ["frw", "flw", "brw", "blw"]
-    description: "Joint names used to derive wheel effort from joint states for rumble_range"
-  rumble_delay:
+    description: "Rumble intensities are calculated from linear interpolation of current joint effort, 
+    from that value in 'continuous_from_effort_range' to a new value in 'continuous_to_intensity_range'"
+  continuous_to_intensity_range:
+    type: double_array
+    default_value: [ 0.0, 1.0 ]
+    description: "See description of 'continuous_from_effort_range'"
+  continuous_rumble_timeout:
     type: int
-    default_value: 0
-    description: "Duration in milliseconds before controller actually starts rumbling"
-  
+    default_value: 5000
+    description: "Number of milliseconds of continuous rumble until timeout triggers, which linearly decays rumble intensity until not rumbling"
+  continuous_timeout_intensity_change_per_second:
+    type: double
+    default_value: -0.2
+    description: "When timeout is active, reduce intensity by this much per second (negative value)"
+
+  # transient game pad rumble settings
+  transient_rumble_enable:
+    type: bool
+    default_value: true
+    description: "Enable 'transient rumble' mode for the gamepad (see drive operator guide for more details)"
+  transient_rumble_joints:
+    type: string_array
+    default_value: [ "frw", "flw", "brw", "blw" ]
+    description: "Joints in joint states from which rumble intensities are calculated for when in transient mode"
+  transient_from_effort_change_range:
+    type: double_array
+    default_value: [ 1.0, 100.0 ]
+    description: "Rumble intensities are calculated from linear interpolation of the change in joint effort (in effort/second), 
+    from that value in 'transient_from_effort_change_range' to a new value in 'transient_to_intensity_range'"
+  transient_to_intensity_range:
+    type: double_array
+    default_value: [ 0.0, 1.0 ]
+    description: "See description of 'transient_from_effort_change_range'"
+
   # Deadzone already exists as an input parameter to the joy node (teleop.launch.py)
 
   max_input_threshold:
