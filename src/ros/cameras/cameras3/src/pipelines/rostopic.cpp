@@ -55,10 +55,10 @@ GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelin
   }
 
   // 2. Set element properties
-  set_v4lsource(source, props->device, props->io_mode);
-  set_srcfilter(srcfilter, props->mime, props->width, props->height, props->framerate, props->framerate_denominator, props->downrate, props->brightness, props->contrast);
-  set_rostopicsink(rossink, props->ros_topic);
-  set_webrtcsink(webrtc, props->serial, props->video_caps, props->do_fec, props->do_retransmission, props->congestion_control, props->bitrate);
+  set_v4lsource(source, props);
+  set_srcfilter(srcfilter, props);
+  set_rostopicsink(rossink, props);
+  set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, tee, queue1, rossink, queue2, webrtc, NULL);
@@ -94,7 +94,7 @@ GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelin
  * Retrieve ros2 parameters for v4l2webrtc pipeline or sets defaults
 */
 
-v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera, const std::string pipeline_type, const std::string profile)
+v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
   /*
     Pulls ros2 parameters for a given camera and returns a properties struct for the v4l2webrtc pipeline creation function.
@@ -116,40 +116,40 @@ v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node*
   props->device = camera->node;
 
   default_string = "mmap";
-  props->io_mode = set_property(streamer_node, camera->serial, profile, camera->original_serial, "io_mode", default_string);
+  props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
 
-  props->verify_resolution = set_property(streamer_node, camera->serial, profile, camera->original_serial, "verify_resolution", false);
+  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // filter
   default_string = "I420";
-  props->format = set_property(streamer_node, camera->serial, profile, camera->original_serial, "format", default_string);
+  props->format = set_property(streamer_node, camera, "format", default_string);
   default_string = "image/jpeg";
-  props->mime = set_property(streamer_node, camera->serial, profile, camera->original_serial, "mime", default_string);
+  props->mime = set_property(streamer_node, camera, "mime", default_string);
 
-  props->brightness = set_property(streamer_node, camera->serial, profile, camera->original_serial, "brightness", 0);
-  props->contrast = set_property(streamer_node, camera->serial, profile, camera->original_serial, "contrast", 0);
-  props->framerate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate", 30);
-  props->framerate_denominator = set_property(streamer_node, camera->serial, profile, camera->original_serial, "framerate_denominator", 1);
-  props->height = set_property(streamer_node, camera->serial, profile, camera->original_serial, "height", 720);
-  props->width = set_property(streamer_node, camera->serial, profile, camera->original_serial, "width", 1280);
+  props->brightness = set_property(streamer_node, camera, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera, "contrast", 0);
+  props->framerate = set_property(streamer_node, camera, "framerate", 30);
+  props->framerate_denominator = set_property(streamer_node, camera, "framerate_denominator", 1);
+  props->height = set_property(streamer_node, camera, "height", 720);
+  props->width = set_property(streamer_node, camera, "width", 1280);
 
   // rossink
   default_string = camera->serial;
-  props->ros_topic = set_property(streamer_node, camera->serial, profile, camera->original_serial, "ros_topic", default_string);
+  props->ros_topic = set_property(streamer_node, camera, "ros_topic", default_string);
 
   // webrtc
   default_string = "gcc";
-  props->congestion_control = set_property(streamer_node, camera->serial, profile, camera->original_serial, "congestion_control", default_string);
+  props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
   default_string = "video/x-h264,profile=constrained-baseline"; 
-  props->video_caps = set_property(streamer_node, camera->serial, profile, camera->original_serial, "video_caps", default_string);
+  props->video_caps = set_property(streamer_node, camera, "video_caps", default_string);
 
-  props->bitrate = set_property(streamer_node, camera->serial, profile, camera->original_serial, "bitrate", 4096);
+  props->bitrate = set_property(streamer_node, camera, "bitrate", 4096);
 
-  props->do_fec = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_fec", false);
-  props->do_retransmission = set_property(streamer_node, camera->serial, profile, camera->original_serial, "do_retransmission", false);
+  props->do_fec = set_property(streamer_node, camera, "do_fec", false);
+  props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
 
   // 2. Finalize props
-  RCLCPP_INFO(streamer_node->get_logger(), "%sInitialized pipeline: %s%s%s for %s%s%s with profile: %s%s %dx%d@%dfps%s", C_QUIET, C_INPUT, pipeline_type.c_str(), C_QUIET, C_TITLE, props->serial.c_str(), C_QUIET, C_MODE, profile.c_str(), props->width, props->height, props->framerate/props->framerate_denominator, C_RESET);
+  display_resolution(streamer_node, props, camera, 0);
 
   return props;
 }

@@ -128,7 +128,7 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
 GstElement* v4lfallback_pipeline(rclcpp::Node* log_node, v4lfallbackPipelineProperties* props);
 
 struct v4lrostopicPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, rossinkProperties {};
-v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera, const std::string pipeline_type, const std::string profile);
+v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelineProperties* props);
 
 #endif
