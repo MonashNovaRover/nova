@@ -23,4 +23,8 @@ template<typename properties> void set_webrtcsink(GstElement* webrtc, const prop
   gst_structure_free(meta);
 }
 
+template<typename properties> void set_rostopicsink(GstElement* rossink, const properties props) {
+  g_object_set(rossink, "ros-topic", props->ros_topic.c_str(), NULL);
+}
+
 #endif

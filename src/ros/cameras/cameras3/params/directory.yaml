@@ -95,4 +95,4 @@ camera_directory:
       # serial_remaps can be used to override a camera serial into another serial in the directory message and is typically used in testing
       # a serial remap occurs after an override, so you can essentially rename an override! 
       # These are global overrides and will occur irrespective of platform and task.
-      example_webcam_serial: anthony-cam
+      046d_C270_HD_WEBCAM_2A3D8660: anthony-cam

@@ -3,10 +3,12 @@ camera_streamer:
     serial_pipelines:
       # Development cameras
       anthony-cam:
-        pipeline_type: h264passthrough
-        width: 1920
-        height: 1080
-        framerate: 30
+        pipeline_type: v4lrostopic
+        width: 640
+        height: 480
+        framerate: 10
+        mime: image/jpeg
+        ros_topic: anthony/cam
 
       # Mast
       mast_backward:

@@ -24,4 +24,7 @@ vp9softwarePipelineProperties* get_vp9software_pipeline_properties(rclcpp::Node*
 GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelineProperties* props);
 v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera);
 
+GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelineProperties* props);
+v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera);
+
 #endif
