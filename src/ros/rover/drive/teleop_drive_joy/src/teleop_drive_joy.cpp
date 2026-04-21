@@ -3,7 +3,7 @@
  * Monash Nova Rover Team
  *
  * PACKAGE: teleop_drive_joy
- * AUTHORS:	Kabi, Terry Tian
+ * AUTHORS:	Kabi, Terry Tian, Jonathan Jia
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
@@ -32,7 +32,6 @@ namespace teleop_drive_joy
 
 TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   : Node("teleop_drive_joy_node", options)
-  , sent_lock_msg_(false)
   , locked_(true)
   , locked_reason_(drive_interfaces::msg::DriveInfo::START_LOCKED)
   , drive_mode_(DriveMode::PIVOT)
@@ -422,19 +421,13 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
   cmd_vel_msg->header.stamp = this->now();
 
   cmd_vel_pub_->publish(std::move(cmd_vel_msg));
-
-  sent_lock_msg_ = false;
 }
 
 void TeleopDriveJoy::send_halt_command()
 {
-  if (sent_lock_msg_) return;
-
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
   cmd_vel_msg->header.stamp = this->now();
   cmd_vel_pub_->publish(std::move(cmd_vel_msg));
-
-  sent_lock_msg_ = true;
 }
 
 void TeleopDriveJoy::switch_controller(const DriveMode requested_control_mode)

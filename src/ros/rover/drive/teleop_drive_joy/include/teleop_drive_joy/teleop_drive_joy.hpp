@@ -15,7 +15,7 @@
  *  - client:     /diff_drive_controller/set_parameters    [rcl_interfaces/srv/SetParameters]
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * PACKAGE:   teleop_drive_joy
- * AUTHORS:	  Kabi, Terry Tian
+ * AUTHORS:	  Kabi, Terry Tian, Jonathan Jia
  * CREATION:  2024
  * EDITED:    2025
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -270,7 +270,6 @@ private:
 
   Params params_;
   sensor_msgs::msg::Joy::SharedPtr joy_msg_;
-  bool sent_lock_msg_;
   bool locked_;
   uint8_t locked_reason_;
   DriveMode drive_mode_;
