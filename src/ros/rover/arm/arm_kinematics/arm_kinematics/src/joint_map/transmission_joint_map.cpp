@@ -64,12 +64,8 @@ void TransmissionJointMap::map(
   const span<const double> inputs,
   const span<double> outputs) const
 {
-  if (inputs.size() != input_count_) {
-    throw std::invalid_argument("TransmissionJointMap::map() received inputs with the wrong size");
-  }
-  if (outputs.size() != output_count_) {
-    throw std::invalid_argument("TransmissionJointMap::map() received outputs with the wrong size");
-  }
+  assert(inputs.size() == input_count_);
+  assert(outputs.size() == output_count_);
   assert(compute_ && "TransmissionJointMap::map() called on a default-constructed instance");
 
   // Gather: pull each transmission input from the joint map's input vector.

@@ -4,6 +4,7 @@
 
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 
+#include <cassert>
 #include <utility>
 #include <variant>
 
@@ -65,8 +66,8 @@ bool InverseKinematicsPlugin::initialize(
 
 IKResult InverseKinematicsPlugin::get_velocity_ik(const Twistd & ik_twist,
                                                   const Eigen::Isometry3d & ik_seed_pose,
-                                                  const std::vector<double> & ik_seed_state,
-                                                  std::vector<double> & solution_velocities,
+                                                  const span<const double> ik_seed_state,
+                                                  const span<double> solution_velocities,
                                                   const double time_step) const
 {
   if (time_step == 0.0) {

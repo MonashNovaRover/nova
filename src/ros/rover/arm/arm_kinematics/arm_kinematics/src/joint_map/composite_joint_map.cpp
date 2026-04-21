@@ -4,6 +4,7 @@
 
 #include "arm_kinematics/joint_map/composite_joint_map.hpp"
 
+#include <cassert>
 #include <stdexcept>
 #include <utility>
 
@@ -93,12 +94,8 @@ CompositeJointMap::Workspace CompositeJointMap::make_workspace() const
 
 void CompositeJointMap::map(const span<const double> inputs, const span<double> outputs) const
 {
-  if (inputs.size() != input_count_) {
-    throw std::invalid_argument("CompositeJointMap::map() received inputs with the wrong size");
-  }
-  if (outputs.size() != output_count_) {
-    throw std::invalid_argument("CompositeJointMap::map() received outputs with the wrong size");
-  }
+  assert(inputs.size() == input_count_);
+  assert(outputs.size() == output_count_);
 
   // Phase 1: seed scratch from inputs.
   for (const auto & [in_slot, scratch_slot] : input_seeds_) {

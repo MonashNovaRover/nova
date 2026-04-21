@@ -4,7 +4,7 @@
 
 #include "arm_kinematics/joint_map/joint_map.hpp"
 
-#include <stdexcept>
+#include <cassert>
 
 namespace arm_kinematics {
 
@@ -30,8 +30,7 @@ JointMap & JointMap::operator=(const JointMap & other)
 
 void JointMap::map(span<const double> inputs, span<double> outputs) const
 {
-  if (!impl_)
-    throw std::logic_error("Used JointMap::map() on an invalid JointMap");
+  assert(impl_ && "JointMap::map() called on an invalid JointMap");
 
   impl_->map(inputs, outputs);
 }

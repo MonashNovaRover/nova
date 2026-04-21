@@ -203,10 +203,6 @@ TEST(JointMapTests, DefaultConstructed_IsInvalid)
   EXPECT_FALSE(joint_map.valid());
   EXPECT_EQ(joint_map.input_count(), 0u);
   EXPECT_EQ(joint_map.output_count(), 0u);
-
-  std::vector<double> inputs{};
-  std::vector<double> outputs{};
-  EXPECT_THROW(joint_map.map(inputs, outputs), std::logic_error);
 }
 
 // ===========================================================================

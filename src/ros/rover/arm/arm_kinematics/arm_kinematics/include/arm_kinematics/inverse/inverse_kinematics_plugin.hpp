@@ -18,6 +18,7 @@
 #include "arm_kinematics/common/kinematics_base.hpp"
 #include "arm_kinematics/utilities/aliases.hpp"
 #include "arm_kinematics/utilities/expected.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 
 namespace arm_kinematics {
 
@@ -110,14 +111,14 @@ public:
    * \param ik_seed_state The current joint positions. The returned solution will be the closest valid solution to this
    * seed state.
    * \param[out] solution_state The set of joint positions that would result in the end effector
-   * being moved to ik_pose. Callers should pre-allocate this outside hot paths.
+   * being moved to ik_pose. Callers should pass a pre-sized writable span.
    *
    * \returns Success if a solution was found, or a structured failure otherwise.
    */
   virtual IKResult get_position_ik(
     const Eigen::Isometry3d & ik_pose,
-    const std::vector<double> & ik_seed_state,
-    std::vector<double> & solution_state) const = 0;
+    span<const double> ik_seed_state,
+    span<double> solution_state) const = 0;
 
   /**
    * Estimate the velocities of each joint needed to have the end effector move at some twist.
@@ -130,7 +131,7 @@ public:
    * If ik_seed_pose and ik_seed_state are not an exact match, the given solution will be wrong.
    * \param[in] ik_seed_state The current set of joint positions.
    * \param[out] solution_velocities The velocities of each joint to sustain the requested twist.
-   * Callers should pre-allocate this outside hot paths.
+   * Callers should pass a pre-sized writable span.
    * \param[in] time_step The change in time used to extrapolate the ik_seed_pose by ik_twist, and estimate the
    * derivative of joint positions. This must be non-zero!!
    *
@@ -139,8 +140,8 @@ public:
   virtual IKResult get_velocity_ik(
     const Twistd & ik_twist,
     const Eigen::Isometry3d & ik_seed_pose,
-    const std::vector<double> & ik_seed_state,
-    std::vector<double> & solution_velocities,
+    span<const double> ik_seed_state,
+    span<double> solution_velocities,
     double time_step) const;
 
 protected:

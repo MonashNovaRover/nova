@@ -26,8 +26,8 @@ public:
 
   IKResult get_position_ik(
     const Eigen::Isometry3d & ik_pose,
-    const std::vector<double> & ik_seed_state,
-    std::vector<double> & solution_state) const override
+    const span<const double> ik_seed_state,
+    const span<double> solution_state) const override
   {
     if (ik_seed_state.size() < 6) {
       return tl::unexpected(IKFailure::InvalidSeed{
