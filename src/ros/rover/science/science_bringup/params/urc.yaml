@@ -137,8 +137,10 @@ carousel_inner:
         zero_cmd_can_msg: [0x10]
         zero_rec_can_id: 0x4E5
         zero_rec_can_msg: [0x10]
+        zero_service: "/science/carousel_inner/trigger_zero"
+        zero_increment_service: "/science/carousel_inner/increment_zero"
       servo:
-        can_id: 0x0E5
+        can_id: 0x0EA
         function_id: 0x01
       carousel_position_sensor:
         can_id: 0x4E5
@@ -161,8 +163,10 @@ carousel_outer:
         zero_cmd_can_msg: [0x10]
         zero_rec_can_id: 0x4E6
         zero_rec_can_msg: [0x10]
+        zero_service: "/science/carousel_outer/trigger_zero"
+        zero_increment_service: "/science/carousel_outer/increment_zero"
       servo:
-        can_id: 0x0E6
+        can_id: 0x0EA
         function_id: 0x01
       carousel_position_sensor:
         can_id: 0x4E6

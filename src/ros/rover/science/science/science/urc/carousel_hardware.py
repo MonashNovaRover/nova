@@ -16,7 +16,7 @@ STATE INTERFACES:
   - <name>/sensor_position   [position feedback from hardware sensor]
   - <name>/sensor_load       [load feedback from hardware]
   - <name>/sensor_current    [current feedback from hardware]
-  - <name>/zeroing_in_progress  [boolean, True while zeroing is active]
+  - <name>/zeroing           [boolean, True while zeroing is active]
 SERVICES:
   - science/<name>/trigger_zero    [Trigger service to initiate hardware zeroing]
   - science/<name>/increment_zero  [IncrementZero service to adjust or reset software zero offset]
@@ -48,7 +48,9 @@ class CarouselHardware(HardwareInterface):
                  zero_cmd_can_id: int=0x000,
                  zero_cmd_can_msg: list[int]=[0x00],
                  zero_rec_can_id: int=0x000,
-                 zero_rec_can_msg: list[int]=[0x00]):
+                 zero_rec_can_msg: list[int]=[0x00],
+                 zero_service: str="science/carousel/trigger_zero",
+                 zero_increment_service: str="science/carousel/increment_zero"):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
@@ -68,29 +70,32 @@ class CarouselHardware(HardwareInterface):
         self.declare_parameter("zero_cmd_can_msg", zero_cmd_can_msg, "CAN message to send should be a valid length and of the form 0x0000 (multiple of two hex digits)")
         self.declare_parameter("zero_rec_can_id", zero_rec_can_id, "CAN ID of the zero command")
         self.declare_parameter("zero_rec_can_msg", zero_rec_can_msg, "CAN message to send should be a valid length and of the form 0x0000 (multiple of two hex digits)")
+        trigger_service_name = self.declare_parameter("zero_service", zero_service, "Service that triggers the hardware to zero").value
+        increment_service_name = self.declare_parameter("zero_increment_service", zero_increment_service, "Service to increment the software zero offset").value
 
         # Create services
-        self.node.create_service(Trigger, f"science/{self.name}/trigger_zero", self._trigger_zero_callback)
-        self.node.create_service(IncrementZero, f"science/{self.name}/increment_zero", self._increment_zero_callback)
+        self.node.create_service(Trigger, trigger_service_name, self._trigger_zero_callback)
+        self.node.create_service(IncrementZero, increment_service_name, self._increment_zero_callback)
 
-        # Initialise composed hardware interfaces
-        self.servo = PositionalServoHardware.construct(contexts, name="servo", angular_limit=360)
+        # Initialise composed hardware interfaces using DeferredConstructor pattern
+        # Calling the class returns a DeferredConstructor, then we set name and call construct()
+        servo_constructor = PositionalServoHardware(angular_limit=360, function_id=0x01, packed_data_length=2, max_angle_can=0xFFFF)
+        servo_constructor.name = "servo"
+        self.servo = servo_constructor.construct(contexts, self.node)
 
         # Position feedback sensor
-        self.position_sensor = MultiSensorHardware.construct(
-            contexts,
-            name=f"{self.name}_position_sensor",
+        position_sensor_constructor = MultiSensorHardware(
             function_id=0x01,
             interpret_data_list=[lambda data: int.from_bytes(data[0:2], byteorder='big', signed=True)],
             hardware_names=[f"{self.name}"],
             hardware_units=["sensor_position"],
             initial_values=[0]
         )
+        position_sensor_constructor.name = f"{self.name}_position_sensor"
+        self.position_sensor = position_sensor_constructor.construct(contexts, self.node)
 
         # Load and current feedback sensor
-        self.load_current_sensor = MultiSensorHardware.construct(
-            contexts,
-            name=f"{self.name}_load_current_sensor",
+        load_current_sensor_constructor = MultiSensorHardware(
             function_id=0x02,
             interpret_data_list=[
                 lambda data: int.from_bytes(data[0:2], byteorder='big', signed=True),  # Load
@@ -100,6 +105,8 @@ class CarouselHardware(HardwareInterface):
             hardware_units=["sensor_load", "sensor_current"],
             initial_values=[0, 0]
         )
+        load_current_sensor_constructor.name = f"{self.name}_load_current_sensor"
+        self.load_current_sensor = load_current_sensor_constructor.construct(contexts, self.node)
 
     def _zero_complete_can_callback(self, frame: jcan.Frame):
         """ CAN callback for zeroing completion message """
@@ -161,7 +168,15 @@ class CarouselHardware(HardwareInterface):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-        # Configure composed hardware interfaces
+        # Get interfaces FIRST to mark them as populated before configuring composed hardware
+        self.target_pos_cmd = command_interfaces["carousel/position"]
+        self.forward_pos_cmd = command_interfaces["servo/position"]
+        self.forward_pos_cmd.populated = True
+        self.actual_pos_state = state_interfaces[f"{self.name}/sensor_position"]
+        self.forward_pos_state = state_interfaces["carousel/position"]
+        self.zeroing_in_progress_state = state_interfaces[f"{self.name}/zeroing"]
+
+        # Now configure composed hardware interfaces (they'll find their interfaces already populated)
         result = self.servo.on_configure(command_interfaces, state_interfaces)
         if result is False:
             return False
@@ -173,13 +188,6 @@ class CarouselHardware(HardwareInterface):
         result = self.load_current_sensor.on_configure(command_interfaces, state_interfaces)
         if result is False:
             return False
-
-        # Get interfaces
-        self.target_pos_cmd = command_interfaces["carousel/position"]
-        self.forward_pos_cmd = command_interfaces["servo/position"]
-        self.actual_pos_state = state_interfaces["servo/position"]
-        self.forward_pos_state = state_interfaces["carousel/position"]
-        self.zeroing_in_progress_state = state_interfaces[f"{self.name}/zeroing"]
 
         # Register CAN callback for zeroing completion
         zero_rec_can_id = self.get_parameter("zero_rec_can_id").value

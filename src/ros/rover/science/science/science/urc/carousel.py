@@ -45,17 +45,18 @@ class CarouselController(Controller):
     current_state: Interface
     zeroing_state: Interface
 
-    def __init__(self, contexts: Contexts):
+    def __init__(self, contexts: Contexts, hardware_name: str = "carousel"):
         """ Constructor, deferred until the control manager has been spun.
         If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
+        :param hardware_name: Name of the carousel hardware (default: "carousel")
         """
         super().__init__(contexts)
 
         # Set up params
         self.target_position = self.declare_parameter("initial_position", 0.0, "Initial position in degrees").value
-        self.hardware_name = self.declare_parameter("hardware_name", "carousel", "Name of the carousel hardware").value
+        self.hardware_name = self.declare_parameter("hardware_name", hardware_name, "Name of the carousel hardware").value
 
         # Track last published message for change detection
         self.last_feedback: Optional[CarouselFeedback] = None

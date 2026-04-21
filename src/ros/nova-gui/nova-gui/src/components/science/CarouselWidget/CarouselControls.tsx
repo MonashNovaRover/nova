@@ -6,7 +6,7 @@ import {RING} from "./CarouselWidget.tsx";
 
 export interface CarouselDialProps {
   moveXCuvettes: (x: number) => void,
-  moveXSteps: (x: number) => void
+  calibrateByDegrees: (x: number) => void
   showCalibration: boolean
   variant: RING;
   reverse?: boolean
@@ -23,8 +23,10 @@ const degrees = [1, 5, 20]
  * @param showCalibration whether or not to be in calibration mode
  * @constructor
  */
-const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXSteps, showCalibration, variant, reverse, disabled}) => {
+const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, calibrateByDegrees, showCalibration, variant, reverse, disabled}) => {
   const reverseNum = reverse ? -1 : 1
+
+  console.log()
 
   const circleIcon = variant == RING.INNER ?
     <RecordCircle size={24}/> :
@@ -32,12 +34,12 @@ const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, moveXStep
 
   const calibratingControls = (
     <div className="col-span-3 flex flex-row justify-center gap-3 place-self-center items-center">
-      {degrees.map(val =>
-        <Button isIconOnly isDisabled={disabled} onPressStart={() => moveXSteps(-1 * val * reverseNum)}>-{val}°</Button>
+      {degrees.slice().reverse().map(val =>
+        <Button isIconOnly isDisabled={disabled} onPressStart={() => calibrateByDegrees(-1 * val * reverseNum)}>-{val}°</Button>
       )}
       {circleIcon}
       {degrees.map(val =>
-        <Button isIconOnly isDisabled={disabled} onPressStart={() => moveXSteps(val * reverseNum)}>+{val}°</Button>
+        <Button isIconOnly isDisabled={disabled} onPressStart={() => calibrateByDegrees(val * reverseNum)}>+{val}°</Button>
       )}
     </div>
   )

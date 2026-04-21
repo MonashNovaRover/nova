@@ -45,7 +45,10 @@ class MultiSensorHardware(HardwareInterface):
         self.bus = contexts[jcan.Bus]
         self.interpret_data_list = interpret_data_list
         self.can_id: int = self.declare_parameter("can_id", can_id).value
-        self.function_id: int = self.declare_parameter("function_id", function_id, "Function ID of the can message, the first two hex digits, None if not required.").value
+        if function_id is not None:
+            self.function_id: int = self.declare_parameter("function_id", function_id, "Function ID of the can message, the first two hex digits, None if not required.").value
+        else:
+            self.function_id = None
         if len(hardware_names) == len(hardware_units) and len(hardware_names) == len(interpret_data_list):
             self.hardware_units: list[str] = self.declare_parameter("hardware_units", hardware_units).value
             self.hardware_names: list[str] = self.declare_parameter("hardware_names", hardware_names).value

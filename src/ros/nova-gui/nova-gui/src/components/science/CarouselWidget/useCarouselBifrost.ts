@@ -1,52 +1,11 @@
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
-import {CuvettePositions, RING, RING_NAMES} from "./CarouselWidget.tsx";
+import {RING} from "./CarouselWidget.tsx";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
 import {useCallback, useEffect} from "react";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {IRosScienceInterfacesCarouselFeedback} from "../../../ros/rosTypes.ts";
-
-export const useCarouselPosition = (): [CuvettePositions, CuvettePositions] => {
-  // Get the current cuvettes
-  const bifrost = useBifrost({topic: RosTopic.CAROUSEL});
-  useEffect(() => {
-    bifrost.syncWithTopic();
-  }, [bifrost]);
-
-  const carouselStore = useSelector(
-    (state: RootState) => state.carouselStore
-  );
-  console.log(carouselStore)
-
-  const cuvettePositionIndices = RING_NAMES.map(v => carouselStore.names.indexOf(v + "_cuvette"))
-  if (cuvettePositionIndices.includes(-1)) {
-    console.error("Could not find all ring names cuvettes", carouselStore.names)
-    return [[0,0], [0,0]]
-  }
-
-  const degreePositionIndices = RING_NAMES.map(v => carouselStore.names.indexOf(v + "_degree"))
-  if (degreePositionIndices.includes(-1)) {
-    console.error("Could not find all ring names degree", carouselStore.names)
-    return [[0,0], [0,0]]
-  }
-
-  if (cuvettePositionIndices.length != RING_NAMES.length && degreePositionIndices.length != RING_NAMES.length) {
-    console.error(`There are not ${RING_NAMES.length} of each degree and cuvette`, carouselStore.names)
-    return [[0,0], [0,0]]
-  }
-
-  return [
-    cuvettePositionIndices.map(i => carouselStore.positions[i]) as CuvettePositions,
-    degreePositionIndices.map(i => carouselStore.positions[i]) as CuvettePositions
-  ]
-}
-
-export const useCarouselServices = () => {
-  const bifrost = useBifrost({service: RosService.CAROUSEL});
-
-  return bifrost.callService
-}
 
 /**
  * Hook to subscribe to both carousel feedback topics
@@ -105,30 +64,36 @@ export const useCarouselSetPosition = () => {
  * Hook to trigger zeroing of the carousel
  * Returns triggerZero function
  */
-export const useCarouselZero = () => {
-  const bifrost = useBifrost({service: RosService.CAROUSEL_TRIGGER_ZERO});
-
-  const triggerZero = useCallback(() => {
-    return bifrost.callService({});
-  }, [bifrost]);
-
-  return { triggerZero };
-}
+// export const useCarouselZero = () => {
+//   const bifrost = useBifrost({service: RosService.CAROUSEL_TRIGGER_ZERO});
+//
+//   const triggerZero = useCallback(() => {
+//     return bifrost.callService({});
+//   }, [bifrost]);
+//
+//   return { triggerZero };
+// }
 
 /**
  * Hook for increment zero functionality
  * Returns { incrementZero, resetZero }
  */
 export const useCarouselIncrementZero = () => {
-  const bifrost = useBifrost({service: RosService.CAROUSEL_INCREMENT_ZERO});
+  const innerBifrost = useBifrost({service: RosService.CAROUSEL_INNER_INCREMENT_ZERO});
+  const outerBifrost = useBifrost({service: RosService.CAROUSEL_OUTER_INCREMENT_ZERO});
 
-  const incrementZero = useCallback((amount: number) => {
+  // Curried function: ring => amount => service call
+  const incrementZero = useCallback((ring: RING) => (amount: number) => {
+    const bifrost = ring === RING.INNER ? innerBifrost : outerBifrost;
     return bifrost.callService({ reset_zero: false, increment_zero: amount });
-  }, [bifrost]);
+  }, [innerBifrost, outerBifrost]);
 
-  const resetZero = useCallback(() => {
+  // Curried function: ring => service call
+  const resetZero = useCallback((ring: RING) => () => {
+    const bifrost = ring === RING.INNER ? innerBifrost : outerBifrost;
     return bifrost.callService({ reset_zero: true, increment_zero: 0 });
-  }, [bifrost]);
+  }, [innerBifrost, outerBifrost]);
 
   return { incrementZero, resetZero };
 }
+

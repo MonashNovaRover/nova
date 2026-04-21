@@ -44,7 +44,10 @@ class GenericSensorHardware(HardwareInterface):
         self.interpret_data = interpret_data
 
         self.can_id: int = self.declare_parameter("can_id", can_id).value
-        self.function_id: int = self.declare_parameter("function_id", function_id, "Function ID of the can message, the first two hex digits, None if not required.").value
+        if function_id is not None:
+            self.function_id: int = self.declare_parameter("function_id", function_id, "Function ID of the can message, the first two hex digits, None if not required.").value
+        else:
+            self.function_id = None
         self.unit: str = self.declare_parameter("unit", unit).value
         self.last_value: Any = self.declare_parameter("initial_value", initial_value).value
 

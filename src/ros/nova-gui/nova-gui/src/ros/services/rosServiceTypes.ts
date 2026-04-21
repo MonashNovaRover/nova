@@ -187,11 +187,19 @@ export interface RosServiceInterface {
     IRosScienceInterfacesSetPositionRequest,
     IRosScienceInterfacesSetPositionResponse
   >;
-  [RosService.CAROUSEL_TRIGGER_ZERO]: RosServiceMessage<
+  [RosService.CAROUSEL_INNER_TRIGGER_ZERO]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
-  [RosService.CAROUSEL_INCREMENT_ZERO]: RosServiceMessage<
+  [RosService.CAROUSEL_OUTER_TRIGGER_ZERO]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.CAROUSEL_INNER_INCREMENT_ZERO]: RosServiceMessage<
+    IRosScienceInterfacesIncrementZeroRequest,
+    IRosScienceInterfacesIncrementZeroResponse
+  >;
+  [RosService.CAROUSEL_OUTER_INCREMENT_ZERO]: RosServiceMessage<
     IRosScienceInterfacesIncrementZeroRequest,
     IRosScienceInterfacesIncrementZeroResponse
   >;
