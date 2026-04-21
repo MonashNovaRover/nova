@@ -21,6 +21,13 @@
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
+// Define colors for logging
+#define C_INFO "\033[1;34m"    // blue
+#define C_ERROR "\033[1;31m"   // red
+#define C_WARN "\033[;33m"     // yellow
+#define C_SUCCESS "\033[1;32m" // green
+#define C_END "\033[0m"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -150,14 +157,14 @@ controller_interface::return_type NovaDriveControllerBase::update(
   if (base_param_listener_->is_old(*base_params_))
   {
     *base_params_ = base_param_listener_->get_params();
-    RCLCPP_INFO(logger, "Parameters were updated");
+    RCLCPP_INFO(logger, C_INFO "Parameters were updated" C_END);
   }
   update_params();
 
   std::shared_ptr<TwistStamped> command_msg_ptr = *(received_twist_msg_ptr_.readFromRT());
   if (command_msg_ptr == nullptr)
   {
-    RCLCPP_WARN(logger, "Received TwistStamped message was a nullptr.");
+    RCLCPP_WARN(logger, C_WARN "Received TwistStamped message was a nullptr." C_END);
     return controller_interface::return_type::ERROR;
   }
   else if ((std::isnan(command_msg_ptr->twist.linear.x) ||
@@ -165,7 +172,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
   {
     RCLCPP_WARN_SKIPFIRST_THROTTLE(
       logger, *get_node()->get_clock(), cmd_vel_receive_timeout_.seconds() * 1000,
-      "Command message contains NaNs. Not updating reference interfaces.");
+      C_WARN "Command message contains NaNs. Not updating reference interfaces." C_END);
     return controller_interface::return_type::OK;
   }
 
@@ -181,17 +188,16 @@ controller_interface::return_type NovaDriveControllerBase::update(
     {
       RCLCPP_WARN_THROTTLE(
         logger, *get_node()->get_clock(), 500,
-        "The last received command is %.2f seconds old, which exceeds the allowed timeout of "
-        "%.2f seconds. Publishing zero commands.",
+        C_WARN "Cmd age %.2fs exceeds timeout %.2fs; publishing zero commands." C_END,
         age_of_last_command.seconds(), cmd_vel_command_timeout_.seconds());
     }
     else if (!disconnected_)
     {
       disconnected_ = true;
-      RCLCPP_ERROR(
-        logger, "The last received command is %.2f seconds old, which exceeds the connection timeout of "
+      RCLCPP_ERROR_SKIPFIRST(
+        logger, C_ERROR "The last received command is %.2f seconds old, which exceeds the connection timeout of "
                 "%.2f seconds. Connection to the command publisher is assumed to be lost, no further warnings "
-                "will be issued.",
+                "will be issued." C_END,
         age_of_last_command.seconds(), connection_timeout_.seconds());
     }
   }
@@ -200,8 +206,10 @@ controller_interface::return_type NovaDriveControllerBase::update(
     if (disconnected_)
     {
       disconnected_ = false;
-      RCLCPP_INFO(logger, "Connection has been restored! (Received a new command after not receiving any "
-                          "for > %.2f seconds)", connection_timeout_.seconds());
+      RCLCPP_INFO_SKIPFIRST(
+        logger,
+        C_SUCCESS "Connection has been restored! (Received a new command after not receiving any "
+                  "for > %.2f seconds)" C_END, connection_timeout_.seconds());
     }
 
     cmds = twist_to_commands(command_msg_ptr->twist, base_params_->autonomous_mode, period);
@@ -228,8 +236,8 @@ controller_interface::return_type NovaDriveControllerBase::update(
       {
         RCLCPP_DEBUG(
           logger,
-          "Failed to get feedback from hardware interfaces for left/right drive joints %zu, "
-          "odometry cannot be updated. Ending current update loop early.",
+          C_INFO "Failed to get feedback from hardware interfaces for left/right drive joints %zu, "
+          "odometry cannot be updated. Ending current update loop early." C_END,
           pos);
         return controller_interface::return_type::OK;
       }
@@ -240,8 +248,8 @@ controller_interface::return_type NovaDriveControllerBase::update(
       {
         RCLCPP_ERROR(
           logger,
-          "Received NaN feedback for left/right drive joints %zu, odometry cannot be updated. "
-          "Ending current update loop early.",
+           C_ERROR "Received NaN feedback for left/right drive joints %zu, odometry cannot be updated. "
+          "Ending current update loop early." C_END,
           pos);
         return controller_interface::return_type::ERROR;
       }
@@ -260,8 +268,8 @@ controller_interface::return_type NovaDriveControllerBase::update(
       {
         RCLCPP_DEBUG(
           logger,
-          "Failed to get feedback from hardware interfaces for left/right pivot joints %zu, "
-          "odometry cannot be updated. Ending current update loop early.",
+          C_INFO "Failed to get feedback from hardware interfaces for left/right pivot joints %zu, "
+          "odometry cannot be updated. Ending current update loop early." C_END,
           pos);
         return controller_interface::return_type::OK;
       }
@@ -272,8 +280,8 @@ controller_interface::return_type NovaDriveControllerBase::update(
       {
         RCLCPP_ERROR(
           logger,
-          "Received NaN feedback for left/right pivot joints %zu, odometry cannot be updated. "
-          "Ending current update loop early.",
+           C_ERROR "Received NaN feedback for left/right pivot joints %zu, odometry cannot be updated. "
+          "Ending current update loop early." C_END,
           pos);
         return controller_interface::return_type::ERROR;
       }
@@ -298,7 +306,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
         cmds.right_drive_speeds[pos] / base_params_->wheel_radius,
         encoded_pos(pos, JointSide::RIGHT, JointType::DRIVE)))
     {
-      RCLCPP_ERROR(logger, "Failed to set drive command values for position %zu.", pos);
+      RCLCPP_ERROR(logger, C_ERROR "Failed to set drive command values for position %zu." C_END, pos);
       return controller_interface::return_type::ERROR;
     }
   }
@@ -311,7 +319,7 @@ controller_interface::return_type NovaDriveControllerBase::update(
       !hwif_wrapper_->set_value(
         cmds.right_pivot_positions[pos], encoded_pos(pos, JointSide::RIGHT, JointType::PIVOT)))
     {
-      RCLCPP_ERROR(logger, "Failed to set pivot command values for position %zu.", pos);
+      RCLCPP_ERROR(logger, C_ERROR "Failed to set pivot command values for position %zu." C_END, pos);
       return controller_interface::return_type::ERROR;
     }
   }
@@ -342,28 +350,28 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
   if (base_param_listener_->is_old(*base_params_))
   {
     *base_params_ = base_param_listener_->get_params();
-    RCLCPP_INFO(logger, "Base parameters were updated");
+    RCLCPP_INFO(logger,  C_INFO "Base parameters were updated" C_END);
   }
   update_params();
 
   if (base_params_->left_drive_names.size() != base_params_->right_drive_names.size())
   {
     RCLCPP_ERROR(
-      logger, "The number of left wheels [%zu] and the number of right wheels [%zu] are different",
+      logger, C_ERROR "The number of left wheels [%zu] and the number of right wheels [%zu] are different" C_END,
       base_params_->left_drive_names.size(), base_params_->right_drive_names.size());
     return controller_interface::CallbackReturn::ERROR;
   }
 
   if (base_params_->left_drive_names.empty())
   {
-    RCLCPP_ERROR(logger, "Wheel names parameters are empty!");
+    RCLCPP_ERROR(logger, C_ERROR "Wheel names parameters are empty!" C_END);
     return controller_interface::CallbackReturn::ERROR;
   }
 
   if (base_params_->left_pivot_names.size() != 2 || base_params_->right_pivot_names.size() != 2)
   {
     RCLCPP_ERROR(
-      logger, "Expected exactly two pivots per side, instead got %zu left and %zu right pivots",
+      logger, C_ERROR "Expected exactly two pivots per side, instead got %zu left and %zu right pivots" C_END,
       base_params_->left_pivot_names.size(), base_params_->right_pivot_names.size());
     return controller_interface::CallbackReturn::ERROR;
   }
@@ -408,20 +416,19 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
   // Initialise twist subscriber
   twist_subscriber_ = get_node()->create_subscription<TwistStamped>(
     DEFAULT_COMMAND_TOPIC_, rclcpp::QoS(1).best_effort(),
-    [this](const std::shared_ptr<TwistStamped> msg) -> void
+    [this, logger](const std::shared_ptr<TwistStamped> msg) -> void
     {
       if (!is_active_)
       {
-        RCLCPP_WARN_ONCE(
-          get_node()->get_logger(), "Can't accept new commands, subscriber is inactive");
+        RCLCPP_WARN_ONCE(logger, C_WARN "Can't accept new commands, subscriber is inactive" C_END);
         return;
       }
       if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
       {
         RCLCPP_WARN_ONCE(
-          get_node()->get_logger(),
-          "Received TwistStamped with zero timestamp, setting it to current "
-          "time, this message will only be shown once");
+          logger,
+          C_WARN "Received TwistStamped with zero timestamp, setting it to current "
+          "time, this message will only be shown once" C_END);
         msg->header.stamp = get_node()->get_clock()->now();
       }
 
@@ -437,9 +444,9 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
       else
       {
         RCLCPP_WARN(
-          get_node()->get_logger(),
-          "Ignoring the received message (timestamp %.10f) because it is older than "
-          "the current time by %.10f seconds, which exceeds the allowed timeout (%.4f)",
+          logger,
+          C_WARN "Ignoring the received message (timestamp %.10f) because it is older than "
+          "the current time by %.10f seconds, which exceeds the allowed timeout (%.4f)" C_END,
           rclcpp::Time(msg->header.stamp).seconds(), current_time_diff.seconds(),
           cmd_vel_receive_timeout_.seconds());
       }
@@ -451,6 +458,8 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_configure(
 controller_interface::CallbackReturn NovaDriveControllerBase::on_activate(
   const rclcpp_lifecycle::State&)
 {
+  auto logger = get_node()->get_logger();
+
   // Configure joints
   std::vector<Joint> joints;
   for (size_t pos = 0; pos < wheels_per_side_; ++pos)
@@ -478,13 +487,13 @@ controller_interface::CallbackReturn NovaDriveControllerBase::on_activate(
 
   if (!hwif_wrapper_->configure_joint_handles(joints, base_params_->open_loop))
   {
-    RCLCPP_ERROR(get_node()->get_logger(), "Error configuring drives and pivots");
+    RCLCPP_ERROR(logger,  C_ERROR "Error configuring drives and pivots" C_END);
     return controller_interface::CallbackReturn::ERROR;
   }
 
   is_active_ = true;
 
-  RCLCPP_INFO(get_node()->get_logger(), "Subscriber and publisher are now active.");
+  RCLCPP_INFO(logger, C_SUCCESS "Subscriber and publisher are now active." C_END);
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
