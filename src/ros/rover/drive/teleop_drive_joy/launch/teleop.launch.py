@@ -1,6 +1,6 @@
 from launch import LaunchDescription
 from launch.actions import OpaqueFunction, DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PythonExpression, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from os.path import expanduser
@@ -41,11 +41,11 @@ def launch_setup(context, *args, **kwargs):
     ]
 
 def generate_launch_description():
-    teleop_drive_dir = PythonExpression([
-        '"', PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/teleop_drive_joy']),
-        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
-        FindPackageShare('teleop_drive_joy'), '"'
-    ])
+    local = LaunchConfiguration('local')
+    teleop_drive_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/teleop_drive_joy']),
+        FindPackageShare('teleop_drive_joy')
+    )
 
     declared_arguments = [
         DeclareLaunchArgument(
