@@ -149,7 +149,7 @@ export const urcNavigationData: NavigationInterface = {
   ],
   ["Autonomous"]: [
     {
-      title: "Auto Cartographer",
+      title: "Cartographer",
       route: "/urc/autonomous-navigation",
       icon: <Map />,
     },
