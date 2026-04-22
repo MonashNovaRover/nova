@@ -5,8 +5,7 @@ Controls the URC Caches
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: CacheController
 COMMAND INTERFACES:
-  - cache_1/effort    [value between -1 and 1]
-  - cache_2/effort    [value between -1 and 1]
+  - actuation/effort    [value between -1 and 1]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Yahya Muayyiduddin
