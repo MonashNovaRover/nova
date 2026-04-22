@@ -170,6 +170,8 @@ protected:
 
   bool write_zero_velocity_commands();
 
+  void log_self_intersection_pairs(const char * message_prefix);
+
   tl::expected<arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr, std::string>
   make_single_frame_tree(const std::string & frame_name) const;
 
@@ -205,6 +207,7 @@ protected:
   std::vector<double> current_joint_state_values_{};
   std::vector<double> joint_values_scratch_{};
   std::vector<double> predicted_joint_positions_{};
+  std::vector<std::pair<size_t, size_t>> colliding_pairs_scratch_{};
 
   bool subscriber_is_active_ = false;
   rclcpp::Time previous_update_timestamp_{0};

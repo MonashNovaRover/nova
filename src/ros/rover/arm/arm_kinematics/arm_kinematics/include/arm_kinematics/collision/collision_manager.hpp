@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/collision/collision_build_error.hpp"
@@ -30,18 +31,21 @@ struct ARM_KINEMATICS_PUBLIC CollisionManager {
 
   CollisionManager(
     ForwardKinematicsPlugin::Tree::SharedPtr tree,
-    DiscreteCollisionPlugin::SharedPtr plugin);
+    DiscreteCollisionPlugin::SharedPtr plugin,
+    std::vector<std::string> parent_link_names = {});
 
   [[nodiscard]] bool collide() const;
   [[nodiscard]] bool collide(
     std::vector<std::pair<size_t, size_t>> & colliding_pairs,
     size_t max_colliding_pairs = std::numeric_limits<size_t>::max()) const;
   void update_poses(span<const double> joint_states);
+  [[nodiscard]] const std::vector<std::string> & parent_link_names() const noexcept;
 
 private:
   ForwardKinematicsPlugin::Tree::SharedPtr tree_{};
   DiscreteCollisionPlugin::SharedPtr plugin_{};
   Isometry3dVector collider_poses_{};
+  std::vector<std::string> parent_link_names_{};
 };
 
 /**

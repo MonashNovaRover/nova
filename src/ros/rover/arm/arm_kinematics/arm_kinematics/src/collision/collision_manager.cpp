@@ -46,10 +46,12 @@ std::string PathCollisionError::format() const
 
 CollisionManager::CollisionManager(
   ForwardKinematicsPlugin::Tree::SharedPtr tree,
-  DiscreteCollisionPlugin::SharedPtr plugin)
+  DiscreteCollisionPlugin::SharedPtr plugin,
+  std::vector<std::string> parent_link_names)
 : tree_(std::move(tree)),
   plugin_(std::move(plugin)),
-  collider_poses_(plugin_->size())
+  collider_poses_(plugin_->size()),
+  parent_link_names_(std::move(parent_link_names))
 {
 }
 
@@ -67,6 +69,11 @@ bool CollisionManager::collide(
 void CollisionManager::update_poses(const span<const double> joint_states) {
   tree_->position_fk(joint_states, collider_poses_);
   plugin_->update_poses(0, {collider_poses_.data(), collider_poses_.size()});
+}
+
+const std::vector<std::string> & CollisionManager::parent_link_names() const noexcept
+{
+  return parent_link_names_;
 }
 
 tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
@@ -116,7 +123,8 @@ tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
 
   return CollisionManager{
     std::move(tree),
-    std::move(plugin)
+    std::move(plugin),
+    std::move(parent_link_names)
   };
 }
 

@@ -39,6 +39,47 @@ using controller_interface::interface_configuration_type;
 using controller_interface::InterfaceConfiguration;
 using lifecycle_msgs::msg::State;
 
+namespace {
+
+constexpr std::size_t kMaxLoggedCollisionPairs = 8;
+
+std::string format_collider_name(
+  const std::size_t collider_index,
+  const std::vector<std::string> & parent_link_names)
+{
+  if (collider_index >= parent_link_names.size() || parent_link_names[collider_index].empty()) {
+    return "#" + std::to_string(collider_index);
+  }
+
+  return parent_link_names[collider_index] + "[" + std::to_string(collider_index) + "]";
+}
+
+std::string format_collision_pairs(
+  const std::vector<std::pair<size_t, size_t>> & colliding_pairs,
+  const std::vector<std::string> & parent_link_names)
+{
+  std::string formatted;
+  const auto pair_count = std::min(kMaxLoggedCollisionPairs, colliding_pairs.size());
+  for (std::size_t i = 0; i < pair_count; ++i) {
+    if (!formatted.empty()) {
+      formatted += ", ";
+    }
+
+    const auto & [a, b] = colliding_pairs[i];
+    formatted += format_collider_name(a, parent_link_names);
+    formatted += " <-> ";
+    formatted += format_collider_name(b, parent_link_names);
+  }
+
+  if (colliding_pairs.size() >= kMaxLoggedCollisionPairs) {
+    formatted += ", ...possibly more";
+  }
+
+  return formatted;
+}
+
+}  // namespace
+
 NovaTwistmapper::NovaTwistmapper()
 : controller_interface::ControllerInterface()
 {
@@ -68,6 +109,37 @@ const char * NovaTwistmapper::joint_command_type() const noexcept
   return twistmapper_mode() == TwistmapperMode::Position ?
     hardware_interface::HW_IF_POSITION :
     hardware_interface::HW_IF_VELOCITY;
+}
+
+void NovaTwistmapper::log_self_intersection_pairs(const char * message_prefix)
+{
+  const auto logger = get_node()->get_logger();
+  colliding_pairs_scratch_.clear();
+
+  const bool still_colliding = kinematics_->collision_manager.collide(
+    colliding_pairs_scratch_,
+    kMaxLoggedCollisionPairs);
+  if (!still_colliding || colliding_pairs_scratch_.empty()) {
+    RCLCPP_WARN_THROTTLE(
+      logger,
+      *get_node()->get_clock(),
+      200,
+      "%s self intersects, but no colliding pairs were returned by the pair query.",
+      message_prefix);
+    return;
+  }
+
+  const auto formatted_pairs = format_collision_pairs(
+    colliding_pairs_scratch_,
+    kinematics_->collision_manager.parent_link_names());
+
+  RCLCPP_WARN_THROTTLE(
+    logger,
+    *get_node()->get_clock(),
+    200,
+    "%s self intersects. Colliding pairs: %s",
+    message_prefix,
+    formatted_pairs.c_str());
 }
 
 InterfaceConfiguration NovaTwistmapper::command_interface_configuration() const
@@ -305,11 +377,7 @@ controller_interface::return_type NovaTwistmapper::update_position_mode(
     return controller_interface::return_type::OK;
   }
   if (*collision_result) {
-    RCLCPP_WARN_THROTTLE(
-      logger,
-      *get_node()->get_clock(),
-      200,
-      "Inverse Kinematics solution self intersects.");
+    log_self_intersection_pairs("Inverse Kinematics solution");
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
@@ -436,11 +504,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     return controller_interface::return_type::OK;
   }
   if (*collision_result) {
-    RCLCPP_WARN_THROTTLE(
-      logger,
-      *get_node()->get_clock(),
-      200,
-      "Velocity IK solution self intersects.");
+    log_self_intersection_pairs("Velocity IK solution");
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
