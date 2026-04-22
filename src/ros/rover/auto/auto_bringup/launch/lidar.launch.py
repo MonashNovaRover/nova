@@ -17,6 +17,8 @@ EDITED BY:  Kabilan Velmurugan Sujatha, Bailey
 from pathlib import Path
 import zipfile
 import subprocess
+import json
+import tempfile
 from os.path import expanduser
 
 from launch import LaunchDescription
@@ -76,6 +78,31 @@ def block_until_enter_pressed(context, logger):
     logger.info(f"{Colour.YELLOW}Press Enter to start FAST-LIVO2 mapping...{Colour.END}")
     input()
 
+def rewrite_lidar_config_host_ip(config_path, host_ip, logger):
+    # Rewrite host_net_info IP fields into a temp JSON and return its path.
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+
+    try:
+        host_info = config['MID360']['host_net_info']
+    except KeyError as e:
+        raise ValueError(f"Missing expected key in lidar config: {e}")
+
+    for key in ['cmd_data_ip', 'push_msg_ip', 'point_data_ip', 'imu_data_ip']:
+        if key in host_info:
+            host_info[key] = host_ip
+
+    with tempfile.NamedTemporaryFile(
+        mode='w',
+        prefix='lidar_config_',
+        suffix='.json',
+        delete=False,
+    ) as tmp:
+        json.dump(config, tmp, indent=2)
+        tmp.flush()
+        logger.info(f"{Colour.YELLOW}Using LiDAR host IP {host_ip} via {tmp.name}{Colour.END}")
+        return tmp.name
+
 def launch_setup(context, *args, **kwargs):
     # package directories
     local = LaunchConfiguration('local')
@@ -87,8 +114,10 @@ def launch_setup(context, *args, **kwargs):
 
     comp = LaunchConfiguration('comp').perform(context).lower()
 
+    lidar_only = LaunchConfiguration('lidar_only').perform(context).lower() == 'true'
     driver = LaunchConfiguration('driver')
     lidar_config = LaunchConfiguration('lidar_config').perform(context)
+    lidar_host_ip = LaunchConfiguration('lidar_host_ip').perform(context)
     lidar_params = LaunchConfiguration('lidar_params')
     mask = LaunchConfiguration('mask')
     ground_seg = LaunchConfiguration('ground_seg')
@@ -118,6 +147,12 @@ def launch_setup(context, *args, **kwargs):
         tfs = LaunchConfiguration('tfs')
     if LaunchConfiguration('ground_seg_params').perform(context) != '':
         ground_seg_params = LaunchConfiguration('ground_seg_params')
+
+    if lidar_only:
+        driver = 'True'
+        fastlivo2 = 'False'
+        tfs = 'False'
+        ground_seg = 'False'
 
     img_topic = '/d415/color/image_raw'
     intrinsics_params = PathJoinSubstitution([auto_bringup_dir,'params','fast_livo2','d415_intrinsics.yaml'])
@@ -175,7 +210,7 @@ def launch_setup(context, *args, **kwargs):
             executable='livox_ros_driver2_node',
             name='livox_lidar_publisher',
             output='screen',
-            parameters=[lidar_params, {'user_config_path': lidar_config}],
+            parameters=[lidar_params, {'user_config_path': rewrite_lidar_config_host_ip(lidar_config, lidar_host_ip, logger)}],
         ),
         Node(
             # Remove points that intersect with the rover
@@ -350,6 +385,11 @@ def generate_launch_description():
             description='Whether to use local directories instead of the nix store.',
         ),
         DeclareLaunchArgument(
+            name='lidar_only',
+            default_value='False',
+            description='Only launch livox_ros_driver2 and masking node?',
+        ),
+        DeclareLaunchArgument(
             name='driver',
             default_value='True',
             description='Launch livox_ros_driver2?',
@@ -396,6 +436,11 @@ def generate_launch_description():
             name='lidar_config',
             default_value=PathJoinSubstitution([auto_bringup_dir,'params','lidar_config.json']),
             description='',
+        ),
+        DeclareLaunchArgument(
+            name='lidar_host_ip',
+            default_value='10.0.0.12',
+            description='LiDAR host IP',
         ),
         DeclareLaunchArgument(
             name='lidar_params',
