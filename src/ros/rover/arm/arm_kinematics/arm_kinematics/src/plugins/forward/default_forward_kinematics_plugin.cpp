@@ -5,10 +5,17 @@
 #include "../../../include/arm_kinematics/plugins/forward/default_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 #include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/utilities/param_reader.hpp"
 
+#include <cctype>
+#include <exception>
 #include <sstream>
+#include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
+
+#include <rclcpp/logging.hpp>
 
 namespace arm_kinematics {
 
@@ -23,7 +30,9 @@ const JointMapBuilder & DefaultForwardKinematicsPlugin::get_joint_map_builder() 
   // RobotModel-backed implementation. Subclasses that override `get_transmission_analysis()`
   // to return a different object on different calls would need to override this method too.
   std::call_once(joint_map_builder_once_, [this]() {
-    joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>(get_transmission_analysis());
+    joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>(
+      get_transmission_analysis(),
+      default_joint_values_);
   });
   return *joint_map_builder_;
 }
@@ -100,7 +109,72 @@ DefaultForwardKinematicsPlugin::make_tree(
 }
 
 bool DefaultForwardKinematicsPlugin::on_initialize() {
-  // TODO: Could we precompute joints we wouldn't have the values for here?
+  const ParamReader params(
+    get_node_interfaces().get<rclcpp::node_interfaces::NodeParametersInterface>());
+
+  const auto entries = params.get<std::vector<std::string>>(
+    "kinematics.default_joint_values", {});
+
+  if (entries.empty()) {
+    return true;
+  }
+
+  const auto & analysis = get_transmission_analysis();
+  const auto & joint_order = analysis.joint_order();
+
+  for (const auto & entry : entries) {
+    const auto sep = entry.find('=');
+    if (sep == std::string::npos) {
+      RCLCPP_WARN(
+        get_logger(),
+        "Skipping malformed kinematics.default_joint_values entry '%s'. Expected 'joint=value'.",
+        entry.c_str());
+      continue;
+    }
+
+    // Trim whitespace around name and value
+    const auto trim = [](std::string_view sv) -> std::string {
+      std::size_t s = 0;
+      while (s < sv.size() && std::isspace(static_cast<unsigned char>(sv[s]))) ++s;
+      std::size_t e = sv.size();
+      while (e > s && std::isspace(static_cast<unsigned char>(sv[e - 1]))) --e;
+      return std::string(sv.substr(s, e - s));
+    };
+
+    const auto joint_name = trim(std::string_view(entry).substr(0, sep));
+    const auto value_str = trim(std::string_view(entry).substr(sep + 1));
+
+    if (joint_name.empty() || value_str.empty()) {
+      RCLCPP_WARN(
+        get_logger(),
+        "Skipping malformed kinematics.default_joint_values entry '%s'.",
+        entry.c_str());
+      continue;
+    }
+
+    if (!joint_order.contains_key(joint_name)) {
+      RCLCPP_WARN(
+        get_logger(),
+        "Skipping unknown joint '%s' in kinematics.default_joint_values.",
+        joint_name.c_str());
+      continue;
+    }
+
+    try {
+      std::size_t parsed_chars = 0;
+      const double value = std::stod(value_str, &parsed_chars);
+      if (parsed_chars != value_str.size()) {
+        throw std::invalid_argument("trailing characters");
+      }
+      default_joint_values_[joint_order[joint_name]] = value;
+    } catch (const std::exception &) {
+      RCLCPP_WARN(
+        get_logger(),
+        "Skipping kinematics.default_joint_values entry '%s': value '%s' is not a valid number.",
+        entry.c_str(),
+        value_str.c_str());
+    }
+  }
 
   return true;
 }

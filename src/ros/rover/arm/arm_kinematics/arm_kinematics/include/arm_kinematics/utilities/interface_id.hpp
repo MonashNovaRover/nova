@@ -30,6 +30,8 @@ namespace arm_kinematics {
  */
 struct InterfaceId {
   std::size_t hash;
+
+  // TODO: Turn into hash only, with name resolved externally for error reporting
   std::string name;
 
   InterfaceId() noexcept

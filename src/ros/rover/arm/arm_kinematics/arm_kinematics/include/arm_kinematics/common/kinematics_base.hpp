@@ -61,6 +61,12 @@ public:
    * \returns Interfaces from the owning ROS2 node, allowing plugins to access to parameters, logging, etc.
    * \throws std::logic_error if you call this before initializing
    */
+  [[nodiscard]] KinematicsNodeInterfaces & get_node_interfaces();
+
+  /**
+   * \returns Interfaces from the owning ROS2 node, allowing plugins to access to parameters, logging, etc.
+   * \throws std::logic_error if you call this before initializing
+   */
   [[nodiscard]] const KinematicsNodeInterfaces & get_node_interfaces() const;
 
 protected:

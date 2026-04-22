@@ -9,11 +9,14 @@
 #include <string>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
+#include "arm_kinematics/joint_map/constant_supplemented_joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_blueprint.hpp"
 #include "arm_kinematics/joint_map/materialize_joint_map.hpp"
 #include "arm_kinematics/joint_map/missing_input_resolution.hpp"
 #include "arm_kinematics/joint_map/transmission_reachability.hpp"
+#include "arm_kinematics/utilities/interface_id.hpp"
 
 namespace arm_kinematics {
 
@@ -86,8 +89,75 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
     return tl::unexpected(JointMapBuildError::UnknownJoint{std::move(named)});
   }
 
-  // Step 1: Reachability analysis — pass defs directly, no SID pre-registration needed.
-  const auto reach = TransmissionReachability::analyze(transmission_analysis_, inputs);
+  // Pre-step (A): For each defaulted joint, synthesize missing constant inputs.
+  //
+  // `state_interface_order()` only contains interfaces registered by ros2_control
+  // transmissions. Passive URDF-only joints can still be requested by FK, so every defaulted
+  // joint also gets an explicit bare `joint/position` fallback.
+  std::vector<StateInterfaceDefinition> synthetic_inputs;
+  std::vector<double> constant_values;
+  if (!default_joint_values_.empty()) {
+    std::unordered_set<StateInterfaceDefinition> available_inputs(inputs.begin(), inputs.end());
+    const auto has_real_input_for_affine_group =
+      [&](const StateInterfaceDefinition & def) -> bool {
+        if (transmission_analysis_.affine_projection_rule(def.interface_id) == nullptr) {
+          return false;
+        }
+
+        const JointId root = transmission_analysis_.affine_root_of(def.joint_id);
+        for (const auto & input : inputs) {
+          if (input.interface_id != def.interface_id || input.joint_id >= joint_count) {
+            continue;
+          }
+          if (transmission_analysis_.affine_root_of(input.joint_id) == root) {
+            return true;
+          }
+        }
+        return false;
+      };
+
+    const auto add_synthetic_input =
+      [&](StateInterfaceDefinition def, const double value) {
+        if (def.joint_id >= joint_count) {
+          return;
+        }
+        if (available_inputs.count(def) || has_real_input_for_affine_group(def)) {
+          return;
+        }
+        available_inputs.insert(def);
+        synthetic_inputs.push_back(std::move(def));
+        constant_values.push_back(value);
+      };
+
+    for (const auto & [joint_id, value] : default_joint_values_) {
+      add_synthetic_input(StateInterfaceDefinition{joint_id, InterfaceId::Position()}, value);
+    }
+
+    const auto & sio = transmission_analysis_.state_interface_order();
+    for (std::size_t sid = 0; sid < sio.inverse.size(); ++sid) {
+      const auto & def = sio.inverse[sid];
+      const auto it = default_joint_values_.find(def.joint_id);
+      if (it == default_joint_values_.end()) {
+        continue;  // not a defaulted joint
+      }
+      // Position gets the caller-specified default; all other interfaces freeze at 0.0.
+      add_synthetic_input(def, (def.interface_id == InterfaceId::Position()) ? it->second : 0.0);
+    }
+  }
+
+  // (B) Build augmented inputs = real inputs ++ synthetic inputs.
+  std::vector<StateInterfaceDefinition> augmented_storage;
+  span<const StateInterfaceDefinition> effective_inputs = inputs;
+  if (!synthetic_inputs.empty()) {
+    augmented_storage.reserve(inputs.size() + synthetic_inputs.size());
+    augmented_storage.insert(augmented_storage.end(), inputs.begin(), inputs.end());
+    augmented_storage.insert(
+      augmented_storage.end(), synthetic_inputs.begin(), synthetic_inputs.end());
+    effective_inputs = {augmented_storage.data(), augmented_storage.size()};
+  }
+
+  // Step 1: Reachability analysis against effective inputs (augmented when defaults present).
+  const auto reach = TransmissionReachability::analyze(transmission_analysis_, effective_inputs);
 
   // Step 2: Diagnose against the requested outputs.
   const auto diag = diagnose_missing_outputs(reach, outputs);
@@ -117,9 +187,16 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
     });
   }
 
-  // Step 4: Plan and materialize.
+  // Step 4: Plan and materialize against effective inputs.
   const auto blueprint = plan_joint_map(reach, outputs);
-  return materialize_joint_map(blueprint, transmission_analysis_);
+  auto result = materialize_joint_map(blueprint, transmission_analysis_);
+
+  // Post-step (G): wrap in ConstantSupplementedJointMap if synthetic inputs were injected.
+  if (!synthetic_inputs.empty()) {
+    return JointMap(ConstantSupplementedJointMap(
+      std::move(result), std::move(constant_values), inputs.size()));
+  }
+  return result;
 }
 
 }  // namespace arm_kinematics

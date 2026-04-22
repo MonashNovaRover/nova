@@ -5,13 +5,16 @@
 #ifndef ARM_KINEMATICS_DEFAULT_FORWARD_KINEMATICS_PLUGIN_HPP
 #define ARM_KINEMATICS_DEFAULT_FORWARD_KINEMATICS_PLUGIN_HPP
 
+#include <memory>
+#include <mutex>
+#include <unordered_map>
+#include <utility>
+
 #include <arm_kinematics/forward/forward_kinematics_plugin.hpp>
 #include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
 #include <arm_kinematics/forward/utilities/analysis_tree.hpp>
 #include <arm_kinematics/joint_map/default_joint_map_builder.hpp>
-#include <memory>
-#include <mutex>
-#include <utility>
+#include <arm_kinematics/joint_map/transmission_types.hpp>
 #include <arm_kinematics/visibility_control.h>
 
 namespace arm_kinematics {
@@ -99,6 +102,11 @@ private:
   // after the first call.
   mutable std::once_flag joint_map_builder_once_{};
   mutable std::unique_ptr<DefaultJointMapBuilder> joint_map_builder_{};
+
+  /// Parsed from `kinematics.default_joint_values` in `on_initialize()`. Keyed by JointId.
+  /// Passed to DefaultJointMapBuilder so joints not in the caller's inputs are frozen at these
+  /// constant values instead of causing a MissingInputs build error.
+  std::unordered_map<JointId, double> default_joint_values_{};
 };
 
 } // arm_kinematics

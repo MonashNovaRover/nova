@@ -13,6 +13,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -266,6 +267,32 @@ TEST_F(DefaultJointMapBuilderTest, Success_MixedAffineAndTransmission)
   EXPECT_TRUE(approx_equal(out[0], 8.0));   // b = 2*4
   EXPECT_TRUE(approx_equal(out[1], 21.0));  // x = 5*4 + 1
   EXPECT_TRUE(approx_equal(out[2], 63.0));  // y = 3*21
+}
+
+TEST_F(DefaultJointMapBuilderTest, Success_DefaultValueForBarePassivePosition)
+{
+  auto & analysis = analysis_;
+  const auto runtime = analysis.ensure_joint_id("runtime");
+  const auto passive = analysis.ensure_joint_id("passive");
+  analysis.ensure_state_interface_id(StateInterfaceDefinition{runtime, InterfaceId::Position()});
+
+  const DefaultJointMapBuilder builder{
+    analysis,
+    std::unordered_map<JointId, double>{{passive, 2.5}}};
+
+  const auto result = builder.build_expected(
+    std::vector<StateInterfaceDefinition>{{runtime, InterfaceId::Position()}},
+    std::vector<StateInterfaceDefinition>{{passive, InterfaceId::Position()}});
+  ASSERT_TRUE(result.has_value());
+
+  const auto & joint_map = result.value();
+  EXPECT_EQ(joint_map.input_count(), 1u);
+  EXPECT_EQ(joint_map.output_count(), 1u);
+
+  std::vector<double> in{9.0};
+  std::vector<double> out(1, 0.0);
+  joint_map.map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], 2.5));
 }
 
 // ===========================================================================

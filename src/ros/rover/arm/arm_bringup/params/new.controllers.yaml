@@ -177,6 +177,18 @@ arm:
         forward_kinematics_plugin: "arm_kinematics/DefaultForwardKinematicsPlugin"
         inverse_kinematics_plugin: "arm_kinematics/BanksiaIKPlugin"
         collision_plugin: "arm_kinematics/FclCollisionPlugin"
+        default_joint_values:
+          - "chassis_to_left_leg=0.0"
+          - "chassis_to_right_leg=0.0"
+          - "blp=0.0"
+          - "brp=0.0"
+          - "flp=0.0"
+          - "frp=0.0"
+          - "blw=0.0"
+          - "brw=0.0"
+          - "flw=0.0"
+          - "frw=0.0"
+
       collision:
         generate_from_default_pose: true
         ignored_links:
