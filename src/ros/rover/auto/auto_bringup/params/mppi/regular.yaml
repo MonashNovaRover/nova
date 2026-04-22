@@ -25,7 +25,7 @@ controller_server:
       vx_max: 0.7   # max linear velocity, ~2.52 km/h
       vx_min: -0.49 # vx_max * 0.7
       vy_max: 0.5   # only used in Omni motion model
-      wz_max: 0.78  # max angular velocity (rad/s), ~90 degrees/s
+      wz_max: 0.78  # max angular velocity (rad/s), ~45 degrees/s
       ax_max: 4.0   # max linear acceleration. going lower gives preference to rotational trajectories
       ax_min: -4.0 
       ay_max: 3.0   # only used in Omni motion model
@@ -60,10 +60,8 @@ local_costmap:
 
 velocity_smoother:
   ros__parameters:
-    # Angular velocity and acceleration limits are more strict than in MPPI.
-    # This is to allow MPPI to plan more aggressive trajectories while still
-    # ensuring the controller can follow them accurately.
-    max_velocity: [0.7, 0.0, 0.52]
-    min_velocity: [-0.49, 0.0, -0.52]
+    # Match angular velocity limits with those in Rotation Shim Controller
+    max_velocity: [0.7, 0.0, 0.7854]
+    min_velocity: [-0.49, 0.0, -0.7854]
     max_accel: [4.0, 0.0, 4.0]
     max_decel: [-4.0, 0.0, -4.0]
