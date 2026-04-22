@@ -4,11 +4,9 @@
 
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 
+#include <array>
+#include <cassert>
 #include <cmath>
-
-namespace {
-  const auto ENDEFFECTOR_BASIS_INVERSE = Eigen::Quaterniond(0.5, -0.5, 0.5, 0.5).toRotationMatrix().inverse();
-}
 
 namespace arm_kinematics {
 
@@ -42,13 +40,13 @@ public:
         "target pose contains NaN or Inf"});
     }
 
-    // Adapted from Abby's code
+    // Ported from arm_controllers_old/banksia_kinematics_plugin.
     const auto origin = ik_pose.translation();
     const auto x = origin.x();
     const auto y = origin.y();
     const auto z = origin.z();
 
-    const Eigen::Matrix3d rotated_basis = ik_pose.rotation() * ENDEFFECTOR_BASIS_INVERSE;
+    const Eigen::Matrix3d rotated_basis = ik_pose.rotation();
 
     double l1r = link_lengths_[0];
     double l2r = link_lengths_[1];
@@ -64,12 +62,8 @@ public:
     t07r(1, 3) = y;
     t07r(2, 3) = z;
 
-    Eigen::Matrix4d t67 = to_matrix4(
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, l3,
-      0, 0, 0, 1
-    );
+    // Need two DH transforms to get x of end effector frame pointing forwards.
+    Eigen::Matrix4d t67 = sub_dh(M_PI / 2, 0, 0, M_PI / 2) * sub_dh(M_PI / 2, l3, 0, 0);
     Eigen::Matrix4d t0_wrist = t07r * t67.inverse();
 
     double wrist_x = t0_wrist(0, 3);
@@ -91,50 +85,50 @@ public:
 
     double j3a = acos(cosine_argument);
     double j3b = -j3a; // expands to -acos((l^2+wrist_z^2-L1r^2-L2r^2)/(2*L1r*L2r)) as per keenan's notes
-    // double j3ao = j3a + M_PI / 2;
-    double j3bo = j3b + M_PI / 2;
+    double j3bo = -j3b - M_PI / 2;
 
-    double k1a = l1r + l2r * cos(j3a);
-    double k2a = l2r * sin(j3a);
     double k1b = l1r + l2r * cos(j3b);
     double k2b = l2r * sin(j3b);
 
-    double j2a = atan2(wrist_z, l) - atan2(k2a, k1a);
     double j2b = atan2(wrist_z, l) - atan2(k2b, k1b);
-    double j2ao = j2a - M_PI / 2;
-    double j2bo = j2b - M_PI / 2;
+    double j2bo = -j2b;
 
     Eigen::Matrix4d t01 = sub_dh(0, 0, 0, j1);
-    Eigen::Matrix4d t12 = sub_dh(M_PI / 2, 0, 0, j2bo + M_PI / 2);
-    Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo - M_PI / 2);
+    Eigen::Matrix4d t12 = sub_dh(-M_PI / 2, 0, 0, j2bo);
+    Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo);
     Eigen::Matrix4d t02 = t01 * t12;
     Eigen::Matrix4d t03_wrist = t02 * t23;
     Eigen::Matrix3d r03_wrist = t03_wrist.topLeftCorner<3, 3>(); // R03_wrist = T03_wrist(1:3,1:3); in matlab
     Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>(); // see above
     Eigen::Matrix3d r37r = r03_wrist.inverse() * r07r;
 
-    double j4 = atan2(r37r(1, 2), r37r(0, 2));
-    if (std::abs(std::cos(j4)) < 1.0e-9) {
-      return tl::unexpected(IKFailure::Singular{
-        "wrist rotation produced cos(j4) ~= 0"});
-    }
-    double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
-    if (std::abs(std::cos(j5)) < 1.0e-9) {
-      return tl::unexpected(IKFailure::Singular{
-        "wrist rotation produced cos(j5) ~= 0"});
-    }
-    double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
+    // I don't know why we have to roll the rows of the matrix by one.
+    Eigen::Vector3i indicies = {1, 2, 0};
+    Eigen::Matrix3d r37r_shifted = r37r(indicies, Eigen::all);
 
-    // Old implementation needed to be in the same order as when they get put in a joint group
-    // std::array<double, 6> new_joints = { j1, j2bo, -j4, j5, j6, j3bo + j2bo };
+    // Returns in range [0:pi]x[-pi:pi]x[-pi:pi]. The old implementation chose this
+    // over canonical Euler angles so j4 moves less.
+    Eigen::Vector3d rpr = r37r_shifted.eulerAngles(0, 1, 0);
 
-    // New implementation allows for us to operate on an arbitrary joint order of our choosing,
-    // with any reordering being handled by joint_map
+    double j4 = -rpr(0);
+    double j5 = rpr(1) - M_PI / 2;
+    double j6 = rpr(2);
+
+    // Move j4's range from [-pi:0] to [-pi/2:pi/2]. If j4 rotates 180 degrees
+    // because of this, j5 and j6 need inverting too.
+    if (j4 < -M_PI / 2) {
+      j4 = j4 + M_PI;
+      j5 = -rpr(1) - M_PI / 2;
+      j6 = j6 + (j6 < 0 ? M_PI : -M_PI);
+    }
+
+    // The old plugin returned {j1, j2, j4, j5, j6, j3} because MoveIt reordered
+    // Banksia's active joint group. This plugin writes the configured controller order.
     assert(solution_state.size() >= 6);
     solution_state[0] = j1;
-    solution_state[1] = j2bo;
-    solution_state[2] = j3bo + j2bo;
-    solution_state[3] = -j4;
+    solution_state[1] = j2bo + M_PI / 2;
+    solution_state[2] = j3bo + j2bo + M_PI / 2;
+    solution_state[3] = j4;
     solution_state[4] = j5;
     solution_state[5] = j6;
 
@@ -146,35 +140,6 @@ public:
     }
 
     return {};
-  }
-
-  static Eigen::Matrix4d to_matrix4(
-      double r00, double r01, double r02, double tx,
-      double r10, double r11, double r12, double ty,
-      double r20, double r21, double r22, double tz,
-      double b0 = 0,  double b1 = 0,  double b2 = 0, double b3 = 1)
-  {
-    Eigen::Matrix4d m;
-    m << r00, r01, r02, tx,
-         r10, r11, r12, ty,
-         r20, r21, r22, tz,
-         b0,  b1,  b2,  b3;
-    return m;
-  }
-
-  static Eigen::Isometry3d to_isometry(
-      double r00, double r01, double r02, double tx,
-      double r10, double r11, double r12, double ty,
-      double r20, double r21, double r22, double tz)
-  {
-    Eigen::Matrix4d m;
-    m << r00, r01, r02, tx,
-         r10, r11, r12, ty,
-         r20, r21, r22, tz,
-         0.0, 0.0, 0.0, 1.0;
-
-    Eigen::Isometry3d T(m);
-    return T;
   }
 
   // substitutes values into our DH table.
@@ -191,7 +156,7 @@ public:
   }
 
 private:
-  std::array<double, 3> link_lengths_ {0.5, 0.41799975417, 0.417};
+  std::array<double, 3> link_lengths_ {0.5052, 0.6193, 0.2225 + 0.021040};
 };
 
 } // namespace arm_kinematics
