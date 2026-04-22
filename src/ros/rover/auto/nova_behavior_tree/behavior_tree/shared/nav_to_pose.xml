@@ -1,7 +1,7 @@
 <root BTCPP_format="4" main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="6" name="NavigateRecovery">
-      
+
       <PipelineSequence name="NavigateWithReplanning">
         <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
         <RateController hz="1.0">
@@ -12,7 +12,7 @@
         </RateController>
         <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI"/>
       </PipelineSequence>
-      
+
       <ReactiveFallback name="RecoveryFallback">
         <GoalUpdated/>
         <RoundRobin name="RecoveryActions">
