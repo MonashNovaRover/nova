@@ -2,6 +2,11 @@
 # This YAML will be converted to teleop_drive_joy_parameters.hpp upon build
 # Look here for docs about this YAML : https://github.com/PickNikRobotics/generate_parameter_library
 teleop_drive_joy:
+  teleop_frequency:
+    type: int
+    default_value: 20
+    description: "Frequency (in Hz) at which teleop publishes commands"
+
   input_topic:
     type: string
     default_value: "/drive/joy"
