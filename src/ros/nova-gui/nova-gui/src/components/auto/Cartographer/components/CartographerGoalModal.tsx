@@ -58,8 +58,8 @@ export const CartographerGoalModal: React.FC<{
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active.id !== over!.id) {
-      const oldIndex = points.findIndex((point) => point.name === active.id);
-      const newIndex = points.findIndex((point) => point.name === over!.id);
+      const oldIndex = selection.findIndex((p) => points[p].name === active.id);
+      const newIndex = selection.findIndex((p) => points[p].name === over!.id);
       setSelection(arrayMove(selection, oldIndex, newIndex));
     }
   };
