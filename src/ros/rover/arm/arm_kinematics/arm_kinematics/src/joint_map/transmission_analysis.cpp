@@ -272,18 +272,24 @@ void TransmissionAnalysis::add_affine_transmission(
   const double offset)
 {
   if (multiplier == 0.0) {
+    const std::string target_name = joint_order_.inverse[target_joint_id];
+    const std::string source_name = joint_order_.inverse[source_joint_id];
+
     throw std::invalid_argument(
-      "TransmissionAnalysis::add_affine_transmission() received multiplier == 0. Zero multipliers "
+      "TransmissionAnalysis::add_affine_transmission() received multiplier == 0 (Mimic joint \"" + target_name +
+      "\" targeting joint " + source_name + "). Zero multipliers "
       "do not represent real mimic relationships and break bidirectional affine-group semantics. "
       "Joints that are always at a constant value should be supplied as inputs directly or via the "
       "default-value-source mechanism.");
   }
 
   if (source_joint_id == target_joint_id) {
+    const std::string joint_name = joint_order_.inverse[target_joint_id];
+
     throw std::invalid_argument(
       "TransmissionAnalysis::add_affine_transmission() received source_joint_id == target_joint_id. "
       "Self-loops are degenerate (they collapse to a constant for m != 1, or a contradiction for "
-      "m == 1, o != 0) and are always a user error.");
+      "m == 1, o != 0) and are always a user error. Mimic joint \"" + joint_name + "\" targeting self");
   }
 
   const auto joint_count = joint_order_.inverse.size();

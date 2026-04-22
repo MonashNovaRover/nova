@@ -1115,13 +1115,14 @@
   </joint>
   <link name="ee_base_l2_prime_mimic"/>
   <!-- Joint from base_frame to l2_prime -->
-  <joint name="l2_p_j2_mimic" type="revolute">
+  <joint name="l2_p_j2_mimic" type="fixed"> <!-- used to be revolute -->
     <origin xyz="0.006 -9.18923e-17 0.131" rpy="1.5708 7.26102e-16 1.5708"/>
     <parent link="base_frame"/>
     <child link="ee_base_l2_prime_mimic"/>
-    <mimic joint="j2" multiplier="0" offset="0"/>
+    <!-- <mimic joint="j2" multiplier="0" offset="0"/> 
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
+    -->
   </joint>
 
   <joint name="j3" type="revolute">
