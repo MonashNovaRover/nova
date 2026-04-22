@@ -5,9 +5,11 @@
 #ifndef ARM_KINEMATICS_ALLOWED_COLLISION_MATRIX_HPP
 #define ARM_KINEMATICS_ALLOWED_COLLISION_MATRIX_HPP
 
+#include <algorithm>
 #include <cstdint>
 #include <vector>
 
+#include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/visibility_control.h"
 
 namespace arm_kinematics {
@@ -66,6 +68,14 @@ struct ARM_KINEMATICS_PUBLIC AllowedCollisionMatrix {
       return;
     resize(new_capacity);
   }
+
+  /**
+   * Remap this ACM into a new collider order.
+   *
+   * \param new_to_old Maps each new collider index to its old collider index.
+   * \return A new ACM whose indices align with the remapped collider array.
+   */
+  [[nodiscard]] AllowedCollisionMatrix remap(span<const std::size_t> new_to_old) const;
 
   [[nodiscard]] bool get(const std::size_t a, const std::size_t b) const {
     if (a == b)

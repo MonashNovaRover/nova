@@ -28,6 +28,18 @@ std::vector<NamedStateInterfaceDefinition> joint_names_to_position_named_interfa
   return result;
 }
 
+AllowedCollisionMatrix remap_acm(const AllowedCollisionMatrix & acm, const Order<> & order)
+{
+  std::vector<std::size_t> new_to_old;
+  new_to_old.reserve(order.size());
+
+  for (const auto old_index : order) {
+    new_to_old.push_back(old_index);
+  }
+
+  return acm.remap(span<const std::size_t>(new_to_old.data(), new_to_old.size()));
+}
+
 }  // namespace
 
 PluginLoader::PluginLoader(
@@ -133,7 +145,7 @@ tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader
   }
   auto [tree, order] = std::move(tree_result.value());
 
-  auto collision = make_collision(order.reorder(std::move(colliders)), std::move(acm));
+  auto collision = make_collision(order.reorder(std::move(colliders)), remap_acm(acm, order));
   if (!collision) {
     return tl::unexpected(MakeCollisionError::CollisionPluginInitFailed{
       "PluginLoader::make_collision: failed to initialize collision plugin from configured parameters.",
@@ -177,7 +189,7 @@ tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader
   }
   auto [tree, order] = std::move(tree_result.value());
 
-  auto collision = make_collision(name, order.reorder(std::move(colliders)), std::move(acm));
+  auto collision = make_collision(name, order.reorder(std::move(colliders)), remap_acm(acm, order));
   if (!collision) {
     return tl::unexpected(MakeCollisionError::CollisionPluginInitFailed{
       "PluginLoader::make_collision: failed to initialize collision plugin \"" + name + "\".",

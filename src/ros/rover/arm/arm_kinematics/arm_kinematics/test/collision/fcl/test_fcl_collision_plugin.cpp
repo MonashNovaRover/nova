@@ -80,6 +80,18 @@ Eigen::Isometry3d to_isometry(
   return T;
 }
 
+arm_kinematics::AllowedCollisionMatrix RemapAcmForOrder(
+  const arm_kinematics::AllowedCollisionMatrix & acm,
+  const arm_kinematics::Order<> & order)
+{
+  std::vector<std::size_t> new_to_old;
+  new_to_old.reserve(order.size());
+  for (const auto old_index : order) {
+    new_to_old.push_back(old_index);
+  }
+  return acm.remap(new_to_old);
+}
+
 }
 
 class SimpleUrdfCollisionTests : public ::testing::Test
@@ -159,7 +171,7 @@ protected:
     const auto & order = make_tree_result.value().frame_order;
     parent_link_names_ = order.reorder(std::move(parent_link_names_));
 
-    init_result_ = collision->initialize(*node_, order.reorder(std::move(colliders)), std::move(acm));
+    init_result_ = collision->initialize(*node_, order.reorder(std::move(colliders)), RemapAcmForOrder(acm, order));
     ASSERT_TRUE(init_result_);
 
     tree_ = std::move(tree);
@@ -246,6 +258,63 @@ TEST_F(SimpleUrdfCollisionTests, MakeCollisionManagerWithConfigProbesDefaultPose
 
   auto manager = std::move(manager_result.value());
   manager.update_poses(std::vector<double>{-2.0, -2.0});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  EXPECT_FALSE(manager.collide(colliding_pairs));
+  EXPECT_TRUE(colliding_pairs.empty());
+}
+
+TEST_F(SimpleUrdfCollisionTests, MakeCollisionRemapsAcmWhenFramesAreReordered)
+{
+  const std::string robot_description = R"(
+    <robot name="same_link_collision_robot">
+      <link name="base_link">
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <sphere radius="0.5"/>
+          </geometry>
+        </collision>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <sphere radius="0.5"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <link name="link1">
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <sphere radius="0.1"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="j1" type="prismatic">
+        <parent link="base_link"/>
+        <child link="link1"/>
+        <origin xyz="10 0 0" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+      </joint>
+    </robot>
+  )";
+
+  arm_kinematics::PluginLoader loader(*node_, robot_description);
+  std::shared_ptr<arm_kinematics::ForwardKinematicsPlugin> fk;
+  try {
+    fk = loader.make_fk("arm_kinematics/DefaultForwardKinematicsPlugin");
+  } catch (const pluginlib::PluginlibException & e) {
+    GTEST_SKIP() << "pluginlib unavailable in this environment: " << e.what();
+  }
+  ASSERT_TRUE(fk);
+
+  auto manager_result = arm_kinematics::make_collision_manager(loader, fk, std::vector<std::string>{"j1"});
+  ASSERT_TRUE(manager_result.has_value()) << manager_result.error().format();
+
+  auto manager = std::move(manager_result.value());
+  manager.update_poses(std::vector<double>{0.0});
   std::vector<std::pair<size_t, size_t>> colliding_pairs;
   EXPECT_FALSE(manager.collide(colliding_pairs));
   EXPECT_TRUE(colliding_pairs.empty());
