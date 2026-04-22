@@ -1,13 +1,11 @@
 local_costmap:
   local_costmap:
     ros__parameters:
-      enable: True
       update_frequency: 3.0
       publish_frequency: 3.0
       global_frame: odom
       robot_base_frame: base_link
-      use_sim_time: False
-      rolling_window: True
+      rolling_window: true
       width: 10
       height: 10
       resolution: 0.05
@@ -18,7 +16,7 @@ local_costmap:
       # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
       robot_radius: 0.85
       track_unknown_space: false
-      always_send_full_costmap: True # SnapInCollisionGoals needs this to work
+      always_send_full_costmap: false
       trinary_costmap: true
       plugins: ["stvl_layer", "denoise_layer", "inflation_layer"]
       

@@ -17,7 +17,7 @@ bt_navigator:
     navigators: ["navigate_to_pose", "navigate_through_poses", "urc_through_poses"]
     navigate_to_pose:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
-    default_nav_to_pose_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/arch/nav_to_pose.xml
+    default_nav_to_pose_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/nav_to_pose.xml
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
     default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/nav_through_poses.xml
