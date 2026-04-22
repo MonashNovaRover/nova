@@ -274,9 +274,15 @@ TEST_F(TransmissionAnalysisTest, AffineProjectionRule_DefaultsForPositionVelocit
   EXPECT_NE(analysis_.affine_projection_rule(InterfaceId{"position"}), nullptr);
   EXPECT_NE(analysis_.affine_projection_rule(InterfaceId{"velocity"}), nullptr);
   EXPECT_NE(analysis_.affine_projection_rule(InterfaceId{"acceleration"}), nullptr);
+  EXPECT_EQ(analysis_.affine_projection_rules().size(), 3u);
+  EXPECT_EQ(analysis_.projection_order().inverse.size(), 3u);
+  EXPECT_TRUE(analysis_.find_interface_kind_id(InterfaceId{"position"}).has_value());
+  EXPECT_TRUE(analysis_.find_interface_kind_id(InterfaceId{"velocity"}).has_value());
+  EXPECT_TRUE(analysis_.find_interface_kind_id(InterfaceId{"acceleration"}).has_value());
 
   // Effort is intentionally NOT registered by default.
   EXPECT_EQ(analysis_.affine_projection_rule(InterfaceId{"effort"}), nullptr);
+  EXPECT_FALSE(analysis_.find_interface_kind_id(InterfaceId{"effort"}).has_value());
 }
 
 TEST_F(TransmissionAnalysisTest, SetAffineProjectionRule_OverridesDefault)
@@ -291,4 +297,21 @@ TEST_F(TransmissionAnalysisTest, SetAffineProjectionRule_OverridesDefault)
   EXPECT_TRUE(approx_equal(rule->multiplier_scale, 2.0));
   EXPECT_TRUE(approx_equal(rule->offset_scale, 3.0));
   EXPECT_TRUE(rule->reverse_direction);
+}
+
+TEST_F(TransmissionAnalysisTest, SetAffineProjectionRule_RegistersInterfaceKind)
+{
+  EXPECT_FALSE(analysis_.find_interface_kind_id(InterfaceId{"effort"}).has_value());
+
+  analysis_.set_affine_projection_rule(
+    InterfaceId{"effort"},
+    AffineProjectionRule{1.0, 0.0, true});
+
+  EXPECT_TRUE(analysis_.find_interface_kind_id(InterfaceId{"effort"}).has_value());
+  ASSERT_TRUE(analysis_.projection_order().contains_key(InterfaceId{"effort"}));
+  const auto projection_kind_id = analysis_.projection_order()[InterfaceId{"effort"}];
+  ASSERT_LT(projection_kind_id, analysis_.affine_projection_rules().size());
+  EXPECT_TRUE(approx_equal(
+    analysis_.affine_projection_rule(projection_kind_id).multiplier_scale,
+    1.0));
 }

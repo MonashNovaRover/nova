@@ -498,7 +498,7 @@ void add_ros2_control_transmissions_to_analysis_dangerous(
   // mutation later.
   std::vector<InterfaceId> probe_interfaces{};
   probe_interfaces.reserve(transmission_analysis.affine_projection_rules().size());
-  for (const auto & [interface_id, _rule] : transmission_analysis.affine_projection_rules()) {
+  for (const auto & interface_id : transmission_analysis.projection_order().inverse) {
     probe_interfaces.push_back(interface_id);
   }
 

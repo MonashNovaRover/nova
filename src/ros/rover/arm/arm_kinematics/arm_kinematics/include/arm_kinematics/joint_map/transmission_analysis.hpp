@@ -8,7 +8,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "arm_kinematics/joint_map/affine_projection_rule.hpp"
@@ -24,6 +23,7 @@ namespace arm_kinematics {
 class TransmissionModel;
 
 using InterfaceKindId = std::size_t;
+using ProjectionKindId = std::size_t;
 
 struct CanonicalStateInterfaceDefinition {
   JointId joint_id = 0;
@@ -57,8 +57,8 @@ struct CanonicalStateInterfaceDefinition {
  *   as an `AffineTransmission` and accessed via `affine_transmission_of(j)`. New edges added via
  *   `add_affine_transmission` are composed eagerly into these flat relations at the time of the
  *   call (the loser group's member list is walked and every member's stored relation is updated).
- * - The `InterfaceId → AffineProjectionRule` registry (with safe defaults for position, velocity,
- *   acceleration; effort is opt-in only)
+ * - The `ProjectionKindId → AffineProjectionRule` registry (with safe defaults for position,
+ *   velocity, acceleration; effort is opt-in only)
  * - An inverse index from `StateInterfaceId → producing TransmissionInstanceIds`
  * - An eagerly-flattened affine group index keyed by joint (every joint's parent always points
  *   directly at its current group root, so `affine_root_of` is an O(1) array lookup with no
@@ -81,6 +81,7 @@ struct CanonicalStateInterfaceDefinition {
 class ARM_KINEMATICS_PUBLIC TransmissionAnalysis {
 public:
   using InterfaceKindId = arm_kinematics::InterfaceKindId;
+  using ProjectionKindId = arm_kinematics::ProjectionKindId;
   using StateInterfaceId = std::size_t;
   using CanonicalStateInterfaceDefinition = arm_kinematics::CanonicalStateInterfaceDefinition;
 
@@ -184,6 +185,12 @@ public:
     return interface_order_;
   }
 
+  /// Canonical mapping from symbolic interface ids to compact projection-rule ids.
+  [[nodiscard]] const Order<InterfaceId, ProjectionKindId> & projection_order() const noexcept
+  {
+    return projection_order_;
+  }
+
   /// Canonical mapping from `(JointId, InterfaceKindId)` to stable internal `StateInterfaceId`s.
   [[nodiscard]] const Order<CanonicalStateInterfaceDefinition, StateInterfaceId> &
   canonical_state_interface_order() const noexcept
@@ -276,10 +283,16 @@ public:
   /// An interface with no registered rule does not participate in affine projection at all.
   [[nodiscard]] const AffineProjectionRule * affine_projection_rule(const InterfaceId & interface_id) const noexcept;
 
+  /// Returns the rule for a compact projection kind id.
+  [[nodiscard]] const AffineProjectionRule & affine_projection_rule(ProjectionKindId projection_kind_id) const noexcept
+  {
+    return projection_rules_[projection_kind_id];
+  }
+
   /// Returns the full registered projection-rule table. Useful for callers that need to enumerate
   /// every interface that participates in affine projection (e.g. ros2_control transmission import,
   /// which probes its plugin against this set instead of a hardcoded list of interface names).
-  [[nodiscard]] const std::unordered_map<InterfaceId, AffineProjectionRule> & affine_projection_rules() const noexcept
+  [[nodiscard]] const std::vector<AffineProjectionRule> & affine_projection_rules() const noexcept
   {
     return projection_rules_;
   }
@@ -331,14 +344,16 @@ private:
   Order<std::string, JointId> joint_order_{};
   /// InterfaceId -> compact analysis-local kind id.
   Order<InterfaceId, InterfaceKindId> interface_order_{};
+  /// InterfaceId -> compact projection-rule id.
+  Order<InterfaceId, ProjectionKindId> projection_order_{};
   /// (JointId, InterfaceId) → StateInterfaceId
   Order<StateInterfaceDefinition, StateInterfaceId> state_interface_order_{};
   /// (JointId, InterfaceKindId) -> StateInterfaceId
   Order<CanonicalStateInterfaceDefinition, StateInterfaceId> canonical_state_interface_order_{};
 
-  /// InterfaceId → projection rule. Populated with sane defaults for position, velocity, and
-  /// acceleration in the constructor. Effort is *not* registered by default.
-  std::unordered_map<InterfaceId, AffineProjectionRule> projection_rules_{};
+  /// ProjectionKindId → projection rule. Populated with sane defaults for position, velocity,
+  /// and acceleration in the constructor. Effort is *not* registered by default.
+  std::vector<AffineProjectionRule> projection_rules_{};
 
   /// Inverse transmission index: state_interface_id → list of TransmissionInstanceIds whose
   /// `output_ids` contain that state interface. Indexed by StateInterfaceId (dense).

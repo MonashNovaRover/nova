@@ -25,14 +25,14 @@ namespace {
 // physical gears or belts), so energy-conserving effort propagation would be a strong assumption
 // that could silently produce wrong joint torques. Users who actually have a physical coupling
 // must opt in by calling set_affine_projection_rule("effort", ...).
-void populate_default_projection_rules(std::unordered_map<InterfaceId, AffineProjectionRule> & registry)
+void populate_default_projection_rules(TransmissionAnalysis & analysis)
 {
   // Position: q_b = m·q_a + o
-  registry.emplace(InterfaceId::Position(), AffineProjectionRule{1.0, 1.0, false});
+  analysis.set_affine_projection_rule(InterfaceId::Position(), AffineProjectionRule{1.0, 1.0, false});
   // Velocity: v_b = m·v_a   (offset drops under d/dt)
-  registry.emplace(InterfaceId::Velocity(), AffineProjectionRule{1.0, 0.0, false});
+  analysis.set_affine_projection_rule(InterfaceId::Velocity(), AffineProjectionRule{1.0, 0.0, false});
   // Acceleration: a_b = m·a_a
-  registry.emplace(InterfaceId::Acceleration(), AffineProjectionRule{1.0, 0.0, false});
+  analysis.set_affine_projection_rule(InterfaceId::Acceleration(), AffineProjectionRule{1.0, 0.0, false});
 }
 
 // Tolerance for floating-point equality checks on composed affine coefficients. Used in the
@@ -56,7 +56,7 @@ bool affine_coefficients_approx_equal(const double a, const double b) noexcept
 
 TransmissionAnalysis::TransmissionAnalysis()
 {
-  populate_default_projection_rules(projection_rules_);
+  populate_default_projection_rules(*this);
 }
 
 TransmissionAnalysis::TransmissionAnalysis(const TransmissionAnalysis & other)
@@ -64,6 +64,7 @@ TransmissionAnalysis::TransmissionAnalysis(const TransmissionAnalysis & other)
     transmissions_(other.transmissions_),
     joint_order_(other.joint_order_),
     interface_order_(other.interface_order_),
+    projection_order_(other.projection_order_),
     state_interface_order_(other.state_interface_order_),
     canonical_state_interface_order_(other.canonical_state_interface_order_),
     projection_rules_(other.projection_rules_),
@@ -97,6 +98,7 @@ TransmissionAnalysis & TransmissionAnalysis::operator=(const TransmissionAnalysi
   transmissions_ = other.transmissions_;
   joint_order_ = other.joint_order_;
   interface_order_ = other.interface_order_;
+  projection_order_ = other.projection_order_;
   state_interface_order_ = other.state_interface_order_;
   canonical_state_interface_order_ = other.canonical_state_interface_order_;
   projection_rules_ = other.projection_rules_;
@@ -413,16 +415,23 @@ void TransmissionAnalysis::add_affine_transmission(
 
 void TransmissionAnalysis::set_affine_projection_rule(InterfaceId interface_id, AffineProjectionRule rule)
 {
-  projection_rules_[std::move(interface_id)] = std::move(rule);
+  interface_order_.ensure(interface_id);
+  const ProjectionKindId projection_kind_id = projection_order_.ensure(interface_id);
+  if (projection_kind_id >= projection_rules_.size()) {
+    projection_rules_.resize(projection_kind_id + 1);
+  }
+  projection_rules_[projection_kind_id] = std::move(rule);
 }
 
 const AffineProjectionRule * TransmissionAnalysis::affine_projection_rule(const InterfaceId & interface_id) const noexcept
 {
-  const auto it = projection_rules_.find(interface_id);
-  if (it == projection_rules_.end()) {
+  if (!projection_order_.contains_key(interface_id)) {
     return nullptr;
   }
-  return &it->second;
+  const ProjectionKindId projection_kind_id = projection_order_[interface_id];
+  assert(projection_kind_id < projection_rules_.size() &&
+         "affine_projection_rule: projection_order_ and projection_rules_ are out of sync");
+  return &projection_rules_[projection_kind_id];
 }
 
 // ---------------------------------------------------------------------------

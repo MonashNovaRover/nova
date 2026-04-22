@@ -295,6 +295,41 @@ TEST_F(DefaultJointMapBuilderTest, Success_DefaultValueForBarePassivePosition)
   EXPECT_TRUE(approx_equal(out[0], 2.5));
 }
 
+TEST_F(DefaultJointMapBuilderTest, Success_BareMimicOutputsDeriveFromBareInputs)
+{
+  auto & analysis = analysis_;
+  const auto j2 = analysis.ensure_joint_id("j2");
+  const auto j3 = analysis.ensure_joint_id("j3");
+  const auto l1_l2_pivot = analysis.ensure_joint_id("l1_l2_pivot");
+  const auto l1_l2_pivot_mimic = analysis.ensure_joint_id("l1_l2_pivot_mimic");
+  const auto l1_p_upper = analysis.ensure_joint_id("l1_p_upper");
+  const auto l1_p_upper_mimic = analysis.ensure_joint_id("l1_p_upper_mimic");
+
+  analysis.add_affine_transmission(j3, l1_l2_pivot, -1.0, 0.0);
+  analysis.add_affine_transmission(j2, l1_l2_pivot_mimic, 1.0, 0.0);
+  analysis.add_affine_transmission(j2, l1_p_upper, 1.0, 0.0);
+  analysis.add_affine_transmission(j3, l1_p_upper_mimic, -1.0, 0.0);
+
+  const auto result = builder_.build_expected(
+    std::vector<StateInterfaceDefinition>{
+      {j2, InterfaceId::Position()},
+      {j3, InterfaceId::Position()}},
+    std::vector<StateInterfaceDefinition>{
+      {l1_l2_pivot, InterfaceId::Position()},
+      {l1_l2_pivot_mimic, InterfaceId::Position()},
+      {l1_p_upper, InterfaceId::Position()},
+      {l1_p_upper_mimic, InterfaceId::Position()}});
+  ASSERT_TRUE(result.has_value());
+
+  std::vector<double> in{1.25, 0.5};
+  std::vector<double> out(4, 0.0);
+  result.value().map(in, out);
+  EXPECT_TRUE(approx_equal(out[0], -0.5));
+  EXPECT_TRUE(approx_equal(out[1], 1.25));
+  EXPECT_TRUE(approx_equal(out[2], 1.25));
+  EXPECT_TRUE(approx_equal(out[3], -0.5));
+}
+
 // ===========================================================================
 // MissingInputs error
 // ===========================================================================

@@ -113,7 +113,12 @@ public:
     return base_.transmissions();
   }
 
-  [[nodiscard]] const std::unordered_map<InterfaceId, AffineProjectionRule> & affine_projection_rules() const noexcept
+  [[nodiscard]] const Order<InterfaceId, ProjectionKindId> & projection_order() const noexcept
+  {
+    return base_.projection_order();
+  }
+
+  [[nodiscard]] const std::vector<AffineProjectionRule> & affine_projection_rules() const noexcept
   {
     return base_.affine_projection_rules();
   }
