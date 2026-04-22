@@ -142,6 +142,23 @@ def launch_setup(context, *args, **kwargs):
 
         # Misc - Nodes for misc components
         Node(
+            name='cache_left',
+            package='science',
+            executable='urc_cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[science_params],
+        ),
+        Node(
+            name='cache_right',
+            package='science',
+            executable='urc_cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[science_params],
+        )
+
+        Node(
             name='scimbal_cam',
             package='science',
             executable='scimbal_cam.py',

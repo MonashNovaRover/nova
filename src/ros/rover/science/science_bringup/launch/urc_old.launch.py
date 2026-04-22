@@ -112,7 +112,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             name="Cache1",
             package='science',
-            executable='urc_cache.py',
+            executable='urc_cache_old.py',
             output='screen',
             emulate_tty=True,
             parameters=[{
@@ -124,7 +124,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             name="Cache2",
             package='science',
-            executable='urc_cache.py',
+            executable='urc_cache_old.py',
             output='screen',
             emulate_tty=True,
             parameters=[{

@@ -105,6 +105,17 @@ thrustmaster_right:
         auger_drill_speed:
           from: "r_ax_slider"
 
+        # Caches
+        cache_right_actuation:
+          from: "r_ax_stick_y"
+        cache_right_speed:
+          from: "r_ax_slider"
+        cache_left_actuation:
+          from: "l_ax_stick_y"
+        cache_left_speed:
+          from: "l_ax_slider"
+
+
       buttons:
         # Auger
         activate_auger_left:

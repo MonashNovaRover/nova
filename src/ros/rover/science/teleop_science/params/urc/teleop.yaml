@@ -73,6 +73,11 @@ input_publisher_mode:
       - "analysis_arm_actuation"
       # CBeam
       - "cbeam_actuation"
+      # Caches
+      - "cache_right_actuation"
+      - "cache_right_speed"
+      - "cache_left_actuation"
+      - "cache_left_speed"
     button_names:
       # Auger
       - "auger_drill"

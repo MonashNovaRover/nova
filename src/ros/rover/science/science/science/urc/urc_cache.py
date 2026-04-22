@@ -1,143 +1,101 @@
 #!/usr/bin/env python3
-
 """
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Purpose: Control for the servos of the URC  drill
-caches
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NODE: CacheNode
-TOPICS: None
-SERVICES:
-    - server: /science/cache_command_n
-ACTIONS: None
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE:    science
-AUTHOR(S):	Brandon Chung, Felicity Matthews
-CREATION:	03/05/2025
-EDITED:		08/05/2025
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Controls the URC Caches
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: CacheController
+COMMAND INTERFACES:
+  - cache_1/effort    [value between -1 and 1]
+  - cache_2/effort    [value between -1 and 1]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        science
+AUTHOR(S):      Yahya Muayyiduddin
+CREATION:       17/2/2026
+EDITED:         21/2/2026
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
-from python_control.ControllerNode import ControllerNode
-from python_control.controls.OneAxisPositionControl import OneAxisPositionControl
-from python_control.controllers.JonoPositionController import JonoPositionController
-from science_interfaces.srv import CacheCommand
+import jcan
+from rclpy.node import Node
+from typing import Optional
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 
-class URCCache(ControllerNode):
-    # CAN BUS NAME
-    # The name of the CAN bus to use
-    CAN_BUS = "can1"
-
-    # SENDING CARD IDS
-    # Add any CONTROL FRAME / CARD IDS here
-    CACHE_SEND_FRAME_PARAM = "frame_id"
-    DEFAULT_SEND_FRAME = 0x0B0
-    CACHE_MOVE_SERVO_PARAM = "servo_command"
-    DEFAULT_MOVE_SERVO_ID = 0x04
-    CACHE_ID_PARAM = "cache_id"
-
-    # CONTROL PARAMETERS
-    # Max Speed as a Percentage (0.0 to 1.0)
-    SERVO_MAX_ANGLE_PARAM = "max_angle"
-    SERVO_MAX_ANGLE_DEFAULT = 179
-    MAX_VALUE = 0xF0 # max angle of servos
-
-    # Positions
-    POSITION_NAMES = [
-        DEG_0 := "0_degrees",
-        DEG_90 := "90_degrees",
-        DEG_180 := "180_degrees",
-    ]
-
-    # New positions after testing (in CAN message units)
-    #   - 0x00 (0 degrees)
-    #   - 0x80 (90 degrees)
-    #   - 0xFF (179 degrees)
-    POSITION_DEFAULTS = {
-        DEG_0: 179,
-        DEG_90: 90,
-        DEG_180: 0,
-    }
-
-    POSITION_PARAMS = {
-        DEG_0: DEG_0 + "_pos",
-        DEG_90: DEG_90 + "_pos",
-        DEG_180: DEG_180 + "_pos",
-    }
-
-    # All possible commands
-    COMMANDS = [
-        COM_DEG_0 := (0).to_bytes(1, "big"),
-        COM_DEG_90 := (1).to_bytes(1, "big"),
-        COM_DEG_180 := (2).to_bytes(1, "big"),
-    ]
-
-    def __init__(self):
-        super().__init__(name="CacheNode", can_bus=self.CAN_BUS)
-        logger = self.get_logger()
-
-        # Setting ROS parameters
-        self.declare_parameter(self.CACHE_SEND_FRAME_PARAM, self.DEFAULT_SEND_FRAME)
-        self.declare_parameter(self.CACHE_MOVE_SERVO_PARAM, self.DEFAULT_MOVE_SERVO_ID)
-        self.declare_parameter(self.CACHE_ID_PARAM, "")
-
-        # Create positions map from params
-        self.positions: {str: int} = { k: self.declare_parameter(v, self.POSITION_DEFAULTS[k]).value for k, v in self.POSITION_PARAMS.items() }
-        self.get_logger().info(f"POSITIONS: {self.positions}")
-
-        ## Create CONTROLS
-        self.cache_servo = OneAxisPositionControl(
-            logger=logger,
-            max_angle=self.declare_parameter(self.SERVO_MAX_ANGLE_PARAM, self.SERVO_MAX_ANGLE_DEFAULT).value,
-            positions = self.positions
-        )
-        self.cache_servo.update_position(self.DEG_0)
-
-        ## Create CONTROLLERS
-        self.cache_servo_controller = JonoPositionController(
-            logger=logger,
-            bus=self.bus,
-            pos_command=self.get_parameter(self.CACHE_MOVE_SERVO_PARAM).value,
-            frame_id=self.get_parameter(self.CACHE_SEND_FRAME_PARAM).value,
-            control=self.cache_servo,
-            max_value=self.MAX_VALUE
-        )
-
-        ## Add the CONTROLLERS to the node's controllers
-        self.add_controller("cache_servo", self.cache_servo_controller)
-
-        ## Create SERVICE
-        self.command_service = self.create_service(CacheCommand, f'/science/cache_command_{self.get_parameter(self.CACHE_ID_PARAM).value}', self.command_callback)
-
-        ## Start the CAN bus
-        self.start_can()
-
-    def command_callback(self, request, response):
-        self.cache_servo.set_offset(0)
-        match request.angle:
-            case self.COM_DEG_0:
-                self.cache_servo.update_position(self.DEG_0)
-                self.get_logger().info(f"Moved cache to 0 degrees {self.cache_servo.get_goal_position()}")
-            case self.COM_DEG_90:
-                self.cache_servo.update_position(self.DEG_90)
-                self.get_logger().info(f"Moved cache to 90 degrees {self.cache_servo.get_goal_position()}")
-            case self.COM_DEG_180:
-                self.cache_servo.update_position(self.DEG_180)
-                self.get_logger().info(f"Moved cache to 180 degrees {self.cache_servo.get_goal_position()}")
-            case _:
-                self.get_logger().error(f"Invalid cache command: {request.angle}")
-                response.success = False
-                return response
-        response.success = True
-        return response
+from python_control2.hardware_interfaces import CMDHardware, ContinousServoHardware
+from teleop_python_utils import Inputs
 
 
-def main():
-    rclpy.init()
-    node = URCCache()
-    rclpy.spin(node)
-    rclpy.shutdown()
+class CacheController(Controller):
+    # Command interfaces
+    # joint_cmd: Interface
 
+    # State interfaces
+    # state: Interface
+
+    def __init__(self, contexts: Contexts, cache_name: str):
+        """ Constructor, deferred until the control manager has been spun.
+        If you override this method, and want to add your own arguments, just make sure contexts is the FIRST arg
+
+        :param contexts: A collection of dependency injection class instances you can index by class type.
+        """
+        super().__init__(contexts)
+        self.logger.info(f"CacheController -- I have been __init__ialized")
+
+        # Do any setup logic here, save any contexts you want reference to in the future.
+        # Save Input references here
+        # self.button_name = self.declare_parameter("button", button).value
+        self.cache_name = self.declare_parameter("cache_name", cache_name).value
+        self.cache_axis_name = self.declare_parameter("cache_axis", f"{self.cache_name}_actuation").value
+        self.cache_speed_axis_name = self.declare_parameter("cache_speed", f"{self.cache_name}_speed").value
+
+
+        inputs = contexts[Inputs]
+
+        self.cache_axis = inputs.get_axis(self.cache_axis_name)
+
+        self.cache_speed = inputs.get_axis(self.cache_speed_axis_name)
+
+
+    def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
+        """ Used to set up your Controller. Run once before any other class method.
+        Use this method to get data from self.node, and get references to any command or state interface you need.
+
+        :param command_interfaces: A collection of Interfaces used to send messages to hardware. Get any command
+        interfaces you need from this, then store them in member variables.
+        :param state_interfaces: A collection of Interfaces containing the current state of the robot. Get any state
+        interfaces you need from this, then store them in member variables.
+        :returns: None or True if configured successfully. False otherwise.
+        """
+        # Save references to interfaces
+        self.cache_cmd = command_interfaces["actuation/effort"]
+
+
+    def on_update(self, now: float, period: float):
+        """ Called on every update. You should read values from state interfaces, and set values on command interfaces
+            here.
+        :param now: The current time, in seconds
+        :param period: The time elapsed since the last update, in seconds.
+        """
+        # Update Command Interfaces
+        self.cache_cmd.value = self.cache_axis.value * self.get_speed()
+
+
+    
+    def get_speed(self) -> float:
+        """ gets the speed, turning an axis [-1, 1] to a speed [0, 1]"""
+        return (self.cache_speed.value + 1) / 2  
+        
 
 if __name__ == "__main__":
-    main()
+    print("Setting up!")
+
+    rclpy.init()
+
+    node = Node("cache")
+    inputs = Inputs(node).with_topics("/science/input")
+
+    PythonControl(node, update_rate=5, can_bus="can1") \
+        .with_controller("controller", CacheController, cache_name = "cache_left") \
+        .with_hardware("actuation", ContinousServoHardware, can_id=0x0E2) \
+        .with_teleop(inputs) \
+        .with_jcan() \
+        .spin()
