@@ -170,7 +170,6 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   onClick={vehicles[focusVehicle].toggleCentering}
                 >
                   <Navigation className="w-5" />
-                  {/* https://feathericons.com/ */}
                 </ToolTipButton>
                 {enableDroneTracking && (
                   <ToolTipButton
