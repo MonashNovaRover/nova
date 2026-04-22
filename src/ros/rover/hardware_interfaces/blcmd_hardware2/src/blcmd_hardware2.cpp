@@ -773,7 +773,7 @@ bool BLCMDHardware::set_control_interface(
         }
 
         // only calculate moving average of effort if window size > 1
-        const auto update_effort = [this](int16_t effort, int j)
+        const auto update_effort = [this](double effort, int j)
         {
           if (effort_telemetry_window[j].size() > 1) {
               effort_telemetry_window[j].erase(effort_telemetry_window[j].begin());
