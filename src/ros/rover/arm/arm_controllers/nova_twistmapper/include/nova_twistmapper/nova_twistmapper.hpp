@@ -170,7 +170,9 @@ protected:
 
   bool write_zero_velocity_commands();
 
-  void log_self_intersection_pairs(const char * message_prefix);
+  void log_self_intersection_pairs(
+    const char * message_prefix,
+    const std::vector<std::pair<size_t, size_t>> & colliding_pairs);
 
   tl::expected<arm_kinematics::ForwardKinematicsPlugin::Tree::SharedPtr, std::string>
   make_single_frame_tree(const std::string & frame_name) const;

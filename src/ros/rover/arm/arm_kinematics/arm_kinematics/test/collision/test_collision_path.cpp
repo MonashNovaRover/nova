@@ -140,6 +140,72 @@ TEST(CollisionPathTest, ReturnsTrueWhenOnlyIntermediateStateCollides)
   EXPECT_TRUE(*result);
 }
 
+TEST(CollisionPathTest, PopulatesPairsAtCollidingEndpoint)
+{
+  auto plugin = std::make_shared<FakeCollisionPlugin>(
+    [](double x) { return x >= 1.0; });
+  auto manager = make_fake_manager(plugin);
+  std::vector<double> scratch(1, 0.0);
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{1.0},
+    2.0,
+    scratch,
+    colliding_pairs);
+  ASSERT_TRUE(result);
+  EXPECT_TRUE(*result);
+  ASSERT_EQ(colliding_pairs.size(), 1u);
+  EXPECT_EQ(colliding_pairs.front().first, 0u);
+  EXPECT_EQ(colliding_pairs.front().second, 0u);
+}
+
+TEST(CollisionPathTest, PopulatesPairsAtCollidingIntermediateState)
+{
+  auto plugin = std::make_shared<FakeCollisionPlugin>(
+    [](double x) { return x >= 0.35 && x <= 0.45; });
+  auto manager = make_fake_manager(plugin);
+  std::vector<double> scratch(1, 0.0);
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{0.6},
+    0.25,
+    scratch,
+    colliding_pairs);
+  ASSERT_TRUE(result);
+  EXPECT_TRUE(*result);
+  ASSERT_EQ(colliding_pairs.size(), 1u);
+  EXPECT_EQ(colliding_pairs.front().first, 0u);
+  EXPECT_EQ(colliding_pairs.front().second, 0u);
+  ASSERT_EQ(plugin->seen_positions().size(), 2u);
+  EXPECT_NEAR(plugin->seen_positions().back(), 0.4, 1.0e-12);
+}
+
+TEST(CollisionPathTest, ClearsPairsWhenPathIsSafe)
+{
+  auto plugin = std::make_shared<FakeCollisionPlugin>(
+    [](double) { return false; });
+  auto manager = make_fake_manager(plugin);
+  std::vector<double> scratch(1, 0.0);
+  std::vector<std::pair<size_t, size_t>> colliding_pairs{{1, 2}};
+
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{0.6},
+    0.25,
+    scratch,
+    colliding_pairs);
+  ASSERT_TRUE(result);
+  EXPECT_FALSE(*result);
+  EXPECT_TRUE(colliding_pairs.empty());
+}
+
 TEST(CollisionPathTest, UsesExpectedStepsForNonMultipleDisplacement)
 {
   auto plugin = std::make_shared<FakeCollisionPlugin>(

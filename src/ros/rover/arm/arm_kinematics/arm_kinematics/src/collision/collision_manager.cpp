@@ -186,10 +186,64 @@ tl::expected<bool, PathCollisionError> check_path_collision(
   CollisionManager & manager,
   const span<const double> start,
   const span<const double> end,
+  const double step_size,
+  span<double> scratch,
+  std::vector<std::pair<size_t, size_t>> & colliding_pairs)
+{
+  if (start.size() != end.size()) {
+    return tl::unexpected(PathCollisionError::SizeMismatch{start.size(), end.size()});
+  }
+  if (step_size <= 0.0) {
+    return tl::unexpected(PathCollisionError::InvalidStepSize{step_size});
+  }
+  colliding_pairs.clear();
+
+  double max_displacement = 0.0;
+  for (std::size_t i = 0; i < start.size(); ++i) {
+    max_displacement = std::max(max_displacement, std::abs(end[i] - start[i]));
+  }
+
+  const int iterations = static_cast<int>(std::ceil(max_displacement / step_size));
+
+  for (int i = 1; i < iterations; ++i) {
+    const double interpolator = static_cast<double>(i) / static_cast<double>(iterations);
+    const double one_minus_interpolator = 1.0 - interpolator;
+
+    for (std::size_t j = 0; j < scratch.size(); ++j) {
+      scratch[j] = start[j] * one_minus_interpolator + end[j] * interpolator;
+    }
+
+    manager.update_poses(scratch);
+    colliding_pairs.clear();
+    if (manager.collide(colliding_pairs)) {
+      return true;
+    }
+  }
+
+  manager.update_poses(end);
+  colliding_pairs.clear();
+  return manager.collide(colliding_pairs);
+}
+
+tl::expected<bool, PathCollisionError> check_path_collision(
+  CollisionManager & manager,
+  const span<const double> start,
+  const span<const double> end,
   const double step_size)
 {
   std::vector<double> scratch(start.size());
   return check_path_collision(manager, start, end, step_size, scratch);
+}
+
+tl::expected<bool, PathCollisionError> check_path_collision(
+  CollisionManager & manager,
+  const span<const double> start,
+  const span<const double> end,
+  const double step_size,
+  std::vector<std::pair<size_t, size_t>> & colliding_pairs)
+{
+  std::vector<double> scratch(start.size());
+  return check_path_collision(manager, start, end, step_size, scratch, colliding_pairs);
 }
 
 } // arm_kinematics

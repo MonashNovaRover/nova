@@ -41,8 +41,6 @@ using lifecycle_msgs::msg::State;
 
 namespace {
 
-constexpr std::size_t kMaxLoggedCollisionPairs = 8;
-
 std::string format_collider_name(
   const std::size_t collider_index,
   const std::vector<std::string> & parent_link_names)
@@ -59,8 +57,7 @@ std::string format_collision_pairs(
   const std::vector<std::string> & parent_link_names)
 {
   std::string formatted;
-  const auto pair_count = std::min(kMaxLoggedCollisionPairs, colliding_pairs.size());
-  for (std::size_t i = 0; i < pair_count; ++i) {
+  for (std::size_t i = 0; i < colliding_pairs.size(); ++i) {
     if (!formatted.empty()) {
       formatted += ", ";
     }
@@ -69,10 +66,6 @@ std::string format_collision_pairs(
     formatted += format_collider_name(a, parent_link_names);
     formatted += " <-> ";
     formatted += format_collider_name(b, parent_link_names);
-  }
-
-  if (colliding_pairs.size() >= kMaxLoggedCollisionPairs) {
-    formatted += ", ...possibly more";
   }
 
   return formatted;
@@ -111,26 +104,24 @@ const char * NovaTwistmapper::joint_command_type() const noexcept
     hardware_interface::HW_IF_VELOCITY;
 }
 
-void NovaTwistmapper::log_self_intersection_pairs(const char * message_prefix)
+void NovaTwistmapper::log_self_intersection_pairs(
+  const char * message_prefix,
+  const std::vector<std::pair<size_t, size_t>> & colliding_pairs)
 {
   const auto logger = get_node()->get_logger();
-  colliding_pairs_scratch_.clear();
 
-  const bool still_colliding = kinematics_->collision_manager.collide(
-    colliding_pairs_scratch_,
-    kMaxLoggedCollisionPairs);
-  if (!still_colliding || colliding_pairs_scratch_.empty()) {
-    RCLCPP_WARN_THROTTLE(
+  if (colliding_pairs.empty()) {
+    RCLCPP_ERROR_THROTTLE(
       logger,
       *get_node()->get_clock(),
       200,
-      "%s self intersects, but no colliding pairs were returned by the pair query.",
+      "Collision plugin invariant violation: %s was rejected for self-intersection without collision pair details.",
       message_prefix);
     return;
   }
 
   const auto formatted_pairs = format_collision_pairs(
-    colliding_pairs_scratch_,
+    colliding_pairs,
     kinematics_->collision_manager.parent_link_names());
 
   RCLCPP_WARN_THROTTLE(
@@ -367,7 +358,8 @@ controller_interface::return_type NovaTwistmapper::update_position_mode(
     current_joint_state_values_,
     runtime.solution_positions,
     params_.self_intersection_max_step_size,
-    joint_values_scratch_);
+    joint_values_scratch_,
+    colliding_pairs_scratch_);
   if (!collision_result) {
     RCLCPP_ERROR(
       logger,
@@ -377,7 +369,7 @@ controller_interface::return_type NovaTwistmapper::update_position_mode(
     return controller_interface::return_type::OK;
   }
   if (*collision_result) {
-    log_self_intersection_pairs("Inverse Kinematics solution");
+    log_self_intersection_pairs("Inverse Kinematics solution", colliding_pairs_scratch_);
     publish_to_tf2(time, runtime.target_pose);
     return controller_interface::return_type::OK;
   }
@@ -491,7 +483,8 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     current_joint_state_values_,
     predicted_joint_positions_,
     params_.self_intersection_max_step_size,
-    joint_values_scratch_);
+    joint_values_scratch_,
+    colliding_pairs_scratch_);
   if (!collision_result) {
     RCLCPP_ERROR(
       logger,
@@ -504,7 +497,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     return controller_interface::return_type::OK;
   }
   if (*collision_result) {
-    log_self_intersection_pairs("Velocity IK solution");
+    log_self_intersection_pairs("Velocity IK solution", colliding_pairs_scratch_);
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
@@ -639,6 +632,8 @@ controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_
     return controller_interface::CallbackReturn::ERROR;
   }
   kinematics_->collision_manager = std::move(*collision_result);
+  const auto collider_count = kinematics_->collision_manager.parent_link_names().size();
+  colliding_pairs_scratch_.reserve(collider_count > 1 ? collider_count * (collider_count - 1) / 2 : 0);
 
   auto ee_tree_result = make_single_frame_tree(params_.ee_link_name);
   if (!ee_tree_result) {
@@ -893,6 +888,7 @@ bool NovaTwistmapper::reset()
   current_joint_state_values_.clear();
   joint_values_scratch_.clear();
   predicted_joint_positions_.clear();
+  colliding_pairs_scratch_.clear();
   mode_runtime_.reset();
   fk_pose_buffer_.assign(1, Eigen::Isometry3d::Identity());
 

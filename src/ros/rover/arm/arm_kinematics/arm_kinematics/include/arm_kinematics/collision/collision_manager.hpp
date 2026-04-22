@@ -119,6 +119,8 @@ struct ARM_KINEMATICS_PUBLIC PathCollisionError {
  *
  * The starting state is not checked separately. Intermediate states are chosen such that the
  * maximum per-joint displacement between successive checks does not exceed `step_size`.
+ * Pair-yielding overloads populate `colliding_pairs` from the same sampled state that caused
+ * the returned collision result. The vector is cleared when the path is collision-free.
  */
 ARM_KINEMATICS_PUBLIC
 tl::expected<bool, PathCollisionError> check_path_collision(
@@ -133,7 +135,24 @@ tl::expected<bool, PathCollisionError> check_path_collision(
   CollisionManager & manager,
   span<const double> start,
   span<const double> end,
+  double step_size,
+  span<double> scratch,
+  std::vector<std::pair<size_t, size_t>> & colliding_pairs);
+
+ARM_KINEMATICS_PUBLIC
+tl::expected<bool, PathCollisionError> check_path_collision(
+  CollisionManager & manager,
+  span<const double> start,
+  span<const double> end,
   double step_size);
+
+ARM_KINEMATICS_PUBLIC
+tl::expected<bool, PathCollisionError> check_path_collision(
+  CollisionManager & manager,
+  span<const double> start,
+  span<const double> end,
+  double step_size,
+  std::vector<std::pair<size_t, size_t>> & colliding_pairs);
 
 } // arm_kinematics
 
