@@ -30,9 +30,10 @@ interface BottomOverlayProps {
   setMapTile: (tile: MapTile) => void;
   deletePoint: (point: MapPoint) => void;
   bottomOverlayComponents?: React.ReactNode[];
+  enableDroneTracking?: boolean;
 }
 
-export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = []}) => {
+export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = [], enableDroneTracking = false}) => {
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const { points, centerOnRover, trackRover, centerOnDrone, trackDrone, focusVehicle } = useSelector(
@@ -54,14 +55,16 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
       toggleTracking: toggleRoverTracking,
       toggleCentering: toggleRoverCentering,
     },
-    [Vehicle.DRONE]: {
-      label: "Drone",
-      location: drone,
-      track: trackDrone,
-      centerOn: centerOnDrone,
-      toggleTracking: toggleDroneTracking,
-      toggleCentering: toggleDroneCentering,
-    },
+    ...(enableDroneTracking && {
+      [Vehicle.DRONE]: {
+        label: "Drone",
+        location: drone,
+        track: trackDrone,
+        centerOn: centerOnDrone,
+        toggleTracking: toggleDroneTracking,
+        toggleCentering: toggleDroneCentering,
+      },
+    }),
   };
   
   const toggleOverlay = () => {
@@ -169,14 +172,16 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   <Navigation className="w-5" />
                   {/* https://feathericons.com/ */}
                 </ToolTipButton>
-                <ToolTipButton
-                  tooltipContent={focusVehicle == Vehicle.ROVER ? "Focus Drone" : "Focus Rover"}
-                  isIconOnly
-                  variant="shadow"
-                  onClick={handleFocusVehicle}
-                >
-                  {focusVehicle == Vehicle.ROVER ? <Twitter /> : <Truck />}
-                </ToolTipButton>
+                {enableDroneTracking && (
+                  <ToolTipButton
+                    tooltipContent={focusVehicle == Vehicle.ROVER ? "Focus Drone" : "Focus Rover"}
+                    isIconOnly
+                    variant="shadow"
+                    onClick={handleFocusVehicle}
+                  >
+                    {focusVehicle == Vehicle.ROVER ? <Twitter /> : <Truck />}
+                  </ToolTipButton>
+                )}
                 <Button
                   variant="shadow"
                   isIconOnly

@@ -20,9 +20,10 @@ import AutoArrivedPopup from "./components/AutoArrivedPopup.tsx";
 interface CartographerProps {
   pointLabels?: { key: number; text: string }[];
   bottomOverlayComponents?: React.ReactNode[];
+  enableDroneTracking?: boolean;
 }
 
-export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayComponents = [], pointLabels }) => {
+export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayComponents = [], pointLabels, enableDroneTracking = false }) => {
   const [mapTile, setMapTile] = useLocalStorage("mapTile", MapTile.Hanksville);
   const [storedPoints, setStoredPoints] = useLocalStorage("storedPoints", [] as MapPoint[])
 
@@ -50,8 +51,10 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
   }, [baseLocationBifrost]);
 
   useEffect(() => {
-    droneLocationBifrost.syncWithTopic();
-  }, [droneLocationBifrost]);
+    if (enableDroneTracking) {
+      droneLocationBifrost.syncWithTopic();
+    }
+  }, [droneLocationBifrost, enableDroneTracking]);
 
   const { setPoints, setInteractionMode, closeNewModal, clearMeasurements } =
     useCartographerActions();
@@ -83,6 +86,7 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
       <div className="flex h-full">
         <MapTilerMap
           mapTile={mapTile}
+          enableDroneTracking={enableDroneTracking}
           overlay={
             <>
               <div className="flex flex-col justify-end gap-2 absolute top-2 right-2 mr-12">
@@ -179,7 +183,7 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
           }
         />
         <div className="fixed bottom-0 w-full">
-          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile as (tile: MapTile) => void} deletePoint={deletePoint} bottomOverlayComponents={bottomOverlayComponents}/>
+          <BottomOverlay mapTile={mapTile} setMapTile={setMapTile as (tile: MapTile) => void} deletePoint={deletePoint} bottomOverlayComponents={bottomOverlayComponents} enableDroneTracking={enableDroneTracking}/>
         </div>
       </div>
     </div>

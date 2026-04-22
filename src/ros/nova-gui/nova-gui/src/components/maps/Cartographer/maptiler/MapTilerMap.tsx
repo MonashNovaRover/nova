@@ -9,8 +9,8 @@ import { useCartographerTracking } from "../hooks/useCartographerTracking.tsx";
 import { getLineGeoJSONSource } from "../utils/geojson.ts";
 import { MAP_BOUNDS, MapTile } from "../config.tsx";
 
-export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile }) => {
-  const { mapTile } = props;
+export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile, enableDroneTracking?: boolean }) => {
+  const { mapTile, enableDroneTracking = false } = props;
   const mapContainer = useRef<HTMLDivElement>(null);
   
   const mapRef = useRef<maptilersdk.Map | null>(null);
@@ -26,7 +26,9 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
     });
     newMap.on("load", ()=>{
       newMap.addSource("roverTrace", getLineGeoJSONSource([]));
-      newMap.addSource("droneTrace", getLineGeoJSONSource([]));
+      if (enableDroneTracking) {
+        newMap.addSource("droneTrace", getLineGeoJSONSource([]));
+      }
       newMap.addSource("measureLine", getLineGeoJSONSource([]));
 
       newMap.addLayer({
@@ -40,16 +42,18 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
         },
       });
 
-      newMap.addLayer({
-        id: "drone-trace",
-        type: "line",
-        source: "droneTrace",
-        paint: {
-          "line-color": "blue",
-          "line-opacity": 0.75,
-          "line-width": 3,
-        },
-      });
+      if (enableDroneTracking) {
+        newMap.addLayer({
+          id: "drone-trace",
+          type: "line",
+          source: "droneTrace",
+          paint: {
+            "line-color": "blue",
+            "line-opacity": 0.75,
+            "line-width": 3,
+          },
+        });
+      }
 
       newMap.addLayer({
         id: "measure-points",
@@ -91,14 +95,14 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile 
       });
     });
     mapRef.current = newMap;
-  }, [updateMousePosition, handleMapClickEvent]);
+  }, [updateMousePosition, handleMapClickEvent, enableDroneTracking]);
 
   const baseStationIp = useSelector(
     (state: RootState) => state.uiState.baseStationIP
   );
 
-  useCartographerMarkers(mapRef);
-  useCartographerTracking(mapRef);
+  useCartographerMarkers(mapRef, enableDroneTracking);
+  useCartographerTracking(mapRef, enableDroneTracking);
 
 
   useEffect(()=> {

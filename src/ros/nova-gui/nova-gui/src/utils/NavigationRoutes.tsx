@@ -125,6 +125,11 @@ export const urcNavigationData: NavigationInterface = {
       icon: <Home />,
     },
     {
+      title: "Cartographer",
+      route: "/urc/delivery/cartographer",
+      icon: <Map />,
+    },
+    {
       title: "Cameras",
       route: `/urc/cameras/${URCCompModes.URC_DELIVERY}`,
       icon: <Camera />,

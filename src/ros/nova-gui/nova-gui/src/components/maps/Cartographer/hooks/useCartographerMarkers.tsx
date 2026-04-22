@@ -9,7 +9,7 @@ import novaLogo from "../../../../assets/nova-logo.png";
 import { useEffect, useState, RefObject } from "react";
 import { MapInteractionMode } from "../../../../redux/models/CartographerState.ts";
 
-export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
+export const useCartographerMarkers = (mapRef: RefObject<Map | null>, enableDroneTracking: boolean = false) => {
   const [roverMarker, setRoverMarker] = useState<Marker>();
   const [baseMarker, setBaseMarker] = useState<Marker>();
   const [droneMarker, setDroneMarker] = useState<Marker>();
@@ -42,8 +42,10 @@ export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
   }, [baseLocationBifrost]);
 
   useEffect(() => {
-    droneLocationBifrost.syncWithTopic();
-  }, [droneLocationBifrost]);
+    if (enableDroneTracking) {
+      droneLocationBifrost.syncWithTopic();
+    }
+  }, [droneLocationBifrost, enableDroneTracking]);
 
   const roverLocation = useSelector(
     (state: RootState) => state.roverLocationStore
@@ -109,25 +111,27 @@ export const useCartographerMarkers = (mapRef: RefObject<Map | null>) => {
       console.log('Set marker rotation to:', roverLocation.heading);
     }
 
-    if (!droneMarker) {
-      console.log('Creating drone marker with heading:', droneLocation.heading);
-      const marker = new Marker({
-        element: createDroneIcon(),
-        rotation: droneLocation.heading,
-      });
-      marker.setLngLat([droneLocation.longitude, droneLocation.latitude]);
-      marker.addTo(mapRef.current);
-      setDroneMarker(marker);
-    } else {
-      droneMarker.setLngLat([droneLocation.longitude, droneLocation.latitude]);
-      console.log('Updating drone marker heading:', droneLocation.heading);
-      droneMarker.setRotation(droneLocation.heading);
-      console.log('Set marker rotation to:', droneLocation.heading);
+    if (enableDroneTracking) {
+      if (!droneMarker) {
+        console.log('Creating drone marker with heading:', droneLocation.heading);
+        const marker = new Marker({
+          element: createDroneIcon(),
+          rotation: droneLocation.heading,
+        });
+        marker.setLngLat([droneLocation.longitude, droneLocation.latitude]);
+        marker.addTo(mapRef.current);
+        setDroneMarker(marker);
+      } else {
+        droneMarker.setLngLat([droneLocation.longitude, droneLocation.latitude]);
+        console.log('Updating drone marker heading:', droneLocation.heading);
+        droneMarker.setRotation(droneLocation.heading);
+        console.log('Set marker rotation to:', droneLocation.heading);
+      }
     }
 
-  }, [mapRef, 
+  }, [mapRef,
     roverLocation.latitude, roverLocation.longitude, roverLocation.heading, roverMarker,
-    droneLocation.latitude, droneLocation.longitude, droneLocation.heading, droneMarker]);
+    droneLocation.latitude, droneLocation.longitude, droneLocation.heading, droneMarker, enableDroneTracking]);
 
   // Syncs Markers
   useEffect(() => {
