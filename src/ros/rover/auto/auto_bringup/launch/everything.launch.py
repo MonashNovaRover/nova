@@ -90,6 +90,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
+                'local': local,
                 'comp': comp,
                 'controller_params': controller_params,
                 'model': model,
@@ -102,10 +103,14 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=UnlessCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
+            launch_arguments={
+                'local': local,
+            }.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'realsense.launch.py'])),
             launch_arguments={
+                'local': local,
                 'comp': comp,
                 'sim': gazebo,
             }.items()
@@ -114,6 +119,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(localization),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
+                'local': local,
                 'comp': comp,
                 'gazebo': gazebo,
                 'gps': gps,
@@ -124,6 +130,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(navigation),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
             launch_arguments={
+                'local': local,
                 'comp': comp,
                 'autostart': autostart,
                 'container_name': 'nav2_container',
@@ -140,6 +147,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(lidar),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'lidar.launch.py'])),
             launch_arguments={
+                'local': local,
                 'comp': comp,
                 'fastlivo2_params': fastlivo2_params,
                 'sim': gazebo,
