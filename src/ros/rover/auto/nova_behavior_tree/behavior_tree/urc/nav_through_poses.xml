@@ -22,12 +22,12 @@
                 <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
                 <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="GridBased"/>
               </ReactiveSequence>
-              <SmoothPath unsmoothed_path="{path}" smoothed_path="{path}" smoother_id="savitzky_golay_smoother"/>
+              <SmoothPath unsmoothed_path="{path}" smoothed_path="{smoothed_path}" smoother_id="savitzky_golay_smoother"/>
             </Sequence>
           </ReactiveSequence>
         </RateController>
         <RecoveryNode number_of_retries="1" name="FollowPath">
-          <FollowPath path="{path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+          <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
           <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
         </RecoveryNode>
       </PipelineSequence>
