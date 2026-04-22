@@ -70,20 +70,16 @@ add_library(${PROJECT_NAME} SHARED
   src/forward/forward_kinematics_plugin.cpp
   src/inverse/inverse_kinematics_plugin.cpp
   src/collision/discrete_collision_plugin.cpp
-  src/plugins/collision/fcl/fcl_collision_plugin.cpp
   src/collision/allowed_collision_matrix.cpp
   src/collision/collision_utilities.cpp
-  src/plugins/collision/fcl/geometry_cache.cpp
   src/forward/frame_definitions.cpp
   src/forward/utilities/compute_joint_tree.cpp
   src/forward/utilities/compute_frame_tree.cpp
-  src/plugins/forward/default_forward_kinematics_plugin.cpp
   src/forward/utilities/analysis_tree.cpp
   src/plugin_loader.cpp
   src/collision/collision_manager.cpp
   src/collision/collider_definitions.cpp
   src/common/robot_model.cpp
-  src/plugins/inverse/banksia_ik_plugin.cpp
   src/kinematics.cpp
   src/ros2_control/interface_lookup_error.cpp
   src/ros2_control/interface_refs.cpp
@@ -96,9 +92,20 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
-target_link_libraries(${PROJECT_NAME} fcl)
 
 # Stuff for plugins
+add_library(${PROJECT_NAME}_plugins SHARED
+  src/plugins/collision/fcl/fcl_collision_plugin.cpp
+  src/plugins/collision/fcl/geometry_cache.cpp
+  src/plugins/forward/default_forward_kinematics_plugin.cpp
+  src/plugins/inverse/banksia_ik_plugin.cpp
+)
+target_compile_features(${PROJECT_NAME}_plugins PUBLIC cxx_std_17)
+target_include_directories(${PROJECT_NAME}_plugins PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+ament_target_dependencies(${PROJECT_NAME}_plugins ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(${PROJECT_NAME}_plugins ${PROJECT_NAME} fcl)
 pluginlib_export_plugin_description_file(${PROJECT_NAME} plugins.xml)
 install(FILES plugins.xml
   DESTINATION share/${PROJECT_NAME}
@@ -159,6 +166,12 @@ install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib
 )
 
+install(TARGETS ${PROJECT_NAME}_plugins
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+)
+
 ament_export_libraries(
   ${PROJECT_NAME}
 )
@@ -175,6 +188,7 @@ add_executable(test_manual
 )
 target_link_libraries(test_manual
   ${PROJECT_NAME}
+  ${PROJECT_NAME}_plugins
   GTest::gtest_main
   Threads::Threads
   fcl

@@ -179,8 +179,6 @@ arm:
         collision_plugin: "arm_kinematics/FclCollisionPlugin"
       collision:
         generate_from_default_pose: true
-        default_pose_overrides: []
-        allowed_pairs: []
 
   nova_path_planner:
     ros__parameters:
@@ -204,8 +202,6 @@ arm:
         collision_plugin: "arm_kinematics/FclCollisionPlugin"
       collision:
         generate_from_default_pose: true
-        default_pose_overrides: []
-        allowed_pairs: []
 
   joint_state_broadcaster_arm:
     ros__parameters:
