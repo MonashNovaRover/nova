@@ -20,11 +20,6 @@ namespace {
 
 constexpr std::size_t kMaxFormattedInterfaces = 50;
 
-std::string format_state_interface(const StateInterfaceDefinition & def)
-{
-  return "joint_id=" + std::to_string(def.joint_id) + "/" + def.interface_id.name;
-}
-
 template <typename T>
 std::string format_state_interface_list(const std::vector<T> & defs)
 {
@@ -35,7 +30,7 @@ std::string format_state_interface_list(const std::vector<T> & defs)
     if (i > 0) {
       oss << ", ";
     }
-    oss << format_state_interface(defs[i]);
+    oss << defs[i].format();
   }
   if (defs.size() > shown) {
     oss << ", ...and " << (defs.size() - shown) << " more";
@@ -75,13 +70,13 @@ std::string JointMapBuildError::UnknownJoint::format() const
 {
   std::ostringstream oss;
   oss << "DefaultJointMapBuilder: " << unknown_joints.size()
-      << " JointId(s) in the request are not registered in the analysis: [";
+      << " joint name(s) in the request are not registered in the analysis: [";
   const std::size_t shown = std::min(unknown_joints.size(), kMaxFormattedInterfaces);
   for (std::size_t i = 0; i < shown; ++i) {
     if (i > 0) {
       oss << ", ";
     }
-    oss << "joint_id=" << unknown_joints[i];
+    oss << unknown_joints[i];
   }
   if (unknown_joints.size() > shown) {
     oss << ", ...and " << (unknown_joints.size() - shown) << " more";

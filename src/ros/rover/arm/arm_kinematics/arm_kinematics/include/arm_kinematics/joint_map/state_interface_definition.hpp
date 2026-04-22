@@ -27,6 +27,21 @@ struct NamedStateInterfaceDefinition {
     : joint_name(std::move(name)), interface_id(std::move(interface_id))
   {
   }
+
+  [[nodiscard]] std::string format() const
+  {
+    return joint_name + "/" + interface_id.name;
+  }
+
+  bool operator==(const NamedStateInterfaceDefinition & other) const noexcept
+  {
+    return joint_name == other.joint_name && interface_id == other.interface_id;
+  }
+
+  bool operator!=(const NamedStateInterfaceDefinition & other) const noexcept
+  {
+    return !(*this == other);
+  }
 };
 
 struct StateInterfaceDefinition {
@@ -37,6 +52,11 @@ struct StateInterfaceDefinition {
   StateInterfaceDefinition(const JointId id, InterfaceId interface_id)
     : joint_id(id), interface_id(std::move(interface_id))
   {
+  }
+
+  [[nodiscard]] std::string format() const
+  {
+    return "joint_id=" + std::to_string(joint_id) + "/" + interface_id.name;
   }
 
   bool operator==(const StateInterfaceDefinition & other) const noexcept

@@ -31,8 +31,8 @@ namespace arm_kinematics {
  */
 struct JointMapBuildError {
   struct MissingInputs {
-    std::vector<StateInterfaceDefinition> unproducible_outputs{};
-    std::vector<MissingInputResolution> resolutions{};
+    std::vector<NamedStateInterfaceDefinition> unproducible_outputs{};
+    std::vector<NamedMissingInputResolution> resolutions{};
 
     [[nodiscard]] std::string format() const;
   };
@@ -44,7 +44,7 @@ struct JointMapBuildError {
   };
 
   struct UnknownJoint {
-    std::vector<JointId> unknown_joints{};
+    std::vector<std::string> unknown_joints{};
 
     [[nodiscard]] std::string format() const;
   };

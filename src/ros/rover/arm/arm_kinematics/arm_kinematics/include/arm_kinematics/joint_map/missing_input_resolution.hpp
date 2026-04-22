@@ -38,6 +38,13 @@ struct MissingInputResolution {
   std::optional<JointId> affine_root{};
 };
 
+/// Used for passing resolutions back to the user surface for easy logging
+struct NamedMissingInputResolution {
+  NamedStateInterfaceDefinition missing;
+  std::vector<std::vector<NamedStateInterfaceDefinition>> transmission_alternatives{};
+  std::optional<JointId> affine_root{};
+};
+
 /**
  * Diagnosis of a request against a `TransmissionReachability`. Each needed output falls into
  * exactly one of four cases:

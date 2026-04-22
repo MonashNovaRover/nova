@@ -19,6 +19,29 @@ namespace arm_kinematics {
 
 namespace {
 
+NamedStateInterfaceDefinition to_named(
+  const TransmissionAnalysis & analysis,
+  const StateInterfaceDefinition & def)
+{
+  return {analysis.joint_order().inverse[def.joint_id], def.interface_id};
+}
+
+NamedMissingInputResolution to_named(
+  const TransmissionAnalysis & analysis,
+  const MissingInputResolution & res)
+{
+  std::vector<std::vector<NamedStateInterfaceDefinition>> named_alternatives;
+  named_alternatives.reserve(res.transmission_alternatives.size());
+  for (const auto & alt : res.transmission_alternatives) {
+    auto & named_alt = named_alternatives.emplace_back();
+    named_alt.reserve(alt.size());
+    for (const auto & def : alt) {
+      named_alt.push_back(to_named(analysis, def));
+    }
+  }
+  return {to_named(analysis, res.missing), std::move(named_alternatives), res.affine_root};
+}
+
 }  // namespace
 
 tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expected(
@@ -51,7 +74,16 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
         }
       }
     }
-    return tl::unexpected(JointMapBuildError::UnknownJoint{std::move(unique)});
+    std::vector<std::string> named;
+    named.reserve(unique.size());
+    for (const auto jid : unique) {
+      if (jid < joint_count) {
+        named.push_back(transmission_analysis_.joint_order().inverse[jid]);
+      } else {
+        named.push_back("<unknown id=" + std::to_string(jid) + ">");
+      }
+    }
+    return tl::unexpected(JointMapBuildError::UnknownJoint{std::move(named)});
   }
 
   // Step 1: Reachability analysis — pass defs directly, no SID pre-registration needed.
@@ -69,9 +101,19 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
     });
   }
   if (!diag.unproducible.empty()) {
+    std::vector<NamedStateInterfaceDefinition> named_unproducible;
+    named_unproducible.reserve(diag.unproducible.size());
+    for (const auto & def : diag.unproducible) {
+      named_unproducible.push_back(to_named(transmission_analysis_, def));
+    }
+    std::vector<NamedMissingInputResolution> named_resolutions;
+    named_resolutions.reserve(diag.resolutions.size());
+    for (const auto & res : diag.resolutions) {
+      named_resolutions.push_back(to_named(transmission_analysis_, res));
+    }
     return tl::unexpected(JointMapBuildError::MissingInputs{
-      diag.unproducible,
-      std::move(diag.resolutions),
+      std::move(named_unproducible),
+      std::move(named_resolutions),
     });
   }
 

@@ -153,6 +153,14 @@ StateInterfaceDefinition def_of(const TransmissionAnalysis & analysis, const Sta
   return analysis.state_interface_order().inverse[sid];
 }
 
+// Named variant: resolves the joint name via joint_order for use with Named error fields.
+NamedStateInterfaceDefinition named_def_of(
+  const TransmissionAnalysis & analysis, const StateInterfaceId sid)
+{
+  const auto def = analysis.state_interface_order().inverse[sid];
+  return {analysis.joint_order().inverse[def.joint_id], def.interface_id};
+}
+
 constexpr double kTolerance = 1.0e-9;
 
 bool approx_equal(double a, double b)
@@ -284,9 +292,9 @@ TEST_F(DefaultJointMapBuilderTest, Error_MissingInputs_OutputUnreachable)
   ASSERT_FALSE(result.has_value());
   const auto & err = expect_missing_inputs(result.error());
   ASSERT_EQ(err.unproducible_outputs.size(), 1u);
-  EXPECT_EQ(err.unproducible_outputs[0], def_of(analysis, c));
+  EXPECT_EQ(err.unproducible_outputs[0], named_def_of(analysis, c));
   EXPECT_EQ(err.resolutions.size(), 1u);  // stub returns one entry per missing
-  EXPECT_EQ(err.resolutions[0].missing, def_of(analysis, c));
+  EXPECT_EQ(err.resolutions[0].missing, named_def_of(analysis, c));
 }
 
 // ===========================================================================
@@ -418,7 +426,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_UnknownJoint_BogusOutputJointId)
   ASSERT_FALSE(result.has_value());
   const auto & err = expect_unknown_joint(result.error());
   ASSERT_EQ(err.unknown_joints.size(), 1u);
-  EXPECT_EQ(err.unknown_joints[0], bogus_joint);
+  EXPECT_EQ(err.unknown_joints[0], "<unknown id=999>");
 }
 
 TEST_F(DefaultJointMapBuilderTest, Error_UnknownJoint_BogusInputJointId)
@@ -436,7 +444,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_UnknownJoint_BogusInputJointId)
 
   ASSERT_FALSE(result.has_value());
   const auto & err = expect_unknown_joint(result.error());
-  EXPECT_EQ(err.unknown_joints[0], bogus_joint);
+  EXPECT_EQ(err.unknown_joints[0], "<unknown id=42>");
 }
 
 // ===========================================================================
@@ -829,7 +837,7 @@ TEST_F(DefaultJointMapBuilderTest, Error_EmptyInputs_AllOutputsUnreachable)
   ASSERT_FALSE(result.has_value());
   const auto & err = expect_missing_inputs(result.error());
   ASSERT_EQ(err.unproducible_outputs.size(), 1u);
-  EXPECT_EQ(err.unproducible_outputs[0], def_of(analysis, a));
+  EXPECT_EQ(err.unproducible_outputs[0], named_def_of(analysis, a));
 }
 
 // ===========================================================================
