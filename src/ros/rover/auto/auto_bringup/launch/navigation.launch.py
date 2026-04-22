@@ -68,14 +68,16 @@ def launch_setup(context, *args, **kwargs):
         'autostart': autostart,
     }
     # Combine all params from sim, substitution, and nav2 directory
-    nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in os.listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
+    nav2_shared_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_shared'])
+    nav2_params = [PathJoinSubstitution([nav2_shared_params_dir, params]) for params in os.listdir(nav2_shared_params_dir.perform(context)) if params[-5:] == '.yaml']
+    nav2_params.extend([PathJoinSubstitution([nav2_params_dir, params]) for params in os.listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml'])
     nav2_params.append(substitution_params)
     if mppi:
-        mppi_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'mppi', mppi_config + '.yaml'])
+        mppi_params = PathJoinSubstitution([nav2_shared_params_dir, 'mppi', mppi_config + '.yaml'])
         if os.path.exists(mppi_params.perform(context)):
             nav2_params.append(mppi_params)
         else:
-            raise ValueError(f'MPPI config "{mppi_config}" does not exist in auto_bringup/params/mppi/')
+            raise ValueError(f'MPPI config "{mppi_config}" does not exist in {nav2_shared_params_dir.perform(context)}/mppi/')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
