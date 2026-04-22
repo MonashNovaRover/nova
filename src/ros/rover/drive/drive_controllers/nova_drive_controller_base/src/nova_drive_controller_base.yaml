@@ -113,7 +113,7 @@ nova_drive_controller_base:
   # but the rover will take longer to stop when connection is truly lost.
   cmd_vel_command_timeout:
     type: double
-    default_value: 0.1 # Seconds; teleop publishes at 50Hz i.e. every 0.02 seconds
+    default_value: 0.1 # Seconds; teleop publishes at 20 Hz i.e. every 0.02 seconds
     description: "Timeout since last commanded velocity from cmd_vel."
 
   connection_timeout:
