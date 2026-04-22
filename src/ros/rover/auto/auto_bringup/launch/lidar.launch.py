@@ -126,7 +126,6 @@ def launch_setup(context, *args, **kwargs):
     img_en = int(LaunchConfiguration('img_en').perform(context).lower() == 'true')
     sim = LaunchConfiguration('sim')
     uncompress_img = LaunchConfiguration('uncompress_img')
-    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
 
     # comp defaults
     if comp == 'arch':
@@ -310,8 +309,8 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         GroupAction(
-            condition = IfCondition(tfs),
-            actions = [
+            condition=IfCondition(tfs),
+            actions=[
                 Node(
                     package='tf2_ros',
                     executable='static_transform_publisher',
@@ -319,47 +318,21 @@ def launch_setup(context, *args, **kwargs):
                     arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
                     output='screen',
                 ),
-                GroupAction(
-                    condition=UnlessCondition(shortened_auto_mount),
-                    actions=[
-                        Node(
-                            package='tf2_ros',
-                            executable='static_transform_publisher',
-                            name='odom_to_camera_init_publisher',
-                            # tf2_echo base_link to livox_frame
-                            arguments=["0.541", "0", "0.950", "0", "0", "0", "odom", "camera_init"],
-                            output='screen',
-                        ),
-                        Node(
-                            package='tf2_ros',
-                            executable='static_transform_publisher',
-                            name='aft_mapped_to_base_link_publisher',
-                            # tf2_echo livox_frame to base_link
-                            arguments=["0.196", "0", "-1.076", "0", "-0.698", "0", "aft_mapped", "base_link"],
-                            output='screen',
-                        ),
-                    ],
+                Node(
+                    package='tf2_ros',
+                    executable='static_transform_publisher',
+                    name='odom_to_camera_init_publisher',
+                    # tf2_echo base_link to livox_frame
+                    arguments=["0.330", "0", "0.950", "0", "0", "0", "odom", "camera_init"],
+                    output='screen',
                 ),
-                GroupAction(
-                    condition=IfCondition(shortened_auto_mount),
-                    actions=[
-                        Node(
-                            package='tf2_ros',
-                            executable='static_transform_publisher',
-                            name='odom_to_camera_init_publisher',
-                            # tf2_echo base_link to livox_frame
-                            arguments=["0.330", "0", "0.950", "0", "0", "0", "odom", "camera_init"],
-                            output='screen',
-                        ),
-                        Node(
-                            package='tf2_ros',
-                            executable='static_transform_publisher',
-                            name='aft_mapped_to_base_link_publisher',
-                            # tf2_echo livox_frame to base_link
-                            arguments=["0.358", "0", "-0.940", "0", "-0.698", "0", "aft_mapped", "base_link"],
-                            output='screen',
-                        ),
-                    ],
+                Node(
+                    package='tf2_ros',
+                    executable='static_transform_publisher',
+                    name='aft_mapped_to_base_link_publisher',
+                    # tf2_echo livox_frame to base_link
+                    arguments=["0.358", "0", "-0.940", "0", "-0.698", "0", "aft_mapped", "base_link"],
+                    output='screen',
                 ),
             ],
         ),
@@ -451,11 +424,6 @@ def generate_launch_description():
             name='uncompress_img',
             default_value='False',
             description='Uncompress compressed image stream? (for playing back from rosbag)',
-        ),
-        DeclareLaunchArgument(
-            name='shortened_auto_mount',
-            default_value='True',
-            description='Use shortened auto mount TFs?',
         ),
         DeclareLaunchArgument(
             name='sim',

@@ -39,7 +39,6 @@ def launch_setup(context, *args, **kwargs):
 
     gazebo = LaunchConfiguration('gazebo').perform(context)
     model = LaunchConfiguration('model').perform(context)
-    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     joints = LaunchConfiguration('joints').perform(context)
     rviz = LaunchConfiguration('rviz')
@@ -55,7 +54,6 @@ def launch_setup(context, *args, **kwargs):
                                         'gazebo:=', gazebo, ' ', 
                                         'robot_name:=', robot_name, ' ',
                                         'auto_mount:=', 'true', ' ',
-                                        'shortened_auto_mount:=', shortened_auto_mount
                                        ]), value_type=str)
             }]
         ),
@@ -69,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=IfCondition(rviz),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            launch_arguments={'gazebo': gazebo, 'model': model, 'shortened_auto_mount': shortened_auto_mount, 'robot_name': robot_name, 'rviz_params': rviz_params}.items(),
+            launch_arguments={'gazebo': gazebo, 'model': model, 'robot_name': robot_name, 'rviz_params': rviz_params}.items(),
         ),
     ]
 
@@ -97,11 +95,6 @@ def generate_launch_description():
             name='model',
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
-        ),
-        DeclareLaunchArgument(
-            name='shortened_auto_mount',
-            default_value='True',
-            description='Whether to use the shortened auto mount model',
         ),
         DeclareLaunchArgument(
             name='robot_name',
