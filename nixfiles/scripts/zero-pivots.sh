@@ -5,10 +5,10 @@
 # BLCMD IDs
 declare -A pivots
 pivots=(
-  [FLP]=5
-  [BLP]=6
-  [BRP]=7
-  [FRP]=8
+  [5]=FLP
+  [6]=BLP
+  [7]=BRP
+  [8]=FRP
 )
 
 echo "Ensure that drive is not running before starting the alignment process."
@@ -42,38 +42,19 @@ echo
 zero_pivot() {
   local id=$1
    # Zero pivot
-  cansend can0 0${id}8#
-  sleep 0.5
-  cansend can0 0${id}8#
-  
-  sleep 1
-  
-  # Move to angle
-  cansend can0 0${id}4#c764
-  sleep 0.5
-  cansend can0 0${id}4#c764
-  
-  sleep 1
-  
-  # Zero pivot
-  cansend can0 0${id}8#
-  sleep 0.5
-  cansend can0 0${id}8#
+  cansend can0 0${id}B#
 }
 
 if [[ "$blcmd_id" == "0" ]]; then
-  for pivot in "${!pivots[@]}"; do
-    id=${pivots[$pivot]}
+  for id in $(echo "${!pivots[@]}" | tr ' ' '\n' | sort); do
+    pivot=${pivots[$id]}
     zero_pivot "$id"
     echo "BLCMD ${id} (${pivot}) successfully aligned."
-    sleep 0.5
   done
 else
   zero_pivot "$blcmd_id"
-  echo "BLCMD ${blcmd_id} successfully aligned."
+  echo "BLCMD ${blcmd_id} (${pivots[$blcmd_id]}) successfully aligned."
 fi
 
 echo
 echo "Done."
-echo
-echo "Remember to run the 'launch-drive' command so that the pivots to return to their zero position."

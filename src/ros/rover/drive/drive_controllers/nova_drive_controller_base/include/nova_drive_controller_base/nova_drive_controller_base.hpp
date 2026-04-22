@@ -203,7 +203,7 @@ private:
   const std::string DEFAULT_COMMAND_OUT_TOPIC_;
 
   bool is_active_ = false;
-  bool is_halted_ = false;
+  bool disconnected_ = false;
 
   std::unique_ptr<nova_controller_common::HardwareInterfaceWrapper> hwif_wrapper_;
   std::unique_ptr<Odometry> odometry_;
@@ -211,6 +211,7 @@ private:
   // Timeout to consider cmd_vel commands old
   rclcpp::Duration cmd_vel_receive_timeout_ = rclcpp::Duration::from_seconds(0.5);
   rclcpp::Duration cmd_vel_command_timeout_ = rclcpp::Duration::from_seconds(0.5);
+  rclcpp::Duration connection_timeout_ = rclcpp::Duration::from_seconds(2.0);
   rclcpp::Time last_received_time_;
 
   // Subscriber and realtime buffer for received TwistStamped messages
