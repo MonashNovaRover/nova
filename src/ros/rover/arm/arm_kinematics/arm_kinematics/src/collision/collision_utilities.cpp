@@ -1,5 +1,5 @@
 //
-// Created by Codex on 19/04/2026.
+// Created by Bailey Chessum on 19/04/2026.
 //
 
 #include "arm_kinematics/collision/collision_utilities.hpp"
@@ -184,6 +184,9 @@ CollisionConfig read_collision_config(
 
     config.allowed_pairs.emplace_back(std::move(link_a), std::move(link_b));
   }
+
+  config.ignored_links = reader.get<std::vector<std::string>>(
+    prefixed_name(prefix, "ignored_links"), {});
 
   return config;
 }

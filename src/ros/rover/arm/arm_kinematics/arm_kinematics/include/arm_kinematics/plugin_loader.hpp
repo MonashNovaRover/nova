@@ -12,6 +12,7 @@
 #include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/visibility_control.h"
 
 namespace arm_kinematics {
@@ -77,11 +78,24 @@ public:
   tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
     const std::vector<std::string> & joint_names,
     const ForwardKinematicsPlugin::SharedPtr & fk);
+  /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, using the plugin name defined in the
+  /// `kinematics.collision_plugin` parameter. Links named in \p ignored_links are excluded from collision geometry.
+  tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
+    const std::vector<std::string> & joint_names,
+    const ForwardKinematicsPlugin::SharedPtr & fk,
+    span<const std::string> ignored_links);
   /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, manually specifying the plugin name.
   tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
     const std::string & name,
     const std::vector<std::string> & joint_names,
     const ForwardKinematicsPlugin::SharedPtr & fk);
+  /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, manually specifying the plugin name.
+  /// Links named in \p ignored_links are excluded from collision geometry.
+  tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
+    const std::string & name,
+    const std::vector<std::string> & joint_names,
+    const ForwardKinematicsPlugin::SharedPtr & fk,
+    span<const std::string> ignored_links);
 
   /// Gets the robot model containing robot_description
   [[nodiscard]] const RobotModel & get_robot_model() const;

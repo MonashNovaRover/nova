@@ -112,8 +112,16 @@ tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader
   const std::vector<std::string> & joint_names,
   const ForwardKinematicsPlugin::SharedPtr & fk)
 {
+  return make_collision(joint_names, fk, {});
+}
+
+tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader::make_collision(
+  const std::vector<std::string> & joint_names,
+  const ForwardKinematicsPlugin::SharedPtr & fk,
+  const span<const std::string> ignored_links)
+{
   const auto & urdf_model = robot_model_->get_urdf_model();
-  auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
+  auto [colliders, frames, acm] = ColliderDefinitions(urdf_model, ignored_links);
   auto parent_link_names = frames.parent_link_names;
   const auto named_inputs = joint_names_to_position_named_interfaces(joint_names);
   auto tree_result = fk->make_tree(
@@ -144,11 +152,20 @@ tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader
   const std::vector<std::string> & joint_names,
   const ForwardKinematicsPlugin::SharedPtr & fk)
 {
+  return make_collision(name, joint_names, fk, {});
+}
+
+tl::expected<PluginLoader::MakeCollisionResult, MakeCollisionError> PluginLoader::make_collision(
+  const std::string & name,
+  const std::vector<std::string> & joint_names,
+  const ForwardKinematicsPlugin::SharedPtr & fk,
+  const span<const std::string> ignored_links)
+{
   if (!is_valid())
     throw std::logic_error("make_collision(name, joint_names, fk) was called for a default constructed PluginLoader");
 
   const auto & urdf_model = robot_model_->get_urdf_model();
-  auto [colliders, frames, acm] = ColliderDefinitions(urdf_model);
+  auto [colliders, frames, acm] = ColliderDefinitions(urdf_model, ignored_links);
   auto parent_link_names = frames.parent_link_names;
   const auto named_inputs = joint_names_to_position_named_interfaces(joint_names);
   auto tree_result = fk->make_tree(

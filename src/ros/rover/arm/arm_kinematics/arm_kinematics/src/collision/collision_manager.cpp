@@ -83,7 +83,9 @@ tl::expected<CollisionManager, MakeCollisionError> make_collision_manager(
   const std::vector<std::string> & joint_names,
   const CollisionConfig & config)
 {
-  auto result = loader.make_collision(joint_names, fk);
+  auto result = loader.make_collision(
+    joint_names, fk,
+    span<const std::string>(config.ignored_links.data(), config.ignored_links.size()));
   if (!result) {
     return tl::unexpected(std::move(result.error()));
   }

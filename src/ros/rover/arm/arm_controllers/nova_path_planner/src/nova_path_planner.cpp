@@ -4,7 +4,6 @@ Monash Nova Rover Team
 
 PACKAGE:     nova_path_planner
 AUTHOR:      Bailey Chessum
-EDITED BY:   Codex
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 

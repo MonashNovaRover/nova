@@ -18,6 +18,9 @@ struct ARM_KINEMATICS_PUBLIC CollisionConfig {
   bool generate_from_default_pose = true;
   std::unordered_map<std::string, double> default_pose_overrides{};
   std::vector<std::pair<std::string, std::string>> allowed_pairs{};
+  /// URDF link names whose collision geometry should be completely excluded when building the
+  /// collision manager. Use this to omit links whose joints are not provided by this controller.
+  std::vector<std::string> ignored_links{};
 };
 
 }  // namespace arm_kinematics
