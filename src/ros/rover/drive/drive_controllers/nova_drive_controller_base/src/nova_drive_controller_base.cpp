@@ -188,16 +188,15 @@ controller_interface::return_type NovaDriveControllerBase::update(
     {
       RCLCPP_WARN_THROTTLE(
         logger, *get_node()->get_clock(), 500,
-        C_WARN "Cmd age %.2fs exceeds timeout %.2fs; publishing zero commands." C_END,
+        C_WARN "Halting; command age %.2fs exceeds timeout %.2fs." C_END,
         age_of_last_command.seconds(), cmd_vel_command_timeout_.seconds());
     }
     else if (!disconnected_)
     {
       disconnected_ = true;
       RCLCPP_ERROR_SKIPFIRST(
-        logger, C_ERROR "The last received command is %.2f seconds old, which exceeds the connection timeout of "
-                "%.2f seconds. Connection to the command publisher is assumed to be lost, no further warnings "
-                "will be issued." C_END,
+        logger, C_ERROR "Command age %.2fs exceeds connection timeout of %.2fs. No further warnings "
+                "will be issued; connection to the command publisher is assumed to be lost." C_END,
         age_of_last_command.seconds(), connection_timeout_.seconds());
     }
   }
