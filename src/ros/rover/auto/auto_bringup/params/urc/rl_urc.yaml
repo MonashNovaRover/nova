@@ -11,6 +11,9 @@ ekf_filter_node_odom:
     base_link_frame: base_link # Defaults to "base_link" if unspecified
     world_frame: odom # Defaults to the value of odom_frame if unspecified
 
+    # Order of sensor configs:
+    # [x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az]
+
     # Wheel Odom
     odom0: /pivot_drive_controller/odom
     odom0_config: [false, false, false,
@@ -22,15 +25,15 @@ ekf_filter_node_odom:
     odom0_relative: false
 
     # Livox IMU
-    # imu0: /livox/imu
-    # imu0_config: [false, false, false,
-    #               true,  true,  true,
-    #               false, false, false,
-    #               false, false, false,
-    #               false, false, false]
-    # imu0_differential: false
-    # imu0_relative: false
-    # imu0_remove_gravitational_acceleration: true
+    imu0: /livox/imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  true,  true,  true,
+                  true,  true,  true]
+    imu0_differential: false
+    imu0_relative: true
+    imu0_remove_gravitational_acceleration: false
     
     process_noise_covariance: [1e-3, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                             0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
@@ -85,15 +88,15 @@ ekf_filter_node_map:
     odom1_relative: false
 
     # Livox IMU
-    # imu0: /livox/imu
-    # imu0_config: [false, false, false,
-    #               true,  true,  true,
-    #               false, false, false,
-    #               false, false, false,
-    #               false, false, false]
-    # imu0_differential: false
-    # imu0_relative: false
-    # imu0_remove_gravitational_acceleration: true
+    imu0: /livox/imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  true,  true,  true,
+                  true,  true,  true]
+    imu0_differential: false
+    imu0_relative: true
+    imu0_remove_gravitational_acceleration: false
     
     process_noise_covariance: [1e-3, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
                             0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
