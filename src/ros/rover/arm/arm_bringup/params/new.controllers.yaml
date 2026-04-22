@@ -203,6 +203,14 @@ arm:
           - front_left_wheel
           - back_right_wheel
           - front_right_wheel
+          - bl_ankle
+          - fl_ankle
+          - br_ankle
+          - fr_ankle
+          - bl_wheel
+          - fl_wheel
+          - br_wheel
+          - fr_wheel
 
   nova_path_planner:
     ros__parameters:
@@ -226,6 +234,26 @@ arm:
         collision_plugin: "arm_kinematics/FclCollisionPlugin"
       collision:
         generate_from_default_pose: true
+        ignored_links:
+          - diffbar
+          - left_leg
+          - right_leg
+          - back_left_pivot
+          - front_left_pivot
+          - back_right_pivot
+          - front_right_pivot
+          - back_left_wheel
+          - front_left_wheel
+          - back_right_wheel
+          - front_right_wheel
+          - bl_ankle
+          - fl_ankle
+          - br_ankle
+          - fr_ankle
+          - bl_wheel
+          - fl_wheel
+          - br_wheel
+          - fr_wheel
 
   joint_state_broadcaster_arm:
     ros__parameters:
