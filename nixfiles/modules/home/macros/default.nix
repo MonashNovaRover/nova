@@ -327,7 +327,7 @@ in
           # Arm
           launch-typing = "~/Builds/active/bin/ros2 launch arm_bringup typing.launch.py";
           launch-arm-control = "~/Builds/active/bin/ros2 launch arm_bringup control.launch.py arm:=False old_arm:=True";
-          launch-path-control = "~/Builds/active/bin/ros2 launch arm_bringup path.control.launch.py arm:=False old_arm:=True";
+          launch-path-control = "~/Builds/active/bin/ros2 launch arm_bringup path.control.launch.py";
           launch-arm-urdf = "~/Builds/active/bin/ros2 launch arm_bringup urdf.launch.py arm:=False old_arm:=True auto_camera:=False";
           launch-arm-teleop = "~/Builds/active/bin/ros2 launch teleop_arm teleop.launch.py";
           run-arm-teleop = "~/Builds/active/bin/ros2 run teleop_arm_joy teleop_arm_joy_node";
