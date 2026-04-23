@@ -133,9 +133,9 @@ carousel_inner:
         hardware_name: "carousel"
     hardware:
       carousel:
-        zero_cmd_can_id: 0x0E5
+        zero_cmd_can_id: 0xFFC  # TODO: update
         zero_cmd_can_msg: [0x10]
-        zero_rec_can_id: 0x4E5
+        zero_rec_can_id: 0xFFD
         zero_rec_can_msg: [0x10]
         zero_service: "/science/carousel_inner/trigger_zero"
         zero_increment_service: "/science/carousel_inner/increment_zero"
@@ -143,10 +143,10 @@ carousel_inner:
         can_id: 0x0EA
         function_id: 0x01
       carousel_position_sensor:
-        can_id: 0x4E5
+        can_id: 0xFFB
         function_id: 0x01
       carousel_load_current_sensor:
-        can_id: 0x4E5
+        can_id: 0xFFA
         function_id: 0x02
 
 carousel_outer:
@@ -159,9 +159,9 @@ carousel_outer:
         hardware_name: "carousel"
     hardware:
       carousel:
-        zero_cmd_can_id: 0x0E6
+        zero_cmd_can_id: 0xFFA
         zero_cmd_can_msg: [0x10]
-        zero_rec_can_id: 0x4E6
+        zero_rec_can_id: 0xFFE
         zero_rec_can_msg: [0x10]
         zero_service: "/science/carousel_outer/trigger_zero"
         zero_increment_service: "/science/carousel_outer/increment_zero"
@@ -169,10 +169,10 @@ carousel_outer:
         can_id: 0x0EA
         function_id: 0x02
       carousel_position_sensor:
-        can_id: 0x4E6
+        can_id: 0xFFD
         function_id: 0x01
       carousel_load_current_sensor:
-        can_id: 0x4E6
+        can_id: 0xFFF
         function_id: 0x02
 
 # Misc - Nodes for misc components
