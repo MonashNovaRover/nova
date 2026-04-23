@@ -15,9 +15,9 @@ NODE: keyboard_mapper
 SERVICES: get_key_position
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	arm
-AUTHOR(S):  Anthony Lew
+AUTHOR(S):  Anthony Lew, Binuda Kalugalage
 CREATION:	6/04/2024
-EDITED:     6/04/2024
+EDITED:     18/04/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Find an IRL alignment
@@ -278,14 +278,14 @@ class KeyboardLocaliser(Node):
         image_points = image_points.reshape(-1, 2).astype(np.float32)
 
         # Publish points
-        if image_points is not None:
-            kb_msg = KeyboardPoints()
-            kb_msg.points = [int(i) for point in image_points for i in point]
-            kb_msg.width, kb_msg.height = self.camera_resolution
-            self.point_pub.publish(kb_msg)
+        kb_msg = KeyboardPoints()
+        kb_msg.points = [int(i) for point in image_points for i in point]
+        kb_msg.width, kb_msg.height = self.camera_resolution
+        self.point_pub.publish(kb_msg)
         
     def estimate_pose(self) -> None | TransformStamped:
         """Estimate pose of keyboard and return its transform"""
+        # Get the marker poses in order
         detected_points_m = self.get_aruco_corners()
         if detected_points_m is None:
             return None
@@ -293,39 +293,30 @@ class KeyboardLocaliser(Node):
         # Get the rotation matrix and translation vector
         rmat, tvec = self.estimate_rigid_transform(self.keyboard_points_m, detected_points_m)
         if rmat is None or tvec is None:
-            self.pub_keyboard_points(None)
             return None
 
         # Publish keyboard corner points to gui
         self.get_corners(rmat, tvec)
-
-        ## run solvePnP
-        # image_points = self.get_corners()
-        # if image_points is None:
-        #     return None
-
-        # success, rvec, tvec = cv2.solvePnP(self.keyboard_points, image_points, self.camera_matrix, self.dist_coeffs)
         
-        # # Convert to rotation matrix then to quaternion 
-        # rotation_matrix, _ = cv2.Rodrigues(rvec)
-        # rot = R.from_matrix(rotation_matrix)
-        # quat = rot.as_quat()  # [x, y, z, w]
-        # ## convert quaternion and transform vector to transform message
-        # t = TransformStamped()
-        # t.header.stamp = self.get_clock().now().to_msg()
-        # t.header.frame_id = self.camera_frame
-        # t.child_frame_id = self.keyboard_frame
+        # Convert to rotation matrix then to quaternion 
+        rot = R.from_matrix(rmat)
+        quat = rot.as_quat()  # [x, y, z, w]
+        ## convert quaternion and transform vector to transform message
+        t = TransformStamped()
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = self.camera_frame
+        t.child_frame_id = self.keyboard_frame
 
-        # t.transform.translation.x = tvec[0][0] / 1000.0  # mm → meters
-        # t.transform.translation.y = tvec[1][0] / 1000.0
-        # t.transform.translation.z = tvec[2][0] / 1000.0
+        t.transform.translation.x = tvec[0][0]
+        t.transform.translation.y = tvec[1][0]
+        t.transform.translation.z = tvec[2][0]
 
-        # t.transform.rotation.x = quat[0]
-        # t.transform.rotation.y = quat[1]
-        # t.transform.rotation.z = quat[2]
-        # t.transform.rotation.w = quat[3]
+        t.transform.rotation.x = quat[0]
+        t.transform.rotation.y = quat[1]
+        t.transform.rotation.z = quat[2]
+        t.transform.rotation.w = quat[3]
 
-        # return t
+        return t
 
 
 def main():
