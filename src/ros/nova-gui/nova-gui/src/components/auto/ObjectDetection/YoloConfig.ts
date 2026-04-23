@@ -4,10 +4,11 @@ export interface YOLOConfig {
 }
 
 export const URCYOLOConfig : YOLOConfig = {
-  modelName: "urc-object-detection.onnx",
+  modelName: "best.onnx",
   classNames: [
-    "hammer",
-    "drink bottle",
+    "mallet",
+    "hammer_pick",
+    "bottle",
   ],
 }
 
@@ -99,4 +100,4 @@ export const CocoConfig : YOLOConfig = {
 }
 
 // Active YOLO config: switch this to change the model/labels, then reload the page.
-export const ActiveYoloConfig: YOLOConfig = CocoConfig;
+export const ActiveYoloConfig: YOLOConfig = URCYOLOConfig;
