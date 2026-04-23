@@ -1,7 +1,7 @@
 import { Button} from "@nextui-org/react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
-import { IRosScienceInterfacesToggleRequest, IRosScienceInterfacesToggleResponse } from "../../../ros/rosTypes.ts";
+import { IRosScienceInterfacesToggleRequest} from "../../../ros/rosTypes.ts";
 
 const Leds = () => {
     const bifrost = useBifrost({ service: RosService.LEDS});
