@@ -128,6 +128,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='heater',
+            package='science',
+            executable='heater.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
 
         # Misc - Nodes for misc components
