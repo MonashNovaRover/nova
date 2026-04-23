@@ -17,7 +17,7 @@
                     <param name="mock">true</param>
                     <param name="reversed">true</param>
                     <param name="integrate_velocity">true</param>
-                    <param name="effort_telemetry_window_size">20</param>
+                    <param name="effort_telemetry_window_size">10</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -64,7 +64,7 @@
                     <param name="mock">true</param>
                     <param name="reversed">true</param>
                     <param name="integrate_velocity">true</param>
-                    <param name="effort_telemetry_window_size">20</param>
+                    <param name="effort_telemetry_window_size">10</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -112,7 +112,7 @@
 	                <param name="mock">true</param>
                     <param name="reversed">false</param>
                     <param name="integrate_velocity">true</param>
-                    <param name="effort_telemetry_window_size">20</param>
+                    <param name="effort_telemetry_window_size">10</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -159,7 +159,7 @@
 	                <param name="mock">true</param>
                     <param name="reversed">false</param>
                     <param name="integrate_velocity">true</param>
-                    <param name="effort_telemetry_window_size">20</param>
+                    <param name="effort_telemetry_window_size">10</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -207,7 +207,7 @@
                     <param name="reversed">true</param>
                     <param name="zero_offset">14717</param>
                     <param name="res_ticks_per_rev">98304</param>
-                    <param name="effort_telemetry_window_size">20</param>
+                    <param name="effort_telemetry_window_size">10</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -259,7 +259,7 @@
                     <param name="mock">true</param>
                     <param name="zero_offset">14717</param>
                     <param name="res_ticks_per_rev">98304</param>
-                    <param name="effort_telemetry_window_size">20</param>
+                    <param name="effort_telemetry_window_size">10</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -313,7 +313,7 @@
                     <param name="reversed">true</param>
                     <param name="zero_offset">14717</param>
                     <param name="res_ticks_per_rev">98304</param>
-                    <param name="effort_telemetry_window_size">20</param>
+                    <param name="effort_telemetry_window_size">10</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
@@ -365,7 +365,7 @@
 	                  <param name="mock">true</param>
                     <param name="zero_offset">14717</param>
                     <param name="res_ticks_per_rev">98304</param>
-                    <param name="effort_telemetry_window_size">20</param>
+                    <param name="effort_telemetry_window_size">10</param>
                 </hardware>
             </xacro:unless>
             <xacro:if value="${use_mock_hardware}">
