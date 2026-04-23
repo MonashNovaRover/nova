@@ -41,7 +41,6 @@ export enum RosService {
   CACHE_1 = "/science/cache_command_1",
   CACHE_2 = "/science/cache_command_2",
   HEATER = "/science/heater",
-  CAROUSEL = "/science/carousel/set_position",
   CAROUSEL_INNER_SET_POSITION = "/science/carousel_inner/set_position",
   CAROUSEL_OUTER_SET_POSITION = "/science/carousel_outer/set_position",
   CAROUSEL_INNER_TRIGGER_ZERO = "/science/carousel_inner/trigger_zero",

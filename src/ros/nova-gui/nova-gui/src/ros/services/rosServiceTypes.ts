@@ -175,10 +175,6 @@ export interface RosServiceInterface {
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
-  [RosService.CAROUSEL]: RosServiceMessage<
-    IRosScienceInterfacesSetNamedPositionsRequest,
-    IRosScienceInterfacesSetNamedPositionsResponse
-  >;
   [RosService.CAROUSEL_INNER_SET_POSITION]: RosServiceMessage<
     IRosScienceInterfacesSetPositionRequest,
     IRosScienceInterfacesSetPositionResponse
