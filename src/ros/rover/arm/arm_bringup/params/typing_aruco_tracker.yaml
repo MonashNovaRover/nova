@@ -1,7 +1,8 @@
 /aruco_tracker:
   ros__parameters:
     aruco:
-      cornerRefinementMethod: 2
+      cornerRefinementMethod: 1
+      minMarkerPerimeterRate: 0.1
     cam_base_topic: /arm/periscope
     image_is_rectified: false
     marker_dict: 4X4_50
