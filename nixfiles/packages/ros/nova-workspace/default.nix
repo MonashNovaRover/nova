@@ -173,6 +173,8 @@
       mbtileserver
       rmw-cyclonedds-cpp
       ;
+    
+    ros2-unbag = pythonPackages.ros2-unbag;
 }
 }:
 
