@@ -39,10 +39,13 @@ in
           . $XDG_CONFIG_HOME/nova/ros_dds
         fi
 
-        # Source the COMP environment variable if it exists
-        if [ -f "$XDG_CONFIG_HOME/nova/comp" ]; then
-          . "$XDG_CONFIG_HOME/nova/comp"
-        fi
+        # title width = 28
+        # entry width = 26
+        echo   "┌─────────────────────────────┐"
+        printf "│ %s│\n"   "$(printf "\033[1;36m%-28s\033[0m" "Nova ENV Vars Status")"
+        printf "│   %s│\n" "$(printf "\033[1;33m%s\033[0m %-21s" "RMW:" "''${RMW_IMPLEMENTATION:-not set}")"
+        echo   "└─────────────────────────────┘"
+        echo   ""
       '';
     };
 
