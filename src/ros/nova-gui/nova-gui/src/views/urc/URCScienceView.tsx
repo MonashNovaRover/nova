@@ -14,7 +14,7 @@ import {CameraControlModalButton} from "../../components/cameras/CameraPage/Came
 import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
 
 const URCScienceView: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState(1)
+  const [selectedTab, setSelectedTab] = useState(0)
 
   const siteAnalysisView = (
     <div className="grid grid-flow-col auto-cols-fr gap-3 m-3">
