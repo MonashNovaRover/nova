@@ -367,6 +367,12 @@
 					<state_interface name="velocity">
 					<param name="initial_value">0.0</param>
 					</state_interface>
+
+					<xacro:if value="${use_mock_hardware}">
+					<state_interface name="position">
+					<param name="initial_value">0.0</param>
+					</state_interface>
+					</xacro:if>
 				</joint>
 			</ros2_control>
 
@@ -395,6 +401,12 @@
 				<state_interface name="velocity">
 					<param name="initial_value">0.0</param>
 				</state_interface>
+
+				<xacro:if value="${use_mock_hardware}">
+				<state_interface name="position">
+				<param name="initial_value">0.0</param>
+				</state_interface>
+				</xacro:if>
 			</joint>
 		</ros2_control>
 
