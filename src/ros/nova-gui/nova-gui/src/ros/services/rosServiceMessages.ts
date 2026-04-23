@@ -23,7 +23,7 @@ export const rosServiceMessages = {
 
   // Science Related
   [RosService.MIXERS]: "std_srvs/srv/SetBool",
-  [RosService.KILN_COMMAND]: "science_interfaces/srv/KilnCommand",
+  [RosService.THERMAL_COMMAND]: "science_interfaces/srv/ThermalCommand",
   [RosService.WATER_PUMP_COMMAND]: "science_interfaces/srv/EffortCommand",
   [RosService.DIAPHRAGM_PUMP_COMMAND]: "science_interfaces/srv/EffortCommand",
   [RosService.SCIMBAL_COMMAND]: 'science_interfaces/srv/MoveScimbalCam',
@@ -37,8 +37,9 @@ export const rosServiceMessages = {
   [RosService.UV_VIS_LED_2]: "std_srvs/srv/SetBool",
   [RosService.CACHE_1]: "science_interfaces/srv/CacheCommand",
   [RosService.CACHE_2]: "science_interfaces/srv/CacheCommand",
-  [RosService.HEATER]: "science_interfaces/srv/KilnCommand",
+  [RosService.HEATER]: "science_interfaces/srv/ThermalCommand",
   [RosService.REQUEST_HYDRAPROBE_READING]: "std_srvs/srv/Trigger",
+  [RosService.CAROUSEL]: "science_interfaces/srv/ThermalCommand",
   [RosService.CAROUSEL_INNER_SET_POSITION]: "science_interfaces/srv/SetPosition",
   [RosService.CAROUSEL_OUTER_SET_POSITION]: "science_interfaces/srv/SetPosition",
   [RosService.CAROUSEL_INNER_TRIGGER_ZERO]: "std_srvs/srv/Trigger",

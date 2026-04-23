@@ -5,9 +5,9 @@ Controls heaters under the shot glasses
 using temperature sensors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TOPICS:
-    - publisher: /science/kiln_data [KilnData]
+    - publisher: /science/thermal_data [ThermalData]
 SERVICES:
-	- service: /science/kiln_command [KilnCommand]
+	- service: /science/thermal_command [ThermalCommand]
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 COMMAND INTERFACES:
@@ -24,21 +24,20 @@ EDITED:         17/04/2026
 import rclpy
 from rclpy.node import Node
 from python_control2 import PythonControl
+from python_control2.controllers import ThermalController
 from python_control2.hardware_interfaces import QCMDHardware, GenericSensorHardware
-
-from science.arc.kiln import HeaterController
 
 if __name__ == "__main__":
     rclpy.init()
 
     node = Node("heater")
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("controller", HeaterController,
+        .with_controller("controller", ThermalController,
                          temp_sensors = ["heater_sensor", "dirt_sensor"],
                          heaters = ["heater"],
-                         calculate_reference_temp = lambda l: l[0], # use kiln_sensor temperature as the current/reference temp
-                         command_service = "/science/kiln_command",
-                         data_topic = "/science/kiln_data") \
+                         calculate_reference_temp = lambda l: l[0], # use heater_sensor temperature as the current/reference temp
+                         command_service = "/science/thermal_command",
+                         data_topic = "/science/thermal_data") \
         .with_hardware("heater", QCMDHardware, can_id = 0x031) \
         .with_hardware("temp_sensors", GenericSensorHardware,
                        can_id=0x4E1,

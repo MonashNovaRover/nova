@@ -20,7 +20,7 @@ import time
 import jcan
 import rclpy
 from jcan import Frame
-from science_interfaces.srv import KilnCommand, KilnCommand_Response, KilnCommand_Request
+from science_interfaces.srv import ThermalCommand, ThermalCommand_Response, ThermalCommand_Request
 from python_control.ControllerNode import ControllerNode
 from rclpy.executors import MultiThreadedExecutor
 
@@ -61,7 +61,7 @@ class URCCarousel(ControllerNode):
         self.is_clockwise = True
 
         # Add Services
-        self.stepper_service = self.create_service(KilnCommand, self.CAROUSEL_SERVICE, self.stepper_service_callback)
+        self.stepper_service = self.create_service(ThermalCommand, self.CAROUSEL_SERVICE, self.stepper_service_callback)
 
         ## Start the CAN bus
         self.start_can()
@@ -96,7 +96,7 @@ class URCCarousel(ControllerNode):
 
         return True
 
-    def stepper_service_callback(self, request: KilnCommand_Request, response: KilnCommand_Response):
+    def stepper_service_callback(self, request: ThermalCommand_Request, response: ThermalCommand_Response):
         """
         Upon a request to move the stepper, the stepper is activated and moved however many steps in the specified direction
         """

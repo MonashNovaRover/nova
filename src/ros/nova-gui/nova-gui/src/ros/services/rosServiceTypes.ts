@@ -8,8 +8,8 @@ import {
   IRosArmInterfacesTypeSequenceRequest,
   IRosArmInterfacesTypeSequenceResponse,
   IRosStdSrvsTriggerResponse,
-  IRosScienceInterfacesKilnCommandRequest,
-  IRosScienceInterfacesKilnCommandResponse,
+  IRosScienceInterfacesThermalCommandRequest,
+  IRosScienceInterfacesThermalCommandResponse,
   IRosScienceInterfacesEffortCommandRequest,
   IRosScienceInterfacesEffortCommandResponse,
   IRosScienceInterfacesRamanSpecRequest,
@@ -175,29 +175,9 @@ export interface RosServiceInterface {
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
-  [RosService.CAROUSEL_INNER_SET_POSITION]: RosServiceMessage<
-    IRosScienceInterfacesSetPositionRequest,
-    IRosScienceInterfacesSetPositionResponse
-  >;
-  [RosService.CAROUSEL_OUTER_SET_POSITION]: RosServiceMessage<
-    IRosScienceInterfacesSetPositionRequest,
-    IRosScienceInterfacesSetPositionResponse
-  >;
-  [RosService.CAROUSEL_INNER_TRIGGER_ZERO]: RosServiceMessage<
-    EmptyMessage,
-    IRosStdSrvsTriggerResponse
-  >;
-  [RosService.CAROUSEL_OUTER_TRIGGER_ZERO]: RosServiceMessage<
-    EmptyMessage,
-    IRosStdSrvsTriggerResponse
-  >;
-  [RosService.CAROUSEL_INNER_INCREMENT_ZERO]: RosServiceMessage<
-    IRosScienceInterfacesIncrementZeroRequest,
-    IRosScienceInterfacesIncrementZeroResponse
-  >;
-  [RosService.CAROUSEL_OUTER_INCREMENT_ZERO]: RosServiceMessage<
-    IRosScienceInterfacesIncrementZeroRequest,
-    IRosScienceInterfacesIncrementZeroResponse
+  [RosService.CAROUSEL]: RosServiceMessage<
+    IRosScienceInterfacesKilnCommandRequest,
+    IRosScienceInterfacesKilnCommandResponse
   >;
   [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
     EmptyMessage,
@@ -216,8 +196,8 @@ export interface RosServiceInterface {
     IRosStdSrvsTriggerResponse
   >;
   [RosService.TOOL_ROTATOR_PRESETS]: RosServiceMessage<
-    IRosScienceInterfacesSetNamedPositionsRequest,
-    IRosScienceInterfacesSetNamedPositionsResponse
+    IRosScienceInterfacesSetPositionPresetsRequest,
+    IRosScienceInterfacesSetPositionPresetsResponse
   >;
   [RosService.TOOL_ROTATOR_POSITION]: RosServiceMessage<
     IRosScienceInterfacesSetPositionRequest,

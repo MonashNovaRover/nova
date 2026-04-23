@@ -18,8 +18,8 @@ export interface HeaterWidgetWidgetProps extends CardProps {
  * @constructor
  */
 const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
-  const bifrost = useBifrost({topic:RosTopic.KILN_DATA, service: RosService.KILN_COMMAND});
-  const tempReadings = useSelector((state: RootState) => state.kilnData);
+  const bifrost = useBifrost({topic:RosTopic.THERMAL_DATA, service: RosService.THERMAL_COMMAND});
+  const tempReadings = useSelector((state: RootState) => state.thermalData);
   const [targetTemp, setTargetTemp] = useGenericStore<number>("targetTemp");
 
   const sendCommand = (state: boolean, temp: number) => bifrost.callService({state: state, target: temp});

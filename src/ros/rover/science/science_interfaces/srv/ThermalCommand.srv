@@ -1,4 +1,4 @@
-# turn on and off kiln
+# turn on and off thermal system
 bool state
 
 # set target temp
