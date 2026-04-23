@@ -3,7 +3,7 @@
 Monash Nova Rover Team
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	drone_gps
+PACKAGE: 	gps_drone
 CREATION:	15/04/2026
 EDITED:     15/04/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,9 +21,9 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         Node(
-            package='drone_gps',
-            executable='drone_gps.py',
-            name='drone_gps',
+            package='gps_drone',
+            executable='gps_drone.py',
+            name='gps_drone',
             output='screen',
             parameters=[{'use_sim_time': sim}],
         ),

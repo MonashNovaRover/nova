@@ -26,7 +26,7 @@ let
       {
         name = "MAVProxy";
         platform = base;
-        cmd = "~/Builds/drone/bin/mavproxy.py --master=udp:0.0.0.0:14550 --baudrate 115200 --out=udp:127.0.0.1:14551 --out=udp:127.0.0.1:14552 --logfile ~/mavlogs/mav.tlog";
+        cmd = "~/Builds/master/bin/mavproxy.py --master=udp:0.0.0.0:14550 --baudrate 115200 --out=udp:127.0.0.1:14551 --out=udp:127.0.0.1:14552 --logfile ~/mavlogs/mav.tlog";
       }
 
       {
@@ -43,7 +43,7 @@ let
       {
         name = "Drone GPS publisher";
         platform = base;
-        cmd = "sleep 5 && ~/Builds/master/bin/ros2 run drone_gps drone_gps.py";
+        cmd = "sleep 5 && ~/Builds/master/bin/ros2 run electronics gps_drone.py";
       }
     ];
 

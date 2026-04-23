@@ -81,7 +81,6 @@
 , nova-locked-publisher
 , nova-cameras
 , nova-camera-msgs
-, nova-drone-gps
 , mission-planner
 , mavproxy
   # Configuration options
@@ -152,7 +151,6 @@
       nova-cameras
       nova-camera-msgs
       nova-locked-publisher
-      nova-drone-gps
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }
