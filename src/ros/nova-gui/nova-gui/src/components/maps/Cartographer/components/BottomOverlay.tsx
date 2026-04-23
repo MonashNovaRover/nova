@@ -66,6 +66,9 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
       },
     }),
   };
+
+  const currentVehicle =
+    vehicles[focusVehicle] ?? vehicles[Vehicle.ROVER];
   
   const toggleOverlay = () => {
     setOverlayVisible(!overlayVisible);
@@ -116,24 +119,24 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   label="Base Longitude"/>
                 <CopyableInput
                   readOnly
-                  value={String(vehicles[focusVehicle].location.latitude)}
-                  placeholder={`${vehicles[focusVehicle].label} Latitude`}
-                  label={`${vehicles[focusVehicle].label} Latitude`}/>
+                  value={String(currentVehicle.location.latitude)}
+                  placeholder={`${currentVehicle.label} Latitude`}
+                  label={`${currentVehicle.label} Latitude`}/>
                 <CopyableInput
                   readOnly
-                  value={String(vehicles[focusVehicle].location.longitude)}
-                  placeholder={`${vehicles[focusVehicle].label} Longitude`}
-                  label={`${vehicles[focusVehicle].label} Longitude`}/>
+                  value={String(currentVehicle.location.longitude)}
+                  placeholder={`${currentVehicle.label} Longitude`}
+                  label={`${currentVehicle.label} Longitude`}/>
                   <CopyableInput
                   readOnly
-                  value={String(vehicles[focusVehicle].location.altitude)}
-                  placeholder={`${vehicles[focusVehicle].label} Altitude`}
-                  label={`${vehicles[focusVehicle].label} Altitude`}/>
+                  value={String(currentVehicle.location.altitude)}
+                  placeholder={`${currentVehicle.label} Altitude`}
+                  label={`${currentVehicle.label} Altitude`}/>
                   <CopyableInput
                   readOnly
-                  value={String(vehicles[focusVehicle].location.heading)}
-                  placeholder={`${vehicles[focusVehicle].label} Heading`}
-                  label={`${vehicles[focusVehicle].label} Heading`}/>
+                  value={String(currentVehicle.location.heading)}
+                  placeholder={`${currentVehicle.label} Heading`}
+                  label={`${currentVehicle.label} Heading`}/>
                 <Select
                   selectedKeys={[mapTile]}
                   label="Map Tiles"
@@ -157,17 +160,17 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 <Button
                   variant="shadow"
                   fullWidth
-                  color={vehicles[focusVehicle].track ? "primary" : "default"}
-                  onClick={vehicles[focusVehicle].toggleTracking}
+                  color={currentVehicle.track ? "primary" : "default"}
+                  onClick={currentVehicle.toggleTracking}
                 >
                   {focusVehicle == Vehicle.ROVER ? "Track Rovey" : "Track Droney"}
                 </Button>
                 <ToolTipButton
-                  tooltipContent={`Center ${vehicles[focusVehicle].label}`}
+                  tooltipContent={`Center ${currentVehicle.label}`}
                   isIconOnly
                   variant="shadow"
-                  color={vehicles[focusVehicle].centerOn ? "primary" : "default"}
-                  onClick={vehicles[focusVehicle].toggleCentering}
+                  color={currentVehicle.centerOn ? "primary" : "default"}
+                  onClick={currentVehicle.toggleCentering}
                 >
                   <Navigation className="w-5" />
                 </ToolTipButton>
