@@ -47,7 +47,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetNamedPositions.srv"
   "srv/SetPosition.srv"
   "srv/TakeNIRProbeReading.srv"
-
+  "srv/Toggle.srv"
+  
   # Action definitions
   "action/Stepper.action"
 
