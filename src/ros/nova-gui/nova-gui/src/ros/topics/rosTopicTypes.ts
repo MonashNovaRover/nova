@@ -29,7 +29,6 @@ import {
   IRosStdMsgsFloat64,
   IRosNovaInterfacesLockedStatus,
   IRosNovaInterfacesGpsData,
-  IRosScienceInterfacesNamedPositions,
   IRosScienceInterfacesCarouselFeedback,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
@@ -80,7 +79,6 @@ export interface RosTopicInterfaces {
   [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
   [RosTopic.TOOL_ROTATOR_ANGLE]: IRosStdMsgsFloat64;
   [RosTopic.PUMPS_STATUS]: IRosScienceInterfacesPumpStatus;
-  [RosTopic.CAROUSEL]: IRosScienceInterfacesNamedPositions;
   [RosTopic.CAROUSEL_INNER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
   [RosTopic.CAROUSEL_OUTER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
 

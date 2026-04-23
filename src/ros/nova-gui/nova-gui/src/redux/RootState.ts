@@ -38,7 +38,6 @@ import {
   IRosNovaInterfacesLockedStatus,
   IRosScienceInterfacesPumpStatus,
   IRosNovaInterfacesGpsData,
-  IRosScienceInterfacesNamedPositions,
   IRosScienceInterfacesCarouselFeedback,
 } from "../ros/rosTypes";
 
@@ -111,7 +110,6 @@ export interface RootState {
   auger2DepthSensorStore: IRosStdMsgsBool;
   toolRotatorAngleStore: IRosStdMsgsFloat64;
   pumpsStatusStore: IRosScienceInterfacesPumpStatus;
-  carouselStore: IRosScienceInterfacesNamedPositions;
   carouselInnerFeedback: IRosScienceInterfacesCarouselFeedback;
   carouselOuterFeedback: IRosScienceInterfacesCarouselFeedback;
 
