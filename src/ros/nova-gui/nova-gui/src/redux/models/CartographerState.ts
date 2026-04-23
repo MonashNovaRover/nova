@@ -44,8 +44,10 @@ export interface CartographerState {
   };
   centerOnRover: boolean;
   trackRover: boolean;
+  showTrackRover: boolean;
   centerOnDrone: boolean;
   trackDrone: boolean;
+  showTrackDrone: boolean;
   focusVehicle: Vehicle;
 }
 
@@ -57,8 +59,8 @@ export const initialGPSMessage = <IRosNovaInterfacesGpsData>{
     },
     frame_id: "",
   },
-  latitude: 38.4062649, // Location: 1.7 Metres Away from MDRS Hanksville
-  longitude: -110.7917894,
+  latitude: 0, // (38.4062649,-110.7917894) Location: 1.7 Metres Away from MDRS Hanksville
+  longitude: 0,
   altitude: 0,
   heading: 45.0,
 };

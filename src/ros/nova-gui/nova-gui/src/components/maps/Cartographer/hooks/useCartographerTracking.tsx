@@ -14,7 +14,7 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>, enableDro
   const [roverTrace, setRoverTrace] = useState<MapCoordinate[]>([]);
   const [droneTrace, setDroneTrace] = useState<MapCoordinate[]>([]);
 
-  const { measure, centerOnRover, trackRover, centerOnDrone, trackDrone } = useSelector(
+  const { measure, centerOnRover, trackRover, showTrackRover, centerOnDrone, trackDrone, showTrackDrone } = useSelector(
     (state: RootState) => state.cartographerState
   );
 
@@ -57,7 +57,7 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>, enableDro
   const deBouncedDroneLocation = useDebounce(droneLocation, 100);
 
   useEffect(() => {
-    if (trackRover) {
+    if (trackRover && (deBouncedRoverLocation.latitude !== 0) && (deBouncedRoverLocation.longitude !== 0)) {
       addRoverPoint({
         lat: deBouncedRoverLocation.latitude,
         long: deBouncedRoverLocation.longitude,
@@ -68,7 +68,11 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>, enableDro
   }, [deBouncedRoverLocation.latitude, deBouncedRoverLocation.longitude]);
 
   useEffect(() => {
-    if (enableDroneTracking && trackDrone) {
+    if (!trackRover) setRoverTrace([]);
+  }, [trackRover]);
+
+  useEffect(() => {
+    if (enableDroneTracking && trackDrone && (deBouncedRoverLocation.latitude !== 0) && (deBouncedRoverLocation.longitude !== 0)) {
       addDronePoint({
         lat: deBouncedDroneLocation.latitude,
         long: deBouncedDroneLocation.longitude,
@@ -77,6 +81,10 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>, enableDro
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deBouncedDroneLocation.latitude, deBouncedDroneLocation.longitude, enableDroneTracking]);
+
+  useEffect(() => {
+    if (!trackDrone) setDroneTrace([]);
+  }, [trackDrone]);
 
   useEffect(() => {
     if (!mapRef.current || trackRover) return;
@@ -99,16 +107,16 @@ export const useCartographerTracking = (mapRef: RefObject<Map | null>, enableDro
     const source = mapRef.current.getSource("roverTrace") as GeoJSONSource;
     if (!source) return;
 
-    source.setData(getLineGeoJSONData(roverTrace));
-  }, [roverTrace, mapRef]);
+    source.setData(getLineGeoJSONData(showTrackRover ? roverTrace : []));
+  }, [showTrackRover, roverTrace, mapRef]);
 
   useEffect(() => {
     if (!enableDroneTracking || !mapRef.current) return;
     const source = mapRef.current.getSource("droneTrace") as GeoJSONSource;
     if (!source) return;
 
-    source.setData(getLineGeoJSONData(droneTrace));
-  }, [droneTrace, mapRef, enableDroneTracking]);
+    source.setData(getLineGeoJSONData(showTrackDrone ? droneTrace : []));
+  }, [showTrackDrone, droneTrace, mapRef, enableDroneTracking]);
 
   // Measure Line Augmentation
   useEffect(() => {

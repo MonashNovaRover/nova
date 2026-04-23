@@ -123,6 +123,10 @@ export const cartographerSlice = createSlice({
       ...state,
       trackRover: !state.trackRover,
     }),
+    TOGGLE_SHOW_TRACK_ROVER: (state: CartographerState) => ({
+      ...state,
+      showTrackRover: !state.showTrackRover,
+    }),
     TOGGLE_DRONE_CENTER: (state: CartographerState) => ({
       ...state,
       centerOnDrone: !state.centerOnDrone,
@@ -130,6 +134,10 @@ export const cartographerSlice = createSlice({
     TOGGLE_TRACK_DRONE: (state: CartographerState) => ({
       ...state,
       trackDrone: !state.trackDrone,
+    }),
+    TOGGLE_SHOW_TRACK_DRONE: (state: CartographerState) => ({
+      ...state,
+      showTrackDrone: !state.showTrackDrone,
     }),
     HANDLE_FOCUS_VEHICLE: (state: CartographerState) => {
       switch (state.focusVehicle) {
@@ -171,9 +179,11 @@ export const cartographerSlice = createSlice({
       measuring: false,
     },
     centerOnRover: false,
-    trackRover: false,
+    trackRover: true,
+    showTrackRover: false,
     centerOnDrone: false,
-    trackDrone: false,
+    trackDrone: true,
+    showTrackDrone: false,
     focusVehicle: Vehicle.ROVER,
   },
   name: "CartographerReducer",
