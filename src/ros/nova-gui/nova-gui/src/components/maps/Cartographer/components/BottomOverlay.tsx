@@ -11,6 +11,11 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader
 } from "@nextui-org/react";
 import CopyableInput from "../../../shared/components/CopyableInput/CopyableInput.tsx";
 import { useState } from "react";
@@ -73,6 +78,38 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
 
   const currentVehicle =
     vehicles[focusVehicle] ?? vehicles[Vehicle.ROVER];
+
+  const [showModal, setShowModal] = useState(false);
+
+  const modal = (
+    <Modal
+      size="xs"
+      className="dark text-foreground"
+      isOpen={showModal}
+      onClose={() => setShowModal(false)}
+    >
+      <ModalContent>
+        <ModalHeader className="flex flex-col gap-1">
+          Delete {currentVehicle.label} trace?
+        </ModalHeader>
+        <ModalFooter>
+          <Button variant="light" onPressStart={() => setShowModal(false)}>
+            Close
+          </Button>
+          <Button
+            color="danger"
+            onPressStart={() => {
+              currentVehicle.toggleTracking();
+              setTimeout(() => currentVehicle.toggleTracking(), 0);
+              setShowModal(false);
+            }}
+          >
+            Delete
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
   
   const toggleOverlay = () => {
     setOverlayVisible(!overlayVisible);
@@ -173,12 +210,12 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   <button
                     className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#848482] hover:bg-[#6b6b69] active:bg-[#4a4a48] flex items-center justify-center transition-colors"
                     onClick={() => {
-                      currentVehicle.toggleTracking();
-                      setTimeout(() => currentVehicle.toggleTracking(), 0);
+                      setShowModal(true);
                     }}
                   >
                     <X className="w-3 h-3 text-white" />
                   </button>
+                  {modal}
                 </div>
                 <ToolTipButton
                   tooltipContent={`Center ${currentVehicle.label}`}
