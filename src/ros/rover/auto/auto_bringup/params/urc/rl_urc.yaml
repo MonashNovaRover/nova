@@ -1,4 +1,5 @@
-# For parameter descriptions, please refer to the template parameter files for each node.
+# For parameter descriptions, please refer to https://github.com/cra-ros-pkg/robot_localization/blob/jazzy-devel/params/ekf.yaml
+# Based off of https://github.com/cra-ros-pkg/robot_localization/blob/jazzy-devel/params/dual_ekf_navsat_example.yaml
 
 ekf_filter_node_odom:
   ros__parameters:
@@ -35,21 +36,20 @@ ekf_filter_node_odom:
     imu0_relative: true
     imu0_remove_gravitational_acceleration: false
     
-    process_noise_covariance: [1e-3, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.3,   0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.3,   0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.01,  0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.5,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.5,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.1,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.3,   0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.3,   0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.3,   0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.3,   0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.3,   0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.3]
+    # Higher values for a state = filter trusts prediction less and incoming measurements more
+    # Lower value = smoother estimate, but can lag or become overconfident
+    process_noise_covariance: [1e-3, 1e-3, 1e-3,
+                               0.3,  0.3,  0.01,
+                               0.5,  0.5,  0.1,
+                               0.3,  0.3,  0.3,
+                               0.3,  0.3,  0.3]
+
+    # Set higher values for states that are measured directly by sensors
+    initial_estimate_covariance: [1e-9, 1e-9, 1e-9,
+                                  1e-9, 1e-9, 1e-9,
+                                  1.0,  1e-9, 1e-9,
+                                  1.0,  1.0,  1.0,
+                                  1.0,  1.0,  1.0]
 
     use_control: false # Might look into enabling this / setting to true?
     # control_config: [true, false, false, false, false, true] # Might look into enabling this / setting to true?
@@ -98,21 +98,20 @@ ekf_filter_node_map:
     imu0_relative: true
     imu0_remove_gravitational_acceleration: false
     
-    process_noise_covariance: [1e-3, 0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    1e-3,  0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.3,   0.0,    0.0,     0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.3,   0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.01,  0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.5,    0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.5,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.1,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.3,   0.0,    0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.3,   0.0,    0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.3,   0.0,    0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.3,   0.0,    0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.3,   0.0,
-                            0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,     0.0,     0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.3]
+    # Higher values for a state = filter trusts prediction less and incoming measurements more
+    # Lower value = smoother estimate, but can lag or become overconfident
+    process_noise_covariance: [1.0, 1.0, 1e-3,
+                               0.3, 0.3, 0.01,
+                               0.5, 0.5, 0.1,
+                               0.3, 0.3, 0.3,
+                               0.3, 0.3, 0.3]
+
+    # Set higher values for states that are measured directly by sensors
+    initial_estimate_covariance: [1.0,  1.0,  1.0,
+                                  1e-9, 1e-9, 1e-9,
+                                  1.0,  1e-9, 1e-9,
+                                  1.0,  1.0,  1.0,
+                                  1.0,  1.0,  1.0]
 
     use_control: false # Might look into enabling this / setting to true?
     # control_config: [true, false, false, false, false, true] # Might look into enabling this / setting to true?
