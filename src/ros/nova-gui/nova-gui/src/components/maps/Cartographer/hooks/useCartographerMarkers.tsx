@@ -215,7 +215,7 @@ const createRoverIcon = () => {
 const createDroneIcon = () => {
   const imgElement = document.createElement("img");
   imgElement.src = droneIcon;
-  imgElement.className = "w-14";
+  imgElement.className = "w-24";
   return imgElement;
 };
 
