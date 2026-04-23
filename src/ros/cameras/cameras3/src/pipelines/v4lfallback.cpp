@@ -177,7 +177,7 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
   // webrtc
   default_string = "gcc";
   props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
-  default_string = "video/x-h264,camera->profile=constrained-baseline"; 
+  default_string = "video/x-vp8"; 
   props->video_caps = set_property(streamer_node, camera, "video_caps", default_string);
 
   props->bitrate = set_property(streamer_node, camera, "bitrate", 4096);

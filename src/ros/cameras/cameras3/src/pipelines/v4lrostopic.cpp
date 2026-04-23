@@ -38,17 +38,18 @@ GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelin
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
   GstElement* decode = gst_element_factory_make("decodebin3", "decoder");
-  GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
 
   GstElement* tee = gst_element_factory_make("tee", "tee");
   GstElement* queue1 = gst_element_factory_make("queue", "queue1");
+  GstElement* rosconvert = gst_element_factory_make("videoconvertscale", "rosconverter");
+  GstElement* rosfilter = gst_element_factory_make("capsfilter", "rosfilter");
   GstElement* rossink = gst_element_factory_make("rosimagesink", "rossink");
 
   GstElement* queue2 = gst_element_factory_make("queue", "queue2");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
 
-  if (!gst_pipeline || !source || !srcfilter || !decode || !convert || !tee || !queue1 || !rossink || !queue2 || !webrtc 
+  if (!gst_pipeline || !source || !srcfilter || !decode || !tee || !queue1 || !rosconvert || !rosfilter || !rossink || !queue2 || !webrtc 
       ) {
       RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
       return nullptr;
@@ -57,11 +58,14 @@ GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelin
   // 2. Set element properties
   set_v4lsource(source, props);
   set_srcfilter(srcfilter, props);
+  set_queue(queue1);
+  set_rosfilter(rosfilter, props);
   set_rostopicsink(rossink, props);
+  set_queue(queue2);
   set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, tee, queue1, rossink, queue2, webrtc, NULL);
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, tee, queue1, rosconvert, rosfilter, rossink, queue2, webrtc, NULL);
 
   // 4. Link elements
   if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
@@ -69,20 +73,22 @@ GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelin
   // Convert to raw
   if (!link_elements(streamer_node, srcfilter, decode, props->serial)) return nullptr;
 
+  // Link to tee
   g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
-      GstElement* convert = static_cast<GstElement*>(user_data);
-      GstPad* sink_pad = gst_element_get_static_pad(convert, "sink");
+      GstElement* tee = static_cast<GstElement*>(user_data);
+      GstPad* sink_pad = gst_element_get_static_pad(tee, "sink");
       if (sink_pad && !gst_pad_is_linked(sink_pad)) {
           gst_pad_link(new_pad, sink_pad);
       }
       if (sink_pad) gst_object_unref(sink_pad);
-  }), convert);
-
-  if (!link_elements(streamer_node, convert, tee, props->serial)) return nullptr;
+  }), tee);
 
   // connect to ros topic
   if (!link_elements(streamer_node, tee, queue1, props->serial)) return nullptr;
-  if (!link_elements(streamer_node, queue1, rossink, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, queue1, rosconvert, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, rosconvert, rosfilter, props->serial)) return nullptr;
+  if (!link_elements(streamer_node, rosfilter, rossink, props->serial)) return nullptr;
+  
   if (!link_elements(streamer_node, tee, queue2, props->serial)) return nullptr;
   if (!link_elements(streamer_node, queue2, webrtc, props->serial)) return nullptr;
 
@@ -121,7 +127,7 @@ v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node*
   props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // filter
-  default_string = "I420";
+  default_string = "BGR";
   props->format = set_property(streamer_node, camera, "format", default_string);
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera, "mime", default_string);
@@ -140,7 +146,7 @@ v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node*
   // webrtc
   default_string = "gcc";
   props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
-  default_string = "video/x-h264,profile=constrained-baseline"; 
+  default_string = "video/x-vp8";
   props->video_caps = set_property(streamer_node, camera, "video_caps", default_string);
 
   props->bitrate = set_property(streamer_node, camera, "bitrate", 4096);
