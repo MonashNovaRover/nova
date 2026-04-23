@@ -38,6 +38,11 @@ in
         if [ -f /tmp/ros_dds ]; then
           . /tmp/ros_dds
         fi
+
+        # Source the COMP environment variable if it exists
+        if [ -f "$XDG_CONFIG_HOME/nova/comp" ]; then
+          . "$XDG_CONFIG_HOME/nova/comp"
+        fi
       '';
     };
 
@@ -103,6 +108,10 @@ in
           base_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_super_client_configuration.xml}";
           rover_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/rover_super_client_configuration.xml}";
           base_pi_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_super_client_configuration.xml}";
+
+          # Comp Selection (for auto)
+          set_arch = "echo 'export COMP=arch' > $XDG_CONFIG_HOME/nova/comp; export COMP=arch";
+          set_urc = "echo 'export COMP=urc' > $XDG_CONFIG_HOME/nova/comp; export COMP=urc";
 
           # Hydra 
           hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
