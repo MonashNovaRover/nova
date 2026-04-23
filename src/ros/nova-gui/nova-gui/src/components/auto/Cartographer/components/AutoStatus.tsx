@@ -8,14 +8,12 @@ import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
 interface AutoStatusProps {
 }
 
-type ChipColor = "primary" | "secondary" | "warning" | "success" | "danger";
-
-const variants: [string, ChipColor, string][] = [
-  ["Idle", "primary", "border-blue-500"],
-  ["Traversing", "secondary", "border-purple-500"],
-  ["Searching", "warning", "border-yellow-500"],
-  ["Arrived Successfully", "success", "border-green-500"],
-  ["Arrived Unsuccessfully", "danger", "border-red-500"],
+const variants: [string, string, string][] = [
+  ["Idle", "border-[#3eb1cf]", "bg-[#3eb1cf]"],
+  ["Traversing", "border-primary", "bg-primary"],
+  ["Searching", "border-warning", "bg-warning"],
+  ["Arrived Successfully", "border-success", "bg-success"],
+  ["Arrived Unsuccessfully", "border-danger", "bg-danger"],
 ];
 
 export const AutoStatus : React.FC<AutoStatusProps> = () => {
@@ -27,7 +25,16 @@ export const AutoStatus : React.FC<AutoStatusProps> = () => {
   }, [bifrost]);
 
   return (
-    <Chip radius='md' size="lg" variant="dot" color={variants[autoStatus][1]} className={`h-10 border-2 ${variants[autoStatus][2]}`}>
+    <Chip
+      key={autoStatus}
+      radius='md'
+      size="lg"
+      variant="dot"
+      classNames={{
+        base: `h-10 border-3 ${variants[autoStatus][1]}`,
+        dot: variants[autoStatus][2]
+      }}
+    >
       {variants[autoStatus][0]}
     </Chip>
   )
