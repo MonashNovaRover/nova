@@ -101,8 +101,8 @@ in
 
           # ROS2 DDS Configuration
           # Will be sourced in .bashrc to persist across terminal sessions and reboots
-          use_fastdds = "echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > $XDG_CONFIG_HOME/nova/ros_dds; source $XDG_CONFIG_HOME/nova/ros_dds";
-          use_cyclonedds = "echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > $XDG_CONFIG_HOME/nova/ros_dds; source $XDG_CONFIG_HOME/nova/ros_dds";
+          use_fastdds = "export RMW_IMPLEMENTATION=rmw_fastrtps_cpp; echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > $XDG_CONFIG_HOME/nova/ros_dds";
+          use_cyclonedds = "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp; echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > $XDG_CONFIG_HOME/nova/ros_dds";
 
           # ROS Discovery Server
           base_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_client_configuration.xml}";
