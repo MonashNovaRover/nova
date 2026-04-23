@@ -149,9 +149,9 @@ export const urcNavigationData: NavigationInterface = {
   ],
   ["Autonomous"]: [
     {
-      title: "Dashboard",
+      title: "Cartographer",
       route: "/urc/autonomous-navigation",
-      icon: <Home />,
+      icon: <Map />,
     },
     {
       title: "Cameras",
@@ -161,7 +161,7 @@ export const urcNavigationData: NavigationInterface = {
     {
       title: "Simulation",
       route: "/urc/gazebo",
-      icon: <Home />,
+      icon: <Tv />,
     },
   ]
 };

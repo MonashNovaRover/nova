@@ -1,10 +1,11 @@
-import React, { useEffectEvent, useState } from "react";
+import React, { useState } from "react";
 import {
   DndContext,
   closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
+  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -40,20 +41,44 @@ export const CartographerGoalModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
 }> = ({ isOpen, onClose }) => {
-  const { points } = useSelector(
-    (state: RootState) => state.cartographerState
-  );
-
-  const [items, setItems] = useState<MapPoint[]>(
-    points.map((point) => ({ ...point, selected: false }))
-  );
-
+  const sensors = useSensors(useSensor(PointerSensor));
+  
   const serviceBifrost = useBifrost({
     service: RosService.CARTOGRAPHER_COMMAND,
   });
 
+
+  const { points } = useSelector(
+    (state: RootState) => state.cartographerState
+  );
+  
+  
+  const [selection, setSelection] = useState<number[]>([]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over!.id) {
+      const oldIndex = selection.findIndex((p) => points[p].name === active.id);
+      const newIndex = selection.findIndex((p) => points[p].name === over!.id);
+      setSelection(arrayMove(selection, oldIndex, newIndex));
+    }
+  };
+
+  const toggleSelection = (name: string) => {
+    const i = points.findIndex((v)=>v.name === name);
+    if (selection.includes(i)) {
+      setSelection((prev)=>prev.filter((v)=>v!==i))
+    } else {
+      setSelection((prev)=>[...prev, points.findIndex((v)=>v.name === name)])
+    }
+  };
+
+
+  if (!isOpen && selection.length > 0) setSelection([]);
+
+
   const sendCartographerPoints = () => {
-    const selected = items.filter((item) => item.selected);
+    const selected = selection.map((v)=>points[v]);
     const goals = selected.map((item) => ({
       latitude: item.lat,
       longitude: item.long,
@@ -62,31 +87,6 @@ export const CartographerGoalModal: React.FC<{
     console.log("calling service with:", { goals: goals, types: types });
     serviceBifrost.callService({ goals: goals, types: types } as IRosNovaInterfacesCartographerCommandRequest);
   };
-
-  const sensors = useSensors(useSensor(PointerSensor));
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (active.id !== over.id) {
-      const oldIndex = items.findIndex((item) => item.name === active.id);
-      const newIndex = items.findIndex((item) => item.name === over.id);
-      setItems(arrayMove(items, oldIndex, newIndex));
-    }
-  };
-
-  const toggleSelection = (name: string) => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.name === name ? { ...item, selected: !item.selected } : item
-      )
-    );
-  };
-
-  // idk how to fix this linting error cause i dont get what this is meant to do @Felicity
-  useEffectEvent(() => {
-    setItems(points.map((point) => ({ ...point, selected: false })));
-  });
 
   const renderPoints = (points: MapPoint[], isSortable: boolean) => {
     return points.map((point) => (
@@ -108,7 +108,7 @@ export const CartographerGoalModal: React.FC<{
   const renderPointContent = (point: MapPoint) => (
     <div className="flex justify-between items-center">
       <Checkbox
-        isSelected={point.selected}
+        isSelected={selection.includes(points.indexOf(point))}
         onChange={() => toggleSelection(point.name)}
       >
         <span className="flex-shrink-0 font-bold">{point.name}</span>
@@ -137,8 +137,8 @@ export const CartographerGoalModal: React.FC<{
     </div>
   );
 
-  const selectedItems = items.filter((item) => item.selected);
-  const unselectedItems = items.filter((item) => !item.selected);
+  const selectedItems = selection.map((v)=>points[v])
+  const unselectedItems = points.filter((_, i) => !selection.includes(i));
 
   return (
     <Modal
