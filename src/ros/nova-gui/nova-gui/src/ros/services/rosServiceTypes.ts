@@ -39,6 +39,8 @@ import {
   IRosScienceInterfacesPowerCycleResponse,
   IRosRclInterfacesSetParametersRequest,
   IRosRclInterfacesSetParametersResponse,
+  IRosScienceInterfacesToggleRequest,
+  IRosScienceInterfacesToggleResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -148,6 +150,10 @@ export interface RosServiceInterface {
   [RosService.UV_VIS_LED_2]: RosServiceMessage<
     IRosStdSrvsSetBoolRequest,
     IRosStdSrvsSetBoolResponse
+  >;
+  [RosService.LEDS]: RosServiceMessage<
+    IRosScienceInterfacesToggleRequest,
+    IRosScienceInterfacesToggleResponse
   >;
   [RosService.CACHE_1]: RosServiceMessage<
     IRosScienceInterfacesCacheCommandRequest,

@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
-from science_interfaces.srv import Togggle
+from science_interfaces.srv import Toggle
 from python_control2.hardware_interfaces import ToggleHardware
 from teleop_python_utils import Inputs, EventCollection
 
@@ -65,8 +65,12 @@ if __name__ == "__main__":
 
     node = Node("science_leds")
     PythonControl(node, update_rate=5, can_bus="can1") \
-        .with_controller("controller", LEDController, led_list = ["vis_spec_central_led"]) \
-        .with_hardware("vis_spec_central_led", ToggleHardware) \
+        .with_controller("controller", LEDController, led_list = ["vis_spec_central_led", "vis_spec_nile_red","vis_spec_camera", "vis_spec_nadh", "litmus_led"]) \
+        .with_hardware("vis_spec_central_led", ToggleHardware, can_id = 0x0F2, on_command =0x11 , off_command = 0x10) \
+        .with_hardware("vis_spec_nile_red", ToggleHardware, can_id = 0x0F2, on_command =0x21 , off_command = 0x20) \
+        .with_hardware("vis_spec_camera", ToggleHardware, can_id = 0x0F2, on_command =0x31 , off_command = 0x30) \
+        .with_hardware("vis_spec_nadh", ToggleHardware, can_id = 0x0F2, on_command =0x2=41 , off_command = 0x40) \
+        .with_hardware("litmus_led", ToggleHardware, can_id = 0x0F2, on_command =0x2=4=51 , off_command = 0x50) \
         .with_jcan() \
         .with_event_collection() \
         .spin()

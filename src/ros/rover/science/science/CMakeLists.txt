@@ -68,6 +68,7 @@ install(PROGRAMS
         science/urc/urc_theta_360_cam.py
         science/urc/urc_uv_vis_leds.py
         science/urc/urc_uv_vis_spec.py
+        science/urc/led.py
         science/analysis_arm_stepper.py
         science/auger.py
         science/cbeam.py

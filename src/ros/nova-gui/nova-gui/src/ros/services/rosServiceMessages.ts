@@ -34,6 +34,7 @@ export const rosServiceMessages = {
   [RosService.CALL_RAMAN_MECH]: "science_interfaces/srv/RamanMech",
   [RosService.UV_VIS_LED_1]: "std_srvs/srv/SetBool",
   [RosService.UV_VIS_LED_2]: "std_srvs/srv/SetBool",
+  [RosService.LEDS]: "science_interfaces/srv/Toggle",
   [RosService.CACHE_1]: "science_interfaces/srv/CacheCommand",
   [RosService.CACHE_2]: "science_interfaces/srv/CacheCommand",
   [RosService.HEATER]: "science_interfaces/srv/KilnCommand",
