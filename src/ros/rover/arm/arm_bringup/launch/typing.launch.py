@@ -15,7 +15,7 @@ CREATION:	25/05/2025
 '''
 from launch import LaunchDescription
 from launch.conditions import IfCondition
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -49,16 +49,20 @@ def launch_setup(context, *args, **kwargs):
             executable='pokey.py',
             parameters=[params]
         ),
-        Node(
-            package='auto_typing',
-            executable='camera_info_publisher.py',
-            parameters=[params],
-        ),
-        Node(
+        GroupAction(
             condition=IfCondition(auto_mode),
-            package='aruco_opencv',
-            executable='aruco_tracker_autostart',
-            arguments=['--ros-args', '--params-file', aruco_params],
+            actions=[
+                Node(
+                    package='auto_typing',
+                    executable='camera_info_publisher.py',
+                    parameters=[params],
+                ),
+                Node(
+                    package='aruco_opencv',
+                    executable='aruco_tracker_autostart',
+                    arguments=['--ros-args', '--params-file', aruco_params],
+                ),
+            ]
         ),
     ]
 
