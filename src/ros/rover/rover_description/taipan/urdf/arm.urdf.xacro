@@ -43,6 +43,15 @@
   <!--    up 0.0138-->
   <!--    forward 0.012512-->
 
+
+  <!-- Periscope camera frame for auto-typing -->
+  <link name="image_frame"/>
+  <joint name="camera_ee_periscope" type="fixed">
+    <origin xyz="0.0001 -0.014 0.013" rpy="1.5708 1.5708 0"/>
+    <parent link="diff_support"/>
+    <child link="image_frame"/>
+  </joint>
+
   <!-- Gazebo / IRL Control -->
   <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/arm_ckc.xacro"/>
 
