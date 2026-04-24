@@ -24,7 +24,7 @@ from os.path import expanduser
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, AndSubstitution, NotSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, AndSubstitution, NotSubstitution, EnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition
 from launch.logging import get_logger
 from launch_ros.actions import Node, SetParameter
@@ -349,7 +349,7 @@ def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
             name='comp',
-            default_value='arch',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
             description='ARCh or URC',
         ),
         DeclareLaunchArgument(
