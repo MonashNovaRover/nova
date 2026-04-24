@@ -232,3 +232,32 @@ cache_right:
     hardware:
       actuation:
         can_id: 0xE2
+
+spec_leds:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        led_list: ["vis_spec_central_led", "vis_spec_nile_red", "vis_spec_camera", "vis_spec_nadh", "litmus_led"]
+    hardware:
+      vis_spec_central_led:
+        can_id: 0x0F2
+        on_command: 0x11
+        off_command: 0x10
+      vis_spec_nile_red:
+        can_id: 0x0F2
+        on_command: 0x21
+        off_command: 0x20
+      vis_spec_camera:
+        can_id: 0x0F2
+        on_command: 0x31
+        off_command: 0x30
+      vis_spec_nadh:
+        can_id: 0x0F2
+        on_command: 0x41
+        off_command: 0x40
+      litmus_led:
+        can_id: 0x0F2
+        on_command: 0x51
+        off_command: 0x50

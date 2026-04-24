@@ -1,10 +1,31 @@
+#!/usr/bin/env python3
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Purpose: LED control for UV/Vis spectrometer and litmus test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NODE: science_leds
+SERVICES:
+    - server: /science/leds/toggle (Toggle)
+EVENTS:
+    - vis_spec_central_led/toggle
+    - vis_spec_nile_red/toggle
+    - vis_spec_camera/toggle
+    - vis_spec_nadh/toggle
+    - litmus_led/toggle
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:    science
+AUTHOR(S):	Angel
+CREATION:	20/04/2026
+EDITED:		24/04/2026
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import rclpy
 from rclpy.node import Node
 from typing import Optional
-from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
+from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection
 from science_interfaces.srv import Toggle
 from python_control2.hardware_interfaces import ToggleHardware
-from teleop_python_utils import Inputs, EventCollection
+from teleop_python_utils import EventCollection
 
 
 class LEDController(Controller):
@@ -59,6 +80,7 @@ class LEDController(Controller):
             self.logger.error(f"An error occurred while attempting to toggle led: {e}")
             response.success = False
 
+        return response
 
 if __name__ == "__main__":
     rclpy.init()
@@ -70,7 +92,7 @@ if __name__ == "__main__":
         .with_hardware("vis_spec_nile_red", ToggleHardware, can_id = 0x0F2, on_command =0x21 , off_command = 0x20) \
         .with_hardware("vis_spec_camera", ToggleHardware, can_id = 0x0F2, on_command =0x31 , off_command = 0x30) \
         .with_hardware("vis_spec_nadh", ToggleHardware, can_id = 0x0F2, on_command =0x2=41 , off_command = 0x40) \
-        .with_hardware("litmus_led", ToggleHardware, can_id = 0x0F2, on_command =0x2=4=51 , off_command = 0x50) \
+        .with_hardware("litmus_led", ToggleHardware, can_id = 0x0F2, on_command =0x20 , off_command = 0x50) \
         .with_jcan() \
         .with_event_collection() \
         .spin()

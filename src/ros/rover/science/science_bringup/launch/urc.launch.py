@@ -192,9 +192,9 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
-            name='toggle_led',
+            name='spec_leds',
             package='science',
-            executable='led.py',
+            executable='spec_leds.py',
             output='screen',
             emulate_tty=True,
             parameters=[
