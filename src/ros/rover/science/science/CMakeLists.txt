@@ -54,6 +54,7 @@ install(PROGRAMS
         science/arc/sweeper.py
         science/arc/water_pump.py
         science/arc/diaphragm_pump.py
+        science/urc/carousel.py
         science/urc/hydraprobe_trigger_node.py
         science/urc/pumps.py
         science/urc/urc_bme_sensor.py

@@ -20,7 +20,7 @@ from ..controller_manager.Contexts import Contexts
 from ..controller_manager.Activation import Activation
 from ..controllers.Controller import Controller
 from teleop_python_utils import Inputs, Button
-from science_interfaces.srv import SetPositionPresets, SetPositionPresets_Request, SetPositionPresets_Response, SetPosition, SetPosition_Request, SetPosition_Response
+from science_interfaces.srv import SetNamedPositions, SetNamedPositions_Request, SetNamedPositions_Response, SetPosition, SetPosition_Request, SetPosition_Response
 from std_msgs.msg import Float64
 
 
@@ -69,7 +69,7 @@ class PresetTwitchController(Controller):
         # Set up optional services and publishers
         preset_service_name = self.declare_parameter("set_presets_service", set_presets_service, "Optional service name that will sets pose presets.").value
         if preset_service_name != "":
-            self.set_presets_service = self.node.create_service(SetPositionPresets, preset_service_name, self.set_preset_callback)
+            self.set_presets_service = self.node.create_service(SetNamedPositions, preset_service_name, self.set_preset_callback)
 
         position_service_name = self.declare_parameter("set_position_service", set_position_service, "Optional service name that will set position.").value
         if position_service_name != "":
@@ -176,7 +176,7 @@ class PresetTwitchController(Controller):
                 self.current_pos = updated_pos
                 self.logger.info(f"Moved to position: {self.current_pos:.2f} ({"+" if offset > 0 else ""}{offset:.2f})")
 
-    def set_preset_callback(self, request: SetPositionPresets_Request, response: SetPositionPresets_Response):
+    def set_preset_callback(self, request: SetNamedPositions_Request, response: SetNamedPositions_Response):
         """ Service callback to update the pose presets """
         # Check each position has a name
         if len(request.names) != len(request.positions):
@@ -190,7 +190,7 @@ class PresetTwitchController(Controller):
         response.success = True
         return response
 
-    def set_position_callback(self, request: SetPositionPresets_Request, response: SetPositionPresets_Response):
+    def set_position_callback(self, request: SetNamedPositions_Request, response: SetNamedPositions_Response):
         """ Service callback to set the position """
         desired_angle = request.position
 
