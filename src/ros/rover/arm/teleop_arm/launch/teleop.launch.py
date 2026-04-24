@@ -70,7 +70,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='joy_node',
                     output="screen",
                     parameters=[
-                        {"device_id": 0, "deadzone": 0.05},
+                        {"device_id": 0, "deadzone": 0.17},
                     ],
                     remappings=[
                         ("/joy", "/arm/joy/left")
@@ -82,7 +82,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='joy_node',
                     output="screen",
                     parameters=[
-                        {"device_id": 1, "deadzone": 0.05},
+                        {"device_id": 1, "deadzone": 0.17},
                     ],
                     remappings=[
                         ("/joy", "/arm/joy/right")
