@@ -295,6 +295,14 @@ export const reduxStores = {
       time_target: 0,
     }
   ),
+  carouselInnerFeedback: createBifrostStore(
+    { topic: RosTopic.CAROUSEL_INNER_FEEDBACK },
+    { position: 0, current: 0, load: 0, zeroing: false }
+  ),
+  carouselOuterFeedback: createBifrostStore(
+    { topic: RosTopic.CAROUSEL_OUTER_FEEDBACK },
+    { position: 0, current: 0, load: 0, zeroing: false }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,

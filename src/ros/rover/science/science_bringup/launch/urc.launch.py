@@ -108,6 +108,26 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='carousel_inner',
+            package='science',
+            executable='carousel.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='carousel_outer',
+            package='science',
+            executable='carousel.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
 
         # Misc - Nodes for misc components
