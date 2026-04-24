@@ -33,7 +33,7 @@ export const rosServiceMessages = {
   [RosService.THETA_360_CAM_CAPTURE]: "std_srvs/srv/Trigger",
   [RosService.CALL_RAMAN_SPEC]: "science_interfaces/srv/RamanSpec",
   [RosService.CALL_RAMAN_MECH]: "science_interfaces/srv/RamanMech",
-  [RosService.LEDS]: "science_interfaces/srv/Toggle",
+  [RosService.LEDS]: "science_interfaces/srv/SetNamedBool",
   [RosService.CACHE_1]: "science_interfaces/srv/CacheCommand",
   [RosService.CACHE_2]: "science_interfaces/srv/CacheCommand",
   [RosService.HEATER]: "science_interfaces/srv/ThermalCommand",

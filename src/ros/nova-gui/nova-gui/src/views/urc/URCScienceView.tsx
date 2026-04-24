@@ -11,7 +11,7 @@ import HeaterWidget from "../../components/science/ThermalControl/HeaterWidget.t
 import {CameraControlModalButton} from "../../components/cameras/CameraPage/CameraControlModelButton.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
 import LitmusDipperWidget from "../../components/science/LitmusDipperWidget/LitmusDipperWidget.tsx";
-import LedWidget from "../../components/science/LEDWidget/LedWidget.tsx";
+import LedWidget from "../../components/science/LEDWidget/LEDWidget.tsx";
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)

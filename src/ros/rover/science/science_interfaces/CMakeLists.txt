@@ -44,10 +44,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
   "srv/ScienceCommand.srv"
+  "srv/SetNamedBool.srv"
   "srv/SetNamedPositions.srv"
   "srv/SetPosition.srv"
   "srv/TakeNIRProbeReading.srv"
-  "srv/Toggle.srv"
   
   # Action definitions
   "action/Stepper.action"

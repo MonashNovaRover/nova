@@ -45,8 +45,8 @@ import {
   IRosScienceInterfacesSetNamedPositionsResponse,
   IRosScienceInterfacesIncrementZeroRequest,
   IRosScienceInterfacesIncrementZeroResponse,
-  IRosScienceInterfacesToggleRequest,
-  IRosScienceInterfacesToggleResponse,
+  IRosScienceInterfacesSetNamedBoolRequest,
+  IRosScienceInterfacesSetNamedBoolResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -154,8 +154,8 @@ export interface RosServiceInterface {
     IRosScienceInterfacesRamanMechResponse
   >;
   [RosService.LEDS]: RosServiceMessage<
-    IRosScienceInterfacesToggleRequest,
-    IRosScienceInterfacesToggleResponse
+    IRosScienceInterfacesSetNamedBoolRequest,
+    IRosScienceInterfacesSetNamedBoolResponse
   >;
   [RosService.CACHE_1]: RosServiceMessage<
     IRosScienceInterfacesCacheCommandRequest,

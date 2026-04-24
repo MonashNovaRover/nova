@@ -1,8 +1,0 @@
-# Used to toggle a hardware device 
-
-# name of the device to be toggled
-string name
-
----
-
-bool success

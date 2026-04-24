@@ -5,13 +5,13 @@ Purpose: LED control for UV/Vis spectrometer and litmus test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: science_leds
 SERVICES:
-    - server: /science/leds/toggle (Toggle)
+    - server: /science/leds/set (SetNamedBool)
 EVENTS:
-    - vis_spec_central_led/toggle
-    - vis_spec_nile_red/toggle
-    - vis_spec_camera/toggle
-    - vis_spec_nadh/toggle
-    - litmus_led/toggle
+    - vis_spec_central_led/toggle, vis_spec_central_led/on, vis_spec_central_led/off
+    - vis_spec_nile_red/toggle, vis_spec_nile_red/on, vis_spec_nile_red/off
+    - vis_spec_camera/toggle, vis_spec_camera/on, vis_spec_camera/off
+    - vis_spec_nadh/toggle, vis_spec_nadh/on, vis_spec_nadh/off
+    - litmus_led/toggle, litmus_led/on, litmus_led/off
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:    science
 AUTHOR(S):	Angel
@@ -23,7 +23,7 @@ import rclpy
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection
-from science_interfaces.srv import Toggle
+from science_interfaces.srv import SetNamedBool
 from python_control2.hardware_interfaces import ToggleHardware
 from teleop_python_utils import EventCollection
 
@@ -38,17 +38,20 @@ class LEDController(Controller):
         """
         super().__init__(contexts)
         self.led_list = led_list
+        self.led_events = {}
 
-        #setup service 
-        self.toggle_service = self.node.create_service(Toggle,"/science/leds/toggle", self.led_toggle_callback)
+        #setup service
+        self.set_led_service = self.node.create_service(SetNamedBool,"/science/leds/set", self.led_set_callback)
 
-        #led toggle event for leds in led list
+        #led events for leds in led list (toggle, on, off)
         if EventCollection in contexts:
             events = contexts[EventCollection]
             for led in led_list:
-                self.led_events[led] = events.get(f"{led}/toggle")
+                self.led_events[f"{led}/toggle"] = events.get(f"{led}/toggle")
+                self.led_events[f"{led}/on"] = events.get(f"{led}/on")
+                self.led_events[f"{led}/off"] = events.get(f"{led}/off")
         else:
-            self.logger.error("Could not find EventCollection in the python control contexts, cannot toggle LEDs")
+            self.logger.error("Could not find EventCollection in the python control contexts, cannot control LEDs")
 
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
@@ -71,13 +74,31 @@ class LEDController(Controller):
         """
         pass
 
-    def led_toggle_callback(self, request, response):
+    def led_set_callback(self, request, response):
         try:
-            led_event = self.led_events[request.name]
+            if request.name not in self.led_list:
+                self.logger.error(f"LED {request.name} not in configured LED list")
+                response.success = False
+                return response
+
+            # Invoke the appropriate event based on the boolean value
+            event_key = f"{request.name}/{'on' if request.value else 'off'}"
+
+            if event_key not in self.led_events:
+                self.logger.error(f"Event {event_key} not found in led_events")
+                response.success = False
+                return response
+
+            led_event = self.led_events[event_key]
+            if led_event is None:
+                self.logger.error(f"Event {event_key} is None")
+                response.success = False
+                return response
+
             led_event.invoke()
             response.success = True
         except Exception as e:
-            self.logger.error(f"An error occurred while attempting to toggle led: {e}")
+            self.logger.error(f"An error occurred while attempting to set LED: {e}")
             response.success = False
 
         return response
@@ -91,7 +112,7 @@ if __name__ == "__main__":
         .with_hardware("vis_spec_central_led", ToggleHardware, can_id = 0x0F2, on_command =0x11 , off_command = 0x10) \
         .with_hardware("vis_spec_nile_red", ToggleHardware, can_id = 0x0F2, on_command =0x21 , off_command = 0x20) \
         .with_hardware("vis_spec_camera", ToggleHardware, can_id = 0x0F2, on_command =0x31 , off_command = 0x30) \
-        .with_hardware("vis_spec_nadh", ToggleHardware, can_id = 0x0F2, on_command =0x2=41 , off_command = 0x40) \
+        .with_hardware("vis_spec_nadh", ToggleHardware, can_id = 0x0F2, on_command =0x22 , off_command = 0x40) \
         .with_hardware("litmus_led", ToggleHardware, can_id = 0x0F2, on_command =0x20 , off_command = 0x50) \
         .with_jcan() \
         .with_event_collection() \
