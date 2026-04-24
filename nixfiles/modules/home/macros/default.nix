@@ -33,17 +33,21 @@ in
 
       bashrcExtra = lib.mkAfter ''
         # Source the ROS2 DDS configuration if it exists
-        # (this allows the use of the use_fastdds and use_cyclonedds
-        # aliases to persist across terminal sessions and reboots)
-        if [ -f $XDG_CONFIG_HOME/nova/ros_dds ]; then
-          . $XDG_CONFIG_HOME/nova/ros_dds
+        if [ -f $HOME/.config/nova/ros_dds ]; then
+          . $HOME/.config/nova/ros_dds
         fi
 
+        # Source the COMP environment variable if it exists
+        if [ -f "$HOME/.config/nova/comp" ]; then
+          . "$HOME/.config/nova/comp"
+        fi
+        
         # title width = 28
         # entry width = 26
         echo   "┌─────────────────────────────┐"
-        printf "│ %s│\n"   "$(printf "\033[1;36m%-28s\033[0m" "Nova ENV Vars Status")"
+        printf "│ %s│\n"   "$(printf "\033[1;36m%-28s\033[0m" "Nova ENV Status")"
         printf "│   %s│\n" "$(printf "\033[1;33m%s\033[0m %-21s" "RMW:" "''${RMW_IMPLEMENTATION:-not set}")"
+        printf "│   %s│\n" "$(printf "\033[1;33m%s\033[0m %-20s" "COMP:" "''${COMP:-not set}")"
         echo   "└─────────────────────────────┘"
         echo   ""
       '';
@@ -101,8 +105,12 @@ in
 
           # ROS2 DDS Configuration
           # Will be sourced in .bashrc to persist across terminal sessions and reboots
-          use_fastdds = "export RMW_IMPLEMENTATION=rmw_fastrtps_cpp; echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > $XDG_CONFIG_HOME/nova/ros_dds";
-          use_cyclonedds = "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp; echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > $XDG_CONFIG_HOME/nova/ros_dds";
+          use_fastdds = "export RMW_IMPLEMENTATION=rmw_fastrtps_cpp;
+                         mkdir -p $HOME/.config/nova;
+                         echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > $HOME/.config/nova/ros_dds";
+          use_cyclonedds = "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp;
+                            mkdir -p $HOME/.config/nova;
+                            echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > $HOME/.config/nova/ros_dds";
 
           # ROS Discovery Server
           base_dds_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_client_configuration.xml}";
@@ -113,8 +121,12 @@ in
           base_pi_dds_super_client = "FASTRTPS_DEFAULT_PROFILES_FILE=${./ros_discovery/base_pi_super_client_configuration.xml}";
 
           # Comp Selection (for auto)
-          set_arch = "echo 'export COMP=arch' > $XDG_CONFIG_HOME/nova/comp; export COMP=arch";
-          set_urc = "echo 'export COMP=urc' > $XDG_CONFIG_HOME/nova/comp; export COMP=urc";
+          set_arch = "export COMP=ARCh;
+                      mkdir -p $HOME/.config/nova;
+                      echo 'export COMP=ARCh' > $HOME/.config/nova/comp";
+          set_urc = "export COMP=URC;
+                     mkdir -p $HOME/.config/nova;
+                     echo 'export COMP=URC' > $HOME/.config/nova/comp";
 
           # Hydra 
           hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
