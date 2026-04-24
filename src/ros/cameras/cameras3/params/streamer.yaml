@@ -110,8 +110,8 @@ camera_streamer:
         super:
           pipeline_type: vp9software
           mime: image/jpeg
-          width: 1920
-          height: 1080
+          width: 1280
+          height: 720
           framerate: 30
           downrate: 3
           cpu_usage: 2
