@@ -25,7 +25,6 @@
   nova-costmap-2d,
   nova-rover-description,
   nova-gazebo,
-  nova-auto-interfaces,
   nova-bt-navigators,
   nova-cameras2,
   rviz-imu-plugin,
@@ -87,7 +86,6 @@ buildRosPackage rec {
       nova-costmap-2d
       nova-rover-description
       nova-gazebo
-      nova-auto-interfaces
       nova-bt-navigators
       nova-cameras2
       rviz-imu-plugin

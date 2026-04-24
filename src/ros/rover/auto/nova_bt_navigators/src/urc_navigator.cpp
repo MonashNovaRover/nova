@@ -17,13 +17,13 @@
 #include <set>
 #include <memory>
 #include <limits>
-#include "nova_bt_navigators/urc_2025_navigator.hpp"
+#include "nova_bt_navigators/urc_navigator.hpp"
 
 namespace nova_bt_navigators
 {
 
 bool
-URC2025Navigator::configure(
+URCNavigator::configure(
   rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node,
   std::shared_ptr<nav2_util::OdomSmoother> odom_smoother)
 {
@@ -49,27 +49,27 @@ URC2025Navigator::configure(
 }
 
 std::string
-URC2025Navigator::getDefaultBTFilepath(rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node)
+URCNavigator::getDefaultBTFilepath(rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node)
 {
   std::string default_bt_xml_filename;
   auto node = parent_node.lock();
 
-  if (!node->has_parameter("default_urc_2025_navigator_bt_xml")) {
+  if (!node->has_parameter("default_urc_through_poses_bt_xml")) {
     std::string pkg_share_dir =
       ament_index_cpp::get_package_share_directory("nav2_bt_navigator");
     node->declare_parameter<std::string>(
-      "default_urc_2025_navigator_bt_xml",
+      "default_urc_through_poses_bt_xml",
       pkg_share_dir +
       "/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml");
   }
 
-  node->get_parameter("default_urc_2025_navigator_bt_xml", default_bt_xml_filename);
+  node->get_parameter("default_urc_through_poses_bt_xml", default_bt_xml_filename);
 
   return default_bt_xml_filename;
 }
 
 bool
-URC2025Navigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
+URCNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
 {
   auto bt_xml_filename = goal->behavior_tree;
 
@@ -85,14 +85,14 @@ URC2025Navigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
 }
 
 void
-URC2025Navigator::goalCompleted(
+URCNavigator::goalCompleted(
   typename ActionT::Result::SharedPtr /*result*/,
   const nav2_behavior_tree::BtStatus /*final_bt_status*/)
 {
 }
 
 void
-URC2025Navigator::onLoop()
+URCNavigator::onLoop()
 {
   using namespace nav2_util::geometry_utils;  // NOLINT
 
@@ -186,7 +186,7 @@ URC2025Navigator::onLoop()
 }
 
 void
-URC2025Navigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
+URCNavigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
 {
   RCLCPP_INFO(logger_, "Received goal preemption request");
 
@@ -219,10 +219,9 @@ URC2025Navigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
 }
 
 bool
-URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
+URCNavigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
 {
   Goals goal_poses = goal->poses;
-  uint8_t type = goal->type;
   uint8_t search_radius = goal->search_radius;
   for (auto & goal_pose : goal_poses) {
     if (!nav2_util::transformPoseInTargetFrame(
@@ -252,22 +251,8 @@ URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
   // Update the goal pose on the blackboard
   blackboard->set<Goals>(goals_blackboard_id_, std::move(goal_poses));
 
-  // Update the goal type on the blackboard
-  blackboard->set<uint8_t>("type", type);
-
   // Update the goal search radius on the blackboard
   blackboard->set<uint8_t>("search_radius", search_radius);
-
-  // Set the target pose value on the blackboard
-  blackboard->set<Goal>("target_pose", goal_poses.back());
-
-  // Set the detection value on the blackboard
-  blackboard->set<bool>("detection", false);
-
-  // Initialize status 1 = TRAVERSING
-  blackboard->set<uint8_t>("status", 1);
-
-  blackboard->set<double>("dist_to_goal", 100.0);
 
   return true;
 }
@@ -276,5 +261,5 @@ URC2025Navigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  nova_bt_navigators::URC2025Navigator,
+  nova_bt_navigators::URCNavigator,
   nav2_core::NavigatorBase)

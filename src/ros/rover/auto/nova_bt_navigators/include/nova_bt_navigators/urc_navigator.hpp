@@ -12,45 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NOVA_BT_NAVIGATORS__URC_2024_NAVIGATOR_HPP_
-#define NOVA_BT_NAVIGATORS__URC_2024_NAVIGATOR_HPP_
+#ifndef NOVA_BT_NAVIGATORS__NAVIGATORS__URC_NAVIGATOR_HPP_
+#define NOVA_BT_NAVIGATORS__NAVIGATORS__URC_NAVIGATOR_HPP_
 
 #include <string>
 #include <vector>
 #include <memory>
-#include <optional>
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_core/behavior_tree_navigator.hpp"
-#include "nav2_util/geometry_utils.hpp"
-#include "nav2_util/robot_utils.hpp"
+#include "nova_interfaces/action/urc_navigator.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "nav2_util/robot_utils.hpp"
+#include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/odometry_utils.hpp"
-#include "nav2_util/service_client.hpp"
-#include "robot_localization/srv/from_ll.hpp"
-#include "nova_auto_interfaces/action/urc2024_navigator.hpp"
-#include "geographic_msgs/msg/geo_pose.h"
 
 namespace nova_bt_navigators
 {
 
 /**
- * @class URC2024Navigator
- * @brief A navigator for navigating to a specified pose
+ * @class URCNavigator
+ * @brief A navigator for navigating to a a bunch of intermediary poses
  */
-class URC2024Navigator
-  : public nav2_core::BehaviorTreeNavigator<nova_auto_interfaces::action::URC2024Navigator>
+class URCNavigator
+  : public nav2_core::BehaviorTreeNavigator<nova_interfaces::action::URCNavigator>
 {
 public:
-  using ActionT = nova_auto_interfaces::action::URC2024Navigator;
+  using ActionT = nova_interfaces::action::URCNavigator;
   typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
-  typedef std::vector<geometry_msgs::msg::PoseStamped> SearchGoals;
+  typedef geometry_msgs::msg::PoseStamped Goal;
 
   /**
-   * @brief A constructor for URC2024Navigator
+   * @brief A constructor for URCNavigator
    */
-  URC2024Navigator()
+  URCNavigator()
   : BehaviorTreeNavigator() {}
 
   /**
@@ -63,15 +59,10 @@ public:
     std::shared_ptr<nav2_util::OdomSmoother> odom_smoother) override;
 
   /**
-   * @brief A cleanup state transition to remove memory allocated
-   */
-  bool cleanup() override;
-
-  /**
    * @brief Get action name for this navigator
    * @return string Name of action server
    */
-  std::string getName() override {return std::string("urc_2024_navigator");}
+  std::string getName() override {return std::string("urc_through_poses");}
 
   /**
    * @brief Get navigator's default BT
@@ -102,7 +93,7 @@ protected:
   void onPreempt(ActionT::Goal::ConstSharedPtr goal) override;
 
   /**
-   * @brief A callback that is called when the action is completed, can fill in
+   * @brief A callback that is called when a the action is completed, can fill in
    * action result message or indicate that this action is done.
    * @param result Action template result message to populate
    * @param final_bt_status Resulting status of the behavior tree execution that may be
@@ -114,31 +105,13 @@ protected:
 
   /**
    * @brief Goal pose initialization on the blackboard
-   * @param goal Action template's goal message to process
+   * @return bool if goal was initialized successfully to be processed
    */
-  void initializeGoalPose(ActionT::Goal::ConstSharedPtr goal,
-                          const std::vector<geometry_msgs::msg::PoseStamped> & map_poses);
-
-    /**
-   * @brief given some gps_poses, converts them to map frame using robot_localization's service `fromLL`.
-   *        Constructs a vector of stamped poses in map frame and returns them.
-   *
-   * @param gps_poses, from the action server
-   * @return std::optional<std::vector<geometry_msgs::msg::PoseStamped>>
-   */
-  std::optional<std::vector<geometry_msgs::msg::PoseStamped>> convertGPSPosesToMapPoses(
-    const std::vector<geographic_msgs::msg::GeoPose> & gps_poses);
+  bool initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal);
 
   rclcpp::Time start_time_;
-
-  rclcpp_action::Client<ActionT>::SharedPtr self_client_;
-
-  std::unique_ptr<nav2_util::ServiceClient<robot_localization::srv::FromLL,
-    std::shared_ptr<rclcpp_lifecycle::LifecycleNode>>> from_ll_to_map_client_;
-
   std::string goals_blackboard_id_;
   std::string path_blackboard_id_;
-  std::string global_frame_id_;
 
   // Odometry smoother object
   std::shared_ptr<nav2_util::OdomSmoother> odom_smoother_;
@@ -146,4 +119,4 @@ protected:
 
 }  // namespace nova_bt_navigators
 
-#endif  // NOVA_BT_NAVIGATORS__URC_2024_NAVIGATOR_HPP_
+#endif  // NOVA_BT_NAVIGATORS__NAVIGATORS__URC_NAVIGATOR_HPP_

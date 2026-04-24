@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NOVA_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_GOAL_ACTION_HPP_
-#define NOVA_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_GOAL_ACTION_HPP_
+#ifndef NOVA_BEHAVIOR_TREE__PLUGINS__ACTION__SET_DETECTION_GOAL_ACTION_HPP_
+#define NOVA_BEHAVIOR_TREE__PLUGINS__ACTION__SET_DETECTION_GOAL_ACTION_HPP_
 #include <vector>
 #include <memory>
 #include <string>
@@ -26,13 +26,13 @@
 namespace nova_behavior_tree
 {
 
-class UpdateURCGoalsAction : public BT::ActionNodeBase
+class SetDetectionGoalAction : public BT::ActionNodeBase
 {
 public:
   typedef geometry_msgs::msg::PoseStamped Goal;
   typedef std::vector<Goal> Goals;
 
-  UpdateURCGoalsAction(
+  SetDetectionGoalAction(
     const std::string & xml_tag_name,
     const BT::NodeConfiguration & conf);
 
@@ -56,7 +56,7 @@ public:
 private:
   void halt() override {}
   BT::NodeStatus tick() override;
-  void update_urc_goals();
+  void set_detection_goal();
 
   rclcpp::Node::SharedPtr node_;
 
@@ -71,4 +71,4 @@ private:
 
 }  // namespace nova_behavior_tree
 
-#endif  // NOVA_BEHAVIOR_TREE__PLUGINS__ACTION__UPDATE_GOAL_ACTION_HPP_
+#endif  // NOVA_BEHAVIOR_TREE__PLUGINS__ACTION__SET_DETECTION_GOAL_ACTION_HPP_

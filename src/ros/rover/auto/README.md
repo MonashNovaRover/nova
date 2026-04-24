@@ -13,8 +13,6 @@ We are currently working on documenting the entire substructure but as of writin
 - `lattice_primitive_generator`
   - Local copy of [Nav2 Lattice Primitives](https://github.com/ros-navigation/navigation2/tree/main/nav2_smac_planner/lattice_primitives)
   - *Yo is this okay to have in our repo? Surely we just use nixfiles or somethin* - **Anthony**
-- `nova_auto_interfaces`
-  - ROS2 interfaces for the autonomous stack
 - `nova_behavior_tree`
   - Our custom bheaviour tree developed using Groot2
 - `nova_bt_navigators`
