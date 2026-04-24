@@ -74,12 +74,12 @@ teleop_drive_joy:
     description: "Joints in joint states from which rumble intensities are calculated for when in continuous mode"
   continuous_from_effort_range:
     type: double_array
-    default_value: [0.4, 0.8]
+    default_value: [ 0.35, 1.0 ]
     description: "Rumble intensities are calculated from linear interpolation of current joint effort, 
     from that value in 'continuous_from_effort_range' to a new value in 'continuous_to_intensity_range'"
   continuous_to_intensity_range:
     type: double_array
-    default_value: [ 0.0, 1.0 ]
+    default_value: [ 0.0101, 0.3 ]
     description: "See description of 'continuous_from_effort_range'"
   continuous_rumble_timeout:
     type: int
@@ -87,7 +87,7 @@ teleop_drive_joy:
     description: "Number of milliseconds of continuous rumble until timeout triggers, which linearly decays rumble intensity until not rumbling"
   continuous_timeout_intensity_change_per_second:
     type: double
-    default_value: -0.2
+    default_value: -0.015
     description: "When timeout is active, reduce intensity by this much per second (negative value)"
 
   # transient game pad rumble settings
@@ -101,12 +101,12 @@ teleop_drive_joy:
     description: "Joints in joint states from which rumble intensities are calculated for when in transient mode"
   transient_from_effort_change_range:
     type: double_array
-    default_value: [ 1.0, 100.0 ]
+    default_value: [ 0.25, 0.75 ]
     description: "Rumble intensities are calculated from linear interpolation of the change in joint effort (in effort/second), 
     from that value in 'transient_from_effort_change_range' to a new value in 'transient_to_intensity_range'"
   transient_to_intensity_range:
     type: double_array
-    default_value: [ 0.0, 1.0 ]
+    default_value: [ 0.0101, 0.2 ]
     description: "See description of 'transient_from_effort_change_range'"
 
   # Deadzone already exists as an input parameter to the joy node (teleop.launch.py)
