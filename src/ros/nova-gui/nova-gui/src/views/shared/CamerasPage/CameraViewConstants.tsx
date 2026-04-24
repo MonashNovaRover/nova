@@ -38,7 +38,7 @@ export enum CameraSerials {
   ARM_END_TOP = "arm_end_top",
   ARM_END_FINGER = "arm_end_finger",
   ARM_END_PERISCOPE = "arm_end_periscope",
-  ARM_GIMBAL = "arm_gimbal",
+  ARM_WRIST = "arm_wrist",
 
   EC_SCRAPER = "ec_scraper",
   EC_FORKLIFT_DOWN = "ec_forklift_down",
@@ -81,8 +81,19 @@ const armCams = [
   CameraSerials.ARM_END_FINGER,
   CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_END_SIDE,
-  CameraSerials.ARM_GIMBAL,
+  CameraSerials.ARM_WRIST,
 ];
+
+const urcArmCams = [
+  CameraSerials.ARM_END_TOP,
+  CameraSerials.ARM_END_FINGER,
+  CameraSerials.ARM_WRIST,
+  CameraSerials.MAST_FORWARD,
+  CameraSerials.ARM_END_PERISCOPE,
+  CameraSerials.ARM_END_SIDE,
+  CameraSerials.MAST_BACKWARD,
+  CameraSerials.MAST_ARM_STOW,
+]
 
 const ecCams = [
   CameraSerials.EC_SCRAPER,
@@ -134,10 +145,7 @@ export const post_landing_views: CameraViewConfig[] = [
 
 export const urc_equipment_servicing_views: CameraViewConfig[] = [
   {
-    cameraSerials: [
-      CameraSerials.MAST_FORWARD, CameraSerials.ARM_GIMBAL, CameraSerials.ARM_END_TOP, CameraSerials.ARM_END_FINGER,
-      CameraSerials.MAST_BACKWARD, CameraSerials.MAST_BELLY, CameraSerials.ARM_END_PERISCOPE, CameraSerials.ARM_END_SIDE,
-      CameraSerials.MAST_ARM_STOW, ...driveCams],
+    cameraSerials: [...urcArmCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
@@ -152,10 +160,7 @@ export const urc_equipment_servicing_views: CameraViewConfig[] = [
 
 export const urc_delivery_views: CameraViewConfig[] = [
   {
-    cameraSerials: [
-      CameraSerials.MAST_ARM_STOW, CameraSerials.MAST_FORWARD, CameraSerials.ARM_END_TOP, CameraSerials.ARM_END_FINGER,
-      CameraSerials.MAST_BACKWARD, CameraSerials.MAST_BELLY, CameraSerials.ARM_END_PERISCOPE, CameraSerials.ARM_END_SIDE,
-      CameraSerials.ARM_GIMBAL, ...driveCams],
+    cameraSerials: [...urcArmCams, ...driveCams],
     viewTitle: "All Cams",
   },
   {
