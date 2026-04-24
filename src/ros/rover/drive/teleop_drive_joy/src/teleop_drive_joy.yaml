@@ -232,10 +232,10 @@ teleop_drive_joy:
     default_value: 11
     description: "Increase speed on a coarse scale"
 
-  axis_override_autolock:
+  axis_override:
     type: int
     default_value: 4
-    description: "Prevents autolock from activating while held down"
+    description: "Overrides game pad rumble when held down, and drive autolock when held down fully"
   axis_handbrake:
     type: int
     default_value: 5
@@ -244,10 +244,10 @@ teleop_drive_joy:
     type: double
     default_value: 0.6
     description: "Multiplier that applies to linear velocity when handbrake is pressed"
-  trigger_pressed_threshold:
+  trigger_deadzone:
     type: double
-    default_value: 0.1
-    description: "Proportion that right/left trigger must move beyond to be interpreted as pressed"
+    default_value: 0.0
+    description: "Deadzone for trigger when not pressed or fully pressed"
 
   speed_change_coarse_val:
     type: double
