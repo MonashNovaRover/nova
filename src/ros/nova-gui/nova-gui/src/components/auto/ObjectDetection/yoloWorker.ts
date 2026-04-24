@@ -1,4 +1,4 @@
-import * as ort from "onnxruntime-web";
+import * as ort from "onnxruntime-web/all";
 
 // In dev, serve ORT loaders from /src/components/auto/ObjectDetection/ort so Vite can module-load them.
 // In build, serve from /public/ort (copied to dist as-is).
@@ -6,6 +6,8 @@ import * as ort from "onnxruntime-web";
 ort.env.wasm.wasmPaths = import.meta.env.DEV
   ? "/src/components/auto/ObjectDetection/ort/"
   : "/ort/";
+
+ort.env.wasm.proxy = true;
 
 // Minimal detection shape sent back to the main thread.
 interface Detection {
@@ -59,7 +61,7 @@ type ErrorMessage = { type: "error"; message: string };
 let session: ort.InferenceSession | null = null;
 let inputName: string | null = null;
 let expectedBatch: number | null = null;
-let inputSize = 640;
+let inputSize = 512;
 let scoreThreshold = 0.4;
 let hasLoggedOutputInfo = false;
 
@@ -71,7 +73,8 @@ const contexts: OffscreenCanvasRenderingContext2D[] = [];
 function ensureOffscreen(batch: number) {
   while (offscreenCanvases.length < batch) {
     const canvas = new OffscreenCanvas(inputSize, inputSize);
-    const ctx = canvas.getContext("2d")!;
+    // Add the willReadFrequently attribute here
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
     offscreenCanvases.push(canvas);
     contexts.push(ctx);
   }
@@ -174,10 +177,27 @@ async function initSession({ modelPath, useWebGPU }: InitMessage) {
     }
   }
 
+  // const inputMeta = session.inputMetadata;
+  // inputName = session.inputNames[0] ?? null;
+  // const firstMeta = inputMeta[0];
+  // const shape = firstMeta && "shape" in firstMeta ? firstMeta.shape : undefined;
+  // expectedBatch = typeof shape?.[0] === "number" ? shape[0] : null;
   const inputMeta = session.inputMetadata;
   inputName = session.inputNames[0] ?? null;
+  
+  // Extract dimensions from the model metadata
   const firstMeta = inputMeta[0];
   const shape = firstMeta && "shape" in firstMeta ? firstMeta.shape : undefined;
+  
+  if (shape) {
+    // Usually YOLO shapes are [batch, channels, height, width]
+    // Index 2 and 3 are height and width
+    if (typeof shape[2] === 'number' && shape[2] > 0) {
+      inputSize = shape[2]; 
+      console.log(`Overriding inputSize to model default: ${inputSize}`);
+    }
+  }
+  
   expectedBatch = typeof shape?.[0] === "number" ? shape[0] : null;
 }
 
