@@ -12,7 +12,7 @@ function isVideoRef(ref: CameraVideoProps["videoRef"]): ref is RefObject<HTMLVid
 }
 
 function YoloVideoLayer({ videoRef, filters }: CameraVideoProps) {
-  const { registerVideoRef, detections, inputSize } = useYoloContext();
+  const { registerVideoRef, detections } = useYoloContext();
   const [cameraIndex, setCameraIndex] = useState<number | null>(null);
   const registeredRef = useRef(false);
 
@@ -42,7 +42,6 @@ function YoloVideoLayer({ videoRef, filters }: CameraVideoProps) {
         <YoloOverlayCanvas
           detections={cameraDetections}
           videoRef={videoRef}
-          modelInputSize={inputSize}
         />
       )}
     </>

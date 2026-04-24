@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { YOLOOutputFormat } from "./YoloConfig";
 
 export interface Detection {
   // Class index in the model's label set.
@@ -6,13 +7,13 @@ export interface Detection {
   // Confidence score after combining objectness and class score.
   score: number;
   box: {
-    // Top-left corner x in model input pixel space.
+    // Top-left corner x in video pixel space (letterbox-adjusted).
     x: number;
-    // Top-left corner y in model input pixel space.
+    // Top-left corner y in video pixel space (letterbox-adjusted).
     y: number;
-    // Box width in model input pixels.
+    // Box width in video pixels.
     width: number;
-    // Box height in model input pixels.
+    // Box height in video pixels.
     height: number;
   };
 }
@@ -24,6 +25,7 @@ interface Props {
   inputSize?: number;
   intervalMs?: number;
   scoreThreshold?: number;
+  outputFormat: YOLOOutputFormat;
 }
 
 // Worker init message configures model and runtime settings.
@@ -33,6 +35,7 @@ type WorkerInitMessage = {
   inputSize: number;
   scoreThreshold: number;
   useWebGPU: boolean;
+  outputFormat: YOLOOutputFormat;
 };
 
 // Worker frame message delivers a batch of ImageBitmaps to process.
@@ -68,6 +71,7 @@ export function useYoloDetection({
   inputSize = 640,
   intervalMs = 250,
   scoreThreshold = 0.4,
+  outputFormat,
 }: Props) {
   const [detections, setDetections] = useState<Detection[][]>([]);
   // Worker runs inference off the main thread.
@@ -101,6 +105,7 @@ export function useYoloDetection({
       inputSize,
       scoreThreshold,
       useWebGPU: import.meta.env.VITE_ENABLE_WEBGPU === "true",
+      outputFormat,
     };
     worker.postMessage(initMessage);
 
@@ -194,7 +199,7 @@ export function useYoloDetection({
       workerRef.current?.terminate();
       workerRef.current = null;
     };
-  }, [videoRefs, modelPath, inputSize, intervalMs, scoreThreshold]);
+  }, [videoRefs, modelPath, inputSize, intervalMs, scoreThreshold, outputFormat]);
 
   return detections;
 }
