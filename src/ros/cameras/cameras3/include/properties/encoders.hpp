@@ -24,7 +24,7 @@ template<typename properties> void set_av1enc(GstElement* encode, const properti
 template <typename properties> void set_vp8enc(GstElement* encode, const properties props) {
   const int num_cores = std::thread::hardware_concurrency();
   g_object_set(encode,
-    "deadline", 1, // 1 for lowest latency
+    "deadline", props->deadline, // 1 for lowest latency
     "cpu-used", (
       props->cpu_used == 0 ? -16:
       props->cpu_used == 1 ? -12:
@@ -44,7 +44,7 @@ template <typename properties> void set_vp8enc(GstElement* encode, const propert
     "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
     "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
     "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP
-    "lag-in-frames", 0, // Do not lookahead
+    "lag-in-frames", (props->deadline != 1) ? (int) ((float)props->deadline/(float)props->framerate) : 0, // Do not lookahead unless if deadline set
     "error-resilient", 1,
     "tuning", 1, // Tune for ssim, better for low bitrate/ blur
     NULL);
@@ -53,7 +53,7 @@ template <typename properties> void set_vp8enc(GstElement* encode, const propert
 
 template <typename properties> void set_vp9enc(GstElement* encode, const properties props) {
   g_object_set(encode,
-    "deadline", 1, // 1 for lowest latency
+    "deadline", props->deadline, // 1 for lowest latency
     "cpu-used", (
       props->cpu_used == 0 ? -16:
       props->cpu_used == 1 ? -12:
@@ -73,7 +73,7 @@ template <typename properties> void set_vp9enc(GstElement* encode, const propert
     "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
     "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
     "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP
-    "lag-in-frames", 0, // Do not lookahead
+    "lag-in-frames", (props->deadline != 1) ? (int) ((float)props->deadline/(float)props->framerate) : 0, // Do not lookahead unless if deadline set
     "error-resilient", 1,
     "tuning", 1, // Tune for ssim, better for low bitrate/ blur
     "aq-mode", 3, // cyclic refresh aq mode, low latency low bitrate
