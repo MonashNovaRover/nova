@@ -315,19 +315,9 @@ class CameraSplitROSWebRTCBin:
         self._rossink.set_property("ros-topic", ros_topic)
         self.bin.add(self._rossink)
 
-        self._ros_caps_filter = Gst.ElementFactory.make("capsfilter", "ros_capsfilter")
-        self._ros_caps_filter.props.caps = Gst.Caps.from_string("video/x-raw,format=BGR")
-        self.bin.add(self._ros_caps_filter)
-
-        self._ros_video_converter = Gst.ElementFactory.make("videoconvert", "ros_converter")
-        self.bin.add(self._ros_video_converter)
-
         self._queue1 = Gst.ElementFactory.make("queue", "q1")
         self.bin.add(self._queue1)
-
-        self._queue1.link(self._ros_video_converter)
-        self._ros_video_converter.link(self._ros_caps_filter)
-        self._ros_caps_filter.link(self._rossink)
+        self._queue1.link(self._rossink)
 
         # # Tee split
         self._tee = Gst.ElementFactory.make("tee", "tee")
