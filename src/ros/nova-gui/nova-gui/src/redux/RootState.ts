@@ -116,6 +116,7 @@ export interface RootState {
   // Maps Related Stores
   roverLocationStore: IRosNovaInterfacesGpsData;
   baseLocationStore: IRosNovaInterfacesGpsData;
+  droneLocationStore: IRosNovaInterfacesGpsData;
   cartographerState: CartographerState;
   cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
   autoStatus: IRosNovaInterfacesStatus;

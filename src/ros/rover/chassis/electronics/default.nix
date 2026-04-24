@@ -35,9 +35,11 @@ buildRosPackage {
     wmm-calculator
     pandas 
     folium 
+    pymavlink
   ] ++ [ 
     ublox-ubx-msgs
     sensor-msgs
     fabric
+    nova-interfaces
   ];
 }

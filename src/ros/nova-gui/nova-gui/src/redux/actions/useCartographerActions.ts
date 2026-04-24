@@ -60,6 +60,22 @@ export const useCartographerActions = () => {
   const toggleRoverTracking = () =>
     dispatch({ type: CartographerAction.TOGGLE_TRACK_ROVER.type });
 
+  const toggleShowRoverTracking = () =>
+    dispatch({ type: CartographerAction.TOGGLE_SHOW_TRACK_ROVER.type });
+
+  const toggleDroneCentering = () =>
+    dispatch({ type: CartographerAction.TOGGLE_DRONE_CENTER.type });
+
+  const toggleDroneTracking = () =>
+    dispatch({ type: CartographerAction.TOGGLE_TRACK_DRONE.type });
+
+  const toggleShowDroneTracking = () =>
+    dispatch({ type: CartographerAction.TOGGLE_SHOW_TRACK_DRONE.type });
+
+  const handleFocusVehicle = () => {
+    dispatch({ type: CartographerAction.HANDLE_FOCUS_VEHICLE.type });
+  };
+
   return {
     setPoints,
     addPoint,
@@ -71,5 +87,10 @@ export const useCartographerActions = () => {
     clearMeasurements,
     toggleRoverCentering,
     toggleRoverTracking,
+    toggleShowRoverTracking,
+    toggleDroneCentering,
+    toggleDroneTracking,
+    toggleShowDroneTracking,
+    handleFocusVehicle,
   };
 };

@@ -4,6 +4,7 @@ import {
   MapCoordinate,
   MapInteractionMode,
   MapPoint,
+  Vehicle,
 } from "../models/CartographerState";
 
 export const cartographerSlice = createSlice({
@@ -122,6 +123,46 @@ export const cartographerSlice = createSlice({
       ...state,
       trackRover: !state.trackRover,
     }),
+    TOGGLE_SHOW_TRACK_ROVER: (state: CartographerState) => ({
+      ...state,
+      showTrackRover: !state.showTrackRover,
+    }),
+    TOGGLE_DRONE_CENTER: (state: CartographerState) => ({
+      ...state,
+      centerOnDrone: !state.centerOnDrone,
+    }),
+    TOGGLE_TRACK_DRONE: (state: CartographerState) => ({
+      ...state,
+      trackDrone: !state.trackDrone,
+    }),
+    TOGGLE_SHOW_TRACK_DRONE: (state: CartographerState) => ({
+      ...state,
+      showTrackDrone: !state.showTrackDrone,
+    }),
+    HANDLE_FOCUS_VEHICLE: (state: CartographerState) => {
+      switch (state.focusVehicle) {
+        case Vehicle.ROVER: {
+          return {
+            ...state,
+            centerOnRover: false,
+            centerOnDrone: state.centerOnRover ? true: false,
+            focusVehicle: Vehicle.DRONE,
+          };
+        }
+
+        case Vehicle.DRONE: {
+          return {
+            ...state,
+            centerOnDrone: false,
+            centerOnRover: state.centerOnDrone ? true: false,
+            focusVehicle: Vehicle.ROVER,
+          };
+        }
+
+        default:
+          return state;
+      }
+    },
     SET_POINTS: (state: CartographerState, action: PayloadAction<MapPoint[]>) => ({
         ...state,
         points: [...action.payload],
@@ -138,7 +179,12 @@ export const cartographerSlice = createSlice({
       measuring: false,
     },
     centerOnRover: false,
-    trackRover: false,
+    trackRover: true,
+    showTrackRover: false,
+    centerOnDrone: false,
+    trackDrone: true,
+    showTrackDrone: false,
+    focusVehicle: Vehicle.ROVER,
   },
   name: "CartographerReducer",
 });
