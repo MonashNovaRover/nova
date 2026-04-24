@@ -21,7 +21,9 @@ EDITED:         23/04/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from typing import Optional, Callable
-from python_control2 import Controller, Contexts, InterfaceCollection, Interface
+from ..controller_manager.Interface import InterfaceCollection
+from ..controller_manager.Contexts import Contexts
+from ..controllers.Controller import Controller
 from science_interfaces.srv import ThermalCommand
 from science_interfaces.msg import ThermalData
 
@@ -65,7 +67,7 @@ class ThermalController(Controller):
         self.target_temp = 0
         self.last_temperatures = [0] * len(self.temp_sensors)
 
-        self.logger.info(f"ThermalController {self.name} initialised with temp sensor names: {self.temp_sensors}"
+        self.logger.info(f"ThermalController initialised with temp sensor names: {self.temp_sensors}"
                          f" and heater names: {self.heaters}")
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection) -> Optional[bool]:
@@ -77,7 +79,7 @@ class ThermalController(Controller):
         interfaces you need from this, then store them in member variables.
         :returns: None or True if configured successfully. False otherwise.
         """
-        self.logger.debug(f"Getting {[h + \"/effort\" for h in self.heaters]} command interfaces")
+        self.logger.debug(f"Getting {[h + "/effort" for h in self.heaters]} command interfaces")
         self.heater_cmds = [command_interfaces[h + "/effort"] for h in self.heaters]
 
         self.logger.debug("Getting temp_sensors/temperature state interface")
@@ -98,10 +100,10 @@ class ThermalController(Controller):
         :param request: new settings for heater control (temperature, on or off)
         :param response: success or fail at applying new settings
         """
-        self.logger.info(f"ThermalController {self.name} received ThermalCommand request: {request}")
-
         self.is_on = request.state
         self.target_temp = request.target
+
+        self.logger.info(f"ThermalController is now {"ON" if self.is_on else "OFF"} with a target temp of {self.target_temp}°C")
 
         response.success = True
         return response
@@ -114,8 +116,6 @@ class ThermalController(Controller):
         thermal_data_msg.state = self.is_on
         thermal_data_msg.temp = [round(t) for t in self.last_temperatures]
         self.thermal_data_publisher.publish(thermal_data_msg)
-
-        self.logger.debug(f"ThermalController {self.name} published ThermalData: {thermal_data_msg}")
 
     def on_update(self, now: float, period: float):
         """ Update loop (called update_rate times per second)
@@ -135,6 +135,3 @@ class ThermalController(Controller):
 
         for heater_cmd in self.heater_cmds:
             heater_cmd.value = heater_effort
-
-        self.logger.debug(f"ThermalController {self.name} updated: "
-                          f"{temperatures} temperatures -> {heater_effort} heater effort")

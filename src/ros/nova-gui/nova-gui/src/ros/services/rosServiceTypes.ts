@@ -111,9 +111,9 @@ export interface RosServiceInterface {
     IRosStdSrvsSetBoolRequest,
     IRosStdSrvsSetBoolResponse
   >;
-  [RosService.KILN_COMMAND]: RosServiceMessage<
-    IRosScienceInterfacesKilnCommandRequest,
-    IRosScienceInterfacesKilnCommandResponse
+  [RosService.THERMAL_COMMAND]: RosServiceMessage<
+    IRosScienceInterfacesThermalCommandRequest,
+    IRosScienceInterfacesThermalCommandResponse
   >;
   [RosService.WATER_PUMP_COMMAND]: RosServiceMessage<
     IRosScienceInterfacesEffortCommandRequest,
@@ -168,16 +168,36 @@ export interface RosServiceInterface {
     IRosScienceInterfacesCacheCommandResponse
   >;
   [RosService.HEATER]: RosServiceMessage<
-    IRosScienceInterfacesKilnCommandRequest,
-    IRosScienceInterfacesKilnCommandResponse
+    IRosScienceInterfacesThermalCommandRequest,
+    IRosScienceInterfacesThermalCommandResponse
   >;
   [RosService.REQUEST_HYDRAPROBE_READING]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
-  [RosService.CAROUSEL]: RosServiceMessage<
-    IRosScienceInterfacesKilnCommandRequest,
-    IRosScienceInterfacesKilnCommandResponse
+  [RosService.CAROUSEL_INNER_SET_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
+  [RosService.CAROUSEL_OUTER_SET_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
+  [RosService.CAROUSEL_INNER_TRIGGER_ZERO]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.CAROUSEL_OUTER_TRIGGER_ZERO]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.CAROUSEL_INNER_INCREMENT_ZERO]: RosServiceMessage<
+    IRosScienceInterfacesIncrementZeroRequest,
+    IRosScienceInterfacesIncrementZeroResponse
+  >;
+  [RosService.CAROUSEL_OUTER_INCREMENT_ZERO]: RosServiceMessage<
+    IRosScienceInterfacesIncrementZeroRequest,
+    IRosScienceInterfacesIncrementZeroResponse
   >;
   [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
     EmptyMessage,
@@ -196,9 +216,8 @@ export interface RosServiceInterface {
     IRosStdSrvsTriggerResponse
   >;
   [RosService.TOOL_ROTATOR_PRESETS]: RosServiceMessage<
-    IRosScienceInterfacesSetPositionPresetsRequest,
-    IRosScienceInterfacesSetPositionPresetsResponse
-  >;
+    IRosScienceInterfacesSetNamedPositionsRequest,
+    IRosScienceInterfacesSetNamedPositionsResponse>;
   [RosService.TOOL_ROTATOR_POSITION]: RosServiceMessage<
     IRosScienceInterfacesSetPositionRequest,
     IRosScienceInterfacesSetPositionResponse

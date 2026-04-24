@@ -39,7 +39,6 @@ export const rosServiceMessages = {
   [RosService.CACHE_2]: "science_interfaces/srv/CacheCommand",
   [RosService.HEATER]: "science_interfaces/srv/ThermalCommand",
   [RosService.REQUEST_HYDRAPROBE_READING]: "std_srvs/srv/Trigger",
-  [RosService.CAROUSEL]: "science_interfaces/srv/ThermalCommand",
   [RosService.CAROUSEL_INNER_SET_POSITION]: "science_interfaces/srv/SetPosition",
   [RosService.CAROUSEL_OUTER_SET_POSITION]: "science_interfaces/srv/SetPosition",
   [RosService.CAROUSEL_INNER_TRIGGER_ZERO]: "std_srvs/srv/Trigger",
