@@ -88,6 +88,7 @@ export interface RosTopicInterfaces {
   // Maps Related
   [RosTopic.ROVER_LOCATION]: IRosNovaInterfacesGpsData;
   [RosTopic.BASE_LOCATION]: IRosNovaInterfacesGpsData;
+  [RosTopic.DRONE_LOCATION]: IRosNovaInterfacesGpsData;
   [RosTopic.AUTO_STATUS]: IRosNovaInterfacesStatus;
 
   // Other

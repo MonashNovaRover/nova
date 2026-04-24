@@ -25,6 +25,7 @@ import URC360CamView from "../views/urc/URC360CamView.tsx";
 import URCRamanView from "../views/urc/URCRamanView.tsx";
 import URCAutoTypingView from "../views/urc/URCAutoTypingView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
+import { URCDeliveryCartographerView } from "../views/urc/URCDeliveryCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
 import URCGazeboView from "../views/urc/URCGazebo.tsx";
@@ -84,6 +85,10 @@ export const urcRoutes: RouteObject[] = [
   {
     path: "/urc/delivery",
     element: <URCDeliveryView />,
+  },
+  {
+    path: "/urc/delivery/cartographer",
+    element: <URCDeliveryCartographerView />,
   },
   {
     path: "/urc/equipment-servicing",
