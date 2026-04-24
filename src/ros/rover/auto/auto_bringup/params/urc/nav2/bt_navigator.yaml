@@ -3,14 +3,11 @@ bt_navigator:
     global_frame: map
     robot_base_frame: base_link
     odom_topic: /odometry/filtered
-    bt_loop_duration: 30
+    bt_loop_duration: 20
     default_server_timeout: 60000
     wait_for_service_timeout: 1000
     action_service_result_timeout: 900.0
     goal_reached_tol: 1.0
-    goal_offset_radius: 0.7
-    # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
-    robot_radius: 0.85
     error_code_names:
       - compute_path_error_code
       - follow_path_error_code
@@ -22,7 +19,7 @@ bt_navigator:
     
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses.xml
+    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_nearby_collision_goals.xml
     
     urc_through_poses:
       plugin: "nova_bt_navigators::URCNavigator"
