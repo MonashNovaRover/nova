@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
   Modal,
-  ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader
