@@ -120,6 +120,7 @@ const urcScienceCams = [
 const driveCams = [
   CameraSerials.WHEEL_TELEMETRY,
   CameraSerials.DRIVE_TELEMETRY,
+  CameraSerials.DRIVE_CONTROL,
 ]
 
 const autoCams = [
