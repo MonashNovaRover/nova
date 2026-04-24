@@ -31,7 +31,7 @@ ekf_filter_node_odom:
                   false, false, false,
                   false, false, false,
                   true,  true,  true,
-                  true,  true,  true]
+                  false, false, false]
     imu0_differential: false
     imu0_relative: true
     imu0_remove_gravitational_acceleration: false
@@ -49,7 +49,7 @@ ekf_filter_node_odom:
                                   1e-9, 1e-9, 1e-9,
                                   1.0,  1e-9, 1e-9,
                                   1.0,  1.0,  1.0,
-                                  1.0,  1.0,  1.0]
+                                  1e-9, 1e-9, 1e-9]
 
     use_control: false # Might look into enabling this / setting to true?
     # control_config: [true, false, false, false, false, true] # Might look into enabling this / setting to true?
@@ -93,7 +93,7 @@ ekf_filter_node_map:
                   false, false, false,
                   false, false, false,
                   true,  true,  true,
-                  true,  true,  true]
+                  false, false, false]
     imu0_differential: false
     imu0_relative: true
     imu0_remove_gravitational_acceleration: false
@@ -111,7 +111,7 @@ ekf_filter_node_map:
                                   1e-9, 1e-9, 1e-9,
                                   1.0,  1e-9, 1e-9,
                                   1.0,  1.0,  1.0,
-                                  1.0,  1.0,  1.0]
+                                  1e-9, 1e-9, 1e-9]
 
     use_control: false # Might look into enabling this / setting to true?
     # control_config: [true, false, false, false, false, true] # Might look into enabling this / setting to true?
