@@ -26,11 +26,11 @@ class CameraInfoPublisher(Node):
         ).get_parameter_value().string_value
 
         self.width = self.declare_parameter(
-            'image_width', 640
+            'image_width', 1280
         ).get_parameter_value().integer_value
 
         self.height = self.declare_parameter(
-            'image_height', 480
+            'image_height', 720
         ).get_parameter_value().integer_value
 
         hfov = self.declare_parameter(
