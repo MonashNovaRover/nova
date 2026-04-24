@@ -19,7 +19,8 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import IfElseSubstitution, LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import  Node
+from launch_ros.actions import Node, ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
@@ -45,26 +46,50 @@ def launch_setup(context, *args, **kwargs):
         ar = LaunchConfiguration('ar')
 
     return [
-        Node(
-            condition=UnlessCondition(sim),
-            package='realsense2_camera',
-            name='d415',
+        ComposableNodeContainer(
+            name='realsense_container',
             namespace='',
-            executable='realsense2_camera_node',
-            parameters=[rs_params, {'camera_name': cam_name}],
-            output='screen',
-            arguments=['--ros-args', '--log-level', log_level],
-            emulate_tty=True,
+            package='rclcpp_components',
+            executable='component_container',
+            composable_node_descriptions=[
+                ComposableNode(
+                    condition=UnlessCondition(sim),
+                    package='realsense2_camera',
+                    plugin='realsense2_camera::RealSenseNodeFactory',
+                    name='d415',
+                    parameters=[rs_params, {'camera_name': cam_name}],
+                ),
+                ComposableNode(
+                    condition=IfCondition(ar),
+                    package='aruco_opencv',
+                    plugin='aruco_opencv::ArucoTrackerAutostart',
+                    name='aruco_tracker',
+                    parameters=[ar_params,
+                                {'cam_base_topic': f'/{cam_name}/color/image_raw',
+                                 'use_sim_time': sim}],
+                ),
+            ],
         ),
-        Node(
-            condition=IfCondition(ar),
-            package='aruco_opencv',
-            executable='aruco_tracker_autostart',
-            parameters=[ar_params,
-                        {'cam_base_topic': f'/{cam_name}/color/image_raw',
-                         'use_sim_time': sim}],
-            arguments=['--ros-args', '--log-level', log_level],
-        ),
+        # Node(
+        #     condition=UnlessCondition(sim),
+        #     package='realsense2_camera',
+        #     name='d415',
+        #     namespace='',
+        #     executable='realsense2_camera_node',
+        #     parameters=[rs_params, {'camera_name': cam_name}],
+        #     output='screen',
+        #     arguments=['--ros-args', '--log-level', log_level],
+        #     emulate_tty=True,
+        # ),
+        # Node(
+        #     condition=IfCondition(ar),
+        #     package='aruco_opencv',
+        #     executable='aruco_tracker_autostart',
+        #     parameters=[ar_params,
+        #                 {'cam_base_topic': f'/{cam_name}/color/image_raw',
+        #                  'use_sim_time': sim}],
+        #     arguments=['--ros-args', '--log-level', log_level],
+        # ),
     ]
 
 
