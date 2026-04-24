@@ -27,8 +27,8 @@ EDITED BY:  Anthony Lew, Terry Tian
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, OpaqueFunction
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
-from launch_ros.actions import Node, SetParameter
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, EnvironmentVariable
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import os
 
@@ -225,7 +225,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value='arch',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
             description='ARCh or URC',
         ),
         DeclareLaunchArgument(

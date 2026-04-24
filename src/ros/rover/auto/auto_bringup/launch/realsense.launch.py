@@ -18,7 +18,7 @@ from os.path import expanduser
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import IfElseSubstitution, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import IfElseSubstitution, LaunchConfiguration, PathJoinSubstitution, EnvironmentVariable
 from launch_ros.actions import Node, ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
@@ -109,7 +109,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value='arch',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
             description='ARCh or URC',
         ),
         DeclareLaunchArgument(

@@ -19,7 +19,7 @@ EDITED:     05/01/2026
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
+from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution, EnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
@@ -180,7 +180,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value='arch',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
             description='ARCh or URC',
         ),
         # comp agnostic arguments
