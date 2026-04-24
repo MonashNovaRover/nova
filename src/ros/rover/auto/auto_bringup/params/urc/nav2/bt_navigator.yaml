@@ -2,7 +2,7 @@ bt_navigator:
   ros__parameters:
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /odometry/global 
+    odom_topic: /odometry/filtered
     bt_loop_duration: 30
     default_server_timeout: 60000
     wait_for_service_timeout: 1000

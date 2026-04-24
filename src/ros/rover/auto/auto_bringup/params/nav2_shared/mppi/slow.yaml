@@ -58,7 +58,7 @@ local_costmap:
 velocity_smoother:
   ros__parameters:
     # Match angular velocity limits with those in Rotation Shim Controller
-    max_velocity: [0.3, 0.0, 0.7854]
-    min_velocity: [-0.21, 0.0, -0.7854]
+    max_velocity: [0.3, 0.0, 0.5236]
+    min_velocity: [-0.21, 0.0, -0.5236]
     max_accel: [4.0, 0.0, 4.0]
     max_decel: [-4.0, 0.0, -4.0]
