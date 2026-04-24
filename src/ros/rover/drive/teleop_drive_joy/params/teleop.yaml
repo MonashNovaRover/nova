@@ -21,7 +21,7 @@ teleop_drive_joy_node:
     continuous_from_effort_range: [ 0.35, 1.0 ]
     continuous_to_intensity_range: [ 0.0101, 0.3 ]
     continuous_rumble_timeout: 5000
-    continuous_timeout_intensity_change_per_second: -0.05
+    continuous_timeout_intensity_change_per_second: -0.015
 
     # transient game pad rumble settings
     transient_rumble_enable: true

@@ -68,8 +68,9 @@ void RumbleCalculator::update(double effort, rclcpp::Time now)
     // condition in this if statement being true implies update_history.size() >= 2
     else if (now - *start_continuous_rumble >= continuous_rumble_timeout)
     {
+      const double adjustment_change = (now - (*update_history)[update_history->size() - 2]).seconds() * timeout_intensity_change_per_second;
       timeout_rumble_intensity_adjustment = std::clamp<double>(
-        ((now - (*update_history)[update_history->size() - 2]).seconds()) * timeout_intensity_change_per_second,
+        timeout_rumble_intensity_adjustment + adjustment_change,
         -1, 0);
     }
   };
