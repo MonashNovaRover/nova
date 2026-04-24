@@ -108,7 +108,7 @@
       <output_port name="cube_goal_entries">Cube goals with their index in the input_goals vector</output_port>
     </Action>
 
-    <Action ID="UpdateURCGoals">
+    <Action ID="SetDetectionGoal">
       <input_port name="detected_goal">Detected goal (AR tag / object)</input_port>
       <input_port name="current_pose">The current pose of the rover</input_port>
       <input_port name="offset_radius">Radius away from actual pose to set goal</input_port>

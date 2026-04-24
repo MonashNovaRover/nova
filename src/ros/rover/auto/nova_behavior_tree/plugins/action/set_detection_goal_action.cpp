@@ -25,20 +25,20 @@
 #include "tf2/utils.h"
 #include "nav2_behavior_tree/bt_utils.hpp"
 
-#include "nova_behavior_tree/action/update_urc_goals_action.hpp"
+#include "nova_behavior_tree/action/set_detection_goal_action.hpp"
 #include "nova_behavior_tree/nav2_utils.hpp"
 
 namespace nova_behavior_tree
 {
 
-  UpdateURCGoalsAction::UpdateURCGoalsAction(
+  SetDetectionGoalAction::SetDetectionGoalAction(
   const std::string & name,
   const BT::NodeConfiguration & conf)
   : BT::ActionNodeBase(name, conf)
   {
   }
 
-  void UpdateURCGoalsAction::initialize()
+  void SetDetectionGoalAction::initialize()
   {
     node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
     
@@ -55,7 +55,7 @@ namespace nova_behavior_tree
     initialized_ = true;
   }
 
-  inline BT::NodeStatus UpdateURCGoalsAction::tick()
+  inline BT::NodeStatus SetDetectionGoalAction::tick()
   {
     // 📝 Initialise the node on startup with static inputs
     if (!initialized_)
@@ -68,12 +68,12 @@ namespace nova_behavior_tree
     getInput("current_pose", current_pose_);
     getInput("input_goals", goals_);
 
-    update_urc_goals();
+    set_detection_goal();
 
     return BT::NodeStatus::SUCCESS;
   }
 
-  void UpdateURCGoalsAction::update_urc_goals()
+  void SetDetectionGoalAction::set_detection_goal()
   {
     // remove all other goals other than the detected goal
     if (utils::nav2::isDefaultPose(prev_detected_goal_.pose))
@@ -105,5 +105,5 @@ namespace nova_behavior_tree
 #include "behaviortree_cpp/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-  factory.registerNodeType<nova_behavior_tree::UpdateURCGoalsAction>("UpdateURCGoals");
+  factory.registerNodeType<nova_behavior_tree::SetDetectionGoalAction>("SetDetectionGoal");
 }

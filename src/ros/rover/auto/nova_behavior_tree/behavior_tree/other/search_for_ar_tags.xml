@@ -9,7 +9,7 @@
                             default_controller="FollowPath"
                             selected_controller="{selected_controller}"/>
         <PlannerSelector topic_name="planner_selector"
-                         default_planner="GridBased"
+                         default_planner="NavFn"
                          selected_planner="{selected_planner}"/>
         <RateController hz="1.0">
           <RecoveryNode name="ComputePathToPose"

@@ -34,7 +34,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Action definitions
   "action/ArmPlanPath.action"
   "action/EndEffector.action"
-  "action/URC2025Navigator.action"
+  "action/URCNavigator.action"
 
   DEPENDENCIES std_msgs geometry_msgs nav_msgs action_msgs sensor_msgs
 )

@@ -5,7 +5,7 @@
     <RecoveryNode name="NavigateRecovery" number_of_retries="6">
       <PipelineSequence name="NavigateWithReplanning">
         <ControllerSelector topic_name="controller_selector" default_controller="FollowPath" selected_controller="{selected_controller}"/>
-        <PlannerSelector topic_name="planner_selector" default_planner="GridBased" selected_planner="{selected_planner}"/>
+        <PlannerSelector topic_name="planner_selector" default_planner="NavFn" selected_planner="{selected_planner}"/>
         <BlackboardPublisher topic_name="blackboard" keys="goals,type,status" publish_frequency="1"/>
         <RateController hz="1.0">
           <RecoveryNode name="ComputePathThroughPoses" number_of_retries="1">
