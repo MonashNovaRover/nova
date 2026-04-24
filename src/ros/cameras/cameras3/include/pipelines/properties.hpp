@@ -51,6 +51,7 @@ struct softwareEncProperties
   std::string usage_profile;
 
   int cpu_used;
+  int deadline;
   int gop;
   int noise;
   int threads;

@@ -14,6 +14,10 @@ export const defaultCameraProfileOptions: ProfileOption[] = [
     name: "super",
   },
   {
+    displayName: "Still",
+    name: "still",
+  },
+  {
     displayName: "Snail",
     name: "snail",
   },
@@ -40,6 +44,10 @@ export const defaultCameraProfilePresets: ProfileOption[] = [
   {
     displayName: "Super",
     name: "super",
+  },
+  {
+    displayName: "Still",
+    name: "still",
   },
   {
     displayName: "Snail",
