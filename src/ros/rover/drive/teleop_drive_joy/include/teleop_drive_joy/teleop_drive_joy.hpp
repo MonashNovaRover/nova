@@ -160,7 +160,10 @@ private:
     return std::abs(effort_history.value().back()) > continuous_from_effort_range[0];
   }
 
+  // only 2 as moving average was going to be implemented here, but I realised that blcmdhardware
+  // had to implement this as it only provides a subset of effort telemetry (according to update rate)
   int history_depth {2};
+
   std::optional<std::vector<double>> effort_history;
   std::optional<std::vector<rclcpp::Time>> update_history;
   std::optional<rclcpp::Time> start_continuous_rumble;
