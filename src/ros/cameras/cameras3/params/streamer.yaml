@@ -74,6 +74,18 @@ camera_streamer:
           bitrate: 2048
           threads: 6
           gop: 3
+        still:
+          pipeline_type: vp9software
+          mime: image/jpeg
+          width: 1920
+          height: 1080
+          framerate: 30
+          downrate: 30
+          deadline: 500
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 256
+          gop: 2
         snail: 
           pipeline_type: vp9software
           width: 640
@@ -119,6 +131,19 @@ camera_streamer:
           bitrate: 2048
           threads: 6
           gop: 3
+        still:
+          pipeline_type: vp9software
+          mime: image/jpeg
+          width: 1920
+          height: 1080
+          downscale: 3
+          framerate: 30
+          downrate: 30
+          deadline: 500
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 256
+          gop: 5
         snail:
           pipeline_type: vp9software
           width: 1920
@@ -152,6 +177,19 @@ camera_streamer:
           width: 1280
           height: 960
           framerate: 30
+        still:
+          pipeline_type: vp9software
+          mime: image/jpeg
+          width: 1280
+          height: 960
+          downscale: 2
+          framerate: 30
+          downrate: 30
+          deadline: 500
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 256
+          gop: 5
         snail:
           pipeline_type: h264passthrough
           width: 320
@@ -193,6 +231,19 @@ camera_streamer:
           bitrate: 2048 
           threads: 6
           gop: 3
+        still:
+          pipeline_type: vp9software
+          mime: image/jpeg
+          width:  1024
+          height: 768
+          downscale: 2
+          framerate: 30
+          downrate: 30
+          deadline: 500
+          cpu_usage: 10
+          jpegdec_method: float
+          bitrate: 256
+          gop: 5
         snail: 
           pipeline_type: vp9software
           width: 640
@@ -237,6 +288,18 @@ camera_streamer:
           bitrate: 2048
           threads: 6
           gop: 3
+        still:
+          pipeline_type: vp9software
+          mime: video/x-raw
+          width: 1280
+          height: 800
+          downscale: 2
+          framerate: 10
+          downrate: 10
+          deadline: 500
+          cpu_usage: 10
+          bitrate: 256
+          gop: 2
         snail:
           pipeline_type: vp9software
           width: 1280
