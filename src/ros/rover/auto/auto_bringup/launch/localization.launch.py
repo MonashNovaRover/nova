@@ -84,7 +84,6 @@ def launch_setup(context, *args, **kwargs):
                     name='ekf_filter_node_odom',
                     output='screen',
                     parameters=[rl_params, {'use_sim_time': gazebo}],
-                    remappings=[('odometry/filtered', 'odometry/local')],
                 ),
                 Node(
                     package='robot_localization',
