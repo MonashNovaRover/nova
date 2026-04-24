@@ -294,6 +294,12 @@ class KeyboardLocaliser(Node):
         rmat, tvec = self.estimate_rigid_transform(self.keyboard_points_m, detected_points_m)
         if rmat is None or tvec is None:
             return None
+        
+        # Flip keyboard normal if it points in same direction as camera->keyboard
+        tvec_unit = tvec.flatten() / np.linalg.norm(tvec)
+        if np.dot(rmat[:, 2], tvec_unit) > 0:
+            rmat[:, 2] *= -1
+            rmat[:, 1] *= -1
 
         # Publish keyboard corner points to gui
         self.get_corners(rmat, tvec)
@@ -307,9 +313,9 @@ class KeyboardLocaliser(Node):
         t.header.frame_id = self.camera_frame
         t.child_frame_id = self.keyboard_frame
 
-        t.transform.translation.x = tvec[0][0]
-        t.transform.translation.y = tvec[1][0]
-        t.transform.translation.z = tvec[2][0]
+        t.transform.translation.x = float(tvec[0][0])
+        t.transform.translation.y = float(tvec[1][0])
+        t.transform.translation.z = float(tvec[2][0])
 
         t.transform.rotation.x = quat[0]
         t.transform.rotation.y = quat[1]
