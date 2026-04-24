@@ -85,14 +85,15 @@ const armCams = [
 ];
 
 const urcArmCams = [
+  CameraSerials.MAST_ARM_STOW,
+  CameraSerials.MAST_FORWARD,
   CameraSerials.ARM_END_TOP,
   CameraSerials.ARM_END_FINGER,
-  CameraSerials.ARM_WRIST,
-  CameraSerials.MAST_FORWARD,
+  CameraSerials.MAST_BACKWARD,
+  CameraSerials.MAST_BELLY,
   CameraSerials.ARM_END_PERISCOPE,
   CameraSerials.ARM_END_SIDE,
-  CameraSerials.MAST_BACKWARD,
-  CameraSerials.MAST_ARM_STOW,
+  CameraSerials.ARM_WRIST,
 ]
 
 const ecCams = [
@@ -145,7 +146,7 @@ export const post_landing_views: CameraViewConfig[] = [
 
 export const urc_equipment_servicing_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...urcArmCams, ...driveCams],
+    cameraSerials: [...urcArmCams.splice(0,8), ...driveCams, urcArmCams.at(-1)],
     viewTitle: "All Cams",
   },
   {
@@ -160,7 +161,7 @@ export const urc_equipment_servicing_views: CameraViewConfig[] = [
 
 export const urc_delivery_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...urcArmCams, ...driveCams],
+    cameraSerials: [...urcArmCams.splice(0,8), ...driveCams, urcArmCams.at(-1)],
     viewTitle: "All Cams",
   },
   {
