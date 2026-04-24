@@ -315,6 +315,12 @@ private:
   */
   void apply_autolock();
 
+  /**
+   * sends message to rumble controller at certain intensity
+   * @param rumble_intensity intensity of controller rumble from 0 to 1
+   */
+  void send_rumble_feedback(float rumble_intensity);
+
   // Member variables
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_vel_pub_;
   rclcpp::Publisher<drive_interfaces::msg::DriveInfo>::SharedPtr drive_info_pub_;
@@ -353,6 +359,7 @@ private:
   bool connected_;
 
   std::map<std::string, RumbleCalculator> rumble_calculators;
+  bool rumble_override_trigger;
 };
 
 }  // namespace teleop_drive_joy

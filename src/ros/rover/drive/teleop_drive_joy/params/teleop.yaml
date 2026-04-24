@@ -4,7 +4,7 @@ teleop_drive_joy_node:
     initial_speed: 0.1
     max_input_threshold: 0.97
     handbrake_speed_multiplier: 0.6
-    trigger_pressed_threshold: 0.1
+    trigger_deadzone: 0.0
 
     autolock_enable: true
     autolock_threshold_error_count: 0

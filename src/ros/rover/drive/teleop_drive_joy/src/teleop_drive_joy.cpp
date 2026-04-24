@@ -139,6 +139,7 @@ TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   , autonomous_mode_(false) // assume (maybe incorrectly) until set_autonomous_mode_for_controllers is called
   , connected_(false)
   , autolock_override_trigger(false)
+  , rumble_override_trigger(false)
 {
 }
 
@@ -372,33 +373,80 @@ void TeleopDriveJoy::map_button_callbacks()
     change_speed(params_.speed_change_coarse_val);
   };
 
-  axis_callbacks_[params_.axis_override_autolock] = {
-
+  const auto update_autolock_override = [this](bool override_enabled)
+  {
+    if (autolock_override_trigger != override_enabled)
     {
-      .start = -params_.trigger_pressed_threshold,
-      .callback = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+      autolock_override_trigger = override_enabled;
+
+      if (autolock_override_trigger)
       {
-        if (autolock_override_trigger)
-        {
-          autolock_override_trigger = false;
-          RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Autolock trigger override deactivated" << C_END);
-          send_drive_info();
-        }
+        RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Autolock trigger override activated" << C_END);
+      }
+      else
+      {
+        RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Autolock trigger override deactivated" << C_END);
+      }
+      send_drive_info();
+    }
+  };
+
+  const auto update_rumble_override = [this](bool override_enabled)
+  {
+    if (rumble_override_trigger != override_enabled)
+    {
+      rumble_override_trigger = override_enabled;
+
+      if (rumble_override_trigger)
+      {
+        RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Gamepad rumble trigger override activated" << C_END);
+        send_rumble_feedback(0);
+      }
+      else
+      {
+        RCLCPP_INFO_STREAM(this->get_logger(), C_INFO << "Gamepad rumble trigger override deactivated" << C_END);
+      }
+    }
+  };
+
+  axis_callbacks_[params_.axis_override] = {
+
+    // override game pad rumble and autolock
+    {
+      .end = -1 + params_.trigger_deadzone,
+      .callback = [this,
+        update_autolock_override,
+        update_rumble_override](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+      {
+        update_autolock_override(true);
+        update_rumble_override(true);
       },
     },
 
+    // no override active
     {
-      .end = -params_.trigger_pressed_threshold,
-      .callback = [this](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+      .start = -params_.trigger_deadzone,
+      .callback = [this,
+        update_autolock_override,
+        update_rumble_override](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
       {
-        if (not autolock_override_trigger)
-        {
-          autolock_override_trigger = true;
-          RCLCPP_INFO_STREAM(this->get_logger(), C_FAIL << "Autolock trigger override activated" << C_END);
-          send_drive_info();
-        }
+        update_autolock_override(false);
+        update_rumble_override(false);
       },
     },
+
+    // override gamepad rumble
+    {
+      .start = -1 + params_.trigger_deadzone,
+      .end = -params_.trigger_deadzone,
+      .callback = [this,
+        update_autolock_override,
+        update_rumble_override](const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+      {
+        update_autolock_override(false);
+        update_rumble_override(true);
+      },
+    }
 
     // TODO: toggle handbrake here instead of in send_drive_command
 
@@ -510,7 +558,7 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
   angular = std::clamp(angular, -controller_params.limit_angular, controller_params.limit_angular);
 
   // handbrake
-  if (std::abs(joy_msg->axes[params_.axis_handbrake]) > params_.trigger_pressed_threshold)
+  if (std::abs(joy_msg->axes[params_.axis_handbrake]) > params_.trigger_deadzone)
   {
 	if (!handbrake_pressed_)
 	{
@@ -664,6 +712,12 @@ void TeleopDriveJoy::send_drive_info()
 
 void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::SharedPtr joint_state_msg)
 {
+  // don't do anything if rumble is fully disabled
+  if (not params_.continuous_rumble_enable and not params_.transient_rumble_enable)
+  {
+    return;
+  }
+
   const rclcpp::Time now { this->now() };
 
   const auto joint_effort = [joint_state_msg](const std::string& joint) -> double
@@ -678,16 +732,16 @@ void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::S
     return 0.0;
   };
 
-  // don't do anything if rumble is fully disabled
-  if (not params_.continuous_rumble_enable and not params_.transient_rumble_enable)
-  {
-    return;
-  }
-
   // update all rumble calculators
   for (auto& [joint_name, rumble_calc]: rumble_calculators)
   {
     rumble_calc.update(joint_effort(joint_name), now);
+  }
+
+  // don't rumble if trigger is held down
+  if (rumble_override_trigger)
+  {
+    return;
   }
 
   double max_rumble_intensity {0};
@@ -716,11 +770,7 @@ void TeleopDriveJoy::joint_states_callback(const sensor_msgs::msg::JointState::S
     }
   }
 
-  sensor_msgs::msg::JoyFeedback msg {};
-  msg.type = sensor_msgs::msg::JoyFeedback::TYPE_RUMBLE;
-  msg.id = 0;
-  msg.intensity = static_cast<float>(max_rumble_intensity);
-  joy_feedback_pub_->publish(msg);
+  send_rumble_feedback(static_cast<float>(max_rumble_intensity));
 }
 
 void TeleopDriveJoy::blcmd_log_callback(const blcmd_interfaces::msg::BLCMDLog::SharedPtr blcmd_log_msg)
@@ -809,6 +859,15 @@ void TeleopDriveJoy::apply_autolock()
       }
     }
   }
+}
+
+void TeleopDriveJoy::send_rumble_feedback(float rumble_intensity)
+{
+  sensor_msgs::msg::JoyFeedback msg {};
+  msg.type = sensor_msgs::msg::JoyFeedback::TYPE_RUMBLE;
+  msg.id = 0;
+  msg.intensity = rumble_intensity;
+  joy_feedback_pub_->publish(msg);
 }
 
 }  // namespace teleop_drive_joy
