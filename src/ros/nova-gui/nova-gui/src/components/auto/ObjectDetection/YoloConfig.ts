@@ -11,9 +11,9 @@ export interface YOLOConfig {
 export const URCYOLOConfig : YOLOConfig = {
   modelName: "best.onnx",
   classNames: [
-    "mallet",
     "hammer_pick",
     "bottle",
+    "mallet",
   ],
   outputFormat: "xyxy",  // Corner coordinates format
 }
