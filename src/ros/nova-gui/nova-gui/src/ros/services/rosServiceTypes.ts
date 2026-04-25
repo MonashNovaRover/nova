@@ -199,6 +199,18 @@ export interface RosServiceInterface {
     IRosScienceInterfacesIncrementZeroRequest,
     IRosScienceInterfacesIncrementZeroResponse
   >;
+  [RosService.LITMUS_DIPPER_DIP]: RosServiceMessage<
+    IRosScienceInterfacesRunPumpRequest,
+    IRosScienceInterfacesRunPumpResponse
+  >;
+  [RosService.LITMUS_DIPPER_STOP]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.LITMUS_DIPPER_TWITCH]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
   [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
