@@ -1,14 +1,21 @@
+export type YOLOOutputFormat =
+  | "xyxy"  // [x1, y1, x2, y2, confidence, classId] - corner coordinates
+  | "xywh"  // [x_center, y_center, width, height, confidence, classId] - center coordinates
+
 export interface YOLOConfig {
   modelName: string
   classNames: string[]
+  outputFormat: YOLOOutputFormat
 }
 
 export const URCYOLOConfig : YOLOConfig = {
-  modelName: "urc-object-detection.onnx",
+  modelName: "best.onnx",
   classNames: [
-    "hammer",
-    "drink bottle",
+    "bottle",
+    "hammer_pick",
+    "mallet",
   ],
+  outputFormat: "xyxy",  // Corner coordinates format
 }
 
 // Coco pretrained test YOLO model
@@ -96,7 +103,8 @@ export const CocoConfig : YOLOConfig = {
     "hair drier",
     "toothbrush",
   ],
+  outputFormat: "xyxy",  // Original format with corner coordinates
 }
 
 // Active YOLO config: switch this to change the model/labels, then reload the page.
-export const ActiveYoloConfig: YOLOConfig = CocoConfig;
+export const ActiveYoloConfig: YOLOConfig = URCYOLOConfig;
