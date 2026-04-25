@@ -61,9 +61,6 @@ bool ForwardKinematicsPlugin::initialize(
   if (!initialize_base(node_interfaces, robot_model, std::move(kinematics_params), "forward_kinematics"))
     return false;
 
-  // Set up URDF
-  RCLCPP_INFO(get_logger(), "Parsing URDF and creating KDL Tree...");
-
   return on_initialize();
 }
 

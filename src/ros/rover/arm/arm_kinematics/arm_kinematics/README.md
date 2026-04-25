@@ -92,16 +92,27 @@ The default concrete implementations are:
 - `FclCollisionPlugin`
 - `BanksiaIKPlugin`
 
+## Documentation
+
+Read these first:
+
+1. [`docs/overview.md`](docs/overview.md)
+2. [`docs/controller_usage.md`](docs/controller_usage.md)
+3. [`docs/joint_map_and_transmissions.md`](docs/joint_map_and_transmissions.md)
+4. [`docs/package_uml.md`](docs/package_uml.md)
+
 ## Recommended Reading Order
 
 For maintainers, this is the shortest useful path through the codebase:
 
-1. [`docs/implementation_guide.md`](docs/implementation_guide.md)
-2. [`docs/joint_map_guide.md`](docs/joint_map_guide.md)
-3. `RobotModel`, `JointMap`, and `PluginLoader`
-4. `ForwardKinematicsPlugin` and `DefaultForwardKinematicsPlugin`
-5. `CollisionManager` and `FclCollisionPlugin`
-6. the tests in [`test/`](test)
+1. [`docs/overview.md`](docs/overview.md)
+2. [`docs/controller_usage.md`](docs/controller_usage.md)
+3. [`docs/joint_map_and_transmissions.md`](docs/joint_map_and_transmissions.md)
+4. [`docs/package_uml.md`](docs/package_uml.md)
+5. `RobotModel`, `JointMap`, and `PluginLoader`
+6. `ForwardKinematicsPlugin` and `DefaultForwardKinematicsPlugin`
+7. `CollisionManager` and `FclCollisionPlugin`
+8. the tests in [`test/`](test)
 
 Build your own controller-specific Kinematics aggregate by holding a `RobotModel::UniquePtr`, then constructing the
 plugins you need from a `PluginLoader`. There is no one-size-fits-all aggregate type — wire up only the pieces your

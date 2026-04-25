@@ -202,49 +202,6 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# Benchmark executable
-find_package(benchmark REQUIRED)
-add_executable(benchmark_joint_map
-  benchmark/joint_map_builder_benchmark.cpp
-)
-target_link_libraries(benchmark_joint_map
-  ${PROJECT_NAME}
-  benchmark::benchmark
-  benchmark::benchmark_main
-  Threads::Threads
-  fcl
-)
-target_include_directories(benchmark_joint_map PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-)
-install(TARGETS benchmark_joint_map
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-add_executable(benchmark_twistmapper_collision
-  benchmark/twistmapper_collision_benchmark.cpp
-)
-target_link_libraries(benchmark_twistmapper_collision
-  ${PROJECT_NAME}
-  ${PROJECT_NAME}_plugins
-  benchmark::benchmark
-  benchmark::benchmark_main
-  Threads::Threads
-  fcl
-)
-target_include_directories(benchmark_twistmapper_collision PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-)
-target_compile_definitions(benchmark_twistmapper_collision PRIVATE
-  ARM_KINEMATICS_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
-)
-install(TARGETS benchmark_twistmapper_collision
-  DESTINATION lib/${PROJECT_NAME}
-)
-install(
-  FILES benchmark/data/taipan_twistmapper_benchmark.urdf
-  DESTINATION share/${PROJECT_NAME}/benchmark
-)
 
 ament_export_targets(
   #  ${PROJECT_NAME}Targets

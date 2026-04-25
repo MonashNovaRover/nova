@@ -22,8 +22,8 @@
 
 namespace {
 
-constexpr const char * kBenchmarkDataWorkspaceRelativePath = "benchmark/data/taipan_twistmapper_benchmark.urdf";
-constexpr const char * kBenchmarkDataInstallRelativePath = "share/arm_kinematics/benchmark/taipan_twistmapper_benchmark.urdf";
+constexpr const char * kBenchmarkDataWorkspaceRelativePath = "data/taipan_twistmapper_benchmark.urdf";
+constexpr const char * kBenchmarkDataInstallRelativePath = "share/arm_kinematics_benchmark/benchmark/taipan_twistmapper_benchmark.urdf";
 constexpr const char * kBenchmarkDataEnvVar = "ARM_KINEMATICS_BENCHMARK_DATA_DIR";
 constexpr const char * kBaseLinkName = "arm_kinematics_origin";
 constexpr const char * kEndEffectorLinkName = "endeffector_kinematics";
@@ -95,6 +95,7 @@ std::string benchmark_data_path()
       fs::current_path() / kBenchmarkDataWorkspaceRelativePath,
       fs::current_path() / kBenchmarkDataInstallRelativePath,
       fs::path(ARM_KINEMATICS_SOURCE_DIR) / kBenchmarkDataWorkspaceRelativePath,
+      fs::path(ARM_KINEMATICS_INSTALL_DATA_DIR) / "taipan_twistmapper_benchmark.urdf",
     },
     "twistmapper benchmark URDF");
 }
@@ -238,8 +239,11 @@ static void BM_TwistmapperConfigureCollisionStack(benchmark::State & state)
   const auto urdf = load_taipan_urdf();
   const auto urdf_path = benchmark_data_path();
 
+  // Node lives outside the loop — we're timing kinematics init, not DDS startup.
+  auto node = make_benchmark_node("bm_twistmapper_configure");
+  const auto collision_config = arm_kinematics::read_collision_config(node->get_node_parameters_interface());
+
   for (auto _ : state) {
-    auto node = make_benchmark_node("bm_twistmapper_configure");
     arm_kinematics::PluginLoader loader(*node, urdf);
 
     auto fk = loader.make_fk();
@@ -248,7 +252,6 @@ static void BM_TwistmapperConfigureCollisionStack(benchmark::State & state)
       break;
     }
 
-    const auto collision_config = arm_kinematics::read_collision_config(node->get_node_parameters_interface());
     auto collision_result = arm_kinematics::make_collision_manager(loader, fk, kJointNames, collision_config);
     if (!collision_result) {
       state.SkipWithError(collision_result.error().format().c_str());
