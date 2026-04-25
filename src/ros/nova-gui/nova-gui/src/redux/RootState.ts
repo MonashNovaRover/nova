@@ -95,7 +95,6 @@ export interface RootState {
   thermalCommand: IRosScienceInterfacesThermalCommandResponse;
   uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
   microscopeServoStore: IRosScienceInterfacesMicroscopeServoInfo;
-  microscopeServiceStore: IRosScienceInterfacesMoveMicroscopeServoResponse;
   ramanSpecServiceStore: IRosScienceInterfacesRamanSpecResponse;
   ramanSpecMessageStore: IRosScienceInterfacesRamanSpectrum;
   ramanMechMessageStore: IRosScienceInterfacesRamanState;
