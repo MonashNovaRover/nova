@@ -32,7 +32,7 @@ export const rosTopicMessages = {
   // Science Related
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
   [RosTopic.AA_POS]: "sensor_msgs/msg/Range",
-  [RosTopic.KILN_DATA]: "science_interfaces/msg/KilnData",
+  [RosTopic.THERMAL_DATA]: "science_interfaces/msg/ThermalData",
   [RosTopic.WATER_PUMP_STATUS]: "science_interfaces/msg/EffortStatus",
   [RosTopic.DIAPHRAGM_PUMP_STATUS]: "science_interfaces/msg/EffortStatus",
   [RosTopic.NIR_DATA]: "science_interfaces/msg/NIRProbeData",

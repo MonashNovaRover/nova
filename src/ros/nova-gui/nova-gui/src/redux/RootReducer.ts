@@ -163,17 +163,17 @@ export const reduxStores = {
       state: false, // current status of Diaphragm Pump: True if On
     }
   ),
-  kilnData: createBifrostStore(
-    { topic: RosTopic.KILN_DATA },
+  thermalData: createBifrostStore(
+    { topic: RosTopic.THERMAL_DATA },
     {
       temp: [0, 0, 0], // current converted temp readings [C]
-      state: false, // current status of Kiln: True if On
+      state: false, // current status of thermal system: True if On
     }
   ),
-  kilnCommand: createBifrostStore(
-    { service: RosService.KILN_COMMAND },
+  thermalCommand: createBifrostStore(
+    { service: RosService.THERMAL_COMMAND },
     {
-      success: true, // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
+      success: true, // whether the last service request succeeded or not: False will show error on Toggle Thermal Button
     }
   ),
   tofStore: createBifrostStore({ topic: RosTopic.TOF }, {

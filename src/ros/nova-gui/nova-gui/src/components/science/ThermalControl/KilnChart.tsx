@@ -77,18 +77,18 @@ const KilnChart: React.FC<KilnChartProps> = () => {
     temp: [] as number[],
   });
 
-  // set up to 'refresh' kilnData state
-  const kilnData = useSelector(
-    (state: RootState) => state.kilnData
+  // set up to 'refresh' thermalData state
+  const thermalData = useSelector(
+    (state: RootState) => state.thermalData
   );
 
-  const dataBifrost = useBifrost({ topic: RosTopic.KILN_DATA });
+  const dataBifrost = useBifrost({ topic: RosTopic.THERMAL_DATA });
 
   useEffect(() => {
     dataBifrost.syncWithTopic(); // calling ros bridge to subscribe to topic
     // update max temps if current temps exceed them
-    if (kilnData.temp[0] > maxTemp) {
-      setMaxTemp(1.1 * kilnData.temp[0]);
+    if (thermalData.temp[0] > maxTemp) {
+      setMaxTemp(1.1 * thermalData.temp[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataBifrost]);
@@ -99,13 +99,13 @@ const KilnChart: React.FC<KilnChartProps> = () => {
 
   // Update existing data
   useEffect(() => {
-    if (kilnData && kilnData.stamp) {
+    if (thermalData && thermalData.stamp) {
       setSeriesData((allData) => ({
-        time: addPoint(allData.time, kilnData.stamp.sec * 1000 + kilnData.stamp.nanosec / 1_000_000),
-        temp: addPoint(allData.temp, kilnData.temp[0]),
+        time: addPoint(allData.time, thermalData.stamp.sec * 1000 + thermalData.stamp.nanosec / 1_000_000),
+        temp: addPoint(allData.temp, thermalData.temp[0]),
       }));
     } else return;
-  }, [kilnData]);
+  }, [thermalData]);
 
   const chartRef = useRef<ReactECharts>(null);
 
@@ -152,11 +152,11 @@ const KilnChart: React.FC<KilnChartProps> = () => {
         <div className="flex items-center gap-2">
           <Chip size="lg" variant="flat" radius="md" className="h-10" color="warning" classNames={{ content: "flex items-center gap-2" }}>
             <div className="text-sm">KILN</div>
-            <div className="text-white">{kilnData?.temp?.[0] != null ? `${kilnData.temp[0].toFixed(2)}°C` : "--"}</div>
+            <div className="text-white">{thermalData?.temp?.[0] != null ? `${thermalData.temp[0].toFixed(2)}°C` : "--"}</div>
           </Chip>
           <Chip size="lg" variant="flat" radius="md" className="h-10" color="primary" classNames={{ content: "flex items-center gap-2" }}>
             <div className="text-sm">CONDENSER</div>
-            <div className="text-white">{kilnData?.temp?.[1] != null ? `${kilnData.temp[1].toFixed(2)}°C` : "--"}</div>
+            <div className="text-white">{thermalData?.temp?.[1] != null ? `${thermalData.temp[1].toFixed(2)}°C` : "--"}</div>
           </Chip>
         </div>
         <div className="flex items-center gap-2">

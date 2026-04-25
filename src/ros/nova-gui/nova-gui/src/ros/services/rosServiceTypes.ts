@@ -8,8 +8,8 @@ import {
   IRosArmInterfacesTypeSequenceRequest,
   IRosArmInterfacesTypeSequenceResponse,
   IRosStdSrvsTriggerResponse,
-  IRosScienceInterfacesKilnCommandRequest,
-  IRosScienceInterfacesKilnCommandResponse,
+  IRosScienceInterfacesThermalCommandRequest,
+  IRosScienceInterfacesThermalCommandResponse,
   IRosScienceInterfacesEffortCommandRequest,
   IRosScienceInterfacesEffortCommandResponse,
   IRosScienceInterfacesRamanSpecRequest,
@@ -111,9 +111,9 @@ export interface RosServiceInterface {
     IRosStdSrvsSetBoolRequest,
     IRosStdSrvsSetBoolResponse
   >;
-  [RosService.KILN_COMMAND]: RosServiceMessage<
-    IRosScienceInterfacesKilnCommandRequest,
-    IRosScienceInterfacesKilnCommandResponse
+  [RosService.THERMAL_COMMAND]: RosServiceMessage<
+    IRosScienceInterfacesThermalCommandRequest,
+    IRosScienceInterfacesThermalCommandResponse
   >;
   [RosService.WATER_PUMP_COMMAND]: RosServiceMessage<
     IRosScienceInterfacesEffortCommandRequest,
@@ -168,8 +168,8 @@ export interface RosServiceInterface {
     IRosScienceInterfacesCacheCommandResponse
   >;
   [RosService.HEATER]: RosServiceMessage<
-    IRosScienceInterfacesKilnCommandRequest,
-    IRosScienceInterfacesKilnCommandResponse
+    IRosScienceInterfacesThermalCommandRequest,
+    IRosScienceInterfacesThermalCommandResponse
   >;
   [RosService.REQUEST_HYDRAPROBE_READING]: RosServiceMessage<
     EmptyMessage,
@@ -217,8 +217,7 @@ export interface RosServiceInterface {
   >;
   [RosService.TOOL_ROTATOR_PRESETS]: RosServiceMessage<
     IRosScienceInterfacesSetNamedPositionsRequest,
-    IRosScienceInterfacesSetNamedPositionsResponse
-  >;
+    IRosScienceInterfacesSetNamedPositionsResponse>;
   [RosService.TOOL_ROTATOR_POSITION]: RosServiceMessage<
     IRosScienceInterfacesSetPositionRequest,
     IRosScienceInterfacesSetPositionResponse
