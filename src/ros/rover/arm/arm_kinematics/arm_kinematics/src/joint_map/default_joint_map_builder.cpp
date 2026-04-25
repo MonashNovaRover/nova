@@ -89,14 +89,13 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
     return tl::unexpected(JointMapBuildError::UnknownJoint{std::move(named)});
   }
 
-  // Pre-step (A): For each defaulted joint, synthesize missing constant inputs.
+  // Pre-step (A): Synthesize explicitly defaulted state interfaces as synthetic constant inputs.
   //
-  // `state_interface_order()` only contains interfaces registered by ros2_control
-  // transmissions. Passive URDF-only joints can still be requested by FK, so every defaulted
-  // joint also gets an explicit bare `joint/position` fallback.
+  // Only the interfaces listed in default_state_interface_values_ are synthesized.
+  // No implicit expansion to other interfaces occurs.
   std::vector<StateInterfaceDefinition> synthetic_inputs;
   std::vector<double> constant_values;
-  if (!default_joint_values_.empty()) {
+  if (!default_state_interface_values_.empty()) {
     std::unordered_set<StateInterfaceDefinition> available_inputs(inputs.begin(), inputs.end());
     const auto has_real_input_for_affine_group =
       [&](const StateInterfaceDefinition & def) -> bool {
@@ -129,19 +128,8 @@ tl::expected<JointMap, JointMapBuildError> DefaultJointMapBuilder::build_expecte
         constant_values.push_back(value);
       };
 
-    for (const auto & [joint_id, value] : default_joint_values_) {
-      add_synthetic_input(StateInterfaceDefinition{joint_id, InterfaceId::Position()}, value);
-    }
-
-    const auto & sio = transmission_analysis_.state_interface_order();
-    for (std::size_t sid = 0; sid < sio.inverse.size(); ++sid) {
-      const auto & def = sio.inverse[sid];
-      const auto it = default_joint_values_.find(def.joint_id);
-      if (it == default_joint_values_.end()) {
-        continue;  // not a defaulted joint
-      }
-      // Position gets the caller-specified default; all other interfaces freeze at 0.0.
-      add_synthetic_input(def, (def.interface_id == InterfaceId::Position()) ? it->second : 0.0);
+    for (const auto & [def, value] : default_state_interface_values_) {
+      add_synthetic_input(def, value);
     }
   }
 

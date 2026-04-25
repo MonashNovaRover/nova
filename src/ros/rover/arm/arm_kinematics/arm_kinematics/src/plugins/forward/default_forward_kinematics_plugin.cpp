@@ -5,6 +5,7 @@
 #include "../../../include/arm_kinematics/plugins/forward/default_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 #include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/utilities/interface_id.hpp"
 #include "arm_kinematics/utilities/param_reader.hpp"
 
 #include <cctype>
@@ -32,7 +33,7 @@ const JointMapBuilder & DefaultForwardKinematicsPlugin::get_joint_map_builder() 
   std::call_once(joint_map_builder_once_, [this]() {
     joint_map_builder_ = std::make_unique<DefaultJointMapBuilder>(
       get_transmission_analysis(),
-      default_joint_values_);
+      default_state_interface_values_);
   });
   return *joint_map_builder_;
 }
@@ -113,7 +114,7 @@ bool DefaultForwardKinematicsPlugin::on_initialize() {
     get_node_interfaces().get<rclcpp::node_interfaces::NodeParametersInterface>());
 
   const auto entries = params.get<std::vector<std::string>>(
-    "kinematics.default_joint_values", {});
+    "kinematics.default_state_interface_values", {});
 
   if (entries.empty()) {
     return true;
@@ -122,32 +123,48 @@ bool DefaultForwardKinematicsPlugin::on_initialize() {
   const auto & analysis = get_transmission_analysis();
   const auto & joint_order = analysis.joint_order();
 
+  // Trim leading/trailing whitespace from a string_view.
+  const auto trim = [](std::string_view sv) -> std::string_view {
+    std::size_t s = 0;
+    while (s < sv.size() && std::isspace(static_cast<unsigned char>(sv[s]))) ++s;
+    std::size_t e = sv.size();
+    while (e > s && std::isspace(static_cast<unsigned char>(sv[e - 1]))) --e;
+    return sv.substr(s, e - s);
+  };
+
   for (const auto & entry : entries) {
-    const auto sep = entry.find('=');
-    if (sep == std::string::npos) {
+    // Expected format: "joint_name/interface_name=value"
+    // Joint names may contain '/', so split on the last '/' before the '='.
+    const auto eq = entry.find('=');
+    if (eq == std::string::npos) {
       RCLCPP_WARN(
         get_logger(),
-        "Skipping malformed kinematics.default_joint_values entry '%s'. Expected 'joint=value'.",
+        "Skipping malformed kinematics.default_state_interface_values entry '%s'."
+        " Expected 'joint/interface=value'.",
         entry.c_str());
       continue;
     }
 
-    // Trim whitespace around name and value
-    const auto trim = [](std::string_view sv) -> std::string {
-      std::size_t s = 0;
-      while (s < sv.size() && std::isspace(static_cast<unsigned char>(sv[s]))) ++s;
-      std::size_t e = sv.size();
-      while (e > s && std::isspace(static_cast<unsigned char>(sv[e - 1]))) --e;
-      return std::string(sv.substr(s, e - s));
-    };
+    const std::string_view lhs = trim(std::string_view(entry).substr(0, eq));
+    const std::string_view value_sv = trim(std::string_view(entry).substr(eq + 1));
 
-    const auto joint_name = trim(std::string_view(entry).substr(0, sep));
-    const auto value_str = trim(std::string_view(entry).substr(sep + 1));
-
-    if (joint_name.empty() || value_str.empty()) {
+    const auto slash = lhs.rfind('/');
+    if (slash == std::string_view::npos || slash == 0 || slash + 1 == lhs.size()) {
       RCLCPP_WARN(
         get_logger(),
-        "Skipping malformed kinematics.default_joint_values entry '%s'.",
+        "Skipping malformed kinematics.default_state_interface_values entry '%s'."
+        " Expected 'joint/interface=value'.",
+        entry.c_str());
+      continue;
+    }
+
+    const std::string joint_name{lhs.substr(0, slash)};
+    const std::string interface_name{lhs.substr(slash + 1)};
+
+    if (joint_name.empty() || interface_name.empty() || value_sv.empty()) {
+      RCLCPP_WARN(
+        get_logger(),
+        "Skipping malformed kinematics.default_state_interface_values entry '%s'.",
         entry.c_str());
       continue;
     }
@@ -155,24 +172,28 @@ bool DefaultForwardKinematicsPlugin::on_initialize() {
     if (!joint_order.contains_key(joint_name)) {
       RCLCPP_WARN(
         get_logger(),
-        "Skipping unknown joint '%s' in kinematics.default_joint_values.",
-        joint_name.c_str());
+        "Skipping unknown joint '%s' in kinematics.default_state_interface_values entry '%s'.",
+        joint_name.c_str(),
+        entry.c_str());
       continue;
     }
 
     try {
+      const std::string value_str{value_sv};
       std::size_t parsed_chars = 0;
       const double value = std::stod(value_str, &parsed_chars);
       if (parsed_chars != value_str.size()) {
         throw std::invalid_argument("trailing characters");
       }
-      default_joint_values_[joint_order[joint_name]] = value;
+      default_state_interface_values_[{joint_order[joint_name], InterfaceId{interface_name}}] =
+        value;
     } catch (const std::exception &) {
       RCLCPP_WARN(
         get_logger(),
-        "Skipping kinematics.default_joint_values entry '%s': value '%s' is not a valid number.",
+        "Skipping kinematics.default_state_interface_values entry '%s':"
+        " value '%s' is not a valid number.",
         entry.c_str(),
-        value_str.c_str());
+        std::string{value_sv}.c_str());
     }
   }
 

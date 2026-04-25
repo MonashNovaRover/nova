@@ -18,6 +18,8 @@
 , hardware-interface
 , fcl
 , gbenchmark
+, makeWrapper
+, rmw-fastrtps-cpp
 }:
 
 buildRosPackage rec {
@@ -37,6 +39,7 @@ buildRosPackage rec {
     pkg-config
     ament-cmake-gtest
     ament-lint-auto
+    makeWrapper
   ];
 
   buildInputs = [
@@ -69,6 +72,7 @@ buildRosPackage rec {
     transmission-interface
     hardware-interface
     fcl
+    rmw-fastrtps-cpp
   ];
 
 #  doCheck = true;
@@ -107,4 +111,15 @@ buildRosPackage rec {
     "-fno-omit-frame-pointer"
     "-g"
   ];
+
+  postFixup = ''
+    mkdir -p "$out/bin"
+    makeWrapper "$out/lib/arm_kinematics/benchmark_twistmapper_collision" \
+      "$out/bin/benchmark_twistmapper_collision" \
+      --set-default RMW_IMPLEMENTATION rmw_fastrtps_cpp \
+      --set-default ROS_LOG_DIR /tmp/arm_kinematics_benchmark_logs \
+      --set ARM_KINEMATICS_BENCHMARK_DATA_DIR "$out/share/arm_kinematics/benchmark" \
+      --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ rmw-fastrtps-cpp ]}" \
+      --prefix AMENT_PREFIX_PATH : "$out"
+  '';
 }

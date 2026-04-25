@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
+#include "arm_kinematics/joint_map/state_interface_definition.hpp"
 #include "arm_kinematics/joint_map/transmission_analysis.hpp"
 #include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/visibility_control.h"
@@ -36,14 +37,15 @@ namespace arm_kinematics {
 class ARM_KINEMATICS_PUBLIC DefaultJointMapBuilder : public JointMapBuilder {
 public:
   /// Construct a builder around a caller-owned, fully-populated `TransmissionAnalysis`.
-  /// If \p default_joint_values is non-empty, joints absent from the caller's runtime inputs
-  /// will have their position interface seeded with the specified fallback constant (all other
-  /// interfaces for those joints default to 0.0). The map is keyed by JointId.
+  /// If \p default_state_interface_values is non-empty, state interfaces absent from the
+  /// caller's runtime inputs will be seeded with the specified fallback constants. Only the
+  /// explicitly listed interfaces are synthesized — no implicit expansion to other interfaces.
+  /// The map is keyed by StateInterfaceDefinition (joint + interface pair).
   explicit DefaultJointMapBuilder(
     const TransmissionAnalysis & analysis,
-    std::unordered_map<JointId, double> default_joint_values = {}) noexcept
+    std::unordered_map<StateInterfaceDefinition, double> default_state_interface_values = {}) noexcept
   : transmission_analysis_(analysis),
-    default_joint_values_(std::move(default_joint_values))
+    default_state_interface_values_(std::move(default_state_interface_values))
   {
   }
 
@@ -60,7 +62,7 @@ public:
 
 private:
   const TransmissionAnalysis & transmission_analysis_;
-  std::unordered_map<JointId, double> default_joint_values_;
+  std::unordered_map<StateInterfaceDefinition, double> default_state_interface_values_;
 };
 
 } // namespace arm_kinematics

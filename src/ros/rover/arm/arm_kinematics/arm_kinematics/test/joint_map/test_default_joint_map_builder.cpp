@@ -278,7 +278,8 @@ TEST_F(DefaultJointMapBuilderTest, Success_DefaultValueForBarePassivePosition)
 
   const DefaultJointMapBuilder builder{
     analysis,
-    std::unordered_map<JointId, double>{{passive, 2.5}}};
+    std::unordered_map<StateInterfaceDefinition, double>{
+      {{passive, InterfaceId::Position()}, 2.5}}};
 
   const auto result = builder.build_expected(
     std::vector<StateInterfaceDefinition>{{runtime, InterfaceId::Position()}},

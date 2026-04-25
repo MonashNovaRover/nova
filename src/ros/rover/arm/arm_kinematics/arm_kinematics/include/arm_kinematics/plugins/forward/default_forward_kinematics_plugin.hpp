@@ -14,6 +14,7 @@
 #include <arm_kinematics/forward/utilities/compute_frame_tree.hpp>
 #include <arm_kinematics/forward/utilities/analysis_tree.hpp>
 #include <arm_kinematics/joint_map/default_joint_map_builder.hpp>
+#include <arm_kinematics/joint_map/state_interface_definition.hpp>
 #include <arm_kinematics/joint_map/transmission_types.hpp>
 #include <arm_kinematics/visibility_control.h>
 
@@ -103,10 +104,11 @@ private:
   mutable std::once_flag joint_map_builder_once_{};
   mutable std::unique_ptr<DefaultJointMapBuilder> joint_map_builder_{};
 
-  /// Parsed from `kinematics.default_joint_values` in `on_initialize()`. Keyed by JointId.
-  /// Passed to DefaultJointMapBuilder so joints not in the caller's inputs are frozen at these
+  /// Parsed from `kinematics.default_state_interface_values` in `on_initialize()`.
+  /// Keyed by StateInterfaceDefinition (joint + interface pair). Passed to
+  /// DefaultJointMapBuilder so state interfaces not in the caller's inputs are frozen at these
   /// constant values instead of causing a MissingInputs build error.
-  std::unordered_map<JointId, double> default_joint_values_{};
+  std::unordered_map<StateInterfaceDefinition, double> default_state_interface_values_{};
 };
 
 } // arm_kinematics
