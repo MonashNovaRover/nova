@@ -15,6 +15,7 @@ teleop_arm:
       names:
         - joint_space_mode
         - task_space_mode
+        - task_space_velocity_mode
         - end_effector_mode
 
       joint_space_mode:
@@ -31,6 +32,13 @@ teleop_arm:
           - "nova_twistmapper"
           - "nova_arm_position_controller"
 
+      task_space_velocity_mode:
+        display_name: "Task Space (Velocity IK)"
+        type: "teleop_modular_twist/TwistControlMode"
+        controllers:
+          - "nova_twistmapper_velocity"
+          - "nova_arm_velocity_controller"
+
       end_effector_mode:
         display_name: "End Effector"
         type: "joint_space_control_mode/JointSpaceControlMode"
@@ -41,6 +49,8 @@ teleop_arm:
     commands:
       names:
         - enter_task_space
+        - enter_task_space_velocity
+        - exit_task_space_velocity
         - enter_joint_space
         - lock
         - unlock
@@ -54,6 +64,21 @@ teleop_arm:
           - "task_space_mode"
         deactivate:
           - "joint_space_mode"
+      enter_task_space_velocity:
+        on: "task_space_velocity/down"
+        type: switch_control_mode
+        activate:
+          - "task_space_velocity_mode"
+        deactivate:
+          - "joint_space_mode"
+      exit_task_space_velocity:
+        on_any:
+          - "task_space_velocity/up"
+        type: switch_control_mode
+        activate:
+          - "joint_space_mode"
+        deactivate:
+          - "task_space_velocity_mode"
       enter_joint_space:
         on_any:
           - "task_space/up"
@@ -166,4 +191,23 @@ task_space_mode:
         normalized: true
         scale_with_speed: true
 
+task_space_velocity_mode:
+  ros__parameters:
+    stamped_topic: "/arm/task_space_twist_command"
+    use_speed_input: true
 
+    scale:
+      linear:
+        all: 0.05
+      angular:
+        all: 0.3
+
+    limits:
+      linear:
+        all: 0.05
+        normalized: true
+        scale_with_speed: true
+      angular:
+        all: 0.3
+        normalized: true
+        scale_with_speed: true

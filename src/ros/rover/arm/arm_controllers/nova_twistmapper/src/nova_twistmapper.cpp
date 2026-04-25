@@ -389,6 +389,10 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
   const rclcpp::Duration & period)
 {
   const auto logger = get_node()->get_logger();
+  kinematics_->ee_tree->position_fk(current_joint_state_values_, fk_pose_buffer_);
+  const Eigen::Isometry3d current_ee_pose = fk_pose_buffer_.front();
+  runtime.target_pose = current_ee_pose;
+
   const double dt = period.seconds();
   if (!std::isfinite(dt) || dt <= 0.0 || dt > params_.max_velocity_control_period) {
     RCLCPP_ERROR_THROTTLE(
@@ -417,10 +421,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
   const auto candidate_pose = integrate_target_pose(
     resolved_twist.base_twist,
     period,
-    runtime.target_pose);
-
-  kinematics_->ee_tree->position_fk(current_joint_state_values_, fk_pose_buffer_);
-  const Eigen::Isometry3d current_ee_pose = fk_pose_buffer_.front();
+    current_ee_pose);
 
   auto ik_result = kinematics_->ik->get_velocity_ik(
     resolved_twist.base_twist,

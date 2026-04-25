@@ -74,6 +74,7 @@ def launch_setup(context, *args, **kwargs):
         if_value='nova_twistmapper_old',
         else_value='nova_twistmapper',
     )
+    twistmapper_velocity_controller_name = 'nova_twistmapper_velocity'
 
     show_colours_additional_env = {
         # Show colors in the terminal output
@@ -110,6 +111,13 @@ def launch_setup(context, *args, **kwargs):
                     package='controller_manager',
                     executable='spawner',
                     arguments=[arm_position_controller_name, twistmapper_controller_name, '--inactive', "-c", "/arm/controller_manager"],
+                    additional_env=show_colours_additional_env,
+                ),
+                Node(
+                    condition=UnlessCondition(legacy_controllers),
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=[twistmapper_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
