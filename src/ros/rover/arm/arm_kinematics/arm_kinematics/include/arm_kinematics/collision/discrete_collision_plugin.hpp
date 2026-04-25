@@ -87,6 +87,16 @@ public:
     size_t max_colliding_pairs) = 0;
 
   /**
+   * Reports whether this backend can represent the given URDF collider exactly or safely enough
+   * to include it in the final dense collider set.
+   *
+   * Collision-manager construction uses this at configure time to decide which colliders are
+   * part of the final index space. Backends must keep this answer consistent with
+   * `on_initialize()`: geometry reported unsupported here must not later be silently skipped.
+   */
+  [[nodiscard]] virtual bool supports_geometry(const urdf::Collision & collider) const noexcept = 0;
+
+  /**
    * Perform a self intersection check with the given joint states, preserving which colliders would intersect.
    * This overload is included for helping to build the allowed collision matrix. Unlimited colliding pairs.
    *

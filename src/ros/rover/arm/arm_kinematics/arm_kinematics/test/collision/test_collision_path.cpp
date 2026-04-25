@@ -64,6 +64,11 @@ public:
     return collides;
   }
 
+  [[nodiscard]] bool supports_geometry(const urdf::Collision &) const noexcept override
+  {
+    return true;
+  }
+
   const std::vector<double> & seen_positions() const noexcept
   {
     return seen_positions_;

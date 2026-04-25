@@ -26,6 +26,7 @@ public:
   bool collide(
     std::vector<std::pair<size_t, size_t>> & colliding_pairs,
     size_t max_colliding_pairs) override;
+  [[nodiscard]] bool supports_geometry(const urdf::Collision & collider) const noexcept override;
 
 protected:
   bool on_initialize(const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries) override;

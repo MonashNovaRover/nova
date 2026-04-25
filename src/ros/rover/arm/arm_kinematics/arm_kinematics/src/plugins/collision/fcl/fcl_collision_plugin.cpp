@@ -130,6 +130,11 @@ bool FclCollisionPlugin::collide(
   return query.hit;
 }
 
+bool FclCollisionPlugin::supports_geometry(const urdf::Collision & collider) const noexcept
+{
+  return GeometryCache::supports_geometry(collider);
+}
+
 void FclCollisionPlugin::update_pose(const size_t idx, const Eigen::Isometry3d& collider_pose) {
   colliders_[idx].setTransform(collider_pose);
 }
@@ -151,18 +156,14 @@ bool FclCollisionPlugin::on_initialize(
   colliders_ = {};
   colliders_.reserve(collider_geometries.size());
 
-  // Note: when a geometry is skipped here, the per-collider `i` index baked into UserData
-  // below stays aligned with the input collider_geometries index — i.e. user_data values may
-  // have gaps after a skipped geometry, but they always trace back to the original URDF
-  // collider position. Downstream consumers walking colliders_ should not assume contiguous
-  // user_data indices.
   for (size_t i = 0; i < collider_geometries.size(); ++i) {
     std::shared_ptr geometry = geometry_cache_.from_urdf(collider_geometries[i]);
     if (!geometry) {
-      RCLCPP_WARN(
+      RCLCPP_ERROR(
         get_logger(),
-        "FclCollisionPlugin: skipping collider %zu (unsupported or invalid geometry)", i);
-      continue;
+        "FclCollisionPlugin: collider %zu reached initialization with unsupported or invalid geometry.",
+        i);
+      return false;
     }
     auto& collider = colliders_.emplace_back(geometry, Eigen::Isometry3d::Identity());
 

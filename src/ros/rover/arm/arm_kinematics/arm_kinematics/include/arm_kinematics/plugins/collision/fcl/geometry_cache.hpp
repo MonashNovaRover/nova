@@ -27,11 +27,11 @@ public:
 
   static GeoPtr get_box(double x, double y, double z);
   static GeoPtr get_sphere(double r);
-  static GeoPtr get_capsule(double r, double halfLen);
+  static GeoPtr get_cylinder(double r, double length);
+  static bool supports_geometry(const urdf::Collision & col) noexcept;
 
   /**
    * Helper to convert URDF collision geometries to types used in FCL for collision.
-   * \note Treats cylinders as capsules (conservatively).
    * \param col the collider from the URDF
    * \param link_name the link name the collider belongs to, used in logging warning messages.
    */
@@ -42,7 +42,6 @@ public:
 
 private:
   rclcpp::Logger logger_ = rclcpp::get_logger("geometry_cache");
-  bool warn_on_cylinder_ = true;
 };
 
 } // arm_kinematics
