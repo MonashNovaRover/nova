@@ -175,6 +175,24 @@ carousel_outer:
         can_id: 0xFFF
         function_id: 0x02
 
+litmus_dipper:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        hardware_name: "dipper"
+        min_angle: 0.0
+        max_angle: 180.0 # tune this, should ideally be same as down_pos or slightly higher?
+        initial_angle: 0.0
+        up_pos: 0.0 # tune this
+        down_pos: 180.0 # tune this
+        twitch_service: "/science/litmus_dipper/twitch"
+    hardware:
+      dipper:
+        can_id: 0x0E0
+        angular_limit: 360.0
+
 heaters:
   ros__parameters:
     can_bus: "can1"

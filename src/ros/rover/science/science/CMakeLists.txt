@@ -56,6 +56,7 @@ install(PROGRAMS
         science/arc/diaphragm_pump.py
         science/urc/cache.py
         science/urc/carousel.py
+        science/urc/litmus_dipper.py
         science/urc/heater.py
         science/urc/hydraprobe_trigger_node.py
         science/urc/pumps.py
