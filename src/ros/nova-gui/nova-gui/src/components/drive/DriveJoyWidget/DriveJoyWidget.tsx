@@ -137,6 +137,7 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
   const joyStateRef = useRef(joyState);
   useEffect(() => { joyStateRef.current = joyState; }, [joyState]);
 
+  // publish on interval for heartbeat
   useEffect(() => {
     const publish = () => {
       const s = joyStateRef.current;
