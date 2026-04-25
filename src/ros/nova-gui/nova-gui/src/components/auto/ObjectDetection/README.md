@@ -18,6 +18,9 @@ ONNX Runtime Web (ORT). Cameras register their `<video>` refs through
 - Active model/labels are selected in `YoloConfig.ts` via `ActiveYoloConfig`.
 - Models are loaded from `/models/${ActiveYoloConfig.modelName}`.
 - Input size is currently fixed to `640`.
+- **Letterboxing**: Frames are letterboxed (with black bars) to maintain aspect ratio
+  when preprocessing. This prevents distortion and ensures accurate detections on
+  non-square video feeds (e.g., 16:9 aspect ratio).
 - WASM is the default execution provider. WebGPU is optional via `VITE_ENABLE_WEBGPU=true`,
   with fallback to WASM if WebGPU session creation fails.
 
@@ -29,19 +32,30 @@ to running inference once per video instead of sending a multi-frame batch.
 
 ## Model output format
 
-The current postprocessing assumes the ONNX model output is shaped like
-`[batch, boxes, channels]` and that each detection row is ordered as
-`[x1, y1, x2, y2, score, classId]`.
+The ONNX model output is expected to be shaped like `[batch, boxes, channels]`
+where each detection row contains 6 values: `[coord1, coord2, coord3, coord4, score, classId]`.
 
-If you swap to a different YOLO export, this is the first place to check:
+Two coordinate formats are supported via the `outputFormat` field in `YoloConfig.ts`:
 
-- `src/components/auto/ObjectDetection/yoloWorker.ts`
-- `postprocess(...)` parses the output tensor
-- `const [, boxes, channels] = output.dims` reads the assumed layout
-- `x1/y1/x2/y2/score/classId` are read from `data[base + 0..5]`
+- **`"xyxy"`**: Corner coordinates `[x1, y1, x2, y2, confidence, classId]`
+  - Used by older YOLO models and some post-NMS exports
 
-If the new model uses a different output layout, classes/objectness format, or
-box encoding, update `postprocess(...)` to match the exported model.
+- **`"xywh"`**: Center coordinates `[x_center, y_center, width, height, confidence, classId]`
+  - Used by YOLOv8/v11 and most modern YOLO variants
+
+When adding a new model, set the `outputFormat` in your `YOLOConfig`:
+
+```typescript
+export const MyModelConfig: YOLOConfig = {
+  modelName: "my-model.onnx",
+  classNames: ["class1", "class2"],
+  outputFormat: "xywh",  // or "xyxy" depending on your model
+}
+```
+
+If your model uses a different output layout (e.g., class probabilities instead
+of a single classId, or transposed dimensions), you'll need to modify the
+`postprocess(...)` function in `yoloWorker.ts`.
 
 ## Why the `ort/` folder lives here
 

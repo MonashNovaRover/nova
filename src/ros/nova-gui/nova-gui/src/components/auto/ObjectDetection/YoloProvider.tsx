@@ -6,7 +6,6 @@ interface YoloContextValue {
   // Accept nullable refs since React sets .current after mount.
   registerVideoRef: (ref: React.RefObject<HTMLVideoElement | null>) => number;
   detections: Detection[][];
-  inputSize: number;
 }
 
 const YoloContext = createContext<YoloContextValue | null>(null);
@@ -29,6 +28,7 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
     videoRefs: videoRefs.current,
     modelPath: `/models/${ActiveYoloConfig.modelName}`,
     inputSize: 640,
+    outputFormat: ActiveYoloConfig.outputFormat,
   });
 
   return (
@@ -36,7 +36,6 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
       value={{
         registerVideoRef,
         detections,
-        inputSize: 640,
       }}
     >
       {children}

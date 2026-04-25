@@ -1,4 +1,4 @@
-import * as ort from "onnxruntime-web";
+import * as ort from "onnxruntime-web/all";
 
 // In dev, serve ORT loaders from /src/components/auto/ObjectDetection/ort so Vite can module-load them.
 // In build, serve from /public/ort (copied to dist as-is).
@@ -6,6 +6,10 @@ import * as ort from "onnxruntime-web";
 ort.env.wasm.wasmPaths = import.meta.env.DEV
   ? "/src/components/auto/ObjectDetection/ort/"
   : "/ort/";
+
+ort.env.wasm.proxy = true;
+
+type YOLOOutputFormat = "xyxy" | "xywh";
 
 // Minimal detection shape sent back to the main thread.
 interface Detection {
@@ -26,6 +30,7 @@ type InitMessage = {
   inputSize: number;
   scoreThreshold: number;
   useWebGPU: boolean;
+  outputFormat: YOLOOutputFormat;
 };
 
 // Frame message carries a batch of ImageBitmaps for inference.
@@ -59,9 +64,9 @@ type ErrorMessage = { type: "error"; message: string };
 let session: ort.InferenceSession | null = null;
 let inputName: string | null = null;
 let expectedBatch: number | null = null;
-let inputSize = 640;
+let inputSize = 512;
 let scoreThreshold = 0.4;
-let hasLoggedOutputInfo = false;
+let outputFormat: YOLOOutputFormat = "xyxy";
 
 // Reuse offscreen canvases to avoid allocations per frame.
 const offscreenCanvases: OffscreenCanvas[] = [];
@@ -71,24 +76,50 @@ const contexts: OffscreenCanvasRenderingContext2D[] = [];
 function ensureOffscreen(batch: number) {
   while (offscreenCanvases.length < batch) {
     const canvas = new OffscreenCanvas(inputSize, inputSize);
-    const ctx = canvas.getContext("2d")!;
+    // Add the willReadFrequently attribute here
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
     offscreenCanvases.push(canvas);
     contexts.push(ctx);
   }
 }
 
-// Convert ImageBitmaps to a NCHW float32 tensor in model input space.
+// Letterbox parameters for aspect ratio preservation
+interface LetterboxInfo {
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+}
+
+const letterboxInfos: LetterboxInfo[] = [];
+
+// Convert ImageBitmaps to a NCHW float32 tensor in model input space with letterboxing.
 function preprocessBatch(frames: ImageBitmap[]) {
   const batch = frames.length;
 
   ensureOffscreen(batch);
+  letterboxInfos.length = 0;
 
   const tensorData = new Float32Array(batch * 3 * inputSize * inputSize);
 
   frames.forEach((frame, batchIndex) => {
     const ctx = contexts[batchIndex];
-    // Draw the frame into the input buffer and read pixels.
-    ctx.drawImage(frame, 0, 0, inputSize, inputSize);
+
+    // Clear canvas to black (letterbox background)
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, inputSize, inputSize);
+
+    // Calculate letterbox scale and offsets to maintain aspect ratio
+    const scale = Math.min(inputSize / frame.width, inputSize / frame.height);
+    const scaledWidth = frame.width * scale;
+    const scaledHeight = frame.height * scale;
+    const offsetX = (inputSize - scaledWidth) / 2;
+    const offsetY = (inputSize - scaledHeight) / 2;
+
+    // Store letterbox info for this frame
+    letterboxInfos[batchIndex] = { scale, offsetX, offsetY };
+
+    // Draw the frame centered with black bars (letterboxing)
+    ctx.drawImage(frame, offsetX, offsetY, scaledWidth, scaledHeight);
 
     const image = ctx.getImageData(0, 0, inputSize, inputSize);
     const offset = batchIndex * 3 * inputSize * inputSize;
@@ -111,40 +142,71 @@ function preprocessBatch(frames: ImageBitmap[]) {
 }
 
 // Parse model output into Detection[][] per camera index.
+// Coordinates are converted from letterboxed model space to original frame pixel space.
 function postprocess(output: ort.Tensor, batchSize: number): Detection[][] {
   const results: Detection[][] = [];
   const data = output.data as Float32Array;
   const [, boxes, channels] = output.dims;
 
-  if (!hasLoggedOutputInfo) {
-    hasLoggedOutputInfo = true;
-    console.log("YOLO output.dims", output.dims);
-    console.log("YOLO sample raw values (first 8)", Array.from(data.slice(0, 8)));
-  }
-
   for (let b = 0; b < batchSize; b++) {
     const detectionsPerCamera: Detection[] = [];
     const offset = b * boxes * channels;
+    const letterbox = letterboxInfos[b];
+
+    if (!letterbox) {
+      results.push([]);
+      continue;
+    }
 
     for (let i = 0; i < boxes; i++) {
       const base = offset + i * channels;
-      const x1 = data[base + 0];
-      const y1 = data[base + 1];
-      const x2 = data[base + 2];
-      const y2 = data[base + 3];
+
+      let modelX: number, modelY: number, modelWidth: number, modelHeight: number;
+
+      if (outputFormat === "xywh") {
+        // YOLOv8/v11 format: [x_center, y_center, width, height, confidence, classId]
+        const x_center = data[base + 0];
+        const y_center = data[base + 1];
+        const w = data[base + 2];
+        const h = data[base + 3];
+
+        // Convert from center-width-height to top-left corner format
+        modelX = x_center - w / 2;
+        modelY = y_center - h / 2;
+        modelWidth = w;
+        modelHeight = h;
+      } else {
+        // Original format: [x1, y1, x2, y2, confidence, classId]
+        const x1 = data[base + 0];
+        const y1 = data[base + 1];
+        const x2 = data[base + 2];
+        const y2 = data[base + 3];
+
+        modelX = x1;
+        modelY = y1;
+        modelWidth = x2 - x1;
+        modelHeight = y2 - y1;
+      }
+
       const score = data[base + 4];
       const classId = data[base + 5];
 
       if (score < scoreThreshold) continue;
 
+      // Remove letterbox padding and scale to get coordinates in original frame space
+      const x = (modelX - letterbox.offsetX) / letterbox.scale;
+      const y = (modelY - letterbox.offsetY) / letterbox.scale;
+      const width = modelWidth / letterbox.scale;
+      const height = modelHeight / letterbox.scale;
+
       detectionsPerCamera.push({
         classId: Math.round(classId),
         score,
         box: {
-          x: x1,
-          y: y1,
-          width: x2 - x1,
-          height: y2 - y1,
+          x,
+          y,
+          width,
+          height,
         },
       });
     }
@@ -174,10 +236,26 @@ async function initSession({ modelPath, useWebGPU }: InitMessage) {
     }
   }
 
+  // const inputMeta = session.inputMetadata;
+  // inputName = session.inputNames[0] ?? null;
+  // const firstMeta = inputMeta[0];
+  // const shape = firstMeta && "shape" in firstMeta ? firstMeta.shape : undefined;
+  // expectedBatch = typeof shape?.[0] === "number" ? shape[0] : null;
   const inputMeta = session.inputMetadata;
   inputName = session.inputNames[0] ?? null;
+  
+  // Extract dimensions from the model metadata
   const firstMeta = inputMeta[0];
   const shape = firstMeta && "shape" in firstMeta ? firstMeta.shape : undefined;
+  
+  if (shape) {
+    // Usually YOLO shapes are [batch, channels, height, width]
+    // Index 2 and 3 are height and width
+    if (typeof shape[2] === 'number' && shape[2] > 0) {
+      inputSize = shape[2];
+    }
+  }
+  
   expectedBatch = typeof shape?.[0] === "number" ? shape[0] : null;
 }
 
@@ -185,11 +263,12 @@ async function initSession({ modelPath, useWebGPU }: InitMessage) {
 self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
   try {
     if (event.data.type === "init") {
-      const { modelPath, inputSize: size, scoreThreshold: threshold, useWebGPU } = event.data;
+      const { modelPath, inputSize: size, scoreThreshold: threshold, useWebGPU, outputFormat: format } = event.data;
       // Persist configuration in the worker.
       inputSize = size;
       scoreThreshold = threshold;
-      await initSession({ modelPath, inputSize: size, scoreThreshold: threshold, useWebGPU, type: "init" });
+      outputFormat = format;
+      await initSession({ modelPath, inputSize: size, scoreThreshold: threshold, useWebGPU, outputFormat: format, type: "init" });
       return;
     }
 
@@ -226,13 +305,6 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
       }
 
       const totalMs = performance.now() - totalStart;
-      console.log("YOLO timings (per-video)", {
-        batch,
-        preprocessMs: Math.round(preprocessMs),
-        runMs: Math.round(runMs),
-        postMs: Math.round(postMs),
-        totalMs: Math.round(totalMs),
-      });
 
       const msg: ResultMessage = {
         type: "result",
