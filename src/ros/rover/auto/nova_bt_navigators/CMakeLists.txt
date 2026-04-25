@@ -18,7 +18,6 @@ find_package(nav2_util REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(pluginlib REQUIRED)
-find_package(nova_auto_interfaces REQUIRED)
 find_package(nova_interfaces REQUIRED)
 find_package(robot_localization REQUIRED)
 find_package(geographic_msgs REQUIRED)
@@ -47,13 +46,11 @@ set(dependencies
   nav2_core
   tf2_ros
   pluginlib
-  nova_auto_interfaces
   nova_interfaces
 )
 
 add_library(${lib_name} SHARED 
-  src/urc_2024_navigator.cpp
-  src/urc_2025_navigator.cpp
+  src/urc_navigator.cpp
 )
 
 
