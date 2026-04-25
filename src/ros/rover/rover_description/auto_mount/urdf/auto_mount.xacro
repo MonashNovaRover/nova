@@ -36,12 +36,7 @@
         <visual>
             <origin xyz="0.542061 -0.00202068 0.0980872" rpy="0 0 1.5708"/>
             <geometry>
-                <xacro:if value="$(arg shortened_auto_mount)">
-                    <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/clam.stl"/>
-                </xacro:if>
-                <xacro:unless value="$(arg shortened_auto_mount)">
-                    <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/clam_old.stl"/>
-                </xacro:unless>
+                <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/clam.stl"/>
             </geometry>
             <material name="clam_material">
                 <color rgba="0.647059 0.647059 0.647059 1"/>
@@ -50,12 +45,7 @@
     </link>
 
     <joint name="clam_to_chassis" type="fixed">
-        <xacro:if value="$(arg shortened_auto_mount)">
-            <origin xyz="-0.348 0 -0.063" rpy="0 0 0" />
-        </xacro:if>
-        <xacro:unless value="$(arg shortened_auto_mount)">
-            <origin xyz="-0.137 0 -0.063" rpy="0 0 0" />
-        </xacro:unless>
+        <origin xyz="-0.348 0 -0.063" rpy="0 0 0" />
         <parent link="chassis" />
         <child link="clam" />
         <axis xyz="0 0 1" />

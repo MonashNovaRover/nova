@@ -1,0 +1,50 @@
+diff --git a/src/lddc.cpp b/src/lddc.cpp
+index 06195df..50743e9 100644
+--- a/src/lddc.cpp
++++ b/src/lddc.cpp
+@@ -490,9 +490,14 @@ void Lddc::InitImuMsg(const ImuData& imu_data, ImuMsg& imu_msg, uint64_t& timest
+   imu_msg.angular_velocity.x = imu_data.gyro_x;
+   imu_msg.angular_velocity.y = imu_data.gyro_y;
+   imu_msg.angular_velocity.z = imu_data.gyro_z;
++  std::copy(angular_velocity_covariance.begin(), angular_velocity_covariance.end(), 
++    imu_msg.angular_velocity_covariance.begin());
++  imu_msg.angular_velocity_covariance = imu_data.gyro_z;
+   imu_msg.linear_acceleration.x = imu_data.acc_x;
+   imu_msg.linear_acceleration.y = imu_data.acc_y;
+   imu_msg.linear_acceleration.z = imu_data.acc_z;
++  std::copy(linear_acceleration_covariance.begin(), linear_acceleration_covariance.end(), 
++    imu_msg.linear_acceleration_covariance.begin());
+ }
+ 
+ void Lddc::PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index) {
+diff --git a/src/livox_ros_driver2.cpp b/src/livox_ros_driver2.cpp
+index 6dda05f..a3d3f80 100644
+--- a/src/livox_ros_driver2.cpp
++++ b/src/livox_ros_driver2.cpp
+@@ -127,6 +127,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   double publish_freq = 10.0; /* Hz */
+   int output_type = kOutputToRos;
+   std::string frame_id;
++  std::vector<double> angular_velocity_covariance;
++  std::vector<double> linear_acceleration_covariance;
+ 
+   this->declare_parameter("xfer_format", xfer_format);
+   this->declare_parameter("multi_topic", 0);
+@@ -137,6 +139,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   this->declare_parameter("user_config_path", "path_default");
+   this->declare_parameter("cmdline_input_bd_code", "000000000000001");
+   this->declare_parameter("lvx_file_path", "/home/livox/livox_test.lvx");
++  this->declare_parameter("angular_velocity_covariance", std::vector<double>(9, 0.0));
++  this->declare_parameter("linear_acceleration_covariance", std::vector<double>(9, 0.0));
+ 
+   this->get_parameter("xfer_format", xfer_format);
+   this->get_parameter("multi_topic", multi_topic);
+@@ -144,6 +148,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   this->get_parameter("publish_freq", publish_freq);
+   this->get_parameter("output_data_type", output_type);
+   this->get_parameter("frame_id", frame_id);
++  this->get_parameter("angular_velocity_covariance", angular_velocity_covariance);
++  this->get_parameter("linear_acceleration_covariance", linear_acceleration_covariance);
+ 
+   if (publish_freq > 100.0) {
+     publish_freq = 100.0;

@@ -27,8 +27,8 @@ EDITED BY:  Anthony Lew, Terry Tian
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, SetEnvironmentVariable, OpaqueFunction
 from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
-from launch_ros.actions import Node, SetParameter
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, EnvironmentVariable
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import os
 
@@ -57,10 +57,16 @@ def launch_setup(context, *args, **kwargs):
     # comp defaults
     if comp == 'arch':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'nav2'])
+        map_server = 'True'
     elif comp == 'urc':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'nav2'])
+        map_server = 'False'
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
+    
+    # comp defaults overrides
+    if LaunchConfiguration('map_server').perform(context) != '':
+        map_server = LaunchConfiguration('map_server').perform(context)
 
     # Substitute params for each node with launch params
     substitution_params = {
@@ -68,14 +74,17 @@ def launch_setup(context, *args, **kwargs):
         'autostart': autostart,
     }
     # Combine all params from sim, substitution, and nav2 directory
-    nav2_params = [PathJoinSubstitution([nav2_params_dir, params]) for params in os.listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml']
+    nav2_shared_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_shared'])
+    nav2_params = [PathJoinSubstitution([nav2_shared_params_dir, params]) for params in os.listdir(nav2_shared_params_dir.perform(context)) if params[-5:] == '.yaml']
+    nav2_params.extend([PathJoinSubstitution([nav2_params_dir, params]) for params in os.listdir(nav2_params_dir.perform(context)) if params[-5:] == '.yaml'])
     nav2_params.append(substitution_params)
+    
     if mppi:
-        mppi_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'mppi', mppi_config + '.yaml'])
+        mppi_params = PathJoinSubstitution([nav2_shared_params_dir, 'mppi', mppi_config + '.yaml'])
         if os.path.exists(mppi_params.perform(context)):
             nav2_params.append(mppi_params)
         else:
-            raise ValueError(f'MPPI config "{mppi_config}" does not exist in auto_bringup/params/mppi/')
+            raise ValueError(f'MPPI config "{mppi_config}" does not exist in {nav2_shared_params_dir.perform(context)}/mppi/')
 
     lifecycle_nodes = ['controller_server',
                        'smoother_server',
@@ -83,8 +92,10 @@ def launch_setup(context, *args, **kwargs):
                        'behavior_server',
                        'bt_navigator',
                        'waypoint_follower',
-                       'velocity_smoother',
-                       'map_server']
+                       'velocity_smoother']
+    if map_server.lower() == 'true':
+        lifecycle_nodes.append('map_server')
+    
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
     remappings = [('/tf', 'tf'),
@@ -158,15 +169,8 @@ def launch_setup(context, *args, **kwargs):
                     arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings + [('cmd_vel', 'cmd_vel_nav'), ('cmd_vel_smoothed', 'cmd_vel')],
                 ),
-                # Node(
-                #     package='nav2_collision_monitor',
-                #     executable='collision_monitor',
-                #     name='collision_monitor',
-                #     output='screen',
-                #     emulate_tty=True,  # https://github.com/ros2/launch/issues/188
-                #     parameters=nav2_params,
-                # ),
                 Node(
+                    condition=IfCondition(map_server),
                     package='nav2_map_server',
                     executable='map_server',
                     name='map_server',
@@ -221,10 +225,9 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value='arch',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
             description='ARCh or URC',
         ),
-        # comp agnostic arguments
         DeclareLaunchArgument(
             name='autostart',
             default_value='True',
@@ -234,6 +237,12 @@ def generate_launch_description():
             name='log_level',
             default_value='info',
             description='log level',
+        ),
+        # comp specific argument
+        DeclareLaunchArgument(
+            name='map_server',
+            default_value='',
+            description='Whether to launch the map server',
         ),
         DeclareLaunchArgument(
             name='map_params',

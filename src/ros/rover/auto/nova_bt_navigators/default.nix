@@ -16,7 +16,6 @@
   nav2-common, 
   tf2-ros, 
   pluginlib, 
-  nova-auto-interfaces, 
   nova-interfaces, 
   robot-localization, 
   geographic-msgs, 
@@ -48,7 +47,6 @@ buildRosPackage {
     nav2-core
     tf2-ros
     pluginlib
-    nova-auto-interfaces
     nova-interfaces
     robot-localization
     geographic-msgs
