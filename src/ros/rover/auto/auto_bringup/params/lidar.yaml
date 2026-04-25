@@ -12,3 +12,13 @@ livox_lidar_publisher:
     frame_id: "livox_frame"
     lvx_file_path: "/home/livox/livox_test.lvx"
     cmdline_input_bd_code: "livox0000000001"
+    angular_velocity_covariance: [
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0
+    ]
+    linear_acceleration_covariance: [
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0
+    ]
