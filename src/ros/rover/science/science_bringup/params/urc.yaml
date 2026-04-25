@@ -199,23 +199,12 @@ bme_sensor:
     controllers:
       controller:
         update_rate: 5
-        sensor_names: ["bme_temperature", "bme_humidity", "bme_pressure", "bme_altitude"]
-        sensor_units: ["temperature", "humidity", "pressure", "altitude"]
+        sensor_names: ["bme_temperature", "bme_pressure", "bme_humidity"]
+        sensor_units: ["temperature", "pressure", "humidity"]
         data_topic: "/science/bme_sensor"
     hardware:
-      bme_temperature:
-        can_id: 0x4F3
-        unit: "temperature"
-        initial_value: 0
-      bme_humidity:
-        can_id: 0x4F2
-        unit: "humidity"
-        initial_value: 0
-      bme_pressure:
-        can_id: 0x4F4
-        unit: "pressure"
-        initial_value: 0
-      bme_altitude:
+      bme_multisensor:
         can_id: 0x4F5
-        unit: "altitude"
-        initial_value: 0
+        hardware_names: ["bme_temperature", "bme_pressure", "bme_humidity"]
+        hardware_units: ["temperature", "pressure", "humidity"]
+        last_values: [0.0, 0.0, 0.0]

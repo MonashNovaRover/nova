@@ -9,7 +9,7 @@ TOPICS:
 ACTIONS: None
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 STATE INTERFACES:
-  - [<sensors>/<unit>]          [readings]
+  - [<sensors>/<unit>]          [list of bme sensor readings]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Yahya Muayyiduddin
@@ -23,27 +23,16 @@ from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 from science_interfaces.msg import BMESensor
-from python_control2.hardware_interfaces import CMDHardware, GenericSensorHardware
+from python_control2.hardware_interfaces import CMDHardware, MultiSensorHardware
 
 CAN_BUS = "can1"
 
-# RECEIVING CARD IDS
-# Add any CONTROL FRAME / CARD IDS here
-BME_TEMP_RECV_FRAME_ID = 0x4F3
-BME_HUMIDITY_RECV_FRAME_ID = 0x4F2
-BME_PRESSURE_RECV_FRAME_ID = 0x4F4
-BME_ALTITUDE_RECV_FRAME_ID = 0x4F5
 
-# CONTROL NAMES
-# Add any CONTROL names here
+
 BME_TEMP_NAME = "bme_temperature"
-BME_HUMIDITY_NAME = "bme_humidity"
 BME_PRESSURE_NAME = "bme_pressure"
-BME_ALTITUDE_NAME = "bme_altitude"
+BME_HUMIDITY_NAME = "bme_humidity"
 
-# SENSOR CONSTANTS
-BME_TEMP_FACTOR = 100
-BME_HUMIDITY_FACTOR = 100
 
 class URCBMESensorController(Controller):
     # Command interfaces
@@ -68,12 +57,12 @@ class URCBMESensorController(Controller):
         else:
             self.logger.error(f"sensors array and units array are not the same size")
         self.sensor_last_readings = {
-            f"{name}/{unit}": None
+            f"{name}/{unit}": 0.0
             for name, unit in self.sensors
         }    
         self.data_topic = self.declare_parameter("data_topic", data_topic).value
         self.bme_publisher = self.node.create_publisher(BMESensor, self.data_topic, 10)
-        # Do any setup logic here, save any contexts you want reference to in the future.
+    
         
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection, ) -> Optional[bool]:
@@ -111,10 +100,9 @@ class URCBMESensorController(Controller):
 
     def publish_data(self):
         msg = BMESensor()
-        msg.temperature = float(self.sensor_last_readings[f"{BME_TEMP_NAME}/temperature"] / BME_TEMP_FACTOR)
-        msg.humidity = float(self.sensor_last_readings[f"{BME_HUMIDITY_NAME}/humidity"] / BME_HUMIDITY_FACTOR)
-        msg.pressure = int(self.sensor_last_readings[f"{BME_PRESSURE_NAME}/pressure"])
-        msg.altitude = int(self.sensor_last_readings[f"{BME_ALTITUDE_NAME}/altitude"])
+        msg.temperature = float(self.sensor_last_readings[f"{BME_TEMP_NAME}/temperature"])
+        msg.humidity = float(self.sensor_last_readings[f"{BME_HUMIDITY_NAME}/humidity"])
+        msg.pressure = float(self.sensor_last_readings[f"{BME_PRESSURE_NAME}/pressure"])
         self.bme_publisher.publish(msg)
 
 if __name__ == "__main__":
@@ -122,8 +110,8 @@ if __name__ == "__main__":
 
     rclpy.init()
 
-    sensor_names = [BME_TEMP_NAME, BME_HUMIDITY_NAME, BME_PRESSURE_NAME, BME_ALTITUDE_NAME]
-    sensor_units = ["temperature", "humidity", "pressure", "altitude"]
+    sensor_names = [BME_TEMP_NAME, BME_PRESSURE_NAME, BME_HUMIDITY_NAME]
+    sensor_units = ["temperature", "pressure", "humidity"]
 
     node = Node("urc_bme_sensor")
     PythonControl(node, update_rate=5, can_bus="can1") \
@@ -131,28 +119,16 @@ if __name__ == "__main__":
                     sensors=sensor_names,
                     units=sensor_units,
                     data_topic="/science/bme_sensor"
-        
-        
         ) \
-        .with_hardware(BME_TEMP_NAME, GenericSensorHardware,
-                        can_id = BME_TEMP_RECV_FRAME_ID,
-                        interpret_data = lambda x: int.from_bytes(x),
-                        unit = "temperature",
-                        initial_value = 0) \
-        .with_hardware(BME_HUMIDITY_NAME, GenericSensorHardware,
-                        can_id = BME_HUMIDITY_RECV_FRAME_ID,
-                        interpret_data = lambda x: int.from_bytes(x),
-                        unit = "humidity",
-                        initial_value = 0) \
-        .with_hardware(BME_PRESSURE_NAME, GenericSensorHardware,
-                        can_id = BME_PRESSURE_RECV_FRAME_ID,
-                        interpret_data = lambda x: int.from_bytes(x),
-                        unit = "pressure",
-                        initial_value = 0) \
-        .with_hardware(BME_ALTITUDE_NAME, GenericSensorHardware,
-                        can_id = BME_ALTITUDE_RECV_FRAME_ID,
-                        interpret_data = lambda x: int.from_bytes(x),
-                        unit = "altitude",
-                        initial_value = 0) \
+        .with_hardware("bme_multisensor", MultiSensorHardware,
+                        can_id = 0x4F5,
+                        interpret_data_list = [
+                            lambda x: float(x[0]) + (float(x[1]) / 100.0), 
+                            lambda x: float(x[2]) + (float(x[3]) / 100.0), 
+                            lambda x: float(x[4])                          
+                        ],
+                        hardware_names = sensor_names,
+                        hardware_units = sensor_units,
+                        initial_values = [0.0, 0.0, 0.0]) \
         .with_jcan() \
         .spin()
