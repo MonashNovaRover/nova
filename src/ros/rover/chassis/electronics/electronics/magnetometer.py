@@ -26,7 +26,7 @@ from datetime import date
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatFix, Imu
 from rclpy.qos import QoSPresetProfiles
 from smbus2 import SMBus
 from wmm import wmm_calc
@@ -44,6 +44,7 @@ class MagnetometerNode(Node):
         self.addr = self.get_parameter('addr').value
 
         self.publisher = self.create_publisher(Float64, '/mag/heading', QoSPresetProfiles.SENSOR_DATA.value)
+        self.imu_publisher = self.create_publisher(Imu, '/mag/imu', QoSPresetProfiles.SENSOR_DATA.value)
         self.subscription = self.create_subscription(NavSatFix, '/gps_rover/fix', self.gps_callback,
                                                      QoSPresetProfiles.SENSOR_DATA.value)
         self.timer = self.create_timer(0.1, self.timer_callback)  # 10 Hz
@@ -89,6 +90,26 @@ class MagnetometerNode(Node):
         msg = Float64()
         msg.data = true_heading
         self.publisher.publish(msg)
+
+        # Publish magnetometer as IMU
+        imu_msg = Imu()
+        imu_msg.header.stamp = self.get_clock().now().to_msg()
+        imu_msg.header.frame_id = 'base_link'
+
+        true_heading_rad = math.radians(true_heading)
+        half_yaw = true_heading_rad / 2.0
+        imu_msg.orientation = Quaternion(
+            x=0.0,
+            y=0.0,
+            z=math.sin(half_yaw),
+            w=math.cos(half_yaw),
+        )
+        imu_msg.orientation_covariance = [-1.0, 0.0, 0.0,
+                                       0.0,-1.0, 0.0,
+                                       0.0, 0.0, 0.05]
+        imu_msg.angular_velocity_covariance[0] = -1.0
+        imu_msg.linear_acceleration_covariance[0] = -1.0
+        self.imu_publisher.publish(imu_msg)
 
 def main(args=None):
     rclpy.init(args=args)
