@@ -183,10 +183,10 @@ litmus_dipper:
       controller:
         hardware_name: "dipper"
         min_angle: 0.0
-        max_angle: 180.0 # tune this, should ideally be same as down_pos or slightly higher?
+        max_angle: 180.0 # tune this, should ideally be same as lowered_pos or slightly higher?
         initial_angle: 0.0
-        up_pos: 0.0 # tune this
-        down_pos: 180.0 # tune this
+        raised_pos: 0.0 # tune this
+        lowered_pos: 180.0 # tune this
         twitch_service: "/science/litmus_dipper/twitch"
     hardware:
       dipper:
