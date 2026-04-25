@@ -106,11 +106,6 @@ class MagnetometerNode(Node):
             z=math.sin(half_yaw),
             w=math.cos(half_yaw),
         )
-        imu_msg.orientation_covariance = [-1.0, 0.0, 0.0,
-                                       0.0,-1.0, 0.0,
-                                       0.0, 0.0, 0.05]
-        imu_msg.angular_velocity_covariance[0] = -1.0
-        imu_msg.linear_acceleration_covariance[0] = -1.0
         self.imu_publisher.publish(imu_msg)
 
 def main(args=None):

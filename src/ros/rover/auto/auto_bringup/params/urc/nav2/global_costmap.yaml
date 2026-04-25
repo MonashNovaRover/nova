@@ -5,10 +5,10 @@ global_costmap:
       publish_frequency: 3.0
       global_frame: map
       robot_base_frame: base_link
-      width: 150
-      height: 150
-      origin_x: -75.0
-      origin_y: -75.0
+      width: 400
+      height: 400
+      origin_x: -200.0
+      origin_y: -200.0
       resolution: 0.1
       # [x, y], where x is length and y is width
       # ([wheel_base, steering_track] / 2) + wheel_radius
