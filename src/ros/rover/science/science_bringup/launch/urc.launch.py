@@ -149,6 +149,16 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
+            name='litmus_dipper',
+            package='science',
+            executable='litmus_dipper.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+            science_params,
+            ],
+        ),
+        Node(
             name='heater',
             package='science',
             executable='heater.py',
