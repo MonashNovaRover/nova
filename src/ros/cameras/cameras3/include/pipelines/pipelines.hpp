@@ -24,6 +24,9 @@ vp8softwareGLPipelineProperties* get_vp8softwareGL_pipeline_properties(rclcpp::N
 GstElement* vp9software_pipeline(rclcpp::Node* streamer_node, vp9softwarePipelineProperties* props);
 vp9softwarePipelineProperties* get_vp9software_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera);
 
+GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPipelineProperties* props);
+vp9softwareGLPipelineProperties* get_vp9softwareGL_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera);
+
 GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelineProperties* props);
 v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera);
 

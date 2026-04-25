@@ -21,12 +21,12 @@
 #include "cameras/colors.hpp"
 
 /*
- * V4l camera (any) decoded then encoded into vp8enc
- * Enforces alignment from vp8 v4l camera and feeds directly to webrtc 
- * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-vp8
+ * V4l camera (any) decoded then encoded into vp9enc
+ * Enforces alignment from vp9 v4l camera and feeds directly to webrtc 
+ * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-vp9
  */
 
-GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPipelineProperties* props)
+GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPipelineProperties* props)
 {
   // 0. Initialize constants
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
@@ -48,7 +48,7 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
   GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
-  GstElement* encode = gst_element_factory_make("vp8enc", "encoder");
+  GstElement* encode = gst_element_factory_make("vp9enc", "encoder");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
   if (
@@ -82,8 +82,8 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
   if (props->greyscale) set_glgreyscale(glbalance);
   if (props->crop43) set_glcrop43(glcrop, props);
   if (props->undistort) set_glundistort(glundistort, props);
-  set_scalefilter(scalefilter, props, crop_width*2);
-  set_vp8enc(encode, props);
+  set_scalefilter(scalefilter, props, 2*crop_width);
+  set_vp9enc(encode, props);
   set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
@@ -199,12 +199,12 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
 
 
 /*
- * Retrieve ros2 parameters for vp8software pipeline or sets defaults
+ * Retrieve ros2 parameters for vp9software pipeline or sets defaults
 */
-vp8softwareGLPipelineProperties* get_vp8softwareGL_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+vp9softwareGLPipelineProperties* get_vp9softwareGL_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
 {
   // 0. Initialize constants
-  vp8softwareGLPipelineProperties* props = new vp8softwareGLPipelineProperties;
+  vp9softwareGLPipelineProperties* props = new vp9softwareGLPipelineProperties;
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
@@ -278,7 +278,7 @@ vp8softwareGLPipelineProperties* get_vp8softwareGL_pipeline_properties(rclcpp::N
   // webrtc
   default_string = "gcc";
   props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
-  props->video_caps = "video/x-vp8";
+  props->video_caps = "video/x-vp9";
 
   props->bitrate = set_property(streamer_node, camera, "bitrate", 4096);
 

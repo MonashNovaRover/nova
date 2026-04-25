@@ -53,6 +53,7 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
   src/pipelines/vp8software.cpp
   src/pipelines/vp8softwareGL.cpp
   src/pipelines/vp9software.cpp
+  src/pipelines/vp9softwareGL.cpp
 )
 target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES} ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})

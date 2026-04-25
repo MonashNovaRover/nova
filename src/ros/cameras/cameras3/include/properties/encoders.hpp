@@ -89,6 +89,7 @@ template <typename properties> void set_x264enc(GstElement* encode, const proper
     "bitrate", std::clamp(props->bitrate, 1, 4096),
     "key-int-max", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
     "vbv-buf-capacity", props->gop*1125,        // Buffer size for GOP
+    "rc-lookahead", (props->deadline != 1) ? (int) ((float)props->deadline/(float)props->framerate) : 0, // Do not lookahead unless if deadline set
     "b-adapt", false, // Do not allow b frames
     "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
     "psy-tune", 5, // Tune for ssim, better for low bitrate/ blur

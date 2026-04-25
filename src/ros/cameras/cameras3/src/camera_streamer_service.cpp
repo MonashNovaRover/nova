@@ -118,7 +118,11 @@ class CameraStreamer : public rclcpp::Node
       vp9softwarePipelineProperties* props = get_vp9software_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = vp9software_pipeline(this, props);
-    } else if (pipeline->camera->pipeline_type == "v4lrostopic") {
+    } else if (pipeline->camera->pipeline_type == "vp9softwareGL") {
+      vp9softwareGLPipelineProperties* props = get_vp9softwareGL_pipeline_properties(this, pipeline->camera);
+      pipeline->props = props;
+      pipeline->gst_pipeline = vp9softwareGL_pipeline(this, props);
+    }else if (pipeline->camera->pipeline_type == "v4lrostopic") {
       v4lrostopicPipelineProperties* props = get_v4lrostopic_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = v4lrostopic_pipeline(this, props);

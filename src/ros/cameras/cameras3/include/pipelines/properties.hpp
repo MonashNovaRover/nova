@@ -136,6 +136,10 @@ struct vp9softwarePipelineProperties : Properties, v4lProperties, capsProperties
 vp9softwarePipelineProperties* get_vp9software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* vp9software_pipeline(rclcpp::Node* log_node, vp9softwarePipelineProperties* props);
 
+struct vp9softwareGLPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, glProperties {};
+vp9softwareGLPipelineProperties* get_vp9softwareGL_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
+GstElement* vp9softwareGL_pipeline(rclcpp::Node* log_node, vp9softwareGLPipelineProperties* props);
+
 struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cpuFiltersProperties, clockProperties {};
 v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* v4lfallback_pipeline(rclcpp::Node* log_node, v4lfallbackPipelineProperties* props);

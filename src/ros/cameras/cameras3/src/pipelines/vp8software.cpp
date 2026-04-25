@@ -26,8 +26,6 @@
 
 GstElement* vp8software_pipeline(rclcpp::Node* streamer_node, vp8softwarePipelineProperties* props)
 {
-  // 0. Initialize constants
-
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
