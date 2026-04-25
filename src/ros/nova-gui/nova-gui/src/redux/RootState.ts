@@ -5,7 +5,6 @@ import {
   IRosDriveInterfacesDriveInfo,
   IRosScienceInterfacesEffortStatus,
   IRosScienceInterfacesMicroscopeServoInfo,
-  IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosScienceInterfacesNirProbeData,
   IRosScienceInterfacesThermalCommandResponse,
   IRosScienceInterfacesThermalData,
