@@ -7,8 +7,8 @@ import {
   IRosScienceInterfacesMicroscopeServoInfo,
   IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosScienceInterfacesNirProbeData,
-  IRosScienceInterfacesKilnCommandResponse,
-  IRosScienceInterfacesKilnData,
+  IRosScienceInterfacesThermalCommandResponse,
+  IRosScienceInterfacesThermalData,
   IRosScienceInterfacesRamanSpecResponse,
   IRosScienceInterfacesRamanSpectrum,
   IRosBlcmdInterfacesTelemetry,
@@ -92,8 +92,8 @@ export interface RootState {
   nirStore: IRosScienceInterfacesNirProbeData;
   waterPumpStatus: IRosScienceInterfacesEffortStatus;
   diaphragmPumpStatus: IRosScienceInterfacesEffortStatus;
-  kilnData: IRosScienceInterfacesKilnData;
-  kilnCommand: IRosScienceInterfacesKilnCommandResponse;
+  thermalData: IRosScienceInterfacesThermalData;
+  thermalCommand: IRosScienceInterfacesThermalCommandResponse;
   uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
   uvVisLED1Store: IRosStdSrvsSetBoolResponse;
   uvVisLED2Store: IRosStdSrvsSetBoolResponse;

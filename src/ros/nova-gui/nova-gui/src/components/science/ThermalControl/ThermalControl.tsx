@@ -3,7 +3,7 @@ import {Button, Slider, Tooltip} from "@nextui-org/react";
 import {Power, Square} from "react-feather";
 import {isArray} from "lodash";
 
-export interface HeaterControlProps {
+export interface ThermalControlProps {
   heaterName?: string
   currentHeaterStatus: boolean
   setHeaterStatus: (x : boolean) => void
@@ -20,7 +20,7 @@ export interface HeaterControlProps {
  * @param setTargetTemp request a change in target temperature
  * @constructor
  */
-const HeaterControl: React.FC<HeaterControlProps> = ({heaterName = "Heater", currentHeaterStatus, setHeaterStatus, targetTemp, setTargetTemp}) => {
+const ThermalControl: React.FC<ThermalControlProps> = ({heaterName = "Heater", currentHeaterStatus, setHeaterStatus, targetTemp, setTargetTemp}) => {
   const [targetInput, setTargetInput] = useState<number>(targetTemp)
   const [maxTemp, setMaxTemp] = useState<number>(100)
 
@@ -96,4 +96,4 @@ const HeaterControl: React.FC<HeaterControlProps> = ({heaterName = "Heater", cur
   );
 }
 
-export default HeaterControl;
+export default ThermalControl;

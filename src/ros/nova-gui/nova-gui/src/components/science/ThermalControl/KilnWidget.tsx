@@ -5,7 +5,7 @@ import { RosService } from "../../../ros/services/rosService.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
-import HeaterControl from "../HeaterWidget/HeaterControl.tsx";
+import ThermalControl from "./ThermalControl.tsx";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import KilnChart from "./KilnChart.tsx";
 
@@ -18,8 +18,8 @@ export interface KilnWidgetWidgetProps extends CardProps {
  * @constructor
  */
 const KilnWidget: React.FC<KilnWidgetWidgetProps> = (props) => {
-    const bifrost = useBifrost({ topic: RosTopic.KILN_DATA, service: RosService.KILN_COMMAND });
-    const tempReadings = useSelector((state: RootState) => state.kilnData);
+    const bifrost = useBifrost({ topic: RosTopic.THERMAL_DATA, service: RosService.THERMAL_COMMAND });
+    const tempReadings = useSelector((state: RootState) => state.thermalData);
     const [targetTemp, setTargetTemp] = useGenericStore<number>("targetTemp");
 
     const sendCommand = (state: boolean, temp: number) => bifrost.callService({ state: state, target: temp });
@@ -37,7 +37,7 @@ const KilnWidget: React.FC<KilnWidgetWidgetProps> = (props) => {
 
     return <Card {...props}>
         <CardBody className="flex flex-col gap-4">
-            <HeaterControl
+            <ThermalControl
                 heaterName="Kiln"
                 currentHeaterStatus={tempReadings.state}
                 setHeaterStatus={setKilnStatus}
