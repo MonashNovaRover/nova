@@ -1,5 +1,5 @@
 import { Button, Card, CardBody, CardHeader, CardProps } from "@nextui-org/react";
-import { useState, useEffect, useEffectEvent } from "react";
+import { useState, useEffect, useEffectEvent, useRef } from "react";
 import { Info, Lock } from "react-feather";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { RootState } from "../../../redux/RootState";
@@ -121,48 +121,53 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
     }))
   };
 
-  /* send joy messages when state changes
-     must convert state to joy message axes and buttons
+  // keep a ref to the latest joyState so the interval callback always reads current values
+  const joyStateRef = useRef(joyState);
+  useEffect(() => { joyStateRef.current = joyState; }, [joyState]);
 
-     Teleop Drive Joy Msg
-      axes: [left horizontal, left vertical, right horizontal, right vertical, stop autolock, speed down linear]
-      buttons: [pivot, ackermann, strafe, tank, lock, none, unlock, none, none, auto mode, manual mode, speed up big, speed down big, speed down small, speed up small]
-  */
-  useEffect(()=>{
-    const joyMsg: IRosSensorMsgsJoy = {
-      header: {
-        stamp: {sec: 0, nanosec: 0}, //help-----------------------------
-        frame_id: "gui-joy"
-      },
-      axes: [-joyState.left.distance * Math.cos(joyState.left.angle * Math.PI / 180), 
-             joyState.left.distance * Math.sin(joyState.left.angle * Math.PI / 180),
-             -joyState.right.distance * Math.cos(joyState.right.angle * Math.PI / 180), 
-             joyState.right.distance * Math.sin(joyState.right.angle * Math.PI / 180),
-             1, // always stop autolock
-             0, // speed down linear (handbrake) unused in gui
-            ],
+  useEffect(() => {
+    const publish = () => {
+      const s = joyStateRef.current;
+      const joyMsg: IRosSensorMsgsJoy = {
+        header: {
+          stamp: {sec: 0, nanosec: 0},
+          frame_id: "gui-joy"
+        },
+        axes: [
+          -s.left.distance * Math.cos(s.left.angle * Math.PI / 180),
+          s.left.distance * Math.sin(s.left.angle * Math.PI / 180),
+          -s.right.distance * Math.cos(s.right.angle * Math.PI / 180),
+          s.right.distance * Math.sin(s.right.angle * Math.PI / 180),
+          1,
+          0
+        ],
+        buttons: [
+          s.driveMode == DriveMode.PIVOT ? 1 : 0,
+          s.driveMode == DriveMode.ACKERMANN ? 1 : 0,
+          s.driveMode == DriveMode.STRAFE ? 1 : 0,
+          s.driveMode == DriveMode.TANK ? 1 : 0,
+          s.locked ? 1 : 0,
+          0,
+          !s.locked && s.locked !== undefined ? 1 : 0,
+          0,
+          0,
+          s.controlMode == ControlMode.AUTONOMOUS ? 1 : 0,
+          s.controlMode == ControlMode.MANUAL ? 1 : 0,
+          s.speed == Speed.COARSEUP ? 1 : 0,
+          s.speed == Speed.COARSEDOWN ? 1 : 0,
+          s.speed == Speed.FINEDOWN ? 1 : 0,
+          s.speed == Speed.FINEUP ? 1 : 0,
+        ]
+      };
+      console.log(joyMsg)
+      bifrostJoy.publishToTopic(joyMsg);
+    };
 
-      buttons: [
-        joyState.driveMode == DriveMode.PIVOT ? 1 : 0,
-        joyState.driveMode == DriveMode.ACKERMANN ? 1 : 0,
-        joyState.driveMode == DriveMode.STRAFE ? 1 : 0,
-        joyState.driveMode == DriveMode.TANK ? 1 : 0,
-        joyState.locked ? 1 : 0, // lock
-        0, 
-        !joyState.locked && joyState.locked !== undefined ? 1 : 0, // unlock
-        0,
-        0,
-        joyState.controlMode == ControlMode.AUTONOMOUS ? 1 : 0,
-        joyState.controlMode == ControlMode.MANUAL ? 1 : 0,
-        joyState.speed == Speed.COARSEUP ? 1 : 0,
-        joyState.speed == Speed.COARSEDOWN ? 1 : 0,
-        joyState.speed == Speed.FINEDOWN ? 1 : 0,
-        joyState.speed == Speed.FINEUP ? 1 : 0,
-      ]
-    }
-    bifrostJoy.publishToTopic(joyMsg)
-    console.log(joyState)
-  }, [joyState, bifrostJoy])
+    // publish immediately and then every 1s
+    publish();
+    const id = setInterval(publish, 1000);
+    return () => clearInterval(id);
+  }, [bifrostJoy])
 
   // Joystick component properties
   const Stick = (side: JoystickSide) => <div className="relative m-8">
@@ -271,9 +276,9 @@ enum JoystickSide {
 }
 
 enum Speed {
+  NONE,
   COARSEUP,
   FINEUP,
-  NONE,
   FINEDOWN,
   COARSEDOWN
 }
