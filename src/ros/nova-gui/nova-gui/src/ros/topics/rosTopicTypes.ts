@@ -6,7 +6,7 @@ import {
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
   IRosDriveInterfacesDriveInfo,
-  IRosScienceInterfacesKilnData,
+  IRosScienceInterfacesThermalData,
   IRosScienceInterfacesNirProbeData,
   IRosScienceInterfacesMicroscopeServoInfo,
   IRosScienceInterfacesPumpStatus,
@@ -64,7 +64,7 @@ export interface RosTopicInterfaces {
   // Science Related
   [RosTopic.TOF]: IRosSensorMsgsRange;
   [RosTopic.AA_POS]: IRosSensorMsgsRange;
-  [RosTopic.KILN_DATA]: IRosScienceInterfacesKilnData;
+  [RosTopic.THERMAL_DATA]: IRosScienceInterfacesThermalData;
   [RosTopic.WATER_PUMP_STATUS]: IRosScienceInterfacesEffortStatus;
   [RosTopic.DIAPHRAGM_PUMP_STATUS]: IRosScienceInterfacesEffortStatus;
   [RosTopic.NIR_DATA]: IRosScienceInterfacesNirProbeData;

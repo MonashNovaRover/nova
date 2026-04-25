@@ -9,7 +9,7 @@ import CarouselWidgetV2 from "../../components/science/CarouselWidget/CarouselWi
 import SegmentedPicker from "../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
-import HeaterWidget from "../../components/science/HeaterWidget/HeaterWidget.tsx";
+import HeaterWidget from "../../components/science/ThermalControl/HeaterWidget.tsx";
 import {CameraControlModalButton} from "../../components/cameras/CameraPage/CameraControlModelButton.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
 

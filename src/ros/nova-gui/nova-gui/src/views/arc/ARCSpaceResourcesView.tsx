@@ -5,7 +5,7 @@ import {RosTopic} from "../../ros/topics/rosTopic.ts";
 import {RosService} from "../../ros/services/rosService.ts";
 import {RootState} from "../../redux/RootState.ts";
 import ToolRotatorWidget from "../../components/science/ToolRotatorWidget/ToolRotatorWidget.tsx";
-import KilnWidget from "../../components/science/KilnWidget/KilnWidget.tsx";
+import KilnWidget from "../../components/science/ThermalControl/KilnWidget.tsx";
 import AnalysisArmWidget from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformWidget.tsx";
 
 const ARCSpaceResourcesView: React.FC = () => {

@@ -175,6 +175,11 @@ carousel_outer:
         can_id: 0xFFF
         function_id: 0x02
 
+heaters:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+
 # Misc - Nodes for misc components
 scimbal_cam:
   ros__parameters:
