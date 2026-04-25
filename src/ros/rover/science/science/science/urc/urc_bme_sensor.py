@@ -113,7 +113,7 @@ if __name__ == "__main__":
     sensor_names = [BME_TEMP_NAME, BME_PRESSURE_NAME, BME_HUMIDITY_NAME]
     sensor_units = ["temperature", "pressure", "humidity"]
 
-    node = Node("urc_bme_sensor")
+    node = Node("bme_sensor")
     PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("URCBMESensorController", URCBMESensorController,
                     sensors=sensor_names,
