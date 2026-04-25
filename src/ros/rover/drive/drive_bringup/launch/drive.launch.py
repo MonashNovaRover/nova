@@ -45,12 +45,8 @@ def launch_setup(context, *args, **kwargs):
     auto_params = LaunchConfiguration('auto_params')
     params = IfElseSubstitution(auto, auto_params, nova_params)
     
-    # nova-specific arguments
     arm = LaunchConfiguration('arm')
     rviz = LaunchConfiguration('rviz')
-    
-    # auto-specific arguments
-    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount')
     
     gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
@@ -116,7 +112,7 @@ def launch_setup(context, *args, **kwargs):
                             condition=IfCondition(auto),
                             launch_description_source=PythonLaunchDescriptionSource(
                                 PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                            launch_arguments={'model': model, 'shortened_auto_mount': shortened_auto_mount}.items(),
+                            launch_arguments={'model': model}.items(),
                         ),
                         IncludeLaunchDescription(
                             condition=UnlessCondition(auto),
@@ -198,15 +194,6 @@ def generate_launch_description():
             default_value='False',
             description='Launch rviz?',
         ),
-
-        # This parameter is passed to the auto_bringup urdf.launch.py file
-        # and is only relevant if auto is true
-        DeclareLaunchArgument(
-            name='shortened_auto_mount',
-            default_value='True',
-            description='Use shortened auto mount TFs?',
-        ),
-
         DeclareLaunchArgument(
             name='gazebo',
             default_value='False',

@@ -1,0 +1,50 @@
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      
+      <ReactiveFallback name="ExitOnObjectDetected">
+        
+        <ObjectDetected detections_topic="/yolo/objects" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
+        
+        <PipelineSequence name="NavigateWithReplanning">
+          <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
+          
+          <RunOnce>
+            <PlaceSearchGoals search_radius="{search_radius}" search_corners="3" input_goals="{goals}" output_goals="{goals}"/>
+          </RunOnce>
+
+          <RateController hz="1.0">
+            <Sequence name="ComputeAndSmoothPathThroughPoses">
+              <ReactiveSequence>
+                <RemoveNearbyInCollisionGoals input_goals="{goals}" max_distance_threshold="3.0" global_frame="map" robot_base_frame="base_link" cost_threshold="99.0" output_goals="{goals}"/>
+                <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
+                <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="NavFn"/>
+              </ReactiveSequence>
+              <SmoothPath unsmoothed_path="{path}" smoothed_path="{smoothed_path}" smoother_id="savitzky_golay_smoother"/>
+            </Sequence>
+          </RateController>
+          
+          <RecoveryNode number_of_retries="1" name="FollowPath">
+            <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+            <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+          </RecoveryNode>
+        
+        </PipelineSequence>
+      
+      </ReactiveFallback>
+
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <RoundRobin name="RecoveryActions">
+          <Sequence name="ClearingActions">
+            <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+          </Sequence>
+          <BackUp name="BackupRecovery" backup_dist="0.3" backup_speed="0.1"/>
+          <Wait name="WaitRecovery" wait_duration="2.5"/>
+        </RoundRobin>
+      </ReactiveFallback>
+
+    </RecoveryNode>
+  </BehaviorTree>
+</root>
