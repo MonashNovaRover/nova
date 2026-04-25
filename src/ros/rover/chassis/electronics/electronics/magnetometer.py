@@ -13,6 +13,7 @@ NODE: magnetometer_node
 TOPICS:
   - subscriber: /gps_rover/fix  [NavSatFix]
   - publisher: /mag/heading     [Float64]
+  - publisher: /gps/imu         [Imu]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Terry Tian
@@ -27,6 +28,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64
 from sensor_msgs.msg import NavSatFix, Imu
+from geometry_msgs.msg import Quaternion
 from rclpy.qos import QoSPresetProfiles
 from smbus2 import SMBus
 from wmm import wmm_calc
@@ -44,7 +46,7 @@ class MagnetometerNode(Node):
         self.addr = self.get_parameter('addr').value
 
         self.publisher = self.create_publisher(Float64, '/mag/heading', QoSPresetProfiles.SENSOR_DATA.value)
-        self.imu_publisher = self.create_publisher(Imu, '/mag/imu', QoSPresetProfiles.SENSOR_DATA.value)
+        self.imu_publisher = self.create_publisher(Imu, '/gps/imu', QoSPresetProfiles.SENSOR_DATA.value)
         self.subscription = self.create_subscription(NavSatFix, '/gps_rover/fix', self.gps_callback,
                                                      QoSPresetProfiles.SENSOR_DATA.value)
         self.timer = self.create_timer(0.1, self.timer_callback)  # 10 Hz
