@@ -33,7 +33,7 @@ import HomePageView from "../views/shared/HomePageView.tsx";
 import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../utils/NavigationRoutes.tsx";
 import PageNotFoundView from "../views/shared/PageNotFound.tsx";
 import {YoloProvider} from "../components/auto/ObjectDetection/YoloProvider.tsx";
-import TestGUIJoyView from "../views/test/TestGUIJoy.tsx";
+import TestJoyView from "../views/test/TestJoyView/TestJoyView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -175,8 +175,8 @@ export const testRoutes: RouteObject[] = [
     element: <TestOverlayView/>
   },
   {
-    path: "/test/guijoy",
-    element: <TestGUIJoyView/>
+    path: "/test/joy",
+    element: <TestJoyView/>
   },
 ];
 

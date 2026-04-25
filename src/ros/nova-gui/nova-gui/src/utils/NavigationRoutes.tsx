@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Aperture, Camera, Circle, Globe, Home, List, Map, Terminal, Tv } from "react-feather";
+import { Activity, Aperture, Camera, Circle, Globe, Home, List, Map, Terminal, Tv } from "react-feather";
 import { URCCompModes } from "../views/shared/CamerasPage/CameraViewConstants.tsx";
 
 interface NavigationEntry {
@@ -264,6 +264,11 @@ export const testNavigationData: NavigationInterface = {
       title: "Overlay",
       route: "/test/overlay",
       icon: <Circle />
+    },
+    {
+      title: "Joy",
+      route: "/test/joy",
+      icon: <Activity />
     }
   ]
 }

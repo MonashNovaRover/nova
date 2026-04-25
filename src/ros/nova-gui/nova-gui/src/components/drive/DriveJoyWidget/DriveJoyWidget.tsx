@@ -8,7 +8,7 @@ import { RosTopic } from "../../../ros/topics/rosTopic";
 import { DriveMode} from "../DriveModeWidget/DriveModeDisplayData";
 import { IRosSensorMsgsJoy } from "../../../ros/rosTypes.ts";
 
-import ReactNipple from 'react-nipple';
+import Joystick, { IJoystickChangeValue } from 'rc-joystick';
 
 // Properties for the DriveModeWidget component.
 export interface IDriveJoyWidgetProps extends CardProps {}
@@ -22,7 +22,7 @@ export interface IDriveJoyWidgetProps extends CardProps {}
 const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
   // bifrost stuff
   const bifrostDriveInfo = useBifrost({ topic: RosTopic.DRIVE_INFO });
-  const bifrostJoy = useBifrost({topic: RosTopic.JOY})
+  const bifrostJoy = useBifrost({topic: RosTopic.DRIVE_JOY})
   const isLocked = useSelector((state: RootState) => state.driveStore.locked);
   const isConnected = useSelector(
     (state: RootState) => state.driveStore.connected
@@ -56,7 +56,7 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
       distance: number,
       angle: number,
     },
-    locked: Boolean | undefined
+    locked: boolean | undefined
     driveMode: DriveMode | undefined
     controlMode: ControlMode | undefined
     speed: number
@@ -77,19 +77,21 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
   });
 
   // update state whenever joystick values change
-  const updateJoystickState = (distance:number, angle:number, side: JoystickSide) => {
-    if (side == JoystickSide.LEFT && (distance !== joyState.left.distance || angle !== joyState.left.angle)) {
+  const updateJoystickState = (side: JoystickSide, val:IJoystickChangeValue) => {
+    const { distance, angle } = val;
+    const angleN = angle ?? 0
+    if (side == JoystickSide.LEFT && (distance !== joyState.left.distance || angleN !== joyState.left.angle)) {
       setJoyState(prev => ({...prev,
         left: {
           distance: distance,
-          angle: angle
+          angle: angleN
         }
       }));
-    } else if (side == JoystickSide.RIGHT && (distance !== joyState.right.distance || angle !== joyState.right.angle)) {
+    } else if (side == JoystickSide.RIGHT && (distance !== joyState.right.distance || angleN !== joyState.right.angle)) {
       setJoyState(prev => ({...prev,
         right: {
           distance: distance,
-          angle: angle
+          angle: angleN
         }
       }));
     }
@@ -156,32 +158,11 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
                 0], // upload button
     }
     bifrostJoy.publishToTopic(joyMsg)
-  }, [joyState])
+  }, [joyState, bifrostJoy])
 
   // Joystick component properties
-  const joystickRadius = 150
-  const Stick = (side: JoystickSide) => <div className={`relative m-8`} style={{width: `${joystickRadius}px`}}>
-    <ReactNipple
-      className={(side == JoystickSide.LEFT ? "joystick-left" : "joystick-right")}
-      options={{
-          mode: 'static', 
-          position: { top: '50%', left: '50%' }, 
-          maxNumberOfNipples: 2,
-          size: joystickRadius
-      }}
-      style={{
-          width: '100%',
-          height: '100%',
-          position: 'absolute',
-      }}
-      // https://www.npmjs.com/package/nipplejs
-      onMove={(_:any, data:any) => {
-        let distance = data.distance / (joystickRadius / 2)
-        let angle = data.angle.degree
-        updateJoystickState(distance, angle, side)
-      }}
-      onEnd={() => updateJoystickState(0, 0, side)}
-    />
+  const Stick = (side: JoystickSide) => <div className="relative m-8">
+    <Joystick onChange={(val)=>updateJoystickState(side, val)} />
   </div>
   
   useEffect(() => {
