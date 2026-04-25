@@ -1,5 +1,5 @@
-import { Button, Card, CardBody, CardHeader, CardProps } from "@nextui-org/react";
-import { useState, useEffect, useEffectEvent, useRef } from "react";
+import { Button, Card, CardBody, CardHeader, CardProps, Switch } from "@nextui-org/react";
+import { useState, useEffect, useRef } from "react";
 import { Info, Lock } from "react-feather";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { RootState } from "../../../redux/RootState";
@@ -31,6 +31,18 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
   useEffect(() => {
     bifrostDriveInfo.syncWithTopic();
   }, [bifrostDriveInfo]);
+
+  const [widgetLocked, setWidgetLock] = useState<boolean>(true);
+
+  // Blur put over controls when widget is disabled
+  const blurOverlay = (
+    <div className="DriveModeWidgetOverlay flex flex-col justify-center content-center backdrop-blur-[1px] wrap-none" />
+  );
+  const widgetLockMessage = (
+    <div className="flex flex-row justify-center gap-2">
+      <Lock /> <span>Widget is disabled</span>
+    </div>
+  );
 
   // Message to show when disconnected
   const disconnectedMessage = (
@@ -159,15 +171,14 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
           s.speed == Speed.FINEUP ? 1 : 0,
         ]
       };
-      console.log(joyMsg)
-      bifrostJoy.publishToTopic(joyMsg);
+      if (!widgetLocked) bifrostJoy.publishToTopic(joyMsg);
     };
 
     // publish immediately and then every 1s
     publish();
     const id = setInterval(publish, 1000);
     return () => clearInterval(id);
-  }, [bifrostJoy])
+  }, [bifrostJoy, widgetLocked])
 
   // Joystick component properties
   const Stick = (side: JoystickSide) => <div className="relative m-8">
@@ -179,10 +190,16 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
   // its a big blob of code i'm sorry if anyone decides to read this
   return (
     <Card className="no-scroll" {...props}>
-      <CardHeader>
+      <CardHeader className="gap-3">
         <span>Drive Control</span>
+        <Switch
+          className=""
+          size="sm"
+          isSelected={!widgetLocked}
+          onChange={() =>{setWidgetLock(!widgetLocked)}}
+        />
         <div className="grow" />
-        {!isConnected ? disconnectedMessage : isLocked ? lockedMessage : <></>}
+        {widgetLocked ? widgetLockMessage : !isConnected ? disconnectedMessage : isLocked ? lockedMessage : <></>}
       </CardHeader>
       <CardBody className="flex-row mx-auto justify-between p-3 gap-4">
         {Stick(JoystickSide.LEFT)}
@@ -260,6 +277,7 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
           </div>
         </div>
         {Stick(JoystickSide.RIGHT)}
+        {widgetLocked ? blurOverlay : <></>}
       </CardBody>
     </Card>
   );
