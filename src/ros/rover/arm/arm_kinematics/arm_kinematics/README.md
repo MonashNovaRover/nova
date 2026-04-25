@@ -118,3 +118,54 @@ Prefer to use Bailey's existing style for public APIs and comments:
 - always prefer composition
 - implement features using explicit dependency injection, then build helper wrappers around that injection to make 
   passing dependencies around easier. Don't assume any singletons.
+
+## Benchmarks
+
+`arm_kinematics` installs benchmark executables under `lib/arm_kinematics/` and may also install
+wrapped convenience commands in `bin/` for benchmarks that need extra runtime setup.
+
+Run benchmarks from the package's Nix ROS environment so the required runtime libraries and ROS
+environment are present:
+
+```bash
+nix-shell ~/nova/nixfiles -A pkgs.ros.nova-arm-kinematics
+```
+
+Inside that shell, installed benchmarks can be run directly from the package output, for example:
+
+```bash
+./result/lib/arm_kinematics/benchmark_joint_map
+```
+
+When iterating on a specific benchmark, it is usually better to pass a filter and a short minimum
+time:
+
+```bash
+./result/lib/arm_kinematics/benchmark_joint_map --benchmark_filter="BM_Reachability.*" --benchmark_min_time=0.01s
+```
+
+Some benchmarks need additional runtime setup beyond the basic Nix shell. For those cases,
+`arm_kinematics` provides wrapped commands in `bin/`.
+
+One example is `benchmark_twistmapper_collision`, which models the configuration and
+collision-checking paths used by `nova_twistmapper`.
+
+Its wrapper is provided by the package's Nix definition. It sets:
+
+- the ROS RMW implementation
+- the runtime library path needed to load it
+- a writable ROS log directory
+- the installed benchmark data path containing the generated Taipan URDF fixture
+
+Recommended invocation for that wrapped benchmark:
+
+```bash
+nix-shell ~/nova/nixfiles -A pkgs.ros.nova-arm-kinematics --run benchmark_twistmapper_collision
+```
+
+To filter that benchmark while iterating:
+
+```bash
+nix-shell ~/nova/nixfiles -A ros.nova-arm-kinematics --run \
+  'benchmark_twistmapper_collision --benchmark_filter="BM_Twistmapper.*" --benchmark_min_time=0.01s'
+```
