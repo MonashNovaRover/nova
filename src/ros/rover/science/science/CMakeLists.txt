@@ -54,6 +54,7 @@ install(PROGRAMS
         science/arc/sweeper.py
         science/arc/water_pump.py
         science/arc/diaphragm_pump.py
+        science/urc/auger_hall_effect.py
         science/urc/cache.py
         science/urc/carousel.py
         science/urc/litmus_dipper.py

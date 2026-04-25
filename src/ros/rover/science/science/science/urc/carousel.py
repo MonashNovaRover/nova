@@ -18,21 +18,24 @@ STATE INTERFACES:
   - <name>/sensor_load        (load feedback)
   - <name>/sensor_current     (current feedback)
   - <name>/zeroing            (zeroing in progress)
+  - hall_sensor/state         (hall effect sensor state)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
 CREATION:       12/04/26
-EDITED:         20/04/26
+EDITED:         25/04/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
 from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
+from python_control2.hardware_interfaces import GenericSensorHardware
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSDurabilityPolicy
 from science_interfaces.msg import CarouselFeedback
 from science_interfaces.srv import SetPosition
 from science.urc.carousel_hardware import CarouselHardware
+from science.urc.auger_hall_effect import create_hall_effect_interpreter
 
 
 class CarouselController(Controller):
@@ -44,6 +47,7 @@ class CarouselController(Controller):
     load_state: Interface
     current_state: Interface
     zeroing_state: Interface
+    hall_state: Interface
 
     def __init__(self, contexts: Contexts, hardware_name: str = "carousel"):
         """ Constructor, deferred until the control manager has been spun.
@@ -91,6 +95,7 @@ class CarouselController(Controller):
         self.load_state = state_interfaces[f"{self.hardware_name}/sensor_load"]
         self.current_state = state_interfaces[f"{self.hardware_name}/sensor_current"]
         self.zeroing_state = state_interfaces[f"{self.hardware_name}/zeroing"]
+        self.hall_state = state_interfaces["hall_sensor/state"]
 
         return True
 
@@ -113,6 +118,7 @@ class CarouselController(Controller):
         msg.load = float(self.load_state.value)
         msg.current = float(self.current_state.value)
         msg.zeroing = bool(self.zeroing_state.value)
+        msg.hall_effect_triggered = bool(self.hall_state.value)
 
         # Check if message has changed
         if self.last_feedback is None or not self._feedback_equal(msg, self.last_feedback):
@@ -125,7 +131,8 @@ class CarouselController(Controller):
             a.position == b.position and
             a.load == b.load and
             a.current == b.current and
-            a.zeroing == b.zeroing
+            a.zeroing == b.zeroing and
+            a.hall_effect_triggered == b.hall_effect_triggered
         )
 
     def set_position_callback(self, request: SetPosition.Request, response: SetPosition.Response):
@@ -140,9 +147,17 @@ if __name__ == "__main__":
     rclpy.init()
     node = Node("carousel")
 
+    # Declare CAN data position parameter (0 = 0xX000, 1 = 0x0X00, 2 = 0x00X0, 3 = 0x000X, etc.)
+    can_data_position = node.declare_parameter("hardware.hall_sensor.can_data_position", 1).value
+
     # URC 2026 Carousel system
     PythonControl(node, update_rate=10, can_bus="can1") \
         .with_controller("controller", CarouselController, hardware_name="carousel") \
         .with_hardware("carousel", CarouselHardware) \
+        .with_hardware("hall_sensor", GenericSensorHardware,
+                      can_id=0x0E9,
+                      interpret_data=create_hall_effect_interpreter(can_data_position),
+                      unit="state",
+                      initial_value=False) \
         .with_jcan() \
         .spin()
