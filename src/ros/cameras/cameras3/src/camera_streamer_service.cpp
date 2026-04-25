@@ -110,6 +110,10 @@ class CameraStreamer : public rclcpp::Node
       vp8softwarePipelineProperties* props = get_vp8software_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = vp8software_pipeline(this, props);
+    } else if (pipeline->camera->pipeline_type == "vp8softwareGL") {
+      vp8softwareGLPipelineProperties* props = get_vp8softwareGL_pipeline_properties(this, pipeline->camera);
+      pipeline->props = props;
+      pipeline->gst_pipeline = vp8softwareGL_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       vp9softwarePipelineProperties* props = get_vp9software_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;

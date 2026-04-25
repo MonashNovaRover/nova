@@ -45,6 +45,15 @@ struct h264PassthroughProperties
   bool payload_quirk;
 };
 
+struct glProperties
+{
+  float undistort_k1;
+  float undistort_k2;
+  float undistort_scale;
+
+  bool undistort;
+};
+
 struct softwareEncProperties
 {
   std::string end_usage;
@@ -119,10 +128,13 @@ struct vp8softwarePipelineProperties : Properties, v4lProperties, capsProperties
 vp8softwarePipelineProperties* get_vp8software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* vp8software_pipeline(rclcpp::Node* log_node, vp8softwarePipelineProperties* props);
 
+struct vp8softwareGLPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, glProperties {};
+vp8softwareGLPipelineProperties* get_vp8softwareGL_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
+GstElement* vp8softwareGL_pipeline(rclcpp::Node* log_node, vp8softwareGLPipelineProperties* props);
+
 struct vp9softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties {};
 vp9softwarePipelineProperties* get_vp9software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* vp9software_pipeline(rclcpp::Node* log_node, vp9softwarePipelineProperties* props);
-
 
 struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cpuFiltersProperties, clockProperties {};
 v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);

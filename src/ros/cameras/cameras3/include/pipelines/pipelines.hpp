@@ -18,6 +18,9 @@ h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Nod
 GstElement* vp8software_pipeline(rclcpp::Node* streamer_node, vp8softwarePipelineProperties* props);
 vp8softwarePipelineProperties* get_vp8software_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera);
 
+GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPipelineProperties* props);
+vp8softwareGLPipelineProperties* get_vp8softwareGL_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera);
+
 GstElement* vp9software_pipeline(rclcpp::Node* streamer_node, vp9softwarePipelineProperties* props);
 vp9softwarePipelineProperties* get_vp9software_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera);
 
