@@ -14,6 +14,7 @@ AUTHOR:      Bailey Chessum
 #include <cmath>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -254,24 +255,6 @@ Eigen::Isometry3d NovaTwistmapper::integrate_target_pose(
   return arm_kinematics::apply_twist(base_twist, period.seconds(), current_target_pose);
 }
 
-Eigen::Isometry3d & NovaTwistmapper::target_pose()
-{
-  return std::visit(
-    [](auto & runtime) -> Eigen::Isometry3d & {
-      return runtime.target_pose;
-    },
-    *mode_runtime_);
-}
-
-const Eigen::Isometry3d & NovaTwistmapper::target_pose() const
-{
-  return std::visit(
-    [](const auto & runtime) -> const Eigen::Isometry3d & {
-      return runtime.target_pose;
-    },
-    *mode_runtime_);
-}
-
 bool NovaTwistmapper::write_commands(const std::vector<double> & commands)
 {
   const auto logger = get_node()->get_logger();
@@ -391,7 +374,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
   const auto logger = get_node()->get_logger();
   kinematics_->ee_tree->position_fk(current_joint_state_values_, fk_pose_buffer_);
   const Eigen::Isometry3d current_ee_pose = fk_pose_buffer_.front();
-  runtime.target_pose = current_ee_pose;
+  runtime.current_ee_pose = current_ee_pose;
 
   const double dt = period.seconds();
   if (!std::isfinite(dt) || dt <= 0.0 || dt > params_.max_velocity_control_period) {
@@ -405,7 +388,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
-    publish_to_tf2(time, runtime.target_pose);
+    publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
 
@@ -414,14 +397,9 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
-    publish_to_tf2(time, runtime.target_pose);
+    publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
-
-  const auto candidate_pose = integrate_target_pose(
-    resolved_twist.base_twist,
-    period,
-    current_ee_pose);
 
   auto ik_result = kinematics_->ik->get_velocity_ik(
     resolved_twist.base_twist,
@@ -439,7 +417,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
-    publish_to_tf2(time, runtime.target_pose);
+    publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
 
@@ -452,7 +430,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
-    publish_to_tf2(time, runtime.target_pose);
+    publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
 
@@ -461,7 +439,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
-    publish_to_tf2(time, runtime.target_pose);
+    publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
 
@@ -475,7 +453,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
-    publish_to_tf2(time, runtime.target_pose);
+    publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
 
@@ -494,7 +472,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
-    publish_to_tf2(time, runtime.target_pose);
+    publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
   if (*collision_result) {
@@ -502,7 +480,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     if (!write_zero_velocity_commands()) {
       return controller_interface::return_type::ERROR;
     }
-    publish_to_tf2(time, runtime.target_pose);
+    publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
 
@@ -510,8 +488,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     return controller_interface::return_type::ERROR;
   }
 
-  runtime.target_pose = candidate_pose;
-  publish_to_tf2(time, runtime.target_pose);
+  publish_to_tf2(time, runtime.current_ee_pose);
   return controller_interface::return_type::OK;
 }
 
@@ -804,7 +781,15 @@ controller_interface::CallbackReturn NovaTwistmapper::on_activate(const rclcpp_l
 
   read_state_pos_values(current_joint_state_values_);
   kinematics_->ee_tree->position_fk(current_joint_state_values_, fk_pose_buffer_);
-  target_pose() = fk_pose_buffer_.front();
+  std::visit(
+    [this](auto & runtime) {
+      if constexpr (std::is_same_v<std::decay_t<decltype(runtime)>, PositionRuntime>) {
+        runtime.target_pose = fk_pose_buffer_.front();
+      } else {
+        runtime.current_ee_pose = fk_pose_buffer_.front();
+      }
+    },
+    *mode_runtime_);
 
   const std::string frame_id = last_frame_id_.empty() ? params_.fallback_frame_id : last_frame_id_;
   auto twist_tree_result = make_single_frame_tree(frame_id);

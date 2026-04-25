@@ -2,7 +2,7 @@
 arm:
   controller_manager:
     ros__parameters:
-      update_rate: 20
+      update_rate: 100
       use_sim_time: false
 
       nova_arm_velocity_controller:
@@ -167,7 +167,7 @@ arm:
         - j6
       use_position_control: true
       cmd_timeout: 0.5
-      velocity_ik_time_step: 0.02
+      velocity_ik_time_step: 0.01
       use_control_period_for_velocity_ik: false
       max_velocity_control_period: 0.1
       fallback_frame_id: "endeffector_kinematics"
@@ -228,7 +228,7 @@ arm:
         - j6
       use_position_control: false
       cmd_timeout: 0.5
-      velocity_ik_time_step: 0.02
+      velocity_ik_time_step: 0.01
       use_control_period_for_velocity_ik: false
       max_velocity_control_period: 0.1
       fallback_frame_id: "endeffector_kinematics"

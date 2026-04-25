@@ -5,12 +5,17 @@
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 
 #include <cassert>
+#include <cmath>
 #include <utility>
 #include <variant>
 
 #include "arm_kinematics/utilities/utilities.hpp"
 
 namespace arm_kinematics {
+
+namespace {
+constexpr double kTwoPi = 2.0 * 3.14159265358979323846;
+}
 
 std::string IKFailure::NoSolution::format() const
 {
@@ -87,9 +92,11 @@ IKResult InverseKinematicsPlugin::get_velocity_ik(const Twistd & ik_twist,
 
   assert(solution_velocities.size() == ik_seed_state.size());
 
-  // Get the difference of the resulting joint angles for the time_step to get velocity
+  // Treat all joints as revolute and differentiate using the shortest angular delta
+  // from the seed state so equivalent angle wraps do not become large velocity spikes.
   for (size_t i = 0; i < solution_velocities.size(); ++i) {
-    solution_velocities[i] = (solution_velocities[i] - ik_seed_state[i]) / time_step;
+    const double delta = std::remainder(solution_velocities[i] - ik_seed_state[i], kTwoPi);
+    solution_velocities[i] = delta / time_step;
   }
 
   return {};

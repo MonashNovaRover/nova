@@ -89,7 +89,8 @@ std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_r
   RCLCPP_INFO(get_node()->get_logger(), "Export reference interfaces");
 
   const auto joint_count = params_.joint_names.size();
-  reference_interfaces_.reserve(joint_count);
+  reference_interfaces_.assign(joint_count, std::numeric_limits<double>::quiet_NaN());
+  reference_interfaces.reserve(joint_count);
 
   // Either "position" or "velocity" based on params_.use_position_control
   const auto& interface_name_suffix = joint_command_type();
@@ -485,7 +486,16 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
   // https://github.com/ros-controls/ros2_control_demos/blob/332ede0ee44f9c3382666df91a0b7d49a368652f/example_12/controllers/src/passthrough_controller.cpp#L78
   const unsigned int reference_interface_count = params_.joint_names.size();
   command_interfaces_.reserve(reference_interface_count);
-  reference_interfaces_.resize(reference_interface_count, std::numeric_limits<double>::quiet_NaN());
+  if (reference_interfaces_.size() != reference_interface_count) {
+    reference_interfaces_.assign(
+      reference_interface_count,
+      std::numeric_limits<double>::quiet_NaN());
+  } else {
+    std::fill(
+      reference_interfaces_.begin(),
+      reference_interfaces_.end(),
+      std::numeric_limits<double>::quiet_NaN());
+  }
 
   previous_update_timestamp_ = get_node()->get_clock()->now();
   return controller_interface::CallbackReturn::SUCCESS;

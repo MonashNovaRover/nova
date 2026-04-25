@@ -129,7 +129,7 @@ protected:
 
   struct VelocityRuntime
   {
-    Eigen::Isometry3d target_pose = Eigen::Isometry3d::Identity();
+    Eigen::Isometry3d current_ee_pose = Eigen::Isometry3d::Identity();
     std::vector<double> solution_velocities{};
   };
 
@@ -161,10 +161,6 @@ protected:
     VelocityRuntime & runtime,
     const rclcpp::Time & time,
     const rclcpp::Duration & period);
-
-  [[nodiscard]] Eigen::Isometry3d & target_pose();
-
-  [[nodiscard]] const Eigen::Isometry3d & target_pose() const;
 
   bool write_commands(const std::vector<double> & commands);
 
