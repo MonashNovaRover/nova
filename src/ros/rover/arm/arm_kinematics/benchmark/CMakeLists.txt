@@ -27,6 +27,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 
 find_package(ament_cmake REQUIRED)
 find_package(benchmark REQUIRED)
+find_package(GTest REQUIRED)
 find_package(Threads REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
@@ -49,10 +50,12 @@ install(TARGETS benchmark_joint_map
 )
 
 add_executable(benchmark_twistmapper_collision
+  twistmapper_benchmark_support.cpp
   twistmapper_collision_benchmark.cpp
 )
 target_compile_features(benchmark_twistmapper_collision PUBLIC cxx_std_17)
 ament_target_dependencies(benchmark_twistmapper_collision arm_kinematics rclcpp)
+target_include_directories(benchmark_twistmapper_collision PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(benchmark_twistmapper_collision
   benchmark::benchmark
   benchmark::benchmark_main
@@ -67,10 +70,12 @@ install(TARGETS benchmark_twistmapper_collision
   DESTINATION lib/${PROJECT_NAME}
 )
 add_executable(benchmark_nova_twistmapper
+  twistmapper_benchmark_support.cpp
   nova_twistmapper_benchmark.cpp
 )
 target_compile_features(benchmark_nova_twistmapper PUBLIC cxx_std_17)
 ament_target_dependencies(benchmark_nova_twistmapper arm_kinematics rclcpp)
+target_include_directories(benchmark_nova_twistmapper PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(benchmark_nova_twistmapper
   benchmark::benchmark
   benchmark::benchmark_main
@@ -82,6 +87,26 @@ target_compile_definitions(benchmark_nova_twistmapper PRIVATE
   ARM_KINEMATICS_INSTALL_DATA_DIR="${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/benchmark"
 )
 install(TARGETS benchmark_nova_twistmapper
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+add_executable(test_twistmapper_collision
+  twistmapper_benchmark_support.cpp
+  twistmapper_collision_test.cpp
+)
+target_compile_features(test_twistmapper_collision PUBLIC cxx_std_17)
+ament_target_dependencies(test_twistmapper_collision arm_kinematics rclcpp)
+target_include_directories(test_twistmapper_collision PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_twistmapper_collision
+  GTest::gtest_main
+  Threads::Threads
+  fcl
+)
+target_compile_definitions(test_twistmapper_collision PRIVATE
+  ARM_KINEMATICS_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+  ARM_KINEMATICS_INSTALL_DATA_DIR="${CMAKE_INSTALL_PREFIX}/share/${PROJECT_NAME}/benchmark"
+)
+install(TARGETS test_twistmapper_collision
   DESTINATION lib/${PROJECT_NAME}
 )
 

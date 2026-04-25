@@ -71,9 +71,14 @@ Why the package has both forms:
 It owns:
 
 - the mapping from joint names to stable `JointId`s
-- the mapping from `(JointId, InterfaceId)` to stable state-interface ids
+- the mapping from registered `(JointId, InterfaceId)` entries to stable state-interface ids
 - registered transmission models and transmission instances
 - normalized affine relationships between joints
+
+That second mapping is intentionally not a registry of every valid `(JointId, InterfaceId)` pair.
+It only contains state interfaces that have actually been registered in the analysis. In practice,
+that often means interfaces that participate in affine or transmission relationships, not every
+interface that could exist in principle for a joint.
 
 This type is about meaning and reachability, not runtime execution.
 
@@ -84,12 +89,15 @@ Important consequences:
 - it is the place where semantic relationships are recorded
 - it should be populated before you ask builders to produce runtime maps
 
-The default shared analysis usually comes from `RobotModel::get_default_transmission_analysis()`.
-FK plugins may also expose their own analysis through `ForwardKinematicsPlugin::get_transmission_analysis()`.
+For FK-related work, `ForwardKinematicsPlugin::get_transmission_analysis()` is the source of truth
+and should be preferred. `RobotModel::get_default_transmission_analysis()` is the shared default
+analysis, but a concrete FK plugin may expose a different or extended analysis and callers should
+not assume the robot-model default is authoritative for that plugin.
 
 Why you would use it directly:
 
-- to build custom mapping or planning flows that need stable ids
+- to build custom mapping or planning flows that need stable ids from the same analysis the FK
+  plugin is using
 - to inspect what joints and interfaces are actually reachable
 - to keep semantic ownership of transmissions in one place instead of scattering rules through
   runtime code
@@ -182,6 +190,10 @@ the typical flow is:
 2. the plugin uses a `JointMapBuilder` to build the joint-space mapping it needs
 3. the resulting `JointMap` is embedded into the produced FK tree
 4. runtime `position_fk(...)` calls reuse that prebuilt mapping
+
+The important ownership rule is that the FK plugin's transmission analysis drives this whole
+pipeline. If controller or setup code separately consults `RobotModel::get_default_transmission_analysis()`,
+that is only safe if the plugin is known to use that same analysis unchanged.
 
 This is why `make_tree(...)` is setup work, while `Tree::position_fk(...)` is runtime work.
 

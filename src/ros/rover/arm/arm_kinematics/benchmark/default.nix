@@ -2,6 +2,7 @@
 , buildRosPackage
 , buildEnv
 , ament-cmake
+, ament-cmake-gtest
 , pkg-config
 , makeWrapper
 , rclcpp
@@ -54,6 +55,7 @@ buildRosPackage rec {
 
   nativeBuildInputs = [
     ament-cmake
+    ament-cmake-gtest
     pkg-config
     makeWrapper
   ];
@@ -67,11 +69,14 @@ buildRosPackage rec {
   ];
 
   postInstall = ''
-    for bin in $out/lib/arm_kinematics_benchmark/benchmark_*; do
+    for bin in $out/lib/arm_kinematics_benchmark/benchmark_* $out/lib/arm_kinematics_benchmark/test_*; do
+      if [ ! -e "$bin" ]; then
+        continue
+      fi
       wrapProgram "$bin" \
         --prefix AMENT_PREFIX_PATH : "${runtimeEnv}:$out" \
         --prefix LD_LIBRARY_PATH   : "${runtimeEnv}/lib" \
-        --set-default RMW_IMPLEMENTATION rmw_cyclonedds_cpp
+        --set-default RMW_IMPLEMENTATION rmw_fastrtps_cpp
     done
   '';
 

@@ -15,6 +15,7 @@
 
   <depend>arm_kinematics</depend>
   <depend>fcl</depend>
+  <depend>gtest</depend>
   <depend>rclcpp</depend>
 
   <export>

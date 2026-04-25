@@ -225,8 +225,14 @@ InterfaceRefs ..> NamedStateInterfaceDefinition : consumes
 - `PluginLoader` is the main composition root for controller code. It owns the shared
   `RobotModel`, exposes cached `KinematicsParams`, and creates FK, IK, and collision plugins
   against that same shared state.
+- For FK-related build logic, `ForwardKinematicsPlugin::get_transmission_analysis()` is the
+  authoritative analysis to follow. `RobotModel::get_default_transmission_analysis()` is only the
+  shared default, not a stronger source of truth than the plugin.
 - `ForwardKinematicsPlugin::Tree`, `JointMap`, and `CollisionManager` are the main reusable
   runtime objects. The diagram separates them from setup-heavy objects such as
   `TransmissionAnalysis`, `JointMapBuilder`, and plugin initialization.
 - The `arm_kinematics::ros2_control` helpers are shown as utility nodes because they are exposed
   as free functions rather than classes.
+- `TransmissionAnalysis::state_interface_order()` is a registry of state interfaces that have
+  been registered in the analysis, not an exhaustive list of every valid
+  `(JointId, InterfaceId)` pair.
