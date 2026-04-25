@@ -6,12 +6,10 @@ import AutosizedCanvas from "../../shared/components/AutosizedCanvas/AutosizedCa
 export default function YoloOverlayCanvas({
   detections,
   videoRef,
-  modelInputSize,
 }: {
   detections: Detection[];
   // React refs are null until mounted; reflect that in the type.
   videoRef: React.RefObject<HTMLVideoElement | null>;
-  modelInputSize: number;
 }) {
   // Canvas overlay that draws detections in video space.
   // AutosizedCanvas expects a non-null ref object; React assigns .current post-mount.
@@ -29,21 +27,12 @@ export default function YoloOverlayCanvas({
 
     if (!ctx) return;
 
-    // console.log("YOLO overlay sizes", {
-    //   canvasWidth: canvas.width,
-    //   canvasHeight: canvas.height,
-    //   videoWidth: video.videoWidth,
-    //   videoHeight: video.videoHeight,
-    //   modelInputSize,
-    // });
-
-    // Map model input coordinates -> video pixels.
+    // Detection coordinates are now in video pixel space (already adjusted for letterboxing).
+    // We just need to scale from video space to canvas space.
     const containerWidth = canvas.width;
     const containerHeight = canvas.height;
     const videoWidth = video.videoWidth;
     const videoHeight = video.videoHeight;
-    const modelToVideoX = modelInputSize > 0 ? videoWidth / modelInputSize : 1;
-    const modelToVideoY = modelInputSize > 0 ? videoHeight / modelInputSize : 1;
 
     // Scale/center the video to match how it's rendered in the container.
     const scale = Math.max(
@@ -64,16 +53,11 @@ export default function YoloOverlayCanvas({
     ctx.textBaseline = "top";
 
     detections.forEach((d) => {
-      // Convert model-space box -> scaled canvas-space box.
-      const videoX = d.box.x * modelToVideoX;
-      const videoY = d.box.y * modelToVideoY;
-      const videoWidthBox = d.box.width * modelToVideoX;
-      const videoHeightBox = d.box.height * modelToVideoY;
-
-      const x = videoX * scale + offsetX;
-      const y = videoY * scale + offsetY;
-      const width = videoWidthBox * scale;
-      const height = videoHeightBox * scale;
+      // Coordinates are already in video pixel space, just scale to canvas space
+      const x = d.box.x * scale + offsetX;
+      const y = d.box.y * scale + offsetY;
+      const width = d.box.width * scale;
+      const height = d.box.height * scale;
 
       ctx.strokeRect(x, y, width, height);
 
@@ -89,7 +73,7 @@ export default function YoloOverlayCanvas({
       ctx.fillStyle = "#00ff88";
       ctx.fillText(label, textX + 3, textY + 1);
     });
-  }, [detections, modelInputSize, videoRef]);
+  }, [detections, videoRef]);
 
   return (
     <AutosizedCanvas
