@@ -57,7 +57,6 @@ bool FclCollisionPlugin::collide() {
     get_allowed_collision_matrix()
   };
 
-  manager_.update();
   manager_.collide(&query, collide_with_acm);
 
   return query.hit;
@@ -124,7 +123,6 @@ bool FclCollisionPlugin::collide(
     max_colliding_pairs
   };
 
-  manager_.update();
   manager_.collide(&query, collide_with_acm_and_pairs);
 
   return query.hit;
@@ -137,6 +135,8 @@ bool FclCollisionPlugin::supports_geometry(const urdf::Collision & collider) con
 
 void FclCollisionPlugin::update_pose(const size_t idx, const Eigen::Isometry3d& collider_pose) {
   colliders_[idx].setTransform(collider_pose);
+  colliders_[idx].computeAABB();
+  manager_.update(&colliders_[idx]);
 }
 
 void FclCollisionPlugin::update_poses(const size_t start_idx, const span<const Eigen::Isometry3d> collider_poses) {
@@ -145,8 +145,11 @@ void FclCollisionPlugin::update_poses(const size_t start_idx, const span<const E
   auto pose_it = collider_poses.begin();
   for (size_t i = start_idx; i < end; ++i) {
     colliders_[i].setTransform(*pose_it);
+    colliders_[i].computeAABB();
     ++pose_it;
   }
+
+  manager_.update();
 }
 
 bool FclCollisionPlugin::on_initialize(
