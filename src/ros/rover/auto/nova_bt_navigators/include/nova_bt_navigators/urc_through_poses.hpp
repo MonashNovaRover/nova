@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NOVA_BT_NAVIGATORS__NAVIGATORS__URC_NAVIGATOR_HPP_
-#define NOVA_BT_NAVIGATORS__NAVIGATORS__URC_NAVIGATOR_HPP_
+#ifndef NOVA_BT_NAVIGATORS__URC_THROUGH_POSES_HPP_
+#define NOVA_BT_NAVIGATORS__URC_THROUGH_POSES_HPP_
 
 #include <string>
 #include <vector>
@@ -22,7 +22,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_core/behavior_tree_navigator.hpp"
-#include "nova_interfaces/action/urc_navigator.hpp"
+#include "nova_interfaces/action/urc_through_poses.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "nav2_util/robot_utils.hpp"
 #include "nav2_util/geometry_utils.hpp"
@@ -32,21 +32,21 @@ namespace nova_bt_navigators
 {
 
 /**
- * @class URCNavigator
+ * @class URCThroughPoses
  * @brief A navigator for navigating to a a bunch of intermediary poses
  */
-class URCNavigator
-  : public nav2_core::BehaviorTreeNavigator<nova_interfaces::action::URCNavigator>
+class URCThroughPoses
+  : public nav2_core::BehaviorTreeNavigator<nova_interfaces::action::URCThroughPoses>
 {
 public:
-  using ActionT = nova_interfaces::action::URCNavigator;
+  using ActionT = nova_interfaces::action::URCThroughPoses;
   typedef std::vector<geometry_msgs::msg::PoseStamped> Goals;
   typedef geometry_msgs::msg::PoseStamped Goal;
 
   /**
-   * @brief A constructor for URCNavigator
+   * @brief A constructor for URCThroughPoses navigator
    */
-  URCNavigator()
+  URCThroughPoses()
   : BehaviorTreeNavigator() {}
 
   /**
@@ -119,4 +119,4 @@ protected:
 
 }  // namespace nova_bt_navigators
 
-#endif  // NOVA_BT_NAVIGATORS__NAVIGATORS__URC_NAVIGATOR_HPP_
+#endif  // NOVA_BT_NAVIGATORS__URC_THROUGH_POSES_HPP_

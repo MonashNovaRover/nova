@@ -22,7 +22,7 @@ bt_navigator:
     default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_nearby_collision_goals.xml
     
     urc_through_poses:
-      plugin: "nova_bt_navigators::URCNavigator"
+      plugin: "nova_bt_navigators::URCThroughPoses"
     default_urc_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_aruco.xml
     
     plugin_lib_names:

@@ -17,13 +17,13 @@
 #include <set>
 #include <memory>
 #include <limits>
-#include "nova_bt_navigators/urc_navigator.hpp"
+#include "nova_bt_navigators/urc_through_poses.hpp"
 
 namespace nova_bt_navigators
 {
 
 bool
-URCNavigator::configure(
+URCThroughPoses::configure(
   rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node,
   std::shared_ptr<nav2_util::OdomSmoother> odom_smoother)
 {
@@ -49,7 +49,7 @@ URCNavigator::configure(
 }
 
 std::string
-URCNavigator::getDefaultBTFilepath(rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node)
+URCThroughPoses::getDefaultBTFilepath(rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node)
 {
   std::string default_bt_xml_filename;
   auto node = parent_node.lock();
@@ -69,7 +69,7 @@ URCNavigator::getDefaultBTFilepath(rclcpp_lifecycle::LifecycleNode::WeakPtr pare
 }
 
 bool
-URCNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
+URCThroughPoses::goalReceived(ActionT::Goal::ConstSharedPtr goal)
 {
   auto bt_xml_filename = goal->behavior_tree;
 
@@ -85,14 +85,14 @@ URCNavigator::goalReceived(ActionT::Goal::ConstSharedPtr goal)
 }
 
 void
-URCNavigator::goalCompleted(
+URCThroughPoses::goalCompleted(
   typename ActionT::Result::SharedPtr /*result*/,
   const nav2_behavior_tree::BtStatus /*final_bt_status*/)
 {
 }
 
 void
-URCNavigator::onLoop()
+URCThroughPoses::onLoop()
 {
   using namespace nav2_util::geometry_utils;  // NOLINT
 
@@ -186,7 +186,7 @@ URCNavigator::onLoop()
 }
 
 void
-URCNavigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
+URCThroughPoses::onPreempt(ActionT::Goal::ConstSharedPtr goal)
 {
   RCLCPP_INFO(logger_, "Received goal preemption request");
 
@@ -219,7 +219,7 @@ URCNavigator::onPreempt(ActionT::Goal::ConstSharedPtr goal)
 }
 
 bool
-URCNavigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
+URCThroughPoses::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
 {
   Goals goal_poses = goal->poses;
   uint8_t search_radius = goal->search_radius;
@@ -260,6 +260,4 @@ URCNavigator::initializeGoalPoses(ActionT::Goal::ConstSharedPtr goal)
 }  // namespace nova_bt_navigators
 
 #include "pluginlib/class_list_macros.hpp"
-PLUGINLIB_EXPORT_CLASS(
-  nova_bt_navigators::URCNavigator,
-  nav2_core::NavigatorBase)
+PLUGINLIB_EXPORT_CLASS(nova_bt_navigators::URCThroughPoses, nav2_core::NavigatorBase)
