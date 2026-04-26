@@ -191,6 +191,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='spec_leds',
+            package='science',
+            executable='spec_leds.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
         # launch CAN bus
         IncludeLaunchDescription(

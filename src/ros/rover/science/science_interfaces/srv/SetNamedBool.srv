@@ -1,0 +1,11 @@
+# Used to set a boolean value for a named hardware device
+
+# name of the device
+string name
+
+# value to set
+bool value
+
+---
+
+bool success
