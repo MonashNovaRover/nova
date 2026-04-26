@@ -192,3 +192,25 @@ scimbal_cam:
       tilt:
         can_id: 0x0E1
         angular_limit: 90.0
+
+cache_left:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        cache_name: "cache_left"
+    hardware:
+      actuation:
+        can_id: 0xE3
+
+cache_right:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        cache_name: "cache_right"
+    hardware:
+      actuation:
+        can_id: 0xE2
