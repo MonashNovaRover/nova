@@ -201,6 +201,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='bme_sensor',
+            package='science',
+            executable='bme_sensor.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
         # launch CAN bus
         IncludeLaunchDescription(

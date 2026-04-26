@@ -61,7 +61,7 @@ install(PROGRAMS
         science/urc/hydraprobe_trigger_node.py
         science/urc/pumps.py
         science/urc/spec_leds.py
-        science/urc/urc_bme_sensor.py
+        science/urc/bme_sensor.py
         science/urc/urc_carousel.py
         science/urc/urc_hydraprobe.py
         science/urc/urc_hydraprobe_control.py
