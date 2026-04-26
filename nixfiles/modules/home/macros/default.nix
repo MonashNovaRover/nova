@@ -26,24 +26,25 @@ in
   config = lib.mkIf cfg.enable {
     programs.bash = {
       bashrcExtra = lib.mkAfter ''
-        # Nova ENV variable defaults
+        # Defaults
         export RMW_IMPLEMENTATION="rmw_fastrtps_cpp"
         export COMP="ARCh"
+        ln -sfn "$HOME/Builds/master" "$HOME/Builds/active"
 
-        # set_master <path>
-        set_master() {
+        # set_active <path>
+        set_active() {
           local buildPath="$1"
           if [ -z "$buildPath" ]; then
-            echo "usage: set_master <path>"
+            echo "usage: set_active <path>"
             return 2
           fi
 
           local runtimeDir="/run/user/$UID"
 
-          export PSEUDO_MASTER="$buildPath"
+          ln -sfn "$buildPath" "$HOME/Builds/active"
           mkdir -p "$runtimeDir/nova"
-          echo "export PSEUDO_MASTER='$buildPath'" > "$runtimeDir/nova/pseudo_master"
-          echo "Set PSEUDO_MASTER to ''${buildPath/#$HOME/\~} and wrote to $runtimeDir/nova/pseudo_master"
+          printf 'ln -sfn %q %q\n' "$buildPath" "$HOME/Builds/active" > "$runtimeDir/nova/active_build"
+          echo "Set active build to ''${buildPath/#$HOME/\~} and wrote to $runtimeDir/nova/active_build"
         }
 
         # Source the ROS2 DDS configuration if it exists
@@ -56,28 +57,41 @@ in
           . ~/.config/nova/comp
         fi
 
-        # Source the PSEUDO_MASTER environment variable if it exists
-        if [ -f "/run/user/$UID/nova/pseudo_master" ]; then
-          . "/run/user/$UID/nova/pseudo_master"
+        # Source the active build configuration if it exists
+        if [ -f "/run/user/$UID/nova/active_build" ]; then
+          . "/run/user/$UID/nova/active_build"
         fi
 
-        # Display as ~/path instead of /home/user/path
-        PSEUDO_MASTER_DISPLAY="''${PSEUDO_MASTER:-not set}"
-        if [ "$PSEUDO_MASTER_DISPLAY" != "not set" ]; then
-          PSEUDO_MASTER_DISPLAY="''${PSEUDO_MASTER_DISPLAY/#$HOME/\~}"
-        fi
-        
-        # title width = 34
-        # entry width = 32
-        echo   "┌───────────────────────────────────┐"
-        printf "│ %s│\n"   "$(printf "\033[1;36m%-34s\033[0m" "Nova ENV Status (Ctrl+L to clear)")"
-        printf "│   %s│\n" "$(printf "\033[1;33m%s\033[0m%-27s" "RMW: " "''${RMW_IMPLEMENTATION:-not set}")"
-        printf "│   %s│\n" "$(printf "\033[1;33m%s\033[0m%-26s" "COMP: " "''${COMP:-not set}")"
-        printf "│   %s│\n" "$(printf "\033[1;33m%s\033[0m%-17s" "PSEUDO_MASTER: " "$PSEUDO_MASTER_DISPLAY")"
-        echo   "└───────────────────────────────────┘"
-        echo   ""
-
-        unset PSEUDO_MASTER_DISPLAY
+        # Calculate box width based on longest content line (in subshell to auto-cleanup)
+        (
+          active_build="$(readlink "$HOME/Builds/active")"
+          active_build="''${active_build/#$HOME/\~}"
+          
+          # Labels and values
+          title="Nova Shell Status (Ctrl+L to clear)"
+          rmw_label="RMW: " rmw_value="''${RMW_IMPLEMENTATION:-not set}"
+          comp_label="COMP: " comp_value="''${COMP:-not set}"
+          build_label="Active Build: " build_value="$active_build"
+          
+          # Find maximum width
+          max_len=''${#title}
+          for val in "''${rmw_label}''${rmw_value}" "''${comp_label}''${comp_value}" "''${build_label}''${build_value}"; do
+            [ $((''${#val} + 2 )) -gt $max_len ] && max_len=$((''${#val} + 2 ))
+          done
+          
+          # Build and display box
+          # Box width is the length of the longest line, plus padding (1 space before and after)
+          width=$((max_len + 2))
+          border=$(printf '%.0s─' $(seq 1 $width))
+          
+          echo "┌$border┐"
+          printf "│ \033[1;36m%-$((width-1))s\033[0m│\n" "$title"
+          printf "│   \033[1;33m%s\033[0m%s%-$((width-3-''${#rmw_label}-''${#rmw_value}))s│\n" "$rmw_label" "$rmw_value" ""
+          printf "│   \033[1;33m%s\033[0m%s%-$((width-3-''${#comp_label}-''${#comp_value}))s│\n" "$comp_label" "$comp_value" ""
+          printf "│   \033[1;33m%s\033[0m%s%-$((width-3-''${#build_label}-''${#build_value}))s│\n" "$build_label" "$build_value" ""
+          echo "└$border┘"
+          echo ""
+        )
       '';
 
       initExtra = lib.mkAfter ''
