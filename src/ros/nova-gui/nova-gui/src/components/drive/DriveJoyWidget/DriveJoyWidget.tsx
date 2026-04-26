@@ -137,6 +137,7 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
   useEffect(() => { joyStateRef.current = joyState; }, [joyState]);
 
   // publish on interval for heartbeat
+  // values format pulled from src/ros/rover/drive/teleop_drive_joy/src/teleop_drive_joy.yaml accurate as of 26/04/2026 3c86a3b0fe14d37aa6a48a8e804de0ba19a40544
   useEffect(() => {
     const publish = () => {
       const s = joyStateRef.current;

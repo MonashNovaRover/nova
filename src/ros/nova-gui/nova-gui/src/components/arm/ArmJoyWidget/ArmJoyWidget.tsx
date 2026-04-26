@@ -115,8 +115,8 @@ const ArmJoyWidget: React.FC<IArmJoyWidgetProps> = (props) => {
   const joyStateRef = useRef(joyState);
   useEffect(() => { joyStateRef.current = joyState; }, [joyState]);
 
-  
-  /* Teleop Arm (OLD) Msg (Currently implemented):
+  // values pulled from src/ros/rover/arm/teleop_arm/params/joysticks.config.yaml accurate as of 26/04/2026 3c86a3b0fe14d37aa6a48a8e804de0ba19a40544
+  /* Teleop Arm Msg (Currently implemented):
     axes:
       /arm/joy/left: [left_0, left_1, left_2, speed, none, end effector]
       /arm/joy/right: [right_0, right_1, right_2, none, none, fingers]
@@ -133,7 +133,7 @@ const ArmJoyWidget: React.FC<IArmJoyWidgetProps> = (props) => {
         /arm/joy/right: [roll, pitch, yaw]
   */
   /*
-    Teleop Arm Joy Msg (not implemented atm):
+    Teleop Arm Joy Msg (not implemented):
     axes:
       /joy_L: [left_0, left_1, left_2, offset]
       /joy_R: [right_0, right_1, right_2, speed]
