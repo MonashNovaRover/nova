@@ -303,6 +303,15 @@ export const reduxStores = {
     { topic: RosTopic.CAROUSEL_OUTER_FEEDBACK },
     { position: 0, current: 0, load: 0, zeroing: false }
   ),
+  litmusDipperStatusStore: createBifrostStore(
+    { topic: RosTopic.LITMUS_DIPPER_STATUS },
+    {
+      running: false,
+      pump: "",
+      time_elapsed: 0,
+      time_target: 0,
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
@@ -423,6 +432,8 @@ export const reduxStores = {
     empty_shots: 10,
     empty_cuvettes: 10,
   }),
+  litmusDipperDefaultDuration: createGenericStore("litmusDipperDefaultDuration", 2),
+  litmusDipperTwitchStep: createGenericStore("litmusDipperTwitchStep", 5.0),
 };
 
 // all store reducers

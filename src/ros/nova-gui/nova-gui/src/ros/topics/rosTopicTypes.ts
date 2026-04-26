@@ -81,6 +81,7 @@ export interface RosTopicInterfaces {
   [RosTopic.PUMPS_STATUS]: IRosScienceInterfacesPumpStatus;
   [RosTopic.CAROUSEL_INNER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
   [RosTopic.CAROUSEL_OUTER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
+  [RosTopic.LITMUS_DIPPER_STATUS]: IRosScienceInterfacesPumpStatus;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
