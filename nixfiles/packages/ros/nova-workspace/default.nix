@@ -66,9 +66,6 @@
 , nova-arm-controller ? throw "nova-arm-controller is needed, but not available!"
 , nova-twistmapper ? throw "nova-twistmapper is needed, but not available!"
 , nova-path-planner ? throw "nova-path-planner is needed, but not available!"
-, nova-arm-controller-old ? throw "nova-arm-controller is needed, but not available!"
-, nova-twistmapper-old ? throw "nova-twistmapper is needed, but not available!"
-, nova-path-planner-old ? throw "nova-path-planner is needed, but not available!"
 , nova-banksia-kinematics-plugin ? throw "nova-banksia-kinematics-plugin is needed, but not available!"
 , nova-waratah-kinematics-plugin ? throw "nova-waratah-kinematics-plugin is needed, but not available!"
 , gpsd-client ? throw "gpsd-client is needed, but not available!"
@@ -138,9 +135,6 @@
       nova-arm-controller
       nova-twistmapper
       nova-path-planner
-      nova-arm-controller-old
-      nova-twistmapper-old
-      nova-path-planner-old
       nova-banksia-kinematics-plugin
       nova-waratah-kinematics-plugin
       reolink

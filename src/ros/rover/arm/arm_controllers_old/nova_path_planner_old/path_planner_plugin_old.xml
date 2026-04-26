@@ -1,7 +1,0 @@
-<library path="nova_path_planner_old">
-  <class name="nova_path_planner_old/NovaPathPlannerOld" type="nova_path_planner_old::NovaPathPlannerOld" base_class_type="controller_interface::ControllerInterface">
-  <description>
-    Controller to generate paths for the arm to follow to navigate between two points virtual target end effector poses
-  </description>
-  </class>
-</library>
