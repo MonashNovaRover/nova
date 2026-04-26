@@ -7,12 +7,12 @@ URC launch file for science payload
 NODES:
   - science/nir_probe_publisher.py      [nir_probe_publisher]
   - science/chute.py                    [chute]
-  - science/auger.py                    [auger]
+  - science/auger_hall_effect.py        [auger_left, auger_right]
   - science/analysis_arm.py             [c_beam]
   - science/scimbal_cam.py              [scimbal_cam]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CREATED:    05/04/26
-EDITED:     05/04/26
+EDITED:     25/04/26
 EDITED BY:  Felicity Matthews
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -31,6 +31,7 @@ def launch_setup(context, *args, **kwargs):
     ])
 
     science_params = LaunchConfiguration('science_params')
+    can_bus = LaunchConfiguration('can')
 
 
     return [
@@ -43,6 +44,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         # Node(
@@ -61,34 +63,70 @@ def launch_setup(context, *args, **kwargs):
             executable='nir_probe.py',
             output='screen',
             emulate_tty=True,
-            parameters=[science_params],
+            parameters=[
+                science_params,
+                {'can_bus': can_bus},
+            ],
         ),
 
         # CBeam - Nodes for components on the CBeam
         Node(
             name='auger_left',
             package='science',
-            executable='auger.py',
+            executable='auger_hall_effect.py',
             output='screen',
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
             name='auger_right',
             package='science',
-            executable='auger.py',
+            executable='auger_hall_effect.py',
             output='screen',
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
             name='cbeam',
             package='science',
             executable='cbeam.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+                {'can_bus': can_bus},
+            ],
+        ),
+        Node(
+            name='cache_left',
+            package='science',
+            executable='cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
+        Node(
+            name='cache_right',
+            package='science',
+            executable='cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
+        Node(
+            name='hydraprobe',
+            package='science',
+            executable='hydraprobe.py',
             output='screen',
             emulate_tty=True,
             parameters=[
@@ -106,6 +144,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -116,12 +155,24 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
             name='carousel_outer',
             package='science',
             executable='carousel.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+                {'can_bus': can_bus},
+            ],
+        ),
+        Node(
+            name='litmus_dipper',
+            package='science',
+            executable='litmus_dipper.py',
             output='screen',
             emulate_tty=True,
             parameters=[
@@ -136,6 +187,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
 
@@ -149,12 +201,34 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
             name='power_cycle',
             package='science',
             executable='power_cycle.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+                {'can_bus': can_bus},
+            ],
+        ),
+        Node(
+            name='spec_leds',
+            package='science',
+            executable='spec_leds.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='bme_sensor',
+            package='science',
+            executable='bme_sensor.py',
             output='screen',
             emulate_tty=True,
             parameters=[
@@ -168,7 +242,7 @@ def launch_setup(context, *args, **kwargs):
                 PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
             ),
             launch_arguments={
-                "bus" : "can1",
+                "bus" : can_bus,
                 "bitrate" : "250000",
                 "log_name" : "science-urc",
             }.items()
@@ -177,7 +251,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     science_bringup_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/science_bringup/']),
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/science/science_bringup/']),
         '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
         FindPackageShare('science_bringup'), '"'
     ])
@@ -193,6 +267,11 @@ def generate_launch_description():
             name='science_params',
             default_value=PathJoinSubstitution([science_bringup_dir, 'params', 'urc.yaml']),
             description='The main parameter file to use for the science nodes',
+        ),
+        DeclareLaunchArgument(
+            name='can',
+            default_value='can1',
+            description='CAN bus to use for all science nodes (overrides can_bus parameter in params file)',
         ),
     ]
 

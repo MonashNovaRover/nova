@@ -60,6 +60,9 @@ auger_left:
     active: true
     active_button: "activate_auger_left"
     inactive_button_pool: [ "activate_auger_right" ]
+    controllers:
+      hall_effect_controller:
+        topic_name: "/science/auger_left/hall_effect"
     hardware:
       actuation:
         can_id: 0x0D2
@@ -69,6 +72,9 @@ auger_left:
         can_id: 0x0C2
         max_effort: 0.9
         reversed: false
+      hall_sensor:
+        can_id: 0x4E4
+        can_data_position: 0
 
 auger_right:
   ros__parameters:
@@ -76,6 +82,9 @@ auger_right:
     active: false
     active_button: "activate_auger_right"
     inactive_button_pool: [ "activate_auger_left" ]
+    controllers:
+      hall_effect_controller:
+        topic_name: "/science/auger_right/hall_effect"
     hardware:
       actuation:
         can_id: 0x0D1
@@ -85,6 +94,9 @@ auger_right:
         can_id: 0x0C1
         max_effort: 0.9
         reversed: false
+      hall_sensor:
+        can_id: 0x4E4
+        can_data_position: 1
 
 cbeam:
   ros__parameters:
@@ -100,9 +112,6 @@ cbeam:
         can_id: 0x041
         max_effort: 1.0
         reversed: false
-
-# Science Belly - Nodes for components in the belly
-
 
 # Science Belly - Nodes for components in the belly
 pumps:
@@ -148,6 +157,9 @@ carousel_inner:
       carousel_load_current_sensor:
         can_id: 0xFFA
         function_id: 0x02
+      hall_sensor:
+        can_id: 0x4E4
+        can_data_position: 2
 
 carousel_outer:
   ros__parameters:
@@ -174,11 +186,69 @@ carousel_outer:
       carousel_load_current_sensor:
         can_id: 0xFFF
         function_id: 0x02
+      hall_sensor:
+        can_id: 0x4E4
+        can_data_position: 3
+
+litmus_dipper:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        hardware_name: "dipper"
+        min_angle: 0.0
+        max_angle: 180.0 # tune this, should ideally be same as lowered_pos or slightly higher?
+        initial_angle: 0.0
+        raised_pos: 0.0 # tune this
+        lowered_pos: 180.0 # tune this
+        twitch_service: "/science/litmus_dipper/twitch"
+    hardware:
+      dipper:
+        can_id: 0x0E0
+        angular_limit: 180.0
 
 heaters:
   ros__parameters:
     can_bus: "can1"
     update_rate: 5
+
+spec_leds:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        led_list: [ "vis_spec_central_led", "vis_spec_nile_red", "vis_spec_camera", "vis_spec_nadh", "litmus_led" ]
+    hardware:
+      vis_spec_central_led:
+        can_id: 0x0FC
+        on_command: 0x01
+        off_command: 0x00
+      vis_spec_nile_red:
+        can_id: 0x0F3
+        on_command: 0x01
+        off_command: 0x00
+      vis_spec_camera:
+        can_id: 0x0F2
+        on_command: 0x01
+        off_command: 0x00
+      vis_spec_nadh:
+        can_id: 0x0FB
+        on_command: 0x01
+        off_command: 0x00
+      litmus_led:
+        can_id: 0x0FA
+        on_command: 0x01
+        off_command: 0x00
+
+hydraprobe:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 1
+    hardware:
+      humidity:
+        can_id: 0x4F6
 
 # Misc - Nodes for misc components
 scimbal_cam:
@@ -192,3 +262,41 @@ scimbal_cam:
       tilt:
         can_id: 0x0E1
         angular_limit: 90.0
+
+cache_left:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        cache_name: "cache_left"
+    hardware:
+      actuation:
+        can_id: 0xE3
+
+cache_right:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        cache_name: "cache_right"
+    hardware:
+      actuation:
+        can_id: 0xE2
+
+bme_sensor:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        update_rate: 5
+        sensor_names: ["bme_temperature", "bme_pressure", "bme_humidity"]
+        sensor_units: ["temperature", "pressure", "humidity"]
+        data_topic: "/science/bme_sensor"
+    hardware:
+      bme_multisensor:
+        can_id: 0x4F5
+        hardware_names: ["bme_temperature", "bme_pressure", "bme_humidity"]
+        hardware_units: ["temperature", "pressure", "humidity"]
+        last_values: [0.0, 0.0, 0.0]

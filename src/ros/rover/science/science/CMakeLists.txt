@@ -54,20 +54,19 @@ install(PROGRAMS
         science/arc/sweeper.py
         science/arc/water_pump.py
         science/arc/diaphragm_pump.py
+        science/urc/auger_hall_effect.py
+        science/urc/cache.py
         science/urc/carousel.py
+        science/urc/litmus_dipper.py
         science/urc/heater.py
-        science/urc/hydraprobe_trigger_node.py
+        science/urc/hydraprobe.py
         science/urc/pumps.py
-        science/urc/urc_bme_sensor.py
-        science/urc/urc_cache.py
-        science/urc/urc_carousel.py
-        science/urc/urc_hydraprobe.py
-        science/urc/urc_hydraprobe_control.py
+        science/urc/spec_leds.py
+        science/urc/bme_sensor.py
         science/urc/urc_mixers.py
         science/urc/urc_raman_mech_server.py
         science/urc/urc_raman_spec_server.py
         science/urc/urc_theta_360_cam.py
-        science/urc/urc_uv_vis_leds.py
         science/urc/urc_uv_vis_spec.py
         science/analysis_arm_stepper.py
         science/auger.py

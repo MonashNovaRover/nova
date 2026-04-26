@@ -8,50 +8,50 @@ import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
 import { useEffect } from "react";
 import SiteSelectWidget from "../../../science/SiteSelectWidget/SiteSelectWidget.tsx";
 
-// This is just a repurposed BMESensor.tsx (Thanks Someone)
+// This is just an updated version of the DepthSensorCameraComponent.tsx (Thanks Conner)
+// Which is just a repurposed BMESensor.tsx (Thanks Someone)
 // Which is just a repurposed HydroprobeWidget.tsx (Thanks Kabi)
 
 const DepthSensor: React.FC<BaseCameraComponentProps> = (
     _: BaseCameraComponentProps
 ) => {
     // Accessing the Store using useSelector hook
-    const auger1_depth_hit = useSelector(
-        (state: RootState) => state.auger1DepthSensorStore.data
+    const auger_left_depth_hit = useSelector(
+        (state: RootState) => state.augerLeftDepthStore.data
     );
     
     // Invoking Bifrost and pointing it towards TEMP_SENSOR
-    const auger1_bifrost = useBifrost({ topic: RosTopic.AUGER1_DEPTH_SENSOR });
+    const auger_left_bifrost = useBifrost({ topic: RosTopic.AUGER_LEFT_DEPTH });
     
     // Wrap with useEffect hook to only run it once
     useEffect(() => {
         // call bifrost.syncWithTopic() to initiate Realtime Updates
-        auger1_bifrost.syncWithTopic();
-    }, [auger1_bifrost]);
+        auger_left_bifrost.syncWithTopic();
+    }, [auger_left_bifrost]);
 
     // Accessing the Store using useSelector hook
-    const auger2_depth_hit = useSelector(
-        (state: RootState) => state.auger2DepthSensorStore.data
+    const auger_right_depth_hit = useSelector(
+        (state: RootState) => state.augerRightDepthStore.data
     );
     
     // Invoking Bifrost and pointing it towards TEMP_SENSOR
-    const auger2_bifrost = useBifrost({ topic: RosTopic.AUGER2_DEPTH_SENSOR });
+    const auger_right_bifrost = useBifrost({ topic: RosTopic.AUGER_RIGHT_DEPTH });
     
     // Wrap with useEffect hook to only run it once
     useEffect(() => {
         // call bifrost.syncWithTopic() to initiate Realtime Updates
-        auger2_bifrost.syncWithTopic();
-    }, [auger2_bifrost]);
+        auger_right_bifrost.syncWithTopic();
+    }, [auger_right_bifrost]);
 
-    // Colours differ from colours that any buttons use
     const DepthSensorCardBody = (
         <CardBody className="flex flex-row justify-around p-0">
-            <text className="w-max">Auger 1:</text>
-            <Chip className={auger1_depth_hit ? "w-min bg-green-600" : "w-min bg-rose-600"}>
-                {auger1_depth_hit ? "Yes" : "No"}
+            <text className="w-max">Auger Left:</text>
+            <Chip className={auger_left_depth_hit ? "w-min bg-success" : "w-min bg-danger"}>
+                {auger_left_depth_hit ? "Yes" : "No"}
             </Chip>
-            <text className="w-max">Auger 2:</text>
-            <Chip className={auger2_depth_hit ? "w-min bg-green-600" : "w-min bg-rose-600"}>
-                {auger2_depth_hit ? "Yes" : "No"}
+            <text className="w-max">Auger Right:</text>
+            <Chip className={auger_right_depth_hit ? "w-min bg-success" : "w-min bg-danger"}>
+                {auger_right_depth_hit ? "Yes" : "No"}
             </Chip>
         </CardBody>
     );

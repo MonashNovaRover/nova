@@ -8,3 +8,4 @@ from .StepperHardware import StepperHardware
 from .ContinousServoHardware import ContinousServoHardware
 from .TriggerHardware import TriggerHardware
 from .MultiSensorHardware import MultiSensorHardware
+from .ToggleHardware import ToggleHardware

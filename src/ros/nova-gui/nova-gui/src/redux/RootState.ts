@@ -5,7 +5,6 @@ import {
   IRosDriveInterfacesDriveInfo,
   IRosScienceInterfacesEffortStatus,
   IRosScienceInterfacesMicroscopeServoInfo,
-  IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosScienceInterfacesNirProbeData,
   IRosScienceInterfacesThermalCommandResponse,
   IRosScienceInterfacesThermalData,
@@ -23,7 +22,6 @@ import {
   IRosScienceInterfacesUvVisSpecData,
   IRosSensorMsgsCompressedImage,
   IRosScienceInterfacesHydraprobeData,
-  IRosStdSrvsSetBoolResponse,
   IRosScienceInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
@@ -95,10 +93,7 @@ export interface RootState {
   thermalData: IRosScienceInterfacesThermalData;
   thermalCommand: IRosScienceInterfacesThermalCommandResponse;
   uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
-  uvVisLED1Store: IRosStdSrvsSetBoolResponse;
-  uvVisLED2Store: IRosStdSrvsSetBoolResponse;
   microscopeServoStore: IRosScienceInterfacesMicroscopeServoInfo;
-  microscopeServiceStore: IRosScienceInterfacesMoveMicroscopeServoResponse;
   ramanSpecServiceStore: IRosScienceInterfacesRamanSpecResponse;
   ramanSpecMessageStore: IRosScienceInterfacesRamanSpectrum;
   ramanMechMessageStore: IRosScienceInterfacesRamanState;
@@ -106,12 +101,13 @@ export interface RootState {
   hydraprobeData: IRosScienceInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
   bmeSensorStore: IRosScienceInterfacesBmeSensor;
-  auger1DepthSensorStore: IRosStdMsgsBool;
-  auger2DepthSensorStore: IRosStdMsgsBool;
+  augerLeftDepthStore: IRosStdMsgsBool;
+  augerRightDepthStore: IRosStdMsgsBool;
   toolRotatorAngleStore: IRosStdMsgsFloat64;
   pumpsStatusStore: IRosScienceInterfacesPumpStatus;
   carouselInnerFeedback: IRosScienceInterfacesCarouselFeedback;
   carouselOuterFeedback: IRosScienceInterfacesCarouselFeedback;
+  litmusDipperStatusStore: IRosScienceInterfacesPumpStatus;
 
   // Maps Related Stores
   roverLocationStore: IRosNovaInterfacesGpsData;
@@ -138,6 +134,8 @@ export interface RootState {
   toolRotatorPresets: GenericStoreState<PresetPositions>
   toolRotatorTwitchStep: GenericStoreState<number>;
   pumpDefaultDurations: GenericStoreState<Record<string, number>>;
+  litmusDipperDefaultDuration: GenericStoreState<number>;
+  litmusDipperTwitchStep: GenericStoreState<number>;
 
   batteryStore: IRosSensorMsgsBatteryState;
 

@@ -43,12 +43,13 @@ export enum RosTopic {
   RAMAN_SPEC_MSG = "/science/raman_spec_msg",
   RAMAN_MECH_MSG = "/science/raman_mech_msg",
   BME_SENSOR = "/science/bme_sensor",
-  AUGER1_DEPTH_SENSOR = "/science/auger_depth/Auger1",
-  AUGER2_DEPTH_SENSOR = "/science/auger_depth/Auger2",
+  AUGER_LEFT_DEPTH = "/science/auger_left/hall_effect",
+  AUGER_RIGHT_DEPTH = "/science/auger_right/hall_effect",
   TOOL_ROTATOR_ANGLE = "/science/tool_rotator/position",
   PUMPS_STATUS = "/science/pumps/status",
   CAROUSEL_INNER_FEEDBACK = "/science/carousel_inner/feedback",
   CAROUSEL_OUTER_FEEDBACK = "/science/carousel_outer/feedback",
+  LITMUS_DIPPER_STATUS = "/science/litmus_dipper/status",
 
   // Mapping Related Topics
   ROVER_LOCATION = "/gps_rover/fix_custom",
