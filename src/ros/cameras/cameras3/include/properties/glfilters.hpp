@@ -4,7 +4,7 @@
 #include <string>
 #include <gst/gst.h>
 
-void set_glgreyscale(GstElement* glbalance);
+void set_gledgedetect(GstElement* gledgedetect);
 
 template<typename properties> void set_glundistort(GstElement* glundistort, const properties props) {
   const std::string shader = R"(#version 330 core

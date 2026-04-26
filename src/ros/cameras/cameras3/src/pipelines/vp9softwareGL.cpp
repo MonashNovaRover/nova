@@ -40,7 +40,7 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
   GstElement* glupload = gst_element_factory_make("glupload", "gluploader");
   GstElement* glupconvert = gst_element_factory_make("glcolorconvert", "glupconverter");
   GstElement* glscale = (props->downscale > 1) ? gst_element_factory_make("glcolorscale", "glscaler") : nullptr;
-  GstElement* glbalance = (props->greyscale) ? gst_element_factory_make("glcolorbalance", "glbalancer") : nullptr;
+  GstElement* gledgedetect = (props->greyscale) ? gst_element_factory_make("gleffects", "gledgedetector") : nullptr;
   GstElement* glcrop = (props->crop43) ? gst_element_factory_make("gltransformation", "glcrop") : nullptr;
   GstElement* glundistort = (props->undistort) ? gst_element_factory_make("glshader", "glundistortion") : nullptr;
   GstElement* gldownconvert = ((props->downscale > 1) || props->greyscale) ? gst_element_factory_make("glcolorconvert", "gldownconverter") : nullptr;
@@ -60,7 +60,7 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
       !glupload ||
       !glupconvert ||
       (((props->downscale > 1) || (props->crop43)) && !glscale) ||
-      (props->greyscale && !glbalance) ||
+      (props->greyscale && !gledgedetect) ||
       ((props->crop43) && !glcrop) ||
       (props->undistort && !glundistort) ||
       (((props->downscale > 1) || props->greyscale) && !gldownconvert) ||
@@ -79,7 +79,7 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
   set_v4lsource(source, props);
   set_srcfilter(srcfilter, props);
   if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(decode, props);
-  if (props->greyscale) set_glgreyscale(glbalance);
+  if (props->greyscale) set_gledgedetect(gledgedetect);
   if (props->crop43) set_glcrop43(glcrop, props);
   if (props->undistort) set_glundistort(glundistort, props);
   set_scalefilter(scalefilter, props, 2*crop_width);
@@ -100,7 +100,7 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
   if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
   if ((props->downscale > 1) || props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glscale);
-  if (props->greyscale) gst_bin_add(GST_BIN(gst_pipeline), glbalance);
+  if (props->greyscale) gst_bin_add(GST_BIN(gst_pipeline), gledgedetect);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glcrop);
   if (props->undistort) gst_bin_add(GST_BIN(gst_pipeline), glundistort);
   if ((props->downscale > 1) || props->crop43) gst_bin_add(GST_BIN(gst_pipeline), gldownconvert);
@@ -130,9 +130,9 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
   if ((props->downscale > 1) || (props->crop43)) {
     if (!link_elements(streamer_node, glupconvert, glscale, props->serial)) return nullptr;
     if (props->greyscale) {
-      if (!link_elements(streamer_node, glscale, glbalance, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, glscale, gledgedetect, props->serial)) return nullptr;
       if (props->crop43) {
-        if (!link_elements(streamer_node, glbalance, glcrop, props->serial)) return nullptr;
+        if (!link_elements(streamer_node, gledgedetect, glcrop, props->serial)) return nullptr;
         if (props->undistort) {
           if (!link_elements(streamer_node, glcrop, glundistort, props->serial)) return nullptr;
           if (!link_elements(streamer_node, glundistort, gldownconvert, props->serial)) return nullptr;
@@ -140,10 +140,10 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
           if (!link_elements(streamer_node, glcrop, gldownconvert, props->serial)) return nullptr;
         }
       } else if (props->undistort) {
-        if (!link_elements(streamer_node, glbalance, glundistort, props->serial)) return nullptr;
+        if (!link_elements(streamer_node, gledgedetect, glundistort, props->serial)) return nullptr;
         if (!link_elements(streamer_node, glundistort, gldownconvert, props->serial)) return nullptr;
       } else {
-        if (!link_elements(streamer_node, glbalance, gldownconvert, props->serial)) return nullptr;
+        if (!link_elements(streamer_node, gledgedetect, gldownconvert, props->serial)) return nullptr;
       }
     } else if (props->crop43) {
       if (!link_elements(streamer_node, glscale, glcrop, props->serial)) return nullptr;
@@ -160,7 +160,7 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
       if (!link_elements(streamer_node, glscale, gldownconvert, props->serial)) return nullptr;
     }
   } else if (props->greyscale) {
-      if (!link_elements(streamer_node, glupconvert, glbalance, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, glupconvert, gledgedetect, props->serial)) return nullptr;
       else if (props->undistort) {
         if (!link_elements(streamer_node, glupconvert, glundistort, props->serial)) return nullptr;
         if (!link_elements(streamer_node, glundistort, gldownconvert, props->serial)) return nullptr;

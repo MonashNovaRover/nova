@@ -40,14 +40,13 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
   GstElement* glupload = gst_element_factory_make("glupload", "gluploader");
   GstElement* glupconvert = gst_element_factory_make("glcolorconvert", "glupconverter");
   GstElement* glscale = (props->downscale > 1) ? gst_element_factory_make("glcolorscale", "glscaler") : nullptr;
-  GstElement* glbalance = (props->greyscale) ? gst_element_factory_make("glcolorbalance", "glbalancer") : nullptr;
   GstElement* glcrop = (props->crop43) ? gst_element_factory_make("gltransformation", "glcrop") : nullptr;
+  GstElement* gledgedetect = (props->greyscale) ? gst_element_factory_make("gleffects", "gledgedetector") : nullptr;
   GstElement* glundistort = (props->undistort) ? gst_element_factory_make("glshader", "glundistortion") : nullptr;
   GstElement* gldownconvert = ((props->downscale > 1) || props->greyscale) ? gst_element_factory_make("glcolorconvert", "gldownconverter") : nullptr;
   GstElement* gldownload = gst_element_factory_make("gldownload", "gldownloader");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
-  GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
   GstElement* encode = gst_element_factory_make("vp8enc", "encoder");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
@@ -60,14 +59,13 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
       !glupload ||
       !glupconvert ||
       (((props->downscale > 1) || (props->crop43)) && !glscale) ||
-      (props->greyscale && !glbalance) ||
       ((props->crop43) && !glcrop) ||
+      (props->greyscale && !gledgedetect) ||
       (props->undistort && !glundistort) ||
       (((props->downscale > 1) || props->greyscale) && !gldownconvert) ||
       !gldownload ||
       !scalefilter ||
       (props->show_clock && !clock) ||
-      (props->crop43 && !cropper) ||
       !encode ||
       !webrtc
       ) {
@@ -79,8 +77,8 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
   set_v4lsource(source, props);
   set_srcfilter(srcfilter, props);
   if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(decode, props);
-  if (props->greyscale) set_glgreyscale(glbalance);
   if (props->crop43) set_glcrop43(glcrop, props);
+  if (props->greyscale) set_gledgedetect(gledgedetect);
   if (props->undistort) set_glundistort(glundistort, props);
   set_scalefilter(scalefilter, props, crop_width*2);
   set_vp8enc(encode, props);
@@ -100,8 +98,8 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
   if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
   if ((props->downscale > 1) || props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glscale);
-  if (props->greyscale) gst_bin_add(GST_BIN(gst_pipeline), glbalance);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glcrop);
+  if (props->greyscale) gst_bin_add(GST_BIN(gst_pipeline), gledgedetect);
   if (props->undistort) gst_bin_add(GST_BIN(gst_pipeline), glundistort);
   if ((props->downscale > 1) || props->crop43) gst_bin_add(GST_BIN(gst_pipeline), gldownconvert);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
@@ -130,20 +128,20 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
   if ((props->downscale > 1) || (props->crop43)) {
     if (!link_elements(streamer_node, glupconvert, glscale, props->serial)) return nullptr;
     if (props->greyscale) {
-      if (!link_elements(streamer_node, glscale, glbalance, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, glscale, glcrop, props->serial)) return nullptr;
       if (props->crop43) {
-        if (!link_elements(streamer_node, glbalance, glcrop, props->serial)) return nullptr;
+        if (!link_elements(streamer_node, glcrop, gledgedetect, props->serial)) return nullptr;
         if (props->undistort) {
-          if (!link_elements(streamer_node, glcrop, glundistort, props->serial)) return nullptr;
+          if (!link_elements(streamer_node, gledgedetect, glundistort, props->serial)) return nullptr;
           if (!link_elements(streamer_node, glundistort, gldownconvert, props->serial)) return nullptr;
         } else {
-          if (!link_elements(streamer_node, glcrop, gldownconvert, props->serial)) return nullptr;
+          if (!link_elements(streamer_node, gledgedetect, gldownconvert, props->serial)) return nullptr;
         }
       } else if (props->undistort) {
-        if (!link_elements(streamer_node, glbalance, glundistort, props->serial)) return nullptr;
+        if (!link_elements(streamer_node, gledgedetect, glundistort, props->serial)) return nullptr;
         if (!link_elements(streamer_node, glundistort, gldownconvert, props->serial)) return nullptr;
       } else {
-        if (!link_elements(streamer_node, glbalance, gldownconvert, props->serial)) return nullptr;
+        if (!link_elements(streamer_node, gledgedetect, gldownconvert, props->serial)) return nullptr;
       }
     } else if (props->crop43) {
       if (!link_elements(streamer_node, glscale, glcrop, props->serial)) return nullptr;
@@ -160,7 +158,7 @@ GstElement* vp8softwareGL_pipeline(rclcpp::Node* streamer_node, vp8softwareGLPip
       if (!link_elements(streamer_node, glscale, gldownconvert, props->serial)) return nullptr;
     }
   } else if (props->greyscale) {
-      if (!link_elements(streamer_node, glupconvert, glbalance, props->serial)) return nullptr;
+      if (!link_elements(streamer_node, glupconvert, gledgedetect, props->serial)) return nullptr;
       else if (props->undistort) {
         if (!link_elements(streamer_node, glupconvert, glundistort, props->serial)) return nullptr;
         if (!link_elements(streamer_node, glundistort, gldownconvert, props->serial)) return nullptr;
@@ -262,7 +260,7 @@ vp8softwareGLPipelineProperties* get_vp8softwareGL_pipeline_properties(rclcpp::N
   // rate
   props->downrate = set_property(streamer_node, camera, "downrate", 1);
 
-  // cropper
+  // glcrop
   props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
   // clock
