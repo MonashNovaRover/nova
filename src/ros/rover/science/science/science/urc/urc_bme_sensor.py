@@ -102,7 +102,8 @@ class URCBMESensorController(Controller):
         msg = BMESensor()
         msg.temperature = float(self.sensor_last_readings[f"{BME_TEMP_NAME}/temperature"])
         msg.humidity = float(self.sensor_last_readings[f"{BME_HUMIDITY_NAME}/humidity"])
-        msg.pressure = float(self.sensor_last_readings[f"{BME_PRESSURE_NAME}/pressure"])
+        msg.pressure = int(self.sensor_last_readings[f"{BME_PRESSURE_NAME}/pressure"])
+        msg.altitude = 0
         self.bme_publisher.publish(msg)
 
 if __name__ == "__main__":

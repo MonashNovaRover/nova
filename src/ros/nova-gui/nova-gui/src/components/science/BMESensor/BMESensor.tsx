@@ -15,8 +15,7 @@ const BMESensor: React.FC<IBMESensorProps> = (
   const temperature = useSelector((state: RootState) => state.bmeSensorStore.temperature);
   const humidity = useSelector((state: RootState) => state.bmeSensorStore.humidity);
   const pressure = useSelector((state: RootState) => state.bmeSensorStore.pressure);
-  const altitude = useSelector((state: RootState) => state.bmeSensorStore.altitude);
-  const sensorData = useMemo(() => [temperature, humidity, pressure, altitude], [temperature, humidity, pressure, altitude])
+  const sensorData = useMemo(() => [temperature, humidity, pressure], [temperature, humidity, pressure])
 
 
   useEffect(() => {
@@ -27,8 +26,8 @@ const BMESensor: React.FC<IBMESensorProps> = (
     <CardBody>
       <SensorDataDisplay
         values={sensorData}
-        labels={["Temperature", "Humidity", "Pressure", "Altitude"]}
-        suffixes={["°C", "%", "hPa", ""]}
+        labels={["Temperature", "Humidity", "Pressure"]}
+        suffixes={["°C", "%", "hPa"]}
       />
     </CardBody>
   );
