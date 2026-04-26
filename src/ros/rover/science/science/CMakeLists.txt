@@ -70,7 +70,6 @@ install(PROGRAMS
         science/urc/urc_raman_spec_server.py
         science/urc/urc_theta_360_cam.py
         science/urc/urc_uv_vis_spec.py
-        science/urc/urc_bme_sensor_old.py
         science/analysis_arm_stepper.py
         science/auger.py
         science/cbeam.py
