@@ -3,7 +3,7 @@ camera_streamer:
     serial_pipelines:
       # Development cameras
       anthony-cam:
-        pipeline_type: v4lh264passthrough
+        pipeline_type: h264passthrough
         width: 1920
         height: 1080
         framerate: 30
@@ -164,12 +164,12 @@ camera_streamer:
 
       webcamvendor_SK_series1_20220325JWGD2093:
         default:
-          pipeline_type: v4lh264passthrough
+          pipeline_type: h264passthrough
           width: 640
           height: 480
           framerate: 30
         super:
-          pipeline_type: v4lh264passthrough
+          pipeline_type: h264passthrough
           width: 1280
           height: 960
           framerate: 30
@@ -187,7 +187,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail:
-          pipeline_type: v4lh264passthrough
+          pipeline_type: h264passthrough
           width: 320
           height: 240
           downrate: 2
@@ -346,7 +346,7 @@ camera_streamer:
         verify_resolution: false
 
       webcamvendor_SK_series1_20220325JWGD2093:
-        pipeline_type: v4lh264passthrough
+        pipeline_type: h264passthrough
         width: 1920
         height: 1080
         framerate: 30

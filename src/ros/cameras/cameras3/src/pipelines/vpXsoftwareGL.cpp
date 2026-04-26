@@ -202,6 +202,14 @@ vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::N
   default_string = "ifast";
   props->jpegdec_method = set_property(streamer_node, camera, "jpegdec_method", default_string);
 
+  // rossink
+  default_string = "BGR";
+  props->ros_format = set_property(streamer_node, camera, "ros_format", default_string);
+  default_string = camera->serial;
+  props->ros_topic = set_property(streamer_node, camera, "ros_topic", default_string);
+
+  props->rossink = set_property(streamer_node, camera, "rossink", false);
+
   // greyscale
   props->greyscale = set_property(streamer_node, camera, "greyscale", false);
 
