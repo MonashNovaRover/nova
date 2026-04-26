@@ -10,11 +10,14 @@
 #include "pipelines/pipelines.hpp"
 
 bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, const std::string serial) {
-   if (!gst_element_link(first_element, second_element)) {
+  if (second_element != nullptr) {
+    if (!gst_element_link(first_element, second_element)) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not link %s to %s for %s", gst_object_get_name(GST_OBJECT(first_element)), gst_object_get_name(GST_OBJECT(second_element)), serial.c_str());
       return false;
-   }
-   return true;
+    }
+    return true;
+  }
+  return false;
 }
 
 std::string set_property(rclcpp::Node* streamer_node, const camera_msgs::msg::Camera* camera, const std::string element, std::string value) {

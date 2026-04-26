@@ -2,9 +2,9 @@
 #include <gst/gst.h>
 #include "properties/glfilters.hpp"
 
-void set_gledgedetect(GstElement* gledgedetect) { 
-  g_object_set(gledgedetect,
-    "effect", 16, // Sobel
+void set_glgreyscale(GstElement* glgreyscale) { 
+  g_object_set(glgreyscale,
+    "saturation", 0.0, // Turn off colour
   NULL);
 };
 

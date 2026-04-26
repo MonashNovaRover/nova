@@ -71,49 +71,21 @@ GstElement* vp9software_pipeline(rclcpp::Node* streamer_node, vp9softwarePipelin
 
   // 4. Link elements
   
-  // Change fps
-  if (props->downrate > 1) {
-    if (!link_elements(streamer_node, source, rate, props->serial)) return nullptr;    
-    if (!link_elements(streamer_node, rate, srcfilter, props->serial)) return nullptr;
+  GstElement* next_element = source;
 
-  } else {
-    if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
-  }
+  if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
+  if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
+  if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
+  if (link_elements(streamer_node, next_element, greyconvert, props->serial)) next_element = greyconvert;
+  if (link_elements(streamer_node, next_element, greyfilter, props->serial)) next_element = greyfilter;
+  if (link_elements(streamer_node, next_element, convert, props->serial)) next_element = convert;
+  if (link_elements(streamer_node, next_element, scalefilter, props->serial)) next_element = scalefilter;
+  if (link_elements(streamer_node, next_element, cropper, props->serial)) next_element = cropper;
+  if (link_elements(streamer_node, next_element, clock, props->serial)) next_element = clock;
+  if (link_elements(streamer_node, next_element, encode, props->serial)) next_element = encode;
+  if (link_elements(streamer_node, next_element, webrtc, props->serial)) next_element = webrtc;
 
-  // Convert to raw and/or adjust saturation
-  if ((props->mime == "image/jpeg") && (props->greyscale)) {
-      if (!link_elements(streamer_node, srcfilter, decode, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, decode, greyconvert, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, greyconvert, greyfilter, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, greyfilter, convert, props->serial)) return nullptr;
-  } else if (props->mime == "image/jpeg") {
-      if (!link_elements(streamer_node, srcfilter, decode, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, decode, convert, props->serial)) return nullptr;
-  } else if (props->greyscale) {
-      if (!link_elements(streamer_node, srcfilter, greyconvert, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, greyconvert, greyfilter, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, greyfilter, convert, props->serial)) return nullptr;
-  } else {
-      if (!link_elements(streamer_node, srcfilter, convert, props->serial)) return nullptr;
-  }  
-  if (!link_elements(streamer_node, convert, scalefilter, props->serial)) return nullptr;
-
-  // Enable crop and/or clock
-  if (props->crop43 && props->show_clock) {
-      if (!link_elements(streamer_node, scalefilter, cropper, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, cropper, clock, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, clock, encode, props->serial)) return nullptr;
-  } else if (props->crop43) {
-      if (!link_elements(streamer_node, scalefilter, cropper, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, cropper, encode, props->serial)) return nullptr;
-  } else if (props->show_clock) {
-      if (!link_elements(streamer_node, scalefilter, clock, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, clock, encode, props->serial)) return nullptr;
-  } else {
-      if (!link_elements(streamer_node, scalefilter, encode, props->serial)) return nullptr;
-  }
-
-  if (!link_elements(streamer_node, encode, webrtc, props->serial)) return nullptr;
+  next_element = nullptr;
 
   return gst_pipeline;
 }

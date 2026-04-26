@@ -47,10 +47,14 @@ struct h264PassthroughProperties
 
 struct glProperties
 {
+  float antialias_factor;
+  float edgedetect_factor;
   float undistort_k1;
   float undistort_k2;
   float undistort_scale;
 
+  float antialias;
+  float edgedetect;
   bool undistort;
 };
 
