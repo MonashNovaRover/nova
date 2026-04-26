@@ -170,7 +170,7 @@ def launch_setup(context, *args, **kwargs):
             parameters=[
                 science_params,
             ],
-        )
+        ),
 
         # launch CAN bus
         IncludeLaunchDescription(
