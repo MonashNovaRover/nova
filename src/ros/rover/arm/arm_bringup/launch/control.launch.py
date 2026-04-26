@@ -205,7 +205,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value='new.controllers.yaml',
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
