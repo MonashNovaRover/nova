@@ -191,7 +191,7 @@ litmus_dipper:
     hardware:
       dipper:
         can_id: 0x0E0
-        angular_limit: 360.0
+        angular_limit: 180.0
 
 heaters:
   ros__parameters:
