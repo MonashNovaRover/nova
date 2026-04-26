@@ -95,6 +95,26 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='cache_left',
+            package='science',
+            executable='cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
+        Node(
+            name='cache_right',
+            package='science',
+            executable='cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
 
 
         # Science Belly - Nodes for components in the belly
