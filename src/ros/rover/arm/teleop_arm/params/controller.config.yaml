@@ -117,6 +117,9 @@ joy_input_source:
           from: "START"
         task_space_velocity:
           from_axis:
-            axis: "TRIGGERLEFT"
+            name: "TRIGGERLEFT"
+            threshold: -0.5
           from: "LEFTSHOULDER"
+        task_space:
+          from: "RIGHTSHOULDER"
 

@@ -377,6 +377,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
   runtime.current_ee_pose = current_ee_pose;
 
   const double dt = period.seconds();
+
   if (!std::isfinite(dt) || dt <= 0.0 || dt > params_.max_velocity_control_period) {
     RCLCPP_ERROR_THROTTLE(
       logger,
@@ -385,9 +386,10 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
       "Velocity mode requires a finite positive period no larger than %.6f seconds, got %.9f.",
       params_.max_velocity_control_period,
       dt);
-    if (!write_zero_velocity_commands()) {
+
+    if (!write_zero_velocity_commands())
       return controller_interface::return_type::ERROR;
-    }
+
     publish_to_tf2(time, runtime.current_ee_pose);
     return controller_interface::return_type::OK;
   }
@@ -407,6 +409,7 @@ controller_interface::return_type NovaTwistmapper::update_velocity_mode(
     current_joint_state_values_,
     runtime.solution_velocities,
     params_.use_control_period_for_velocity_ik ? dt : params_.velocity_ik_time_step);
+
   if (!ik_result) {
     RCLCPP_WARN_THROTTLE(
       logger,
@@ -639,11 +642,13 @@ controller_interface::CallbackReturn NovaTwistmapper::on_configure(const rclcpp_
   current_joint_state_values_.assign(params_.joint_names.size(), 0.0);
   joint_values_scratch_.assign(params_.joint_names.size(), 0.0);
   predicted_joint_positions_.assign(params_.joint_names.size(), 0.0);
+
   if (twistmapper_mode() == TwistmapperMode::Position) {
     PositionRuntime runtime;
     runtime.solution_positions.assign(params_.joint_names.size(), 0.0);
     mode_runtime_ = std::move(runtime);
-  } else {
+  }
+  else {
     VelocityRuntime runtime;
     runtime.solution_velocities.assign(params_.joint_names.size(), 0.0);
     mode_runtime_ = std::move(runtime);

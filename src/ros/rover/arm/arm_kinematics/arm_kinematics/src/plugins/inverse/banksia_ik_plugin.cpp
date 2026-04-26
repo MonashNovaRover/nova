@@ -8,7 +8,92 @@
 #include <cassert>
 #include <cmath>
 
+#include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/forward/utilities/analysis_tree.hpp"
+
 namespace arm_kinematics {
+
+namespace {
+
+struct AxisLine
+{
+  Eigen::Vector3d point = Eigen::Vector3d::Zero();
+  Eigen::Vector3d direction = Eigen::Vector3d::UnitZ();
+};
+
+constexpr size_t kExpectedBanksiaJointCount = 6;
+constexpr size_t kShoulderJointIndex = 1;
+constexpr size_t kElbowActuatedJointIndex = 2;
+constexpr size_t kWristRollJointIndex = 3;
+constexpr size_t kWristPitchJointIndex = 4;
+constexpr size_t kWristYawJointIndex = 5;
+constexpr char kBanksiaElbowPivotJointName[] = "l1_l2_pivot";
+
+[[nodiscard]] AxisLine make_axis_line(
+  const AnalysisTree & analysis_tree,
+  const Eigen::Isometry3d & root_T_base,
+  const std::string & joint_name)
+{
+  const auto joint = analysis_tree.query_joint(joint_name);
+  const Eigen::Isometry3d base_T_joint = root_T_base.inverse() * joint.root_T_joint;
+
+  return AxisLine{
+    base_T_joint.translation(),
+    (base_T_joint.rotation() * joint.axis_in_joint).normalized(),
+  };
+}
+
+[[nodiscard]] Eigen::Vector3d closest_point_on_line(
+  const AxisLine & line,
+  const Eigen::Vector3d & point)
+{
+  return line.point + line.direction.dot(point - line.point) * line.direction;
+}
+
+[[nodiscard]] double distance_to_line(
+  const AxisLine & line,
+  const Eigen::Vector3d & point)
+{
+  return (point - closest_point_on_line(line, point)).norm();
+}
+
+[[nodiscard]] double distance_between_lines(
+  const AxisLine & a,
+  const AxisLine & b)
+{
+  const Eigen::Vector3d normal = a.direction.cross(b.direction);
+  const double normal_norm = normal.norm();
+  if (normal_norm < 1e-9) {
+    return (a.direction.cross(b.point - a.point)).norm();
+  }
+  return std::abs(normal.normalized().dot(b.point - a.point));
+}
+
+[[nodiscard]] Eigen::Vector3d closest_midpoint_between_lines(
+  const AxisLine & a,
+  const AxisLine & b)
+{
+  const Eigen::Vector3d delta = b.point - a.point;
+  const double aa = a.direction.dot(a.direction);
+  const double bb = b.direction.dot(b.direction);
+  const double ab = a.direction.dot(b.direction);
+  const double denom = aa * bb - ab * ab;
+
+  if (std::abs(denom) < 1e-9) {
+    const Eigen::Vector3d on_a = closest_point_on_line(a, b.point);
+    return 0.5 * (on_a + b.point);
+  }
+
+  const double ad = a.direction.dot(delta);
+  const double bd = b.direction.dot(delta);
+  const double ta = (ad * bb - bd * ab) / denom;
+  const double tb = (ad * ab - bd * aa) / denom;
+  const Eigen::Vector3d on_a = a.point + ta * a.direction;
+  const Eigen::Vector3d on_b = b.point + tb * b.direction;
+  return 0.5 * (on_a + on_b);
+}
+
+}  // namespace
 
 /**
  * IK plugin for Taipan with the original (bad) carbon fibre wrist
@@ -17,7 +102,103 @@ class BanksiaIKPlugin : public InverseKinematicsPlugin {
 public:
 
   bool on_initialize() override {
-    // TODO: Auto measure link_lengths_ using get_robot_model().get_analysis_tree() ?
+    const auto & params = get_kinematics_params();
+    const auto & analysis_tree = get_robot_model().get_analysis_tree();
+    const auto & joints = analysis_tree.get_joints();
+    const auto & frames = analysis_tree.get_frames();
+
+    if (params.joint_names.size() < kExpectedBanksiaJointCount) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK expects at least %zu configured joint_names, got %zu.",
+        kExpectedBanksiaJointCount,
+        params.joint_names.size());
+      return false;
+    }
+
+    const std::string & shoulder_joint_name = params.joint_names[kShoulderJointIndex];
+    const std::string & elbow_actuated_joint_name = params.joint_names[kElbowActuatedJointIndex];
+    const std::string & wrist_roll_joint_name = params.joint_names[kWristRollJointIndex];
+    const std::string & wrist_pitch_joint_name = params.joint_names[kWristPitchJointIndex];
+    const std::string & wrist_yaw_joint_name = params.joint_names[kWristYawJointIndex];
+
+    if (!frames.contains(params.base_link_name)) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK could not find base_link_name '%s' in the AnalysisTree.",
+        params.base_link_name.c_str());
+      return false;
+    }
+    if (!frames.contains(params.ee_link_name)) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK could not find ee_link_name '%s' in the AnalysisTree.",
+        params.ee_link_name.c_str());
+      return false;
+    }
+
+    if (!joints.contains(shoulder_joint_name) ||
+      !joints.contains(wrist_roll_joint_name) ||
+      !joints.contains(wrist_pitch_joint_name) ||
+      !joints.contains(wrist_yaw_joint_name))
+    {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK could not find the configured active chain joints in the AnalysisTree.");
+      return false;
+    }
+
+    if (!joints.contains(kBanksiaElbowPivotJointName)) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK could not find the physical elbow pivot joint '%s' for configured elbow joint '%s'.",
+        kBanksiaElbowPivotJointName,
+        elbow_actuated_joint_name.c_str());
+      return false;
+    }
+
+    const Eigen::Isometry3d root_T_base = analysis_tree.query_frame(params.base_link_name);
+
+    const AxisLine shoulder_axis = make_axis_line(analysis_tree, root_T_base, shoulder_joint_name);
+    const AxisLine elbow_axis = make_axis_line(analysis_tree, root_T_base, kBanksiaElbowPivotJointName);
+    const AxisLine wrist_roll_axis = make_axis_line(analysis_tree, root_T_base, wrist_roll_joint_name);
+    const AxisLine wrist_pitch_axis = make_axis_line(analysis_tree, root_T_base, wrist_pitch_joint_name);
+    const AxisLine wrist_yaw_axis = make_axis_line(analysis_tree, root_T_base, wrist_yaw_joint_name);
+
+    const Eigen::Vector3d wrist_center =
+      (closest_midpoint_between_lines(wrist_roll_axis, wrist_pitch_axis) +
+      closest_midpoint_between_lines(wrist_pitch_axis, wrist_yaw_axis) +
+      closest_midpoint_between_lines(wrist_roll_axis, wrist_yaw_axis)) / 3.0;
+
+    const Eigen::Vector3d ee_target =
+      analysis_tree.query_transform_between_frames(params.base_link_name, params.ee_link_name)
+      .translation();
+
+    link_lengths_[0] = distance_between_lines(shoulder_axis, elbow_axis) +
+      distance_to_line(shoulder_axis, Eigen::Vector3d::Zero());
+
+    link_lengths_[1] = distance_to_line(elbow_axis, wrist_center);
+    link_lengths_[2] = (ee_target - wrist_center).norm();
+
+    if (!std::isfinite(link_lengths_[0]) || !std::isfinite(link_lengths_[1]) ||
+      !std::isfinite(link_lengths_[2]) || link_lengths_[0] <= 0.0 || link_lengths_[1] <= 0.0 ||
+      link_lengths_[2] <= 0.0)
+    {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK measured invalid link lengths: l1=%f l2=%f l3=%f",
+        link_lengths_[0],
+        link_lengths_[1],
+        link_lengths_[2]);
+      return false;
+    }
+
+    RCLCPP_INFO(
+      get_logger(),
+      "Banksia IK measured link lengths from AnalysisTree: l1=%.6f l2=%.6f l3=%.6f",
+      link_lengths_[0],
+      link_lengths_[1],
+      link_lengths_[2]);
 
     return true;
   }

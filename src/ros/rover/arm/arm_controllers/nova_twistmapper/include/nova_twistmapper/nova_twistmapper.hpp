@@ -199,9 +199,7 @@ protected:
 
   std::optional<Kinematics> kinematics_{};
   std::optional<ModeRuntime> mode_runtime_{};
-  arm_kinematics::Isometry3dVector fk_pose_buffer_{
-    1,
-    Eigen::Isometry3d::Identity()};
+  arm_kinematics::Isometry3dVector fk_pose_buffer_{1, Eigen::Isometry3d::Identity()};
   std::vector<double> current_joint_state_values_{};
   std::vector<double> joint_values_scratch_{};
   std::vector<double> predicted_joint_positions_{};

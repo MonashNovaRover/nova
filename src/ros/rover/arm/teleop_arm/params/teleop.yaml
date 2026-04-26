@@ -194,6 +194,7 @@ task_space_mode:
 task_space_velocity_mode:
   ros__parameters:
     stamped_topic: "/arm/task_space_twist_command"
+    # frame_id: "endeffector_kinematics"
     use_speed_input: true
 
     scale:

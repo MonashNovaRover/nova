@@ -189,6 +189,77 @@ TEST_F(SimpleUrdfTests, AnalysisTreeBuildsExpectedJointPosesFromUrdf)
   ExpectIsometryNear(tree.poses[1], link2_truth, "link2 pose is wrong");
 }
 
+TEST_F(SimpleUrdfTests, AnalysisTreeQueryJointReturnsExpectedRootRelativeData)
+{
+  AnalysisTree anal(robot_model_->get_urdf_model());
+
+  const auto joint1 = anal.query_joint("joint1");
+  ExpectIsometryNear(joint1.root_T_joint, to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 0.0
+  ), "joint1 root_T_joint is incorrect");
+  ExpectVectorNear(joint1.axis_in_joint, Eigen::Vector3d(1.0, 0.0, 0.0),
+    "joint1 axis_in_joint is incorrect");
+  EXPECT_EQ(joint1.type, JointType::PRISMATIC);
+
+  const auto joint2 = anal.query_joint("joint2");
+  ExpectIsometryNear(joint2.root_T_joint, to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "joint2 root_T_joint is incorrect");
+  ExpectVectorNear(joint2.axis_in_joint, Eigen::Vector3d(0.0, 0.0, 1.0),
+    "joint2 axis_in_joint is incorrect");
+  EXPECT_EQ(joint2.type, JointType::REVOLUTE);
+}
+
+TEST_F(SimpleUrdfTests, AnalysisTreeQueryFrameReturnsExpectedRootRelativeTransform)
+{
+  AnalysisTree anal(robot_model_->get_urdf_model());
+
+  ExpectIsometryNear(anal.query_frame("base_link"), Eigen::Isometry3d::Identity(),
+    "base_link root_T_frame is incorrect");
+  ExpectIsometryNear(anal.query_frame("link1"), to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 0.0
+  ), "link1 root_T_frame is incorrect");
+  ExpectIsometryNear(anal.query_frame("link2"), to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "link2 root_T_frame is incorrect");
+}
+
+TEST_F(SimpleUrdfTests, AnalysisTreeQueryTransformBetweenFramesReturnsExpectedRelativeTransform)
+{
+  AnalysisTree anal(robot_model_->get_urdf_model());
+
+  ExpectIsometryNear(
+    anal.query_transform_between_frames("base_link", "base_link"),
+    Eigen::Isometry3d::Identity(),
+    "base_link to base_link transform is incorrect");
+
+  ExpectIsometryNear(anal.query_transform_between_frames("base_link", "link2"), to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 1.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "base_link to link2 transform is incorrect");
+
+  ExpectIsometryNear(anal.query_transform_between_frames("link1", "link2"), to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "link1 to link2 transform is incorrect");
+
+  ExpectIsometryNear(anal.query_transform_between_frames("link2", "link1"), to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, -1.0
+  ), "link2 to link1 transform is incorrect");
+}
+
 TEST_F(SimpleUrdfTests, MakeTreeProducesCorrectFrameTransforms)
 {
   // End-to-end FK test using the new make_tree API: build the tree, run position_fk on
@@ -267,6 +338,62 @@ TEST_F(SimpleUrdfTests, AnalysisTreeReversedSubtreeReorientsJoints)
   auto tree = subanal.make_compute_joint_tree();
   EXPECT_EQ(tree.poses.size(), 2u) << "Wrong number of joints in the reversed tree";
   EXPECT_EQ(tree.get_root_relative_count(), 2) << "Wrong root relative joint count";
+}
+
+TEST_F(SimpleUrdfTests, AnalysisTreeQueriesAreRelativeToSubtreeRoot)
+{
+  AnalysisTree anal(robot_model_->get_urdf_model());
+
+  const std::vector<std::string> link_names{"base_link", "link1", "link2"};
+  AnalysisTree subanal(anal, "link1", link_names);
+
+  const auto joint1 = subanal.query_joint("joint1");
+  ExpectIsometryNear(joint1.root_T_joint, Eigen::Isometry3d::Identity(),
+    "re-rooted joint1 root_T_joint is incorrect");
+  ExpectVectorNear(joint1.axis_in_joint, Eigen::Vector3d(-1.0, 0.0, 0.0),
+    "re-rooted joint1 axis_in_joint is incorrect");
+  EXPECT_EQ(joint1.type, JointType::PRISMATIC);
+
+  const auto joint2 = subanal.query_joint("joint2");
+  ExpectIsometryNear(joint2.root_T_joint, to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "re-rooted joint2 root_T_joint is incorrect");
+  ExpectVectorNear(joint2.axis_in_joint, Eigen::Vector3d(0.0, 0.0, 1.0),
+    "re-rooted joint2 axis_in_joint is incorrect");
+  EXPECT_EQ(joint2.type, JointType::REVOLUTE);
+
+  ExpectIsometryNear(subanal.query_frame("link1"), Eigen::Isometry3d::Identity(),
+    "re-rooted link1 root_T_frame is incorrect");
+  ExpectIsometryNear(subanal.query_frame("base_link"), to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, -1.0,
+    0.0, 0.0, 1.0, 0.0
+  ), "re-rooted base_link root_T_frame is incorrect");
+  ExpectIsometryNear(subanal.query_frame("link2"), to_isometry(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 1.0
+  ), "re-rooted link2 root_T_frame is incorrect");
+
+  ExpectIsometryNear(
+    subanal.query_transform_between_frames("link1", "link2"),
+    to_isometry(
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 1.0
+    ),
+    "re-rooted link1 to link2 transform is incorrect");
+
+  ExpectIsometryNear(
+    subanal.query_transform_between_frames("link1", "base_link"),
+    to_isometry(
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, -1.0,
+      0.0, 0.0, 1.0, 0.0
+    ),
+    "re-rooted link1 to base_link transform is incorrect");
 }
 
 // ===========================================================================

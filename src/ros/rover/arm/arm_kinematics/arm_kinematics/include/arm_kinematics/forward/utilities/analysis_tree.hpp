@@ -37,6 +37,13 @@ namespace arm_kinematics {
  */
 class ARM_KINEMATICS_PUBLIC AnalysisTree {
 public:
+  struct JointQuery
+  {
+    Eigen::Isometry3d root_T_joint = Eigen::Isometry3d::Identity();
+    Eigen::Vector3d axis_in_joint = Eigen::Vector3d::Zero();
+    JointType type = JointType::CONTINUOUS;
+  };
+
   /**
    * Data to describe a joint
    */
@@ -268,11 +275,26 @@ public:
    */
   ComputeJointTree make_compute_joint_tree();
 
+  [[nodiscard]] JointQuery query_joint(size_t joint_id) const;
+  [[nodiscard]] JointQuery query_joint(const std::string & joint_name) const;
+
+  [[nodiscard]] Eigen::Isometry3d query_frame(size_t frame_id) const;
+  [[nodiscard]] Eigen::Isometry3d query_frame(const std::string & frame_name) const;
+
+  [[nodiscard]] Eigen::Isometry3d query_transform_between_frames(
+    size_t from_frame_id,
+    size_t to_frame_id) const;
+  [[nodiscard]] Eigen::Isometry3d query_transform_between_frames(
+    const std::string & from_frame_name,
+    const std::string & to_frame_name) const;
+
   // Accessors
   [[nodiscard]] const NameToVector<Joint> & get_joints() const noexcept { return joints_; }
   [[nodiscard]] const NameToVector<Frame> & get_frames() const noexcept { return frames_; }
 
 private:
+  [[nodiscard]] Isometry3dVector compute_root_to_joint_poses() const;
+
   /**
    * Finds the closest parent joint that is not fixed, accumulating fixed joint offsets in accumulator.
    * \param current The link to find the closest actuated parent joint of.
@@ -348,4 +370,3 @@ private:
 }
 
 #endif //ARM_KINEMATICS_TREEORDERING_HPP
-

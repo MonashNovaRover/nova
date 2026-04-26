@@ -363,6 +363,57 @@ ComputeJointTree AnalysisTree::make_compute_joint_tree() {
   };
 }
 
+Isometry3dVector AnalysisTree::compute_root_to_joint_poses() const {
+  Isometry3dVector root_T_joint(joints_.size(), Eigen::Isometry3d::Identity());
+
+  for (size_t joint_id = 1; joint_id < joints_.size(); ++joint_id) {
+    const auto & joint = joints_[joint_id];
+    root_T_joint[joint_id] = root_T_joint[joint.parent] * joint.origin;
+  }
+
+  return root_T_joint;
+}
+
+AnalysisTree::JointQuery AnalysisTree::query_joint(const size_t joint_id) const {
+  const auto root_T_joint = compute_root_to_joint_poses();
+  const auto & joint = joints_[joint_id];
+
+  return {
+    root_T_joint[joint_id],
+    joint.joint.axis,
+    joint.joint.type
+  };
+}
+
+AnalysisTree::JointQuery AnalysisTree::query_joint(const std::string & joint_name) const {
+  return query_joint(joints_[joint_name]);
+}
+
+Eigen::Isometry3d AnalysisTree::query_frame(const size_t frame_id) const {
+  const auto root_T_joint = compute_root_to_joint_poses();
+  const auto & frame = frames_[frame_id];
+
+  return root_T_joint[frame.parent] * frame.origin;
+}
+
+Eigen::Isometry3d AnalysisTree::query_frame(const std::string & frame_name) const {
+  return query_frame(frames_[frame_name]);
+}
+
+Eigen::Isometry3d AnalysisTree::query_transform_between_frames(
+  const size_t from_frame_id,
+  const size_t to_frame_id) const
+{
+  return query_frame(from_frame_id).inverse() * query_frame(to_frame_id);
+}
+
+Eigen::Isometry3d AnalysisTree::query_transform_between_frames(
+  const std::string & from_frame_name,
+  const std::string & to_frame_name) const
+{
+  return query_transform_between_frames(frames_[from_frame_name], frames_[to_frame_name]);
+}
+
 Order<> AnalysisTree::sort_joints(const bool sort_children) {
   sorted_frames_ = false;
 
@@ -435,4 +486,3 @@ Order<> AnalysisTree::sort_frames() noexcept {
 }
 
 }
-

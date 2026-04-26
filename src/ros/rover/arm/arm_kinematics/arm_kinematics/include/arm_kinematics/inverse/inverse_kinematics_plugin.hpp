@@ -115,7 +115,7 @@ public:
    *
    * \returns Success if a solution was found, or a structured failure otherwise.
    */
-  virtual IKResult get_position_ik(
+  [[nodiscard]] virtual IKResult get_position_ik(
     const Eigen::Isometry3d & ik_pose,
     span<const double> ik_seed_state,
     span<double> solution_state) const = 0;
@@ -137,12 +137,12 @@ public:
    *
    * \returns Success if a solution was found, or a structured failure otherwise.
    */
-  virtual IKResult get_velocity_ik(
+  [[nodiscard]] virtual IKResult get_velocity_ik(
     const Twistd & ik_twist,
     const Eigen::Isometry3d & ik_seed_pose,
     span<const double> ik_seed_state,
     span<double> solution_velocities,
-    double time_step) const;
+    double time_step);
 
 protected:
   /**
@@ -151,6 +151,10 @@ protected:
    * \returns True if initialization was successful. False otherwise.
    */
   virtual bool on_initialize() = 0;
+
+  /// Allocated to the size of the joints in the KinematicsParams::SharedPtr used in initialization.
+  /// Needed for the get_velocity_ik default implementation.
+  std::vector<double> per_joint_scratch_{};
 };
 
 } // arm_kinematics
