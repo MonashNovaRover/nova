@@ -15,8 +15,6 @@ import {
   IRosScienceInterfacesRamanMechRequest,
   IRosScienceInterfacesRamanMechResponse,
   IRosCameraMsgsGetIpListResponse,
-  IRosStdSrvsSetBoolResponse,
-  IRosStdSrvsSetBoolRequest,
   IRosScienceInterfacesMoveScimbalCamRequest,
   IRosScienceInterfacesMoveScimbalCamResponse,
   IRosScienceInterfacesTakeNirProbeReadingRequest,
