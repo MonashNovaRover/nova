@@ -18,7 +18,7 @@ CREATION:	15/12/2021
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command, IfElseSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Command
 from launch.conditions import UnlessCondition
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, ExecuteProcess, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -33,7 +33,6 @@ def launch_setup(context, *args, **kwargs):
     angle = LaunchConfiguration('angle')
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
-    legacy_controllers = LaunchConfiguration('legacy_controllers')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     arm = LaunchConfiguration('arm').perform(context)
@@ -41,11 +40,7 @@ def launch_setup(context, *args, **kwargs):
     use_local_mesh = LaunchConfiguration('use_local_mesh')
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
     robot_name = LaunchConfiguration('robot_name')
-    path_planner_controller_name = IfElseSubstitution(
-        condition=legacy_controllers,
-        if_value='nova_path_planner_old',
-        else_value='nova_path_planner',
-    )
+    path_planner_controller_name = 'nova_path_planner'
 
     return [
         # Node( # TODO: only when arm is enabled
@@ -99,17 +94,8 @@ def generate_launch_description():
             description='Angle (in degrees) at which the camera is mounted',
         ),
         DeclareLaunchArgument(
-            name='legacy_controllers',
-            default_value='False',
-            description='Use the preserved _old controller stack.',
-        ),
-        DeclareLaunchArgument(
             name='controllers',
-            default_value=IfElseSubstitution(
-                condition=LaunchConfiguration('legacy_controllers'),
-                if_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'old.controllers_old.yaml']),
-                else_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'old.controllers.yaml']),
-            ),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
@@ -141,11 +127,6 @@ def generate_launch_description():
             name='use_local_mesh',
             default_value='False',
             description='Use local mesh paths instead of nix store paths',
-        ),
-        DeclareLaunchArgument(
-            name='robot_name',
-            default_value='Banksia',
-            description='name of the robot',
         ),
     ]
 

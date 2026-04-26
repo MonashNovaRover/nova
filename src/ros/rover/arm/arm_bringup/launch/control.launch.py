@@ -44,7 +44,6 @@ def launch_setup(context, *args, **kwargs):
 
     controllers = LaunchConfiguration('controllers')
     gazebo = LaunchConfiguration('gazebo')
-    legacy_controllers = LaunchConfiguration('legacy_controllers')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     arm = LaunchConfiguration('arm').perform(context)
@@ -54,26 +53,11 @@ def launch_setup(context, *args, **kwargs):
     urdf = LaunchConfiguration('urdf')
     rviz = LaunchConfiguration('rviz').perform(context)
     fixed_frame = 'base_link'
-    arm_velocity_controller_name = IfElseSubstitution(
-        condition=legacy_controllers,
-        if_value='nova_arm_velocity_controller_old',
-        else_value='nova_arm_velocity_controller',
-    )
-    arm_position_controller_name = IfElseSubstitution(
-        condition=legacy_controllers,
-        if_value='nova_arm_position_controller_old',
-        else_value='nova_arm_position_controller',
-    )
-    end_effector_velocity_controller_name = IfElseSubstitution(
-        condition=legacy_controllers,
-        if_value='nova_end_effector_velocity_controller_old',
-        else_value='nova_end_effector_velocity_controller',
-    )
-    twistmapper_controller_name = IfElseSubstitution(
-        condition=legacy_controllers,
-        if_value='nova_twistmapper_old',
-        else_value='nova_twistmapper',
-    )
+
+    arm_velocity_controller_name = 'nova_arm_velocity_controller'
+    arm_position_controller_name = 'nova_arm_position_controller'
+    end_effector_velocity_controller_name = 'nova_end_effector_velocity_controller'
+    twistmapper_controller_name = 'nova_twistmapper',
     twistmapper_velocity_controller_name = 'nova_twistmapper_velocity'
 
     show_colours_additional_env = {
@@ -114,7 +98,6 @@ def launch_setup(context, *args, **kwargs):
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
-                    condition=UnlessCondition(legacy_controllers),
                     package='controller_manager',
                     executable='spawner',
                     arguments=[twistmapper_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
@@ -221,17 +204,8 @@ def generate_launch_description():
             description='whether to use the local rover_description source directory instead of the nix store.',
         ),
         DeclareLaunchArgument(
-            name='legacy_controllers',
-            default_value='False',
-            description='Use the preserved _old controller stack.',
-        ),
-        DeclareLaunchArgument(
             name='controllers',
-            default_value=IfElseSubstitution(
-                condition=LaunchConfiguration('legacy_controllers'),
-                if_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers_old.yaml']),
-                else_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
-            ),
+            default_value='new.controllers_old.yaml',
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
