@@ -156,7 +156,7 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             emulate_tty=True,
             parameters=[science_params],
-        )
+        ),
 
         Node(
             name='scimbal_cam',
