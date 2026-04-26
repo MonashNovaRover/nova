@@ -61,7 +61,7 @@ template<typename properties> void set_rosfilter(GstElement* filter, const prope
   const std::string mime = "video/x-raw";
   GstCaps *caps = gst_caps_new_simple(
     mime.c_str(),
-    "format", G_TYPE_STRING, props->format.c_str(),
+    "format", G_TYPE_STRING, props->ros_format.c_str(),
   NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);

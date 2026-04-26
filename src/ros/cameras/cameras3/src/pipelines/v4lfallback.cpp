@@ -188,10 +188,8 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
   // 2. Finalize props
   
   // Disable crop43 if it is already 4:3
-  const int crop_width = crop43(props->width, props->height);
-  if (crop_width == 0) {
-      props->crop43 = false;
-  }
+  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
+  if (crop_width == 0) props->crop43 = false;
 
   display_resolution(streamer_node, props, camera, crop_width);
 

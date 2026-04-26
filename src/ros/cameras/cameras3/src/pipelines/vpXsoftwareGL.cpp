@@ -20,12 +20,12 @@
 #include "cameras/colors.hpp"
 
 /*
- * V4l camera (any) decoded then encoded into vp9enc
- * Enforces alignment from vp9 v4l camera and feeds directly to webrtc 
- * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-vp9
+ * V4l camera (any) decoded then encoded into vpXenc
+ * Enforces alignment from vpX v4l camera and feeds directly to webrtc 
+ * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-vpX
  */
 
-GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPipelineProperties* props)
+GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPipelineProperties* props, const int vpX)
 {
   // 0. Initialize constants
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
@@ -36,6 +36,14 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
   GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rater") : nullptr;
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
+
+  GstElement* tee = (props->rossink) ? gst_element_factory_make("tee", "tee") : nullptr;
+  GstElement* queue1 = (props->rossink) ? gst_element_factory_make("queue", "queue1") : nullptr;
+  GstElement* rosconvert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "rosconverter") : nullptr;
+  GstElement* rosfilter = (props->rossink) ? gst_element_factory_make("capsfilter", "rosfilter") : nullptr;
+  GstElement* rossink = (props->rossink) ? gst_element_factory_make("rosimagesink", "rossink") : nullptr;
+  GstElement* queue2 = (props->rossink) ? gst_element_factory_make("queue", "queue2") : nullptr;
+
   GstElement* glupload = gst_element_factory_make("glupload", "gluploader");
   GstElement* glupconvert = gst_element_factory_make("glcolorconvert", "glupconverter");
   GstElement* glscale = ((props->downscale > 1) || (props->crop43)) ? gst_element_factory_make("glcolorscale", "glscaler") : nullptr;
@@ -48,8 +56,7 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
   GstElement* gldownload = gst_element_factory_make("gldownload", "gldownloader");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
-  GstElement* encode = gst_element_factory_make("vp9enc", "encoder");
-  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
+  GstElement* encode = (vpX == 9) ? gst_element_factory_make("vp9enc", "encoder") : gst_element_factory_make("vp8enc", "encoder");  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
   if (
     !gst_pipeline ||
@@ -57,6 +64,7 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
     (props->downrate > 1 && !rate) ||
     !srcfilter ||
     (props->mime == "image/jpeg" && !decode) ||
+    (props->rossink && !tee && !queue1 && !rosconvert && !rosfilter && !rossink && !queue2) ||
     !glupload ||
     !glupconvert ||
     (((props->downscale > 1) || (props->crop43)) && !glscale) ||
@@ -80,13 +88,20 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
   set_v4lsource(source, props);
   set_srcfilter(srcfilter, props);
   if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(decode, props);
+  if (props->rossink) {
+    set_queue(queue1);
+    set_convertscale(rosconvert, props);
+    set_rosfilter(rosfilter, props);
+    set_rostopicsink(rossink, props);
+    set_queue(queue2);
+  }
   if (props->crop43) set_glcrop43(glcrop, props);
   if (props->greyscale) set_glgreyscale(glgreyscale);
   if (props->antialias) set_glantialias(glantialias, props);
   if (props->edgedetect) set_gledgedetect(gledgedetect, props);
   if (props->undistort) set_glundistort(glundistort, props);
   set_scalefilter(scalefilter, props, crop_width*2);
-  set_vp9enc(encode, props);
+  (vpX == 9) ? set_vp9enc(encode, props) : set_vp8enc(encode, props);
   set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
@@ -102,6 +117,7 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
       NULL);
   if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
+  if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue1, rosconvert, rosfilter, rossink, queue2, NULL);
   if ((props->downscale > 1) || props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glscale);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glcrop);
   if (props->greyscale) gst_bin_add(GST_BIN(gst_pipeline), glgreyscale);
@@ -118,6 +134,14 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
   if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
   if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
   if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
+
+  if (link_elements(streamer_node, next_element, tee, props->serial)) next_element = tee;
+  if (link_elements(streamer_node, next_element, queue1, props->serial)) next_element = queue1;
+  if (link_elements(streamer_node, next_element, rosconvert, props->serial)) next_element = rosconvert;
+  if (link_elements(streamer_node, next_element, rosfilter, props->serial)) next_element = rosfilter;
+  if (link_elements(streamer_node, next_element, rossink, props->serial)) next_element = tee;
+  if (link_elements(streamer_node, next_element, queue2, props->serial)) next_element = queue2;
+
   if (link_elements(streamer_node, next_element, glupload, props->serial)) next_element = glupload;
   if (link_elements(streamer_node, next_element, glupconvert, props->serial)) next_element = glupconvert;
   if (link_elements(streamer_node, next_element, glscale, props->serial)) next_element = glscale;
@@ -139,12 +163,12 @@ GstElement* vp9softwareGL_pipeline(rclcpp::Node* streamer_node, vp9softwareGLPip
 }
 
 /*
- * Retrieve ros2 parameters for vp9software pipeline or sets defaults
+ * Retrieve ros2 parameters for vpXsoftware pipeline or sets defaults
 */
-vp9softwareGLPipelineProperties* get_vp9softwareGL_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera, const int vpX)
 {
   // 0. Initialize constants
-  vp9softwareGLPipelineProperties* props = new vp9softwareGLPipelineProperties;
+  vpXsoftwareGLPipelineProperties* props = new vpXsoftwareGLPipelineProperties;
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
@@ -222,7 +246,7 @@ vp9softwareGLPipelineProperties* get_vp9softwareGL_pipeline_properties(rclcpp::N
   // webrtc
   default_string = "gcc";
   props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
-  props->video_caps = "video/x-vp9";
+  props->video_caps = (vpX == 9) ? "video/x-vp9" : "video/x-vp8";
 
   props->bitrate = set_property(streamer_node, camera, "bitrate", 4096);
 
