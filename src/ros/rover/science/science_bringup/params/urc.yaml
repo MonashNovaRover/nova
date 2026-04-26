@@ -60,6 +60,9 @@ auger_left:
     active: true
     active_button: "activate_auger_left"
     inactive_button_pool: [ "activate_auger_right" ]
+    controllers:
+      hall_effect_controller:
+        topic_name: "/science/auger_left/hall_effect"
     hardware:
       actuation:
         can_id: 0x0D2
@@ -69,6 +72,9 @@ auger_left:
         can_id: 0x0C2
         max_effort: 0.9
         reversed: false
+      hall_sensor:
+        can_id: 0x4E4
+        can_data_position: 0
 
 auger_right:
   ros__parameters:
@@ -76,6 +82,9 @@ auger_right:
     active: false
     active_button: "activate_auger_right"
     inactive_button_pool: [ "activate_auger_left" ]
+    controllers:
+      hall_effect_controller:
+        topic_name: "/science/auger_right/hall_effect"
     hardware:
       actuation:
         can_id: 0x0D1
@@ -85,6 +94,9 @@ auger_right:
         can_id: 0x0C1
         max_effort: 0.9
         reversed: false
+      hall_sensor:
+        can_id: 0x4E4
+        can_data_position: 1
 
 cbeam:
   ros__parameters:
@@ -145,6 +157,9 @@ carousel_inner:
       carousel_load_current_sensor:
         can_id: 0xFFA
         function_id: 0x02
+      hall_sensor:
+        can_id: 0x4E4
+        can_data_position: 2
 
 carousel_outer:
   ros__parameters:
@@ -171,6 +186,9 @@ carousel_outer:
       carousel_load_current_sensor:
         can_id: 0xFFF
         function_id: 0x02
+      hall_sensor:
+        can_id: 0x4E4
+        can_data_position: 3
 
 litmus_dipper:
   ros__parameters:
