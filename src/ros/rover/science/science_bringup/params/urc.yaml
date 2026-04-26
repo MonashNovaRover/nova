@@ -259,3 +259,19 @@ cache_right:
       actuation:
         can_id: 0xE2
 
+
+bme_sensor:
+  ros__parameters:
+    can_bus: "can1"
+    controllers:
+      controller:
+        update_rate: 5
+        sensor_names: ["bme_temperature", "bme_pressure", "bme_humidity"]
+        sensor_units: ["temperature", "pressure", "humidity"]
+        data_topic: "/science/bme_sensor"
+    hardware:
+      bme_multisensor:
+        can_id: 0x4F5
+        hardware_names: ["bme_temperature", "bme_pressure", "bme_humidity"]
+        hardware_units: ["temperature", "pressure", "humidity"]
+        last_values: [0.0, 0.0, 0.0]
