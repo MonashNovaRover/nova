@@ -162,9 +162,9 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
-            name='urc_bme_sensor',
+            name='bme_sensor',
             package='science',
-            executable='urc_bme_sensor.py',
+            executable='bme_sensor.py',
             output='screen',
             emulate_tty=True,
             parameters=[

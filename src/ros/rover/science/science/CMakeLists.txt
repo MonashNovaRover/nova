@@ -58,7 +58,7 @@ install(PROGRAMS
         science/urc/heater.py
         science/urc/hydraprobe_trigger_node.py
         science/urc/pumps.py
-        science/urc/urc_bme_sensor.py
+        science/urc/bme_sensor.py
         science/urc/urc_cache.py
         science/urc/urc_carousel.py
         science/urc/urc_hydraprobe.py
@@ -69,7 +69,6 @@ install(PROGRAMS
         science/urc/urc_theta_360_cam.py
         science/urc/urc_uv_vis_leds.py
         science/urc/urc_uv_vis_spec.py
-        science/urc/urc_bme_sensor.py
         science/urc/urc_bme_sensor_old.py
         science/analysis_arm_stepper.py
         science/auger.py
