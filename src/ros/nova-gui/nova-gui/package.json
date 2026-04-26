@@ -37,6 +37,7 @@
     "onnxruntime-web": "^1.24.3",
     "plotly.js-cartesian-dist-min": "^3.4.0",
     "plotly.js-gl3d-dist-min": "^3.3.1",
+    "rc-joystick": "^1.2.0",
     "react": "^19.2.4",
     "react-apexcharts": "^1.9.0",
     "react-battery-gauge": "1.0.7",

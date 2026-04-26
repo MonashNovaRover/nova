@@ -62,4 +62,9 @@ export enum RosTopic {
   ACTIVATED_NODES = "/activated_nodes",
   RADIO_STATUS = "/chassis/radio_status",
   LOCKED_STATUS = "/locked_status",
+
+  // Joy
+  DRIVE_JOY = "/drive/joy",
+  ARM_JOY_LEFT = "/arm/joy/left",
+  ARM_JOY_RIGHT = "/arm/joy/right"
 }
