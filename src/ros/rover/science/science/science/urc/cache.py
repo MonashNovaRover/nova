@@ -24,11 +24,6 @@ from teleop_python_utils import Inputs
 
 
 class CacheController(Controller):
-    # Command interfaces
-    # joint_cmd: Interface
-
-    # State interfaces
-    # state: Interface
 
     def __init__(self, contexts: Contexts, cache_name: str):
         """ Constructor, deferred until the control manager has been spun.
