@@ -31,7 +31,36 @@ in
         export COMP="ARCh"
         ln -sfn "$HOME/Builds/master" "$HOME/Builds/active"
 
-        # set_active <build_path>
+        # Environment variables
+        ## ROS2 DDS configuration
+        use_fastdds() {
+          export RMW_IMPLEMENTATION="rmw_fastrtps_cpp"
+          mkdir -p "$HOME/.config/nova"
+          echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > "$HOME/.config/nova/ros_dds"
+          echo "Set RMW_IMPLEMENTATION to rmw_fastrtps_cpp and wrote to ~/.config/nova/ros_dds"
+        }
+        use_cyclonedds() {
+          export RMW_IMPLEMENTATION="rmw_cyclonedds_cpp"
+          mkdir -p "$HOME/.config/nova"
+          echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > "$HOME/.config/nova/ros_dds"
+          echo "Set RMW_IMPLEMENTATION to rmw_cyclonedds_cpp and wrote to ~/.config/nova/ros_dds"
+        }
+
+        ## Comp selection
+        set_arch() {
+          export COMP="ARCh"
+          mkdir -p "$HOME/.config/nova"
+          echo 'export COMP=ARCh' > "$HOME/.config/nova/comp"
+          echo "Set COMP to ARCh and wrote to ~/.config/nova/comp"
+        }
+        set_urc() {
+          export COMP="URC"
+          mkdir -p "$HOME/.config/nova"
+          echo 'export COMP=URC' > "$HOME/.config/nova/comp"
+          echo "Set COMP to URC and wrote to ~/.config/nova/comp"
+        }
+
+        # Set active build path
         set_active() {
           local buildPath="$1"
           if [ -z "$buildPath" ]; then
@@ -121,8 +150,6 @@ in
           echo   "The files written to are sourced on shell startup."
           echo   ""
         }
-
-        unset cyan magenta yellow end
       '';
 
       initExtra = lib.mkAfter ''
@@ -161,27 +188,6 @@ in
           gui = "${nova}/src/ros/nova-gui/nova-gui";
           coms = "${nova}/src/other/coms_utils";
 
-          # Environment variables
-          ## ROS2 DDS Configuration
-          use_fastdds = "export RMW_IMPLEMENTATION=rmw_fastrtps_cpp;
-                          mkdir -p ~/.config/nova;
-                          echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > ~/.config/nova/ros_dds
-                          echo \"Set RMW_IMPLEMENTATION to rmw_fastrtps_cpp and wrote to ~/.config/nova/ros_dds\"";
-          use_cyclonedds = "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp;
-                            mkdir -p ~/.config/nova;
-                            echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > ~/.config/nova/ros_dds
-                            echo \"Set RMW_IMPLEMENTATION to rmw_cyclonedds_cpp and wrote to ~/.config/nova/ros_dds\"";
-          
-          ## Comp Selection (for auto)
-          set_arch = "export COMP=ARCh;
-                      mkdir -p ~/.config/nova;
-                      echo 'export COMP=ARCh' > ~/.config/nova/comp
-                      echo \"Set COMP to ARCh and wrote to ~/.config/nova/comp\"";
-          set_urc = "export COMP=URC;
-                      mkdir -p ~/.config/nova;
-                      echo 'export COMP=URC' > ~/.config/nova/comp
-                      echo \"Set COMP to URC and wrote to ~/.config/nova/comp\"";
-          
           # Networking 
           jetson = "ssh -C -Y nvidia@10.0.0.10";
           jetson-wifi = "ssh -C -Y nvidia@tegra-ubuntu";
