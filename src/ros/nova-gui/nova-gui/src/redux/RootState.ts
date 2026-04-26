@@ -103,8 +103,8 @@ export interface RootState {
   hydraprobeData: IRosScienceInterfacesHydraprobeData;
   theta360CamStore: IRosSensorMsgsCompressedImage;
   bmeSensorStore: IRosScienceInterfacesBmeSensor;
-  auger1DepthSensorStore: IRosStdMsgsBool;
-  auger2DepthSensorStore: IRosStdMsgsBool;
+  augerLeftDepthStore: IRosStdMsgsBool;
+  augerRightDepthStore: IRosStdMsgsBool;
   toolRotatorAngleStore: IRosStdMsgsFloat64;
   pumpsStatusStore: IRosScienceInterfacesPumpStatus;
   carouselInnerFeedback: IRosScienceInterfacesCarouselFeedback;
