@@ -9,10 +9,9 @@ import { IRosSensorMsgsJoy } from "../../../ros/rosTypes.ts";
 export interface IArmJoyWidgetProps extends CardProps {}
 
 /**
- * A component that sends joy commands for driving the rover.
- * It emulates the joy format of an xbox controller.
+ * A component that sends joy commands for controlling the arm.
  * Must be used with rosbridge and teleop_drive_joy.
- * Combines the two joysticks of the xbox into one for mobile use.
+ * NOTE: WILL CONFLICT WITH ANY PLUGGED IN GAME CONTROLLERS
  */
 const ArmJoyWidget: React.FC<IArmJoyWidgetProps> = (props) => {
   // bifrost stuff

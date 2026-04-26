@@ -15,9 +15,8 @@ export interface IDriveJoyWidgetProps extends CardProps {}
 
 /**
  * A component that sends joy commands for driving the rover.
- * It emulates the joy format of an xbox controller.
- * Must be used with rosbridge and teleop_drive_joy.
- * Combines the two joysticks of the xbox into one for mobile use.
+ * Must be used with rosbridge and teleop_arm.
+ * NOTE: WILL CONFLICT WITH ANY PLUGGED IN GAME CONTROLLERS
  */
 const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
   // bifrost stuff
