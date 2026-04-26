@@ -242,6 +242,14 @@ spec_leds:
         on_command: 0x01
         off_command: 0x00
 
+hydraprobe:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 1
+    hardware:
+      humidity:
+        can_id: 0x4F6
+
 # Misc - Nodes for misc components
 scimbal_cam:
   ros__parameters:
@@ -276,7 +284,6 @@ cache_right:
     hardware:
       actuation:
         can_id: 0xE2
-
 
 bme_sensor:
   ros__parameters:

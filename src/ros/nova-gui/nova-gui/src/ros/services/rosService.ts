@@ -25,14 +25,11 @@ export enum RosService {
   BLCMD_RESET = "/blcmds/blcmd_reset",
   
   // Science Related
-  MIXERS = "/science/mixers",
   THERMAL_COMMAND = "/science/thermal_command",
   WATER_PUMP_COMMAND = "/science/water_pump_command",
   DIAPHRAGM_PUMP_COMMAND = "/science/diaphragm_pump_command",
   SCIMBAL_COMMAND = "/science/scimbal_cam_service",
-  HYDRAPROBE_COMMAND = "/science/move_hydraprobe",
   TAKE_NIR_PROBE_READING = "/science/take_nir_probe_reading",
-  MOVE_MICROSCOPE_SERVO = "/science/microscope_servo_service",
   THETA_360_CAM_CAPTURE = "/science/theta360cam/capture",
   CALL_RAMAN_SPEC = "/science/raman_spec_srv",
   CALL_RAMAN_MECH = "/science/raman_mech_srv",

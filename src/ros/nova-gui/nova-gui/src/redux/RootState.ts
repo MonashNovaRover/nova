@@ -5,7 +5,6 @@ import {
   IRosDriveInterfacesDriveInfo,
   IRosScienceInterfacesEffortStatus,
   IRosScienceInterfacesMicroscopeServoInfo,
-  IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosScienceInterfacesNirProbeData,
   IRosScienceInterfacesThermalCommandResponse,
   IRosScienceInterfacesThermalData,
@@ -95,7 +94,6 @@ export interface RootState {
   thermalCommand: IRosScienceInterfacesThermalCommandResponse;
   uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
   microscopeServoStore: IRosScienceInterfacesMicroscopeServoInfo;
-  microscopeServiceStore: IRosScienceInterfacesMoveMicroscopeServoResponse;
   ramanSpecServiceStore: IRosScienceInterfacesRamanSpecResponse;
   ramanSpecMessageStore: IRosScienceInterfacesRamanSpectrum;
   ramanMechMessageStore: IRosScienceInterfacesRamanState;

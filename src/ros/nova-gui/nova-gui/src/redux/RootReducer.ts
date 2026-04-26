@@ -204,10 +204,6 @@ export const reduxStores = {
     { topic: RosTopic.MICROSCOPE_SERVO },
     { angle: 45 }
   ),
-  microscopeServiceStore: createBifrostStore(
-    { service: RosService.MOVE_MICROSCOPE_SERVO },
-    { success: true }
-  ),
   ramanSpecServiceStore: createBifrostStore(
     { service: RosService.CALL_RAMAN_SPEC},
     { continuousendedsignal: false }
