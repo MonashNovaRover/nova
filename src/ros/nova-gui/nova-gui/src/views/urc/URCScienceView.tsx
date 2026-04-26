@@ -10,6 +10,7 @@ import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
 import HeaterWidget from "../../components/science/ThermalControl/HeaterWidget.tsx";
 import {CameraControlModalButton} from "../../components/cameras/CameraPage/CameraControlModelButton.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
+import LitmusDipperWidget from "../../components/science/LitmusDipperWidget/LitmusDipperWidget.tsx";
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
@@ -23,7 +24,7 @@ const URCScienceView: React.FC = () => {
       <div className="flex flex-col gap-3 col-span-2">
         <HydroprobeWidget/>
         <BMESensor/>
-    
+        <LitmusDipperWidget/>
         <HeaterWidget/>
       </div>
 
