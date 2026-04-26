@@ -45,6 +45,8 @@ import {
   IRosScienceInterfacesSetNamedPositionsResponse,
   IRosScienceInterfacesIncrementZeroRequest,
   IRosScienceInterfacesIncrementZeroResponse,
+  IRosScienceInterfacesSetNamedBoolRequest,
+  IRosScienceInterfacesSetNamedBoolResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -151,13 +153,9 @@ export interface RosServiceInterface {
     IRosScienceInterfacesRamanMechRequest,
     IRosScienceInterfacesRamanMechResponse
   >;
-  [RosService.UV_VIS_LED_1]: RosServiceMessage<
-    IRosStdSrvsSetBoolRequest,
-    IRosStdSrvsSetBoolResponse
-  >;
-  [RosService.UV_VIS_LED_2]: RosServiceMessage<
-    IRosStdSrvsSetBoolRequest,
-    IRosStdSrvsSetBoolResponse
+  [RosService.LEDS]: RosServiceMessage<
+    IRosScienceInterfacesSetNamedBoolRequest,
+    IRosScienceInterfacesSetNamedBoolResponse
   >;
   [RosService.CACHE_1]: RosServiceMessage<
     IRosScienceInterfacesCacheCommandRequest,
@@ -198,6 +196,18 @@ export interface RosServiceInterface {
   [RosService.CAROUSEL_OUTER_INCREMENT_ZERO]: RosServiceMessage<
     IRosScienceInterfacesIncrementZeroRequest,
     IRosScienceInterfacesIncrementZeroResponse
+  >;
+  [RosService.LITMUS_DIPPER_DIP]: RosServiceMessage<
+    IRosScienceInterfacesRunPumpRequest,
+    IRosScienceInterfacesRunPumpResponse
+  >;
+  [RosService.LITMUS_DIPPER_STOP]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.LITMUS_DIPPER_TWITCH]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
   >;
   [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
     EmptyMessage,

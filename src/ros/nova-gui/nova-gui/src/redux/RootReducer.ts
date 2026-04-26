@@ -240,14 +240,6 @@ export const reduxStores = {
     { topic: RosTopic.UV_VIS_SPEC },
     { luminance: [0,1,2,3,4,5,6,7,8,9,8,7,6,5,4] }
   ),
-  uvVisLED1Store: createBifrostStore(
-    { service: RosService.UV_VIS_LED_1 },
-    { success: true, message: ""},
-  ),
-  uvVisLED2Store: createBifrostStore(
-    { service: RosService.UV_VIS_LED_2 },
-    { success: true, message: ""},
-  ),
   theta360CamStore: createBifrostStore(
     { topic: RosTopic.THETA_360_CAM_IMAGE },
     { data: [], format: "" }
@@ -302,6 +294,15 @@ export const reduxStores = {
   carouselOuterFeedback: createBifrostStore(
     { topic: RosTopic.CAROUSEL_OUTER_FEEDBACK },
     { position: 0, current: 0, load: 0, zeroing: false }
+  ),
+  litmusDipperStatusStore: createBifrostStore(
+    { topic: RosTopic.LITMUS_DIPPER_STATUS },
+    {
+      running: false,
+      pump: "",
+      time_elapsed: 0,
+      time_target: 0,
+    }
   ),
 
   // Regular Stores
@@ -423,6 +424,8 @@ export const reduxStores = {
     empty_shots: 10,
     empty_cuvettes: 10,
   }),
+  litmusDipperDefaultDuration: createGenericStore("litmusDipperDefaultDuration", 2),
+  litmusDipperTwitchStep: createGenericStore("litmusDipperTwitchStep", 5.0),
 };
 
 // all store reducers

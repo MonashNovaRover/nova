@@ -23,7 +23,6 @@ import {
   IRosScienceInterfacesUvVisSpecData,
   IRosSensorMsgsCompressedImage,
   IRosScienceInterfacesHydraprobeData,
-  IRosStdSrvsSetBoolResponse,
   IRosScienceInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
@@ -95,8 +94,6 @@ export interface RootState {
   thermalData: IRosScienceInterfacesThermalData;
   thermalCommand: IRosScienceInterfacesThermalCommandResponse;
   uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
-  uvVisLED1Store: IRosStdSrvsSetBoolResponse;
-  uvVisLED2Store: IRosStdSrvsSetBoolResponse;
   microscopeServoStore: IRosScienceInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosScienceInterfacesMoveMicroscopeServoResponse;
   ramanSpecServiceStore: IRosScienceInterfacesRamanSpecResponse;
@@ -112,6 +109,7 @@ export interface RootState {
   pumpsStatusStore: IRosScienceInterfacesPumpStatus;
   carouselInnerFeedback: IRosScienceInterfacesCarouselFeedback;
   carouselOuterFeedback: IRosScienceInterfacesCarouselFeedback;
+  litmusDipperStatusStore: IRosScienceInterfacesPumpStatus;
 
   // Maps Related Stores
   roverLocationStore: IRosNovaInterfacesGpsData;
@@ -138,6 +136,8 @@ export interface RootState {
   toolRotatorPresets: GenericStoreState<PresetPositions>
   toolRotatorTwitchStep: GenericStoreState<number>;
   pumpDefaultDurations: GenericStoreState<Record<string, number>>;
+  litmusDipperDefaultDuration: GenericStoreState<number>;
+  litmusDipperTwitchStep: GenericStoreState<number>;
 
   batteryStore: IRosSensorMsgsBatteryState;
 

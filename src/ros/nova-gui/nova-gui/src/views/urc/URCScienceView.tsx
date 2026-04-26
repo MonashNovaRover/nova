@@ -2,9 +2,7 @@ import React, {useState} from "react";
 import HydroprobeWidget from "../../components/science/HydroprobeWidget/HydroprobeWidget";
 import PumpsWidget from "../../components/science/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/science/BMESensor/BMESensor";
-import {RosService} from "../../ros/services/rosService.ts";
 import URCNIRProbeWidget from "../../components/science/NIRProbe/URCNIRProbeWidget.tsx";
-import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
 import CarouselWidgetV2 from "../../components/science/CarouselWidget/CarouselWidget.tsx";
 import SegmentedPicker from "../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
@@ -12,6 +10,8 @@ import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
 import HeaterWidget from "../../components/science/ThermalControl/HeaterWidget.tsx";
 import {CameraControlModalButton} from "../../components/cameras/CameraPage/CameraControlModelButton.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
+import LitmusDipperWidget from "../../components/science/LitmusDipperWidget/LitmusDipperWidget.tsx";
+import LedWidget from "../../components/science/LEDWidget/LEDWidget.tsx";
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
@@ -25,10 +25,7 @@ const URCScienceView: React.FC = () => {
       <div className="flex flex-col gap-3 col-span-2">
         <HydroprobeWidget/>
         <BMESensor/>
-        <div className="flex flex-row gap-3">
-          <CacheControlWidget className="w-full" label="Left Cache" service={RosService.CACHE_2}/>
-          <CacheControlWidget className="w-full" label="Right Cache" service={RosService.CACHE_1}/>
-        </div>
+        <LitmusDipperWidget/>
         <HeaterWidget/>
       </div>
 
@@ -52,6 +49,7 @@ const URCScienceView: React.FC = () => {
 
       <div className="flex flex-col gap-3 col-span-2">
         <HeaterWidget/>
+        <LedWidget/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_CUVETTE}/>
         <CameraControlModalButton/>
       </div>

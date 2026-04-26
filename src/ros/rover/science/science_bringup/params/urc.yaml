@@ -102,9 +102,6 @@ cbeam:
         reversed: false
 
 # Science Belly - Nodes for components in the belly
-
-
-# Science Belly - Nodes for components in the belly
 pumps:
   ros__parameters:
     can_bus: "can1"
@@ -175,10 +172,57 @@ carousel_outer:
         can_id: 0xFFF
         function_id: 0x02
 
+litmus_dipper:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        hardware_name: "dipper"
+        min_angle: 0.0
+        max_angle: 180.0 # tune this, should ideally be same as lowered_pos or slightly higher?
+        initial_angle: 0.0
+        raised_pos: 0.0 # tune this
+        lowered_pos: 180.0 # tune this
+        twitch_service: "/science/litmus_dipper/twitch"
+    hardware:
+      dipper:
+        can_id: 0x0E0
+        angular_limit: 180.0
+
 heaters:
   ros__parameters:
     can_bus: "can1"
     update_rate: 5
+
+spec_leds:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        led_list: [ "vis_spec_central_led", "vis_spec_nile_red", "vis_spec_camera", "vis_spec_nadh", "litmus_led" ]
+    hardware:
+      vis_spec_central_led:
+        can_id: 0x0FC
+        on_command: 0x01
+        off_command: 0x00
+      vis_spec_nile_red:
+        can_id: 0x0F3
+        on_command: 0x01
+        off_command: 0x00
+      vis_spec_camera:
+        can_id: 0x0F2
+        on_command: 0x01
+        off_command: 0x00
+      vis_spec_nadh:
+        can_id: 0x0FB
+        on_command: 0x01
+        off_command: 0x00
+      litmus_led:
+        can_id: 0x0FA
+        on_command: 0x01
+        off_command: 0x00
 
 # Misc - Nodes for misc components
 scimbal_cam:
@@ -192,6 +236,29 @@ scimbal_cam:
       tilt:
         can_id: 0x0E1
         angular_limit: 90.0
+
+cache_left:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        cache_name: "cache_left"
+    hardware:
+      actuation:
+        can_id: 0xE3
+
+cache_right:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+    controllers:
+      controller:
+        cache_name: "cache_right"
+    hardware:
+      actuation:
+        can_id: 0xE2
+
 
 bme_sensor:
   ros__parameters:

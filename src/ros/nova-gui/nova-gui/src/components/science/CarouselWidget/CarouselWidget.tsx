@@ -56,9 +56,6 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
     degreesToCuvette(RING.OUTER, useManualPosition ? manualPositions[RING.OUTER] : outerFeedback.position)
   ], [useManualPosition, manualPositions, innerFeedback, outerFeedback]);
 
-
-  console.log(currentCuvettes[0], currentCuvettes[1], " | ", manualPositions[0], manualPositions[1], degreesToCuvette(RING.OUTER, manualPositions[1]))
-
   // Check if either ring is zeroing
   const isZeroing = innerFeedback.zeroing || outerFeedback.zeroing;
 

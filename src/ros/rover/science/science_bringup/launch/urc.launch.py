@@ -95,6 +95,26 @@ def launch_setup(context, *args, **kwargs):
                 science_params,
             ],
         ),
+        Node(
+            name='cache_left',
+            package='science',
+            executable='cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
+        Node(
+            name='cache_right',
+            package='science',
+            executable='cache.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params
+            ],
+        ),
 
 
         # Science Belly - Nodes for components in the belly
@@ -129,6 +149,16 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
+            name='litmus_dipper',
+            package='science',
+            executable='litmus_dipper.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+            science_params,
+            ],
+        ),
+        Node(
             name='heater',
             package='science',
             executable='heater.py',
@@ -155,6 +185,16 @@ def launch_setup(context, *args, **kwargs):
             name='power_cycle',
             package='science',
             executable='power_cycle.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
+            name='spec_leds',
+            package='science',
+            executable='spec_leds.py',
             output='screen',
             emulate_tty=True,
             parameters=[
