@@ -21,6 +21,7 @@ from typing import Optional
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSDurabilityPolicy
 from python_control2 import PythonControl, Controller
 from python_control2.controller_manager.Interface import InterfaceCollection
 from python_control2.controller_manager.Contexts import Contexts
@@ -50,7 +51,12 @@ class HydraprobeController(Controller):
         self.humidity_state = state_interfaces["humidity/percent"]
         self.temperature_state = state_interfaces["temperature/celsius"]
 
-        self.publisher = self.node.create_publisher(HydraprobeData, self.data_topic, 10)
+        qos_profile = QoSProfile(
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL
+        )
+        self.publisher = self.node.create_publisher(HydraprobeData, self.data_topic, qos_profile)
 
         return True
 
