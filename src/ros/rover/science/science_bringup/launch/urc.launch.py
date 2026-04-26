@@ -123,6 +123,16 @@ def launch_setup(context, *args, **kwargs):
                 science_params
             ],
         ),
+        Node(
+            name='hydraprobe',
+            package='science',
+            executable='hydraprobe.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
 
 
         # Science Belly - Nodes for components in the belly
@@ -166,7 +176,7 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             emulate_tty=True,
             parameters=[
-            science_params,
+                science_params,
             ],
         ),
         Node(

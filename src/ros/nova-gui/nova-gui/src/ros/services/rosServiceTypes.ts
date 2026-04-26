@@ -3,8 +3,6 @@ import {
   IRosCameraMsgsCameraOperationResponse,
   IRosBlcmdInterfacesBlcmdResetRequest,
   IRosBlcmdInterfacesBlcmdResetResponse,
-  IRosScienceInterfacesMoveMicroscopeServoRequest,
-  IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosArmInterfacesTypeSequenceRequest,
   IRosArmInterfacesTypeSequenceResponse,
   IRosStdSrvsTriggerResponse,
@@ -17,8 +15,6 @@ import {
   IRosScienceInterfacesRamanMechRequest,
   IRosScienceInterfacesRamanMechResponse,
   IRosCameraMsgsGetIpListResponse,
-  IRosStdSrvsSetBoolResponse,
-  IRosStdSrvsSetBoolRequest,
   IRosScienceInterfacesMoveScimbalCamRequest,
   IRosScienceInterfacesMoveScimbalCamResponse,
   IRosScienceInterfacesTakeNirProbeReadingRequest,
@@ -29,8 +25,6 @@ import {
   IRosScienceInterfacesCacheCommandResponse,
   IRosNovaInterfacesCartographerCommandRequest,
   IRosNovaInterfacesCartographerCommandResponse,
-  IRosScienceInterfacesMoveHydraprobeRequest,
-  IRosScienceInterfacesMoveHydraprobeResponse,
   IRosScienceInterfacesSetPositionRequest,
   IRosScienceInterfacesSetPositionResponse,
   IRosScienceInterfacesPowerCycleRequest,
@@ -109,10 +103,6 @@ export interface RosServiceInterface {
   >;
 
   // Science Related
-  [RosService.MIXERS]: RosServiceMessage<
-    IRosStdSrvsSetBoolRequest,
-    IRosStdSrvsSetBoolResponse
-  >;
   [RosService.THERMAL_COMMAND]: RosServiceMessage<
     IRosScienceInterfacesThermalCommandRequest,
     IRosScienceInterfacesThermalCommandResponse
@@ -132,14 +122,6 @@ export interface RosServiceInterface {
   [RosService.SCIMBAL_COMMAND]: RosServiceMessage<
     IRosScienceInterfacesMoveScimbalCamRequest,
     IRosScienceInterfacesMoveScimbalCamResponse
-  >;
-  [RosService.HYDRAPROBE_COMMAND]: RosServiceMessage<
-    IRosScienceInterfacesMoveHydraprobeRequest,
-    IRosScienceInterfacesMoveHydraprobeResponse
-  >;
-  [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
-    IRosScienceInterfacesMoveMicroscopeServoRequest,
-    IRosScienceInterfacesMoveMicroscopeServoResponse
   >;
   [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<
     EmptyMessage,
