@@ -5,6 +5,7 @@ import {Check, MoreHorizontal} from "react-feather";
 import CarouselDial from "./CarouselDial.tsx";
 import CarouselControls from "./CarouselControls.tsx";
 import {useCarouselFeedback, useCarouselSetPosition, useCarouselIncrementZero} from "./useCarouselBifrost.ts";
+import {CarouselHallEffects} from "./CarouselHallEffects.tsx";
 
 export enum RING {
   INNER = 0,
@@ -55,9 +56,6 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
     degreesToCuvette(RING.INNER, useManualPosition ? manualPositions[RING.INNER] : innerFeedback.position),
     degreesToCuvette(RING.OUTER, useManualPosition ? manualPositions[RING.OUTER] : outerFeedback.position)
   ], [useManualPosition, manualPositions, innerFeedback, outerFeedback]);
-
-
-  console.log(currentCuvettes[0], currentCuvettes[1], " | ", manualPositions[0], manualPositions[1], degreesToCuvette(RING.OUTER, manualPositions[1]))
 
   // Check if either ring is zeroing
   const isZeroing = innerFeedback.zeroing || outerFeedback.zeroing;
@@ -176,6 +174,7 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
           variant={RING.INNER}
           disabled={isZeroing}
         />
+        <CarouselHallEffects/>
       </div>
     </CardBody>
   </Card>

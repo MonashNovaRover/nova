@@ -3,8 +3,6 @@ import {
   IRosCameraMsgsCameraOperationResponse,
   IRosBlcmdInterfacesBlcmdResetRequest,
   IRosBlcmdInterfacesBlcmdResetResponse,
-  IRosScienceInterfacesMoveMicroscopeServoRequest,
-  IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosArmInterfacesTypeSequenceRequest,
   IRosArmInterfacesTypeSequenceResponse,
   IRosStdSrvsTriggerResponse,
@@ -17,8 +15,6 @@ import {
   IRosScienceInterfacesRamanMechRequest,
   IRosScienceInterfacesRamanMechResponse,
   IRosCameraMsgsGetIpListResponse,
-  IRosStdSrvsSetBoolResponse,
-  IRosStdSrvsSetBoolRequest,
   IRosScienceInterfacesMoveScimbalCamRequest,
   IRosScienceInterfacesMoveScimbalCamResponse,
   IRosScienceInterfacesTakeNirProbeReadingRequest,
@@ -29,8 +25,6 @@ import {
   IRosScienceInterfacesCacheCommandResponse,
   IRosNovaInterfacesCartographerCommandRequest,
   IRosNovaInterfacesCartographerCommandResponse,
-  IRosScienceInterfacesMoveHydraprobeRequest,
-  IRosScienceInterfacesMoveHydraprobeResponse,
   IRosScienceInterfacesSetPositionRequest,
   IRosScienceInterfacesSetPositionResponse,
   IRosScienceInterfacesPowerCycleRequest,
@@ -45,6 +39,8 @@ import {
   IRosScienceInterfacesSetNamedPositionsResponse,
   IRosScienceInterfacesIncrementZeroRequest,
   IRosScienceInterfacesIncrementZeroResponse,
+  IRosScienceInterfacesSetNamedBoolRequest,
+  IRosScienceInterfacesSetNamedBoolResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -107,10 +103,6 @@ export interface RosServiceInterface {
   >;
 
   // Science Related
-  [RosService.MIXERS]: RosServiceMessage<
-    IRosStdSrvsSetBoolRequest,
-    IRosStdSrvsSetBoolResponse
-  >;
   [RosService.THERMAL_COMMAND]: RosServiceMessage<
     IRosScienceInterfacesThermalCommandRequest,
     IRosScienceInterfacesThermalCommandResponse
@@ -131,14 +123,6 @@ export interface RosServiceInterface {
     IRosScienceInterfacesMoveScimbalCamRequest,
     IRosScienceInterfacesMoveScimbalCamResponse
   >;
-  [RosService.HYDRAPROBE_COMMAND]: RosServiceMessage<
-    IRosScienceInterfacesMoveHydraprobeRequest,
-    IRosScienceInterfacesMoveHydraprobeResponse
-  >;
-  [RosService.MOVE_MICROSCOPE_SERVO]: RosServiceMessage<
-    IRosScienceInterfacesMoveMicroscopeServoRequest,
-    IRosScienceInterfacesMoveMicroscopeServoResponse
-  >;
   [RosService.THETA_360_CAM_CAPTURE]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
@@ -151,13 +135,9 @@ export interface RosServiceInterface {
     IRosScienceInterfacesRamanMechRequest,
     IRosScienceInterfacesRamanMechResponse
   >;
-  [RosService.UV_VIS_LED_1]: RosServiceMessage<
-    IRosStdSrvsSetBoolRequest,
-    IRosStdSrvsSetBoolResponse
-  >;
-  [RosService.UV_VIS_LED_2]: RosServiceMessage<
-    IRosStdSrvsSetBoolRequest,
-    IRosStdSrvsSetBoolResponse
+  [RosService.LEDS]: RosServiceMessage<
+    IRosScienceInterfacesSetNamedBoolRequest,
+    IRosScienceInterfacesSetNamedBoolResponse
   >;
   [RosService.CACHE_1]: RosServiceMessage<
     IRosScienceInterfacesCacheCommandRequest,
@@ -198,6 +178,18 @@ export interface RosServiceInterface {
   [RosService.CAROUSEL_OUTER_INCREMENT_ZERO]: RosServiceMessage<
     IRosScienceInterfacesIncrementZeroRequest,
     IRosScienceInterfacesIncrementZeroResponse
+  >;
+  [RosService.LITMUS_DIPPER_DIP]: RosServiceMessage<
+    IRosScienceInterfacesRunPumpRequest,
+    IRosScienceInterfacesRunPumpResponse
+  >;
+  [RosService.LITMUS_DIPPER_STOP]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.LITMUS_DIPPER_TWITCH]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
   >;
   [RosService.ZERO_ANALYSIS_ARM]: RosServiceMessage<
     EmptyMessage,

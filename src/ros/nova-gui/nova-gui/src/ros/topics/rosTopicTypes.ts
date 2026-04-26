@@ -75,12 +75,13 @@ export interface RosTopicInterfaces {
   [RosTopic.HYDRAPROBE_DATA]: IRosScienceInterfacesHydraprobeData;
   [RosTopic.THETA_360_CAM_IMAGE]: IRosSensorMsgsCompressedImage;
   [RosTopic.BME_SENSOR]: IRosScienceInterfacesBmeSensor;
-  [RosTopic.AUGER1_DEPTH_SENSOR]: IRosStdMsgsBool;
-  [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
+  [RosTopic.AUGER_LEFT_DEPTH]: IRosStdMsgsBool;
+  [RosTopic.AUGER_RIGHT_DEPTH]: IRosStdMsgsBool;
   [RosTopic.TOOL_ROTATOR_ANGLE]: IRosStdMsgsFloat64;
   [RosTopic.PUMPS_STATUS]: IRosScienceInterfacesPumpStatus;
   [RosTopic.CAROUSEL_INNER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
   [RosTopic.CAROUSEL_OUTER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
+  [RosTopic.LITMUS_DIPPER_STATUS]: IRosScienceInterfacesPumpStatus;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;

@@ -53,6 +53,12 @@ thrustmaster_left:
         analysis_arm_actuation:
           from: "l_ax_stick_y"
 
+        # Caches
+        cache_left_actuation:
+          from: "l_ax_stick_y"
+        cache_left_speed:
+          from: "l_ax_slider"
+
       buttons:
         # Lock/Unlock
         lock:
@@ -104,6 +110,17 @@ thrustmaster_right:
           from: "r_ax_stick_y"
         auger_drill_speed:
           from: "r_ax_slider"
+
+        # Caches
+        cache_right_actuation:
+          from: "r_ax_stick_y"
+        cache_right_speed:
+          from: "r_ax_slider"
+        cache_left_actuation:
+          from: "l_ax_stick_y"
+        cache_left_speed:
+          from: "l_ax_slider"
+
 
       buttons:
         # Auger
