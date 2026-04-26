@@ -17,7 +17,7 @@ const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
 
   const siteAnalysisView = (
-    <div className="grid grid-flow-col auto-cols-fr gap-3 m-3">
+    <div className="grid grid-flow-col auto-cols-fr gap-3 p-3 overflow-auto flex-1 min-h-0">
       <div className="flex flex-col gap-3 col-span-2">
         <URCNIRProbeWidget/>
       </div>
@@ -37,7 +37,7 @@ const URCScienceView: React.FC = () => {
   )
 
   const VisSpecView = (
-    <div className="grid grid-flow-col auto-cols-fr gap-3 m-3">
+    <div className="grid grid-flow-col auto-cols-fr gap-3 p-3 overflow-auto flex-1 min-h-0">
       <div className="flex flex-col gap-3 col-span-2">
         <URCUVVisSpecView/>
       </div>
@@ -57,7 +57,7 @@ const URCScienceView: React.FC = () => {
   )
 
   return (
-    <div>
+    <div className="flex flex-col overflow-hidden" style={{ height: "calc(100vh - 4.05rem)" }}>
       <SegmentedPicker
         selectedIndex={selectedTab}
         onIndexChange={setSelectedTab}

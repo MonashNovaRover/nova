@@ -22,14 +22,11 @@ export const rosServiceMessages = {
   [RosService.BLCMD_RESET]: "blcmd_interfaces/srv/BLCMDReset",
 
   // Science Related
-  [RosService.MIXERS]: "std_srvs/srv/SetBool",
   [RosService.THERMAL_COMMAND]: "science_interfaces/srv/ThermalCommand",
   [RosService.WATER_PUMP_COMMAND]: "science_interfaces/srv/EffortCommand",
   [RosService.DIAPHRAGM_PUMP_COMMAND]: "science_interfaces/srv/EffortCommand",
   [RosService.SCIMBAL_COMMAND]: 'science_interfaces/srv/MoveScimbalCam',
-  [RosService.HYDRAPROBE_COMMAND]: 'science_interfaces/srv/MoveHydraprobe',
   [RosService.TAKE_NIR_PROBE_READING]: "science_interfaces/srv/TakeNIRProbeReading",
-  [RosService.MOVE_MICROSCOPE_SERVO]: "science_interfaces/srv/MoveMicroscopeServo",
   [RosService.THETA_360_CAM_CAPTURE]: "std_srvs/srv/Trigger",
   [RosService.CALL_RAMAN_SPEC]: "science_interfaces/srv/RamanSpec",
   [RosService.CALL_RAMAN_MECH]: "science_interfaces/srv/RamanMech",

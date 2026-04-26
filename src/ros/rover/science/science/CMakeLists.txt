@@ -59,13 +59,10 @@ install(PROGRAMS
         science/urc/carousel.py
         science/urc/litmus_dipper.py
         science/urc/heater.py
-        science/urc/hydraprobe_trigger_node.py
+        science/urc/hydraprobe.py
         science/urc/pumps.py
         science/urc/spec_leds.py
         science/urc/bme_sensor.py
-        science/urc/urc_carousel.py
-        science/urc/urc_hydraprobe.py
-        science/urc/urc_hydraprobe_control.py
         science/urc/urc_mixers.py
         science/urc/urc_raman_mech_server.py
         science/urc/urc_raman_spec_server.py
