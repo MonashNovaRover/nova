@@ -205,7 +205,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value='new.controllers_old.yaml',
+            default_value='new.controllers.yaml',
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
