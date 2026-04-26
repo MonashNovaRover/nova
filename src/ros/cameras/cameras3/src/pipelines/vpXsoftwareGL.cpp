@@ -182,7 +182,7 @@ vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::N
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
 
-  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", true);
+  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // filter
   props->format = "I420";
@@ -264,10 +264,8 @@ vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::N
   // 2. Finalize props
 
   // Disable crop43 if it is already 4:3
-  const int crop_width = crop43(props->width, props->height);
-  if (crop_width == 0) {
-      props->crop43 = false;
-  }
+  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
+  if (crop_width == 0) props->crop43 = false;
 
   display_resolution(streamer_node, props, camera, crop_width);
 

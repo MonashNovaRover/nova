@@ -139,7 +139,7 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
 
-  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", true);
+  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // filter
   default_string = "I420";
@@ -186,11 +186,10 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
   props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
 
   // 2. Finalize props
-  
+
   // Disable crop43 if it is already 4:3
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
   if (crop_width == 0) props->crop43 = false;
-
   display_resolution(streamer_node, props, camera, crop_width);
 
   return props;

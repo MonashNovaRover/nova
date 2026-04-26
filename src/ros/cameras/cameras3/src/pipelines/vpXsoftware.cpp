@@ -156,7 +156,7 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", "mmap");
 
-  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", true);
+  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // filter
   props->format = "I420";
