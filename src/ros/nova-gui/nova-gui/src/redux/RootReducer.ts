@@ -262,14 +262,14 @@ export const reduxStores = {
       altitude: 0,
     }
   ),
-  auger1DepthSensorStore: createBifrostStore(
-    { topic: RosTopic.AUGER1_DEPTH_SENSOR },
+  augerLeftDepthStore: createBifrostStore(
+    { topic: RosTopic.AUGER_LEFT_DEPTH },
     {
       data: false
     }
   ),
-  auger2DepthSensorStore: createBifrostStore(
-    { topic: RosTopic.AUGER2_DEPTH_SENSOR },
+  augerRightDepthStore: createBifrostStore(
+    { topic: RosTopic.AUGER_RIGHT_DEPTH },
     {
       data: false
     }
@@ -289,11 +289,11 @@ export const reduxStores = {
   ),
   carouselInnerFeedback: createBifrostStore(
     { topic: RosTopic.CAROUSEL_INNER_FEEDBACK },
-    { position: 0, current: 0, load: 0, zeroing: false }
+    { position: 0, current: 0, load: 0, zeroing: false, hall_effect_triggered: false }
   ),
   carouselOuterFeedback: createBifrostStore(
     { topic: RosTopic.CAROUSEL_OUTER_FEEDBACK },
-    { position: 0, current: 0, load: 0, zeroing: false }
+    { position: 0, current: 0, load: 0, zeroing: false, hall_effect_triggered: false }
   ),
   litmusDipperStatusStore: createBifrostStore(
     { topic: RosTopic.LITMUS_DIPPER_STATUS },

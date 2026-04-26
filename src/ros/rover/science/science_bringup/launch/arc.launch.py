@@ -36,6 +36,7 @@ def launch_setup(context, *args, **kwargs):
     ])
 
     science_params = LaunchConfiguration('science_params')
+    can_bus = LaunchConfiguration('can')
 
     return [
         # Analysis Arm - Nodes for components on the analysis arm
@@ -47,6 +48,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -57,6 +59,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -66,7 +69,8 @@ def launch_setup(context, *args, **kwargs):
             output='screen',
             emulate_tty=True,
             parameters=[
-                science_params
+                science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -77,6 +81,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -85,7 +90,10 @@ def launch_setup(context, *args, **kwargs):
             executable='nir_probe.py',
             output='screen',
             emulate_tty=True,
-            parameters=[science_params],
+            parameters=[
+                science_params,
+                {'can_bus': can_bus},
+            ],
         ),
 
         # CBeam - Nodes for components on the CBeam
@@ -97,6 +105,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -107,6 +116,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -117,6 +127,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -127,6 +138,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -137,6 +149,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -147,6 +160,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         Node(
@@ -157,6 +171,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
 
@@ -169,6 +184,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
         # Misc - Nodes for misc components
@@ -180,6 +196,7 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             parameters=[
                 science_params,
+                {'can_bus': can_bus},
             ],
         ),
 
@@ -189,7 +206,7 @@ def launch_setup(context, *args, **kwargs):
                 PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
             ),
             launch_arguments={
-                "bus" : "can1",
+                "bus" : can_bus,
                 "bitrate" : "250000",
                 "log_name" : "science-arc",
             }.items()
@@ -198,7 +215,7 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     science_bringup_dir = PythonExpression([
-        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/science_bringup/']),
+        '"', PathJoinSubstitution(['/home/nova/nova/src/ros/rover/science/science_bringup/']),
         '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
         FindPackageShare('science_bringup'), '"'
     ])
@@ -214,6 +231,11 @@ def generate_launch_description():
             name='science_params',
             default_value=PathJoinSubstitution([science_bringup_dir, 'params', 'arc.yaml']),
             description='The main parameter file to use for the science nodes',
+        ),
+        DeclareLaunchArgument(
+            name='can',
+            default_value='can1',
+            description='CAN bus to use for all science nodes (overrides can_bus parameter in params file)',
         ),
     ]
 
