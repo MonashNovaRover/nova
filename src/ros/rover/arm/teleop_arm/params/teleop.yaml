@@ -170,6 +170,7 @@ task_space_mode:
   ros__parameters:
     # Topic to send TwistStamped messages to.
     stamped_topic: "/arm/task_space_twist_command"
+    # frame_id: "endeffector_kinematics"
     # Use the input named "speed" to scale everything.
     use_speed_input: true
 
@@ -187,22 +188,25 @@ task_space_mode:
         normalized: true
         scale_with_speed: true
       angular:
-        all: 0.3
+        all: 0.1
         normalized: true
         scale_with_speed: true
 
 task_space_velocity_mode:
   ros__parameters:
+    # Topic to send TwistStamped messages to.
     stamped_topic: "/arm/task_space_twist_command"
     # frame_id: "endeffector_kinematics"
+    # Use the input named "speed" to scale everything.
     use_speed_input: true
 
     scale:
       linear:
         all: 0.05
       angular:
-        all: 0.3
+        all: 0.1
 
+    # Prevent velocities larger than the specified values from being emitted
     limits:
       linear:
         all: 0.05

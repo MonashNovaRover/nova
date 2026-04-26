@@ -14,6 +14,11 @@ gps_base:
 gps_rover:
   ros__parameters:
     baudrate: 115200
-    port_name: /dev/ttyUSB1
+    port_name: /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
     gps_module: skytraq
     publisher_rate: 30
+
+magnetometer:
+  ros__parameters:
+    bus: 7
+    addr: 0x1E

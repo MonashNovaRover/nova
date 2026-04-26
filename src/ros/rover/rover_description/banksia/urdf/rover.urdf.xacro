@@ -10,7 +10,6 @@
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="old_arm" default="false"/>
     <xacro:arg name="auto_mount" default="false"/>
-    <xacro:arg name="shortened_auto_mount" default="true"/>
     <xacro:arg name="robot_name" default="Banksia"/>
     <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 

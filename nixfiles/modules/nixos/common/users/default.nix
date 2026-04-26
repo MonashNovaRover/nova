@@ -40,12 +40,36 @@
             wheel.name
             video.name
             dialout.name
+            realtime.name
           ];
         };
       }
     ];
 
     nix.settings.trusted-users = lib.optional config.nova.users.nova.enable config.users.users.nova.name;
+
+    # Allow RT FIFO Scheduler, locking memory not in swap for ros2control
+    users.groups.realtime = {};
+    security.pam.loginLimits = [
+      {
+        domain = "@realtime";
+        item = "rtprio";
+        type = "-";
+        value = "99";
+      }
+      {
+        domain = "@realtime";
+        item = "priority";
+        type = "-";
+        value = "99";
+      }
+      {
+        domain = "@realtime";
+        item = "memlock";
+        type = "-";
+        value = "unlimited";
+      }
+    ];
 
     home-manager = {
       useUserPackages = true;

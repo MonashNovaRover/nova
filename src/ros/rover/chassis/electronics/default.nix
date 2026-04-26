@@ -30,12 +30,16 @@ buildRosPackage {
     nova-coms-utils 
     pynmeagps 
     pyrtcm 
-    pyubx2 
+    pyubx2
+    smbus2 
+    wmm-calculator
     pandas 
     folium 
+    pymavlink
   ] ++ [ 
     ublox-ubx-msgs
     sensor-msgs
     fabric
+    nova-interfaces
   ];
 }

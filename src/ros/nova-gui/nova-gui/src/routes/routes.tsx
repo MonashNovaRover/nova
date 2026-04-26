@@ -25,12 +25,14 @@ import URC360CamView from "../views/urc/URC360CamView.tsx";
 import URCRamanView from "../views/urc/URCRamanView.tsx";
 import URCAutoTypingView from "../views/urc/URCAutoTypingView.tsx";
 import { URCCartographerView } from "../views/urc/URCCartographerView.tsx";
+import { URCDeliveryCartographerView } from "../views/urc/URCDeliveryCartographerView.tsx";
 import TestStateView from "../views/test/TestStateView/TestStateView.tsx";
 import TestOverlayView from "../views/test/TestOverlayView/TestOverlayView.tsx";
 import URCGazeboView from "../views/urc/URCGazebo.tsx";
 import HomePageView from "../views/shared/HomePageView.tsx";
 import { arcNavigationData, compNavigationData, generalNavigationData, testNavigationData, urcNavigationData } from "../utils/NavigationRoutes.tsx";
 import PageNotFoundView from "../views/shared/PageNotFound.tsx";
+import {YoloProvider} from "../components/auto/ObjectDetection/YoloProvider.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -85,6 +87,10 @@ export const urcRoutes: RouteObject[] = [
     element: <URCDeliveryView />,
   },
   {
+    path: "/urc/delivery/cartographer",
+    element: <URCDeliveryCartographerView />,
+  },
+  {
     path: "/urc/equipment-servicing",
     element: <URCEquipmentServicingView />,
   },
@@ -122,7 +128,9 @@ export const urcRoutes: RouteObject[] = [
   },
   ...Object.values(URCCompModes).map<RouteObject>((comp) => ({
     path: `/urc/cameras/${comp}`,
-    element: <CameraView views={urcCameraSetup[comp]}/>,
+    element: comp == URCCompModes.URC_AUTONOMOUS
+      ? <YoloProvider><CameraView views={urcCameraSetup[comp]}/></YoloProvider>
+      : <CameraView views={urcCameraSetup[comp]} />,
   })),
 ];
 

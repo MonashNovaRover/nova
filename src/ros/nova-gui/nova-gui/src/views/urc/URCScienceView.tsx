@@ -9,7 +9,7 @@ import CarouselWidgetV2 from "../../components/science/CarouselWidget/CarouselWi
 import SegmentedPicker from "../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
-import HeaterWidget from "../../components/science/HeaterWidget/HeaterWidget.tsx";
+import HeaterWidget from "../../components/science/ThermalControl/HeaterWidget.tsx";
 import {CameraControlModalButton} from "../../components/cameras/CameraPage/CameraControlModelButton.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
 
@@ -48,12 +48,11 @@ const URCScienceView: React.FC = () => {
       <div className="flex flex-col gap-3 col-span-2">
         <PumpsWidget/>
         <CarouselWidgetV2/>
-        <HeaterWidget/>
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
+        <HeaterWidget/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_CUVETTE}/>
-        <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_UV_VIS}/>
         <CameraControlModalButton/>
       </div>
     </div>

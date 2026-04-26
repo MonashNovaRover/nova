@@ -19,7 +19,7 @@ EDITED:     05/01/2026
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
+from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution, EnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
@@ -54,23 +54,22 @@ def launch_setup(context, *args, **kwargs):
     navigation = LaunchConfiguration('navigation')
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
-    sim_params = LaunchConfiguration('sim_params')
     use_respawn = LaunchConfiguration('use_respawn')
-    fastlivo2 = LaunchConfiguration('fastlivo2')
+    lidar = LaunchConfiguration('lidar')
     fastlivo2_params = LaunchConfiguration('fastlivo2_params')
     mppi_config = LaunchConfiguration('mppi_config')
 
     # comp defaults
     if comp == 'arch':
-        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_arch'])
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'nav2'])
         localization = 'False'
-        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_arch.yaml'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'rl_arch.yaml'])
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
         gps = 'False'
     elif comp == 'urc':
-        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_urc'])
+        nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'nav2'])
         localization = 'True'
-        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_urc.yaml'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'rl_urc.yaml'])
         world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf'])
         gps = 'True'
     else:
@@ -91,6 +90,7 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
+                'local': local,
                 'comp': comp,
                 'controller_params': controller_params,
                 'model': model,
@@ -103,11 +103,23 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=UnlessCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
+            launch_arguments={
+                'local': local,
+            }.items(),
+        ),
+        IncludeLaunchDescription(
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'realsense.launch.py'])),
+            launch_arguments={
+                'local': local,
+                'comp': comp,
+                'sim': gazebo,
+            }.items()
         ),
         IncludeLaunchDescription(
             condition=IfCondition(localization),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'localization.launch.py'])),
             launch_arguments={
+                'local': local,
                 'comp': comp,
                 'gazebo': gazebo,
                 'gps': gps,
@@ -118,13 +130,13 @@ def launch_setup(context, *args, **kwargs):
             condition=IfCondition(navigation),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'navigation.launch.py'])),
             launch_arguments={
+                'local': local,
                 'comp': comp,
                 'autostart': autostart,
                 'container_name': 'nav2_container',
                 'log_level': log_level,
                 'namespace': namespace,
                 'nav2_params_dir': nav2_params_dir,
-                'sim_params': sim_params,
                 'use_respawn': use_respawn,
                 'gazebo': gazebo,
                 'map_params': map_params,
@@ -132,9 +144,11 @@ def launch_setup(context, *args, **kwargs):
             }.items()
         ),
         IncludeLaunchDescription(
-            condition=IfCondition(fastlivo2),
+            condition=IfCondition(lidar),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'lidar.launch.py'])),
             launch_arguments={
+                'local': local,
+                'comp': comp,
                 'fastlivo2_params': fastlivo2_params,
                 'sim': gazebo,
             }.items(),
@@ -166,7 +180,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value='arch',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
             description='ARCh or URC',
         ),
         # comp agnostic arguments
@@ -192,7 +206,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='map_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'map.yaml']),
+            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'map.yaml']),
             description='Full path to the parameters file to use for static map layer',
         ),
         DeclareLaunchArgument(
@@ -221,19 +235,14 @@ def generate_launch_description():
             description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
         ),
         DeclareLaunchArgument(
-            name='sim_params',
-            default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'nav2_sim.yaml']),
-            description='Sim parameters to use if using sim time', 
-        ),
-        DeclareLaunchArgument(
             name='use_respawn',
             default_value='False',
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
         DeclareLaunchArgument(
-            name='fastlivo2',
+            name='lidar',
             default_value='True',
-            description='Launch FAST-LIVO2?',
+            description='Launch LiDAR nodes?',
         ),
         DeclareLaunchArgument(
             name='fastlivo2_params',

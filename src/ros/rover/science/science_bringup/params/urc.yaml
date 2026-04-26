@@ -123,6 +123,63 @@ pumps:
       shot_to_electrochem_pump:
         can_id: 0x000
 
+carousel_inner:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        initial_position: 0.0
+        hardware_name: "carousel"
+    hardware:
+      carousel:
+        zero_cmd_can_id: 0xFFC  # TODO: update
+        zero_cmd_can_msg: [0x10]
+        zero_rec_can_id: 0xFFD
+        zero_rec_can_msg: [0x10]
+        zero_service: "/science/carousel_inner/trigger_zero"
+        zero_increment_service: "/science/carousel_inner/increment_zero"
+      servo:
+        can_id: 0x0EA
+        function_id: 0x01
+      carousel_position_sensor:
+        can_id: 0xFFB
+        function_id: 0x01
+      carousel_load_current_sensor:
+        can_id: 0xFFA
+        function_id: 0x02
+
+carousel_outer:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 10
+    controllers:
+      controller:
+        initial_position: 0.0
+        hardware_name: "carousel"
+    hardware:
+      carousel:
+        zero_cmd_can_id: 0xFFA
+        zero_cmd_can_msg: [0x10]
+        zero_rec_can_id: 0xFFE
+        zero_rec_can_msg: [0x10]
+        zero_service: "/science/carousel_outer/trigger_zero"
+        zero_increment_service: "/science/carousel_outer/increment_zero"
+      servo:
+        can_id: 0x0EA
+        function_id: 0x02
+      carousel_position_sensor:
+        can_id: 0xFFD
+        function_id: 0x01
+      carousel_load_current_sensor:
+        can_id: 0xFFF
+        function_id: 0x02
+
+heaters:
+  ros__parameters:
+    can_bus: "can1"
+    update_rate: 5
+
 # Misc - Nodes for misc components
 scimbal_cam:
   ros__parameters:

@@ -32,7 +32,7 @@ export enum RosTopic {
   // Science Related topics
   TOF = "/science/tof/distance",
   AA_POS = "/science/analysis_arm/position",
-  KILN_DATA = "/science/kiln_data",
+  THERMAL_DATA = "/science/thermal_data",
   WATER_PUMP_STATUS = "/science/water_pump_status",
   DIAPHRAGM_PUMP_STATUS = "/science/diaphragm_pump_status",
   NIR_DATA = "/science/nir_probe_data",
@@ -47,10 +47,13 @@ export enum RosTopic {
   AUGER2_DEPTH_SENSOR = "/science/auger_depth/Auger2",
   TOOL_ROTATOR_ANGLE = "/science/tool_rotator/position",
   PUMPS_STATUS = "/science/pumps/status",
+  CAROUSEL_INNER_FEEDBACK = "/science/carousel_inner/feedback",
+  CAROUSEL_OUTER_FEEDBACK = "/science/carousel_outer/feedback",
 
   // Mapping Related Topics
-  ROVER_LOCATION = "/gps_rover/fix",
-  BASE_LOCATION = "/gps_base/fix",
+  ROVER_LOCATION = "/gps_rover/fix_custom",
+  BASE_LOCATION = "/gps_base/fix_custom",
+  DRONE_LOCATION = "/gps_drone/fix_custom",
   AUTO_STATUS = "/auto/status",
 
   // Other Topics

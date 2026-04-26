@@ -301,12 +301,42 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     this->collision_limiter.enforce(current, desired, period);
   }
 
+  if (this->joint_command_type() == HW_IF_POSITION) {
+    // if we are in position control mode, ensure that when one joint is limited, the others are too
+    // do this proportionally based on how much the most limited joint's desired delta position is left after limiting
+
+    double mostLimitingFactor = 1;
+
+    for (unsigned int i = 0; i < registered_joint_handles_.size(); i++) {
+      double currentPos = current.positions.at(i);
+      double desiredPos = originalDesired.positions.at(i);
+      double limitedPos = desired.positions.at(i);
+
+      double desiredDeltaPos = (desiredPos - currentPos);
+      double limitedDeltaPos = (limitedPos - currentPos);
+
+      double limitingFactor = limitedDeltaPos / desiredDeltaPos;
+
+      if (!std::isnan(limitingFactor) && limitingFactor < mostLimitingFactor && limitingFactor >= 0) {
+        mostLimitingFactor = limitingFactor;
+      }
+    }
+
+    for (unsigned int i = 0; i < registered_joint_handles_.size(); i++) {
+      double currentPos = current.positions.at(i);
+      double desiredPos = originalDesired.positions.at(i);
+
+      // apply this factor to the original value so it doesn't get applied twice to joints already limited
+      originalDesired.positions.at(i) = currentPos + (desiredPos - currentPos)*mostLimitingFactor;
+    }
+
+  }
+
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
     double reference_value;
     if (this->joint_command_type() == HW_IF_POSITION) {
-      //TODO: test this
       double currentPos = current.positions.at(i);
       double desiredPos = originalDesired.positions.at(i);
       double limitedPos = desired.positions.at(i);

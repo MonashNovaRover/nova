@@ -73,14 +73,17 @@ list(APPEND plugin_libs nova_led_service_bt_node)
 add_library(nova_remove_passed_urc_goals_action_bt_node SHARED plugins/action/remove_passed_urc_goals_action.cpp)
 list(APPEND plugin_libs nova_remove_passed_urc_goals_action_bt_node)
 
-add_library(nova_update_urc_goals_action_bt_node SHARED plugins/action/update_urc_goals_action.cpp)
-list(APPEND plugin_libs nova_update_urc_goals_action_bt_node)
+add_library(nova_set_detection_goal_action_bt_node SHARED plugins/action/set_detection_goal_action.cpp)
+list(APPEND plugin_libs nova_set_detection_goal_action_bt_node)
 
 add_library(nova_snap_in_collision_goals_action_bt_node SHARED plugins/action/snap_in_collision_goals_action.cpp)
 list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
 
 add_library(nova_remove_nearby_in_collision_goals_action_bt_node SHARED plugins/action/remove_nearby_in_collision_goals_action.cpp)
 list(APPEND plugin_libs nova_remove_nearby_in_collision_goals_action_bt_node)
+
+add_library(nova_get_dist_between_poses_action_bt_node SHARED plugins/action/get_dist_between_poses_action.cpp)
+list(APPEND plugin_libs nova_get_dist_between_poses_action_bt_node)
 
 # ========================================= CONDITION NODES ========================================= #
 

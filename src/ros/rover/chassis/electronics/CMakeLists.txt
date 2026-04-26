@@ -50,6 +50,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
+  electronics/magnetometer.py
   electronics/rfid_client_terminal.py
   electronics/rfid_service.py
   electronics/gimbal_service.py
@@ -66,6 +67,7 @@ install(PROGRAMS
   electronics/dgps/gps_data_plotter.py
   electronics/dgps/gps_rover.py
   electronics/dgps/gps_test_localisation.py
+  electronics/dgps/gps_drone.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

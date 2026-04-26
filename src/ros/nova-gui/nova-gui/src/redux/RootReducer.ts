@@ -11,7 +11,7 @@ import {
   IRosStdMsgsHeader
 } from "../ros/rosTypes";
 import {cartographerSlice} from "./slices/CartographerSlice";
-import {initialNavSatMessage} from "./models/CartographerState";
+import {initialGPSMessage} from "./models/CartographerState";
 import {uiSlice} from "./slices/UISlice";
 import {cameraStreamerSlice} from "./slices/CameraStreamSlice";
 import {BLCMD_INDEX} from "../constants";
@@ -163,17 +163,17 @@ export const reduxStores = {
       state: false, // current status of Diaphragm Pump: True if On
     }
   ),
-  kilnData: createBifrostStore(
-    { topic: RosTopic.KILN_DATA },
+  thermalData: createBifrostStore(
+    { topic: RosTopic.THERMAL_DATA },
     {
       temp: [0, 0, 0], // current converted temp readings [C]
-      state: false, // current status of Kiln: True if On
+      state: false, // current status of thermal system: True if On
     }
   ),
-  kilnCommand: createBifrostStore(
-    { service: RosService.KILN_COMMAND },
+  thermalCommand: createBifrostStore(
+    { service: RosService.THERMAL_COMMAND },
     {
-      success: true, // whether the last service request succeeded or not: False will show error on Toggle Kiln Button
+      success: true, // whether the last service request succeeded or not: False will show error on Toggle Thermal Button
     }
   ),
   tofStore: createBifrostStore({ topic: RosTopic.TOF }, {
@@ -295,6 +295,14 @@ export const reduxStores = {
       time_target: 0,
     }
   ),
+  carouselInnerFeedback: createBifrostStore(
+    { topic: RosTopic.CAROUSEL_INNER_FEEDBACK },
+    { position: 0, current: 0, load: 0, zeroing: false }
+  ),
+  carouselOuterFeedback: createBifrostStore(
+    { topic: RosTopic.CAROUSEL_OUTER_FEEDBACK },
+    { position: 0, current: 0, load: 0, zeroing: false }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
@@ -306,13 +314,19 @@ export const reduxStores = {
     {
       topic: RosTopic.ROVER_LOCATION,
     },
-    initialNavSatMessage
+    initialGPSMessage
   ),
   baseLocationStore: createBifrostStore(
     { 
     topic: RosTopic.BASE_LOCATION 
     }, 
-    initialNavSatMessage
+    initialGPSMessage
+  ),
+  droneLocationStore: createBifrostStore(
+    {
+      topic: RosTopic.DRONE_LOCATION,
+    },
+    initialGPSMessage
   ),
   autoStatus: createBifrostStore(
     {

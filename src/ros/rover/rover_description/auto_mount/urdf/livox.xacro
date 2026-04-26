@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <link name="livox_frame">
-        <visual>
-            <origin xyz="0 0.0055 0" rpy="0 0 3.14159" />
-            <geometry>
-                <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/mid-360-asm.stl"/>
-            </geometry>
-            <visibility_flags>0x02</visibility_flags> <!-- Bit 1 -->
-        </visual>
-    </link>
+    <xacro:macro name="sensor_livox" params="parent *origin">
+        <link name="livox_frame">
+            <visual>
+                <origin xyz="0 0.0055 0" rpy="0 0 3.14159" />
+                <geometry>
+                    <mesh filename="file://$(arg rover_description_dir)/auto_mount/meshes/mid-360-asm.stl"/>
+                </geometry>
+                <visibility_flags>0x02</visibility_flags> <!-- Bit 1 -->
+            </visual>
+        </link>
+
+        <joint name="livox_joint" type="fixed">
+            <xacro:insert_block name="origin" />
+            <parent link="${parent}" />
+            <child link="livox_frame" />
+        </joint>
+    </xacro:macro>
 
     <!-- Gazebo sensor plugin for the Livox MID-360 LiDAR (does not affect IRL) -->
     <xacro:if value="$(arg gazebo)">
@@ -53,6 +61,19 @@
                 <gz_frame_id>livox_frame</gz_frame_id>
                 <always_on>1</always_on>
                 <visualize>false</visualize>
+
+                <imu>
+                    <angular_velocity>
+                        <x><noise type="gaussian"><mean>0.0</mean><stddev>2e-4</stddev></noise></x>
+                        <y><noise type="gaussian"><mean>0.0</mean><stddev>2e-4</stddev></noise></y>
+                        <z><noise type="gaussian"><mean>0.0</mean><stddev>2e-4</stddev></noise></z>
+                    </angular_velocity>
+                    <linear_acceleration>
+                        <x><noise type="gaussian"><mean>0.0</mean><stddev>1.7e-2</stddev></noise></x>
+                        <y><noise type="gaussian"><mean>0.0</mean><stddev>1.7e-2</stddev></noise></y>
+                        <z><noise type="gaussian"><mean>0.0</mean><stddev>1.7e-2</stddev></noise></z>
+                    </linear_acceleration>
+                </imu>
             </sensor>
         </gazebo>
     </xacro:if>

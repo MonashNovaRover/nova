@@ -8,9 +8,9 @@ COMMAND INTERFACES:
                           angular_limit]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
-AUTHOR(S):      Binuda Kalugalage
+AUTHOR(S):      Binuda Kalugalage, Felicity Matthews
 CREATION:       04/01/25
-EDITED:         23/01/25
+EDITED:         18/04/25
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import jcan
@@ -25,6 +25,8 @@ class PositionalServoHardware(HardwareInterface):
 
     def __init__(self, contexts: Contexts,
                  can_id: int=0x000,
+                 function_id: int=None,
+                 packed_data_length: int=1,
                  angular_limit: float=180.0,
                  gear_ratio: float=1.0,
                  min_angle_can: int=0x00,
@@ -41,6 +43,9 @@ class PositionalServoHardware(HardwareInterface):
         self.last = None
 
         self.declare_parameter("can_id", can_id, "CAN ID of the servo")
+        if function_id is not None:
+            self.declare_parameter("function_id", function_id, "Function ID of the can command, the first two hex digits, None if not required.")
+        self.declare_parameter("packed_data_length", packed_data_length, "Number of bytes used to pack the CAN data value.")
         self.declare_parameter("angular_limit", angular_limit, "Angular limit of the servo in degrees")
         self.declare_parameter("gear_ratio", gear_ratio, "Gear ratio of the servo")
         self.declare_parameter("min_angle_can", min_angle_can, "Min CAN message value that can be sent")
@@ -58,6 +63,11 @@ class PositionalServoHardware(HardwareInterface):
         """
         # Update params
         self.can_id: int = self.get_parameter("can_id").value
+        try:
+            self.function_id: int = self.get_parameter("function_id").value
+        except:
+            self.function_id = None
+        self.packed_data_length: int = self.get_parameter("packed_data_length").value
         self.angular_limit: float = self.get_parameter("angular_limit").value
         self.gear_ratio: float = self.get_parameter("gear_ratio").value
 
@@ -106,6 +116,10 @@ class PositionalServoHardware(HardwareInterface):
             data = self.max_angle_can
         elif data < self.min_angle_can:
             data = self.min_angle_can
-      
-        # Return the constructed frame
-        return jcan.Frame(self.can_id, [data])
+
+        payload = []
+        if self.function_id is not None:
+            payload.append(self.function_id)
+
+        payload.extend(data.to_bytes(self.packed_data_length, byteorder="big", signed=False))
+        return jcan.Frame(self.can_id, payload)

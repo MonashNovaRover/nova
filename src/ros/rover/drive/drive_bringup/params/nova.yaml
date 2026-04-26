@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 20 
+    update_rate: 100
     use_sim_time: false
 
     pivot_drive_controller:
@@ -75,10 +75,10 @@ pivot_drive_controller:
     drive: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
-      max_velocity: 5.0
-      min_velocity: -1.5
-      max_acceleration: 4.0
-      min_acceleration: -10.0
+      max_velocity: 2.5
+      min_velocity: -0.75
+      max_acceleration: 2.0
+      min_acceleration: -5.0
     angular: # radians
       has_velocity_limits: true
       max_velocity: 1.57079632 # PI/2 rad/s = 90 deg/s
@@ -100,8 +100,8 @@ strafe_drive_controller:
     drive: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
-      max_velocity: 3.0
-      max_acceleration: 6.0
+      max_velocity: 1.5
+      max_acceleration: 3.0
 
 diff_drive_controller:
   ros__parameters:
@@ -116,10 +116,10 @@ diff_drive_controller:
     drive: # metres
       has_velocity_limits: true
       has_acceleration_limits: true
-      max_velocity: 3.0
-      min_velocity: -1.5
-      max_acceleration: 4.0
-      min_acceleration: -10.0
+      max_velocity: 1.5
+      min_velocity: -0.75
+      max_acceleration: 2.0
+      min_acceleration: -5.0
     angular: # radians
       has_velocity_limits: true
       max_velocity: 0.78539816 # PI/4 rad/s = 45 deg/s

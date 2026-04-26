@@ -30,7 +30,7 @@ EDITED BY: Taaj Street, Kabilan Velmurugan
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, EnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -52,10 +52,10 @@ def launch_setup(context, *args, **kwargs):
 
     # comp defaults
     if comp == 'arch':
-        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_arch.yaml'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'rl_arch.yaml'])
         gps = 'False'
     elif comp == 'urc':
-        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'rl_urc.yaml'])
+        rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'rl_urc.yaml'])
         gps = 'True'
     else:
         raise ValueError('Invalid comp value')
@@ -84,7 +84,6 @@ def launch_setup(context, *args, **kwargs):
                     name='ekf_filter_node_odom',
                     output='screen',
                     parameters=[rl_params, {'use_sim_time': gazebo}],
-                    remappings=[('odometry/filtered', 'odometry/local')],
                 ),
                 Node(
                     package='robot_localization',
@@ -113,7 +112,7 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rl_params, {'use_sim_time': gazebo}],
                     remappings=[('odometry/filtered', 'odometry/global'),
                                 ('gps/fix', 'gps_rover/fix'),
-                                ('imu', 'oak/imu/transformed')],
+                                ('imu', 'gps_rover/heading_imu')],
                 ),
             ],
         ),
@@ -128,7 +127,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value='arch',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
             description='ARCh or URC',
         ),
         # comp agnostic arguments

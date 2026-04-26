@@ -133,19 +133,19 @@ arm:
           max_position: 3.14
           min_position: -3.14
           has_velocity_limits: true
-          max_velocity: 0.1
+          max_velocity: 0.2
         j5: # wrist pitch
           has_position_limits: true
           max_position: -0.1153
           min_position: -2.44
           has_velocity_limits: true
-          max_velocity: 0.1
+          max_velocity: 0.5
         j6: # wrist roll
           has_position_limits: true
           max_position: 6.0
           min_position: -6.0
           has_velocity_limits: true
-          max_velocity: 0.1
+          max_velocity: 0.5
     
   nova_end_effector_velocity_controller:
     ros__parameters:

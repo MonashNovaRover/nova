@@ -79,9 +79,10 @@
 , nova-science-bringup ? throw "nova-science-bringup is needed, but not available!"
 , nova-arm-kinematics ? throw "nova-arm-kinematics is needed, but not available!"
 , nova-locked-publisher
-
 , nova-cameras
 , nova-camera-msgs
+, mission-planner
+, mavproxy
   # Configuration options
   ## Include graphical applications in the workspace.
 , graphical ? true
@@ -172,6 +173,8 @@
       mbtileserver
       rmw-cyclonedds-cpp
       ;
+    
+    ros2-unbag = pythonPackages.ros2-unbag;
 }
 }:
 
@@ -194,6 +197,8 @@ in
   prebuiltPackages = (lib.optionalAttrs graphical {
     inherit
       rviz2
+      mission-planner
+      mavproxy
       ros-gz
       gz-ros2-control
       gps-umd

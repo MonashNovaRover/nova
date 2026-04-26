@@ -1,6 +1,6 @@
 from launch import LaunchDescription
 from launch.actions import OpaqueFunction, DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PythonExpression, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from os.path import expanduser
@@ -12,6 +12,7 @@ def launch_setup(context, *args, **kwargs):
     device_name = LaunchConfiguration('device_name')
     joy_vel = LaunchConfiguration('joy_vel')
     teleop_params = LaunchConfiguration('teleop_params')
+    log_level = LaunchConfiguration('log_level')
 
     return [
         # Add Nodes
@@ -25,6 +26,7 @@ def launch_setup(context, *args, **kwargs):
                  'deadzone': 0.1,
                  'autorepeat_rate': 20.0} | {'device_name': device_name} if device_name else {}
             ],
+            arguments = ['--ros-args', '--log-level', log_level],
         ),
         Node(
             package='teleop_drive_joy',
@@ -34,15 +36,16 @@ def launch_setup(context, *args, **kwargs):
             remappings=[
                 ('/cmd_vel', joy_vel),
             ],
+            arguments = ['--ros-args', '--log-level', log_level],
         ),
     ]
 
 def generate_launch_description():
-    teleop_drive_dir = PythonExpression([
-        '"', PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/teleop_drive_joy']),
-        '" if "', LaunchConfiguration('local'), '".lower() == "true" else "',
-        FindPackageShare('teleop_drive_joy'), '"'
-    ])
+    local = LaunchConfiguration('local')
+    teleop_drive_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/teleop_drive_joy']),
+        FindPackageShare('teleop_drive_joy')
+    )
 
     declared_arguments = [
         DeclareLaunchArgument(
@@ -66,6 +69,11 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='joy_vel', 
             default_value='cmd_vel'
+        ),
+        DeclareLaunchArgument(
+            name='log_level',
+            default_value='info',
+            description='Logging level for all nodes launched by this file',
         ),
     ]
 
