@@ -26,8 +26,6 @@ const degrees = [1, 5, 20]
 const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, calibrateByDegrees, showCalibration, variant, reverse, disabled}) => {
   const reverseNum = reverse ? -1 : 1
 
-  console.log()
-
   const circleIcon = variant == RING.INNER ?
     <RecordCircle size={24}/> :
     <RecordCircleFill size={24}/>

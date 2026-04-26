@@ -11,6 +11,7 @@ import HeaterWidget from "../../components/science/ThermalControl/HeaterWidget.t
 import {CameraControlModalButton} from "../../components/cameras/CameraPage/CameraControlModelButton.tsx";
 import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
 import LitmusDipperWidget from "../../components/science/LitmusDipperWidget/LitmusDipperWidget.tsx";
+import LedWidget from "../../components/science/LEDWidget/LEDWidget.tsx";
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
@@ -48,6 +49,7 @@ const URCScienceView: React.FC = () => {
 
       <div className="flex flex-col gap-3 col-span-2">
         <HeaterWidget/>
+        <LedWidget/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_CUVETTE}/>
         <CameraControlModalButton/>
       </div>

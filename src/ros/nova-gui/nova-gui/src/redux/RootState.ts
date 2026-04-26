@@ -23,7 +23,6 @@ import {
   IRosScienceInterfacesUvVisSpecData,
   IRosSensorMsgsCompressedImage,
   IRosScienceInterfacesHydraprobeData,
-  IRosStdSrvsSetBoolResponse,
   IRosScienceInterfacesBmeSensor,
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
@@ -95,8 +94,6 @@ export interface RootState {
   thermalData: IRosScienceInterfacesThermalData;
   thermalCommand: IRosScienceInterfacesThermalCommandResponse;
   uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
-  uvVisLED1Store: IRosStdSrvsSetBoolResponse;
-  uvVisLED2Store: IRosStdSrvsSetBoolResponse;
   microscopeServoStore: IRosScienceInterfacesMicroscopeServoInfo;
   microscopeServiceStore: IRosScienceInterfacesMoveMicroscopeServoResponse;
   ramanSpecServiceStore: IRosScienceInterfacesRamanSpecResponse;
