@@ -19,6 +19,7 @@
     ./rover
     ./mast
     ./prp
+    ./dds-tuning
   ];
 
   config = {
