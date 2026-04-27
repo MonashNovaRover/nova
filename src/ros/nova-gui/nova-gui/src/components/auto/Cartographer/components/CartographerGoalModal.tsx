@@ -83,9 +83,14 @@ export const CartographerGoalModal: React.FC<{
       latitude: item.lat,
       longitude: item.long,
     }));
-    const types = selected.map((item) => item.labelNumber);
-    console.log("calling service with:", { goals: goals, types: types });
-    serviceBifrost.callService({ goals: goals, types: types } as IRosNovaInterfacesCartographerCommandRequest);
+    const type = selected.map((item) => item.labelNumber).pop();
+    let search_radius = 0;
+    if (type === GoalType.AR_TAG)
+      search_radius = 5;
+    else if (type === GoalType.OBJECT)
+      search_radius = 10
+    console.log("calling service with:", { goals: goals, type: type, search_radius: search_radius });
+    serviceBifrost.callService({ goals: goals, type: type, search_radius: search_radius } as IRosNovaInterfacesCartographerCommandRequest);
   };
 
   const renderPoints = (points: MapPoint[], isSortable: boolean) => {
