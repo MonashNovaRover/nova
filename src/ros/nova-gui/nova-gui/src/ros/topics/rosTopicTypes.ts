@@ -30,6 +30,7 @@ import {
   IRosNovaInterfacesLockedStatus,
   IRosNovaInterfacesGpsData,
   IRosScienceInterfacesCarouselFeedback,
+  IRosSensorMsgsJoy,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -48,12 +49,15 @@ export interface RosTopicInterfaces {
   [RosTopic.DRIVE_INFO]: IRosDriveInterfacesDriveInfo;
   [RosTopic.DRIVE_TELEMETRY]: IRosBlcmdInterfacesTelemetry;
   [RosTopic.DRIVE_JOINT_STATES]: IRosSensorMsgsJointState;
+  [RosTopic.DRIVE_JOY]: IRosSensorMsgsJoy;
 
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: IRosCmdInterfacesCmDsFeedback;
   [RosTopic.RFID_DATA]: IRosStdMsgsString;
   [RosTopic.KEYBOARD_DATA]: IRosArmInterfacesKeyboardPoints;
   [RosTopic.TYPE_SEQUENCE]: IRosArmInterfacesSequencerFeedback;
+  [RosTopic.ARM_JOY_LEFT]: IRosSensorMsgsJoy;
+  [RosTopic.ARM_JOY_RIGHT]: IRosSensorMsgsJoy;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
