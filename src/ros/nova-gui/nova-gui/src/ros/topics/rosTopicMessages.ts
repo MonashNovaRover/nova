@@ -16,12 +16,16 @@ export const rosTopicMessages = {
   [RosTopic.DRIVE_INFO]: "drive_interfaces/msg/DriveInfo",
   [RosTopic.DRIVE_TELEMETRY]: "blcmd_interfaces/msg/Telemetry",
   [RosTopic.DRIVE_JOINT_STATES]: "sensor_msgs/msg/JointState",
+  [RosTopic.DRIVE_JOY]: "sensor_msgs/msg/Joy",
+  
 
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: "cmd_interfaces/msg/CMDsFeedback",
   [RosTopic.RFID_DATA]: "std_msgs/msg/String",
   [RosTopic.KEYBOARD_DATA]: "arm_interfaces/msg/KeyboardPoints",
   [RosTopic.TYPE_SEQUENCE]: "arm_interfaces/msg/SequencerFeedback",
+  [RosTopic.ARM_JOY_LEFT]: "sensor_msgs/msg/Joy",
+  [RosTopic.ARM_JOY_RIGHT]: "sensor_msgs/msg/Joy",
 
   // Cameras Related
   [RosTopic.CAMERAS]: "camera_msgs/msg/Cameras",
