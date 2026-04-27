@@ -75,6 +75,7 @@ buildRosPackage {
     '';
 
   preFixup = ''
+    set +e
     # Detect GPU type (Intel or AMD)
     GPU_TYPE=$(lspci | grep -iE "VGA|3D" | grep -i -E "Intel|AMD" | awk '{print $0}')
 
@@ -94,5 +95,6 @@ buildRosPackage {
       wrapGApp "$out/lib/cameras/camera_streamer_service"\
         --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"
     fi
+    set -e
   '';
 }
