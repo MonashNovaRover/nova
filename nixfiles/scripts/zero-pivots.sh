@@ -13,6 +13,11 @@ pivots=(
 
 echo "Ensure that drive is not running before starting the alignment process."
 echo
+echo "Pivot IDs:"
+for id in $(echo "${!pivots[@]}" | tr ' ' '\n' | sort); do
+  echo "${id} = ${pivots[$id]}"
+done
+echo
 
 while true; do
   echo "Please enter a BLCMD ID (5-8). To zero all pivots, enter '0' instead."
