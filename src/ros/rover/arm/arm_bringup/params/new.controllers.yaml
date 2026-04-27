@@ -136,8 +136,8 @@ arm:
     ros__parameters:
       topic: "/arm/end_effector_joint_velocity_command"
       joint_names:
-        - lead_left
-        - la_prismatic
+        - lead_left_
+        - la_prismatic_
       use_position_control: false
       use_collision_limits: false
       use_limits: true
