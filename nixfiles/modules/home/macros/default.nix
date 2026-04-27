@@ -27,7 +27,7 @@ in
     programs.bash = {
       bashrcExtra = lib.mkAfter ''
         # Defaults
-        export RMW_IMPLEMENTATION="rmw_fastrtps_cpp"
+        export RMW_IMPLEMENTATION="rmw_cyclonedds_cpp"
         export COMP="ARCh"
         ln -sfn "$HOME/Builds/master" "$HOME/Builds/active"
 
