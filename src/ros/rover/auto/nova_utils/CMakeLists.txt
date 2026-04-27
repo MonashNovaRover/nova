@@ -42,6 +42,8 @@ target_include_directories(transform_republisher PUBLIC
 
 # Python executables
 install(PROGRAMS
+  scripts/start_auto/start_auto_arch.py
+  scripts/start_auto/start_auto_urc.py
   scripts/calculate_covariances.py
   scripts/detection_overlay.py
   scripts/goal_marker.py
@@ -54,9 +56,6 @@ install(PROGRAMS
   scripts/record_metrics.py
   scripts/save_waypoint.py
   scripts/service_listener.py
-  scripts/start_auto_2.py
-  scripts/start_auto_arch.py
-  scripts/start_auto.py
   scripts/test_start_auto.py
   scripts/topic_waiter.py
   scripts/node_waiter.py
