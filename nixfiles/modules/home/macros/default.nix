@@ -25,31 +25,137 @@ in
 
   config = lib.mkIf cfg.enable {
     programs.bash = {
-      initExtra = lib.mkAfter ''
-        COMPAL_AUTO_UNMASK=1
-        . '${pkgs.complete-alias}/bin/complete_alias'
-        complete -F _complete_alias "''${!BASH_ALIASES[@]}"
-      '';
-
       bashrcExtra = lib.mkAfter ''
+        # Defaults
+        export RMW_IMPLEMENTATION="rmw_fastrtps_cpp"
+        export COMP="ARCh"
+        ln -sfn "$HOME/Builds/master" "$HOME/Builds/active"
+
+        # Environment variables
+        ## ROS2 DDS configuration
+        use_fastdds() {
+          export RMW_IMPLEMENTATION="rmw_fastrtps_cpp"
+          mkdir -p "$HOME/.config/nova"
+          echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > "$HOME/.config/nova/ros_dds"
+          echo "Set RMW_IMPLEMENTATION to rmw_fastrtps_cpp and wrote to ~/.config/nova/ros_dds"
+        }
+        use_cyclonedds() {
+          export RMW_IMPLEMENTATION="rmw_cyclonedds_cpp"
+          mkdir -p "$HOME/.config/nova"
+          echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > "$HOME/.config/nova/ros_dds"
+          echo "Set RMW_IMPLEMENTATION to rmw_cyclonedds_cpp and wrote to ~/.config/nova/ros_dds"
+        }
+
+        ## Comp selection
+        set_arch() {
+          export COMP="ARCh"
+          mkdir -p "$HOME/.config/nova"
+          echo 'export COMP=ARCh' > "$HOME/.config/nova/comp"
+          echo "Set COMP to ARCh and wrote to ~/.config/nova/comp"
+        }
+        set_urc() {
+          export COMP="URC"
+          mkdir -p "$HOME/.config/nova"
+          echo 'export COMP=URC' > "$HOME/.config/nova/comp"
+          echo "Set COMP to URC and wrote to ~/.config/nova/comp"
+        }
+
+        # Set active build path
+        set_active() {
+          local buildPath="$1"
+          if [ -z "$buildPath" ]; then
+            echo "usage: set_active <build_path>"
+            return 2
+          fi
+
+          local runtimeDir="/run/user/$UID"
+
+          ln -sfn "$buildPath" "$HOME/Builds/active"
+          mkdir -p "$runtimeDir/nova"
+          printf 'ln -sfn %q %q\n' "$buildPath" "$HOME/Builds/active" > "$runtimeDir/nova/active_build"
+          echo "Set active build to ''${buildPath/#$HOME/\~} and wrote to $runtimeDir/nova/active_build"
+        }
+
         # Source the ROS2 DDS configuration if it exists
         if [ -f $HOME/.config/nova/ros_dds ]; then
           . $HOME/.config/nova/ros_dds
         fi
 
         # Source the COMP environment variable if it exists
-        if [ -f "$HOME/.config/nova/comp" ]; then
-          . "$HOME/.config/nova/comp"
+        if [ -f $HOME/.config/nova/comp ]; then
+          . $HOME/.config/nova/comp
         fi
-        
-        # title width = 28
-        # entry width = 26
-        echo   "┌─────────────────────────────┐"
-        printf "│ %s│\n"   "$(printf "\033[1;36m%-28s\033[0m" "Nova ENV Status")"
-        printf "│   %s│\n" "$(printf "\033[1;33m%s\033[0m %-21s" "RMW:" "''${RMW_IMPLEMENTATION:-not set}")"
-        printf "│   %s│\n" "$(printf "\033[1;33m%s\033[0m %-20s" "COMP:" "''${COMP:-not set}")"
-        echo   "└─────────────────────────────┘"
-        echo   ""
+
+        # Source the active build configuration if it exists
+        if [ -f "/run/user/$UID/nova/active_build" ]; then
+          . "/run/user/$UID/nova/active_build"
+        fi
+
+        # Calculate box width based on longest content line (in subshell to auto-cleanup)
+        (
+          # Display /home/nova/path as ~/path
+          active_build="$(readlink "$HOME/Builds/active")"
+          active_build="''${active_build/#$HOME/\~}"
+          
+          # Labels and values
+          title="Nova Shell Status (Ctrl+L to clear)"
+          help_label="(?) " help_value="nova_sh_help"
+          rmw_label="RMW: " rmw_value="''${RMW_IMPLEMENTATION:-not set}"
+          comp_label="COMP: " comp_value="''${COMP:-not set}"
+          build_label="Active Build: " build_value="$active_build"
+          
+          # Find maximum width
+          max_len=''${#title}
+          for val in "''${rmw_label}''${rmw_value}" "''${comp_label}''${comp_value}" "''${build_label}''${build_value}"; do
+            [ $((''${#val} + 2 )) -gt $max_len ] && max_len=$((''${#val} + 2 ))
+          done
+          [ $((''${#help_label} + ''${#help_value})) -gt $max_len ] && max_len=$((''${#help_label} + ''${#help_value}))
+          
+          # Build and display box
+          # Box width is the length of the longest line, plus padding (1 space before and after)
+          width=$((max_len + 2))
+          border=$(printf '%.0s─' $(seq 1 $width))
+
+          # Colours
+          cyan='\033[1;36m'
+          magenta='\033[1;35m'
+          yellow='\033[1;33m'
+          end='\033[0m'
+          
+          echo   "┌$border┐"
+          printf "│ $cyan%-$((width-1))s$end│\n" "$title"
+          printf "│ $magenta%s$end%s%-$((width-1-''${#help_label}-''${#help_value}))s│\n" "$help_label" "$help_value" ""
+          printf "│   $yellow%s$end%s%-$((width-3-''${#rmw_label}-''${#rmw_value}))s│\n" "$rmw_label" "$rmw_value" ""
+          printf "│   $yellow%s$end%s%-$((width-3-''${#comp_label}-''${#comp_value}))s│\n" "$comp_label" "$comp_value" ""
+          printf "│   $yellow%s$end%s%-$((width-3-''${#build_label}-''${#build_value}))s│\n" "$build_label" "$build_value" ""
+          echo   "└$border┘"
+          echo   ""
+        )
+
+        # Help text for nova shell
+        nova_sh_help() {
+          local yellow='\033[1;33m' end='\033[0m'
+          printf "''${yellow}RMW:''${end} Set with use_(fast|cyclone)dds aliases.\n"
+          echo   "The RMW_IMPLEMENTATION environment variable. Used by ROS2 to select the DDS implementation."
+          echo   "Config is written to ~/.config/nova/ros_dds"
+          echo   ""
+          printf "''${yellow}COMP:''${end} Set with set_(arch|urc) aliases.\n"
+          echo   "The COMP environment variable. Used by auto in launch files to choose between params and configurations."
+          echo   "Config is written to ~/.config/nova/comp"
+          echo   ""
+          printf "''${yellow}Active Build:''${end} Set with set_active <build_path> function.\n"
+          echo   "~/Builds/active -> <build_path> symlink. Allows aliases to point to a build other than master. Currently only used by auto."
+          echo   "Config is written to /run/user/''${UID}/nova/active_build"
+          echo   ""
+          echo   "The files written to are sourced on shell startup."
+          echo   ""
+        }
+      '';
+
+      initExtra = lib.mkAfter ''
+        COMPAL_AUTO_UNMASK=1
+        . '${pkgs.complete-alias}/bin/complete_alias'
+        complete -F _complete_alias "''${!BASH_ALIASES[@]}"
       '';
     };
 
@@ -102,23 +208,6 @@ in
           # Nano v Vim
           set_vim = "export EDITOR=vim";
           set_nano = "export EDITOR=nano";
-
-          # ROS2 DDS Configuration
-          # Will be sourced in .bashrc to persist across terminal sessions and reboots
-          use_fastdds = "export RMW_IMPLEMENTATION=rmw_fastrtps_cpp;
-                         mkdir -p $HOME/.config/nova;
-                         echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' > $HOME/.config/nova/ros_dds";
-          use_cyclonedds = "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp;
-                            mkdir -p $HOME/.config/nova;
-                            echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' > $HOME/.config/nova/ros_dds";
-
-          # Comp Selection (for auto)
-          set_arch = "export COMP=ARCh;
-                      mkdir -p $HOME/.config/nova;
-                      echo 'export COMP=ARCh' > $HOME/.config/nova/comp";
-          set_urc = "export COMP=URC;
-                     mkdir -p $HOME/.config/nova;
-                     echo 'export COMP=URC' > $HOME/.config/nova/comp";
 
           # Hydra 
           hydra-vomit = "${pkgs.bash}/bin/bash ${../../../scripts/hydra-vomit.sh}";
@@ -184,24 +273,18 @@ in
           cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
 
           # Auto 
-          launch-auto-rover = "~/Builds/master/bin/ros2 launch auto_bringup urc.launch.py";
-          launch-auto-base = "~/Builds/master/bin/ros2 run nova_utils start_auto.py";
-          launch-sim = "~/Builds/master/bin/ros2 launch auto_bringup everything.launch.py";
-          launch-auto-hardware = "~/Builds/master/bin/ros2 launch auto_bringup hardware.launch.py";
-          launch-auto-software = "~/Builds/master/bin/ros2 launch auto_bringup software.launch.py";
-          launch-auto-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
-          launch-oak = "~/Builds/master/bin/ros2 launch auto_bringup oak.launch.py";
-          launch-realsense = "~/Builds/master/bin/ros2 launch auto_bringup realsense.launch.py";
-          launch-localization = "~/Builds/master/bin/ros2 launch auto_bringup localization.launch.py";
-          launch-lidar = "~/Builds/master/bin/ros2 launch auto_bringup lidar.launch.py";
-          launch-rtabmap = "~/Builds/master/bin/ros2 launch auto_bringup rtabmap.launch.py";
-          launch-nav = "~/Builds/master/bin/ros2 launch auto_bringup navigation.launch.py";
-          launch-rviz = "~/Builds/master/bin/ros2 launch auto_bringup rviz.launch.py";
-          launch-auto-urdf = "~/Builds/master/bin/ros2 launch auto_bringup urdf.launch.py";
-          launch-yolo = "~/Builds/master/bin/ros2 launch auto_bringup yolo.launch.py";
-          oak-gui = "~/Builds/master/bin/ros2 launch auto_bringup oak-gui.launch.py";
+          launch-everything = "~/Builds/active/bin/ros2 launch auto_bringup everything.launch.py";
+          launch-auto-drive = "~/Builds/active/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
+          launch-realsense = "~/Builds/active/bin/ros2 launch auto_bringup realsense.launch.py";
+          launch-localization = "~/Builds/active/bin/ros2 launch auto_bringup localization.launch.py";
+          launch-lidar = "~/Builds/active/bin/ros2 launch auto_bringup lidar.launch.py";
+          launch-navigation = "~/Builds/active/bin/ros2 launch auto_bringup navigation.launch.py";
+          launch-rviz = "~/Builds/active/bin/ros2 launch auto_bringup rviz.launch.py";
+          launch-auto-urdf = "~/Builds/active/bin/ros2 launch auto_bringup urdf.launch.py";
+          launch-yolo = "~/Builds/active/bin/ros2 launch auto_bringup yolo.launch.py";
+          start-arch = "~/Builds/active/bin/ros2 run nova_utils start_auto_arch.py";
+          start-urc = "~/Builds/active/bin/ros2 run nova_utils start_auto_urc.py";
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
-          start-arch = "~/Builds/master/bin/ros2 run nova_utils start_auto_arch.py";
 
           # GPS
           launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
