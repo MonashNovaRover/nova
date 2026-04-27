@@ -10,6 +10,7 @@ in
 {
   options.nova.networking.ddsTuning.enable = lib.mkEnableOption "ROS2 DDS network tuning";
 
+  # https://docs.ros.org/en/kilted/How-To-Guides/DDS-tuning.html
   config = lib.mkIf cfg.enable {
     boot.kernel.sysctl = {
       "net.ipv4.ipfrag_time" = 3; # seconds
