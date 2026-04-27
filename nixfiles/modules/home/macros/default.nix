@@ -249,6 +249,7 @@ in
           # GUI
           gui-serve = "~/Builds/master/bin/gui-serve 5173 && echo http://localhost:5173";
 
+          gui-dev-shell = "nova-shell -A pkgs.ros.nova-gui-dev-shell";
           gui-shell = "nova-shell -A pkgs.ros.nova-gui";
           gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
           gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
