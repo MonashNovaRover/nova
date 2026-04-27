@@ -14,6 +14,8 @@
 , sysprof
 , v4l-utils
 , wrapGAppsNoGuiHook
+, mesa
+, libGL
 }:
 
 buildRosPackage {
@@ -50,6 +52,9 @@ buildRosPackage {
     libnice                   # needed for webrtc
     v4l-utils                 # v4l2-ctl
     gst-bridge                # ros-gst-bridge/rosimagesrc
+
+    mesa                      # GPU acceleration for x86
+    libGL
   ];
 
   postInstall = ''
@@ -70,6 +75,11 @@ buildRosPackage {
   preFixup = ''
     export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
     wrapGApp "$out/lib/cameras/camera_streamer_service"\
-      --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"
+      --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"\
+      --prefix GBM_BACKENDS_PATH : "${mesa}/lib/gbm"\
+      --prefix LIBGL_DRIVERS_PATH : "${mesa}/lib/dri"\
+      --prefix LIBVA_DRIVERS_PATH : "${mesa}/lib/dri"\
+      --prefix __EGL_VENDOR_LIBRARY_FILENAMES : "${mesa}/share/glvnd/egl_vendor.d/50_mesa.json"\
+      --prefix LD_LIBRARY_PATH : "${mesa}:${libGL}"
   '';
 }

@@ -46,8 +46,8 @@ camera_streamer:
       #  autostart: false
 
       # Arm
-      arm_gimbal:
-        meta: Arm - Gimbal
+      arm_wrist:
+        meta: Arm - Wrist 
       arm_end_periscope:
         meta: Arm - Periscope
       arm_end_top:

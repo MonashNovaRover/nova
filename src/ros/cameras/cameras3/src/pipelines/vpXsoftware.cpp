@@ -34,11 +34,11 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
 
   GstElement* tee = (props->rossink) ? gst_element_factory_make("tee", "tee") : nullptr;
-  GstElement* queue1 = (props->rossink) ? gst_element_factory_make("queue", "queue1") : nullptr;
+  GstElement* queue_ros = (props->rossink) ? gst_element_factory_make("queue", "queue_ros") : nullptr;
   GstElement* rosconvert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "rosconverter") : nullptr;
   GstElement* rosfilter = (props->rossink) ? gst_element_factory_make("capsfilter", "rosfilter") : nullptr;
   GstElement* rossink = (props->rossink) ? gst_element_factory_make("rosimagesink", "rossink") : nullptr;
-  GstElement* queue2 = (props->rossink) ? gst_element_factory_make("queue", "queue2") : nullptr;
+  GstElement* queue_webrtc = (props->rossink) ? gst_element_factory_make("queue", "queue_webrtc") : nullptr;
 
   GstElement* greyconvert = (props->greyscale) ? gst_element_factory_make("videoconvertscale", "greyconverter") : nullptr;
   GstElement* greyfilter = (props->greyscale) ? gst_element_factory_make("capsfilter", "greyfilter") : nullptr;
@@ -54,7 +54,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
       (props->downrate > 1 && !rate) ||
       !srcfilter ||
       (props->mime == "image/jpeg" && !decode) ||
-      (props->rossink && !tee && !queue1 && !rosconvert && !rosfilter && !rossink && !queue2) ||
+      (props->rossink && !tee && !queue_ros && !rosconvert && !rosfilter && !rossink && !queue_webrtc) ||
       (props->greyscale && !greyconvert && !greyfilter) ||
       !convert ||
       !scalefilter  ||
@@ -72,11 +72,11 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   set_srcfilter(srcfilter, props);
   if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(decode, props);
   if (props->rossink) {
-    set_queue(queue1);
+    set_queue(queue_ros);
     set_convertscale(rosconvert, props);
     set_rosfilter(rosfilter, props);
     set_rostopicsink(rossink, props);
-    set_queue(queue2);
+    set_queue(queue_webrtc);
   }
   if (props->greyscale) {
     set_convertscale(greyconvert, props);
@@ -99,7 +99,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
       webrtc,
       NULL);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
-  if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue1, rosconvert, rosfilter, rossink, queue2, NULL);
+  if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue_ros, rosconvert, rosfilter, rossink, queue_webrtc, NULL);
   if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->greyscale) gst_bin_add_many(GST_BIN(gst_pipeline), greyconvert, greyfilter, NULL);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
@@ -114,11 +114,11 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
 
   if (link_elements(streamer_node, next_element, tee, props->serial)) next_element = tee;
-  if (link_elements(streamer_node, next_element, queue1, props->serial)) next_element = queue1;
+  if (link_elements(streamer_node, next_element, queue_ros, props->serial)) next_element = queue_ros;
   if (link_elements(streamer_node, next_element, rosconvert, props->serial)) next_element = rosconvert;
   if (link_elements(streamer_node, next_element, rosfilter, props->serial)) next_element = rosfilter;
   if (link_elements(streamer_node, next_element, rossink, props->serial)) next_element = tee;
-  if (link_elements(streamer_node, next_element, queue2, props->serial)) next_element = queue2;
+  if (link_elements(streamer_node, next_element, queue_webrtc, props->serial)) next_element = queue_webrtc;
 
   if (link_elements(streamer_node, next_element, greyconvert, props->serial)) next_element = greyconvert;
   if (link_elements(streamer_node, next_element, greyfilter, props->serial)) next_element = greyfilter;

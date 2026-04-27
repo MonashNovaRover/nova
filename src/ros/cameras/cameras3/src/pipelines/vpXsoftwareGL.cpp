@@ -38,11 +38,11 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
 
   GstElement* tee = (props->rossink) ? gst_element_factory_make("tee", "tee") : nullptr;
-  GstElement* queue1 = (props->rossink) ? gst_element_factory_make("queue", "queue1") : nullptr;
+  GstElement* queue_ros = (props->rossink) ? gst_element_factory_make("queue", "queue_ros") : nullptr;
   GstElement* rosconvert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "rosconverter") : nullptr;
   GstElement* rosfilter = (props->rossink) ? gst_element_factory_make("capsfilter", "rosfilter") : nullptr;
   GstElement* rossink = (props->rossink) ? gst_element_factory_make("rosimagesink", "rossink") : nullptr;
-  GstElement* queue2 = (props->rossink) ? gst_element_factory_make("queue", "queue2") : nullptr;
+  GstElement* queue_upload = gst_element_factory_make("queue", "queue_upload");
 
   GstElement* glupload = gst_element_factory_make("glupload", "gluploader");
   GstElement* glupconvert = gst_element_factory_make("glcolorconvert", "glupconverter");
@@ -53,6 +53,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   GstElement* gledgedetect = (props->edgedetect) ? gst_element_factory_make("glshader", "gledgedetect") : nullptr;
   GstElement* glundistort = (props->undistort) ? gst_element_factory_make("glshader", "glundistortion") : nullptr;
   GstElement* gldownconvert = ((props->downscale > 1) || props->crop43 || props->greyscale || props->antialias || props->edgedetect || props->undistort) ? gst_element_factory_make("glcolorconvert", "gldownconverter") : nullptr;
+  GstElement* queue_download = gst_element_factory_make("queue", "queue_download");
   GstElement* gldownload = gst_element_factory_make("gldownload", "gldownloader");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
@@ -64,7 +65,8 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
     (props->downrate > 1 && !rate) ||
     !srcfilter ||
     (props->mime == "image/jpeg" && !decode) ||
-    (props->rossink && !tee && !queue1 && !rosconvert && !rosfilter && !rossink && !queue2) ||
+    (props->rossink && !tee && !queue_ros && !rosconvert && !rosfilter && !rossink) ||
+    !queue_upload ||
     !glupload ||
     !glupconvert ||
     (((props->downscale > 1) || (props->crop43)) && !glscale) ||
@@ -74,6 +76,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
     (props->edgedetect && !gledgedetect) ||
     (props->undistort && !glundistort) ||
     (((props->downscale > 1) || props->crop43 || props->greyscale || props->antialias || props->edgedetect || props->undistort)  && !gldownconvert) ||
+    !queue_download ||
     !gldownload ||
     !scalefilter ||
     (props->show_clock && !clock) ||
@@ -89,17 +92,18 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   set_srcfilter(srcfilter, props);
   if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(decode, props);
   if (props->rossink) {
-    set_queue(queue1);
+    set_queue(queue_ros);
     set_convertscale(rosconvert, props);
     set_rosfilter(rosfilter, props);
-    set_rostopicsink(rossink, props);
-    set_queue(queue2);
+    set_rostopicsink(rossink, props); 
   }
+  set_queue(queue_upload);
   if (props->crop43) set_glcrop43(glcrop, props);
   if (props->greyscale) set_glgreyscale(glgreyscale);
   if (props->antialias) set_glantialias(glantialias, props);
   if (props->edgedetect) set_gledgedetect(gledgedetect, props);
   if (props->undistort) set_glundistort(glundistort, props);
+  set_queue(queue_download);
   set_scalefilter(scalefilter, props, crop_width*2);
   (vpX == 9) ? set_vp9enc(encode, props) : set_vp8enc(encode, props);
   set_webrtcsink(webrtc, props);
@@ -108,8 +112,10 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   gst_bin_add_many(GST_BIN(gst_pipeline),
       source,
       srcfilter,
+      queue_upload,
       glupload,
       glupconvert,
+      queue_download,
       gldownload,
       scalefilter,
       encode,
@@ -117,7 +123,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
       NULL);
   if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
-  if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue1, rosconvert, rosfilter, rossink, queue2, NULL);
+  if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue_ros, rosconvert, rosfilter, rossink, NULL);
   if ((props->downscale > 1) || props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glscale);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glcrop);
   if (props->greyscale) gst_bin_add(GST_BIN(gst_pipeline), glgreyscale);
@@ -136,11 +142,11 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
 
   if (link_elements(streamer_node, next_element, tee, props->serial)) next_element = tee;
-  if (link_elements(streamer_node, next_element, queue1, props->serial)) next_element = queue1;
+  if (link_elements(streamer_node, next_element, queue_ros, props->serial)) next_element = queue_ros;
   if (link_elements(streamer_node, next_element, rosconvert, props->serial)) next_element = rosconvert;
   if (link_elements(streamer_node, next_element, rosfilter, props->serial)) next_element = rosfilter;
   if (link_elements(streamer_node, next_element, rossink, props->serial)) next_element = tee;
-  if (link_elements(streamer_node, next_element, queue2, props->serial)) next_element = queue2;
+  if (link_elements(streamer_node, next_element, queue_upload, props->serial)) next_element = queue_upload;
 
   if (link_elements(streamer_node, next_element, glupload, props->serial)) next_element = glupload;
   if (link_elements(streamer_node, next_element, glupconvert, props->serial)) next_element = glupconvert;
@@ -151,6 +157,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   if (link_elements(streamer_node, next_element, gledgedetect, props->serial)) next_element = gledgedetect;
   if (link_elements(streamer_node, next_element, glundistort, props->serial)) next_element = glundistort;
   if (link_elements(streamer_node, next_element, gldownconvert, props->serial)) next_element = gldownconvert;
+  if (link_elements(streamer_node, next_element, queue_download, props->serial)) next_element = queue_download;
   if (link_elements(streamer_node, next_element, gldownload, props->serial)) next_element = gldownload;
   if (link_elements(streamer_node, next_element, scalefilter, props->serial)) next_element = scalefilter;
   if (link_elements(streamer_node, next_element, clock, props->serial)) next_element = clock;
