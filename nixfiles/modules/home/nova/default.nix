@@ -75,8 +75,6 @@ in
       sessionVariables = {
         NIX_AUTO_RUN = "1";
         NIX_AUTO_RUN_INTERACTIVE = "1";
-        RMW_IMPLEMENTATION = "rmw_fastrtps_cpp";
-        COMP = "ARCh";
       };
 
       shellAliases = rec {
