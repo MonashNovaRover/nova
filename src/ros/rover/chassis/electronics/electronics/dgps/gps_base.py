@@ -34,7 +34,7 @@ import re
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import UInt8MultiArray
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatFix, NavSatStatus
 from nova_interfaces.msg import GPSData
 from rclpy.qos import QoSPresetProfiles
 
@@ -49,10 +49,6 @@ class GPSBase(Node):
         self.baudrate = self.declare_parameter(
             name='baudrate', 
             value=115200, 
-        ).value
-        self.gps_module = self.declare_parameter(
-            name='gps_module', 
-            value='ublox', 
         ).value
         self.height = self.declare_parameter(
             name='height', # Height in cm
@@ -242,47 +238,36 @@ class GPSBase(Node):
             self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!', throttle_duration_sec=2)
             return
 
-        if self.gps_module == 'ublox':
-            msg_str = str(msg_parsed)
-            if 'lat=' in msg_str:
-                match_lat = re.search(r'lat=([-\d.]+)', msg_str)
-                match_lon = re.search(r'lon=([-\d.]+)', msg_str)
-                latitude = 0
-                longtitude = 0
+        if msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
+            if msg_parsed.quality > 0:
+                # Valid fix
+                self.pose.latitude = float(msg_parsed.lat)
+                self.pose.longitude = float(msg_parsed.lon)
+                self.pose.altitude = float(msg_parsed.alt)
+                self.pose.status.status = NavSatStatus.STATUS_FIX
+                self.fix_type = 'GPS fix'
+            else:
+                self.pose.status.status = NavSatStatus.STATUS_NO_FIX
+                self.fix_type = 'No fix'
+                self.get_logger().warn(f'❌ GPS (GGA) data is not available!', throttle_duration_sec=2)
 
-                if match_lat:
-                    latitude = float(match_lat.group(1))
-                
-                if match_lon:
-                    longtitude = float(match_lon.group(1))
+            ### ROS2 ###
+            self.pose_custom.header = self.pose.header
+            self.pose_custom.status = self.pose.status
+            self.pose_custom.latitude = self.pose.latitude
+            self.pose_custom.longitude = self.pose.longitude
+            self.pose_custom.altitude = self.pose.altitude
 
-                if match_lat or match_lon:
-                    self.pose.status.status = 0
-                    self.pose.status.service = 0
-                    self.pose.position_covariance = [
-                        0.0, 0.0, 0.0,
-                        0.0, 0.0, 0.0,
-                        0.0, 0.0, 0.0
-                    ]
-                    self.pose.position_covariance_type = 0
-                    self.pose.latitude, self.pose.longitude = latitude, longtitude
-                else: 
-                    self.get_logger().warn(f'❌ GPS data is not available!', throttle_duration_sec=2)
-
-                ### ROS2 ###
-                self.pose_custom.header = self.pose.header
-                self.pose_custom.status = self.pose.status
-                self.pose_custom.latitude = self.pose.latitude
-                self.pose_custom.longitude = self.pose.longitude
-                self.pose_custom.altitude = self.pose.altitude
-
-                ### LOG ###
-                msg_log = f'''
-                    🛰️ NMEA Data:
-                    \traw: {msg_str}
-                    \tlat: {self.pose.latitude:8.3f}
-                    \tlon: {self.pose.longitude:8.3f}
-                '''
+            ### LOG ###
+            msg_log = f'''
+                🛰️ NMEA Data:
+                \tlat: {self.pose.latitude:8.3f}
+                \tlon: {self.pose.longitude:8.3f}
+                \talt: {self.pose.altitude:8.3f}
+                \tfix type: {self.fix_type}
+            '''
+            self.get_logger().info(msg_log, throttle_duration_sec=1)
+            
 
     def parse_rtcm(self) -> None:
         self.pose.header.stamp = self.get_clock().now().to_msg()
@@ -301,23 +286,20 @@ class GPSBase(Node):
             self.get_logger().warn(f'❌ Failed to read RTCM3 message: \'msg_parsed\' cannot be None!', throttle_duration_sec=2)
             return
 
-        if self.gps_module == 'ublox':
-            msg_str = str(msg_parsed)
+        msg_str = str(msg_parsed)
 
-            ### ROS2 ###
-            msg_binary = UInt8MultiArray()
-            msg_binary.data = list(msg_raw)
-            self.pub_rtcm.publish(msg_binary)
+        ### ROS2 ###
+        msg_binary = UInt8MultiArray()
+        msg_binary.data = list(msg_raw)
+        self.pub_rtcm.publish(msg_binary)
+        self.get_logger().info(f'✅ Published RTCM3 message!', throttle_duration_sec=1)
 
-            ### LOG ###
-            msg_log = f'''
-                🛰️ RTCM3 Data:
-                \traw: {msg_str}
-            '''
-            if self.fix_type == 3:
-                self.get_logger().debug(msg_log, throttle_duration_sec=2)
-            else:
-                self.get_logger().warn(msg_log, throttle_duration_sec=2)
+        ### LOG ###
+        msg_log = f'''
+            🛰️ RTCM3 Data:
+            \traw: {msg_str}
+        '''
+        self.get_logger().debug(msg_log, throttle_duration_sec=1)
 
     def loop(self) -> None:
         self.parse_nmea()
