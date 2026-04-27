@@ -22,10 +22,11 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
   const activeStatusBifrost = useBifrost({ topic: RosTopic.ACTIVATED_NODES });
   const lockedStatusBifrost = useBifrost({ topic: RosTopic.LOCKED_STATUS });
 
-  const activeStatusMessage = useSelector((state: RootState) => state.activeStatusStore);
+  const activeStatusName = useSelector((state: RootState) => state.activeStatusStore.name);
+  const activeStatusActive = useSelector((state: RootState) => state.activeStatusStore.active);
   const lockedStatusMessage = useSelector((state: RootState) => state.lockedStatusStore);
 
-  const [currentStatus, setCurrentStatus] = useState(props.config.map(_ => false))
+  const [lastStatus, setLastStatus] = useState(props.config.map(_=>false))
 
   useEffect(() => {
     activeStatusBifrost.syncWithTopic();
@@ -33,13 +34,8 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
   }, [activeStatusBifrost, lockedStatusBifrost]);
 
   // update currentStatus with every new message
-  useEffect(() => {
-    props.config.forEach((value, index) => {
-      if (value.name === activeStatusMessage.name) {
-        setCurrentStatus(currentStatus.map((v, i) => i === index ? activeStatusMessage.active : v))
-      }
-    })
-  }, [activeStatusMessage, currentStatus, setCurrentStatus, props.config]);
+  const currentStatus = props.config.map(({name}, index)=> name === activeStatusName ? activeStatusActive : lastStatus[index])
+  if (lastStatus.every((v, i)=> v !== currentStatus[i])) setLastStatus(currentStatus);
 
   // Message to show when locked
   const lockedMessage = (
