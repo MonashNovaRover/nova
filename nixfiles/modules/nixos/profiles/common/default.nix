@@ -32,6 +32,7 @@ in
     nova = {
       users.nova.enable = true;
       branding.enable = true;
+      networking.ddsTuning.enable = true;
     };
   };
 }
