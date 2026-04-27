@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , buildROSWorkspace
 , buildEnv
 , rviz2
@@ -173,6 +174,7 @@
       mbtileserver
       rmw-cyclonedds-cpp
       ;
+    rqt-controller-manager = pkgs.ros.rqt-controller-manager;
     
     ros2-unbag = pythonPackages.ros2-unbag;
 }
