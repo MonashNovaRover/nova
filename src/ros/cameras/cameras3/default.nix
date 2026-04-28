@@ -90,12 +90,11 @@ buildRosPackage {
         --prefix __EGL_VENDOR_LIBRARY_FILENAMES : "${mesa}/share/glvnd/egl_vendor.d/50_mesa.json" \
         --prefix LD_LIBRARY_PATH : "${mesa}:${libGL}"
     else
-      # If NVIDIA GPU is detected, use the default paths
-      export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
+      # If NVIDIA GPU is detected, use the default paths 
       wrapGApp "$out/lib/cameras/camera_streamer_service"\
         --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"\
-        --prefix GST_GL_PLATFORM "egl"\
-        --prefix GST_GL_WINDOW "surfaceless"
+        --prefix GST_GL_PLATFORM : "egl"\
+        --prefix GST_GL_WINDOW : "surfaceless"
     fi
     set -e
   '';
