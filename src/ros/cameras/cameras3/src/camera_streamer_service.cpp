@@ -84,7 +84,7 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
   std::unordered_map<std::string, Pipeline*> pipelines;
-  const std::unordered_set<std::string> profiles = {"default", "super", "snail", "emergency"};
+  const std::unordered_set<std::string> profiles = {"default", "super", "still", "snail", "emergency"};
 
   private: void start_pipeline(Pipeline* pipeline)
   {
