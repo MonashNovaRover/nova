@@ -68,7 +68,8 @@ class GPSBase(Node):
         ).value
         self.port_name = self.declare_parameter(
             name='port_name', 
-            value='/dev/ttyACM0', 
+            # UM960
+            value='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0', 
         ).value
         self.port_type = self.declare_parameter(
             name='port_type', # Choose from "USB", "UART1", "UART2"

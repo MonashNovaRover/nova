@@ -43,7 +43,8 @@ class GPSRover(Node):
             value=115200, 
         ).value
         self.port_name = self.declare_parameter(
-            name='port_name', 
+            name='port_name',
+            # SkyTraq
             value='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0', 
         ).value
         self.publisher_rate = self.declare_parameter(
