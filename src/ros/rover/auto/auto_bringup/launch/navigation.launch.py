@@ -276,7 +276,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='mppi_config',
-            default_value='fast',
+            default_value='regular',
             description='Name of the MPPI config to use (without .yaml)', 
         ),
     ]

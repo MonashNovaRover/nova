@@ -12,8 +12,8 @@ local_costmap:
       global_frame: odom
       robot_base_frame: base_link
       rolling_window: true
-      width: 13
-      height: 13
+      width: 10
+      height: 10
       resolution: 0.05
       # [x, y], where x is length and y is width
       # ([wheel_base, steering_track] / 2) + wheel_radius
