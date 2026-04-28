@@ -6,7 +6,7 @@ class CartographerClient():
     def __init__(self, node:Node):
         self.node=node
         self.goals=[]
-        self.type=None
+        self.goal_type=None
         self.search_radius=None
         self.started=False
 
@@ -17,7 +17,7 @@ class CartographerClient():
     def called(self, request, response):
         '''Loads waypoints from GUI and converts them into PoseStamped messages.'''
         self.goals = request.goals
-        self.type = request.type
+        self.goal_type = request.goal_type
         self.search_radius = request.search_radius
         while not self.response:
             pass

@@ -3,6 +3,7 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from nav2_msgs.action import NavigateThroughPoses
 from nova_interfaces.action import URCThroughPoses
+from nova_interfaces.srv import CartographerCommand
 from os.path import expanduser
 
 class NavigatorClient():
@@ -32,29 +33,26 @@ class NavigatorClient():
 
         self.started = self.urc_started and self.nav2_started
 
-    def start(type, poses, search_radius):
+    def start(self, type, poses, search_radius):
         match type:
 
             case CartographerCommand.GNSS:
                 self.go_to_gps(poses)
-                return
 
             case CartographerCommand.AR:
-                self.go_to_ar_tag(poses)
-                return
+                self.go_to_ar_tag(poses, search_radius)
 
             case CartographerCommand.OBJECT:
                 self.go_to_object(poses, search_radius)
-                return
 
-    def go_to_gps(poses):
+    def go_to_gps(self, poses):
         goal_action = NavigateThroughPoses.Goal()
         goal_action.poses = poses
         goal_action.behaviour_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_nearby_collision_goals.xml"
         self.node.get_logger().info('Sending waypoints to /navigate_through_poses...')
         self.call(goal_action)
 
-    def go_to_ar_tag(poses):
+    def go_to_ar_tag(self, poses, search_radius):
         goal_action = URCThroughPoses.Goal()
         goal_action.poses = poses
         goal_action.behaviour_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_aruco.xml"
@@ -62,7 +60,7 @@ class NavigatorClient():
         self.node.get_logger().info('Sending waypoints to /urc_through_poses...')
         self.call(goal_action)
 
-    def go_to_object(poses, search_radius):
+    def go_to_object(self, poses, search_radius):
         goal_action = URCThroughPoses.Goal()
         goal_action.poses = poses
         goal_action.behaviour_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_object.xml"

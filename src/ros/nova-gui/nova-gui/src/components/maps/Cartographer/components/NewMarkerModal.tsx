@@ -7,8 +7,6 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Select,
-  SelectItem
 } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
@@ -118,24 +116,6 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               }
             }}
           />
-          {props.labels && props.labels.length > 0 && (
-            <Select
-              label="Label"
-              defaultSelectedKeys={["0"]}
-              onChange={(e) => {
-                setLabelNumber(Number(e.target.value))
-                if (props.labels) {
-                  setLabelName(
-                    props.labels.find((label) => label.key === Number(e.target.value))?.text ?? null
-                  );
-                }
-              }}
-            >
-              {props.labels.map((label) => (
-                <SelectItem key={label.key}>{label.text}</SelectItem>
-              ))}
-            </Select>
-          )}
         </ModalBody>
         <ModalFooter>
           <Button fullWidth onClick={handleDropPin}>

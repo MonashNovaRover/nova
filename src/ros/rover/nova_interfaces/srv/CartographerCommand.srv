@@ -1,7 +1,7 @@
 ## REQUEST
 
 sensor_msgs/NavSatFix[] goals
-uint8 type
+uint8 goal_type
 uint16 search_radius
 
 # type

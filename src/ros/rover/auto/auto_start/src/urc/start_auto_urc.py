@@ -35,7 +35,6 @@ from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped
 from nova_interfaces.msg import Status
-from nova_interfaces.action import URCThroughPoses
 from action_msgs.msg import GoalStatus
 import yaml,os,enum
 from cartographer_client import CartographerClient
@@ -63,31 +62,31 @@ class StartAuto(Node):
         
         self.cartographer_client = CartographerClient(self)
 
-        self.fromll_client = FromLLClient(self)
-        if not self.fromll_client.started:
-            return
-
-        self.led_client = LEDClient(self)
-        # if not self.led_client.started:
+        # self.fromll_client = FromLLClient(self)
+        # if not self.fromll_client.started:
         #     return
 
-        self.navigator_client = NavigatorClient(self)
-        if not self.navigator_client.started:
-            return
+        # self.led_client = LEDClient(self)
+        # # if not self.led_client.started:
+        # #     return
 
-        # Save waypoints
-        self.blackboard_subscriber = self.create_subscription(String, '/blackboard', self.blackboard_callback, QoSPresetProfiles.SENSOR_DATA.value)
-        self.get_logger().info('Subscriber /blackboard created.')
+        # self.navigator_client = NavigatorClient(self)
+        # if not self.navigator_client.started:
+        #     return
 
-        # Create publisher for navigation status
-        self.status = Status.IDLE
-        self.status_publisher = self.create_publisher(Status, self.status_topic, QoSPresetProfiles.SENSOR_DATA.value)
-        self.status_timer = self.create_timer(1, self.publish_status)
-        self.get_logger().info(f'Publisher {self.status_topic} created!')
+        # # Save waypoints
+        # self.blackboard_subscriber = self.create_subscription(String, '/blackboard', self.blackboard_callback, QoSPresetProfiles.SENSOR_DATA.value)
+        # self.get_logger().info('Subscriber /blackboard created.')
 
-        # Create a timer
-        self.state = State.WAITING_FOR_CARTOGRAPHER
-        self.state_timer = self.create_timer(0.5, self.tick)
+        # # Create publisher for navigation status
+        # self.status = Status.IDLE
+        # self.status_publisher = self.create_publisher(Status, self.status_topic, 1)
+        # self.status_timer = self.create_timer(1, self.publish_status)
+        # self.get_logger().info(f'Publisher {self.status_topic} created!')
+
+        # # Create a timer
+        # self.state = State.WAITING_FOR_CARTOGRAPHER
+        # self.state_timer = self.create_timer(0.5, self.tick)
 
         self.started = True
 
@@ -109,24 +108,24 @@ class StartAuto(Node):
 
             case State.STARTING_NAVIGATION:
                 # Save waypoints to avoid race condition where the BT fails before waypoints are published to /blackboard
-                self.save_waypoints(waypoints)
+                self.save_waypoints(self.poses_to_yaml(self.fromll_client.poses))
                 self.led_client.red()
-                self.navigator_client.start(self.cartographer_client.type, self.fromll_client.poses, self.cartographer_client.search_radius)
+                self.navigator_client.start(self.cartographer_client.goal_type, self.fromll_client.poses, self.cartographer_client.search_radius)
                 self.state = State.MONITOR_NAVIGATION
 
             case State.MONITOR_NAVIGATION:
                 if self.navigator_client.finished():
-                    if result.status == GoalStatus.STATUS_SUCCEEDED:
+                    if self.navigator_client.status == GoalStatus.STATUS_SUCCEEDED:
                         self.led_client.green()
                         self.status = Status.ARRIVED_SUCCESSFULLY
                         self.publish_status()
                         self.get_logger().info('Navigation succeeded!')
-                    elif result.status == GoalStatus.STATUS_CANCELED:
+                    elif self.navigator_client.status == GoalStatus.STATUS_CANCELED:
                         self.get_logger().warn('Navigation cancelled.')
-                    elif result.status == GoalStatus.STATUS_ABORTED:
+                    elif self.navigator_client.status == GoalStatus.STATUS_ABORTED:
                         self.get_logger().error('Navigation failed!')
                     else:
-                        self.get_logger().error(f'Navigation ended with unknown status: {result.status}')
+                        self.get_logger().error(f'Navigation ended with unknown status: {self.navigator_client.status}')
                     self.state = State.WAITING_FOR_CARTOGRAPHER
                     return
 
@@ -137,18 +136,36 @@ class StartAuto(Node):
                 if self.navigator_client.goal_handle.status == GoalStatus.STATUS_ABORTED:
                     self.get_logger().error('Navigation aborted detected by timer callback!')
                     self.get_logger().info('Sending waypoints to restart navigation')
-                    self.navigator_client.start(self.cartographer_client.type, self.load_waypoints(), self.cartographer_client.search_radius)
+                    self.navigator_client.start(self.cartographer_client.goal_type, self.load_waypoints(), self.cartographer_client.search_radius)
 
+    def poses_to_yaml(poses):
+        waypoints = {}
+        for i, pose in enumerate(poses, start=1):
+            waypoints[f'waypoint_{i}'] = {
+                'pose': [
+                    pose.pose.position.x,
+                    pose.pose.position.y,
+                    pose.pose.position.z,
+                ],
+                'orientation': [
+                    pose.pose.orientation.x,
+                    pose.pose.orientation.y,
+                    pose.pose.orientation.z,
+                    pose.pose.orientation.w,
+                ]
+            }
+        return {'waypoints': waypoints}
+    
     def save_waypoints(self, waypoints):
         ''' Saves the extracted waypoints to a YAML file. '''
         with open(self.filepath, 'w') as f:
             yaml.dump({'waypoints': waypoints}, f, indent=2)
-        self.get_logger().info(f'📁 Waypoints saved to: {self.filepath}')
+        self.get_logger().info(f'Saved waypoints to: {self.filepath}')
 
     def load_waypoints(self):
         '''Loads waypoints from YAML file and converts them into PoseStamped messages.'''
         if not os.path.exists(self.filepath):
-            self.get_logger().error(f'Waypoints not found: {self.filepath} does not exist!')
+            self.get_logger().error(f'Failed to load waypoints: {self.filepath} does not exist!')
             return None
 
         with open(self.filepath, 'r') as f:
