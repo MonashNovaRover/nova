@@ -50,6 +50,14 @@
       <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
     </Action>
 
+    <Action ID="RemoveInCollisionGoals">
+      <input_port name="input_goals">A vector of goals to check if in collision</input_port>
+      <input_port name="cost_threshold">Cost threshold for considering a goal in collision</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+      <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
+    </Action>
+
     <Action ID="SaveCubePoses">
       <input_port name="cube_poses">List of cube poses</input_port>
       <input_port name="file_path">File to save cube poses to</input_port>

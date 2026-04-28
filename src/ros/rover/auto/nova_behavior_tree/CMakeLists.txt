@@ -82,6 +82,9 @@ list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
 add_library(nova_remove_nearby_in_collision_goals_action_bt_node SHARED plugins/action/remove_nearby_in_collision_goals_action.cpp)
 list(APPEND plugin_libs nova_remove_nearby_in_collision_goals_action_bt_node)
 
+add_library(nova_remove_in_collision_goals_action_bt_node SHARED plugins/action/remove_in_collision_goals_action.cpp)
+list(APPEND plugin_libs nova_remove_in_collision_goals_action_bt_node)
+
 add_library(nova_get_dist_between_poses_action_bt_node SHARED plugins/action/get_dist_between_poses_action.cpp)
 list(APPEND plugin_libs nova_get_dist_between_poses_action_bt_node)
 
