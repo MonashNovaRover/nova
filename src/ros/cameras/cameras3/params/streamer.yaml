@@ -355,6 +355,13 @@ camera_streamer:
         framerate: 30
         verify_resolution: false
         payload_quirk: true
+        denoise: true
+        denoise_sigma: 12.0
+        denoise_threshold: 0.15
+        denoise_radius: 4
+        undistort: true
+        undistort_k1: -0.11
+        undistort_k2: 0.01
 
       HZ_USB_Camera_20220301104:
         pipeline_type: vp9software
@@ -363,6 +370,9 @@ camera_streamer:
         framerate: 30
         verify_resolution: false
         brightness: 255
+        undistort: true
+        undistort_k1: -0.08
+        undistort_k2: 0.007
 
       # Legacy
       Microsoft_Microsoft®_LifeCam_HD-3000:
