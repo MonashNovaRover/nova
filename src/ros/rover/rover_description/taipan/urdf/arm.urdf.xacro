@@ -4,8 +4,19 @@
   xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
+  <xacro:arg name="ducket" default="true"/>
 
   <xacro:include filename="$(arg rover_description_dir)/taipan/urdf/arm.urdf"/>
+
+  <xacro:if value="$(arg ducket)">
+    <xacro:include filename="$(arg rover_description_dir)/ducket/ducket.urdf.xacro"/>
+    <joint name="armbox_to_ducket" type="fixed">
+        <origin xyz="-0.0354798 -0.151628 -0.122841" rpy="-7.71583e-15 8.81621e-38 -4.38974e-37" />
+        <axis xyz="0 -0.707107 -0.707107" />
+        <parent link="arm_box" />
+        <child link="ducket_link" />
+    </joint>
+  </xacro:if>
 
   <!-- Kinematics -->
   <!-- THESE NEED FIXING 4/02/2026 !!! -->
