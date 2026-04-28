@@ -93,7 +93,9 @@ buildRosPackage {
       # If NVIDIA GPU is detected, use the default paths
       export GST_PLUGIN_PATH="${gst-bridge}/lib:$GST_PLUGIN_PATH"
       wrapGApp "$out/lib/cameras/camera_streamer_service"\
-        --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"
+        --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"\
+        --prefix GST_GL_PLATFORM "egl"\
+        --prefix GST_GL_WINDOW "surfaceless"
     fi
     set -e
   '';
