@@ -48,7 +48,7 @@ def launch_setup(context, *args, **kwargs):
     arm = LaunchConfiguration('arm')
     rviz = LaunchConfiguration('rviz')
     
-    gazebo = LaunchConfiguration('gazebo')
+    sim = LaunchConfiguration('sim')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     urdf = LaunchConfiguration('urdf')
@@ -87,7 +87,7 @@ def launch_setup(context, *args, **kwargs):
             ros_arguments=['--log-level', log_level],
         ),
         GroupAction(
-            condition=UnlessCondition(gazebo),
+            condition=UnlessCondition(sim),
             actions=[
                 Node(
                     package='controller_manager',
@@ -203,9 +203,9 @@ def generate_launch_description():
             description='Launch rviz?',
         ),
         DeclareLaunchArgument(
-            name='gazebo',
+            name='sim',
             default_value='False',
-            description='Use simulation (Gazebo) clock if True',
+            description='Use simulation clock if True',
         ),
         DeclareLaunchArgument(
             name='log_level',
