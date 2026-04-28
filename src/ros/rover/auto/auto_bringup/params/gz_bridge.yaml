@@ -61,6 +61,13 @@
   gz_type_name: "gz.msgs.NavSat"
   direction: GZ_TO_ROS
 
+# GPS heading IMU (used by navsat_transform)
+- ros_topic_name: "/gps_rover/heading_imu"
+  gz_topic_name: "/gps/heading_imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
 # Joint states
 - ros_topic_name: "/joint_states"
   gz_topic_name: "/joint_states"
