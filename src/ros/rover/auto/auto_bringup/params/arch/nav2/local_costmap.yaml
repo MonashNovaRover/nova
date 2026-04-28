@@ -1,8 +1,14 @@
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 3.0
-      publish_frequency: 3.0
+      # Publish frequency is dependent on the update loop and is calculated as
+      # publish_frequency = update_frequency / ceil(update_frequency / publish_frequency).
+      #
+      # However, it is a little inconsistent? When wanting the publish frequency to be a
+      # factor of the update frequency, set it 1 higher, e.g. 20 Hz update and 6 Hz publish
+      # for an effective publish frequency of 5 Hz
+      update_frequency: 10.0
+      publish_frequency: 6.0
       global_frame: odom
       robot_base_frame: base_link
       rolling_window: true
