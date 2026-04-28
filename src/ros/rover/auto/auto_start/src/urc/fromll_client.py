@@ -8,10 +8,11 @@ class FromLLClient():
     def __init__(self, node):
         # Set parameters
         self.node=node
-        self.called=False
-        self.lls=[]
+        self.calling=False
+        self.ll_iter=None
         self.ll=None
         self.poses=[]
+        self.total_poses=None
         self.started=False
 
         # Create service client for robot_localization /fromLL
@@ -23,40 +24,48 @@ class FromLLClient():
             return
         self.node.get_logger().info('Successfully found service /fromLL.')
 
+        # TODO
+        # Add subscriber to /gps_rover/fix
+        # Add client to /datum
+        # Once fix received, request set /datum with the fix
+
     def call(self):
         '''Converts GNSS goal to a geometry_msgs/msg/Point using the robot_localization FromLL service.'''
-        self.called = True
+        self.calling = True
         fromll_req = FromLL.Request()
-        fromll_req.ll_point.latitude = self.ll.lat
-        fromll_req.ll_point.longitude = self.ll.lon
-        self.node.get_logger().info(f'Sending GNSS goal {lat}, {lon} to /fromLL...')
-        future = self._fromll_client.call_async(fromll_req)
+        fromll_req.ll_point.latitude = self.ll.latitude
+        fromll_req.ll_point.longitude = self.ll.longitude
+        self.node.get_logger().info(f'Sending GNSS goal {self.ll.latitude}, {self.ll.longitude} to /fromLL...')
+        future = self.fromll_client.call_async(fromll_req)
         future.add_done_callback(self.result)
     
     def result(self, future):
         result = future.result()
         pose = self.point_to_pose(result.map_point)
         self.poses.append(pose)
-        self.called = False
+        self.calling = False
 
     def point_to_pose(self, point):
         '''Creates a waypoint from a geometry_msgs/msg/Point.'''
         pose = PoseStamped()
         pose.header.frame_id = 'map'
-        pose.header.stamp = self.get_clock().now().to_msg()
+        pose.header.stamp = self.node.get_clock().now().to_msg()
         pose.pose.position.x = point.x
         pose.pose.position.y = point.y
         pose.pose.position.z = 0.0
         return pose
 
     def lls_to_poses(self, lls:list[NavSatFix]):
-        self.lls = iter(lls)
+        self.ll_iter = iter(lls)
+        self.total_poses = len(lls)
+        self.poses = []
 
     def waiting(self):
-        return self.called
+        return self.calling
 
     def has_next(self):
-        self.ll = next(self.lls, None)
-        if self.ll is None:
-            return True
-        return False
+        self.ll = next(self.ll_iter, None)
+        return self.ll is not None
+    
+    def converted_goals(self):
+        return len(self.poses) == self.total_poses

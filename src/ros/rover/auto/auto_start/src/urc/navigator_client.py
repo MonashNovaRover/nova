@@ -36,21 +36,22 @@ class NavigatorClient():
     def start(self, type, poses, search_radius):
         match type:
 
-            case CartographerCommand.GNSS:
+            case CartographerCommand.Request.GNSS:
                 self.go_to_gps(poses)
 
-            case CartographerCommand.AR:
+            case CartographerCommand.Request.AR:
                 self.go_to_ar_tag(poses, search_radius)
 
-            case CartographerCommand.OBJECT:
+            case CartographerCommand.Request.OBJECT:
                 self.go_to_object(poses, search_radius)
 
     def go_to_gps(self, poses):
         goal_action = NavigateThroughPoses.Goal()
         goal_action.poses = poses
-        goal_action.behaviour_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_nearby_collision_goals.xml"
+        goal_action.behavior_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_nearby_collision_goals.xml"
         self.node.get_logger().info('Sending waypoints to /navigate_through_poses...')
-        self.call(goal_action)
+        send_future = self.nav2_navigator_client.send_goal_async(goal_action)
+        send_future.add_done_callback(self.response)
 
     def go_to_ar_tag(self, poses, search_radius):
         goal_action = URCThroughPoses.Goal()
@@ -58,7 +59,8 @@ class NavigatorClient():
         goal_action.behaviour_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_aruco.xml"
         goal_action.search_radius = search_radius
         self.node.get_logger().info('Sending waypoints to /urc_through_poses...')
-        self.call(goal_action)
+        send_future = self.urc_navigator_client.send_goal_async(goal_action)
+        send_future.add_done_callback(self.response)
 
     def go_to_object(self, poses, search_radius):
         goal_action = URCThroughPoses.Goal()
@@ -66,11 +68,7 @@ class NavigatorClient():
         goal_action.behaviour_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_object.xml"
         goal_action.search_radius = search_radius
         self.node.get_logger().info('Sending waypoints to /urc_through_poses...')
-        self.call(goal_action)
-
-    def call(self, goal_action):
-        '''Sends the waypoints asynchronously to the URCThroughPoses action server.'''
-        send_future = self.navigator_client.send_goal_async(goal_action)
+        send_future = self.urc_navigator_client.send_goal_async(goal_action)
         send_future.add_done_callback(self.response)
 
     def response(self, future):

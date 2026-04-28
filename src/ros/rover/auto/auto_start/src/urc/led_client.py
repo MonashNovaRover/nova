@@ -16,13 +16,13 @@ class LEDClient():
             return
         self.node.get_logger().info('Succesfully found service /set_RGBInput.')
 
-    def red():
+    def red(self):
         self.call((255, 0, 0), False)
 
-    def blue():
+    def blue(self):
         self.call((0, 0, 255), False)
 
-    def green():
+    def green(self):
         self.call((0, 255, 0), True)
 
     def call(self, rgb: tuple[int, int, int], flash: bool) -> bool:

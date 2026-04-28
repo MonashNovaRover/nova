@@ -54,39 +54,40 @@ class StartAuto(Node):
         # Declare and get parameters
         self.started=False
         self.filepath=self.declare_parameter(name='filepath', 
-            value=os.path.expanduser('~/nova/src/ros/rover/auto_bringup/params/waypoints.yaml'), 
+            value=os.path.expanduser('~/.ros/waypoints.yaml'), 
         ).value
         self.status_topic=self.declare_parameter(name='status_topic',
             value='/auto/status', 
         ).value
+        self.blackboard={}
         
         self.cartographer_client = CartographerClient(self)
 
-        # self.fromll_client = FromLLClient(self)
-        # if not self.fromll_client.started:
+        self.fromll_client = FromLLClient(self)
+        if not self.fromll_client.started:
+            return
+
+        self.led_client = LEDClient(self)
+        # if not self.led_client.started:
         #     return
 
-        # self.led_client = LEDClient(self)
-        # # if not self.led_client.started:
-        # #     return
+        self.navigator_client = NavigatorClient(self)
+        if not self.navigator_client.started:
+            return
 
-        # self.navigator_client = NavigatorClient(self)
-        # if not self.navigator_client.started:
-        #     return
+        # Save waypoints
+        self.blackboard_subscriber = self.create_subscription(String, '/blackboard', self.blackboard_callback, QoSPresetProfiles.SENSOR_DATA.value)
+        self.get_logger().info('Subscriber /blackboard created.')
 
-        # # Save waypoints
-        # self.blackboard_subscriber = self.create_subscription(String, '/blackboard', self.blackboard_callback, QoSPresetProfiles.SENSOR_DATA.value)
-        # self.get_logger().info('Subscriber /blackboard created.')
+        # Create publisher for navigation status
+        self.status = Status.IDLE
+        self.status_publisher = self.create_publisher(Status, self.status_topic, 1)
+        self.status_timer = self.create_timer(1, self.publish_status)
+        self.get_logger().info(f'Publisher {self.status_topic} created.')
 
-        # # Create publisher for navigation status
-        # self.status = Status.IDLE
-        # self.status_publisher = self.create_publisher(Status, self.status_topic, 1)
-        # self.status_timer = self.create_timer(1, self.publish_status)
-        # self.get_logger().info(f'Publisher {self.status_topic} created!')
-
-        # # Create a timer
-        # self.state = State.WAITING_FOR_CARTOGRAPHER
-        # self.state_timer = self.create_timer(0.5, self.tick)
+        # Create a timer
+        self.state = State.WAITING_FOR_CARTOGRAPHER
+        self.state_timer = self.create_timer(0.5, self.tick)
 
         self.started = True
 
@@ -94,19 +95,23 @@ class StartAuto(Node):
         match self.state:
 
             case State.WAITING_FOR_CARTOGRAPHER:
+                self.get_logger().info('State: WAITING_FOR_CARTOGRAPHER.')
                 if self.cartographer_client.received_goals():
                     self.fromll_client.lls_to_poses(self.cartographer_client.goals)
-                self.state = State.CONVERTING_LLS_TO_POSES
+                    self.state = State.CONVERTING_LLS_TO_POSES
             
             case State.CONVERTING_LLS_TO_POSES:
-                if not self.fromll_client.waiting:
-                    if self.fromll_client.has_next():
-                        self.fromll_client.call()
-                        return
-                    self.cartographer_client.respond(True)
+                self.get_logger().info('State: CONVERTING_LLS_TO_POSES.')
+                if self.fromll_client.waiting():
+                    return
+                
+                if self.fromll_client.has_next():
+                    self.fromll_client.call()
+                elif self.fromll_client.converted_goals():
                     self.state = State.STARTING_NAVIGATION
 
             case State.STARTING_NAVIGATION:
+                self.get_logger().info('State: STARTING_NAVIGATION.')
                 # Save waypoints to avoid race condition where the BT fails before waypoints are published to /blackboard
                 self.save_waypoints(self.poses_to_yaml(self.fromll_client.poses))
                 self.led_client.red()
@@ -114,12 +119,13 @@ class StartAuto(Node):
                 self.state = State.MONITOR_NAVIGATION
 
             case State.MONITOR_NAVIGATION:
+                self.get_logger().info('State: MONITOR_NAVIGATION.')
                 if self.navigator_client.finished():
                     if self.navigator_client.status == GoalStatus.STATUS_SUCCEEDED:
                         self.led_client.green()
                         self.status = Status.ARRIVED_SUCCESSFULLY
                         self.publish_status()
-                        self.get_logger().info('Navigation succeeded!')
+                        self.get_logger().info('Navigation succeeded.')
                     elif self.navigator_client.status == GoalStatus.STATUS_CANCELED:
                         self.get_logger().warn('Navigation cancelled.')
                     elif self.navigator_client.status == GoalStatus.STATUS_ABORTED:
@@ -138,7 +144,7 @@ class StartAuto(Node):
                     self.get_logger().info('Sending waypoints to restart navigation')
                     self.navigator_client.start(self.cartographer_client.goal_type, self.load_waypoints(), self.cartographer_client.search_radius)
 
-    def poses_to_yaml(poses):
+    def poses_to_yaml(self, poses):
         waypoints = {}
         for i, pose in enumerate(poses, start=1):
             waypoints[f'waypoint_{i}'] = {
@@ -197,8 +203,14 @@ class StartAuto(Node):
         Also publishes the status seen in the blackboard to the status topic.
         '''
         for entry in msg.data.strip().split('\n'):
+            if ': ' not in entry:
+                continue  # skip malformed or empty lines
             key, value = entry.split(': ', 1)
             self.blackboard[key] = value
+
+        # for entry in msg.data.strip().split('\n'):
+        #     key, value = entry.split(': ', 1)
+        #     self.blackboard[key] = value
 
         waypoints = {}
         try:
