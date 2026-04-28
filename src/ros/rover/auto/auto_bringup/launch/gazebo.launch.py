@@ -53,7 +53,6 @@ def launch_setup(context, *args, **kwargs):
     # comp agnostic arguments
     gz_params = LaunchConfiguration('gz_params')
     gz_qos_params = LaunchConfiguration('gz_qos_params')
-    controller_params = LaunchConfiguration('controller_params')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
@@ -90,11 +89,11 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
-            launch_arguments={'urdf': 'False', 'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
+            launch_arguments={'local': local, 'urdf': 'False', 'auto': 'True', 'sim': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'rviz': rviz, 'rviz_params': rviz_params}.items(),
+            launch_arguments={'local': local, 'model': model, 'sim': 'true', 'robot_name': robot_name, 'rviz': rviz, 'rviz_params': rviz_params}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -162,11 +161,6 @@ def generate_launch_description():
             name='gz_qos_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'gz_bridge_qos.yaml']),
             description='Absolute path to ros_gz_bridge params file',
-        ),
-        DeclareLaunchArgument(
-            name='controller_params',
-            default_value=PathJoinSubstitution([drive_bringup_dir, 'params', 'auto.yaml']),
-            description='Absolute path to the auto drive controllers\' params file',
         ),
         DeclareLaunchArgument(
             name='model',

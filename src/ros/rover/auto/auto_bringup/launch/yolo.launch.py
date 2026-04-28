@@ -45,12 +45,12 @@ def launch_setup(context, *args, **kwargs):
     debug_image = LaunchConfiguration('debug_image')
     depth_image = LaunchConfiguration('depth_image')
     depth_camera_info = LaunchConfiguration('depth_camera_info')
-    gazebo = (LaunchConfiguration('gazebo').perform(context).lower() == 'true')
+    sim = (LaunchConfiguration('sim').perform(context).lower() == 'true')
     yolo_model = LaunchConfiguration('yolo_model') # for yolo_ros only
     detections = LaunchConfiguration('detections')
     detections_3d = LaunchConfiguration('detections_3d')
 
-    if gazebo:
+    if sim:
         yolo_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'yolo_sim.yaml'])
 
     return [
@@ -137,9 +137,9 @@ def generate_launch_description():
             description='Output debug image topic used for yolo_ros',
         ),
         DeclareLaunchArgument(
-            name='gazebo',
+            name='sim',
             default_value='False',
-            description='',
+            description='Use simulation clock if True',
         ),
         DeclareLaunchArgument(
             name='yolo_model',

@@ -37,7 +37,7 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('auto_bringup')
     )
 
-    gazebo = LaunchConfiguration('gazebo').perform(context)
+    sim = LaunchConfiguration('sim').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     joints = LaunchConfiguration('joints').perform(context)
@@ -51,7 +51,7 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'robot_description': 
                 ParameterValue(Command(['xacro ', 
                                         model, ' ', 
-                                        'gazebo:=', gazebo, ' ', 
+                                        'gazebo:=', sim, ' ', 
                                         'robot_name:=', robot_name, ' ',
                                         'auto_mount:=', 'true', ' ',
                                        ]), value_type=str)
@@ -67,7 +67,7 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             condition=IfCondition(rviz),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            launch_arguments={'gazebo': gazebo, 'model': model, 'robot_name': robot_name, 'rviz_params': rviz_params}.items(),
+            launch_arguments={'sim': sim, 'model': model, 'robot_name': robot_name, 'rviz_params': rviz_params}.items(),
         ),
     ]
 
@@ -87,9 +87,9 @@ def generate_launch_description():
             description='Whether to use local directories instead of the nix store.',
         ),
         DeclareLaunchArgument(
-            name='gazebo', 
+            name='sim', 
             default_value='False',
-            description='Launch with gazebo or not',
+            description='Use simulation clock if True',
         ),
         DeclareLaunchArgument(
             name='model',

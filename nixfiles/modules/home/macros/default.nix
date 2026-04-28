@@ -275,7 +275,8 @@ in
           cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
 
           # Auto 
-          launch-everything = "~/Builds/active/bin/ros2 launch auto_bringup everything.launch.py";
+          launch-sim = "~/Builds/active/bin/ros2 launch auto_bringup sim.launch.py";
+          launch-gazebo = "~/Builds/active/bin/ros2 launch auto_bringup gazebo.launch.py";
           launch-auto-drive = "~/Builds/active/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
           launch-realsense = "~/Builds/active/bin/ros2 launch auto_bringup realsense.launch.py";
           launch-localization = "~/Builds/active/bin/ros2 launch auto_bringup localization.launch.py";

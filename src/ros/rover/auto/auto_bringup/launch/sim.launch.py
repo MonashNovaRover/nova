@@ -7,7 +7,6 @@ nodes for the rover's autonomous stack.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 INCLUDED LAUNCH FILES:
   - gazebo.launch.py
-  - drive.launch.py
   - localization.launch.py
   - navigation.launch.py
   - lidar.launch.py
@@ -35,10 +34,6 @@ def launch_setup(context, *args, **kwargs):
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
     )
-    drive_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
-        FindPackageShare('drive_bringup')
-    )
     nova_bringup_dir = IfElseSubstitution(local,
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
         FindPackageShare('nova_bringup')
@@ -50,7 +45,6 @@ def launch_setup(context, *args, **kwargs):
     # comp agnostic arguments
     autostart = LaunchConfiguration('autostart')
     controller_params = LaunchConfiguration('controller_params')
-    gazebo = LaunchConfiguration('gazebo')
     localization = LaunchConfiguration('localization')
     log_level = LaunchConfiguration('log_level')
     map_params = LaunchConfiguration('map_params')
@@ -92,7 +86,6 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         IncludeLaunchDescription(
-            condition=IfCondition(gazebo),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
             launch_arguments={
                 'local': local,
@@ -106,18 +99,11 @@ def launch_setup(context, *args, **kwargs):
             }.items(),
         ),
         IncludeLaunchDescription(
-            condition=UnlessCondition(gazebo),
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
-            launch_arguments={
-                'local': local,
-            }.items(),
-        ),
-        IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'realsense.launch.py'])),
             launch_arguments={
                 'local': local,
                 'comp': comp,
-                'sim': gazebo,
+                'sim': 'True',
             }.items()
         ),
         IncludeLaunchDescription(
@@ -126,7 +112,7 @@ def launch_setup(context, *args, **kwargs):
             launch_arguments={
                 'local': local,
                 'comp': comp,
-                'gazebo': gazebo,
+                'sim': 'True',
                 'gps': gps,
                 'rl_params': rl_params,
             }.items()
@@ -143,7 +129,7 @@ def launch_setup(context, *args, **kwargs):
                 'namespace': namespace,
                 'nav2_params_dir': nav2_params_dir,
                 'use_respawn': use_respawn,
-                'gazebo': gazebo,
+                'sim': 'True',
                 'map_params': map_params,
                 'mppi_config': mppi_config,
             }.items()
@@ -155,7 +141,7 @@ def launch_setup(context, *args, **kwargs):
                 'local': local,
                 'comp': comp,
                 'fastlivo2_params': fastlivo2_params,
-                'sim': gazebo,
+                'sim': 'True',
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -222,11 +208,6 @@ def generate_launch_description():
             name='controller_params',
             default_value=PathJoinSubstitution([drive_bringup_dir, 'params', 'auto.yaml']),
             description='Absolute path to the auto drive controllers\' params file',
-        ),
-        DeclareLaunchArgument(
-            name='gazebo',
-            default_value='True',
-            description='Flag to launch gazebo',
         ),
         DeclareLaunchArgument(
             name='log_level',
