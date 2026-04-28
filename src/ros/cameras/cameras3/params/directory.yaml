@@ -13,9 +13,6 @@ camera_directory:
       platform_roots:
         # the root for each platform which generally will change depending on which usb slot of the device the usb hub is plugged into
         # the root can be specified by passing the "platform" parameter to the directory node
-        aftershock_laptop:
-          "pci-0000:00:14.0-usb-0:9": mast    # USB slot on left of computer - right slot.
-          "pci-0000:00:14.0-usb-0:4": payload # USB slot on left of computer - left slot.
         intel_laptop:
           "pci-0000:00:14.0-usb-0:1": mast
           "pci-0000:00:14.0-usb-0:2": payload
@@ -30,11 +27,6 @@ camera_directory:
           # ---- | Mast hub     |      | --------
           # HDMI | Payload hub  |      | ETHERNET
           # -------------------------------------
-        rover:
-          "platform-3530000.xhci-usb-0:1": mast
-          "platform-3530000.xhci-usb-0:3": payload
-        tx2_dev_board:
-          "platform-3530000.xhci-usb-0:2": mast
 
       default_paths:
         # by default these paths on the usb hub will be remapped to the following serials.
@@ -43,8 +35,8 @@ camera_directory:
         mast:
           '1:1.0': mast_arm_stow
           '2:1.0': mast_belly
-          '3:1.0': mast_forward
-          '4:1.0': mast_backward
+          '3:1.0': mast_backward
+          '4:1.0': mast_forward
         payload:
           '1:1.0': payload_1
           '2:1.0': payload_2
@@ -67,11 +59,11 @@ camera_directory:
           payload:
             '4.1:1.0': science_cuvettes
         delivery:
-          payload_1: arm_end_finger
-          payload_2: arm_end_side
+          payload_1: arm_end_side
+          payload_2: arm_end_finger
           payload_3: arm_end_periscope
           payload_4_2: arm_end_top
-          payload_4_4: arm_gimbal
+          payload_4_4: arm_wrist
 
         auto:
           mast_arm_stow: auto_left

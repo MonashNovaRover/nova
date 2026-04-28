@@ -8,19 +8,6 @@
 
 static int num_cores = std::thread::hardware_concurrency();
 
-template<typename properties> void set_av1enc(GstElement* encode, const properties props) {
-  g_object_set(encode,
-    "cpu-used", std::clamp(11-props->cpu_used, 0, 10), // Fastest 10, 1 Slowest 
-    "end-usage", 1, // constant bitrate
-    "usage-profile", 1, // realtime 
-    "threads", std::clamp(props->threads, 1, num_cores), // 1 is best for cpu and compression ratio
-    "target-bitrate", std::clamp(props->bitrate, 1, 4096),
-    "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
-    "tile-columns", std::clamp(props->threads, 1, 6),
-    "tile-rows", std::clamp(props->threads, 1, 6),
-  NULL);
-}
-
 template <typename properties> void set_vp8enc(GstElement* encode, const properties props) {
   const int num_cores = std::thread::hardware_concurrency();
   g_object_set(encode,
@@ -38,7 +25,6 @@ template <typename properties> void set_vp8enc(GstElement* encode, const propert
       props->cpu_used == 9 ? 12:
       props->cpu_used == 10 ? 16:
       0 ), // Fastest -16, 16 Slowest
-    "noise-sensitivity", props->noise, // Noise filter
     "end-usage", 1, // constant bitrate
     "threads", std::clamp(props->threads, 1, num_cores), // 1 is best for cpu and compression ratio
     "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
@@ -67,7 +53,6 @@ template <typename properties> void set_vp9enc(GstElement* encode, const propert
       props->cpu_used == 9 ? 12:
       props->cpu_used == 10 ? 16:
       0 ), // Fastest -16, 16 Slowest
-    "noise-sensitivity", props->noise, // Noise filter
     "end-usage", 1, // constant bitrate
     "threads", std::clamp(props->threads, 1, num_cores), // 1 is best for cpu and compression ratio
     "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
@@ -78,21 +63,6 @@ template <typename properties> void set_vp9enc(GstElement* encode, const propert
     "tuning", 1, // Tune for ssim, better for low bitrate/ blur
     "aq-mode", 3, // cyclic refresh aq mode, low latency low bitrate
     NULL);
-}
-
-template <typename properties> void set_x264enc(GstElement* encode, const properties props) {
-  g_object_set(encode,
-    "tune", 0x00000004, // zerolatency
-    "speed-preset", std::clamp(props->cpu_used, 1, 10),
-    "noise-reduction", props->noise, // Noise filter
-    "threads", std::clamp(props->threads, 1, num_cores), // 1 is best for cpu and compression ratio
-    "bitrate", std::clamp(props->bitrate, 1, 4096),
-    "key-int-max", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
-    "vbv-buf-capacity", props->gop*1125,        // Buffer size for GOP
-    "b-adapt", false, // Do not allow b frames
-    "sliced-threads", false, // Do not sacrifice cpu usage for lower latency
-    "psy-tune", 5, // Tune for ssim, better for low bitrate/ blur
-  NULL);
 }
 
 #endif
