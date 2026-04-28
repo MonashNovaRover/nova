@@ -28,6 +28,7 @@ find_package(vision_msgs REQUIRED)
 find_package(aruco_opencv_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav2_util REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
 find_package(behaviortree_cpp REQUIRED)
 find_package(ament_index_cpp REQUIRED)
@@ -41,6 +42,7 @@ set(dep_pkgs
   aruco_opencv_msgs
   tf2_ros
   nav2_util
+  nav2_costmap_2d
   nav2_behavior_tree
   behaviortree_cpp
   ament_index_cpp

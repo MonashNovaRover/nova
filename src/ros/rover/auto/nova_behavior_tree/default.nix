@@ -6,6 +6,7 @@
   pluginlib, 
   rosidl-default-generators, 
   behaviortree-cpp, 
+  nav2-costmap-2d,
   geometry-msgs, 
   vision-msgs, 
   aruco-opencv-msgs, 
@@ -34,6 +35,7 @@ buildRosPackage {
     rclcpp 
     nav2-behavior-tree 
     behaviortree-cpp 
+    nav2-costmap-2d
     nav2-util 
     tf2-ros 
     geometry-msgs 

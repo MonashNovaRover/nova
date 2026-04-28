@@ -22,7 +22,7 @@ local_costmap:
       # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
       robot_radius: 0.85
       track_unknown_space: false
-      always_send_full_costmap: false # RemoveInCollisionGoals needs this to be true to work
+      always_send_full_costmap: true
       trinary_costmap: true
       plugins: ["stvl_layer", "denoise_layer", "inflation_layer"]
       

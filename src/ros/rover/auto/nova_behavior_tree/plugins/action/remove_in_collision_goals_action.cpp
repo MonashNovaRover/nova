@@ -23,10 +23,8 @@
 #include <vector>
 #include <array>
 #include <cmath>
-#include <queue>
-#include <chrono>
-#include <thread>
 
+#include "nav2_costmap_2d/costmap_2d.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "rclcpp/logging.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -69,26 +67,13 @@ void RemoveInCollisionGoalsAction::initialize()
   // Get input params
   getInput("cost_threshold", cost_threshold_);
 
-  // Subscribe to local and global costmaps' occupancy grids
-  local_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
-        "/local_costmap/costmap", 1,
-        [this](const OccupancyGrid::SharedPtr msg) -> void
-        {
-          local_occu_grid_ = msg;
-          RCLCPP_DEBUG(node_->get_logger(), "Received local costmap");
-      }
-  );
-  global_occu_grid_sub_ = node_->create_subscription<OccupancyGrid>(
-      "/global_costmap/costmap", 1,
-      [this](const OccupancyGrid::SharedPtr msg) -> void
-      {
-          global_occu_grid_ = msg;
-          RCLCPP_DEBUG(node_->get_logger(), "Received global costmap");
-      }
-  );
+  // Subscribe to local and global costmaps via Nav2 costmap transport.
+  local_costmap_sub_ = std::make_unique<nav2_costmap_2d::CostmapSubscriber>(
+    node_, "/local_costmap/costmap_raw");
+  global_costmap_sub_ = std::make_unique<nav2_costmap_2d::CostmapSubscriber>(
+    node_, "/global_costmap/costmap_raw");
 
-  wait_for_occu_grids();
-  RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals successfully initialized!");
+  RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals initialized.");
   initialized_ = true;
 }
 
@@ -99,12 +84,7 @@ void RemoveInCollisionGoalsAction::setup()
     initialize();
   }
   
-  if (!local_occu_grid_ || !global_occu_grid_)
-  {
-    wait_for_occu_grids();
-  }
-
-  RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals successfully set up!");
+  RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals set up.");
         
   set_up_ = true;
 }
@@ -121,17 +101,15 @@ inline BT::NodeStatus RemoveInCollisionGoalsAction::tick()
       setup();
   }
 
-  // at this point, we should already have the occupancy grids
-  // however, this is just a safeguard
-  if (!local_occu_grid_ || !global_occu_grid_)
+  if (!have_costmaps())
   {
-      wait_for_occu_grids();
+      RCLCPP_WARN_THROTTLE(
+        node_->get_logger(), *node_->get_clock(), 2000,
+        "RemoveInCollisionGoals waiting for local/global costmaps.");
+      return BT::NodeStatus::RUNNING;
   }
-  
-  getInput("input_goals", input_goals_);
 
-  // this is necessary to receive updates on the occupancy grids
-  rclcpp::spin_some(node_);
+  getInput("input_goals", input_goals_);
 
   // remove goals
   if (remove_goals())
@@ -143,6 +121,28 @@ inline BT::NodeStatus RemoveInCollisionGoalsAction::tick()
   RCLCPP_ERROR(node_->get_logger(), "RemoveInCollisionGoals Failed remove to goals, goals remain unchanged.");
   setOutput("output_goals", input_goals_);
   return BT::NodeStatus::FAILURE;
+}
+
+bool RemoveInCollisionGoalsAction::have_costmaps()
+{
+  // This BT plugin uses a blackboard node that may not always be serviced by
+  // the same executor thread cadence as Nav2 servers, so process pending
+  // subscription callbacks before checking costmap availability.
+  rclcpp::spin_some(node_);
+
+  try
+  {
+    local_costmap_ = local_costmap_sub_->getCostmap();
+    global_costmap_ = global_costmap_sub_->getCostmap();
+  }
+  catch (const std::runtime_error &)
+  {
+    local_costmap_.reset();
+    global_costmap_.reset();
+    return false;
+  }
+
+  return static_cast<bool>(local_costmap_) && static_cast<bool>(global_costmap_);
 }
 
 
@@ -184,25 +184,19 @@ bool RemoveInCollisionGoalsAction::remove_goals()
   return true;
 }
 
-void RemoveInCollisionGoalsAction::wait_for_occu_grids()
-{
-    // measure time to initialize
-    auto start = std::chrono::high_resolution_clock::now();
-    while (!local_occu_grid_ || !global_occu_grid_)
-    {
-        rclcpp::spin_some(node_);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    RCLCPP_INFO(
-        node_->get_logger(), "RemoveInCollisionGoals waited %.2fms for occupancy grids",
-        std::chrono::duration<double, std::milli>(end - start).count()
-    );
-}
-
 bool RemoveInCollisionGoalsAction::is_goal_in_collision(const PoseStamped & goal)
 {
-    GridCell global_cell = world_to_grid_cell(goal.pose.position, global_occu_grid_);
+    unsigned int mx = 0;
+    unsigned int my = 0;
+
+    if (!global_costmap_->worldToMap(goal.pose.position.x, goal.pose.position.y, mx, my))
+    {
+      return false;
+    }
+
+    GridCell global_cell;
+    global_cell.x = static_cast<int>(mx);
+    global_cell.y = static_cast<int>(my);
     return !is_cell_free(global_cell);
 }
 
@@ -215,54 +209,34 @@ bool RemoveInCollisionGoalsAction::is_goal_in_collision(const PoseStamped & goal
  */
 bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
 {
-    GridCell local_cell = world_to_grid_cell(grid_cell_to_world(global_cell, global_occu_grid_), local_occu_grid_);
-    return is_cell_free(global_cell, global_occu_grid_) && is_cell_free(local_cell, local_occu_grid_);
-}
-
-/**
- * @brief Check if a cell is free in a given occupancy grid
- * 
- * @param cell A cell with reference to the occupancy grid
- * @param grid The occupancy grid to check
- */
-bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
-{
-    if (cell.x < 0 || cell.x >= static_cast<int>((*grid).info.width) ||
-        cell.y < 0 || cell.y >= static_cast<int>((*grid).info.height))
-    {
-        return true; // treat out-of-bounds cells as free
+    if (global_cell.x < 0 || global_cell.y < 0) {
+      return true;
     }
-    int index = cell.y * (*grid).info.width + cell.x;
-    RCLCPP_INFO(node_->get_logger(), "Cost of cell is %d", (*grid).data[index]);
-    return (*grid).data[index] < cost_threshold_;
-}
 
-/**
- * @brief Convert a world point to a grid cell in the specified occupancy grid
- * 
- * @param point The point to convert
- * @param grid The occupancy grid to use for conversion
- */
-GridCell RemoveInCollisionGoalsAction::world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid)
-{
-    GridCell cell;
-    cell.x = static_cast<int>(std::round((point.x - (*grid).info.origin.position.x) / (*grid).info.resolution));
-    cell.y = static_cast<int>(std::round((point.y - (*grid).info.origin.position.y) / (*grid).info.resolution));
-    return cell;
-}
+    const auto global_x = static_cast<unsigned int>(global_cell.x);
+    const auto global_y = static_cast<unsigned int>(global_cell.y);
+    if (global_x >= global_costmap_->getSizeInCellsX() || global_y >= global_costmap_->getSizeInCellsY()) {
+      return true;
+    }
 
-/**
- * @brief Convert a grid cell in the specified occupancy grid to a world point
- * 
- * @param cell The cell to convert
- * @param grid The occupancy grid the cell is in
- */
-Point RemoveInCollisionGoalsAction::grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid)
-{
-    Point point;
-    point.x = (*grid).info.origin.position.x + (cell.x * (*grid).info.resolution);
-    point.y = (*grid).info.origin.position.y + (cell.y * (*grid).info.resolution);
-    return point;
+    const unsigned char global_cost = global_costmap_->getCost(global_x, global_y);
+
+    double wx = 0.0;
+    double wy = 0.0;
+    global_costmap_->mapToWorld(global_x, global_y, wx, wy);
+
+    unsigned int local_x = 0;
+    unsigned int local_y = 0;
+    if (!local_costmap_->worldToMap(wx, wy, local_x, local_y)) {
+      return global_cost < cost_threshold_;
+    }
+
+    const unsigned char local_cost = local_costmap_->getCost(local_x, local_y);
+    RCLCPP_DEBUG(
+      node_->get_logger(),
+      "Cost at goal cell - global: %u local: %u", global_cost, local_cost);
+
+    return global_cost < cost_threshold_ && local_cost < cost_threshold_;
 }
 
 }   // namespace nova_behavior_tree

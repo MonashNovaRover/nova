@@ -28,8 +28,9 @@
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/point.hpp"
-#include "nav_msgs/msg/occupancy_grid.hpp"
 #include "nav_msgs/msg/path.hpp"
+#include "nav2_costmap_2d/costmap_2d.hpp"
+#include "nav2_costmap_2d/costmap_subscriber.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/robot_utils.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
@@ -101,9 +102,10 @@ public:
   {
     return {
         BT::InputPort<Goals>("input_goals", "Original goals to remove if in collision"),
-        BT::InputPort<std::string>("global_frame", "Global reference frame"),
-        BT::InputPort<std::string>("robot_base_frame", "robot base frame"),
-        BT::InputPort<double>("cost_threshold", 99.0, "Cost threshold for considering a goal in collision"),
+        BT::InputPort<std::string>("global_frame", "map", "Global reference frame"),
+        BT::InputPort<std::string>("robot_base_frame", "base_link", "Robot base frame"),
+        // 254 = lethal, 253 = inscribed
+        BT::InputPort<double>("cost_threshold", 253.0, "Cost threshold for considering a goal in collision"),
         BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals removed"),
       };
   }
@@ -111,18 +113,15 @@ public:
 private:
 
   bool is_goal_in_collision(const PoseStamped & goal);
-  void wait_for_occu_grids();
   bool remove_goals();
+  bool have_costmaps();
   bool is_cell_free(const GridCell &global_cell);
-  bool is_cell_free(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
-  GridCell world_to_grid_cell(const Point &point, const OccupancyGrid::SharedPtr &grid);
-  Point grid_cell_to_world(const GridCell &cell, const OccupancyGrid::SharedPtr &grid);
 
   rclcpp::Node::SharedPtr node_;
-  rclcpp::Subscription<OccupancyGrid>::SharedPtr local_occu_grid_sub_;
-  rclcpp::Subscription<OccupancyGrid>::SharedPtr global_occu_grid_sub_;
-  OccupancyGrid::SharedPtr local_occu_grid_;
-  OccupancyGrid::SharedPtr global_occu_grid_;
+  std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> local_costmap_sub_;
+  std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> global_costmap_sub_;
+  std::shared_ptr<nav2_costmap_2d::Costmap2D> local_costmap_;
+  std::shared_ptr<nav2_costmap_2d::Costmap2D> global_costmap_;
 
   std::string global_frame_, robot_base_frame_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
