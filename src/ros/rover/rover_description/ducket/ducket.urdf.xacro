@@ -1,0 +1,305 @@
+<robot name="ducket" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
+    <link name="arm_mount_connector">
+        <inertial>
+            <mass value="0.0170773" />
+            <origin xyz="-0.0126896 -0.022739 -0.010507" rpy="0 -0 0" />
+            <inertia ixx="1.53924e-05" ixy="-2.39546e-06" ixz="6.35173e-06" iyy="1.77054e-05" iyz="2.40943e-06" izz="1.35727e-05" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0987039 0.0944436 -2.44929e-19" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Arm_Mount_Connector.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.301961_0.301961_0.301961_0.000000_0.000000">
+                <color rgba="0.301961 0.301961 0.301961 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="ducket_link">
+        <inertial>
+            <mass value="0.0170773" />
+            <origin xyz="-0.0505345 -0.000554781 -0.047666" rpy="0 -0 0" />
+            <inertia ixx="1.53924e-05" ixy="2.39546e-06" ixz="-6.35173e-06" iyy="1.77054e-05" iyz="2.40943e-06" izz="1.35727e-05" />
+        </inertial>
+        <visual>
+            <origin xyz="0.0354798 0.116628 -0.0371589" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Arm_Mount_Connector__Mirror_.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.301961_0.301961_0.301961_0.000000_0.000000">
+                <color rgba="0.301961 0.301961 0.301961 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="front_corner_connector">
+        <inertial>
+            <mass value="0.00804518" />
+            <origin xyz="-0.00739362 0.00106364 -0.0225" rpy="0 -0 0" />
+            <inertia ixx="3.20928e-06" ixy="-8.5228e-08" ixz="9.2804e-15" iyy="4.63824e-06" iyz="-2.06618e-15" izz="1.61942e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0957039 0.261444 1.38778e-17" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Front_Corner_Connector.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.301961_0.301961_0.301961_0.000000_0.000000">
+                <color rgba="0.301961 0.301961 0.301961 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="front_corner_connector_1">
+        <inertial>
+            <mass value="0.00804518" />
+            <origin xyz="-0.00739362 0.00106364 -0.0225" rpy="0 -0 0" />
+            <inertia ixx="3.20928e-06" ixy="-8.5228e-08" ixz="9.2804e-15" iyy="4.63824e-06" iyz="-2.06618e-15" izz="1.61942e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0957039 0.261444 1.38778e-17" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Front_Corner_Connector.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.301961_0.301961_0.301961_0.000000_0.000000">
+                <color rgba="0.301961 0.301961 0.301961 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="hinge">
+        <inertial>
+            <mass value="3.61531e-06" />
+            <origin xyz="0.00447567 -0.01 2.25531e-18" rpy="0 -0 0" />
+            <inertia ixx="1.70027e-10" ixy="0" ixz="0" iyy="2.03427e-10" iyz="0" izz="2.73061e-10" />
+        </inertial>
+        <visual>
+            <origin xyz="-7.65404e-20 0 1.73472e-18" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Hinge.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.301961_0.301961_0.301961_0.000000_0.000000">
+                <color rgba="0.301961 0.301961 0.301961 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="hinge_1">
+        <inertial>
+            <mass value="3.61531e-06" />
+            <origin xyz="-0.00541866 0.005 -0.0015" rpy="0 -0 0" />
+            <inertia ixx="1.70027e-10" ixy="0" ixz="0" iyy="2.03427e-10" iyz="0" izz="2.73061e-10" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.00989433 0.015 -0.0015" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Hinge.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.301961_0.301961_0.301961_0.000000_0.000000">
+                <color rgba="0.301961 0.301961 0.301961 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="rod__length_">
+        <inertial>
+            <mass value="0.000865572" />
+            <origin xyz="4.16334e-17 -0.082 -4.85723e-17" rpy="0 -0 0" />
+            <inertia ixx="1.9409e-06" ixy="0" ixz="0" iyy="1.73114e-09" iyz="0" izz="1.9409e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0987039 0.0944436 0.045" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Rod__Length_.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.913725_0.647059_0.329412_0.000000_0.000000">
+                <color rgba="0.913725 0.647059 0.329412 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="rod__length__1">
+        <inertial>
+            <mass value="0.000865572" />
+            <origin xyz="4.16334e-17 -0.082 -4.85723e-17" rpy="0 -0 0" />
+            <inertia ixx="1.9409e-06" ixy="0" ixz="0" iyy="1.73114e-09" iyz="0" izz="1.9409e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0987039 0.0944436 0.045" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Rod__Length_.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.913725_0.647059_0.329412_0.000000_0.000000">
+                <color rgba="0.913725 0.647059 0.329412 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="rod__length__2">
+        <inertial>
+            <mass value="0.000865572" />
+            <origin xyz="4.16334e-17 0.082 -6.93889e-17" rpy="0 -0 0" />
+            <inertia ixx="1.9409e-06" ixy="0" ixz="0" iyy="1.73114e-09" iyz="0" izz="1.9409e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0987039 0.258444 0.045" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Rod__Length_.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.913725_0.647059_0.329412_0.000000_0.000000">
+                <color rgba="0.913725 0.647059 0.329412 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="rod__length__3">
+        <inertial>
+            <mass value="0.000865572" />
+            <origin xyz="4.16334e-17 -0.082 -4.85723e-17" rpy="0 -0 0" />
+            <inertia ixx="1.9409e-06" ixy="0" ixz="0" iyy="1.73114e-09" iyz="0" izz="1.9409e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0987039 0.0944436 0.045" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Rod__Length_.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.913725_0.647059_0.329412_0.000000_0.000000">
+                <color rgba="0.913725 0.647059 0.329412 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="rod__width_">
+        <inertial>
+            <mass value="0.00101023" />
+            <origin xyz="0.0957039 -5.55112e-17 -1.38778e-17" rpy="0 -0 0" />
+            <inertia ixx="2.02045e-09" ixy="0" ixz="0" iyy="3.08531e-06" iyz="0" izz="3.08531e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="0.0957039 0.0914436 0.045" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Rod__Width_.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.913725_0.647059_0.329412_0.000000_0.000000">
+                <color rgba="0.913725 0.647059 0.329412 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="rod__width__1">
+        <inertial>
+            <mass value="0.00101023" />
+            <origin xyz="-0.0957039 -5.55112e-17 -1.38778e-17" rpy="0 -0 0" />
+            <inertia ixx="2.02045e-09" ixy="0" ixz="0" iyy="3.08531e-06" iyz="0" izz="3.08531e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0957039 0.0914436 0.045" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Rod__Width_.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.913725_0.647059_0.329412_0.000000_0.000000">
+                <color rgba="0.913725 0.647059 0.329412 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="rod__width__2">
+        <inertial>
+            <mass value="0.00101023" />
+            <origin xyz="-0.0957039 -5.55112e-17 -1.38778e-17" rpy="0 -0 0" />
+            <inertia ixx="2.02045e-09" ixy="0" ixz="0" iyy="3.08531e-06" iyz="0" izz="3.08531e-06" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.0957039 0.0914436 0.045" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Rod__Width_.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.913725_0.647059_0.329412_0.000000_0.000000">
+                <color rgba="0.913725 0.647059 0.329412 1" />
+            </material>
+        </visual>
+    </link>
+    <link name="wood">
+        <inertial>
+            <mass value="0.062462" />
+            <origin xyz="0.0736559 -0.0712804 -0.0015" rpy="0 -0 0" />
+            <inertia ixx="0.000175204" ixy="1.54762e-06" ixz="0" iyy="0.00013266" iyz="0" izz="0.00030777" />
+        </inertial>
+        <visual>
+            <origin xyz="-0.00989433 -0.1364 -0.0015" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="file://$(arg rover_description_dir)/ducket/meshes/Wood.stl" scale="1 1 1" />
+            </geometry>
+            <material name="0.921569_0.800000_0.654902_0.000000_0.000000">
+                <color rgba="0.921569 0.8 0.654902 1" />
+            </material>
+        </visual>
+    </link>
+    <joint name="back_wood_right_0" type="fixed">
+        <origin xyz="-0.003 0.003 -0.045" rpy="0 -0 4.20552e-40" />
+        <axis xyz="1 0 0" />
+        <parent link="arm_mount_connector" />
+        <child link="rod__width__2" />
+    </joint>
+    <joint name="bottom_left_wood_back_0" type="fixed">
+        <origin xyz="-0.0632241 0.0221842 -0.0821589" rpy="7.91289e-74 2.93874e-37 5.38523e-37" />
+        <axis xyz="0 1 0" />
+        <parent link="ducket_link" />
+        <child link="rod__length__1" />
+    </joint>
+    <joint name="bottom_right_wood_back_0" type="fixed">
+        <origin xyz="-2.77556e-17 2.77556e-17 -0.045" rpy="0 -0 4.20552e-40" />
+        <axis xyz="0 1 0" />
+        <parent link="arm_mount_connector" />
+        <child link="rod__length_" />
+    </joint>
+    <joint name="front_bottom_wood_right_0" type="fixed">
+        <origin xyz="1.38778e-17 -5.55112e-17 -0.045" rpy="0 -0 4.20552e-40" />
+        <axis xyz="1 0 0" />
+        <parent link="front_corner_connector" />
+        <child link="rod__width__1" />
+    </joint>
+    <joint name="left_gripper_plank_0" type="fixed">
+        <origin xyz="0 -0.1514 0" rpy="2.9882e-31 1.49728e-16 2.22045e-16" />
+        <axis xyz="0 0 -1" />
+        <parent link="wood" />
+        <child link="hinge_1" />
+    </joint>
+    <joint name="right_gripper_plank_0" type="fixed">
+        <origin xyz="0.00989433 -0.015 0.0015" rpy="-3.17673e-31 -1.4962e-16 -2.22045e-16" />
+        <axis xyz="0 0 -1" />
+        <parent link="hinge" />
+        <child link="wood" />
+    </joint>
+    <joint name="spinny_plank_0" type="fixed">
+        <origin xyz="-0.013 0.003 -0.045" rpy="3.15503e-17 3.15503e-17 -1.5708" />
+        <axis xyz="0 1 0" />
+        <parent link="arm_mount_connector" />
+        <child link="hinge" />
+    </joint>
+    <joint name="top_left_wood_back_0" type="fixed">
+        <origin xyz="-0.0632241 0.0221842 -0.0371589" rpy="7.91289e-74 2.93874e-37 5.38523e-37" />
+        <axis xyz="0 1 0" />
+        <parent link="ducket_link" />
+        <child link="rod__length__3" />
+    </joint>
+    <joint name="top_left_wood_close_0" type="fixed">
+        <origin xyz="-4.16334e-17 -0.164 0" rpy="5.9557e-23 -1.22465e-16 -1.5708" />
+        <axis xyz="1 0 0" />
+        <parent link="rod__length__3" />
+        <child link="front_corner_connector_1" />
+    </joint>
+    <joint name="top_right_wood_back_0" type="fixed">
+        <origin xyz="0 0.164 -2.77556e-17" rpy="0 -0 4.20552e-40" />
+        <axis xyz="0 1 0" />
+        <parent link="rod__length__2" />
+        <child link="arm_mount_connector" />
+    </joint>
+    <joint name="top_right_wood_close_0" type="fixed">
+        <origin xyz="0.003 0.003 2.77556e-17" rpy="0 -0 4.20552e-40" />
+        <axis xyz="0 1 -1.22465e-16" />
+        <parent link="front_corner_connector" />
+        <child link="rod__length__2" />
+    </joint>
+    <joint name="top_wood_left_0" type="fixed">
+        <origin xyz="0.003 0.003 -5.55112e-17" rpy="-5.9557e-23 5.9557e-23 1.5708" />
+        <axis xyz="1 0 0" />
+        <parent link="front_corner_connector_1" />
+        <child link="rod__width_" />
+    </joint>
+    <joint name="top_wood_right_0" type="fixed">
+        <origin xyz="0.191408 5.55112e-17 0" rpy="0 0 -1.90488e-30" />
+        <axis xyz="1 0 0" />
+        <parent link="rod__width_" />
+        <child link="front_corner_connector" />
+    </joint>
+</robot>
