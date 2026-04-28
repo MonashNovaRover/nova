@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useRef } from "react";
+import React, { createContext, useContext, useRef, useEffect, useState } from "react";
+import * as ROSLIB from "roslib"; // Ensure you run: npm install roslib
 import { ActiveYoloConfig } from "./YoloConfig";
 import { Detection, useYoloDetection } from "./useYoloDetection";
 
 interface YoloContextValue {
-  // Accept nullable refs since React sets .current after mount.
   registerVideoRef: (ref: React.RefObject<HTMLVideoElement | null>) => number;
   detections: Detection[][];
 }
@@ -11,25 +11,99 @@ interface YoloContextValue {
 const YoloContext = createContext<YoloContextValue | null>(null);
 
 export function YoloProvider({ children }: { children: React.ReactNode }) {
-  // Collect video refs from all mounted camera layers.
   const videoRefs = useRef<React.RefObject<HTMLVideoElement | null>[]>([]);
+  
+  // State to track if ROS is actually connected
+  const [isRosConnected, setIsRosConnected] = useState(false);
+
+  // Refs to hold the ROS connection and Topic so they persist across renders
+  const rosRef = useRef<ROSLIB.Ros | null>(null);
+  const topicRef = useRef<ROSLIB.Topic<any> | null>(null);
+
+  // Initialize ROS Connection on Mount
+  useEffect(() => {
+    const ros = new ROSLIB.Ros({
+      url: "ws://10.0.0.12:9090", 
+    });
+
+    ros.on("connection", () => {
+      console.log("ROS: Connected to websocket server.");
+      setIsRosConnected(true);
+    });
+    
+    ros.on("error", (error) => {
+      console.error("ROS: Error connecting:", error);
+      setIsRosConnected(false);
+    });
+    
+    ros.on("close", () => {
+      console.log("ROS: Connection closed.");
+      setIsRosConnected(false);
+    });
+
+    // MarkerArray topic definition
+    const detectionTopic = new ROSLIB.Topic({
+      ros: ros,
+      name: "/vision/object_markers",
+      messageType: "visualization_msgs/MarkerArray",
+    });
+
+    rosRef.current = ros;
+    topicRef.current = detectionTopic;
+
+    // Cleanup connection when the provider unmounts
+    return () => {
+      ros.close();
+    };
+  }, []);
 
   const registerVideoRef = (ref: React.RefObject<HTMLVideoElement | null>) => {
-    // Register in order and return the index for lookup.
     videoRefs.current.push(ref);
-
     return videoRefs.current.length - 1;
   };
 
-  // Run detection whenever refs are available.
   const detections = useYoloDetection({
-    // Preserve the existing mutable ref registration flow because the state-based rewrite broke overlays.
     // eslint-disable-next-line react-hooks/refs
     videoRefs: videoRefs.current,
     modelPath: `/models/${ActiveYoloConfig.modelName}`,
     inputSize: 640,
     outputFormat: ActiveYoloConfig.outputFormat,
   });
+
+  // Publish Logic
+  useEffect(() => {
+    if (!topicRef.current || !detections) return;
+    
+    // Don't try to publish if the websocket is offline
+    if (!isRosConnected) return;
+
+    const activeDetections = detections.flat();
+
+    const msg = {
+      markers: activeDetections.map((d, index) => ({
+        header: { 
+          frame_id: "camera_link", 
+          stamp: { secs: 0, nsecs: 0 } 
+        },
+        ns: "yolo_detections",
+        id: index, 
+        type: 2, // SPHERE
+        action: 0, // ADD
+        pose: {
+          position: { 
+            x: d.box.x + (d.box.width / 2),  // Center X
+            y: d.box.y + (d.box.height / 2), // Center Y
+            z: 0.0  // Assuming detections are in a 2D plane; adjust as needed for 3D
+          },
+          orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 }
+        },
+        scale: { x: 0.2, y: 0.2, z: 0.2 }, 
+        color: { r: 1.0, g: 0.0, b: 0.0, a: 1.0 } 
+      }))
+    };
+
+    topicRef.current.publish(msg);
+  }, [detections, isRosConnected]);
 
   return (
     <YoloContext.Provider
@@ -46,7 +120,6 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
 export function useYoloContext() {
   const context = useContext(YoloContext);
   if (!context) {
-    // Enforce provider usage for safe context access.
     throw new Error("useYoloContext must be used within YoloProvider");
   }
   return context;
