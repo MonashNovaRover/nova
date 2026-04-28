@@ -168,6 +168,13 @@ def launch_setup(context, *args, **kwargs):
             emulate_tty=True,
             ros_arguments=['--log-level', log_level],
         ),
+        Node(
+            package='nova_utils',
+            executable='gz_heading_imu_fixer.py',
+            output='screen',
+            emulate_tty=True,
+            ros_arguments=['--log-level', log_level],
+        ),
     ]
 
 

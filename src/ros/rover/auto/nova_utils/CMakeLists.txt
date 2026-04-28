@@ -47,6 +47,7 @@ install(PROGRAMS
   scripts/goal_marker.py
   scripts/gz_frame_fixer.py
   scripts/gz_gps_fixer.py
+  scripts/gz_heading_imu_fixer.py
   scripts/gz_imu_fixer.py
   scripts/livox_field_republisher.py
   scripts/load_waypoint.py
