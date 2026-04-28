@@ -10,11 +10,11 @@ class LEDClient():
         # Create service client for LED control
         self.led_client = self.node.create_client(RGBInput, '/set_RGBInput')
         self.node.get_logger().info('Waiting for /set_RGBInput server...')
-        self.started = self.led_client.wait_for_service(timeout_sec=1.0)
+        self.started = self.led_client.wait_for_service(timeout_sec=10.0)
         if not self.started:
-            self.node.get_logger().error('Service /set_RGBInput not available. Cannot change LED color.')
+            self.node.get_logger().error('Failed to find service /set_RGBInput! Cannot change LED color.')
             return
-        self.node.get_logger().info('Service /set_RGBInput available!')
+        self.node.get_logger().info('Succesfully found service /set_RGBInput.')
 
     def red():
         self.call((255, 0, 0), False)

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(nova_utils)
+project(auto_start)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -25,7 +25,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   visualization_msgs
   std_msgs
   sensor_msgs
-  yolo_msgs
   tf2_ros
   tf2_msgs
 )
@@ -34,35 +33,10 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-add_executable(transform_republisher src/transform_republisher.cpp)
-ament_target_dependencies(transform_republisher ${THIS_PACKAGE_INCLUDE_DEPENDS})
-target_include_directories(transform_republisher PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
-  $<INSTALL_INTERFACE:include>)
-
 # Python executables
 install(PROGRAMS
-  scripts/calculate_covariances.py
-  scripts/detection_overlay.py
-  scripts/goal_marker.py
-  scripts/gz_frame_fixer.py
-  scripts/gz_gps_fixer.py
-  scripts/gz_imu_fixer.py
-  scripts/livox_field_republisher.py
-  scripts/load_waypoint.py
-  scripts/quaternion_to_euler.py
-  scripts/record_metrics.py
-  scripts/save_waypoint.py
-  scripts/service_listener.py
-  scripts/topic_waiter.py
-  scripts/node_waiter.py
-
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-# C++ executables
-install(TARGETS
-  transform_republisher
+  src/arch/start_auto_arch.py
+  src/urc/start_auto_urc.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

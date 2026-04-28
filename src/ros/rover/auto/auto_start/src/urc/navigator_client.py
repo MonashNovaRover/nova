@@ -15,20 +15,20 @@ class NavigatorClient():
         # Create action client for /urc_through_poses
         self.urc_navigator_client = ActionClient(self.node, URCThroughPoses, '/urc_through_poses')
         self.node.get_logger().info('Waiting for /urc_through_poses...')
-        self.urc_started = self.urc_navigator_client.wait_for_server(timeout_sec=1.0)
+        self.urc_started = self.urc_navigator_client.wait_for_server(timeout_sec=10.0)
         if not self.urc_started:
-            self.node.get_logger().error('/urc_through_poses not available! Exiting.')
+            self.node.get_logger().error('Failed to find service /urc_through_poses! Exiting.')
             return
-        self.node.get_logger().info('/urc_through_poses available.')
+        self.node.get_logger().info('Successfully found service /urc_through_poses.')
 
         # Create action client for /navigate_through_poses
         self.nav2_navigator_client = ActionClient(self.node, NavigateThroughPoses, '/navigate_through_poses')
         self.node.get_logger().info('Waiting for /navigate_through_poses...')
-        self.nav2_started = self.nav2_navigator_client.wait_for_server(timeout_sec=1.0)
+        self.nav2_started = self.nav2_navigator_client.wait_for_server(timeout_sec=10.0)
         if not self.nav2_started:
-            self.node.get_logger().error('/navigate_through_poses not available! Exiting.')
+            self.node.get_logger().error('Failed to find service /navigate_through_poses! Exiting.')
             return
-        self.node.get_logger().info('/navigate_through_poses available.')
+        self.node.get_logger().info('Successfully found service /navigate_through_poses.')
 
         self.started = self.urc_started and self.nav2_started
 

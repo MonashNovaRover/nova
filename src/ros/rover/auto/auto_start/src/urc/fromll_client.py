@@ -17,11 +17,11 @@ class FromLLClient():
         # Create service client for robot_localization /fromLL
         self.fromll_client = self.node.create_client(FromLL, '/fromLL')
         self.node.get_logger().info('Waiting for /fromLL server...')
-        self.started = self.fromll_client.wait_for_service(timeout_sec=1.0)
+        self.started = self.fromll_client.wait_for_service(timeout_sec=10.0)
         if not self.started:
-            self.node.get_logger().error('Service /fromLL not available! Exiting.')
+            self.node.get_logger().error('Failed to find service /fromLL! Exiting.')
             return
-        self.node.get_logger().info('Service /fromLL available.')
+        self.node.get_logger().info('Successfully found service /fromLL.')
 
     def call(self):
         '''Converts GNSS goal to a geometry_msgs/msg/Point using the robot_localization FromLL service.'''
