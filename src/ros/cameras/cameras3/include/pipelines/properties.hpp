@@ -45,6 +45,22 @@ struct h264PassthroughProperties
   bool payload_quirk;
 };
 
+struct glProperties
+{
+  float denoise_factor;
+  float denoise_sigma;
+  float denoise_threshold;
+  int denoise_radius;
+  float edgedetect_factor;
+  float undistort_k1;
+  float undistort_k2;
+  float undistort_scale;
+
+  float denoise;
+  float edgedetect;
+  bool undistort;
+};
+
 struct softwareEncProperties
 {
   std::string end_usage;
@@ -53,7 +69,6 @@ struct softwareEncProperties
   int cpu_used;
   int deadline;
   int gop;
-  int noise;
   int threads;
 };
 
@@ -92,7 +107,10 @@ struct clockProperties
 
 struct rossinkProperties
 {
+  std::string ros_format;
   std::string ros_topic;
+
+  bool rossink;
 };
 
 
@@ -103,33 +121,20 @@ struct Pipeline
   camera_msgs::msg::Camera* camera;
 };
 
-struct av1softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties {};
-av1softwarePipelineProperties* get_av1software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
-GstElement* av1software_pipeline(rclcpp::Node* log_node, av1softwarePipelineProperties* props);
-
 struct h264passthroughPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, h264PassthroughProperties {};
 h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, h264passthroughPipelineProperties* props);
 
-struct h264softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties {};
-h264softwarePipelineProperties* get_h264software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
-GstElement* h264software_pipeline(rclcpp::Node* log_node, h264softwarePipelineProperties* props);
+struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties {};
+vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera, const int vpX);
+GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, vpXsoftwarePipelineProperties* props, const int vpX);
 
-struct vp8softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties {};
-vp8softwarePipelineProperties* get_vp8software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
-GstElement* vp8software_pipeline(rclcpp::Node* log_node, vp8softwarePipelineProperties* props);
-
-struct vp9softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties {};
-vp9softwarePipelineProperties* get_vp9software_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
-GstElement* vp9software_pipeline(rclcpp::Node* log_node, vp9softwarePipelineProperties* props);
-
+struct vpXsoftwareGLPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, glProperties {};
+vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera, const int vpX);
+GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* log_node, vpXsoftwareGLPipelineProperties* props, const int vpX);
 
 struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cpuFiltersProperties, clockProperties {};
 v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
 GstElement* v4lfallback_pipeline(rclcpp::Node* log_node, v4lfallbackPipelineProperties* props);
-
-struct v4lrostopicPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, rossinkProperties {};
-v4lrostopicPipelineProperties* get_v4lrostopic_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);
-GstElement* v4lrostopic_pipeline(rclcpp::Node* streamer_node, v4lrostopicPipelineProperties* props);
 
 #endif
