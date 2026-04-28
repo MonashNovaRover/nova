@@ -14,7 +14,7 @@
 		<!-- constants for all blcmds -->
 
 		<!-- whyyyyyy electrical why is this needed -->
-		<xacro:property name="velocity_telemetry_slope_adjustment" value="${-1 * 0.5}"/>
+		<xacro:property name="velocity_telemetry_slope_adjustment" value="${-1}"/>
 
 		<!-- constants for wheels -->
 		<xacro:property name="wheel_clock_rate" value="100000000"/>
