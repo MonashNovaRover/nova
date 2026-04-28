@@ -94,30 +94,26 @@ class CameraStreamer : public rclcpp::Node
       v4lfallbackPipelineProperties* props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
-    } else if (pipeline->camera->pipeline_type == "av1software") {
-      av1softwarePipelineProperties* props = get_av1software_pipeline_properties(this, pipeline->camera);
-      pipeline->props = props;
-      pipeline->gst_pipeline = av1software_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       h264passthroughPipelineProperties* props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->props = props;
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
-    } else if (pipeline->camera->pipeline_type == "h264software") {
-      h264softwarePipelineProperties* props = get_h264software_pipeline_properties(this, pipeline->camera);
-      pipeline->props = props;
-      pipeline->gst_pipeline = h264software_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
-      vp8softwarePipelineProperties* props = get_vp8software_pipeline_properties(this, pipeline->camera);
+      vpXsoftwarePipelineProperties* props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       pipeline->props = props;
-      pipeline->gst_pipeline = vp8software_pipeline(this, props);
+      pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 8);
+    } else if (pipeline->camera->pipeline_type == "vp8softwareGL") {
+      vpXsoftwareGLPipelineProperties* props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 8);
+      pipeline->props = props;
+      pipeline->gst_pipeline = vpXsoftwareGL_pipeline(this, props, 8);
     } else if (pipeline->camera->pipeline_type == "vp9software") {
-      vp9softwarePipelineProperties* props = get_vp9software_pipeline_properties(this, pipeline->camera);
+      vpXsoftwarePipelineProperties* props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
       pipeline->props = props;
-      pipeline->gst_pipeline = vp9software_pipeline(this, props);
-    } else if (pipeline->camera->pipeline_type == "v4lrostopic") {
-      v4lrostopicPipelineProperties* props = get_v4lrostopic_pipeline_properties(this, pipeline->camera);
+      pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 9);
+    } else if (pipeline->camera->pipeline_type == "vp9softwareGL") {
+      vpXsoftwareGLPipelineProperties* props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 9);
       pipeline->props = props;
-      pipeline->gst_pipeline = v4lrostopic_pipeline(this, props);
+      pipeline->gst_pipeline = vpXsoftwareGL_pipeline(this, props, 9);
     }
 
     gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);

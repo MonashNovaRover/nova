@@ -15,6 +15,8 @@ std::string set_property(rclcpp::Node* streamer_node, const camera_msgs::msg::Ca
 
 int set_property(rclcpp::Node* streamer_node, const camera_msgs::msg::Camera* camera, const std::string element, int value);
 
+float set_property(rclcpp::Node* streamer_node, const camera_msgs::msg::Camera* camera, const std::string element, float value);
+
 bool set_property(rclcpp::Node* streamer_node, const camera_msgs::msg::Camera* camera, const std::string element, bool value);
 
 template<typename properties> bool verify_v4lresolution(const properties props) {
