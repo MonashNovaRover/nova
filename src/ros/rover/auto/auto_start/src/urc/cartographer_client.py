@@ -26,3 +26,6 @@ class CartographerClient():
 
     def received_goals(self):
         return len(self.goals) > 0
+    
+    def reset(self):
+        self.goals = []

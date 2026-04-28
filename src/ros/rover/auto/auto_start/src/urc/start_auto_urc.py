@@ -98,6 +98,7 @@ class StartAuto(Node):
                 self.get_logger().info('State: WAITING_FOR_CARTOGRAPHER.')
                 if self.cartographer_client.received_goals():
                     self.fromll_client.lls_to_poses(self.cartographer_client.goals)
+                    self.cartographer_client.reset()
                     self.state = State.CONVERTING_LLS_TO_POSES
             
             case State.CONVERTING_LLS_TO_POSES:
