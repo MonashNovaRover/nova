@@ -19,7 +19,7 @@
 		<!-- constants for wheels -->
 		<xacro:property name="wheel_clock_rate" value="100000000"/>
 		<xacro:property name="wheel_revolution_pulses" value="8192"/>
-		<xacro:property name="wheel_min_interval" value="122"/>
+		<xacro:property name="wheel_min_interval" value="233"/>
 		<xacro:property name="wheel_gear_ratio" value="15.0"/>
 
 		<!-- constants for pivots -->
