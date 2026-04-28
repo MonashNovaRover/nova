@@ -6,20 +6,20 @@ livox_lidar_publisher:
       # 0-All LiDARs share the same topic, 1-One LiDAR one topic
     data_src: 0
       # 0-lidar, others-Invalid data src
-    publish_freq: 10.0
+    publish_freq: 20.0
       # freqency of publish, 5.0, 10.0, 20.0, 50.0, etc.
     output_data_type: 0
     frame_id: "livox_frame"
     lvx_file_path: "/home/livox/livox_test.lvx"
     cmdline_input_bd_code: "livox0000000001"
     
-    angular_velocity_covariance: [
+    imu_angular_velocity_covariance: [
       7.75e-06, 0.0,      0.0,
       0.0,      9.02e-06, 0.0,
       0.0,      0.0,      3.92e-06
     ]
     
-    linear_acceleration_covariance: [
+    imu_linear_acceleration_covariance: [
       9.74e-05, 0.0,      0.0,
       0.0,      5.72e-05, 0.0,
       0.0,      0.0,      3.84e-05
