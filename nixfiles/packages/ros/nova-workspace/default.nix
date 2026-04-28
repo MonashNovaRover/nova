@@ -82,6 +82,7 @@
 , nova-locked-publisher
 , nova-cameras
 , nova-camera-msgs
+, nova-can-database
 , mission-planner
 , mavproxy
   # Configuration options
@@ -152,6 +153,7 @@
       nova-cameras
       nova-camera-msgs
       nova-locked-publisher
+      nova-can-database
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }
