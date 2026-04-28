@@ -23,32 +23,21 @@ PACKAGE: 	nova_utils
 AUTHOR(S):	Tarik Thomas, Terry Tian, 
             Victor Bartlinski
 CREATION:	27/05/2025
-EDITED:		29/05/2025
+EDITED:		28/04/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 import rclpy
 from rclpy.node import Node
-from rclpy.action import ActionClient
-from rclpy.client import Client
-from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSPresetProfiles
+from rclpy.qos import QoSPresetProfiles
 from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String
-from sensor_msgs.msg import NavSatFix
-from geometry_msgs.msg import PoseStamped, Point
-from geographic_msgs.msg import GeoPoint
-from nav2_msgs.action import NavigateThroughPoses
+from geometry_msgs.msg import PoseStamped
 from nova_interfaces.msg import Status
 from nova_interfaces.action import URCThroughPoses
-from nova_interfaces.srv import CartographerCommand, RGBInput
 from action_msgs.msg import GoalStatus
-from visualization_msgs.msg import Marker, MarkerArray
-from robot_localization.srv import FromLL
-from tf2_ros import Buffer, TransformListener
-from tf_transformations import quaternion_from_euler
-import json,os,sys,time,math,enum
-from typing import Tuple
+import yaml,os,enum
 from cartographer_client import CartographerClient
 from fromll_client import FromLLClient
 from led_client import LEDClient
@@ -63,21 +52,28 @@ class State(enum.Enum):
 class StartAuto(Node):
     def __init__(self):
         super().__init__('start_auto')
-
         # Declare and get parameters
-        self.filepath = self.declare_parameter(
-            name='filepath', 
-            value=os.path.expanduser('~/nova/src/ros/rover/auto_bringup/params/waypoints.json'), 
+        self.started=False
+        self.filepath=self.declare_parameter(name='filepath', 
+            value=os.path.expanduser('~/nova/src/ros/rover/auto_bringup/params/waypoints.yaml'), 
         ).value
-        self.status_topic = self.declare_parameter(
-            name='status_topic',
+        self.status_topic=self.declare_parameter(name='status_topic',
             value='/auto/status', 
         ).value
         
-        self.cartographer_client = CartographerClient(self, self.cartographer_callback)
+        self.cartographer_client = CartographerClient(self)
+
         self.fromll_client = FromLLClient(self)
+        if not self.fromll_client.started:
+            return
+
         self.led_client = LEDClient(self)
-        self.navigator_client = NavigatorClient(self, self.nav_result)
+        # if not self.led_client.started:
+        #     return
+
+        self.navigator_client = NavigatorClient(self)
+        if not self.navigator_client.started:
+            return
 
         # Save waypoints
         self.blackboard_subscriber = self.create_subscription(String, '/blackboard', self.blackboard_callback, QoSPresetProfiles.SENSOR_DATA.value)
@@ -92,6 +88,8 @@ class StartAuto(Node):
         # Create a timer
         self.state = State.WAITING_FOR_CARTOGRAPHER
         self.state_timer = self.create_timer(0.5, self.tick)
+
+        self.started = True
 
     def tick(self):
         match self.state:
@@ -117,7 +115,7 @@ class StartAuto(Node):
                 self.state = State.MONITOR_NAVIGATION
 
             case State.MONITOR_NAVIGATION:
-                if self.navigator_client.finished()
+                if self.navigator_client.finished():
                     if result.status == GoalStatus.STATUS_SUCCEEDED:
                         self.led_client.green()
                         self.status = Status.ARRIVED_SUCCESSFULLY
@@ -220,6 +218,10 @@ def main(args=None):
     '''Main function to start the ROS2 node.'''
     rclpy.init(args=args)
     node = StartAuto()
+    if not node.started:
+        node.destroy_node()
+        rclpy.shutdown()
+        return
     executor = MultiThreadedExecutor()
     executor.add_node(node)
     try:

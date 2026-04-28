@@ -30,6 +30,29 @@ class Colour:
     FAIL = '\033[1;31m'
     END = '\033[0m'
 
+def can_is_virtual(bus: str):
+    return bus[0] == 'v'
+
+def start_vcan(bus: str, logger: Logger):
+
+    def can_is_up():
+        try:
+            result = subprocess.run(["ip", "link", "show", bus],
+                                    capture_output=True, text=True, check=True)
+            return "UNKNOWN" in result.stdout
+        except subprocess.CalledProcessError:
+            return False
+
+    if not can_is_up():
+        logger.info(f"Starting {bus}... (may require password)")
+        try:
+            subprocess.run(["can", "start", bus])
+            logger.info(f"{bus} started successfully")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"{Colour.FAIL}Failed to start {bus} with error:{Colour.END}\n {e}")
+    else:
+        logger.warning(f"{bus} is already running")
+
 def start_can(bus: str, bitrate: str, logger: Logger):
 
     def can_is_up():
@@ -63,7 +86,10 @@ def launch_setup(context, *args, **kwargs):
     logger = get_logger("launch.can")
 
     # start can bus
-    start_can(bus, bitrate, logger)
+    if can_is_virtual(bus):
+        start_vcan(bus, logger)
+    else:
+        start_can(bus, bitrate, logger)
 
     # create log file directory
     if log_can.lower() == "true":
@@ -77,15 +103,27 @@ def launch_setup(context, *args, **kwargs):
     log_file =  f"{log_name}_{bus}.log" if log_name else f"{bus}.log"
     log_path = PathJoinSubstitution([log_dir_expanded, log_file])
 
-    can_logger = ExecuteProcess(
-        cmd=[
-            "candump",
-            bus,
-            "-f",
-            log_path
-        ],
-        output="screen",
-    )
+     # start can logger
+    if can_is_virtual(bus):
+        can_logger = ExecuteProcess(
+            cmd=[
+                "candump",
+                bus[1:],
+                "-f",
+                log_path
+            ],
+            output="screen",
+        )
+    else:
+        can_logger = ExecuteProcess(
+            cmd=[
+                "candump",
+                bus,
+                "-f",
+                log_path
+            ],
+            output="screen",
+        )
 
     return [
         GroupAction(
@@ -108,7 +146,7 @@ def generate_launch_description():
             name='bus',
             description='name of the CAN bus to start/log',
             # reminder to use can instead of vcan
-            choices=[f'can{n}' for n in range(0, 10)],
+            choices=[f'can{n}' for n in range(0, 10)]+[f'vcan{n}' for n in range(0, 10)],
         ),
         DeclareLaunchArgument(
             name='bitrate',

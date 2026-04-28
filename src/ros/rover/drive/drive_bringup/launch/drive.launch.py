@@ -144,6 +144,14 @@ def launch_setup(context, *args, **kwargs):
                         "log_name" : "drive",
                     }.items()
                 ),
+                Node(
+                    condition=IfCondition(auto),
+                    package='electronics', 
+                    executable='led_strip.py', 
+                    output='screen', 
+                    emulate_tty=True,
+                    ros_arguments=['--log-level', log_level],
+                ),
             ],
         ),
     ]

@@ -22,6 +22,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, Opaq
 from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution, EnvironmentVariable
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 from os.path import expanduser, exists
@@ -37,6 +38,10 @@ def launch_setup(context, *args, **kwargs):
     drive_bringup_dir = IfElseSubstitution(local,
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
         FindPackageShare('drive_bringup')
+    )
+    nova_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
+        FindPackageShare('nova_bringup')
     )
     nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
@@ -153,6 +158,23 @@ def launch_setup(context, *args, **kwargs):
                 'sim': gazebo,
             }.items(),
         ),
+        IncludeLaunchDescription(
+            launch_description_source=PythonLaunchDescriptionSource(
+                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+            ),
+            launch_arguments={
+                "bus" : "vcan0",
+                "bitrate" : "250000",
+                "log_name" : "auto",
+            }.items()
+        ),
+        Node(
+            package='electronics', 
+            executable='led_strip.py', 
+            output='screen', 
+            emulate_tty=True,
+            ros_arguments=['--log-level', log_level],
+        ),
     ]
 
 
@@ -180,7 +202,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
+            default_value=EnvironmentVariable('COMP', default_value='URC'),
             description='ARCh or URC',
         ),
         # comp agnostic arguments
