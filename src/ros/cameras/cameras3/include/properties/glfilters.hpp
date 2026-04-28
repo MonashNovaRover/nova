@@ -6,45 +6,68 @@
 
 void set_glgreyscale(GstElement* glgreyscale);
 
-template<typename properties> void set_glantialias(GstElement* glantialias, const properties props) {
+template<typename properties> void set_gldenoise(GstElement* gldenoise, const properties props) {
   // fxaa antiliasing
   const std::string shader = R"(#version 100
 precision lowp float;
 
-uniform float factor;
+uniform sampler2D tex;
 uniform float width;
 uniform float height;
-uniform sampler2D tex;
+uniform float factor;     // default 1
+uniform float sigma;      // spatial sigma (e.g. 2.0)
+uniform float threshold;  // color similarity threshold (e.g. 0.1)
+uniform int radius;     // Default 3
+
 varying vec2 v_texcoord;
 
+float gaussian(float x, float s) {
+    return exp(-(x * x) / (2.0 * s * s));
+}
+
 void main() {
-    vec2 texel = factor / vec2(width, height); // 1 pixel in UV
+    vec2 texel = factor / vec2(width, height);
 
-    // Sample neighboring pixels (only 4 corners)
-    vec3 c0 = texture2D(tex, v_texcoord).rgb;
-    vec3 c1 = texture2D(tex, v_texcoord + vec2(-texel.x, 0)).rgb;
-    vec3 c2 = texture2D(tex, v_texcoord + vec2(texel.x, 0)).rgb;
-    vec3 c3 = texture2D(tex, v_texcoord + vec2(0, -texel.y)).rgb;
-    vec3 c4 = texture2D(tex, v_texcoord + vec2(0, texel.y)).rgb;
+    vec3 centerColor = texture2D(tex, v_texcoord).rgb;
 
-    // Compute simple luminance differences
-    vec3 horiz = (c1 + c2) * 0.5;
-    vec3 vert  = (c3 + c4) * 0.5;
+    vec3 sum = vec3(0.0);
+    float weightSum = 0.0;
 
-    // Blend based on which direction has more contrast
-    float lumH = abs(dot(horiz - c0, vec3(0.299, 0.587, 0.114)));
-    float lumV = abs(dot(vert  - c0, vec3(0.299, 0.587, 0.114)));
+    for (int x = -radius; x <= radius; x++) {
+        for (int y = -radius; y <= radius; y++) {
 
-    gl_FragColor = vec4(mix(c0, (lumH > lumV) ? horiz : vert, 0.5), 1.0);
+            vec2 offset = vec2(float(x), float(y)) * texel;
+            vec3 sampleColor = texture2D(tex, v_texcoord + offset).rgb;
+
+            float spatialDist = length(vec2(float(x), float(y)));
+            float colorDist = length(sampleColor - centerColor);
+
+            float wSpatial = gaussian(spatialDist, sigma);
+            float wColor   = gaussian(colorDist, threshold);
+
+            float weight = wSpatial * wColor;
+
+            sum += sampleColor * weight;
+            weightSum += weight;
+        }
+    }
+
+    vec3 result = sum / weightSum;
+
+    gl_FragColor = vec4(result, 1.0);
 })";
   const std::string uniforms = "uniforms";
   GstStructure *str = gst_structure_new(
     uniforms.c_str(),
-    "factor", G_TYPE_FLOAT, props->antialias_factor,
+    "factor", G_TYPE_FLOAT, props->denoise_factor,
     "width", G_TYPE_FLOAT, ((float) props->width/ (float) props->downscale),
     "height", G_TYPE_FLOAT, ((float) props->height/ (float) props->downscale),
+    "factor", G_TYPE_FLOAT, props->denoise_factor,
+    "sigma", G_TYPE_FLOAT, props->denoise_factor,
+    "threshold", G_TYPE_FLOAT, props->denoise_factor,
+    "radius", G_TYPE_INT, props->denoise_radius,
   NULL);
-  g_object_set(glantialias,
+  g_object_set(gldenoise,
     "fragment", shader.c_str(),
     "uniforms", str,
   NULL);
@@ -57,10 +80,10 @@ template<typename properties> void set_gledgedetect(GstElement* gledgedetect, co
   const std::string shader = R"(#version 100
 precision lowp float;
 
+uniform sampler2D tex;
 uniform float factor;
 uniform float width;
 uniform float height;
-uniform sampler2D tex;
 varying vec2 v_texcoord;
 
 void main() {

@@ -47,13 +47,16 @@ struct h264PassthroughProperties
 
 struct glProperties
 {
-  float antialias_factor;
+  float denoise_factor;
+  float denoise_sigma;
+  float denoise_threshold;
+  int denoise_radius;
   float edgedetect_factor;
   float undistort_k1;
   float undistort_k2;
   float undistort_scale;
 
-  float antialias;
+  float denoise;
   float edgedetect;
   bool undistort;
 };
@@ -66,7 +69,6 @@ struct softwareEncProperties
   int cpu_used;
   int deadline;
   int gop;
-  int noise;
   int threads;
 };
 

@@ -43,8 +43,8 @@ camera_directory:
         mast:
           '1:1.0': mast_arm_stow
           '2:1.0': mast_belly
-          '3:1.0': mast_forward
-          '4:1.0': mast_backward
+          '3:1.0': mast_backward
+          '4:1.0': mast_forward
         payload:
           '1:1.0': payload_1
           '2:1.0': payload_2
@@ -67,11 +67,11 @@ camera_directory:
           payload:
             '4.1:1.0': science_cuvettes
         delivery:
-          payload_1: arm_end_finger
-          payload_2: arm_end_side
+          payload_1: arm_end_side
+          payload_2: arm_end_finger
           payload_3: arm_end_periscope
           payload_4_2: arm_end_top
-          payload_4_4: arm_gimbal
+          payload_4_4: arm_wrist
 
         auto:
           mast_arm_stow: auto_left

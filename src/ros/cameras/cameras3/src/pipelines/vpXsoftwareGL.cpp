@@ -49,10 +49,10 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   GstElement* glscale = ((props->downscale > 1) || (props->crop43)) ? gst_element_factory_make("glcolorscale", "glscaler") : nullptr;
   GstElement* glcrop = (props->crop43) ? gst_element_factory_make("gltransformation", "glcrop") : nullptr;
   GstElement* glgreyscale = (props->greyscale) ? gst_element_factory_make("glcolorbalance", "glgreyscale") : nullptr;
-  GstElement* glantialias = (props->antialias) ? gst_element_factory_make("glshader", "glantialias") : nullptr;
+  GstElement* gldenoise = (props->denoise) ? gst_element_factory_make("glshader", "gldenoise") : nullptr;
   GstElement* gledgedetect = (props->edgedetect) ? gst_element_factory_make("glshader", "gledgedetect") : nullptr;
   GstElement* glundistort = (props->undistort) ? gst_element_factory_make("glshader", "glundistortion") : nullptr;
-  GstElement* gldownconvert = ((props->downscale > 1) || props->crop43 || props->greyscale || props->antialias || props->edgedetect || props->undistort) ? gst_element_factory_make("glcolorconvert", "gldownconverter") : nullptr;
+  GstElement* gldownconvert = ((props->downscale > 1) || props->crop43 || props->greyscale || props->denoise || props->edgedetect || props->undistort) ? gst_element_factory_make("glcolorconvert", "gldownconverter") : nullptr;
   GstElement* queue_download = gst_element_factory_make("queue", "queue_download");
   GstElement* gldownload = gst_element_factory_make("gldownload", "gldownloader");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
@@ -72,10 +72,10 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
     (((props->downscale > 1) || (props->crop43)) && !glscale) ||
     (props->crop43 && !glcrop) ||
     (props->greyscale && !glgreyscale) ||
-    (props->antialias && !glantialias) ||
+    (props->denoise && !gldenoise) ||
     (props->edgedetect && !gledgedetect) ||
     (props->undistort && !glundistort) ||
-    (((props->downscale > 1) || props->crop43 || props->greyscale || props->antialias || props->edgedetect || props->undistort)  && !gldownconvert) ||
+    (((props->downscale > 1) || props->crop43 || props->greyscale || props->denoise || props->edgedetect || props->undistort)  && !gldownconvert) ||
     !queue_download ||
     !gldownload ||
     !scalefilter ||
@@ -100,7 +100,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   set_queue(queue_upload);
   if (props->crop43) set_glcrop43(glcrop, props);
   if (props->greyscale) set_glgreyscale(glgreyscale);
-  if (props->antialias) set_glantialias(glantialias, props);
+  if (props->denoise) set_gldenoise(gldenoise, props);
   if (props->edgedetect) set_gledgedetect(gledgedetect, props);
   if (props->undistort) set_glundistort(glundistort, props);
   set_queue(queue_download);
@@ -127,10 +127,10 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   if ((props->downscale > 1) || props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glscale);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), glcrop);
   if (props->greyscale) gst_bin_add(GST_BIN(gst_pipeline), glgreyscale);
-  if (props->antialias) gst_bin_add(GST_BIN(gst_pipeline), glantialias);
+  if (props->denoise) gst_bin_add(GST_BIN(gst_pipeline), gldenoise);
   if (props->edgedetect) gst_bin_add(GST_BIN(gst_pipeline), gledgedetect);
   if (props->undistort) gst_bin_add(GST_BIN(gst_pipeline), glundistort);
-  if ((props->downscale > 1) || props->crop43 || props->greyscale || props->antialias || props->edgedetect || props->undistort)  gst_bin_add(GST_BIN(gst_pipeline), gldownconvert);
+  if ((props->downscale > 1) || props->crop43 || props->greyscale || props->denoise || props->edgedetect || props->undistort)  gst_bin_add(GST_BIN(gst_pipeline), gldownconvert);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
 
   // 4. Link elements
@@ -153,9 +153,9 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   if (link_elements(streamer_node, next_element, glscale, props->serial)) next_element = glscale;
   if (link_elements(streamer_node, next_element, glcrop, props->serial)) next_element = glcrop;
   if (link_elements(streamer_node, next_element, glgreyscale, props->serial)) next_element = glgreyscale;
-  if (link_elements(streamer_node, next_element, glantialias, props->serial)) next_element = glantialias;
-  if (link_elements(streamer_node, next_element, gledgedetect, props->serial)) next_element = gledgedetect;
   if (link_elements(streamer_node, next_element, glundistort, props->serial)) next_element = glundistort;
+  if (link_elements(streamer_node, next_element, gldenoise, props->serial)) next_element = gldenoise;
+  if (link_elements(streamer_node, next_element, gledgedetect, props->serial)) next_element = gledgedetect;
   if (link_elements(streamer_node, next_element, gldownconvert, props->serial)) next_element = gldownconvert;
   if (link_elements(streamer_node, next_element, queue_download, props->serial)) next_element = queue_download;
   if (link_elements(streamer_node, next_element, gldownload, props->serial)) next_element = gldownload;
@@ -221,13 +221,16 @@ vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::N
   props->greyscale = set_property(streamer_node, camera, "greyscale", false);
 
   // gl filters
-  props->antialias_factor = set_property(streamer_node, camera, "antialias_factor", 1.0f);
+  props->denoise_factor = set_property(streamer_node, camera, "denoise_factor", 1.0f);
+  props->denoise_sigma = set_property(streamer_node, camera, "denoise_sigma", 2.0f);
+  props->denoise_threshold = set_property(streamer_node, camera, "denoise_threshold", 0.1f);
+  props->denoise_radius = set_property(streamer_node, camera, "denoise_radius", 3);
   props->edgedetect_factor = set_property(streamer_node, camera, "edgedetect_factor", 2.0f);
   props->undistort_k1 = set_property(streamer_node, camera, "undistort_k1", -0.3f);
   props->undistort_k2 = set_property(streamer_node, camera, "undistort_k2", 0.1f);
   props->undistort_scale = set_property(streamer_node, camera, "undistort_scale", 1.0f);
 
-  props->antialias = set_property(streamer_node, camera, "antialias", false);
+  props->denoise = set_property(streamer_node, camera, "denoise", false);
   props->edgedetect = set_property(streamer_node, camera, "edgedetect", false);
   props->undistort = set_property(streamer_node, camera, "undistort", false);
 
@@ -255,7 +258,6 @@ vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::N
   props->cpu_used = set_property(streamer_node, camera, "cpu_used", 1);
   props->deadline = set_property(streamer_node, camera, "deadline", 1);
   props->gop = set_property(streamer_node, camera, "gop", 1);
-  props->noise = set_property(streamer_node, camera, "noise", 0);
   props->threads = set_property(streamer_node, camera, "threads", 1);
 
   // webrtc

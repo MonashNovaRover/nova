@@ -25,7 +25,6 @@ template <typename properties> void set_vp8enc(GstElement* encode, const propert
       props->cpu_used == 9 ? 12:
       props->cpu_used == 10 ? 16:
       0 ), // Fastest -16, 16 Slowest
-    "noise-sensitivity", props->noise, // Noise filter
     "end-usage", 1, // constant bitrate
     "threads", std::clamp(props->threads, 1, num_cores), // 1 is best for cpu and compression ratio
     "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
@@ -54,7 +53,6 @@ template <typename properties> void set_vp9enc(GstElement* encode, const propert
       props->cpu_used == 9 ? 12:
       props->cpu_used == 10 ? 16:
       0 ), // Fastest -16, 16 Slowest
-    "noise-sensitivity", props->noise, // Noise filter
     "end-usage", 1, // constant bitrate
     "threads", std::clamp(props->threads, 1, num_cores), // 1 is best for cpu and compression ratio
     "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,

@@ -376,5 +376,4 @@ camera_streamer:
       #  height: 1920
       #  framerate: 30000
       #  framerate_denominator: 1001
-      #  noise_reduction: 256
 
