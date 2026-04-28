@@ -92,7 +92,8 @@ in
         fi
 
         # Calculate box width based on longest content line (in subshell to auto-cleanup)
-        (
+        # Only show in interactive shells to avoid breaking scp/rsync/etc
+        [[ $- == *i* ]] && (
           # Display /home/nova/path as ~/path
           active_build="$(readlink "$HOME/Builds/active")"
           active_build="''${active_build/#$HOME/\~}"
