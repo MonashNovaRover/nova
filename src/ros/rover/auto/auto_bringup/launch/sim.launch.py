@@ -19,7 +19,7 @@ EDITED:     05/01/2026
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution, EnvironmentVariable
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -158,20 +158,6 @@ def launch_setup(context, *args, **kwargs):
             package='electronics', 
             executable='led_strip.py', 
             output='screen', 
-            emulate_tty=True,
-            ros_arguments=['--log-level', log_level],
-        ),
-        Node(
-            package='nova_utils', 
-            executable='gz_gps_fixer.py', 
-            output='screen', 
-            emulate_tty=True,
-            ros_arguments=['--log-level', log_level],
-        ),
-        Node(
-            package='nova_utils',
-            executable='gz_heading_imu_fixer.py',
-            output='screen',
             emulate_tty=True,
             ros_arguments=['--log-level', log_level],
         ),

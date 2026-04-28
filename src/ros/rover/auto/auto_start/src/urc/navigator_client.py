@@ -48,7 +48,7 @@ class NavigatorClient():
     def go_to_gps(self, poses):
         goal_action = NavigateThroughPoses.Goal()
         goal_action.poses = poses
-        goal_action.behavior_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_nearby_collision_goals.xml"
+        goal_action.behavior_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_in_collision_goals.xml"
         self.node.get_logger().info('Sending waypoints to /navigate_through_poses...')
         send_future = self.nav2_navigator_client.send_goal_async(goal_action)
         send_future.add_done_callback(self.response)

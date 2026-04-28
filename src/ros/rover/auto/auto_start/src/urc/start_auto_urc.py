@@ -124,13 +124,12 @@ class StartAuto(Node):
                 if self.navigator_client.finished():
                     if self.navigator_client.status == GoalStatus.STATUS_SUCCEEDED:
                         self.led_client.green()
-                        self.status = Status.ARRIVED_SUCCESSFULLY
-                        self.publish_status()
-                        self.get_logger().info('Navigation succeeded.')
+                        self.publish_status(Status.ARRIVED_SUCCESSFULLY)
+                        self.get_logger().info(f'Navigation succeeded: {self.navigator_client.status}')
                     elif self.navigator_client.status == GoalStatus.STATUS_CANCELED:
-                        self.get_logger().warn('Navigation cancelled.')
+                        self.get_logger().warn(f'Navigation cancelled: {self.navigator_client.status}')
                     elif self.navigator_client.status == GoalStatus.STATUS_ABORTED:
-                        self.get_logger().error('Navigation failed!')
+                        self.get_logger().error(f'Navigation aborted! {self.navigator_client.status}')
                     else:
                         self.get_logger().error(f'Navigation ended with unknown status: {self.navigator_client.status}')
                     self.state = State.WAITING_FOR_CARTOGRAPHER
@@ -238,10 +237,13 @@ class StartAuto(Node):
 
         self.status = int(self.blackboard.get('status', Status.IDLE))  # Default to 0 if not found
 
-    def publish_status(self) -> None:
+    def publish_status(self, status=None) -> None:
         '''Publishes the current navigation status to the status topic.'''
         msg = Status()
-        msg.status = self.status
+        if status is None:
+            msg.status = self.status
+        else:
+            msg.status = status
         self.status_publisher.publish(msg)
 
 def main(args=None):
