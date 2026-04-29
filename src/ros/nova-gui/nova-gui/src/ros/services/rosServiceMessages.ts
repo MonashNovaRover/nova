@@ -54,6 +54,8 @@ export const rosServiceMessages = {
   [RosService.TOOL_ROTATOR_TWITCH]: "science_interfaces/srv/SetPosition",
   [RosService.PUMPS_RUN]: "science_interfaces/srv/RunPump",
   [RosService.PUMPS_STOP]: "std_srvs/srv/Trigger",
+  [RosService.UV_VIS_SPEC_STOP]: "std_srvs/srv/Trigger",
+  [RosService.UV_VIS_SPEC_START]: "std_srvs/srv/Trigger",
 
   // General
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",

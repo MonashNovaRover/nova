@@ -57,6 +57,8 @@ export enum RosService {
   TOOL_ROTATOR_TWITCH = "/science/tool_rotator/twitch",
   PUMPS_RUN = "/science/pumps/run",
   PUMPS_STOP = "/science/pumps/stop",
+  UV_VIS_SPEC_STOP = "/science/uv_vis_spec/stop",
+  UV_VIS_SPEC_START = "/science/uv_vis_spec/start",
 
   // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",
