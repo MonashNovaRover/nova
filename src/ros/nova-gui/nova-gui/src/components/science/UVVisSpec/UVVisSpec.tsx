@@ -9,12 +9,6 @@ import {
   CardBody,
   CardHeader,
   Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  useDisclosure
 } from "@nextui-org/react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
@@ -28,6 +22,7 @@ import {max, zip} from "lodash";
 import useDownload from "../../../hooks/useDownload.ts";
 import RamanLocalStorageSaveButton from "../RamanSpec/RamanLocalStorageSaveButton.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
+import {UVVisSpecStartStopButtons} from "./UVVisSpecStartStopButtons.tsx";
 
 export interface UVVisSpecProps {
   onSave?: (points: number[][], name: string) => void,
@@ -112,44 +107,23 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
     setMousePoint([x, y]);
   }
 
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
-  const {isOpen: isSettingsOpen, onOpen: onSettingsOpen, onOpenChange: onSettingsOpenChange} = useDisclosure();
-
-  const modal = (
-    <Modal className="dark" isOpen={isSettingsOpen} onOpenChange={onSettingsOpenChange}>
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">Modal Title</ModalHeader>
-            <ModalBody>
-              <Input value={startColumnString} onValueChange={setStartColumn} label={"Start Column"}/>
-              <Input value={endColumnString} onValueChange={setEndColumn} label={"End Column"}/>
-              <Input value={startWavelengthString} onValueChange={setStartWavelength} label={"Start Wavelength"}/>
-              <Input value={endWavelengthString} onValueChange={setEndWavelength} label={"End Wavelength"}/>
-            </ModalBody>
-            <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose}>
-                Close
-              </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
-  );
-
-  // Construct the data into a format to be displayed by <DataChart>
-  /*const apexDataOutput = [{
-    name: "Webcam Slice",
-    data: data
-  }];*/
+  const settings = (
+    <div className="grid grid-cols-4 gap-3 mb-2">
+      <Input value={startColumnString} onValueChange={setStartColumn} label={"Start Column"}/>
+      <Input value={endColumnString} onValueChange={setEndColumn} label={"End Column"}/>
+      <Input value={startWavelengthString} onValueChange={setStartWavelength} label={"Start Wavelength"}/>
+      <Input value={endWavelengthString} onValueChange={setEndWavelength} label={"End Wavelength"}/>
+    </div>
+  )
 
   const settingsDropdown = (
     <Button
       variant={"light"}
       isIconOnly
       className="m-0"
-      onPress={onSettingsOpen}
+      onPress={() => setSettingsOpen(!settingsOpen)}
       size="sm"
     >
       <Settings></Settings>
@@ -194,16 +168,18 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
         </div>
         {settingsDropdown}
       </CardHeader>
-      <CardBody>
-        {chart}
-        <div className="flex flex-row gap-3">
+      <CardBody className="flex flex-col gap-3">
+        {settingsOpen && settings}
+        <div>
+          {chart}
+        </div>
+        <div className="flex flex-row gap-3 items-end">
           {blankButtons}
           <RamanLocalStorageSaveButton onSave={onSave} onCSVSave={download}></RamanLocalStorageSaveButton>
+          <UVVisSpecStartStopButtons/>
         </div>
       </CardBody>
-      {modal}
     </Card>
-    // peaks={getDefaultPeakFinder(2, 20)(data)}>
   )
 
 }

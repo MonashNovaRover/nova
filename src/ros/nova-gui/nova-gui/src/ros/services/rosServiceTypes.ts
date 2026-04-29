@@ -230,6 +230,14 @@ export interface RosServiceInterface {
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
+  [RosService.UV_VIS_SPEC_STOP]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.UV_VIS_SPEC_START]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
 
   // General
   [RosService.RGBInput]: RosServiceMessage<
