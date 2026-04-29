@@ -84,4 +84,3 @@ camera_directory:
       # a serial remap occurs after an override, so you can essentially rename an override! 
       # These are global overrides and will occur irrespective of platform and task.
       046d_C270_HD_WEBCAM_2A3D8660: anthony-cam
-      046d_Brio_100_2446ZBP2MZ48: science_spectroscope
