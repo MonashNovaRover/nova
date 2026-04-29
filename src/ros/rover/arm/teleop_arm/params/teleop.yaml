@@ -90,16 +90,16 @@ end_effector_mode:
     use_speed_input: false
 
     joint_definitions:
-      - la_prismatic
-      - lead_left
+      - la_prismatic_
+      - lead_left_
 
     joints:
-      la_prismatic:
-        name: "la_prismatic"
+      la_prismatic_:
+        name: "la_prismatic_"
         input_name: "la_prismatic"
         scale: 0.4
-      lead_left:
-        name: "lead_left"
+      lead_left_:
+        name: "lead_left_"
         input_name: "lead_left"
         scale: 0.4
 
