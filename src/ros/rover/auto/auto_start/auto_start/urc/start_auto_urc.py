@@ -126,13 +126,18 @@ class StartAuto(Node):
                         self.led_client.green()
                         self.publish_status(Status.ARRIVED_SUCCESSFULLY)
                         self.get_logger().info(f'Navigation succeeded: {self.navigator_client.status}')
+                        self.state = State.WAITING_FOR_CARTOGRAPHER
                     elif self.navigator_client.status == GoalStatus.STATUS_CANCELED:
                         self.get_logger().warn(f'Navigation cancelled: {self.navigator_client.status}')
+                        self.state = State.WAITING_FOR_CARTOGRAPHER
                     elif self.navigator_client.status == GoalStatus.STATUS_ABORTED:
                         self.get_logger().error(f'Navigation aborted! {self.navigator_client.status}')
+                        self.get_logger().error('Navigation aborted detected by timer callback!')
+                        self.get_logger().info('Sending waypoints to restart navigation')
+                        self.navigator_client.start(self.cartographer_client.goal_type, self.load_waypoints(), self.cartographer_client.search_radius)
                     else:
                         self.get_logger().error(f'Navigation ended with unknown status: {self.navigator_client.status}')
-                    self.state = State.WAITING_FOR_CARTOGRAPHER
+                        self.state = State.WAITING_FOR_CARTOGRAPHER
                     return
 
                 if not self.navigator_client.goal_handle:
