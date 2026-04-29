@@ -842,17 +842,6 @@
     </visual>
   </link>
   <!-- Joint from ee_base to right_finger -->
-	<xacro:unless value="$(arg use_mock_hardware)">
-    <joint name="lead_right" type="prismatic">
-      <origin xyz="-3.0892e-14 -5.32907e-15 -0.1035" rpy="-2.87979 -1.5708 0"/>
-      <parent link="ee_base"/>
-      <child link="right_finger"/>
-      <axis xyz="0 0 1"/>
-      <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
-      <mimic joint="lead_left" multiplier="1" offset="0"/>
-    </joint>
-  </xacro:unless>
-  <xacro:if value="$(arg use_mock_hardware)">
     <joint name="lead_right" type="fixed">
       <origin xyz="-3.0892e-14 -5.32907e-15 -0.1035" rpy="-2.87979 -1.5708 0"/>
       <parent link="ee_base"/>
@@ -861,7 +850,6 @@
       <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
       <!-- <mimic joint="lead_left" multiplier="1" offset="0"/> -->
     </joint>
-  </xacro:if>
   
   <!-- Link left_finger -->
   <link name="left_finger">
@@ -1010,7 +998,7 @@
     </visual>
   </link>
     <!-- Joint from left_finger to linear_actuator -->
-    <joint name="la_prismatic" type="prismatic">
+    <joint name="la_prismatic" type="fixed">
     <origin xyz="-0.0001 -0.1175 -0.0125" rpy="-1.5708 -1.57652e-14 2.52817e-15"/>
     <parent link="left_finger"/>
     <child link="linear_actuator"/>
@@ -1018,7 +1006,7 @@
     <limit effort="10" velocity="10" lower="-0.05" upper="8.5652e-17"/>
   </joint>
   <!-- Joint from ee_base to left_finger -->
-  <joint name="lead_left" type="prismatic">
+  <joint name="lead_left" type="fixed">
     <origin xyz="-0.11253 -0.0301524 -0.1035" rpy="1.5708 -1.43108e-14 -1.309"/>
     <parent link="ee_base"/>
     <child link="left_finger"/>
