@@ -65,7 +65,7 @@ def launch_setup(context, *args, **kwargs):
                     plugin='aruco_opencv::ArucoTrackerAutostart',
                     name='aruco_tracker',
                     parameters=[ar_params,
-                                {'cam_base_topic': f'/camera/{cam_name}/color/image_raw',
+                                {'cam_base_topic': f'/camera/{cam_name}/color',
                                  'use_sim_time': sim}],
                 ),
             ],
