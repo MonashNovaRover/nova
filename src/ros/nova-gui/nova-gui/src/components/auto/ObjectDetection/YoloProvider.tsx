@@ -77,6 +77,12 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
     // Don't try to publish if the websocket is offline
     if (!isRosConnected) return;
 
+    const activeVideo = videoRefs.current[0]?.current;
+    if (!activeVideo) return;
+
+    const vidWidth = activeVideo.videoWidth || 640;   // Fallback to 640
+    const vidHeight = activeVideo.videoHeight || 480; // Fallback to 480
+
     const activeDetections = detections.flat();
 
     const msg = {
@@ -91,9 +97,10 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
         action: 0, // ADD
         pose: {
           position: { 
-            x: d.box.x + (d.box.width / 2),  // Center X
-            y: d.box.y + (d.box.height / 2), // Center Y
-            z: 0.0  // Assuming detections are in a 2D plane; adjust as needed for 3D
+            // Divide by width and height to normalize to 0.0 -> 1.0
+            x: (d.box.x + (d.box.width / 2)) / vidWidth,
+            y: (d.box.y + (d.box.height / 2)) / vidHeight,
+            z: 0.0 
           },
           orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 }
         },
