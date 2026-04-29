@@ -357,7 +357,9 @@
 					</hardware>
 				</xacro:if>
 
-				<joint name="la_prismatic">
+        <!-- There is no position feedback so la_prismatic will be a fixed
+        joint that appears in rviz, and la_prismatic_ will be the joint ros2control uses-->
+				<joint name="la_prismatic_">
 					<command_interface name="velocity">
 					<param name="max">1</param>
 					</command_interface>
@@ -385,7 +387,7 @@
       </hardware>
     </xacro:if>
 
-			<joint name="lead_left">
+			<joint name="lead_left_">
 				<command_interface name="velocity">
 					<param name="max">1</param>
 				</command_interface>
@@ -396,6 +398,25 @@
 			</joint>
 		</ros2_control>
 
+  <!-- fake joints with no visual for ros2control to use. -->
+  <joint name="la_prismatic_" type="prismatic">
+    <origin xyz="-0.0001 -0.1175 -0.0125" rpy="-1.5708 -1.57652e-14 2.52817e-15"/>
+    <parent link="left_finger"/>
+    <child link="linear_actuator_"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.05" upper="8.5652e-17"/>
+  </joint>
+  <joint name="lead_left_" type="prismatic">
+    <origin xyz="-0.11253 -0.0301524 -0.1035" rpy="1.5708 -1.43108e-14 -1.309"/>
+    <parent link="ee_base"/>
+    <child link="left_finger_"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10" lower="-0.0855" upper="0"/>
+  </joint>
+  <link name="linear_actuator_">
+  </link>
+  <link name="left_finger_">
+  </link>
 
 	</xacro:macro>
 </robot>
