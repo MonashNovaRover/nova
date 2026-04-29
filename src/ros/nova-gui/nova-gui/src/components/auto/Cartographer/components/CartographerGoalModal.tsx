@@ -30,6 +30,7 @@ import {
   Divider,
   Select,
   SelectItem,
+  Input,
 } from "@nextui-org/react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
@@ -57,6 +58,7 @@ export const CartographerGoalModal: React.FC<{
   
   const [selection, setSelection] = useState<number[]>([]);
   const [selectedType, setSelectedType] = useState<GoalType>(GoalType.GNSS);
+  const [searchRadius, setSearchRadius] = useState<number>(25);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -86,15 +88,8 @@ export const CartographerGoalModal: React.FC<{
       latitude: item.lat,
       longitude: item.long,
     }));
-    let search_radius = 0;
-    if (selectedType === GoalType.AR_TAG)
-      search_radius = 5;
-    else if (selectedType === GoalType.OBJECT)
-      search_radius = 10
-    console.log("calling service with:", { goals: goals, goal_type: selectedType, search_radius: search_radius });
-    console.log("GoalType values:", GoalType.GNSS, GoalType.AR_TAG, GoalType.OBJECT);
-    console.log("Raw callService payload:", JSON.stringify({ goals, goal_type: selectedType, search_radius }));
-    serviceBifrost.callService({ goals: goals, goal_type: selectedType, search_radius: search_radius } as IRosNovaInterfacesCartographerCommandRequest);
+    console.log("calling service with:", { goals: goals, goal_type: selectedType, search_radius: searchRadius });
+    serviceBifrost.callService({ goals: goals, goal_type: selectedType, search_radius: searchRadius } as IRosNovaInterfacesCartographerCommandRequest);
   };
 
   const renderPoints = (points: MapPoint[], isSortable: boolean) => {
@@ -196,6 +191,14 @@ export const CartographerGoalModal: React.FC<{
             <SelectItem key={String(GoalType.AR_TAG)}>AR Tag</SelectItem>
             <SelectItem key={String(GoalType.OBJECT)}>Object</SelectItem>
           </Select>
+          <Input
+            type="number"
+            label="Search Radius"
+            min="0"
+            max="50"
+            step="1"
+            onChange={(e) => setSearchRadius(Number(e.target.value))}
+          ></Input>
           <Button onPress={sendCartographerPoints}>Publish</Button>
         </ModalFooter>
       </ModalContent>
