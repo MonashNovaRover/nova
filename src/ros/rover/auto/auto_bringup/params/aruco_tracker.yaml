@@ -22,7 +22,7 @@
       perspectiveRemovePixelPerCell: 4
       polygonalApproxAccuracyRate: 0.03
     board_descriptions_path: ''
-    cam_base_topic: /d415/color
+    cam_base_topic: /camera/d415/color
     image_is_rectified: true
     image_sub_qos:
       depth: 1
