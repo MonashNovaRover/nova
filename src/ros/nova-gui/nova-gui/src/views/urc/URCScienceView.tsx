@@ -51,6 +51,7 @@ const URCScienceView: React.FC = () => {
         <HeaterWidget/>
         <LedWidget/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_CUVETTE}/>
+        <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_UV_VIS}/>
         <CameraControlModalButton/>
       </div>
     </div>
