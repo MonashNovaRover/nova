@@ -1,44 +1,16 @@
-import React, { useState } from "react";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  restrictToVerticalAxis,
-  restrictToWindowEdges,
-  restrictToFirstScrollableAncestor,
-} from "@dnd-kit/modifiers";
-import {
-  Modal,
-  Button,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalContent,
-  Chip,
-  Checkbox,
-  Card,
-  Divider,
-  Select,
-  SelectItem,
-  Input,
-} from "@nextui-org/react";
+import React, { useState, useMemo } from "react";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { restrictToVerticalAxis, restrictToWindowEdges, restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
+import { Modal, ModalHeader, ModalFooter, ModalBody, ModalContent, Card, Divider } from "@nextui-org/react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
 import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
 import { IRosNovaInterfacesCartographerCommandRequest } from "../../../../ros/rosTypes.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
-import { SortablePoints } from "../../../maps/Cartographer/components/SortablePoints.tsx";
+import { SortablePoints, GoalPointCard } from "./GoalPointCards.tsx";
+import { GoalPublishingFooter } from "./GoalPublishingFooter.tsx";
 
 export const CartographerGoalModal: React.FC<{
   isOpen: boolean;
@@ -50,15 +22,44 @@ export const CartographerGoalModal: React.FC<{
     service: RosService.CARTOGRAPHER_COMMAND,
   });
 
-
   const { points } = useSelector(
     (state: RootState) => state.cartographerState
   );
   
-  
   const [selection, setSelection] = useState<number[]>([]);
-  const [selectedType, setSelectedType] = useState<GoalType>(GoalType.GNSS);
-  const [searchRadius, setSearchRadius] = useState<number>(25);
+  const [overrideGoalType, setOverrideGoalType] = useState<GoalType | null>(null);
+  const [overrideSearchRadius, setOverrideSearchRadius] = useState<number | null>(null);
+  const [isEditingFooter, setIsEditingFooter] = useState<boolean>(false);
+
+  // Derive selected items
+  const selectedItems = useMemo(() => selection.map((v) => points[v]), [selection, points]);
+
+  // Derive default values from last selected point
+  const defaultGoalType = useMemo(() => {
+    if (selectedItems.length > 0) {
+      const lastPoint = selectedItems[selectedItems.length - 1];
+      return lastPoint?.labelNumber ?? GoalType.GNSS;
+    }
+    return GoalType.GNSS;
+  }, [selectedItems]);
+
+  const defaultSearchRadius = useMemo(() => {
+    if (selectedItems.length > 0) {
+      const lastPoint = selectedItems[selectedItems.length - 1];
+      return lastPoint?.searchRadius ?? 0;
+    }
+    return 0;
+  }, [selectedItems]);
+
+  // Compute effective values (override or default)
+  const effectiveGoalType = overrideGoalType ?? defaultGoalType;
+  const effectiveSearchRadius = overrideSearchRadius ?? defaultSearchRadius;
+
+  const resetOverrides = () => {
+    setOverrideGoalType(null);
+    setOverrideSearchRadius(null);
+    setIsEditingFooter(false);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -66,6 +67,7 @@ export const CartographerGoalModal: React.FC<{
       const oldIndex = selection.findIndex((p) => points[p].name === active.id);
       const newIndex = selection.findIndex((p) => points[p].name === over!.id);
       setSelection(arrayMove(selection, oldIndex, newIndex));
+      resetOverrides();
     }
   };
 
@@ -76,8 +78,8 @@ export const CartographerGoalModal: React.FC<{
     } else {
       setSelection((prev)=>[...prev, points.findIndex((v)=>v.name === name)])
     }
+    resetOverrides();
   };
-
 
   if (!isOpen && selection.length > 0) setSelection([]);
 
@@ -88,60 +90,48 @@ export const CartographerGoalModal: React.FC<{
       latitude: item.lat,
       longitude: item.long,
     }));
-    console.log("calling service with:", { goals: goals, goal_type: selectedType, search_radius: searchRadius });
-    serviceBifrost.callService({ goals: goals, goal_type: selectedType, search_radius: searchRadius } as IRosNovaInterfacesCartographerCommandRequest);
+
+    // Use effective values (override or default)
+    console.log("calling service with:", {
+      goals: goals,
+      goal_type: effectiveGoalType,
+      search_radius: effectiveSearchRadius
+    });
+    serviceBifrost.callService({
+      goals: goals,
+      goal_type: effectiveGoalType,
+      search_radius: effectiveSearchRadius
+    } as IRosNovaInterfacesCartographerCommandRequest);
   };
 
-  const renderPoints = (points: MapPoint[], isSortable: boolean) => {
-    return points.map((point) => (
-      isSortable ? (
-        <SortablePoints key={point.name} id={point.name}>
-          {renderPointContent(point)}
+  const renderPoints = (pointsList: MapPoint[], isSortable: boolean) => {
+    return pointsList.map((point, index) => {
+      const isLastSelected = isSortable && index === pointsList.length - 1;
+      const isSelected = selection.includes(points.indexOf(point));
+
+      return isSortable ? (
+        <SortablePoints key={point.name} id={point.name} isSpecial={isLastSelected}>
+          <GoalPointCard
+            point={point}
+            isSelected={isSelected}
+            onToggleSelection={toggleSelection}
+          />
         </SortablePoints>
       ) : (
         <Card
           key={point.name}
           className="p-4 mb-4 rounded-lg bg-gray-100 bg-neutral-800"
         >
-          {renderPointContent(point)}
+          <GoalPointCard
+            point={point}
+            isSelected={isSelected}
+            onToggleSelection={toggleSelection}
+          />
         </Card>
-      )
-    ));
+      );
+    });
   };
 
-  const renderPointContent = (point: MapPoint) => (
-    <div className="flex justify-between items-center">
-      <Checkbox
-        isSelected={selection.includes(points.indexOf(point))}
-        onChange={() => toggleSelection(point.name)}
-      >
-        <span className="flex-shrink-0 font-bold">{point.name}</span>
-      </Checkbox>
-      <span className="flex-shrink-0">{point.lat}</span>
-      <span className="flex-shrink-0">{point.long}</span>
-      <div className="flex-shrink-0 flex justify-end w-24">
-        {point.labelNumber !== null && GoalType[point.labelNumber] && (
-          <Chip
-            className={`ml-2 ${
-              point.labelNumber == GoalType.GNSS
-                ? "bg-blue-200 text-blue-800 dark:bg-blue-700 dark:text-blue-200"
-                : point.labelNumber == GoalType.AR_TAG
-                ? "bg-green-200 text-green-800 dark:bg-green-700 dark:text-green-200"
-                : point.labelNumber == GoalType.OBJECT
-                ? "bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-200"
-                : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
-            }`}
-            size="sm"
-            radius="sm"
-          >
-            {point.labelName}
-          </Chip>
-        )}
-      </div>
-    </div>
-  );
-
-  const selectedItems = selection.map((v)=>points[v])
   const unselectedItems = points.filter((_, i) => !selection.includes(i));
 
   return (
@@ -182,24 +172,16 @@ export const CartographerGoalModal: React.FC<{
           </div>
         </ModalBody>
         <ModalFooter>
-          <Select
-            label="Goal Type"
-            defaultSelectedKeys={[String(GoalType.GNSS)]}
-            onChange={(e) => setSelectedType(Number(e.target.value) as GoalType)}
-          >
-            <SelectItem key={String(GoalType.GNSS)}>GNSS</SelectItem>
-            <SelectItem key={String(GoalType.AR_TAG)}>AR Tag</SelectItem>
-            <SelectItem key={String(GoalType.OBJECT)}>Object</SelectItem>
-          </Select>
-          <Input
-            type="number"
-            label="Search Radius"
-            min="0"
-            max="50"
-            step="1"
-            onChange={(e) => setSearchRadius(Number(e.target.value))}
-          ></Input>
-          <Button onPress={sendCartographerPoints}>Publish</Button>
+          <GoalPublishingFooter
+            goalType={effectiveGoalType}
+            searchRadius={effectiveSearchRadius}
+            hasSelection={selection.length > 0}
+            isEditing={isEditingFooter}
+            onGoalTypeChange={setOverrideGoalType}
+            onSearchRadiusChange={setOverrideSearchRadius}
+            onToggleEditing={() => setIsEditingFooter(!isEditingFooter)}
+            onPublish={sendCartographerPoints}
+          />
         </ModalFooter>
       </ModalContent>
     </Modal>
