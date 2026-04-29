@@ -56,7 +56,7 @@ class NavigatorClient():
     def go_to_ar_tag(self, poses, search_radius):
         goal_action = URCThroughPoses.Goal()
         goal_action.poses = poses
-        goal_action.behaviour_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_aruco.xml"
+        goal_action.behavior_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_aruco.xml"
         goal_action.search_radius = search_radius
         self.node.get_logger().info('Sending waypoints to /urc_through_poses...')
         send_future = self.urc_navigator_client.send_goal_async(goal_action)
@@ -65,7 +65,7 @@ class NavigatorClient():
     def go_to_object(self, poses, search_radius):
         goal_action = URCThroughPoses.Goal()
         goal_action.poses = poses
-        goal_action.behaviour_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_object.xml"
+        goal_action.behavior_tree = f"{expanduser("~")}/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_object.xml"
         goal_action.search_radius = search_radius
         self.node.get_logger().info('Sending waypoints to /urc_through_poses...')
         send_future = self.urc_navigator_client.send_goal_async(goal_action)
