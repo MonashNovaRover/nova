@@ -37,10 +37,10 @@ from geometry_msgs.msg import PoseStamped
 from nova_interfaces.msg import Status
 from action_msgs.msg import GoalStatus
 import yaml,os,enum
-from cartographer_client import CartographerClient
-from fromll_client import FromLLClient
-from led_client import LEDClient
-from navigator_client import NavigatorClient
+from auto_start.urc.cartographer_client import CartographerClient
+from auto_start.urc.fromll_client import FromLLClient
+from auto_start.urc.led_client import LEDClient
+from auto_start.urc.navigator_client import NavigatorClient
 
 class State(enum.Enum):
     WAITING_FOR_CARTOGRAPHER=0,

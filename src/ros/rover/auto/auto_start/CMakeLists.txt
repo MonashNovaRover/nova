@@ -15,8 +15,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(THIS_PACKAGE_INCLUDE_DEPENDS
+set(DEPENDENCIES
   ament_cmake
+  ament_cmake_python
   rclpy
   rclcpp
   nav_msgs
@@ -29,14 +30,14 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_msgs
 )
 
-foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
-  find_package(${Dependency} REQUIRED)
+foreach(DEPENDENCY IN ITEMS ${DEPENDENCIES})
+  find_package(${DEPENDENCY} REQUIRED)
 endforeach()
 
 # Python executables
 install(PROGRAMS
-  src/arch/start_auto_arch.py
-  src/urc/start_auto_urc.py
+  auto_start/arch/start_auto_arch.py
+  auto_start/urc/start_auto_urc.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -52,4 +53,5 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+ament_python_install_package(${PROJECT_NAME})
 ament_package()

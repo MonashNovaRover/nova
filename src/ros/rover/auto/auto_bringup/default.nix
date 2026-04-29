@@ -46,7 +46,8 @@
   demo-nodes-cpp,
   pcl,
   pcl-ros,
-  direct-visual-lidar-calibration
+  direct-visual-lidar-calibration,
+  nova-auto-start,
 }:
 
 buildRosPackage rec {
@@ -106,7 +107,8 @@ buildRosPackage rec {
       fast-calib
       demo-nodes-cpp
       pcl-ros
-      direct-visual-lidar-calibration;
+      direct-visual-lidar-calibration
+      nova-auto-start;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
