@@ -17,6 +17,8 @@ using hardware_interface::InterfaceDescription;
 using hardware_interface::InterfaceInfo;
 using hardware_interface::LoanedStateInterface;
 using hardware_interface::LoanedCommandInterface;
+using hardware_interface::StateInterface;
+using hardware_interface::CommandInterface;
 using arm_kinematics::ros2_control::JointInterfaceBundle;
 using arm_kinematics::ros2_control::find_joint_interface_bundles;
 
@@ -32,31 +34,51 @@ InterfaceDescription make_desc(const std::string & prefix, const std::string & i
 
 LoanedStateInterface make_state(const std::string & prefix, const std::string & iface_name)
 {
-  auto si = std::make_shared<const hardware_interface::StateInterface>(
-    make_desc(prefix, iface_name));
+  auto si = std::make_shared<const StateInterface>(make_desc(prefix, iface_name));
   return LoanedStateInterface{si};
 }
 
 LoanedCommandInterface make_command(const std::string & prefix, const std::string & iface_name)
 {
-  auto ci = std::make_shared<hardware_interface::CommandInterface>(
-    make_desc(prefix, iface_name));
+  auto ci = std::make_shared<CommandInterface>(make_desc(prefix, iface_name));
   return LoanedCommandInterface{ci, []() {}};
+}
+
+void add_state(
+  std::vector<StateInterface::ConstSharedPtr> & owners,
+  std::vector<LoanedStateInterface> & ifaces,
+  const std::string & prefix,
+  const std::string & iface_name)
+{
+  owners.push_back(std::make_shared<const StateInterface>(make_desc(prefix, iface_name)));
+  ifaces.emplace_back(owners.back());
+}
+
+void add_command(
+  std::vector<CommandInterface::SharedPtr> & owners,
+  std::vector<LoanedCommandInterface> & ifaces,
+  const std::string & prefix,
+  const std::string & iface_name)
+{
+  owners.push_back(std::make_shared<CommandInterface>(make_desc(prefix, iface_name)));
+  ifaces.emplace_back(owners.back(), []() {});
 }
 
 }  // namespace
 
 TEST(JointInterfaceBundle, HappyPath_AllRequired)
 {
+  std::vector<StateInterface::ConstSharedPtr> state_owners;
   std::vector<LoanedStateInterface> state_ifaces;
-  state_ifaces.push_back(make_state("j1", hardware_interface::HW_IF_POSITION));
-  state_ifaces.push_back(make_state("j1", hardware_interface::HW_IF_VELOCITY));
-  state_ifaces.push_back(make_state("j2", hardware_interface::HW_IF_POSITION));
-  state_ifaces.push_back(make_state("j2", hardware_interface::HW_IF_VELOCITY));
+  add_state(state_owners, state_ifaces, "j1", hardware_interface::HW_IF_POSITION);
+  add_state(state_owners, state_ifaces, "j1", hardware_interface::HW_IF_VELOCITY);
+  add_state(state_owners, state_ifaces, "j2", hardware_interface::HW_IF_POSITION);
+  add_state(state_owners, state_ifaces, "j2", hardware_interface::HW_IF_VELOCITY);
 
+  std::vector<CommandInterface::SharedPtr> command_owners;
   std::vector<LoanedCommandInterface> cmd_ifaces;
-  cmd_ifaces.push_back(make_command("j1", hardware_interface::HW_IF_POSITION));
-  cmd_ifaces.push_back(make_command("j2", hardware_interface::HW_IF_POSITION));
+  add_command(command_owners, cmd_ifaces, "j1", hardware_interface::HW_IF_POSITION);
+  add_command(command_owners, cmd_ifaces, "j2", hardware_interface::HW_IF_POSITION);
 
   const std::vector<std::string> joints = {"j1", "j2"};
 
@@ -81,12 +103,13 @@ TEST(JointInterfaceBundle, HappyPath_AllRequired)
 
 TEST(JointInterfaceBundle, PositionNotRequired_NullptrWhenAbsent)
 {
+  std::vector<StateInterface::ConstSharedPtr> state_owners;
   std::vector<LoanedStateInterface> state_ifaces;
-  // Only velocity state — no position
-  state_ifaces.push_back(make_state("j1", hardware_interface::HW_IF_VELOCITY));
+  add_state(state_owners, state_ifaces, "j1", hardware_interface::HW_IF_VELOCITY);
 
+  std::vector<CommandInterface::SharedPtr> command_owners;
   std::vector<LoanedCommandInterface> cmd_ifaces;
-  cmd_ifaces.push_back(make_command("j1", hardware_interface::HW_IF_POSITION));
+  add_command(command_owners, cmd_ifaces, "j1", hardware_interface::HW_IF_POSITION);
 
   const std::vector<std::string> joints = {"j1"};
 
@@ -105,10 +128,10 @@ TEST(JointInterfaceBundle, PositionNotRequired_NullptrWhenAbsent)
 TEST(JointInterfaceBundle, PositionRequired_ErrorWhenAbsent)
 {
   std::vector<LoanedStateInterface> state_ifaces;
-  // No position state for j1
 
+  std::vector<CommandInterface::SharedPtr> command_owners;
   std::vector<LoanedCommandInterface> cmd_ifaces;
-  cmd_ifaces.push_back(make_command("j1", hardware_interface::HW_IF_POSITION));
+  add_command(command_owners, cmd_ifaces, "j1", hardware_interface::HW_IF_POSITION);
 
   const std::vector<std::string> joints = {"j1"};
 
@@ -127,12 +150,13 @@ TEST(JointInterfaceBundle, PositionRequired_ErrorWhenAbsent)
 
 TEST(JointInterfaceBundle, VelocityRequired_ErrorWhenAbsent)
 {
+  std::vector<StateInterface::ConstSharedPtr> state_owners;
   std::vector<LoanedStateInterface> state_ifaces;
-  state_ifaces.push_back(make_state("j1", hardware_interface::HW_IF_POSITION));
-  // No velocity state
+  add_state(state_owners, state_ifaces, "j1", hardware_interface::HW_IF_POSITION);
 
+  std::vector<CommandInterface::SharedPtr> command_owners;
   std::vector<LoanedCommandInterface> cmd_ifaces;
-  cmd_ifaces.push_back(make_command("j1", hardware_interface::HW_IF_POSITION));
+  add_command(command_owners, cmd_ifaces, "j1", hardware_interface::HW_IF_POSITION);
 
   const std::vector<std::string> joints = {"j1"};
 
@@ -151,8 +175,9 @@ TEST(JointInterfaceBundle, VelocityRequired_ErrorWhenAbsent)
 
 TEST(JointInterfaceBundle, MissingCommand_AlwaysErrors)
 {
+  std::vector<StateInterface::ConstSharedPtr> state_owners;
   std::vector<LoanedStateInterface> state_ifaces;
-  state_ifaces.push_back(make_state("j1", hardware_interface::HW_IF_POSITION));
+  add_state(state_owners, state_ifaces, "j1", hardware_interface::HW_IF_POSITION);
 
   std::vector<LoanedCommandInterface> cmd_ifaces;
   // No command interface
@@ -194,11 +219,13 @@ TEST(JointInterfaceBundle, AllMissing_CompleteErrorList)
 
 TEST(JointInterfaceBundle, VelocityCommandType_MatchedCorrectly)
 {
+  std::vector<StateInterface::ConstSharedPtr> state_owners;
   std::vector<LoanedStateInterface> state_ifaces;
-  state_ifaces.push_back(make_state("j1", hardware_interface::HW_IF_POSITION));
+  add_state(state_owners, state_ifaces, "j1", hardware_interface::HW_IF_POSITION);
 
+  std::vector<CommandInterface::SharedPtr> command_owners;
   std::vector<LoanedCommandInterface> cmd_ifaces;
-  cmd_ifaces.push_back(make_command("j1", hardware_interface::HW_IF_VELOCITY));
+  add_command(command_owners, cmd_ifaces, "j1", hardware_interface::HW_IF_VELOCITY);
 
   const std::vector<std::string> joints = {"j1"};
 

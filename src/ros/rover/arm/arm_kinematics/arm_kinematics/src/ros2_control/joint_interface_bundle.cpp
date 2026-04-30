@@ -3,9 +3,32 @@
 #include "arm_kinematics/ros2_control/joint_interface_bundle.hpp"
 
 #include <algorithm>
+#include <string_view>
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
 namespace arm_kinematics::ros2_control {
+
+namespace {
+
+bool matches_interface(
+  const hardware_interface::LoanedStateInterface & iface,
+  const std::string_view prefix_name,
+  const std::string_view interface_name)
+{
+  return iface.get_prefix_name() == prefix_name &&
+         iface.get_interface_name() == interface_name;
+}
+
+bool matches_interface(
+  const hardware_interface::LoanedCommandInterface & iface,
+  const std::string_view prefix_name,
+  const std::string_view interface_name)
+{
+  return iface.get_prefix_name() == prefix_name &&
+         iface.get_interface_name() == interface_name;
+}
+
+}  // namespace
 
 tl::expected<std::vector<JointInterfaceBundle>, InterfaceLookupError>
 find_joint_interface_bundles(
@@ -30,8 +53,7 @@ find_joint_interface_bundles(
       const auto it = std::find_if(
         state_interfaces.begin(), state_interfaces.end(),
         [&joint_name](const hardware_interface::LoanedStateInterface & iface) {
-          return iface.get_prefix_name() == joint_name &&
-                 iface.get_interface_name() == hardware_interface::HW_IF_POSITION;
+          return matches_interface(iface, joint_name, hardware_interface::HW_IF_POSITION);
         });
 
       if (it == state_interfaces.end()) {
@@ -48,8 +70,7 @@ find_joint_interface_bundles(
       const auto it = std::find_if(
         state_interfaces.begin(), state_interfaces.end(),
         [&joint_name](const hardware_interface::LoanedStateInterface & iface) {
-          return iface.get_prefix_name() == joint_name &&
-                 iface.get_interface_name() == hardware_interface::HW_IF_VELOCITY;
+          return matches_interface(iface, joint_name, hardware_interface::HW_IF_VELOCITY);
         });
 
       if (it == state_interfaces.end()) {
@@ -66,8 +87,7 @@ find_joint_interface_bundles(
       const auto it = std::find_if(
         command_interfaces.begin(), command_interfaces.end(),
         [&joint_name, &command_type](const hardware_interface::LoanedCommandInterface & iface) {
-          return iface.get_prefix_name() == joint_name &&
-                 iface.get_interface_name() == command_type;
+          return matches_interface(iface, joint_name, command_type);
         });
 
       if (it == command_interfaces.end()) {

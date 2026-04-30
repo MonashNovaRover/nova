@@ -18,6 +18,8 @@ using hardware_interface::InterfaceDescription;
 using hardware_interface::InterfaceInfo;
 using hardware_interface::LoanedStateInterface;
 using hardware_interface::LoanedCommandInterface;
+using hardware_interface::StateInterface;
+using hardware_interface::CommandInterface;
 using arm_kinematics::NamedStateInterfaceDefinition;
 using arm_kinematics::InterfaceId;
 using arm_kinematics::ros2_control::find_state_interface_refs;
@@ -35,16 +37,34 @@ InterfaceDescription make_desc(const std::string & prefix, const std::string & i
 
 LoanedStateInterface make_state(const std::string & prefix, const std::string & iface_name)
 {
-  auto si = std::make_shared<const hardware_interface::StateInterface>(
-    make_desc(prefix, iface_name));
+  auto si = std::make_shared<const StateInterface>(make_desc(prefix, iface_name));
   return LoanedStateInterface{si};
 }
 
 LoanedCommandInterface make_command(const std::string & prefix, const std::string & iface_name)
 {
-  auto ci = std::make_shared<hardware_interface::CommandInterface>(
-    make_desc(prefix, iface_name));
+  auto ci = std::make_shared<CommandInterface>(make_desc(prefix, iface_name));
   return LoanedCommandInterface{ci, []() {}};
+}
+
+void add_state(
+  std::vector<StateInterface::ConstSharedPtr> & owners,
+  std::vector<LoanedStateInterface> & ifaces,
+  const std::string & prefix,
+  const std::string & iface_name)
+{
+  owners.push_back(std::make_shared<const StateInterface>(make_desc(prefix, iface_name)));
+  ifaces.emplace_back(owners.back());
+}
+
+void add_command(
+  std::vector<CommandInterface::SharedPtr> & owners,
+  std::vector<LoanedCommandInterface> & ifaces,
+  const std::string & prefix,
+  const std::string & iface_name)
+{
+  owners.push_back(std::make_shared<CommandInterface>(make_desc(prefix, iface_name)));
+  ifaces.emplace_back(owners.back(), []() {});
 }
 
 }  // namespace
@@ -55,9 +75,10 @@ LoanedCommandInterface make_command(const std::string & prefix, const std::strin
 
 TEST(InterfaceRefs, StateRefs_HappyPath_OrderPreserved)
 {
+  std::vector<StateInterface::ConstSharedPtr> owners;
   std::vector<LoanedStateInterface> ifaces;
-  ifaces.push_back(make_state("elbow", "position"));    // index 0
-  ifaces.push_back(make_state("shoulder", "position")); // index 1
+  add_state(owners, ifaces, "elbow", "position");    // index 0
+  add_state(owners, ifaces, "shoulder", "position"); // index 1
 
   const std::vector<NamedStateInterfaceDefinition> defs = {
     NamedStateInterfaceDefinition{"shoulder", InterfaceId{"position"}},
@@ -77,8 +98,9 @@ TEST(InterfaceRefs, StateRefs_HappyPath_OrderPreserved)
 
 TEST(InterfaceRefs, StateRefs_MissingOne_ErrorListsIt)
 {
+  std::vector<StateInterface::ConstSharedPtr> owners;
   std::vector<LoanedStateInterface> ifaces;
-  ifaces.push_back(make_state("shoulder", "position"));
+  add_state(owners, ifaces, "shoulder", "position");
 
   const std::vector<NamedStateInterfaceDefinition> defs = {
     NamedStateInterfaceDefinition{"shoulder", InterfaceId{"position"}},
@@ -120,8 +142,9 @@ TEST(InterfaceRefs, StateRefs_MissingMultiple_ErrorListsAll)
 
 TEST(InterfaceRefs, StateRefs_WrongInterfaceType_Errors)
 {
+  std::vector<StateInterface::ConstSharedPtr> owners;
   std::vector<LoanedStateInterface> ifaces;
-  ifaces.push_back(make_state("shoulder", "velocity"));  // velocity, not position
+  add_state(owners, ifaces, "shoulder", "velocity");  // velocity, not position
 
   const std::vector<NamedStateInterfaceDefinition> defs = {
     NamedStateInterfaceDefinition{"shoulder", InterfaceId{"position"}},
@@ -140,9 +163,10 @@ TEST(InterfaceRefs, StateRefs_WrongInterfaceType_Errors)
 
 TEST(InterfaceRefs, CommandRefs_HappyPath_OrderPreserved)
 {
+  std::vector<CommandInterface::SharedPtr> owners;
   std::vector<LoanedCommandInterface> ifaces;
-  ifaces.push_back(make_command("elbow", "position"));    // index 0
-  ifaces.push_back(make_command("shoulder", "position")); // index 1
+  add_command(owners, ifaces, "elbow", "position");    // index 0
+  add_command(owners, ifaces, "shoulder", "position"); // index 1
 
   const std::vector<std::string> names = {
     "shoulder/position",
@@ -161,8 +185,9 @@ TEST(InterfaceRefs, CommandRefs_HappyPath_OrderPreserved)
 
 TEST(InterfaceRefs, CommandRefs_WithChainedPrefix)
 {
+  std::vector<CommandInterface::SharedPtr> owners;
   std::vector<LoanedCommandInterface> ifaces;
-  ifaces.push_back(make_command("nova_arm_controller/j1", "position"));
+  add_command(owners, ifaces, "nova_arm_controller/j1", "position");
 
   const std::vector<std::string> names = {"nova_arm_controller/j1/position"};
 
@@ -175,8 +200,9 @@ TEST(InterfaceRefs, CommandRefs_WithChainedPrefix)
 
 TEST(InterfaceRefs, CommandRefs_MissingOne_ErrorListsIt)
 {
+  std::vector<CommandInterface::SharedPtr> owners;
   std::vector<LoanedCommandInterface> ifaces;
-  ifaces.push_back(make_command("j1", "position"));
+  add_command(owners, ifaces, "j1", "position");
 
   const std::vector<std::string> names = {"j1/position", "j2/position"};
 

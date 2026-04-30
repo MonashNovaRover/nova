@@ -18,7 +18,7 @@ namespace arm_kinematics {
 
 namespace {
 
-constexpr std::size_t kMaxFormattedInterfaces = 50;
+constexpr std::size_t kMaxFormattedInterfaces = 5;
 
 template <typename T>
 std::string format_state_interface_list(const std::vector<T> & defs)

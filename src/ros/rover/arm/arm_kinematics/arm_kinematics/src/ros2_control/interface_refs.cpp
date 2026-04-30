@@ -3,8 +3,34 @@
 #include "arm_kinematics/ros2_control/interface_refs.hpp"
 
 #include <algorithm>
+#include <string_view>
 
 namespace arm_kinematics::ros2_control {
+
+namespace {
+
+bool matches_state_interface(
+  const hardware_interface::LoanedStateInterface & iface,
+  const NamedStateInterfaceDefinition & def)
+{
+  return iface.get_prefix_name() == def.joint_name &&
+         iface.get_interface_name() == def.interface_id.name;
+}
+
+bool matches_command_interface(
+  const hardware_interface::LoanedCommandInterface & iface,
+  const std::string_view requested_name)
+{
+  const std::size_t split = requested_name.rfind('/');
+  if (split == std::string_view::npos || split == 0 || split + 1 >= requested_name.size()) {
+    return false;
+  }
+
+  return iface.get_prefix_name() == requested_name.substr(0, split) &&
+         iface.get_interface_name() == requested_name.substr(split + 1);
+}
+
+}  // namespace
 
 tl::expected<std::vector<LoanedStateRef>, InterfaceLookupError>
 find_state_interface_refs(
@@ -20,8 +46,7 @@ find_state_interface_refs(
     const auto it = std::find_if(
       state_interfaces.begin(), state_interfaces.end(),
       [&def](const hardware_interface::LoanedStateInterface & iface) {
-        return iface.get_prefix_name() == def.joint_name &&
-               iface.get_interface_name() == def.interface_id.name;
+        return matches_state_interface(iface, def);
       });
 
     if (it == state_interfaces.end()) {
@@ -51,7 +76,7 @@ find_command_interface_refs(
     const auto it = std::find_if(
       command_interfaces.begin(), command_interfaces.end(),
       [&name](const hardware_interface::LoanedCommandInterface & iface) {
-        return iface.get_name() == name;
+        return matches_command_interface(iface, name);
       });
 
     if (it == command_interfaces.end()) {
