@@ -124,13 +124,13 @@ pumps:
         publish_rate: 5
     hardware:
       cache_to_shot_pump:
-        can_id: 0x000 #TODO: update all
+        can_id: 0x0F7
       shot_to_inner_pump:
-        can_id: 0x000
+        can_id: 0x0E6
       shot_to_outer_pump:
-        can_id: 0x000
+        can_id: 0x0E7
       shot_to_electrochem_pump:
-        can_id: 0x000
+        can_id: 0x0F6
 
 carousel_inner:
   ros__parameters:
@@ -198,10 +198,10 @@ litmus_dipper:
       controller:
         hardware_name: "dipper"
         min_angle: 0.0
-        max_angle: 180.0 # tune this, should ideally be same as lowered_pos or slightly higher?
+        max_angle: 65.0
         initial_angle: 0.0
-        raised_pos: 0.0 # tune this
-        lowered_pos: 180.0 # tune this
+        raised_pos: 0.0
+        lowered_pos: 65.0
         twitch_service: "/science/litmus_dipper/twitch"
     hardware:
       dipper:
@@ -222,23 +222,23 @@ spec_leds:
         led_list: [ "vis_spec_central_led", "vis_spec_nile_red", "vis_spec_camera", "vis_spec_nadh", "litmus_led" ]
     hardware:
       vis_spec_central_led:
-        can_id: 0x0FC
+        can_id: 0x0FD
         on_command: 0x01
         off_command: 0x00
       vis_spec_nile_red:
-        can_id: 0x0F3
+        can_id: 0x0ED
         on_command: 0x01
         off_command: 0x00
       vis_spec_camera:
-        can_id: 0x0F2
+        can_id: 0x0FC
         on_command: 0x01
         off_command: 0x00
       vis_spec_nadh:
-        can_id: 0x0FB
+        can_id: 0x0EE
         on_command: 0x01
         off_command: 0x00
       litmus_led:
-        can_id: 0x0FA
+        can_id: 0x0EC
         on_command: 0x01
         off_command: 0x00
 
@@ -257,10 +257,10 @@ scimbal_cam:
     update_rate: 5
     hardware:
       pan:
-        can_id: 0x0E0
+        can_id: 0x0F1
         angular_limit: 360.0
       tilt:
-        can_id: 0x0E1
+        can_id: 0x0F0
         angular_limit: 90.0
 
 cache_left:
@@ -272,7 +272,7 @@ cache_left:
         cache_name: "cache_left"
     hardware:
       actuation:
-        can_id: 0xE3
+        can_id: 0x0E3
 
 cache_right:
   ros__parameters:
@@ -283,7 +283,7 @@ cache_right:
         cache_name: "cache_right"
     hardware:
       actuation:
-        can_id: 0xE2
+        can_id: 0x0E2
 
 bme_sensor:
   ros__parameters:
