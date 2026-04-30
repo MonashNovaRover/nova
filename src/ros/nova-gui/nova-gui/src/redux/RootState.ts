@@ -7,8 +7,8 @@ import {
   IRosScienceInterfacesMicroscopeServoInfo,
   IRosScienceInterfacesMoveMicroscopeServoResponse,
   IRosScienceInterfacesNirProbeData,
-  IRosScienceInterfacesKilnCommandResponse,
-  IRosScienceInterfacesKilnData,
+  IRosScienceInterfacesThermalCommandResponse,
+  IRosScienceInterfacesThermalData,
   IRosScienceInterfacesRamanSpecResponse,
   IRosScienceInterfacesRamanSpectrum,
   IRosBlcmdInterfacesTelemetry,
@@ -31,13 +31,14 @@ import {
   IRosArmInterfacesKeyboardPoints,
   IRosNovaInterfacesCartographerCommandResponse,
   IRosNovaInterfacesStatus,
-  IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
   IRosNovaInterfacesRadioStatus,
   IRosSensorMsgsJointState,
   IRosRclInterfacesSetParametersResponse,
   IRosNovaInterfacesLockedStatus,
   IRosScienceInterfacesPumpStatus,
+  IRosNovaInterfacesGpsData,
+  IRosScienceInterfacesCarouselFeedback,
 } from "../ros/rosTypes";
 
 import { BifrostStatus } from "./models/bifrost/BifrostTypes";
@@ -91,8 +92,8 @@ export interface RootState {
   nirStore: IRosScienceInterfacesNirProbeData;
   waterPumpStatus: IRosScienceInterfacesEffortStatus;
   diaphragmPumpStatus: IRosScienceInterfacesEffortStatus;
-  kilnData: IRosScienceInterfacesKilnData;
-  kilnCommand: IRosScienceInterfacesKilnCommandResponse;
+  thermalData: IRosScienceInterfacesThermalData;
+  thermalCommand: IRosScienceInterfacesThermalCommandResponse;
   uvVisSpecStore: IRosScienceInterfacesUvVisSpecData;
   uvVisLED1Store: IRosStdSrvsSetBoolResponse;
   uvVisLED2Store: IRosStdSrvsSetBoolResponse;
@@ -109,10 +110,13 @@ export interface RootState {
   auger2DepthSensorStore: IRosStdMsgsBool;
   toolRotatorAngleStore: IRosStdMsgsFloat64;
   pumpsStatusStore: IRosScienceInterfacesPumpStatus;
+  carouselInnerFeedback: IRosScienceInterfacesCarouselFeedback;
+  carouselOuterFeedback: IRosScienceInterfacesCarouselFeedback;
 
   // Maps Related Stores
-  roverLocationStore: IRosSensorMsgsNavSatFix;
-  baseLocationStore: IRosSensorMsgsNavSatFix;
+  roverLocationStore: IRosNovaInterfacesGpsData;
+  baseLocationStore: IRosNovaInterfacesGpsData;
+  droneLocationStore: IRosNovaInterfacesGpsData;
   cartographerState: CartographerState;
   cartographerCommand: IRosNovaInterfacesCartographerCommandResponse;
   autoStatus: IRosNovaInterfacesStatus;

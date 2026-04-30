@@ -4,6 +4,27 @@
 #include <string>
 #include <gst/gst.h>
 
-void set_webrtcsink(GstElement* webrtc, const std::string serial, const std::string video_caps, const bool do_fec, const bool do_retransmission, const std::string congestion_control, const int bitrate);
+template<typename properties> void set_webrtcsink(GstElement* webrtc, const properties props) {
+  GstStructure *meta = gst_structure_new("meta", "serial", G_TYPE_STRING, props->serial.c_str(), NULL); 
+  GstCaps *webrtc_caps = gst_caps_from_string(props->video_caps.c_str());
+  g_object_set(webrtc,
+    "do-fec", props->do_fec,
+    "do-retransmission", props->do_retransmission,
+    "congestion-control", (
+      props->congestion_control == "disabled" ? 0 :
+      props->congestion_control == "homegrown" ? 1 :
+      props->congestion_control == "gcc" ? 2 :
+      2),
+    "max-bitrate", props->bitrate*1125,
+    "meta", meta,
+    "video-caps", webrtc_caps,
+    NULL);
+  gst_caps_unref(webrtc_caps);
+  gst_structure_free(meta);
+}
+
+template<typename properties> void set_rostopicsink(GstElement* rossink, const properties props) {
+  g_object_set(rossink, "ros-topic", props->ros_topic.c_str(), NULL);
+}
 
 #endif

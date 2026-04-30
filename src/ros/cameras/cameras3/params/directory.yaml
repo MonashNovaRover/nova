@@ -42,7 +42,7 @@ camera_directory:
         # the path corresponds to the slot on a usb hub
         mast:
           '1:1.0': mast_arm_stow
-          '2:1.0': mast_down
+          '2:1.0': mast_belly
           '3:1.0': mast_forward
           '4:1.0': mast_backward
         payload:
@@ -50,32 +50,34 @@ camera_directory:
           '2:1.0': payload_2
           '3:1.0': payload_3
           '4:1.0': payload_4
+          '4.1:1.0': payload_4_1
+          '4.2:1.0': payload_4_2
+          '4.3:1.0': payload_4_3
+          '4.4:1.0': payload_4_4
+
 
       task_paths:
         # the set of overrides can be selected by setting the "task" parameter
         # if a non-default path is needed, it can be specified in its named root followed by the path.
         # Take a look at example for the possible override methods
-        science-arc:
-          payload_3: science_gimbal_cam     # science hub port 1
-          payload_2: science_kiln           # science hub port 2
-          payload_1: science_kiln_bottom    # science hub port 3
-          payload_4: science_microscope     # science hub port 4  
         science-urc:
           payload_1: science_gimbal_cam
           payload_2: science_microscope
           payload_3: science_spectroscope
           payload:
             '4.1:1.0': science_cuvettes
-        arm:
+        delivery:
           payload_1: arm_end_finger
           payload_2: arm_end_side
           payload_3: arm_end_periscope
-          payload_4: arm_end_top
-        ec:
-          payload_4: ec_scraper             # ec hub 1 -> camera in USB position 1 as labeled on the E&C CAMS USB Hub
-          payload_3: ec_forklift_down       # ec hub 2
-          payload_2: ec_forklift_forward    # ec hub 3
-          payload_1: ec_scraper_leg         # ec hub 4
+          payload_4_2: arm_end_top
+          payload_4_4: arm_gimbal
+
+        auto:
+          mast_arm_stow: auto_left
+          mast_down: auto_right
+          mast_forward: auto_forward
+          mast_backward: auto_behind
 
         example:
           payload_2: science_kiln
@@ -89,4 +91,4 @@ camera_directory:
       # serial_remaps can be used to override a camera serial into another serial in the directory message and is typically used in testing
       # a serial remap occurs after an override, so you can essentially rename an override! 
       # These are global overrides and will occur irrespective of platform and task.
-      example_webcam_serial: anthony-cam
+      046d_C270_HD_WEBCAM_2A3D8660: anthony-cam

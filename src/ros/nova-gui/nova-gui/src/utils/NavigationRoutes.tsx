@@ -125,6 +125,11 @@ export const urcNavigationData: NavigationInterface = {
       icon: <Home />,
     },
     {
+      title: "Cartographer",
+      route: "/urc/delivery/cartographer",
+      icon: <Map />,
+    },
+    {
       title: "Cameras",
       route: `/urc/cameras/${URCCompModes.URC_DELIVERY}`,
       icon: <Camera />,
@@ -149,9 +154,9 @@ export const urcNavigationData: NavigationInterface = {
   ],
   ["Autonomous"]: [
     {
-      title: "Dashboard",
+      title: "Cartographer",
       route: "/urc/autonomous-navigation",
-      icon: <Home />,
+      icon: <Map />,
     },
     {
       title: "Cameras",
@@ -161,7 +166,7 @@ export const urcNavigationData: NavigationInterface = {
     {
       title: "Simulation",
       route: "/urc/gazebo",
-      icon: <Home />,
+      icon: <Tv />,
     },
   ]
 };

@@ -6,7 +6,7 @@ import {
   IRosSensorMsgsRange,
   IRosCmdInterfacesCmDsFeedback,
   IRosDriveInterfacesDriveInfo,
-  IRosScienceInterfacesKilnData,
+  IRosScienceInterfacesThermalData,
   IRosScienceInterfacesNirProbeData,
   IRosScienceInterfacesMicroscopeServoInfo,
   IRosScienceInterfacesPumpStatus,
@@ -22,13 +22,14 @@ import {
   IRosSensorMsgsBatteryState,
   IRosNovaInterfacesActiveNodeStatus,
   IRosNovaInterfacesStatus,
-  IRosSensorMsgsNavSatFix,
   IRosArmInterfacesSequencerFeedback,
   IRosNovaInterfacesRadioStatus,
   IRosScienceInterfacesEffortStatus,
   IRosSensorMsgsJointState,
   IRosStdMsgsFloat64,
   IRosNovaInterfacesLockedStatus,
+  IRosNovaInterfacesGpsData,
+  IRosScienceInterfacesCarouselFeedback,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -63,7 +64,7 @@ export interface RosTopicInterfaces {
   // Science Related
   [RosTopic.TOF]: IRosSensorMsgsRange;
   [RosTopic.AA_POS]: IRosSensorMsgsRange;
-  [RosTopic.KILN_DATA]: IRosScienceInterfacesKilnData;
+  [RosTopic.THERMAL_DATA]: IRosScienceInterfacesThermalData;
   [RosTopic.WATER_PUMP_STATUS]: IRosScienceInterfacesEffortStatus;
   [RosTopic.DIAPHRAGM_PUMP_STATUS]: IRosScienceInterfacesEffortStatus;
   [RosTopic.NIR_DATA]: IRosScienceInterfacesNirProbeData;
@@ -78,13 +79,16 @@ export interface RosTopicInterfaces {
   [RosTopic.AUGER2_DEPTH_SENSOR]: IRosStdMsgsBool;
   [RosTopic.TOOL_ROTATOR_ANGLE]: IRosStdMsgsFloat64;
   [RosTopic.PUMPS_STATUS]: IRosScienceInterfacesPumpStatus;
+  [RosTopic.CAROUSEL_INNER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
+  [RosTopic.CAROUSEL_OUTER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
 
   // Maps Related
-  [RosTopic.ROVER_LOCATION]: IRosSensorMsgsNavSatFix;
-  [RosTopic.BASE_LOCATION]: IRosSensorMsgsNavSatFix;
+  [RosTopic.ROVER_LOCATION]: IRosNovaInterfacesGpsData;
+  [RosTopic.BASE_LOCATION]: IRosNovaInterfacesGpsData;
+  [RosTopic.DRONE_LOCATION]: IRosNovaInterfacesGpsData;
   [RosTopic.AUTO_STATUS]: IRosNovaInterfacesStatus;
 
   // Other

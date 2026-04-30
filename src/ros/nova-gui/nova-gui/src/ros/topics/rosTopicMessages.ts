@@ -32,7 +32,7 @@ export const rosTopicMessages = {
   // Science Related
   [RosTopic.TOF]: "sensor_msgs/msg/Range",
   [RosTopic.AA_POS]: "sensor_msgs/msg/Range",
-  [RosTopic.KILN_DATA]: "science_interfaces/msg/KilnData",
+  [RosTopic.THERMAL_DATA]: "science_interfaces/msg/ThermalData",
   [RosTopic.WATER_PUMP_STATUS]: "science_interfaces/msg/EffortStatus",
   [RosTopic.DIAPHRAGM_PUMP_STATUS]: "science_interfaces/msg/EffortStatus",
   [RosTopic.NIR_DATA]: "science_interfaces/msg/NIRProbeData",
@@ -47,10 +47,13 @@ export const rosTopicMessages = {
   [RosTopic.AUGER2_DEPTH_SENSOR]: "std_msgs/msg/Bool",
   [RosTopic.TOOL_ROTATOR_ANGLE]: "std_msgs/msg/Float64",
   [RosTopic.PUMPS_STATUS]: "science_interfaces/msg/PumpStatus",
+  [RosTopic.CAROUSEL_INNER_FEEDBACK]: "science_interfaces/msg/CarouselFeedback",
+  [RosTopic.CAROUSEL_OUTER_FEEDBACK]: "science_interfaces/msg/CarouselFeedback",
 
   // Maps Related
-  [RosTopic.ROVER_LOCATION]: "sensor_msgs/msg/NavSatFix",
-  [RosTopic.BASE_LOCATION]: "sensor_msgs/msg/NavSatFix",
+  [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/GPSData",
+  [RosTopic.BASE_LOCATION]: "nova_interfaces/msg/GPSData",
+  [RosTopic.DRONE_LOCATION]: "nova_interfaces/msg/GPSData",
   [RosTopic.AUTO_STATUS]: "nova_interfaces/msg/Status",
 
   // Other

@@ -79,3 +79,4 @@ export const useStreamingBifrost = (refreshAvailabilies: () => void) => {
 
   return [startStreaming, pauseStreaming, stopStreaming]
 }
+

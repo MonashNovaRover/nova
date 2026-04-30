@@ -42,6 +42,7 @@ target_include_directories(transform_republisher PUBLIC
 
 # Python executables
 install(PROGRAMS
+  scripts/calculate_covariances.py
   scripts/detection_overlay.py
   scripts/goal_marker.py
   scripts/gz_frame_fixer.py

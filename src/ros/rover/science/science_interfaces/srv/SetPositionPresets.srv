@@ -1,8 +1,0 @@
-# Position for each preset
-string[] names
-float32[] positions
-
----
-
-# Each action could fail. This flag shows the output success of the action
-bool success

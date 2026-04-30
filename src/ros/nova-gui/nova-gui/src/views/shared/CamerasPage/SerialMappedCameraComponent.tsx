@@ -1,7 +1,8 @@
 import {FC, memo, useMemo} from "react";
 import {BaseCameraComponentProps, CameraComponent} from "../../../components/cameras/CameraComponent/CameraComponent.tsx";
 import {CameraSerials} from "./CameraViewConstants.tsx";
-import BarOverlayedCameraComponent from "../../../components/cameras/CameraComponent/special/BarOverlayedCameraComponent.tsx";
+//import BarOverlayedCameraComponent from "../../../components/cameras/CameraComponent/special/BarOverlayedCameraComponent.tsx";
+//import KeyboardOverlayedCameraComponent from "../../../components/CameraComponent/special/KeyboardOverlayedCameraComponent.tsx";
 import {
   GimbalOverlayedCameraComponent
 } from "../../../components/cameras/CameraComponent/special/GimbalOverlayedCameraComponent.tsx";
@@ -23,10 +24,11 @@ import ActivatedNodesCameraComponent from "../../../components/cameras/CameraCom
 import {
   ARCActivatedNodeConfig, URCActivatedNodeConfig
 } from "../../../components/shared/widgets/ActivatedNodeWidget/ActivatedNodeWidgetConfig.tsx";
+import YoloCameraComponent from "../../../components/auto/ObjectDetection/YoloCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
-  [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent,
+  // [CameraSerials.ARM_END_PERISCOPE]: BarOverlayedCameraComponent,
   [CameraSerials.SCIENCE_GIMBAL]: GimbalOverlayedCameraComponent,
   [CameraSerials.WHEEL_TELEMETRY]: WheelTelemetryCameraComponent,
   [CameraSerials.DRIVE_TELEMETRY]: DriveCameraComponent,
@@ -38,6 +40,10 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.SCIENCE_POWER_CYCLE]: PowerCycleCameraComponent,
   [CameraSerials.ARC_ACTIVATED_NODES]: ActivatedNodesCameraComponent(ARCActivatedNodeConfig),
   [CameraSerials.SCIENCE_COMBINED]: ScienceCombinedCameraComponent,
+  [CameraSerials.AUTO_FORWARD]: YoloCameraComponent,
+  [CameraSerials.AUTO_RIGHT]: YoloCameraComponent,
+  [CameraSerials.AUTO_LEFT]: YoloCameraComponent,
+  [CameraSerials.AUTO_BEHIND]: YoloCameraComponent,
 }
 
 /// Function that used the above map to get the component for a specified camera serial

@@ -7,6 +7,6 @@ camera_streamer:
       mast_forward:
         autostart: true
         profile: snail
-      mast_down:
+      mast_belly:
         autostart: true
         profile: snail

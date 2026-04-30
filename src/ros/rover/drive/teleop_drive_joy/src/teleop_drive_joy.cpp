@@ -3,7 +3,7 @@
  * Monash Nova Rover Team
  *
  * PACKAGE: teleop_drive_joy
- * AUTHORS:	Kabi, Terry Tian
+ * AUTHORS:	Kabi, Terry Tian, Jonathan Jia
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
@@ -32,7 +32,6 @@ namespace teleop_drive_joy
 
 TeleopDriveJoy::TeleopDriveJoy(const rclcpp::NodeOptions& options)
   : Node("teleop_drive_joy_node", options)
-  , sent_lock_msg_(false)
   , locked_(true)
   , locked_reason_(drive_interfaces::msg::DriveInfo::START_LOCKED)
   , drive_mode_(DriveMode::PIVOT)
@@ -141,7 +140,10 @@ void TeleopDriveJoy::initialize_interfaces()
 {
   joy_sub_ = this->create_subscription<sensor_msgs::msg::Joy>(
     params_.input_topic, rclcpp::QoS(10), std::bind(&TeleopDriveJoy::joy_callback, this, _1));
-  cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(params_.output_topic, 50);
+  cmd_vel_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(params_.output_topic,
+    rclcpp::QoS(1));
+  timer_ = this->create_wall_timer(std::chrono::milliseconds(1000 / params_.teleop_frequency),
+    std::bind(&TeleopDriveJoy::timer_callback, this));
 
   switch_controller_client_ = this->create_client<controller_manager_msgs::srv::SwitchController>(
     "/controller_manager/switch_controller");
@@ -282,11 +284,16 @@ void TeleopDriveJoy::map_button_callbacks()
   };
 }
 
-void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+void TeleopDriveJoy::timer_callback()
 {
+  if (!connected_)
+  {
+    return;
+  }
+
   update_params();
-  handle_button_callbacks(joy_msg);
-  handle_axis_callbacks(joy_msg);
+  handle_button_callbacks(joy_msg_);
+  handle_axis_callbacks(joy_msg_);
 
   if (params_.autolock_enable)
   {
@@ -295,13 +302,18 @@ void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg
 
   if (!locked_)
   {
-    send_drive_command(joy_msg);
+    send_drive_command(joy_msg_);
   }
   else
   {
     send_halt_command();
   }
+}
 
+void TeleopDriveJoy::joy_callback(const sensor_msgs::msg::Joy::SharedPtr joy_msg)
+{
+  joy_msg_ = joy_msg;
+  
   // update connection status
   connection_timer_->reset();
   set_connected(true);
@@ -409,19 +421,13 @@ void TeleopDriveJoy::send_drive_command(const sensor_msgs::msg::Joy::SharedPtr j
   cmd_vel_msg->header.stamp = this->now();
 
   cmd_vel_pub_->publish(std::move(cmd_vel_msg));
-
-  sent_lock_msg_ = false;
 }
 
 void TeleopDriveJoy::send_halt_command()
 {
-  if (sent_lock_msg_) return;
-
   auto cmd_vel_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
   cmd_vel_msg->header.stamp = this->now();
   cmd_vel_pub_->publish(std::move(cmd_vel_msg));
-
-  sent_lock_msg_ = true;
 }
 
 void TeleopDriveJoy::switch_controller(const DriveMode requested_control_mode)

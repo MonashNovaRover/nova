@@ -69,8 +69,7 @@ thrustmaster_left:
             from: "l_ax_stick_y"
           y:
             from: "l_ax_stick_x"
-        angular:
-          x:
+          z:
             from: "l_ax_stick_twist"
           
       buttons:
@@ -129,10 +128,9 @@ thrustmaster_right:
           invert: true
 
         # Task space
-        linear:
-          z:
-            from: "r_ax_stick_x"
         angular:
+          x:
+            from: "r_ax_stick_x"
           y:
               from: "r_ax_stick_y"
           z:

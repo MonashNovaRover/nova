@@ -1,4 +1,4 @@
-import {IRosSensorMsgsNavSatFix} from "../../ros/rosTypes";
+import {IRosNovaInterfacesGpsData} from "../../ros/rosTypes";
 
 export interface MapCoordinate {
   lat: number;
@@ -24,6 +24,11 @@ export enum GoalType {
   OBJECT = 2,
 }
 
+export enum Vehicle {
+  ROVER = 0,
+  DRONE = 1,
+}
+
 export interface CartographerState {
   points: MapPoint[];
   mapInteractionMode: MapInteractionMode;
@@ -39,9 +44,14 @@ export interface CartographerState {
   };
   centerOnRover: boolean;
   trackRover: boolean;
+  showTrackRover: boolean;
+  centerOnDrone: boolean;
+  trackDrone: boolean;
+  showTrackDrone: boolean;
+  focusVehicle: Vehicle;
 }
 
-export const initialNavSatMessage = <IRosSensorMsgsNavSatFix>{
+export const initialGPSMessage = <IRosNovaInterfacesGpsData>{
   header: {
     stamp: {
       sec: 0,
@@ -49,13 +59,8 @@ export const initialNavSatMessage = <IRosSensorMsgsNavSatFix>{
     },
     frame_id: "",
   },
-  status: {
-    status: 0,
-    service: 0,
-  },
-  latitude: 38.4062649, // Location: 1.7 Metres Away from MDRS Hanksville
-  longitude: -110.7917894,
+  latitude: 0, // (38.4062649,-110.7917894) Location: 1.7 Metres Away from MDRS Hanksville
+  longitude: 0,
   altitude: 0,
-  position_covariance: [],
-  position_covariance_type: 0,
+  heading: 45.0,
 };

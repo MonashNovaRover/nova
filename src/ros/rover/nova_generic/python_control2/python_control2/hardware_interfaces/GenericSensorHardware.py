@@ -24,6 +24,7 @@ class GenericSensorHardware(HardwareInterface):
 
     def __init__(self, contexts: Contexts,
                  can_id: int = 0,
+                 function_id: int=None,
                  interpret_data: Callable[[bytes], Any] = lambda x: int.from_bytes(x),
                  unit: str = "value",
                  initial_value: Any = 0):
@@ -32,6 +33,7 @@ class GenericSensorHardware(HardwareInterface):
 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         :param can_id: CAN ID of messages from the sensor
+        :param function_id: Function ID of the can message
         :param interpret_data: Translates raw CAN data into sensor outputs (e.g. velocity, temperature)
         :param unit: What the sensor outputs (e.g. velocity, temperature)
         :param initial_value: Value output before receiving first CAN messages
@@ -42,6 +44,10 @@ class GenericSensorHardware(HardwareInterface):
         self.interpret_data = interpret_data
 
         self.can_id: int = self.declare_parameter("can_id", can_id).value
+        if function_id is not None:
+            self.function_id: int = self.declare_parameter("function_id", function_id, "Function ID of the can message, the first two hex digits, None if not required.").value
+        else:
+            self.function_id = None
         self.unit: str = self.declare_parameter("unit", unit).value
         self.last_value: Any = self.declare_parameter("initial_value", initial_value).value
 
@@ -73,7 +79,13 @@ class GenericSensorHardware(HardwareInterface):
         return True
 
     def frame_callback(self, frame: jcan.Frame):
-        self.last_value = self.interpret_data(frame.data)
+        if self.function_id is not None and frame.data[0] != self.function_id:
+            return
+
+        if self.function_id:
+            self.last_value = self.interpret_data(frame.data[1:])
+        else:
+            self.last_value = self.interpret_data(frame.data)
         self.logger.debug(f"GenericSensorHardware \"{self.name}\" received CAN message: {frame}")
 
     def on_read(self, now: float, period: float):

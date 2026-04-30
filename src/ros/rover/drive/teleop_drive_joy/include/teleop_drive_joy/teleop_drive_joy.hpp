@@ -15,7 +15,7 @@
  *  - client:     /diff_drive_controller/set_parameters    [rcl_interfaces/srv/SetParameters]
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * PACKAGE:   teleop_drive_joy
- * AUTHORS:	  Kabi, Terry Tian
+ * AUTHORS:	  Kabi, Terry Tian, Jonathan Jia
  * CREATION:  2024
  * EDITED:    2025
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -172,6 +172,11 @@ private:
   void map_button_callbacks();
 
   /**
+   * @brief Callback function for main publish loop timer.
+   */
+  void timer_callback();
+  
+  /**
    * @brief Callback function for joystick messages.
    * @param joy_msg Shared pointer to the joystick message.
    */
@@ -246,6 +251,7 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::JoyFeedback>::SharedPtr joy_feedback_pub_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
   rclcpp::Subscription<blcmd_interfaces::msg::BLCMDLog>::SharedPtr blcmd_log_sub_;
+  rclcpp::TimerBase::SharedPtr timer_;
 
   rclcpp::Client<controller_manager_msgs::srv::SwitchController>::SharedPtr
     switch_controller_client_;
@@ -263,7 +269,7 @@ private:
   bool autolock_override_trigger;
 
   Params params_;
-  bool sent_lock_msg_;
+  sensor_msgs::msg::Joy::SharedPtr joy_msg_;
   bool locked_;
   uint8_t locked_reason_;
   DriveMode drive_mode_;

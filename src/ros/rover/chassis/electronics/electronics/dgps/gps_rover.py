@@ -7,9 +7,9 @@ base (ublox) GPS and writes data to the rover
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: gps_rover
 TOPICS:
-  - subscriber: /gps_base/rtcm  [UInt8MultiArray]
-  - publisher: /gps_rover/fix   [NavSatFix]
-  - publisher: /fix             [NavSatFix]
+  - subscriber: /gps_base/rtcm        [UInt8MultiArray]
+  - publisher: /gps_rover/fix         [NavSatFix]
+  - publisher: /gps_rover/fix_custom  [GPSData]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Victor Bartlinski
@@ -24,16 +24,13 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from serial import Serial
-from pynmeagps import NMEAReader, NMEAMessage
-from pyrtcm import RTCMMessage
-import re
+from pynmeagps import NMEAReader
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
-from rclpy.logging import LoggingSeverity
-from std_msgs.msg import UInt8MultiArray
+from std_msgs.msg import UInt8MultiArray, Float64
 from sensor_msgs.msg import NavSatFix
-import logging
+from nova_interfaces.msg import GPSData
 
 class GPSRover(Node):
     def __init__(self):
@@ -47,7 +44,7 @@ class GPSRover(Node):
         ).value
         self.port_name = self.declare_parameter(
             name='port_name', 
-            value='/dev/ttyUSB1', 
+            value='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0', 
         ).value
         self.gps_module = self.declare_parameter(
             name='gps_module', 
@@ -72,7 +69,13 @@ class GPSRover(Node):
         self.sub_rtcm = self.create_subscription(
             UInt8MultiArray, 
             'gps_base/rtcm', 
-            self.sub_rtcm_callback, 
+            self.sub_rtcm_callback,
+            QoSPresetProfiles.SENSOR_DATA.value, 
+        )
+        self.sub_heading = self.create_subscription(
+            Float64, 
+            'mag/heading', 
+            self.sub_heading_callback, 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pub_pose = self.create_publisher(
@@ -80,7 +83,13 @@ class GPSRover(Node):
             '/gps_rover/fix', 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
+        self.pub_pose_custom = self.create_publisher(
+            GPSData, 
+            '/gps_rover/fix_custom', 
+            QoSPresetProfiles.SENSOR_DATA.value, 
+        )
         self.pose = NavSatFix()
+        self.pose_custom = GPSData()
         self.pose.header.frame_id = 'gps'
         self.timer = self.create_timer(1/self.publisher_rate, self.loop)
 
@@ -101,8 +110,8 @@ class GPSRover(Node):
         msg_binary = bytes(msg.data)
         self.ser.write(msg_binary)
 
-    def pub_pose_callback(self):
-        self.pub_pose.publish(self.pose)
+    def sub_heading_callback(self, msg : Float64):
+        self.pose_custom.heading = msg.data
 
     def parse_nmea(self) -> None:
         self.get_logger().debug(f'Parsing NMEA message...')
@@ -125,30 +134,14 @@ class GPSRover(Node):
             if self.gps_module == 'skytraq':
                 try:
                     msg_str = str(msg_parsed)
-                    if 'lat=' in msg_str:
-                        match_lat = re.search(r'lat=([-\d.]+)', msg_str)
-                        match_lon = re.search(r'lon=([-\d.]+)', msg_str)
-                        latitude = 0
-                        longtitude = 0
-
-                        if match_lat:
-                            latitude = -1 * abs(float(match_lat.group(1)))
-                        
-                        if match_lon:
-                            longtitude = abs(float(match_lon.group(1)))
-
-                        if match_lat or match_lon:
-                            self.pose.status.status = 0
-                            self.pose.status.service = 0
-                            self.pose.position_covariance = [
-                                0.0, 0.0, 0.0,
-                                0.0, 0.0, 0.0,
-                                0.0, 0.0, 0.0
-                            ]
-                            self.pose.position_covariance_type = 0
-                            self.pose.latitude, self.pose.longitude = latitude, longtitude
+                    if msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
+                        if msg_parsed.quality > 0:
+                            # Valid fix
+                            self.pose.latitude = float(msg_parsed.lat)
+                            self.pose.longitude = float(msg_parsed.lon)
+                            self.pose.altitude = float(msg_parsed.alt)
                         else:
-                            self.get_logger().warn(f'❌ GPS data is not available!', throttle_duration_sec=2)
+                            self.get_logger().warn(f'❌ GPS (GGA) data is not available!', throttle_duration_sec=2)
                     if msg_parsed.talker == 'P' and msg_parsed.msgID == 'STI' and msg_parsed.msgId == '036':
                         # We are dealing with a PSTI036 message, which contains orientation information
                         if msg_parsed.mode == 'R':
@@ -180,6 +173,7 @@ class GPSRover(Node):
                         \traw: {msg_str}
                         \tlat: {self.pose.latitude:8.3f}
                         \tlon: {self.pose.longitude:8.3f}
+                        \talt: {self.pose.altitude:8.3f}
                     '''
 
                 except Exception as e:
@@ -189,9 +183,17 @@ class GPSRover(Node):
             return
         self.get_logger().debug(f'NMEA message parsed!')
 
+        # Copy data to custom message
+        self.pose_custom.header = self.pose.header
+        self.pose_custom.status = self.pose.status
+        self.pose_custom.latitude = self.pose.latitude
+        self.pose_custom.longitude = self.pose.longitude
+        self.pose_custom.altitude = self.pose.altitude
+
     def loop(self) -> None:
         self.parse_nmea()
-        self.pub_pose_callback()
+        self.pub_pose.publish(self.pose)
+        self.pub_pose_custom.publish(self.pose_custom)
 
 def main (args = None):
     rclpy.init(args = args)

@@ -33,6 +33,13 @@ def launch_setup(context, *args, **kwargs):
             name='gps_rover',
             parameters=[gps_params],
         ),
+        Node(
+            package='electronics',
+            namespace='',
+            executable='magnetometer.py',
+            name='magnetometer',
+            parameters=[gps_params],
+        ),
     ]
 
 def generate_launch_description():

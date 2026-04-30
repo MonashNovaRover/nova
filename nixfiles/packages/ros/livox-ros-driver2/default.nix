@@ -34,6 +34,10 @@ buildRosPackage {
     hash = "sha256-H2HBuTDkj5kcoANZU/MKZDt94a9oUd4KO73IBPOXBeU=";
   };
 
+  patches = [
+    ./patches/imu_covariance.patch
+  ];
+
   patchPhase = ''
     # mv -f launch_ROS2 launch
     # mv -f package_ROS2.xml package.xml

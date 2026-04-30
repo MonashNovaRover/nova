@@ -5,7 +5,7 @@ camera_streamer:
 
     cameras:
       arm_gimbal.autostart: true
-      mast_down.autostart: true
+      mast_belly.autostart: true
       arm_end_side.autostart: true
       mast_arm_stow.autostart: true
       arm_end_forward.autostart: true

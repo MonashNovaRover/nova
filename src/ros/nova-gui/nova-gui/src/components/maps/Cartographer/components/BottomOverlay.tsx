@@ -11,6 +11,10 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
+  Modal,
+  ModalContent,
+  ModalFooter,
+  ModalHeader
 } from "@nextui-org/react";
 import CopyableInput from "../../../shared/components/CopyableInput/CopyableInput.tsx";
 import { useState } from "react";
@@ -18,11 +22,11 @@ import { ChevronCompactDown, ChevronCompactUp, ChevronDoubleDown, ChevronDoubleU
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { AnimatePresence, motion } from "framer-motion";
-import { Navigation, Trash } from "react-feather";
+import { Navigation, Trash, Truck, Twitter, X } from "react-feather";
 import { ToolTipButton } from "../../../shared/components/TooltipButton.tsx";
 import { useCartographerActions } from "../../../../redux/actions/useCartographerActions.ts";
 import { MapTile } from "../config.tsx";
-import { MapPoint } from "../../../../redux/models/CartographerState.ts";
+import { MapPoint, Vehicle } from "../../../../redux/models/CartographerState.ts";
 import React from "react";
 
 interface BottomOverlayProps {
@@ -30,19 +34,81 @@ interface BottomOverlayProps {
   setMapTile: (tile: MapTile) => void;
   deletePoint: (point: MapPoint) => void;
   bottomOverlayComponents?: React.ReactNode[];
+  enableDroneTracking?: boolean;
 }
 
-export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = []}) => {
+export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = [], enableDroneTracking = false}) => {
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const { points, centerOnRover, trackRover } = useSelector(
+  const { points, centerOnRover, trackRover, showTrackRover, centerOnDrone, trackDrone, showTrackDrone, focusVehicle } = useSelector(
     (state: RootState) => state.cartographerState
   );
   const rover = useSelector((state: RootState) => state.roverLocationStore)
   const base = useSelector((state: RootState) => state.baseLocationStore)
+  const drone = useSelector((state: RootState) => state.droneLocationStore)
 
-  const { toggleRoverCentering, toggleRoverTracking } =
+  const { toggleRoverCentering, toggleRoverTracking, toggleShowRoverTracking, toggleDroneCentering, toggleDroneTracking, toggleShowDroneTracking, handleFocusVehicle } =
     useCartographerActions();
+
+  const vehicles = {
+    [Vehicle.ROVER]: {
+      label: "Rover",
+      location: rover,
+      track: trackRover,
+      showTrack: showTrackRover,
+      centerOn: centerOnRover,
+      toggleTracking: toggleRoverTracking,
+      toggleShowTracking: toggleShowRoverTracking,
+      toggleCentering: toggleRoverCentering,
+    },
+    ...(enableDroneTracking && {
+      [Vehicle.DRONE]: {
+        label: "Drone",
+        location: drone,
+        track: trackDrone,
+        showTrack: showTrackDrone,
+        centerOn: centerOnDrone,
+        toggleTracking: toggleDroneTracking,
+        toggleShowTracking: toggleShowDroneTracking,
+        toggleCentering: toggleDroneCentering,
+      },
+    }),
+  };
+
+  const currentVehicle =
+    vehicles[focusVehicle] ?? vehicles[Vehicle.ROVER];
+
+  const [showModal, setShowModal] = useState(false);
+
+  const modal = (
+    <Modal
+      size="xs"
+      className="dark text-foreground"
+      isOpen={showModal}
+      onClose={() => setShowModal(false)}
+    >
+      <ModalContent>
+        <ModalHeader className="flex flex-col gap-1">
+          Delete {currentVehicle.label} trace?
+        </ModalHeader>
+        <ModalFooter>
+          <Button variant="light" onPressStart={() => setShowModal(false)}>
+            Close
+          </Button>
+          <Button
+            color="danger"
+            onPressStart={() => {
+              currentVehicle.toggleTracking();
+              setTimeout(() => currentVehicle.toggleTracking(), 0);
+              setShowModal(false);
+            }}
+          >
+            Delete
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  )
   
   const toggleOverlay = () => {
     setOverlayVisible(!overlayVisible);
@@ -93,14 +159,24 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   label="Base Longitude"/>
                 <CopyableInput
                   readOnly
-                  value={String(rover.latitude)}
-                  placeholder={`Rover Latitude`}
-                  label="Rover Latitude"/>
+                  value={String(currentVehicle.location.latitude)}
+                  placeholder={`${currentVehicle.label} Latitude`}
+                  label={`${currentVehicle.label} Latitude`}/>
                 <CopyableInput
                   readOnly
-                  value={String(rover.longitude)}
-                  placeholder={`Rover Longitude`}
-                  label="Rover Longitude"/>
+                  value={String(currentVehicle.location.longitude)}
+                  placeholder={`${currentVehicle.label} Longitude`}
+                  label={`${currentVehicle.label} Longitude`}/>
+                  <CopyableInput
+                  readOnly
+                  value={String(currentVehicle.location.altitude)}
+                  placeholder={`${currentVehicle.label} Altitude`}
+                  label={`${currentVehicle.label} Altitude`}/>
+                  <CopyableInput
+                  readOnly
+                  value={String(currentVehicle.location.heading)}
+                  placeholder={`${currentVehicle.label} Heading`}
+                  label={`${currentVehicle.label} Heading`}/>
                 <Select
                   selectedKeys={[mapTile]}
                   label="Map Tiles"
@@ -121,23 +197,44 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                     {component}
                   </React.Fragment>
                 ))}
-                <Button
-                  variant="shadow"
-                  fullWidth
-                  color={trackRover ? "primary" : "default"}
-                  onClick={toggleRoverTracking}
-                >
-                  Track Rovey
-                </Button>
+                <div className="relative">
+                  <Button
+                    variant="shadow"
+                    fullWidth
+                    color={currentVehicle.showTrack ? "primary" : "default"}
+                    onClick={currentVehicle.toggleShowTracking}
+                  >
+                    {focusVehicle == Vehicle.ROVER ? "Track Rovey" : "Track Droney"}
+                  </Button>
+                  <button
+                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#848482] hover:bg-[#6b6b69] active:bg-[#4a4a48] flex items-center justify-center transition-colors"
+                    onClick={() => {
+                      setShowModal(true);
+                    }}
+                  >
+                    <X className="w-3 h-3 text-white" />
+                  </button>
+                  {modal}
+                </div>
                 <ToolTipButton
-                  tooltipContent="Center Rover"
+                  tooltipContent={`Center ${currentVehicle.label}`}
                   isIconOnly
                   variant="shadow"
-                  color={centerOnRover ? "primary" : "default"}
-                  onClick={toggleRoverCentering}
+                  color={currentVehicle.centerOn ? "primary" : "default"}
+                  onClick={currentVehicle.toggleCentering}
                 >
                   <Navigation className="w-5" />
                 </ToolTipButton>
+                {enableDroneTracking && (
+                  <ToolTipButton
+                    tooltipContent={focusVehicle == Vehicle.ROVER ? "Focus Drone" : "Focus Rover"}
+                    isIconOnly
+                    variant="shadow"
+                    onClick={handleFocusVehicle}
+                  >
+                    {focusVehicle == Vehicle.ROVER ? <Twitter /> : <Truck />}
+                  </ToolTipButton>
+                )}
                 <Button
                   variant="shadow"
                   isIconOnly

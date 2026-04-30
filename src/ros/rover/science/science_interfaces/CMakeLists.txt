@@ -17,11 +17,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
   "msg/ActuatorLimit.msg"
   "msg/BMESensor.msg"
+  "msg/CarouselFeedback.msg"
   "msg/EMCData.msg"
   "msg/HydraprobeData.msg"
   "msg/EffortStatus.msg"
-  "msg/KilnData.msg"
+  "msg/ThermalData.msg"
   "msg/MicroscopeServoInfo.msg"
+  "msg/NamedPositions.msg"
   "msg/NIRProbeData.msg"
   "msg/PumpStatus.msg"
   "msg/RamanSpectrum.msg"
@@ -32,7 +34,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Service definitions
   "srv/CacheCommand.srv"
   "srv/EffortCommand.srv"
-  "srv/KilnCommand.srv"
+  "srv/ThermalCommand.srv"
+  "srv/IncrementZero.srv"
   "srv/MoveHydraprobe.srv"
   "srv/MoveMicroscopeServo.srv"
   "srv/MoveScimbalCam.srv"
@@ -41,7 +44,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/RamanSpec.srv"
   "srv/RamanMech.srv"
   "srv/ScienceCommand.srv"
-  "srv/SetPositionPresets.srv"
+  "srv/SetNamedPositions.srv"
   "srv/SetPosition.srv"
   "srv/TakeNIRProbeReading.srv"
 

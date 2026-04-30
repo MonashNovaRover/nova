@@ -7,8 +7,9 @@ GPS.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: gps_base
 TOPICS:
- - publisher: /gps_base/fix    [NavSatFix]
- - publisher: /gps_base/rtcm   [UInt8MultiArray]
+ - publisher: /gps_base/fix         [NavSatFix]
+ - publisher: /gps_base/fix_custom  [GPSData]
+ - publisher: /gps_base/rtcm        [UInt8MultiArray]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Will Middlewick, Victor 
@@ -26,16 +27,16 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from serial import Serial
-from pynmeagps import NMEAReader, NMEAMessage
+from pynmeagps import NMEAReader
 from pyrtcm import RTCMReader, RTCMMessage
-from pyubx2 import UBXReader, UBXMessage, val2sphp
+from pyubx2 import UBXMessage, val2sphp
 import re
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import UInt8MultiArray
 from sensor_msgs.msg import NavSatFix
+from nova_interfaces.msg import GPSData
 from rclpy.qos import QoSPresetProfiles
-import logging
 
 
 class GPSBase(Node):
@@ -102,12 +103,18 @@ class GPSBase(Node):
             '/gps_base/fix', 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
+        self.pub_pose_custom = self.create_publisher(
+            GPSData,
+            '/gps_base/fix_custom',
+            QoSPresetProfiles.SENSOR_DATA.value,
+        )
         self.pub_rtcm = self.create_publisher(
             UInt8MultiArray, 
             '/gps_base/rtcm', 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pose = NavSatFix()
+        self.pose_custom = GPSData()
         self.pose.header.frame_id = 'gps_base'
         self.timer = self.create_timer(0, self.loop)
 
@@ -263,8 +270,12 @@ class GPSBase(Node):
                     self.get_logger().warn(f'❌ GPS data is not available!', throttle_duration_sec=2)
 
                 ### ROS2 ###
-                self.pub_pose.publish(self.pose)
-                
+                self.pose_custom.header = self.pose.header
+                self.pose_custom.status = self.pose.status
+                self.pose_custom.latitude = self.pose.latitude
+                self.pose_custom.longitude = self.pose.longitude
+                self.pose_custom.altitude = self.pose.altitude
+
                 ### LOG ###
                 msg_log = f'''
                     🛰️ NMEA Data:
@@ -311,6 +322,8 @@ class GPSBase(Node):
     def loop(self) -> None:
         self.parse_nmea()
         self.parse_rtcm()
+        self.pub_pose.publish(self.pose)
+        self.pub_pose_custom.publish(self.pose_custom)
 
         
 def main (args = None):

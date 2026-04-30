@@ -1,14 +1,15 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Hardware interface for sensors that need to send to multiple state interfaces
+Hardware interface for sensors that need to send
+to multiple state interfaces
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 STATE INTERFACES:
   - [<name>/<unit>] List of sensors and their units
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        python_control2
-AUTHOR(S):      Yahya Muayyiduddin
+AUTHOR(S):      Yahya Muayyiduddin, Felicity Matthews
 CREATION:       21/03/26
-EDITED:         26/03/26
+EDITED:         18/04/26
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -24,6 +25,7 @@ class MultiSensorHardware(HardwareInterface):
 
     def __init__(self, contexts: Contexts,
                  can_id: int = 0,
+                 function_id: int=None,
                  interpret_data_list: list[Callable[[bytes], Any]] = [lambda x: int.from_bytes(x)],
                  hardware_names: list[str] = ["hardware"],
                  hardware_units: list[str] = ["values"],
@@ -32,6 +34,7 @@ class MultiSensorHardware(HardwareInterface):
         """ 
         :param contexts: A collection of dependency injection class instances you can index by class type.
         :param can_id: CAN ID of messages from the sensor
+        :param function_id: Function ID of the can message
         :param interpret_data_list: List of functions, one per channel, that each extract a single value from the raw CAN frame bytes (e.g. parse bytes 0-1 as a scaled int for temp1).
         :param hardware_names: List of state interface names, one per channel (e.g. ["temp1", "temp2"]).
         :param hardware_units: List of units, one per channel (e.g. ["temperature", "temperature"]).
@@ -42,12 +45,16 @@ class MultiSensorHardware(HardwareInterface):
         self.bus = contexts[jcan.Bus]
         self.interpret_data_list = interpret_data_list
         self.can_id: int = self.declare_parameter("can_id", can_id).value
+        if function_id is not None:
+            self.function_id: int = self.declare_parameter("function_id", function_id, "Function ID of the can message, the first two hex digits, None if not required.").value
+        else:
+            self.function_id = None
         if len(hardware_names) == len(hardware_units) and len(hardware_names) == len(interpret_data_list):
             self.hardware_units: list[str] = self.declare_parameter("hardware_units", hardware_units).value
             self.hardware_names: list[str] = self.declare_parameter("hardware_names", hardware_names).value
         else:
             self.logger.error("Units, Names, and Interpret data arrays must be equal length")
-        self.last_values: [Any] = self.declare_parameter("last_values", initial_values).value
+        self.last_values: list[Any] = self.declare_parameter("last_values", initial_values).value
 
     def on_configure(self, command_interfaces: InterfaceCollection, state_interfaces: InterfaceCollection):
         """ Used to set up your HardwareInterface. Run once before any other class method.
@@ -61,7 +68,7 @@ class MultiSensorHardware(HardwareInterface):
 
         # Get state interface
         zipped_name_units :list[tuple[str, str]] = list(zip(self.hardware_names, self.hardware_units))
-        self.state_interfaces : Interface[Any] = [state_interfaces[f"{hardware_name}/{hardware_unit}"] for hardware_name, hardware_unit in zipped_name_units]
+        self.state_interfaces : list[Interface] = [state_interfaces[f"{hardware_name}/{hardware_unit}"] for hardware_name, hardware_unit in zipped_name_units]
         self.bus.add_callback(self.can_id, self.frame_callback)
         for name, unit in zipped_name_units:
             if state_interfaces[f"{name}/{unit}"]:
@@ -76,11 +83,15 @@ class MultiSensorHardware(HardwareInterface):
         return True
 
     def frame_callback(self, frame: jcan.Frame):
-        self.last_values = [function(frame.data) for function in self.interpret_data_list]
+        if self.function_id is not None and frame.data[0] != self.function_id:
+            return
+
+        if self.function_id:
+            self.last_values = [function(frame.data[1:]) for function in self.interpret_data_list]
+        else:
+            self.last_values = [function(frame.data) for function in self.interpret_data_list]
         self.logger.debug(f"MultiSensorHardware \"{self.name}\" received CAN message: {frame}")
 
-            
-    
 
     def on_read(self, now: float, period: float):
         """ Called to read values from hardware, and put them into stored state interfaces.

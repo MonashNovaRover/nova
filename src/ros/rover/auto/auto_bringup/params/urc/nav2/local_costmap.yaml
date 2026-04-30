@@ -1,0 +1,134 @@
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 5.0
+      global_frame: odom
+      robot_base_frame: base_link
+      rolling_window: true
+      width: 13
+      height: 13
+      resolution: 0.05
+      # [x, y], where x is length and y is width
+      # ([wheel_base, steering_track] / 2) + wheel_radius
+      footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
+      # retrieved by update_goals_action_bt_node (not actually used by planner)
+      # sqrt((wheel_base / 2 + wheel_radius)^2 + (steering_track / 2 + wheel_radius)^2)
+      robot_radius: 0.85
+      track_unknown_space: false
+      always_send_full_costmap: true # RemoveNearbyInCollisionGoals needs this to be true to work
+      trinary_costmap: true
+      plugins: ["stvl_layer", "denoise_layer", "inflation_layer"]
+      
+      stvl_layer:
+        plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
+        enabled:                  true
+        voxel_decay:              15.0  # seconds if linear, e^n if exponential
+        decay_model:              0     # 0=linear, 1=exponential, -1=persistent
+        voxel_size:               0.05  # meters
+        track_unknown_space:      false  # default space is known
+        mark_threshold:           0     # voxel height
+        update_footprint_enabled: true
+        combination_method:       1     # 1=max, 0=override
+        origin_z:                 0.0   # meters
+        publish_voxel_map:        false # default off
+        transform_tolerance:      0.2   # seconds
+        mapping_mode:             false # default off, saves map not for navigation
+        map_save_duration:        60.0  # default 60s, how often to autosave
+        observation_sources:      obstacles ground
+        obstacles:
+          data_type: PointCloud2
+          topic: /ground_segmentation/obstacle_points
+          marking: true
+          clearing: false
+          obstacle_range: 5.0          # meters
+          min_obstacle_height: 0.0     # default 0, meters
+          max_obstacle_height: 2.0     # default 3, meters
+          expected_update_rate: 0.0    # default 0, if not updating at this rate at least, remove from buffer
+          observation_persistence: 0.0 # default 0, use all measurements taken during now-value, 0=latest
+          inf_is_valid: false          # default false, for laser scans
+          filter: "voxel"              # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommend on     voxel_min_points: 0          # default 0, minimum points per voxel for voxel filter
+          clear_after_reading: true    # default false, clear the buffer after the layer gets readings from it
+        ground:
+          enabled: true                #default true, can be toggled on/off with associated service call
+          data_type: PointCloud2
+          topic: /ground_segmentation/ground_points
+          marking: false
+          clearing: true
+          max_z: 8.0                   # default 0, meters
+          min_z: 1.0                   # default 10, meters
+          vertical_fov_angle: 1.8151   # default 0.7, radians. For 3D lidars it's the symmetric FOV about the planar axis.
+          vertical_fov_offset: 0.3927  # default 0, radians. 3D Lidar only. Offset from planar axis. f.e. MID360 has a vFOV of -7deg to 52deg => offset +22.5deg (0.3927 rad)
+          vertical_fov_padding: 0.05   # 3D Lidar only. Default 0, in meters 
+          horizontal_fov_angle: 6.29   # 3D lidar scanners like the VLP16 have 360 deg horizontal FOV.
+          decay_acceleration: 5.0      # default 0, 1/s^2. 
+          model_type: 1                # default 0, model type for frustum. 0=depth camera, 1=3d lidar like VLP16 or similar
+
+      voxel_layer:
+        plugin: "nav2_costmap_2d::VoxelLayer"
+        enabled: True
+        origin_z: -1.6
+        # z_resolution * z_voxels = height of voxel grid, i.e. the z-bound of the costmap
+        z_resolution: 0.2 # resolution of voxels in height (m)
+        z_voxels: 16 # number of voxels high to mark, maximum 16
+        max_obstacle_height: 1.6
+        mark_threshold: 0
+        observation_sources: ground obstacles
+        ground:
+          topic: /ground_segmentation/ground_points
+          max_obstacle_height: 1.6
+          clearing: True
+          marking: False
+          data_type: "PointCloud2"
+          raytrace_max_range: 7.0
+          raytrace_min_range: 0.0
+        obstacles:
+          topic: /ground_segmentation/obstacle_points
+          max_obstacle_height: 1.6
+          clearing: False
+          marking: True
+          data_type: "PointCloud2"
+          obstacle_max_range: 5.0
+          obstacle_min_range: 0.0
+      
+      denoise_layer:
+        plugin: "nav2_costmap_2d::DenoiseLayer"
+        enabled: True
+        minimal_group_size: 3
+        group_connectivity_type: 8
+      # DO NOT modify lightly, see the section on MPPI in controller_server.yaml
+      
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        enabled: True
+        cost_scaling_factor: 4.0
+        # robot radius = 0.64
+        inflation_radius: 1.6 # robot radius * 2.5
+
+      # voxel_layer:
+      #   plugin: "nav2_costmap_2d::VoxelLayer"
+      #   enabled: True
+      #   origin_z: 0.0
+      #   z_resolution: 0.05
+      #   z_voxels: 16
+      #   max_obstacle_height: 2.0
+      #   mark_threshold: 0
+      #   observation_sources: ground obstacles
+      #   ground:
+      #     topic: /oak/ground
+      #     max_obstacle_height: 0.4
+      #     clearing: True
+      #     marking: False
+      #     data_type: "PointCloud2"
+      #     raytrace_max_range: 3.0
+      #     raytrace_min_range: 0.0
+      #     obstacle_max_range: 2.5
+      #     obstacle_min_range: 0.0
+      #   obstacles:
+      #     topic: /oak/obstacles
+      #     max_obstacle_height: 0.4
+      #     clearing: True
+      #     marking: True
+      #     data_type: "PointCloud2"
+      #     raytrace_max_range: 3.0
+      #     raytrace_min_range: 0.0

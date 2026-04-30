@@ -1,0 +1,7 @@
+bool reset_zero
+float32 increment_zero
+
+---
+
+# Each action could fail. This flag shows the output success of the action
+bool success

@@ -736,7 +736,7 @@ bool BLCMDHardware::set_control_interface(
         if(hw_velocities_.at(i).state.has_value()) {
             if (params_.diff_wrist && i == 0) {
                differential_velocity_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
-                 reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
+                 reversed_multiplier_*-1; // Dear Bro, ask chassis why this is -1
                                               //
                 double converted_value1, converted_value2 = 0.0;
                 differential_convert_from_motors(differential_velocity_actual_value1, differential_velocity_actual_value2, converted_value1, converted_value2);
@@ -744,7 +744,7 @@ bool BLCMDHardware::set_control_interface(
                hw_velocities_.at(1).state = converted_value2;
             } else if (params_.diff_wrist && i == 1) {
                differential_velocity_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
-                 reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
+                 reversed_multiplier_*-1; // Dear Bro, ask chassis why this is -1
                                               //
                 double converted_value1, converted_value2 = 0.0;
                 differential_convert_from_motors(differential_velocity_actual_value1, differential_velocity_actual_value2, converted_value1, converted_value2);
@@ -752,7 +752,7 @@ bool BLCMDHardware::set_control_interface(
                hw_velocities_.at(1).state = converted_value2;
             } else {
               hw_velocities_.at(i).state = convert_scaled<int16_t>(&frame.data[0], hw_velocities_.at(i).max) *
-              reversed_multiplier_*-1*0.5; // Dear Bro, ask chassis why this is -1
+              reversed_multiplier_*-1; // Dear Bro, ask chassis why this is -1
             }
         }
 

@@ -9,6 +9,8 @@ import { useSelector } from "react-redux";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { RootState } from "../../../redux/RootState.ts";
+import {ProfileOption} from "../../../views/shared/CamerasPage/CameraProfileConstants.ts";
+import {CameraProfileSelector} from "./CameraProfileSelector.tsx";
 
 interface CameraSidebarProps {
   refreshAvailabilities: () => void;
@@ -16,10 +18,11 @@ interface CameraSidebarProps {
   setShowSidebar: (_: boolean) => void
   gridSize: number
   setGridSize: (_: number) => void
+  presets: ProfileOption[]
 }
 
 export const CameraSidebar = (
-  {refreshAvailabilities, showSidebar, setShowSidebar, gridSize, setGridSize}
+  {refreshAvailabilities, showSidebar, setShowSidebar, gridSize, setGridSize, presets}
   : CameraSidebarProps) => {
   const expandedSidebarWidth = "27vw";
   const sidebarWidth = showSidebar ? expandedSidebarWidth : "0px";
@@ -74,6 +77,7 @@ export const CameraSidebar = (
             >
               {booleanChip}
             </Tooltip>
+
             <span>Streaming Controls</span>
             <div className="grid grid-cols-3 gap-2">
               <Button color="primary" size="sm" startContent={<Play size={14}/>} onPress={()=>startStreaming(onlineCameraSerials, true)}>
@@ -86,6 +90,9 @@ export const CameraSidebar = (
                 Stop all
               </Button>
             </div>
+
+            <span>Set Preset</span>
+            <CameraProfileSelector serials={onlineCameraSerials} options={presets}/>
 
             <span>Camera Status</span>
             <CamerasTable refreshAvailabilies={refreshAvailabilities}/>
