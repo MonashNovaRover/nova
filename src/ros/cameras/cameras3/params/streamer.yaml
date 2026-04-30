@@ -49,7 +49,7 @@ camera_streamer:
         meta: Arm - Wrist 
       arm_end_periscope:
         meta: Arm - Periscope
-        pipeline_type: v4lrostopic
+        rossink: true
         ros_topic: arm/periscope
       arm_end_top:
         meta: Arm - Top
