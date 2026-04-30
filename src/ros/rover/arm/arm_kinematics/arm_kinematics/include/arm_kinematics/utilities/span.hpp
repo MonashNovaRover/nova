@@ -66,6 +66,8 @@ struct span
   {
   }
 
+  constexpr T * data() const noexcept { return data_; }
+
   [[nodiscard]] constexpr std::size_t size() const noexcept
   {
     return size_;

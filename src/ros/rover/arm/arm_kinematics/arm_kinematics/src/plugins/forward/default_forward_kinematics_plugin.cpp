@@ -52,15 +52,15 @@ DefaultForwardKinematicsPlugin::make_tree(
   // The mapper needs joint POSITION values in the order produced by the sorted analysis
   // subtree (skipping index 0, which is the base link). Resolve joint names to JointIds via
   // the FK plugin's analysis and pair them with the position interface.
-  const auto & subtree_joint_names = subtree.get_joints().names;
+  const span<const std::string> all_joint_names = subtree.joint_names();
   const auto & analysis = get_transmission_analysis();
   const auto & joint_order = analysis.joint_order();
   static const InterfaceId k_position_interface{"position"};
 
   // Skip index 0 — that's the base link, not a joint with state.
   const span<const std::string> joint_names_to_resolve{
-    subtree_joint_names.data() + 1,
-    subtree_joint_names.size() > 0 ? subtree_joint_names.size() - 1 : std::size_t{0}};
+    all_joint_names.data() + 1,
+    all_joint_names.size() > 0 ? all_joint_names.size() - 1 : std::size_t{0}};
 
   auto joint_id_result = joint_order.try_map_collect(joint_names_to_resolve);
 

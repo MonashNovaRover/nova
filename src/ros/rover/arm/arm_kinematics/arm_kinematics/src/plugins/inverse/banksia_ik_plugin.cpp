@@ -104,8 +104,8 @@ public:
   bool on_initialize() override {
     const auto & params = get_kinematics_params();
     const auto & analysis_tree = get_robot_model().get_analysis_tree();
-    const auto & joints = analysis_tree.get_joints();
-    const auto & frames = analysis_tree.get_frames();
+    const auto & joint_order = analysis_tree.joint_name_order();
+    const auto & frame_order = analysis_tree.frame_name_order();
 
     if (params.joint_names.size() < kExpectedBanksiaJointCount) {
       RCLCPP_ERROR(
@@ -122,14 +122,14 @@ public:
     const std::string & wrist_pitch_joint_name = params.joint_names[kWristPitchJointIndex];
     const std::string & wrist_yaw_joint_name = params.joint_names[kWristYawJointIndex];
 
-    if (!frames.contains(params.base_link_name)) {
+    if (!frame_order.contains_key(params.base_link_name)) {
       RCLCPP_ERROR(
         get_logger(),
         "Banksia IK could not find base_link_name '%s' in the AnalysisTree.",
         params.base_link_name.c_str());
       return false;
     }
-    if (!frames.contains(params.ee_link_name)) {
+    if (!frame_order.contains_key(params.ee_link_name)) {
       RCLCPP_ERROR(
         get_logger(),
         "Banksia IK could not find ee_link_name '%s' in the AnalysisTree.",
@@ -137,10 +137,10 @@ public:
       return false;
     }
 
-    if (!joints.contains(shoulder_joint_name) ||
-      !joints.contains(wrist_roll_joint_name) ||
-      !joints.contains(wrist_pitch_joint_name) ||
-      !joints.contains(wrist_yaw_joint_name))
+    if (!joint_order.contains_key(shoulder_joint_name) ||
+      !joint_order.contains_key(wrist_roll_joint_name) ||
+      !joint_order.contains_key(wrist_pitch_joint_name) ||
+      !joint_order.contains_key(wrist_yaw_joint_name))
     {
       RCLCPP_ERROR(
         get_logger(),
@@ -148,7 +148,7 @@ public:
       return false;
     }
 
-    if (!joints.contains(kBanksiaElbowPivotJointName)) {
+    if (!joint_order.contains_key(kBanksiaElbowPivotJointName)) {
       RCLCPP_ERROR(
         get_logger(),
         "Banksia IK could not find the physical elbow pivot joint '%s' for configured elbow joint '%s'.",

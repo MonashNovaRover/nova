@@ -13,9 +13,9 @@
 #include <urdf/model.h>
 
 #include "arm_kinematics/visibility_control.h"
-#include "name_to_vector.hpp"
 #include "arm_kinematics/forward/frame_definitions.hpp"
 #include "arm_kinematics/utilities/order.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/forward/utilities/joint_type.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
 #include "arm_kinematics/forward/utilities/compute_joint_tree.hpp"
@@ -37,6 +37,9 @@ namespace arm_kinematics {
  */
 class ARM_KINEMATICS_PUBLIC AnalysisTree {
 public:
+  using JointId = size_t;
+  using FrameId = size_t;
+
   struct JointQuery
   {
     Eigen::Isometry3d root_T_joint = Eigen::Isometry3d::Identity();
@@ -74,7 +77,7 @@ public:
   {
     /// ID of the frame that this link actuates relative to.
     /// If 0, it is relative to the root. The root will have itself as the parent.
-    size_t parent = 0; //< 0 is the root, and is always a dummy
+    JointId parent = 0; //< 0 is the root, and is always a dummy
     /// Distance from the root node (id = 0)
     size_t depth = 0;
 
@@ -83,11 +86,11 @@ public:
     /// Defines the reference frame of the link relative to the parent
     Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
 
-    /// The IDs of all other frames that actuate relative to this link. All elements of this set should be larger than
+    /// The IDs of all other joints that actuate relative to this link. All elements of this set should be larger than
     /// this link's id.
-    std::vector<size_t> children{};
+    std::vector<JointId> children{};
     /// The ids of all frames that point to this handle
-    std::vector<size_t> frames{};
+    std::vector<FrameId> frames{};
 
     /**
      * Update internal indices to match the given order.
@@ -105,8 +108,8 @@ public:
    */
   struct Frame
   {
-    /// The ID of the link this is relative
-    size_t parent = 0;
+    /// The ID of the joint this frame is relative to
+    JointId parent = 0;
     /// The transform from the parent link to this frame
     Eigen::Isometry3d origin;
   };
@@ -114,7 +117,8 @@ public:
   explicit AnalysisTree() {
     // Only include dummy root
     joints_.reserve(1);
-    joints_.add("", {});
+    joint_name_order_.set("", 0);
+    joints_.push_back({});
   }
 
   explicit AnalysisTree(const urdf::Model & model)
@@ -126,12 +130,13 @@ public:
         joint_count++;
     joints_.reserve(joint_count + 1);  //< +1 for the dummy root
     // Add the dummy root
-    joints_.add("", {});
+    joint_name_order_.set("", 0);
+    joints_.push_back({});
 
     // Create frames for each link in model
     frames_.reserve(model.links_.size());
     for (const auto & [name, link] : model.links_)
-      frames_.add(name, to_frame(link));
+      add_frame(name, to_frame(link));
   }
 
   explicit AnalysisTree(
@@ -149,44 +154,31 @@ public:
     };
   }
 
-  size_t add_joint(
+  JointId add_joint(
     const std::string & name,
-    const size_t parent_id,
+    const JointId parent_id,
     const JointDescription & joint_description,
     const Eigen::Isometry3d & origin)
   {
-    auto & parent = joints_[parent_id];
-
-    size_t id = joints_.add(name, {
-      parent_id,
-      joints_[parent_id].depth + 1,
-      joint_description,
-      origin
-    });
-
-    // Add as child of parent
-    parent.children.emplace_back(id);  //< id is current largest, and will be last
-
+    const JointId id = joints_.size();
+    joint_name_order_.set(name, id);
+    joints_.push_back({parent_id, joints_[parent_id].depth + 1, joint_description, origin});
+    joints_[parent_id].children.emplace_back(id);  //< re-index after push_back; id is current largest
     return id;
   }
 
-  size_t add_frame(
+  FrameId add_frame(
     const std::string & name,
-    const size_t parent_id,
+    const FrameId parent_id,
     const Eigen::Isometry3d & origin)
   {
-    const size_t id = frames_.add(name, {
-      parent_id,
-      origin
-    });
-
-    // Add as child of parent
     if (parent_id >= joints_.size())
       throw std::runtime_error(std::to_string(parent_id) + " (parent_id) >= (joints_.size()) " + std::to_string(joints_.size()));
     assert(parent_id < joints_.size());
-    auto & parent = joints_[parent_id];
-    parent.frames.push_back(id);  //< id is current largest, and will be last
-
+    const FrameId id = frames_.size();
+    frame_name_order_.set(name, id);
+    frames_.push_back({parent_id, origin});
+    joints_[parent_id].frames.push_back(id);  //< id is current largest, and will be last
     return id;
   }
 
@@ -223,12 +215,13 @@ public:
   void sort_joints(const Order<> & order) noexcept {
     assert(order[0] == 0);
 
-    joints_.sort(order);
-    for (auto & joint : joints_.data) {
+    joints_ = order.reorder(joints_);
+    joint_name_order_.sort(order);
+    for (auto & joint : joints_) {
       joint.sort(order);
     }
 
-    for (auto & frame : frames_.data) {
+    for (auto & frame : frames_) {
       frame.parent = order.inverse[frame.parent];
     }
   }
@@ -238,19 +231,19 @@ public:
   Order<> sort_frames() noexcept;
 
   void log(rclcpp::Logger logger) {
+    const auto & jno = joint_name_order_;  // const ref so operator[] returns const std::string&
 
     std::stringstream ss{};
     ss << "Tree:";
     for (size_t i = 0; i < joints_.size(); ++i) {
       const auto & joint = joints_[i];
-      const auto & name = joints_.names[i];
 
       ss << "\n";
-      ss << "[" << std::to_string(i) << "] \"" << name << "\"\t-> ";
+      ss << "[" << std::to_string(i) << "] \"" << jno.inverse[i] << "\"\t-> ";
 
       for (const auto & child : joint.children) {
-        if (child < joints_.names.size())
-          ss << "\"" << joints_.names[child] << "\" (" << std::to_string(child) << "), ";
+        if (child < jno.size())
+          ss << "\"" << jno.inverse[child] << "\" (" << std::to_string(child) << "), ";
         else
           ss << "<invalid> (" << std::to_string(child) << "), ";
       }
@@ -275,24 +268,36 @@ public:
    */
   ComputeJointTree make_compute_joint_tree();
 
-  [[nodiscard]] JointQuery query_joint(size_t joint_id) const;
+  [[nodiscard]] JointQuery query_joint(JointId joint_id) const;
   [[nodiscard]] JointQuery query_joint(const std::string & joint_name) const;
 
-  [[nodiscard]] Eigen::Isometry3d query_frame(size_t frame_id) const;
+  [[nodiscard]] Eigen::Isometry3d query_frame(FrameId frame_id) const;
   [[nodiscard]] Eigen::Isometry3d query_frame(const std::string & frame_name) const;
 
   [[nodiscard]] Eigen::Isometry3d query_transform_between_frames(
-    size_t from_frame_id,
-    size_t to_frame_id) const;
+    FrameId from_frame_id,
+    FrameId to_frame_id) const;
   [[nodiscard]] Eigen::Isometry3d query_transform_between_frames(
     const std::string & from_frame_name,
     const std::string & to_frame_name) const;
 
   // Accessors
-  [[nodiscard]] const NameToVector<Joint> & get_joints() const noexcept { return joints_; }
-  [[nodiscard]] const NameToVector<Frame> & get_frames() const noexcept { return frames_; }
+  [[nodiscard]] const std::vector<Joint> & get_joints() const noexcept { return joints_; }
+  [[nodiscard]] const std::vector<Frame> & get_frames() const noexcept { return frames_; }
+  [[nodiscard]] const Order<std::string, JointId> & joint_name_order() const noexcept { return joint_name_order_; }
+  [[nodiscard]] const Order<std::string, FrameId> & frame_name_order() const noexcept { return frame_name_order_; }
+  /// Returns a span over all joint names in id order, including the dummy root at index 0.
+  [[nodiscard]] span<const std::string> joint_names() const noexcept {
+    return {joint_name_order_.inverse.data(), joint_name_order_.inverse.size()};
+  }
 
 private:
+  /// Helper used by the URDF constructor's add_frame overload that takes a Frame directly.
+  FrameId add_frame(const std::string & name, const Frame & frame)
+  {
+    return add_frame(name, frame.parent, frame.origin);
+  }
+
   [[nodiscard]] Isometry3dVector compute_root_to_joint_poses() const;
 
   /**
@@ -323,7 +328,7 @@ private:
    * \param child_link The link that is the immediate child of the non-fixed urdf::Joint being converted
    * \return 0 if child_link or its parent joint are nullptr, or the id of the link in links_.
    */
-  size_t find_or_create_joint_link(urdf::Link const * child_link)
+  JointId find_or_create_joint_link(urdf::Link const * child_link)
   {
     if (!child_link || !child_link->parent_joint)
       return 0; //< dummy root
@@ -331,16 +336,18 @@ private:
     assert(child_link->parent_joint->type != urdf::Joint::FIXED);
 
     // Check for existing construction.
-    if (joints_.contains(child_link->parent_joint->name))
-      return joints_[child_link->parent_joint->name];
+    if (joint_name_order_.contains_key(child_link->parent_joint->name))
+      return joint_name_order_[child_link->parent_joint->name];
 
     // To keep in topological order, we must ensure the parent exists first
     auto origin = to_eigen(child_link->parent_joint->parent_to_joint_origin_transform);
     const auto grandparent_joint = find_next_non_fixed_joint(child_link->getParent().get(), origin); //< may be nullptr!
-    const size_t parent_id = find_or_create_joint_link(grandparent_joint);                     //< handles nullptr
+    const JointId parent_id = find_or_create_joint_link(grandparent_joint);                          //< handles nullptr
 
     // Create new link
-    const size_t id = joints_.add(child_link->parent_joint->name, {
+    const JointId id = joints_.size();
+    joint_name_order_.set(child_link->parent_joint->name, id);
+    joints_.push_back({
       parent_id,
       joints_[parent_id].depth + 1,
       JointDescription(*child_link->parent_joint),
@@ -355,13 +362,14 @@ private:
     return id;
   }
 
-  /// Links with a non-fixed parent joint from the URDF, named after the parent joint
-  /// In my model, I treat these as the same thing. The link will have a frame in frames_ relative to the joint with an
-  /// Eigen::Isometry3d::Identity origin.
-  NameToVector<Joint> joints_{};
+  /// Links with a non-fixed parent joint from the URDF, named after the parent joint.
+  /// Indexed by JointId. Joint 0 is always the dummy root.
+  std::vector<Joint> joints_{};
+  Order<std::string, JointId> joint_name_order_{};
 
-  /// Links from the URDF
-  NameToVector<Frame> frames_{};
+  /// Links from the URDF. Indexed by FrameId.
+  std::vector<Frame> frames_{};
+  Order<std::string, FrameId> frame_name_order_{};
 
   bool sorted_joints_ = false;
   bool sorted_frames_ = false;

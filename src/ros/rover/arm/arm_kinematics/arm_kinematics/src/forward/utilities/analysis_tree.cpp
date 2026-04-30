@@ -14,7 +14,7 @@ AnalysisTree::AnalysisTree(
   const FrameDefinitions& definitions)
 {
   // First figure out root
-  const auto root_frame_id = other.frames_.get(root_name);
+  const auto root_frame_id = other.frame_name_order_.get(root_name);
   if (!root_frame_id.has_value())
     throw std::invalid_argument("Given root_name is not in the AnalysisTree");
   auto root_joint_id = other.frames_[*root_frame_id].parent;
@@ -40,10 +40,10 @@ AnalysisTree::AnalysisTree(
   // frame_parents.reserve(definitions.size());
   // frame_origins.reserve(definitions.size());
   for (size_t i = 0; i < definitions.size(); ++i) {
-    if (!other.frames_.contains(definitions.parent_link_names[i]))
+    if (!other.frame_name_order_.contains_key(definitions.parent_link_names[i]))
       throw std::invalid_argument(std::string("Given link name for definition \"") + std::to_string(i) + definitions.parent_link_names[i] + std::string("\" is not in the URDF AnalysisTree."));
 
-    frame_new_to_old[i] = other.frames_[definitions.parent_link_names[i]];
+    frame_new_to_old[i] = other.frame_name_order_[definitions.parent_link_names[i]];
   }
 
   // Find which elements are in the subtree, and the end of the reversed path as the lowest id in the subtree
@@ -94,12 +94,13 @@ AnalysisTree::AnalysisTree(
   // Add dummy root joint
   order[0] = 0;
   // log(rclcpp::get_logger("fresh_new_subtree_before_adding_joints"));
-  joints_.add("", {0});
+  joint_name_order_.set("", 0);
+  joints_.push_back({0});
 
   // Add reversed root joint off the dummy root
   if (root_joint_id != 0) {
     order.inverse[root_joint_id] = add_joint(
-      other.joints_.names[root_joint_id],
+      other.joint_name_order_.inverse[root_joint_id],
       0,
       other.joints_[root_joint_id].joint.reversed(),
       other.frames_[*root_frame_id].origin.inverse()
@@ -125,7 +126,7 @@ AnalysisTree::AnalysisTree(
     const auto & other_joint = other.joints_[current];
 
     order.inverse[current] = add_joint(
-      other.joints_.names[current],
+      other.joint_name_order_.inverse[current],
       joints_.size() - 1,
       other_joint.joint.reversed(),
       inverse_previous_origin
@@ -150,13 +151,13 @@ AnalysisTree::AnalysisTree(
 
     const auto & other_joint = other.joints_[joint_id_old];
 
-    // RCLCPP_INFO_STREAM(logger, "Joint (-< " << joint_id_old << " \"" << other.joints_.names[joint_id_old] << "\") other_joint.parent=" << other_joint.parent << " \"" << other.joints_.names[other_joint.parent] << "\"");
+    // RCLCPP_INFO_STREAM(logger, "Joint (-< " << joint_id_old << " \"" << other.joint_name_order_.inverse[joint_id_old] << "\") other_joint.parent=" << other_joint.parent << " \"" << other.joint_name_order_.inverse[other_joint.parent] << "\"");
 
     // Normal case
     if (!reversed_mask_old[other_joint.parent]) {
       // RCLCPP_INFO_STREAM(logger, " -- Normal Case");
       order.inverse[joint_id_old] = add_joint(
-        other.joints_.names[joint_id_old],
+        other.joint_name_order_.inverse[joint_id_old],
         order.inverse[other_joint.parent],
         other_joint.joint,
         other_joint.origin
@@ -171,7 +172,7 @@ AnalysisTree::AnalysisTree(
       // RCLCPP_INFO_STREAM(logger, " -- Case 2 -- common_parent=" << case2_common_parent << " \"" << joints_.names[case2_common_parent] << "\", origin:\n" << origin.matrix());
 
       order.inverse[joint_id_old] = add_joint(
-        other.joints_.names[joint_id_old],
+        other.joint_name_order_.inverse[joint_id_old],
         case2_common_parent,
         other_joint.joint,
         origin
@@ -189,7 +190,7 @@ AnalysisTree::AnalysisTree(
     // RCLCPP_INFO_STREAM(logger, " -- Case 1 -- grandparent_id=" << reverse_path_grandparent_id << ", other_parent_id_new=" << order.inverse[joint_id_old] << ", origin:\n" << origin.matrix());
 
     order.inverse[joint_id_old] = add_joint(
-      other.joints_.names[joint_id_old],
+      other.joint_name_order_.inverse[joint_id_old],
       reverse_path_grandparent_id,
       other_joint.joint,
       origin
@@ -205,7 +206,7 @@ AnalysisTree::AnalysisTree(
   // Calculate all frames to match the given definitions
   for (size_t frame_id = 0; frame_id < definitions.size(); ++frame_id)
   {
-    auto frame_id_old = other.frames_[definitions.parent_link_names[frame_id]];
+    auto frame_id_old = other.frame_name_order_[definitions.parent_link_names[frame_id]];
     const auto & frame_old = other.frames_[frame_id_old];
     auto joint_id_old = frame_old.parent;
 
@@ -216,7 +217,7 @@ AnalysisTree::AnalysisTree(
 
     assert(subtree_mask[joint_id_old]);
 
-    // RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " (-< " << frame_id_old << " \"" << other.frames_.names[frame_id_old] << "\") joint_id_old=" << joint_id_old << " \"" << other.joints_.names[joint_id_old] << "\"");
+    // RCLCPP_INFO_STREAM(logger, "Frame " << frame_id << " (-< " << frame_id_old << " \"" << other.frame_name_order_.inverse[frame_id_old] << "\") joint_id_old=" << joint_id_old << " \"" << other.joint_name_order_.inverse[joint_id_old] << "\"");
     // const auto & other_joint = other.joints_[joint_id_old];
 
     // Normal case
@@ -266,7 +267,7 @@ void AnalysisTree::sort_joint_children_strategy_a() {
   std::vector<size_t> leaf_child_count(joints_.size(), 0);
 
   size_t i = joints_.size();
-  for (auto it = joints_.data.rbegin(); it != joints_.data.rend(); ++it) {
+  for (auto it = joints_.rbegin(); it != joints_.rend(); ++it) {
     --i;
     auto & joint = *it;
 
@@ -305,13 +306,13 @@ tl::expected<ComputeFrameTree, std::string_view> AnalysisTree::make_compute_fram
 
   std::vector<size_t> parents{};
   parents.reserve(frames_.size() - joints_[0].frames.size());
-  for (const auto & frame : frames_.data)
+  for (const auto & frame : frames_)
     if (frame.parent != 0)
       parents.emplace_back(frame.parent - 1);
 
   Isometry3dVector origins{};
   origins.reserve(frames_.size());
-  for (const auto & frame : frames_.data)
+  for (const auto & frame : frames_)
     origins.emplace_back(frame.origin);
 
   return ComputeFrameTree(
@@ -374,7 +375,7 @@ Isometry3dVector AnalysisTree::compute_root_to_joint_poses() const {
   return root_T_joint;
 }
 
-AnalysisTree::JointQuery AnalysisTree::query_joint(const size_t joint_id) const {
+AnalysisTree::JointQuery AnalysisTree::query_joint(const JointId joint_id) const {
   const auto root_T_joint = compute_root_to_joint_poses();
   const auto & joint = joints_[joint_id];
 
@@ -386,10 +387,10 @@ AnalysisTree::JointQuery AnalysisTree::query_joint(const size_t joint_id) const 
 }
 
 AnalysisTree::JointQuery AnalysisTree::query_joint(const std::string & joint_name) const {
-  return query_joint(joints_[joint_name]);
+  return query_joint(joint_name_order_[joint_name]);
 }
 
-Eigen::Isometry3d AnalysisTree::query_frame(const size_t frame_id) const {
+Eigen::Isometry3d AnalysisTree::query_frame(const FrameId frame_id) const {
   const auto root_T_joint = compute_root_to_joint_poses();
   const auto & frame = frames_[frame_id];
 
@@ -397,12 +398,12 @@ Eigen::Isometry3d AnalysisTree::query_frame(const size_t frame_id) const {
 }
 
 Eigen::Isometry3d AnalysisTree::query_frame(const std::string & frame_name) const {
-  return query_frame(frames_[frame_name]);
+  return query_frame(frame_name_order_[frame_name]);
 }
 
 Eigen::Isometry3d AnalysisTree::query_transform_between_frames(
-  const size_t from_frame_id,
-  const size_t to_frame_id) const
+  const FrameId from_frame_id,
+  const FrameId to_frame_id) const
 {
   return query_frame(from_frame_id).inverse() * query_frame(to_frame_id);
 }
@@ -411,7 +412,7 @@ Eigen::Isometry3d AnalysisTree::query_transform_between_frames(
   const std::string & from_frame_name,
   const std::string & to_frame_name) const
 {
-  return query_transform_between_frames(frames_[from_frame_name], frames_[to_frame_name]);
+  return query_transform_between_frames(frame_name_order_[from_frame_name], frame_name_order_[to_frame_name]);
 }
 
 Order<> AnalysisTree::sort_joints(const bool sort_children) {
@@ -453,7 +454,7 @@ Order<> AnalysisTree::sort_frames() noexcept {
   for (size_t joint_id = 1; joint_id < joints_.size(); ++joint_id) {
 
     auto & joint = joints_[joint_id];
-    // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "joint %lu ---- %s", joint_id, joints_.names[joint_id].c_str());
+    // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "joint %lu ---- %s", joint_id, joint_name_order_.inverse[joint_id].c_str());
 
     for (auto frame_id : joint.frames) {
       // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "frame %lu = %lu", i, frame_id);
@@ -467,7 +468,7 @@ Order<> AnalysisTree::sort_frames() noexcept {
   }
 
   auto & dummy_root = joints_[0];
-  // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "dummy root ---- %s", joints_.names[0].c_str());
+  // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "dummy root ---- %s", joint_name_order_.inverse[0].c_str());
 
   for (auto frame_id : dummy_root.frames) {
     // RCLCPP_INFO(rclcpp::get_logger("anal_tree"), "frame %lu = %lu", i, frame_id);
@@ -479,7 +480,8 @@ Order<> AnalysisTree::sort_frames() noexcept {
     ++i;
   }
 
-  frames_.sort(frame_order);
+  frame_name_order_.sort(frame_order);
+  frames_ = frame_order.reorder(frames_);
 
   sorted_frames_ = true;
   return frame_order;

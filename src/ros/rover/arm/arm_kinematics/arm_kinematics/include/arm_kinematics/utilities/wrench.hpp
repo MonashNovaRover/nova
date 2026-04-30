@@ -129,6 +129,18 @@ template<typename Scalar>
 using Wrenchd = Wrench<double>;
 using Wrenchf = Wrench<float>;
 
+/**
+ * Semantic alias for 6D linear/angular momentum values.
+ *
+ * This remains storage-compatible with `Wrench`, but gives call sites a clearer name when a
+ * force-shaped 6D quantity represents momentum rather than an applied wrench.
+ */
+template<typename Scalar>
+using Momentum = Wrench<Scalar>;
+
+using Momentumd = Momentum<double>;
+using Momentumf = Momentum<float>;
+
 } // namespace arm_kinematics
 
 #endif // ARM_KINEMATICS_WRENCH_HPP

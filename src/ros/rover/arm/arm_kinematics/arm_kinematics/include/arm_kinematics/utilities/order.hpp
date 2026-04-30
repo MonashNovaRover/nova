@@ -409,6 +409,40 @@ public:
   }
 
   /**
+   * Returns the value for the given key, or std::nullopt if the key is not present.
+   */
+  [[nodiscard]] std::optional<TValue> get(const TKey & key) const noexcept {
+    if (!contains_key(key))
+      return std::nullopt;
+    return detail::LookupStorage<TKey, TValue>::at(data_, key);
+  }
+
+  /**
+   * Reorders this order's name↔id mapping according to a dense permutation.
+   *
+   * The inverse (id→key) vector is permuted and each key's stored value in the forward
+   * map is updated to its new position. Equivalent to what NameToVector::sort did.
+   *
+   * Only enabled when TValue is contiguous (so inverse.data_ is a vector).
+   *
+   * \pre permutation is a permutation of [0, size()).
+   */
+  template<bool B = detail::is_contiguous_lookup_key_v<TValue>, std::enable_if_t<B, int> = 0>
+  void sort(const Order<TValue, TValue> & permutation) noexcept {
+    inverse.data_ = permutation.reorder(inverse.data_);
+    for (auto & [key, id] : data_) {
+      id = permutation.inverse[id];
+    }
+  }
+
+  /**
+   * Returns a pointer to the underlying contiguous value storage.
+   * Only enabled when TKey is contiguous (Container is std::vector<TValue>).
+   */
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
+  const TValue * data() const noexcept { return data_.data(); }
+
+  /**
    * For orders into contiguous lookup arrays (e.g. Order<std::string, size_t>), returns the value for the given TKey
    * if it exists in the order, otherwise sets the value for the given TKey to the size of the number of elements.
    *
