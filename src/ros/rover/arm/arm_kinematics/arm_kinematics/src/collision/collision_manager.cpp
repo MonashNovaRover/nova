@@ -39,6 +39,13 @@ std::string PathCollisionError::InvalidStepSize::format() const
   return "check_path_collision() requires step_size > 0, got " + std::to_string(step_size);
 }
 
+std::string PathCollisionError::ScratchSizeMismatch::format() const
+{
+  return
+    "check_path_collision() received scratch vector with wrong size (" +
+    std::to_string(scratch_size) + " vs expected " + std::to_string(state_size) + ")";
+}
+
 std::string PathCollisionError::format() const
 {
   return std::visit([](const auto & error) { return error.format(); }, value);
@@ -156,6 +163,9 @@ tl::expected<bool, PathCollisionError> check_path_collision(
   if (step_size <= 0.0) {
     return tl::unexpected(PathCollisionError::InvalidStepSize{step_size});
   }
+  if (scratch.size() != start.size()) {
+    return tl::unexpected(PathCollisionError::ScratchSizeMismatch{start.size(), scratch.size()});
+  }
 
   double max_displacement = 0.0;
   for (std::size_t i = 0; i < start.size(); ++i) {
@@ -195,6 +205,9 @@ tl::expected<bool, PathCollisionError> check_path_collision(
   }
   if (step_size <= 0.0) {
     return tl::unexpected(PathCollisionError::InvalidStepSize{step_size});
+  }
+  if (scratch.size() != start.size()) {
+    return tl::unexpected(PathCollisionError::ScratchSizeMismatch{start.size(), scratch.size()});
   }
   colliding_pairs.clear();
 

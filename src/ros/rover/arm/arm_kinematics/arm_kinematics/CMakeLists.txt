@@ -130,6 +130,7 @@ set(TEST_KINEMATICS_SOURCE_FILES
   test/ros2_control/test_interface_refs.cpp
   test/ros2_control/test_joint_interface_bundle.cpp
   test/utilities/test_interface_id.cpp
+  test/utilities/test_twist_wrench.cpp
   test/main.cpp
 )
 #if(NIX_DO_CHECK)

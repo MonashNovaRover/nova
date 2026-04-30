@@ -9,14 +9,15 @@
 #include <kdl/frames.hpp>
 
 #include "arm_kinematics/utilities/aliases.hpp"
+#include "arm_kinematics/utilities/twist.hpp"
 
 namespace arm_kinematics {
 
   /**
    * Applies a given twist to a pose.
    *
-   * \param[in] twist The twist to be applied. twist.block<3, 1>(0, 0) is the linear component, and
-   *                  twist.block<3, 1>(3, 0) is the angular component.
+   * \param[in] twist The twist to be applied. `twist.linear()` is the linear component, and
+   *                  `twist.angular()` is the angular component.
    * \param[in] pose The pose to apply the twist to
    * \param[out] result The pose with the twist applied
    */
@@ -26,8 +27,8 @@ namespace arm_kinematics {
   /**
    * Applies a given twist to a pose.
    *
-   * \param[in] twist The twist to be applied. twist.block<3, 1>(0, 0) is the linear component, and
-   *                  twist.block<3, 1>(3, 0) is the angular component.
+   * \param[in] twist The twist to be applied. `twist.linear()` is the linear component, and
+   *                  `twist.angular()` is the angular component.
    * \param[in] pose The pose to apply the twist to
    * \returns The pose with the twist applied
    */

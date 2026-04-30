@@ -17,8 +17,6 @@ using Isometry3dVector = std::vector<Eigen::Isometry3d, Isometry3dAllocator>;
 
 using Vector3dVector = std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>>;
 
-using Twistd = Eigen::Matrix<double, 6, 1>;
-
 }
 
 #endif //ARM_KINEMATICS_ALIASES_HPP

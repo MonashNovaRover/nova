@@ -241,8 +241,8 @@ NovaTwistmapper::ResolvedTwist NovaTwistmapper::resolve_base_twist(
   Eigen::fromMsg(twist_stamped->twist, local_twist);
 
   arm_kinematics::Twistd base_twist = local_twist;
-  base_twist.block<3, 1>(0, 0) = twist_frame.linear() * local_twist.block<3, 1>(0, 0);
-  base_twist.block<3, 1>(3, 0) = twist_frame.linear() * local_twist.block<3, 1>(3, 0);
+  base_twist.linear() = twist_frame.linear() * local_twist.linear();
+  base_twist.angular() = twist_frame.linear() * local_twist.angular();
 
   return {TwistResolutionStatus::Valid, base_twist};
 }

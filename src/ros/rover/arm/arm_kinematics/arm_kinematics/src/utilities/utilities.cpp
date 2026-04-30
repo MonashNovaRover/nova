@@ -18,8 +18,8 @@ void apply_twist(
   const Eigen::Isometry3d & pose,
   Eigen::Isometry3d & result)
 {
-  const Eigen::Vector3d twist_linear = twist.block<3, 1>(0, 0);
-  const Eigen::Vector3d twist_angular = twist.block<3, 1>(3, 0);
+  const Eigen::Vector3d twist_linear = twist.linear();
+  const Eigen::Vector3d twist_angular = twist.angular();
 
   // Set translational components
   result.translation() = pose.translation() + twist_linear * delta_time;

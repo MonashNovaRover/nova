@@ -41,8 +41,8 @@ EDITED:   21/04/2026
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 #include "arm_kinematics/plugin_loader.hpp"
-#include "arm_kinematics/utilities/aliases.hpp"
 #include "arm_kinematics/utilities/expected.hpp"
+#include "arm_kinematics/utilities/twist.hpp"
 #include "visibility_control.h"
 
 // To test in development, run from the root nova_twistmapper dir:

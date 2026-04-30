@@ -31,6 +31,15 @@ using hardware_interface::HW_IF_POSITION;
 using hardware_interface::HW_IF_VELOCITY;
 using lifecycle_msgs::msg::State;
 
+namespace
+{
+const hardware_interface::LoanedStateInterface * get_optional_state_interface(
+  const std::optional<std::reference_wrapper<const hardware_interface::LoanedStateInterface>> & maybe_interface)
+{
+  return maybe_interface.has_value() ? &maybe_interface->get() : nullptr;
+}
+}  // namespace
+
 // NovaArmController::NovaArmController() : controller_interface::ChainableControllerInterface() {}
 
 const char *NovaArmController::joint_command_type() const {
@@ -176,13 +185,29 @@ void NovaArmController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPo
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
+    const auto * state_pos = get_optional_state_interface(joint_handle.state_pos);
+    const auto * state_vel = get_optional_state_interface(joint_handle.state_vel);
 
     if (params_.position_feedback) {
-      current.positions[i] = joint_handle.state_pos.get().get_value();
+      if (state_pos == nullptr) {
+        RCLCPP_ERROR(
+          get_node()->get_logger(),
+          "Missing required position state interface for joint '%s'.",
+          joint_handle.name.c_str());
+        return;
+      }
+      current.positions[i] = state_pos->get_value();
     }
 
     if (params_.velocity_feedback) {
-      current.velocities[i] = joint_handle.state_vel.get().get_value();
+      if (state_vel == nullptr) {
+        RCLCPP_ERROR(
+          get_node()->get_logger(),
+          "Missing required velocity state interface for joint '%s'.",
+          joint_handle.name.c_str());
+        return;
+      }
+      current.velocities[i] = state_vel->get_value();
     }
   }
   return;
@@ -234,6 +259,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
+    const auto * state_pos = get_optional_state_interface(joint_handle.state_pos);
 
     // We use this assumption to index into the reference interface arrays using the same index
     if (joint_handle.name != params_.joint_names[i]) {
@@ -242,8 +268,15 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     }
 
     if (this->joint_command_type() == HW_IF_POSITION) {
-      desired.positions[i] = std::isnan(reference_interfaces_[i]) ? joint_handle.state_pos.get().get_value()
-        : reference_interfaces_[i];
+      if (state_pos == nullptr) {
+        RCLCPP_ERROR(
+          logger,
+          "Missing required position state interface for joint '%s' in position mode.",
+          joint_handle.name.c_str());
+        return controller_interface::return_type::ERROR;
+      }
+      desired.positions[i] = std::isnan(reference_interfaces_[i]) ?
+        state_pos->get_value() : reference_interfaces_[i];
       originalDesired.positions[i] = desired.positions[i];
     } else { // velocity
       desired.velocities[i] = std::isnan(reference_interfaces_[i]) ? 0.0
@@ -304,6 +337,7 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
     const auto& joint_handle = registered_joint_handles_[i];
+    const auto * state_pos = get_optional_state_interface(joint_handle.state_pos);
     double reference_value;
     if (this->joint_command_type() == HW_IF_POSITION) {
       //TODO: test this
@@ -343,7 +377,8 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     }
     if (std::isnan(reference_value)) {
       // When dealing with invalid or missing inputs, don't move
-      const auto halt_value = params_.use_position_control ? joint_handle.state_pos.get().get_value() : 0.0;
+      const auto halt_value =
+        params_.use_position_control && state_pos != nullptr ? state_pos->get_value() : 0.0;
       RCLCPP_WARN(get_node()->get_logger(), "Missing or NaN input received. Trying to do nothing with value %f for "
                                             "joint \"%s\".", halt_value, joint_handle.name.c_str());
       if (!joint_handle.command.get().set_value(halt_value)) {
@@ -366,6 +401,10 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 controller_interface::CallbackReturn NovaArmController::hot_param_update() {
   auto logger = get_node()->get_logger();
   // process parameter updates that we can apply without reconfigure
+  if (params_.use_position_control && !params_.position_feedback) {
+    RCLCPP_ERROR(logger, "Position control requires position_feedback=true.");
+    return controller_interface::CallbackReturn::ERROR;
+  }
   this->get_joint_states(current_point_);
   
   if (!this->joint_limiter.configure(current_point_)) {
@@ -391,6 +430,10 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
   if (params_.joint_names.empty())
   {
     RCLCPP_ERROR(logger, "Joint names parameter is empty!");
+    return controller_interface::CallbackReturn::ERROR;
+  }
+  if (params_.use_position_control && !params_.position_feedback) {
+    RCLCPP_ERROR(logger, "Position control requires position_feedback=true.");
     return controller_interface::CallbackReturn::ERROR;
   }
 
@@ -528,7 +571,15 @@ controller_interface::CallbackReturn NovaArmController::on_activate(
   if (params_.use_position_control) {
     // Set all joint command interfaces to be the current state interface values
     for (auto& joint : registered_joint_handles_) {
-      if (!joint.command.get().set_value(joint.state_pos.get().get_value())) {
+      const auto * state_pos = get_optional_state_interface(joint.state_pos);
+      if (state_pos == nullptr) {
+        RCLCPP_ERROR(
+          get_node()->get_logger(),
+          "Missing required position state interface for joint '%s' during activation.",
+          joint.name.c_str());
+        return controller_interface::CallbackReturn::ERROR;
+      }
+      if (!joint.command.get().set_value(state_pos->get_value())) {
         return controller_interface::CallbackReturn::ERROR;
       }
     }
@@ -604,7 +655,20 @@ void NovaArmController::halt()
 {
   for (const auto &joint_handle : registered_joint_handles_)
   {
-    bool _ = joint_handle.command.get().set_value(0.0);
+    double halt_value = 0.0;
+    if (params_.use_position_control) {
+      const auto * state_pos = get_optional_state_interface(joint_handle.state_pos);
+      if (state_pos == nullptr) {
+        RCLCPP_ERROR(
+          get_node()->get_logger(),
+          "Cannot hold position for joint '%s' because no position state interface is available.",
+          joint_handle.name.c_str());
+        continue;
+      }
+      halt_value = state_pos->get_value();
+    }
+
+    bool _ = joint_handle.command.get().set_value(halt_value);
   }
 }
 
@@ -627,38 +691,41 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
   for (const auto &joint_name : joint_names)
   {
     const auto command_interface_name = joint_command_type();
-
-    //TODO: DRY (same code twice for pos and vel)
-    const auto pos_state_handle = std::find_if(
-        state_interfaces_.cbegin(), state_interfaces_.cend(),
-        [&joint_name](const auto &interface)
-        {
-          return interface.get_prefix_name() == joint_name &&
-                 interface.get_interface_name() == HW_IF_POSITION;
-        });
+    std::optional<std::reference_wrapper<const hardware_interface::LoanedStateInterface>> pos_state_ref =
+      std::nullopt;
+    std::optional<std::reference_wrapper<const hardware_interface::LoanedStateInterface>> vel_state_ref =
+      std::nullopt;
 
     if (params_.position_feedback) {
+      const auto pos_state_handle = std::find_if(
+          state_interfaces_.cbegin(), state_interfaces_.cend(),
+          [&joint_name](const auto &interface)
+          {
+            return interface.get_prefix_name() == joint_name &&
+                   interface.get_interface_name() == HW_IF_POSITION;
+          });
       if (pos_state_handle == state_interfaces_.cend())
       {
         RCLCPP_ERROR(logger, "Unable to obtain position joint state handle for %s", joint_name.c_str());
         return controller_interface::CallbackReturn::ERROR;
       }
+      pos_state_ref = std::cref(*pos_state_handle);
     }
 
-    const auto vel_state_handle = std::find_if(
-        state_interfaces_.cbegin(), state_interfaces_.cend(),
-        [&joint_name](const auto &interface)
-        {
-          return interface.get_prefix_name() == joint_name &&
-                 interface.get_interface_name() == HW_IF_VELOCITY;
-        });
-
     if (params_.velocity_feedback) {
+      const auto vel_state_handle = std::find_if(
+          state_interfaces_.cbegin(), state_interfaces_.cend(),
+          [&joint_name](const auto &interface)
+          {
+            return interface.get_prefix_name() == joint_name &&
+                   interface.get_interface_name() == HW_IF_VELOCITY;
+          });
       if (vel_state_handle == state_interfaces_.cend())
       {
         RCLCPP_ERROR(logger, "Unable to obtain velocity joint state handle for %s", joint_name.c_str());
         return controller_interface::CallbackReturn::ERROR;
       }
+      vel_state_ref = std::cref(*vel_state_handle);
     }
 
 
@@ -680,8 +747,8 @@ controller_interface::CallbackReturn NovaArmController::configure_joints(
     registered_handles.emplace_back(
         JointHandle{
           joint_name,
-          std::ref(*pos_state_handle),
-          std::ref(*vel_state_handle),
+          pos_state_ref,
+          vel_state_ref,
           std::ref(*command_handle)
           }
         );

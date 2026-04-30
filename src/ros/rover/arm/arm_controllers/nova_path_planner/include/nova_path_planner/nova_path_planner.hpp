@@ -130,6 +130,10 @@ protected:
   rclcpp_action::CancelResponse handle_action_cancelled(
     const std::shared_ptr<GoalHandleArmPlanPath> & goal_handle);
 
+  void abort_action(
+    const std::shared_ptr<GoalHandleArmPlanPath> & goal_handle,
+    const std::shared_ptr<ArmPlanPath::Result> & result);
+
   void execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal_handle);
 
   bool try_get_pose_from_forward_kinematics(

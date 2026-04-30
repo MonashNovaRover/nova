@@ -17,6 +17,7 @@
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/common/kinematics_base.hpp"
 #include "arm_kinematics/utilities/aliases.hpp"
+#include "arm_kinematics/utilities/twist.hpp"
 #include "arm_kinematics/utilities/expected.hpp"
 #include "arm_kinematics/utilities/span.hpp"
 
@@ -124,8 +125,8 @@ public:
    * Estimate the velocities of each joint needed to have the end effector move at some twist.
    *
    * \param[in] ik_twist The twist to get equivalent joint velocities for, in the reference frame of the base_link.
-   *   - twist.block<3, 1>(0, 0) is the linear component, and
-   *   - twist.block<3, 1>(3, 0) is the angular component.
+   *   - `ik_twist.linear()` is the linear component, and
+   *   - `ik_twist.angular()` is the angular component.
    *   - You can construct this from a Twist message using tf2_eigen's tf2::from_msg() helper.
    * \param[in] ik_seed_pose The pose of the end effector that matches ik_seed_state. Can be obtained using FK.
    * If ik_seed_pose and ik_seed_state are not an exact match, the given solution will be wrong.

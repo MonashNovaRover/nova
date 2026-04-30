@@ -509,6 +509,14 @@ rclcpp_action::CancelResponse NovaPathPlanner::handle_action_cancelled(
   return rclcpp_action::CancelResponse::ACCEPT;
 }
 
+void NovaPathPlanner::abort_action(
+  const std::shared_ptr<GoalHandleArmPlanPath> & goal_handle,
+  const std::shared_ptr<ArmPlanPath::Result> & result)
+{
+  result->success = false;
+  goal_handle->abort(result);
+}
+
 void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal_handle)
 {
   const auto logger = get_node()->get_logger();
@@ -522,16 +530,14 @@ void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal
   Eigen::Isometry3d start = Eigen::Isometry3d::Identity();
   if (!try_get_pose_from_forward_kinematics(last_joint_pose, start)) {
     clear_path_execution();
-    result->success = false;
-    goal_handle->succeed(result);
+    abort_action(goal_handle, result);
     return;
   }
 
   if (!(goal->speed > 0.0)) {
     RCLCPP_ERROR(logger, "Goal rejected internally because speed must be > 0.");
     clear_path_execution();
-    result->success = false;
-    goal_handle->succeed(result);
+    abort_action(goal_handle, result);
     return;
   }
 
@@ -544,8 +550,7 @@ void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal
 
   if (!generate_path(start, end, last_joint_pose, goal->speed)) {
     clear_path_execution();
-    result->success = false;
-    goal_handle->succeed(result);
+    abort_action(goal_handle, result);
     return;
   }
 
@@ -556,6 +561,7 @@ void NovaPathPlanner::execute_action(std::shared_ptr<GoalHandleArmPlanPath> goal
   while (is_path_being_executed_.load(std::memory_order_acquire)) {
     if (goal_handle->is_canceling()) {
       clear_path_execution();
+      result->success = false;
       goal_handle->canceled(result);
       RCLCPP_INFO(logger, "Goal canceled.");
       return;

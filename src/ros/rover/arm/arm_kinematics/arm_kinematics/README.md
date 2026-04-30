@@ -132,6 +132,35 @@ Prefer to use Bailey's existing style for public APIs and comments:
 
 ## Benchmarks
 
+## Tests
+
+`arm_kinematics` builds the test executable `test_manual` under `lib/arm_kinematics/`.
+
+Run tests from the package's Nix ROS environment so the required ROS middleware libraries and
+package environment are available:
+
+```bash
+nix-shell ~/nova/nixfiles -A env.nova-arm-kinematics
+```
+
+Inside that shell, source the installed package setup before invoking `test_manual`:
+
+```bash
+source ./result/share/arm_kinematics/local_setup.bash
+./result/lib/arm_kinematics/test_manual
+```
+
+To iterate on a specific test suite or test case, use a GoogleTest filter. For example, the new
+twist/wrench utility tests can be run with:
+
+```bash
+source ./result/share/arm_kinematics/local_setup.bash
+./result/lib/arm_kinematics/test_manual --gtest_filter="TwistWrenchTest.*"
+```
+
+If `test_manual` fails during ROS initialization, the usual cause is that it was launched without
+the package environment from `local_setup.bash`.
+
 `arm_kinematics` installs benchmark executables under `lib/arm_kinematics/` and may also install
 wrapped convenience commands in `bin/` for benchmarks that need extra runtime setup.
 

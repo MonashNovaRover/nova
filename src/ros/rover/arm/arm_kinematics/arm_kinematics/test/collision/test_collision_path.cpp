@@ -301,5 +301,45 @@ TEST(CollisionPathTest, ReturnsStructuredErrorOnNonPositiveStepSize)
     "check_path_collision() requires step_size > 0, got 0.000000");
 }
 
+TEST(CollisionPathTest, ReturnsStructuredErrorOnScratchSizeMismatch)
+{
+  auto plugin = std::make_shared<FakeCollisionPlugin>(
+    [](double) { return false; });
+  auto manager = make_fake_manager(plugin);
+  std::vector<double> scratch(0);
+
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{1.0},
+    0.25,
+    scratch);
+  ASSERT_FALSE(result);
+  EXPECT_EQ(
+    result.error().format(),
+    "check_path_collision() received scratch vector with wrong size (0 vs expected 1)");
+}
+
+TEST(CollisionPathTest, ReturnsStructuredErrorOnPairScratchSizeMismatch)
+{
+  auto plugin = std::make_shared<FakeCollisionPlugin>(
+    [](double) { return false; });
+  auto manager = make_fake_manager(plugin);
+  std::vector<double> scratch(2, 0.0);
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+
+  const auto result = check_path_collision(
+    manager,
+    std::vector<double>{0.0},
+    std::vector<double>{1.0},
+    0.25,
+    scratch,
+    colliding_pairs);
+  ASSERT_FALSE(result);
+  EXPECT_EQ(
+    result.error().format(),
+    "check_path_collision() received scratch vector with wrong size (2 vs expected 1)");
+}
+
 }  // namespace
 }  // namespace arm_kinematics

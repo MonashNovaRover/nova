@@ -98,7 +98,14 @@ struct ARM_KINEMATICS_PUBLIC PathCollisionError {
     [[nodiscard]] std::string format() const;
   };
 
-  using Variant = std::variant<SizeMismatch, InvalidStepSize>;
+  struct ScratchSizeMismatch {
+    size_t state_size{};
+    size_t scratch_size{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  using Variant = std::variant<SizeMismatch, InvalidStepSize, ScratchSizeMismatch>;
   Variant value;
 
   template <
