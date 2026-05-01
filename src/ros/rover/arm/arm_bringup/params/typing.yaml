@@ -9,12 +9,10 @@ periscope_camera_info_publisher:
     hfov: 61.3727248
     image_width: 1280 #1280
     image_height: 720 #720
-    distortion_matrix: [0.0, 0.0, 0.0, 0.0, 0.0]
+    distortion_matrix: [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]
 
 keyboard_localiser:
   ros__parameters:
-    # using auto or manual transform mode
-    #using_auto: true
 
     # key position initalisation params
     keyboard_frame: keyboard_frame
@@ -30,7 +28,7 @@ keyboard_localiser:
     hfov: 61.3727248
     image_width: 1280 #1280
     image_height: 720 #720
-    distortion_matrix: [0.0, 0.0, 0.0, 0.0, 0.0]
+    distortion_matrix: [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]
 
     # ArUco marker params
     aruco_topic: /aruco_detections
