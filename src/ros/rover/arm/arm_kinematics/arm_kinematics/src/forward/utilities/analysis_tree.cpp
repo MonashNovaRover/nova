@@ -210,7 +210,7 @@ AnalysisTree::AnalysisTree(
     auto joint_id_old = frame_old.parent;
 
     const auto & definition_origin = frame_old.origin * definitions.origins[frame_id];
-    std::string frame_name = definitions.origins[frame_id].isApprox(Eigen::Isometry3f::Identity())
+    std::string frame_name = definitions.origins[frame_id].isApprox(Eigen::Isometry3d::Identity())
       ? definitions.parent_link_names[frame_id]
       : "";
 
@@ -309,7 +309,7 @@ tl::expected<ComputeFrameTree, std::string_view> AnalysisTree::make_compute_fram
     if (frame.parent != 0)
       parents.emplace_back(frame.parent - 1);
 
-  Isometry3fVector origins{};
+  Isometry3dVector origins{};
   origins.reserve(frames_.size());
   for (const auto & frame : frames_.data)
     origins.emplace_back(frame.origin);
@@ -323,15 +323,15 @@ tl::expected<ComputeFrameTree, std::string_view> AnalysisTree::make_compute_fram
 
 ComputeJointTree AnalysisTree::make_compute_joint_tree() {
   std::vector<JointType> types{};
-  Vector3fVector axes{};
-  Isometry3fVector origins{};
+  Vector3dVector axes{};
+  Isometry3dVector origins{};
   std::vector<size_t> parents{};
 
   assert(joints_.size() > 0); //< Dummy root MUST exist
 
   types.resize(joints_.size() - 1);
   axes.resize(joints_.size() - 1);
-  origins.resize(joints_.size() - 1, Eigen::Isometry3f::Identity());
+  origins.resize(joints_.size() - 1, Eigen::Isometry3d::Identity());
   parents.reserve(joints_.size() - 1);
 
   const size_t root_relative_count = joints_[0].children.size();
@@ -361,6 +361,57 @@ ComputeJointTree AnalysisTree::make_compute_joint_tree() {
     std::move(parents),
     joints_[0].children.size()
   };
+}
+
+Isometry3dVector AnalysisTree::compute_root_to_joint_poses() const {
+  Isometry3dVector root_T_joint(joints_.size(), Eigen::Isometry3d::Identity());
+
+  for (size_t joint_id = 1; joint_id < joints_.size(); ++joint_id) {
+    const auto & joint = joints_[joint_id];
+    root_T_joint[joint_id] = root_T_joint[joint.parent] * joint.origin;
+  }
+
+  return root_T_joint;
+}
+
+AnalysisTree::JointQuery AnalysisTree::query_joint(const size_t joint_id) const {
+  const auto root_T_joint = compute_root_to_joint_poses();
+  const auto & joint = joints_[joint_id];
+
+  return {
+    root_T_joint[joint_id],
+    joint.joint.axis,
+    joint.joint.type
+  };
+}
+
+AnalysisTree::JointQuery AnalysisTree::query_joint(const std::string & joint_name) const {
+  return query_joint(joints_[joint_name]);
+}
+
+Eigen::Isometry3d AnalysisTree::query_frame(const size_t frame_id) const {
+  const auto root_T_joint = compute_root_to_joint_poses();
+  const auto & frame = frames_[frame_id];
+
+  return root_T_joint[frame.parent] * frame.origin;
+}
+
+Eigen::Isometry3d AnalysisTree::query_frame(const std::string & frame_name) const {
+  return query_frame(frames_[frame_name]);
+}
+
+Eigen::Isometry3d AnalysisTree::query_transform_between_frames(
+  const size_t from_frame_id,
+  const size_t to_frame_id) const
+{
+  return query_frame(from_frame_id).inverse() * query_frame(to_frame_id);
+}
+
+Eigen::Isometry3d AnalysisTree::query_transform_between_frames(
+  const std::string & from_frame_name,
+  const std::string & to_frame_name) const
+{
+  return query_transform_between_frames(frames_[from_frame_name], frames_[to_frame_name]);
 }
 
 Order<> AnalysisTree::sort_joints(const bool sort_children) {
@@ -435,4 +486,3 @@ Order<> AnalysisTree::sort_frames() noexcept {
 }
 
 }
-

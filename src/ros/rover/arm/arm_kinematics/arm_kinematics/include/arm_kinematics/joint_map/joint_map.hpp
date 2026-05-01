@@ -1,100 +1,95 @@
 //
-// Created by Bailey Chessum on 14/10/2025.
+// Created by Bailey Chessum on 21/03/2026.
 //
 
 #ifndef ARM_KINEMATICS_JOINT_MAP_HPP
 #define ARM_KINEMATICS_JOINT_MAP_HPP
 
-#include <kdl_parser/kdl_parser.hpp>
-#include <kdl/jntarray.hpp>
-#include <rclcpp/logger.hpp>
-#include <rclcpp/logging.hpp>
+#include <memory>
+#include <utility>
 
+#include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/visibility_control.h"
 
 namespace arm_kinematics {
 
-// TODO: Allow a mimic joint name to be used as an input, where the joint the mimic joint references is calculated as
-//       the inverse of that mimic joint in outputs.
-// TODO: Support Transmissions. This will probably involve moving away from the sources, multipliers, offsets approach.
-
 /**
- * Helper class to map between the parameterized set of joints and the joints required for FK with transmissions applied
+ * Helper class to map between one parameterized joint space and another related joint space.
+ *
+ * This is the runtime wrapper around a concrete mapping implementation. The default concrete implementation is
+ * AffineJointMap, which handles reordering, duplication, and mimic-joint-style affine remapping.
+ *
+ * Future implementations may support more general propagation of related joint values, such as transmissions or other
+ * plugin-specific mapping strategies.
+ *
  * \see JointMapBuilder
  */
 class ARM_KINEMATICS_PUBLIC JointMap {
 public:
   JointMap() = default;
-  JointMap(const std::vector<std::string>& input_names,
-           const std::vector<std::string>& output_names,
-           const std::map<std::string, std::shared_ptr<urdf::JointMimic>> & mimic_joints = {});
+  JointMap(const JointMap & other);
+  JointMap(JointMap && other) noexcept = default;
+  JointMap & operator=(const JointMap & other);
+  JointMap & operator=(JointMap && other) noexcept = default;
 
-  JointMap(const size_t input_count, const size_t output_count) : input_count(input_count), output_count(output_count) {
-    sources.resize(output_count, 0);
-    multipliers.resize(output_count, 1.0);
-    offsets.resize(output_count, 0.0);
-  }
-
-  static JointMap identity(const size_t element_count) {
-    JointMap jm{element_count, element_count};
-    for (size_t i = 0; i < element_count; ++i) {
-      jm.sources[i] = i;
-    }
-    return jm;
+  template<class Impl>
+  explicit JointMap(Impl impl)
+  : impl_(std::make_unique<Model<Impl>>(std::move(impl)))
+  {
   }
 
   /**
-   * \brief Maps all the given input joint positions to output joint positions based on transmissions and mimic joints.
-   * \note The values in inputs and outputs should correspond to input_names and output_names provided in the class
-   * constructor respectively.
+   * \brief Maps all the given input joint positions to output joint positions.
+   * \note The values in inputs and outputs should correspond to the input and output name spaces used to build this map.
    *
-   * \param[in] inputs The position values for each joint defined by input_names in the constructor
-   * \param[out] outputs The position values for each joint defined by output_names in the constructor.
-   *
-   * \warning inputs and outputs must be pre-allocated to the correct size!
-   * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
-   */
-  void map(const std::vector<double> & inputs, std::vector<float> & outputs) const;
-
-  /**
-   * \brief Same as map, but outputs to a KDL::JntArray. Maps all the given input joint positions,
-   * to joint positions in outputs based on transmissions and mimic joints.
-   * \see JointMap::map
-   * \note The values in inputs and outputs should correspond to input_names and output_names provided in the class
-   * constructor respectively.
-   *
-   * \param[in] inputs The input position values for each joint defined by input_names in the constructor
-   * \param[out] jnts The output position values for each joint defined by output_names in the constructor.
+   * \param[in] inputs The position values for each input element in the source joint space.
+   * \param[out] outputs The position values for each output element in the target joint space.
    *
    * \warning inputs and outputs must be pre-allocated to the correct size!
-   * \warning inputs and outputs must not point to the same memory, or be any of the class's internal vectors.
+   * \warning inputs and outputs must not point to the same memory, or be any internal storage from the implementation.
    */
-  void map(const std::vector<double> & inputs, KDL::JntArray & jnts) const;
+  void map(span<const double> inputs, span<double> outputs) const;
 
-  /// output_count elements, the index of the value in inputs to use to calculate the value for each output.
-  std::vector<size_t> sources{};
-  /// output_count elements, the values to multiply each input by when calculating the value for each output.
-  std::vector<float> multipliers{};
-  /// output_count elements, the values to add when calculating the value for each output.
-  std::vector<float> offsets{};
-
-  /// The number of elements in inputs and input_names.
-  const size_t input_count = 0;
-  /// The number of elements in outputs and output_names.
-  const size_t output_count = 0;
+  /// The number of elements expected in the input joint space for this map.
+  [[nodiscard]] size_t input_count() const noexcept;
+  /// The number of elements produced in the output joint space for this map.
+  [[nodiscard]] size_t output_count() const noexcept;
+  /// Returns false if this instance is default constructed and has no mapping implementation.
+  [[nodiscard]] bool valid() const noexcept { return impl_ != nullptr; }
 
 private:
   /**
-   * Recursively maps joint names to source value ids (where joint ordering is defined by the given joint names),
-   * also getting multiplier and offset values for any mimic joint mapped joints.
-   * \param name The name of the joint in JntArray / the KDL chain
-   * \param multiplier The multiplier from any mimic joints
-   * \param offset The offset from any mimic joints
-   * \returns the index of the joint_name to get values from in joint_names
+   * Runtime polymorphic concept for concrete mapping implementations.
+   *
+   * This interface is intentionally minimal. It only describes runtime mapping behavior and size queries, and does not
+   * include any builder- or planning-facing operations.
    */
-  static size_t find_source(const std::vector<std::string> & joint_names,
-                            std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints,
-                            const std::string & name, float & multiplier, float & offset);
+  struct Concept {
+    virtual ~Concept() = default;
+    virtual void map(span<const double> inputs, span<double> outputs) const = 0;
+    [[nodiscard]] virtual size_t input_count() const noexcept = 0;
+    [[nodiscard]] virtual size_t output_count() const noexcept = 0;
+    [[nodiscard]] virtual std::unique_ptr<Concept> clone() const = 0;
+  };
+
+  /**
+   * Adapts a concrete implementation type to the Concept interface.
+   */
+  template<class Impl>
+  struct Model final : Concept {
+    explicit Model(Impl impl) : impl(std::move(impl)) {}
+
+    void map(span<const double> inputs, span<double> outputs) const override { impl.map(inputs, outputs); }
+    [[nodiscard]] size_t input_count() const noexcept override { return impl.input_count(); }
+    [[nodiscard]] size_t output_count() const noexcept override { return impl.output_count(); }
+    [[nodiscard]] std::unique_ptr<Concept> clone() const override {
+      return std::make_unique<Model<Impl>>(impl);
+    }
+
+    Impl impl;
+  };
+
+  std::unique_ptr<Concept> impl_ = nullptr;
 };
 
 } // arm_kinematics

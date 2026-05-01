@@ -3,6 +3,7 @@
 , ament-cmake
 , control-msgs
 , controller-interface
+, fcl
 , hardware-interface
 , pluginlib
 , rclcpp
@@ -14,11 +15,10 @@
 , realtime-tools
 , tf2
 , tf2-msgs
+, tf2-eigen
 , geometry-msgs
 , tf2-geometry-msgs
-, moveit-core
-, moveit-ros-planning
-, moveit-ros-planning-interface
+, nova-arm-kinematics
 }:
 
 buildRosPackage {
@@ -36,6 +36,7 @@ buildRosPackage {
   buildInputs = [
     control-msgs
     controller-interface
+    fcl
     hardware-interface
     pluginlib
     rclcpp
@@ -46,11 +47,9 @@ buildRosPackage {
     realtime-tools
     tf2
     tf2-msgs
+    tf2-eigen
     geometry-msgs
     tf2-geometry-msgs
-    moveit-core
-    moveit-ros-planning
-    moveit-ros-planning-interface
+    nova-arm-kinematics
   ];
 }
-

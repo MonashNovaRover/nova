@@ -5,15 +5,82 @@
 #ifndef ARM_KINEMATICS_INVERSE_KINEMATICS_PLUGIN_HPP
 #define ARM_KINEMATICS_INVERSE_KINEMATICS_PLUGIN_HPP
 
-#include <vector>
-#include <Eigen/Geometry>
 #include <memory>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <variant>
+#include <vector>
+
+#include <Eigen/Geometry>
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/common/kinematics_base.hpp"
 #include "arm_kinematics/utilities/aliases.hpp"
+#include "arm_kinematics/utilities/expected.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 
 namespace arm_kinematics {
+
+struct ARM_KINEMATICS_PUBLIC IKFailure {
+  struct NoSolution {
+    std::string detail{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  struct InvalidSeed {
+    std::string detail{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  struct InvalidTarget {
+    std::string detail{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  struct OutsideWorkspace {
+    std::string detail{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  struct Singular {
+    std::string detail{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  struct BackendError {
+    std::string detail{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  using Variant = std::variant<
+    NoSolution,
+    InvalidSeed,
+    InvalidTarget,
+    OutsideWorkspace,
+    Singular,
+    BackendError>;
+  Variant value;
+
+  template <
+    typename T,
+    typename Decayed = std::decay_t<T>,
+    typename = std::enable_if_t<!std::is_same_v<Decayed, IKFailure>>>
+  IKFailure(T && t)
+  : value(std::forward<T>(t))
+  {
+  }
+
+  [[nodiscard]] std::string format() const;
+};
+
+using IKResult = tl::expected<void, IKFailure>;
 
 /**
  * Base class for plugins used to perform inverse kinematics.
@@ -43,17 +110,15 @@ public:
    * \param ik_pose The desired pose of the end effector, in the reference frame of the base_link.
    * \param ik_seed_state The current joint positions. The returned solution will be the closest valid solution to this
    * seed state.
-   * \param[out] solution_state The set of joint positions that would result in the end effector being moved to ik_pose.
+   * \param[out] solution_state The set of joint positions that would result in the end effector
+   * being moved to ik_pose. Callers should pass a pre-sized writable span.
    *
-   * \note Make sure to pre-allocate vectors outside the real-time loop with the correct number of elements (same
-   * number of joints as in joint names).
-   *
-   * \returns True if a solution was found
+   * \returns Success if a solution was found, or a structured failure otherwise.
    */
-  virtual bool get_position_ik(
-    const Eigen::Isometry3f & ik_pose,
-    const std::vector<double> & ik_seed_state,
-    std::vector<double> & solution_state) const = 0;
+  [[nodiscard]] virtual IKResult get_position_ik(
+    const Eigen::Isometry3d & ik_pose,
+    span<const double> ik_seed_state,
+    span<double> solution_state) const = 0;
 
   /**
    * Estimate the velocities of each joint needed to have the end effector move at some twist.
@@ -65,22 +130,19 @@ public:
    * \param[in] ik_seed_pose The pose of the end effector that matches ik_seed_state. Can be obtained using FK.
    * If ik_seed_pose and ik_seed_state are not an exact match, the given solution will be wrong.
    * \param[in] ik_seed_state The current set of joint positions.
-   * \param[out] solution_velocities The velocities of each joint to sustain an average twist in the end effector equal
-   * to ik_twist over a period of time_step.
+   * \param[out] solution_velocities The velocities of each joint to sustain the requested twist.
+   * Callers should pass a pre-sized writable span.
    * \param[in] time_step The change in time used to extrapolate the ik_seed_pose by ik_twist, and estimate the
    * derivative of joint positions. This must be non-zero!!
    *
-   * \note Make sure to pre-allocate vectors outside of the real-time loop with the correct number of elements (same
-   * number of joints as in joint names).
-   *
-   * \returns True if a solution was found.
+   * \returns Success if a solution was found, or a structured failure otherwise.
    */
-  virtual bool get_velocity_ik(
-    const Twistf & ik_twist,
-    const Eigen::Isometry3f & ik_seed_pose,
-    const std::vector<double> & ik_seed_state,
-    std::vector<double> & solution_velocities,
-    double time_step) const;
+  [[nodiscard]] virtual IKResult get_velocity_ik(
+    const Twistd & ik_twist,
+    const Eigen::Isometry3d & ik_seed_pose,
+    span<const double> ik_seed_state,
+    span<double> solution_velocities,
+    double time_step);
 
 protected:
   /**
@@ -89,6 +151,10 @@ protected:
    * \returns True if initialization was successful. False otherwise.
    */
   virtual bool on_initialize() = 0;
+
+  /// Allocated to the size of the joints in the KinematicsParams::SharedPtr used in initialization.
+  /// Needed for the get_velocity_ik default implementation.
+  std::vector<double> per_joint_scratch_{};
 };
 
 } // arm_kinematics

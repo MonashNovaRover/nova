@@ -6,6 +6,7 @@
 #define ARM_KINEMATICS_PARAM_READER_HPP
 
 #include <string>
+#include <rclcpp/parameter.hpp>
 #include <rclcpp/parameter_value.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 
@@ -43,7 +44,12 @@ public:
     if (!params_->has_parameter(name)) {
       return declare_and_get(name, default_value);
     }
-    return params_->get_parameter(name).get_value<T>();
+
+    const auto parameter = params_->get_parameter(name);
+    if (parameter.get_type() == rclcpp::ParameterType::PARAMETER_NOT_SET) {
+      return default_value;
+    }
+    return parameter.get_value<T>();
   }
 
   template<typename T>
@@ -51,7 +57,12 @@ public:
     if (!params_->has_parameter(name)) {
       return declare_and_get(name, default_value, description);
     }
-    return params_->get_parameter(name).get_value<T>();
+
+    const auto parameter = params_->get_parameter(name);
+    if (parameter.get_type() == rclcpp::ParameterType::PARAMETER_NOT_SET) {
+      return default_value;
+    }
+    return parameter.get_value<T>();
   }
 
 private:

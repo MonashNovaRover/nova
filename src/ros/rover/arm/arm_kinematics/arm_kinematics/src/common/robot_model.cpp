@@ -4,6 +4,14 @@
 
 #include "arm_kinematics/common/robot_model.hpp"
 
+#include <urdf/model.h>
+#include <rclcpp/logging.hpp>
+
+#include "arm_kinematics/forward/utilities/analysis_tree.hpp"
+#include "arm_kinematics/joint_map/ros2_control_transmission_plugin_loader.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis.hpp"
+#include "arm_kinematics/joint_map/transmission_analysis_import.hpp"
+
 namespace arm_kinematics {
 
 RobotModel::RobotModel(std::string robot_description)
@@ -11,39 +19,53 @@ RobotModel::RobotModel(std::string robot_description)
 {
 }
 
+// Out-of-line: required so the LazyOnce<T>-managed forward-declared types only need to be
+// complete here (where the includes above bring in their full definitions), not in every
+// translation unit that includes robot_model.hpp.
+RobotModel::~RobotModel() = default;
+
 const std::string & RobotModel::get_robot_description() const {
   return robot_description_;
 }
 
 const urdf::Model & RobotModel::get_urdf_model() const {
-  std::call_once(urdf_model_flag_, [&]{
-    urdf_model_ = std::make_unique<urdf::Model>();
-    urdf_model_->initString(get_robot_description());
+  return urdf_model_.get([this]() {
+    auto model = std::make_unique<urdf::Model>();
+    model->initString(get_robot_description());
+    return model;
   });
-
-  assert(urdf_model_);
-  return *urdf_model_;
 }
 
-const JointMapBuilder & RobotModel::get_joint_map_builder() const {
-  std::call_once(joint_map_builder_flag_, [&]{
-    joint_map_builder_ = std::make_unique<JointMapBuilder>();
+const TransmissionAnalysis & RobotModel::get_default_transmission_analysis() const {
+  return default_transmission_analysis_.get([this]() {
+    auto analysis = std::make_unique<TransmissionAnalysis>();
+    const auto & urdf_model = get_urdf_model();
 
-    joint_map_builder_->with_urdf(get_urdf_model());
-    joint_map_builder_->with_transmissions(get_robot_description(), rclcpp::get_logger("robot_model"));
+    add_urdf_joints_to_analysis(*analysis, urdf_model);
+    add_mimic_transmissions_to_analysis(*analysis, urdf_model);
+    add_ros2_control_transmissions_to_analysis(
+      *analysis,
+      get_robot_description(),
+      get_ros2_control_transmission_plugin_loader(),
+      rclcpp::get_logger("robot_model"));
+    return analysis;
+  });
+}
+
+std::shared_ptr<const Ros2ControlTransmissionPluginLoader> RobotModel::get_ros2_control_transmission_plugin_loader() const
+{
+  std::call_once(ros2_control_transmission_plugin_loader_flag_, [&] {
+    ros2_control_transmission_plugin_loader_ = std::make_shared<Ros2ControlTransmissionPluginLoader>();
   });
 
-  assert(joint_map_builder_);
-  return *joint_map_builder_;
+  assert(ros2_control_transmission_plugin_loader_);
+  return ros2_control_transmission_plugin_loader_;
 }
 
 const AnalysisTree & RobotModel::get_analysis_tree() const {
-  std::call_once(analysis_tree_flag_, [&] {
-    analysis_tree_ = std::make_unique<AnalysisTree>(get_urdf_model());
+  return analysis_tree_.get([this]() {
+    return std::make_unique<AnalysisTree>(get_urdf_model());
   });
-
-  assert(analysis_tree_);
-  return *analysis_tree_;
 }
 
 } // namespace arm_kinematics

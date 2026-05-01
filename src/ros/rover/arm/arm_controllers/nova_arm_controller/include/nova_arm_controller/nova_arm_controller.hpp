@@ -24,6 +24,9 @@
 #include "joint_limits/joint_saturation_limiter.hpp"
 #include "trajectory_msgs/msg/joint_trajectory_point.hpp"
 #include "nova_arm_controller/self_collision_limiter.hpp"
+#include "arm_kinematics/plugin_loader.hpp"
+#include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
+#include <optional>
 
 #include <nova_arm_controller/nova_arm_controller_parameters.hpp>
 
@@ -78,6 +81,12 @@ protected:
     // store per joint odometry here maybe?
   };
 
+  struct Kinematics {
+    arm_kinematics::PluginLoader loader;
+    arm_kinematics::ForwardKinematicsPlugin::SharedPtr fk;
+  };
+  std::optional<Kinematics> kinematics_{};
+
   joint_limits::JointSaturationLimiter<trajectory_msgs::msg::JointTrajectoryPoint> joint_limiter;
   SelfCollisionLimiter collision_limiter;
 
@@ -105,7 +114,7 @@ protected:
 
   // Subscription
   rclcpp::Subscription<nova_interfaces::msg::ArmFkVelocityTargets>::SharedPtr input_subscriber_ = nullptr;
-  realtime_tools::RealtimeBox<std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets>> received_msg_ptr_{nullptr};
+  realtime_tools::RealtimeBox<std::shared_ptr<std::vector<double>>> received_velocity_ptr_{nullptr};
 
   rclcpp::Time previous_update_timestamp_{0};
 
@@ -118,10 +127,15 @@ protected:
   void halt();
 
   void get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &);
+  void resize_trajectory_point_storage();
 
   // has there been an update to params since we last configured
   bool pending_param_update = false;
   controller_interface::CallbackReturn hot_param_update();
+
+  trajectory_msgs::msg::JointTrajectoryPoint current_point_{};
+  trajectory_msgs::msg::JointTrajectoryPoint desired_point_{};
+  trajectory_msgs::msg::JointTrajectoryPoint original_desired_point_{};
 
 };
 } // namespace nova_arm_controller

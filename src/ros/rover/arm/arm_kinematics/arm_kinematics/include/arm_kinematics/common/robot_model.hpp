@@ -7,13 +7,22 @@
 
 #include <memory>
 #include <mutex>
-#include <urdf/model.h>
+#include <string>
 
+#include "arm_kinematics/utilities/lazy_once.hpp"
 #include "arm_kinematics/visibility_control.h"
-#include "arm_kinematics/forward/utilities/analysis_tree.hpp"
-#include "arm_kinematics/joint_map/joint_map_builder.hpp"
+
+// Heavy types referenced only by accessor return types and member-storage forward references.
+// Their full definitions live in the corresponding `.hpp`s; consumers that actually use these
+// types include them directly. Keeping the `RobotModel` header light-weight keeps the public
+// surface of the package from dragging in the entire joint_map subsystem on every consumer.
+namespace urdf { class Model; }
 
 namespace arm_kinematics {
+
+class TransmissionAnalysis;
+class AnalysisTree;
+class Ros2ControlTransmissionPluginLoader;
 
 /**
  * \brief Allows multiple plugins to share the same data structures derived from the robot's URDF.
@@ -29,6 +38,10 @@ public:
 
   explicit RobotModel(std::string robot_description);
 
+  // Out-of-line so the LazyOnce<T>-managed forward-declared types only need to be complete in
+  // robot_model.cpp, not in every translation unit that includes this header.
+  ~RobotModel();
+
   /// Accessor for robot_description.
   /// Variable not provided directly for consistency and the possibility of future change to internal type.
   [[nodiscard]] const std::string & get_robot_description() const;
@@ -36,8 +49,16 @@ public:
   /// Lazily evaluated urdf model from parsing robot_description
   [[nodiscard]] const urdf::Model & get_urdf_model() const;
 
-  /// Gets the standard joint map builder constructed from robot_description and get_urdf_model()
-  [[nodiscard]] const JointMapBuilder & get_joint_map_builder() const;
+  /// Gets the lazily-built shared default transmission analysis derived from the robot
+  /// description. The first call triggers URDF parsing and population (mimic + ros2_control
+  /// transmissions); subsequent calls return the same instance. The analysis is logically
+  /// frozen after lazy init — the `LazyOnce<T>` storage exists ONLY to support lazy population
+  /// from a const method; callers must not assume ongoing mutation.
+  [[nodiscard]] const TransmissionAnalysis & get_default_transmission_analysis() const;
+
+  /// Gets the lazily-built shared ros2_control transmission plugin loader used by the default analysis import path.
+  [[nodiscard]] std::shared_ptr<const Ros2ControlTransmissionPluginLoader>
+  get_ros2_control_transmission_plugin_loader() const;
 
   /// Data structure modelling the tree of joints in the urdf, and how links in the urdf relate to those joints, lazily
   /// evaluated using get_urdf_model() as the constructor input
@@ -48,17 +69,20 @@ private:
   /// URDF describing the robot
   std::string robot_description_;
 
-  /// Lazily evaluated URDF model retrieved from get_urdf_model()
-  mutable std::unique_ptr<urdf::Model> urdf_model_ = nullptr;
-  mutable std::once_flag urdf_model_flag_{};
+  /// Lazily evaluated URDF model.
+  mutable LazyOnce<urdf::Model> urdf_model_{};
 
-  /// Lazily evaluated joint map builder
-  mutable std::unique_ptr<JointMapBuilder> joint_map_builder_ = nullptr;
-  mutable std::once_flag joint_map_builder_flag_{};
+  /// Lazily evaluated shared default transmission analysis.
+  mutable LazyOnce<TransmissionAnalysis> default_transmission_analysis_{};
 
-  /// Lazily evaluated analysis tree
-  mutable std::unique_ptr<AnalysisTree> analysis_tree_ = nullptr;
-  mutable std::once_flag analysis_tree_flag_{};
+  /// Lazily evaluated analysis tree.
+  mutable LazyOnce<AnalysisTree> analysis_tree_{};
+
+  /// Lazily evaluated shared ros2_control transmission plugin loader. The shared_ptr return
+  /// type means LazyOnce<T> doesn't fit cleanly here (its semantics return `T &`), so this one
+  /// stays hand-rolled.
+  mutable std::shared_ptr<const Ros2ControlTransmissionPluginLoader> ros2_control_transmission_plugin_loader_{};
+  mutable std::once_flag ros2_control_transmission_plugin_loader_flag_{};
 };
 
 }

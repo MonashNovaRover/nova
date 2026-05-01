@@ -37,12 +37,19 @@ namespace arm_kinematics {
  */
 class ARM_KINEMATICS_PUBLIC AnalysisTree {
 public:
+  struct JointQuery
+  {
+    Eigen::Isometry3d root_T_joint = Eigen::Isometry3d::Identity();
+    Eigen::Vector3d axis_in_joint = Eigen::Vector3d::Zero();
+    JointType type = JointType::CONTINUOUS;
+  };
+
   /**
    * Data to describe a joint
    */
   struct JointDescription {
     JointType type = JointType::CONTINUOUS;
-    Eigen::Vector3f axis = Eigen::Vector3f::Zero();
+    Eigen::Vector3d axis = Eigen::Vector3d::Zero();
 
     JointDescription() = default;
     explicit JointDescription(const urdf::Joint & joint)
@@ -74,7 +81,7 @@ public:
     /// The type represented by this joint. Fixed if std::nullopt
     JointDescription joint{};
     /// Defines the reference frame of the link relative to the parent
-    Eigen::Isometry3f origin = Eigen::Isometry3f::Identity();
+    Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
 
     /// The IDs of all other frames that actuate relative to this link. All elements of this set should be larger than
     /// this link's id.
@@ -101,7 +108,7 @@ public:
     /// The ID of the link this is relative
     size_t parent = 0;
     /// The transform from the parent link to this frame
-    Eigen::Isometry3f origin;
+    Eigen::Isometry3d origin;
   };
 
   explicit AnalysisTree() {
@@ -133,7 +140,7 @@ public:
     const FrameDefinitions & definitions);
 
   Frame to_frame(const urdf::LinkConstSharedPtr & link) {
-    auto origin = Eigen::Isometry3f::Identity();
+    auto origin = Eigen::Isometry3d::Identity();
     const auto joint = find_next_non_fixed_joint(link.get(), origin);
 
     return {
@@ -146,7 +153,7 @@ public:
     const std::string & name,
     const size_t parent_id,
     const JointDescription & joint_description,
-    const Eigen::Isometry3f & origin)
+    const Eigen::Isometry3d & origin)
   {
     auto & parent = joints_[parent_id];
 
@@ -166,7 +173,7 @@ public:
   size_t add_frame(
     const std::string & name,
     const size_t parent_id,
-    const Eigen::Isometry3f & origin)
+    const Eigen::Isometry3d & origin)
   {
     const size_t id = frames_.add(name, {
       parent_id,
@@ -268,11 +275,26 @@ public:
    */
   ComputeJointTree make_compute_joint_tree();
 
+  [[nodiscard]] JointQuery query_joint(size_t joint_id) const;
+  [[nodiscard]] JointQuery query_joint(const std::string & joint_name) const;
+
+  [[nodiscard]] Eigen::Isometry3d query_frame(size_t frame_id) const;
+  [[nodiscard]] Eigen::Isometry3d query_frame(const std::string & frame_name) const;
+
+  [[nodiscard]] Eigen::Isometry3d query_transform_between_frames(
+    size_t from_frame_id,
+    size_t to_frame_id) const;
+  [[nodiscard]] Eigen::Isometry3d query_transform_between_frames(
+    const std::string & from_frame_name,
+    const std::string & to_frame_name) const;
+
   // Accessors
   [[nodiscard]] const NameToVector<Joint> & get_joints() const noexcept { return joints_; }
   [[nodiscard]] const NameToVector<Frame> & get_frames() const noexcept { return frames_; }
 
 private:
+  [[nodiscard]] Isometry3dVector compute_root_to_joint_poses() const;
+
   /**
    * Finds the closest parent joint that is not fixed, accumulating fixed joint offsets in accumulator.
    * \param current The link to find the closest actuated parent joint of.
@@ -280,7 +302,7 @@ private:
    * nullopt is returned.
    * \return pointer to the joint's child link or nullptr if there is no joint, and this is relative to the root
    */
-  static urdf::Link const * find_next_non_fixed_joint(urdf::Link const * current, Eigen::Isometry3f & accumulator) {
+  static urdf::Link const * find_next_non_fixed_joint(urdf::Link const * current, Eigen::Isometry3d & accumulator) {
     // I unwrapped an originally recursive function
     while (current && current->parent_joint)
     {
@@ -335,7 +357,7 @@ private:
 
   /// Links with a non-fixed parent joint from the URDF, named after the parent joint
   /// In my model, I treat these as the same thing. The link will have a frame in frames_ relative to the joint with an
-  /// Eigen::Isometry3f::Identity origin.
+  /// Eigen::Isometry3d::Identity origin.
   NameToVector<Joint> joints_{};
 
   /// Links from the URDF
@@ -348,4 +370,3 @@ private:
 }
 
 #endif //ARM_KINEMATICS_TREEORDERING_HPP
-
