@@ -53,8 +53,9 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   GstElement* gledgedetect = (props->edgedetect) ? gst_element_factory_make("glshader", "gledgedetect") : nullptr;
   GstElement* glundistort = (props->undistort) ? gst_element_factory_make("glshader", "glundistortion") : nullptr;
   GstElement* gldownconvert = ((props->downscale > 1) || props->crop43 || props->greyscale || props->denoise || props->edgedetect || props->undistort) ? gst_element_factory_make("glcolorconvert", "gldownconverter") : nullptr;
-  GstElement* queue_download = gst_element_factory_make("queue", "queue_download");
   GstElement* gldownload = gst_element_factory_make("gldownload", "gldownloader");
+  GstElement* queue_download = gst_element_factory_make("queue", "queue_download");
+
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
   GstElement* encode = (vpX == 9) ? gst_element_factory_make("vp9enc", "encoder") : gst_element_factory_make("vp8enc", "encoder");  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
@@ -76,8 +77,9 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
     (props->edgedetect && !gledgedetect) ||
     (props->undistort && !glundistort) ||
     (((props->downscale > 1) || props->crop43 || props->greyscale || props->denoise || props->edgedetect || props->undistort)  && !gldownconvert) ||
-    !queue_download ||
     !gldownload ||
+    !queue_download ||
+
     !scalefilter ||
     (props->show_clock && !clock) ||
     !encode ||
@@ -104,6 +106,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   if (props->edgedetect) set_gledgedetect(gledgedetect, props);
   if (props->undistort) set_glundistort(glundistort, props);
   set_queue(queue_download);
+
   set_scalefilter(scalefilter, props, crop_width*2);
   (vpX == 9) ? set_vp9enc(encode, props) : set_vp8enc(encode, props);
   set_webrtcsink(webrtc, props);
@@ -115,8 +118,8 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
       queue_upload,
       glupload,
       glupconvert,
-      queue_download,
       gldownload,
+      queue_download,
       scalefilter,
       encode,
       webrtc,
@@ -139,6 +142,10 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
 
   if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
   if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
+  else {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
   if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
 
   if (link_elements(streamer_node, next_element, tee, props->serial)) next_element = tee;
@@ -157,12 +164,13 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, vpXsoftwareGLPip
   if (link_elements(streamer_node, next_element, gldenoise, props->serial)) next_element = gldenoise;
   if (link_elements(streamer_node, next_element, gledgedetect, props->serial)) next_element = gledgedetect;
   if (link_elements(streamer_node, next_element, gldownconvert, props->serial)) next_element = gldownconvert;
-  if (link_elements(streamer_node, next_element, queue_download, props->serial)) next_element = queue_download;
   if (link_elements(streamer_node, next_element, gldownload, props->serial)) next_element = gldownload;
+  if (link_elements(streamer_node, next_element, queue_download, props->serial)) next_element = queue_download;
+
   if (link_elements(streamer_node, next_element, scalefilter, props->serial)) next_element = scalefilter;
   if (link_elements(streamer_node, next_element, clock, props->serial)) next_element = clock;
   if (link_elements(streamer_node, next_element, encode, props->serial)) next_element = encode;
-  if (link_elements(streamer_node, next_element, webrtc, props->serial)) next_element = webrtc;
+  link_elements(streamer_node, next_element, webrtc, props->serial);
 
   next_element = nullptr;
 
@@ -188,8 +196,6 @@ vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::N
   
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
-
-  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // filter
   props->format = "I420";

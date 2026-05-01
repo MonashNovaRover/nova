@@ -29,12 +29,12 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
-  GstElement* parse = gst_element_factory_make("h264parse", "parser");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
   GstElement* payload = (props->payload_quirk) ? gst_element_factory_make("rtph264pay", "payloader") : nullptr;
   GstElement* depayload = (props->payload_quirk) ? gst_element_factory_make("rtph264depay", "depayloader") : nullptr;
+  GstElement* parse = (props->payload_quirk) ? gst_element_factory_make("h264parse", "parser") : nullptr;
 
-  if (!gst_pipeline || !source || !srcfilter || !parse || !webrtc || (props->payload_quirk && !payload) || (props->payload_quirk && !depayload)) {
+  if (!gst_pipeline || !source || !srcfilter || !webrtc || (props->payload_quirk && !payload) || (props->payload_quirk && !depayload) || (props->payload_quirk && !parse)) {
       RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
       return nullptr;
   }
@@ -42,25 +42,31 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
   // 2. Set element properties
   set_v4lsource(source, props);
   set_srcfilter(srcfilter, props);
-  if (props->payload_quirk) set_h264payload(payload);
-  set_h264parse(parse, -1);
+  if (props->payload_quirk) {
+    set_h264payload(payload);
+    set_h264parse(parse, -1);
+  }
   set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, parse, webrtc, NULL);
-  if (props->payload_quirk) gst_bin_add_many(GST_BIN(gst_pipeline), payload, depayload, NULL);
+  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, webrtc, NULL);
+  if (props->payload_quirk) gst_bin_add_many(GST_BIN(gst_pipeline), payload, depayload, parse, NULL);
 
   // 4. Link elements
-  if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
-
-  if (props->payload_quirk) {
-    if (!link_elements(streamer_node, srcfilter, payload, props->serial)) return nullptr;
-    if (!link_elements(streamer_node, payload, depayload, props->serial)) return nullptr;
-    if (!link_elements(streamer_node, depayload, parse, props->serial)) return nullptr;
-  } else {
-    if (!link_elements(streamer_node, srcfilter, parse, props->serial)) return nullptr;
+  
+  GstElement* next_element = source;
+ 
+  if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
+  else {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
   }
-  if (!link_elements(streamer_node, parse, webrtc, props->serial)) return nullptr;
+  if (link_elements(streamer_node, next_element, payload, props->serial)) next_element = payload;
+  if (link_elements(streamer_node, next_element, depayload, props->serial)) next_element = depayload;
+  if (link_elements(streamer_node, next_element, parse, props->serial)) next_element = parse;
+  link_elements(streamer_node, next_element, webrtc, props->serial);
+
+  next_element = nullptr;
 
   return gst_pipeline;
 }
@@ -85,8 +91,6 @@ h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcp
   props->device = camera->node;
 
   props->io_mode = 4; // dmabuf
-
-  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // scale
   props->downscale = 1; // Do not change scale

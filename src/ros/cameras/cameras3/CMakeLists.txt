@@ -26,7 +26,8 @@ pkg_check_modules(SYSTEMD REQUIRED libsystemd)
 include_directories(${SYSTEMD_INCLUDE_DIRS})
 
 pkg_check_modules(GSTREAMERMM REQUIRED gstreamermm-1.0)
-include_directories(${GSTREAMERMM_INCLUDE_DIRS})
+pkg_check_modules(GST_GL REQUIRED gstreamer-gl-1.0)
+include_directories(${GSTREAMERMM_INCLUDE_DIRS} ${GST_GL_INCLUDE_DIRS})
 link_directories(${GSTREAMERMM_LIB_DIRS})
 
 include_directories(
@@ -50,7 +51,7 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
   src/pipelines/vpXsoftware.cpp
   src/pipelines/vpXsoftwareGL.cpp
 )
-target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES} ${SYSTEMD_LIBRARIES})
+target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES} ${GST_GL_LIBRARIES} ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Install executables
