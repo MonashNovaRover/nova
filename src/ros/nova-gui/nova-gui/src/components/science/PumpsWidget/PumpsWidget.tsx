@@ -30,7 +30,7 @@ export const PUMPS: PumpData[] = [
     rightIcon: <Database className="w-20"/>,
   },
   {
-    display: "→ Inner Ring (P)",
+    display: "→ Inner Ring (Prime)",
     value: "shot_to_inner_pump/prime",
     leftIcon: <Database className="w-20"/>,
     rightIcon: <RecordCircle className="w-20" size={24}/>,
@@ -42,7 +42,7 @@ export const PUMPS: PumpData[] = [
     rightIcon: <RecordCircle className="w-20" size={24}/>,
   },
   {
-    display: "→ Outer Ring (P)",
+    display: "→ Outer Ring (Prime)",
     value: "shot_to_outer_pump/prime",
     leftIcon: <Database className="w-20"/>,
     rightIcon: <RecordCircleFill className="w-20" size={24}/>,
@@ -54,7 +54,7 @@ export const PUMPS: PumpData[] = [
     rightIcon: <RecordCircleFill className="w-20" size={24}/>,
   },
   {
-    display: "→ Electrochem (P)",
+    display: "→ Electrochem (Prime)",
     value: "shot_to_electrochem_pump/prime",
     leftIcon: <Database className="w-20"/>,
     rightIcon: <Zap className="w-20"/>,
