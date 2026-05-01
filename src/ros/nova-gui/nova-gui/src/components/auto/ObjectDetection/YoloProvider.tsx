@@ -44,11 +44,11 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
       setIsRosConnected(false);
     });
 
-    // MarkerArray topic definition
+    // Detection2DArray topic definition
     const detectionTopic = new ROSLIB.Topic({
       ros: ros,
-      name: "/vision/object_markers",
-      messageType: "visualization_msgs/MarkerArray",
+      name: "/yolo/object_detections",
+      messageType: "nova_interfaces/Detection2DArray",
     });
 
     rosRef.current = ros;
@@ -82,32 +82,31 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
     const activeVideo = videoRefs.current[0]?.current;
     if (!activeVideo) return;
 
-    const vidHeight = activeVideo.videoHeight || 480; // Fallback to 480p
+    const vidWidth = activeVideo.videoWidth || 640; // Fallback to 640p width
+    const vidHeight = activeVideo.videoHeight || 480; // Fallback to 480p height
 
     const activeDetections = detections.flat();
 
     const msg = {
-      markers: activeDetections.map((d, index) => ({
-        header: { 
-          frame_id: "camera_link", 
-          stamp: { secs: 0, nsecs: 0 } 
-        },
-        ns: "yolo_detections",
-        id: index, 
-        type: 2, // SPHERE
-        action: 0, // ADD
+      header: {
+        frame_id: "camera_link",
+        stamp: { secs: 0, nsecs: 0 },
+      },
+      detections: activeDetections.map((d) => ({
+        class: ActiveYoloConfig.classNames[d.classId] ?? `class_${d.classId}`,
+        score: d.score,
         pose: {
-          position: { 
-            // Divide by height to normalize y to 0.0 -> 1.0 and x to 0.0 -> width/height
-            x: (d.box.x + (d.box.width / 2)) / vidHeight,
-            y: (d.box.y + (d.box.height / 2)) / vidHeight,
-            z: 0.0 
+          position: {
+            // Publish center in pixel coordinates as required by Detection2D.msg.
+            x: d.box.x + (d.box.width / 2),
+            y: d.box.y + (d.box.height / 2),
+            z: 0.0,
           },
-          orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 }
+          orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 },
         },
-        scale: { x: 0.2, y: 0.2, z: 0.2 }, 
-        color: { r: 1.0, g: 0.0, b: 0.0, a: 1.0 } 
-      }))
+        image_width: vidWidth,
+        image_height: vidHeight,
+      })),
     };
 
     topicRef.current.publish(msg);
