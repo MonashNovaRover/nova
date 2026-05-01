@@ -132,8 +132,6 @@ class CameraStreamer : public rclcpp::Node
       gst_element_set_context(pipeline->gst_pipeline, display_ctx);
       gst_element_set_context(pipeline->gst_pipeline, gl_ctx);
     }
-
-    gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
   }
 
   private: void get_pipeline_type(Pipeline* pipeline)
@@ -180,18 +178,15 @@ class CameraStreamer : public rclcpp::Node
 
         // Get pipeline_type
         this->get_pipeline_type(pipeline);
+        this->start_pipeline(pipeline);
 
-        // Switch to the profile
         bool autostart = false;
         this->get_parameter("autostart", autostart);
 
         // auto start if true
         if (autostart) {
-          this->start_pipeline(pipeline);
-        } else {
-          pipeline->gst_pipeline = nullptr;
+          gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
         }
-
         this->pipelines[camera.serial] = pipeline;
       }
     }
@@ -214,8 +209,9 @@ class CameraStreamer : public rclcpp::Node
               RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             } else {
-            // start pipeline if the gst bin doesn't exist yet
-              this->start_pipeline(pipeline); 
+              // start pipeline if the gst bin doesn't exist yet
+              this->start_pipeline(pipeline);
+              gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }
           } else {
           // otherwise report error
@@ -284,22 +280,25 @@ class CameraStreamer : public rclcpp::Node
         }
 
         response->success = true;
-        
-        // Switch to the profile
+
+        // Get pipeline_type
+        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
+        gst_object_unref(pipeline->gst_pipeline);
+
+        this->get_pipeline_type(pipeline);
+        this->start_pipeline(pipeline);
+
         bool autostart = false;
         this->get_parameter("autostart", autostart);
 
         // auto start if true
         if (autostart) {
-          gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
-          gst_object_unref(pipeline->gst_pipeline);
-          pipeline->gst_pipeline = nullptr;
-          this->get_pipeline_type(pipeline);
-          this->start_pipeline(pipeline);
+          gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
         } else {
           RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
-          pipeline->gst_pipeline = nullptr;
+
         }
+        this->pipelines[pipeline->camera->serial] = pipeline;
       }
     }
   }
