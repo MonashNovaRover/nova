@@ -282,9 +282,9 @@ camera_streamer:
           gop: 3
         still:
           pipeline_type: vp9softwareGL
-          mime: video/x-raw
+          mime: image/jpeg
           width: 1280
-          height: 800
+          height: 720
           downscale: 2
           framerate: 10
           deadline: 250
@@ -314,7 +314,18 @@ camera_streamer:
           denoise: true
 
     presets:
-      # auto:
+      auto:
+        drive:
+          auto_left: default
+          auto_forward: default
+          auto_right: default
+          auto_behind: snail
+        payload:
+          auto_left: still
+          auto_forward: still
+          auto_right: still
+          auto_behind: snail
+
       delivery:
         drive:
           mast_forward: default
@@ -336,8 +347,6 @@ camera_streamer:
           arm_end_finger: default
           arm_end_side: default
           arm_wrist: default
-
-      # science:
 
     defaults:
       # Waveshare
