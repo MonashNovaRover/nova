@@ -108,3 +108,28 @@ useEffect(() => {
 // Use data to your heart's content
 return <div>Temperature :{temperatureStore.temp}</div>;
 ```
+
+
+To publish to topics through Bifrost, make use of hooks `useBifrost` and `publishToTopic`
+```typescript
+// define topic to publish to
+const bifrostJoy = useBifrost({topic: RosTopic.DRIVE_JOY})
+
+// publish whenever x changes state to 'publish'
+useEffect(()=>{
+// define message
+  const joyMsg: IRosSensorMsgsJoy = {
+    header: {
+      stamp: {sec: 0, nanosec: 0},
+      frame_id: "gui"
+    },
+    axes: [0,0,0,0],
+    buttons: [1,0,0,1]
+  };
+  if (x === 'publish') {
+    // publish message
+    bifrostJoy.publishToTopic(joyMsg);
+  }
+},[x]);
+
+```
