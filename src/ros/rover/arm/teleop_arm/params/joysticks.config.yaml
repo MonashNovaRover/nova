@@ -125,7 +125,6 @@ thrustmaster_right:
 
         lead_left:
           from: "r_ax_thumb_y"
-          invert: true
 
         # Task space
         angular:
