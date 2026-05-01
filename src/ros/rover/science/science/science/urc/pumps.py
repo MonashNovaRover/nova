@@ -28,7 +28,7 @@ from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSDurabilityPolicy
 from std_srvs.srv import Trigger
 
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface
-from python_control2.hardware_interfaces import QCMDHardware
+from python_control2.hardware_interfaces import ContinousServoHardware
 from science_interfaces.msg import PumpStatus
 from science_interfaces.srv import RunPump
 
@@ -278,10 +278,10 @@ def main():
             max_effort=0.75,
             publish_rate=5
         ) \
-        .with_hardware("cache_to_shot_pump", QCMDHardware, can_id=0x031, send_single_zero=True) \
-        .with_hardware("shot_to_inner_pump", QCMDHardware, can_id=0x032, send_single_zero=True) \
-        .with_hardware("shot_to_outer_pump", QCMDHardware, can_id=0x041, send_single_zero=True) \
-        .with_hardware("shot_to_electrochem_pump", QCMDHardware, can_id=0x042, send_single_zero=True) \
+        .with_hardware("cache_to_shot_pump", ContinousServoHardware, can_id=0x031, send_single_zero=True) \
+        .with_hardware("shot_to_inner_pump", ContinousServoHardware, can_id=0x032, send_single_zero=True) \
+        .with_hardware("shot_to_outer_pump", ContinousServoHardware, can_id=0x041, send_single_zero=True) \
+        .with_hardware("shot_to_electrochem_pump", ContinousServoHardware, can_id=0x042, send_single_zero=True) \
         .with_jcan() \
         .spin()
 

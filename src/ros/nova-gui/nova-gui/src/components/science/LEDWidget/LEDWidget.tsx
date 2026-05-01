@@ -9,10 +9,10 @@ interface LED {
 }
 
 const LED_CONFIG: LED[] = [
-  { name: "vis_spec_central_led", displayName: "Vis Spec Central" },
-  { name: "vis_spec_nile_red", displayName: "Vis Spec Nile Red" },
-  { name: "vis_spec_camera", displayName: "Vis Spec Camera" },
-  { name: "vis_spec_nadh", displayName: "Vis Spec NADH" },
+  { name: "vis_spec_central_led", displayName: "Spec Central" },
+  { name: "vis_spec_nile_red", displayName: "Spec Nile Red" },
+  { name: "vis_spec_camera", displayName: "Spec Camera" },
+  { name: "vis_spec_nadh", displayName: "Spec NADH" },
   { name: "litmus_led", displayName: "Litmus LED" },
 ]
 
@@ -50,7 +50,7 @@ const LEDWidget = () => {
         <CardBody className="grid grid-cols-5 justify-between">
           {LED_CONFIG.map((led: LED) => (
             <div key={led.name} className="flex flex-col gap-2 items-center">
-              <span>{led.displayName}</span>
+              <span className="text-sm">{led.displayName}</span>
               <Switch
                 size="lg"
                 isSelected={ledStates[led.name] || false}
