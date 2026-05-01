@@ -182,9 +182,11 @@ class CameraStreamer : public rclcpp::Node
         this->get_pipeline_type(pipeline);
 
         // Switch to the profile
-        bool autostart;
+        bool autostart = false;
+        this->get_parameter("autostart", autostart);
+
         // auto start if true
-        if (this->get_parameter("autostart", autostart)) {
+        if (autostart) {
           this->start_pipeline(pipeline);
         } else {
           pipeline->gst_pipeline = nullptr;
