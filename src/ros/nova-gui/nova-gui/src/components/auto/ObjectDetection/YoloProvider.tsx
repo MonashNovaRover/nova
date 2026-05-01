@@ -66,7 +66,6 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/refs
     videoRefs: videoRefs.current,
     modelPath: `/models/${ActiveYoloConfig.modelName}`,
-    inputSize: 640,
     outputFormat: ActiveYoloConfig.outputFormat,
   });
 
@@ -80,8 +79,7 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
     const activeVideo = videoRefs.current[0]?.current;
     if (!activeVideo) return;
 
-    const vidWidth = activeVideo.videoWidth || 640;   // Fallback to 640
-    const vidHeight = activeVideo.videoHeight || 480; // Fallback to 480
+    const vidHeight = activeVideo.videoHeight || 480; // Fallback to 480p
 
     const activeDetections = detections.flat();
 
@@ -97,8 +95,8 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
         action: 0, // ADD
         pose: {
           position: { 
-            // Divide by width and height to normalize to 0.0 -> 1.0
-            x: (d.box.x + (d.box.width / 2)) / vidWidth,
+            // Divide by height to normalize y to 0.0 -> 1.0 and x to 0.0 -> width/height
+            x: (d.box.x + (d.box.width / 2)) / vidHeight,
             y: (d.box.y + (d.box.height / 2)) / vidHeight,
             z: 0.0 
           },
