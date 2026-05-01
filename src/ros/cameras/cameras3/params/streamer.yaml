@@ -336,7 +336,7 @@ camera_streamer:
           arm_end_side: default
           arm_wrist: default
 
-      delivery:
+      science-urc:
         drive:
           mast_forward: snail
           mast_backward: default
