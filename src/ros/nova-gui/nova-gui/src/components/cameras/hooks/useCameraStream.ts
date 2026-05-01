@@ -152,7 +152,7 @@ export const useCameraStream = (
         throw new Error(`Unknown peer message: ${message.type}`);
       }
     },
-    [sendJsonMessage, sessionId, sendSessionStartMessage]
+    [sendJsonMessage, sessionId]
   );
 
   const handOverRTCPeerConnection: () => RTCPeerConnection = useCallback(() => {
