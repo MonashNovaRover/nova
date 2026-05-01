@@ -107,8 +107,8 @@ class KeyboardLocaliser(Node):
 
         # calibrated camera intrinsics
         hfov = self.declare_parameter('hfov', 61.3727248).get_parameter_value().double_value
-        width = self.declare_parameter('image_width', 640).get_parameter_value().integer_value
-        height = self.declare_parameter('image_height', 480).get_parameter_value().integer_value
+        width = self.declare_parameter('image_width', 1280).get_parameter_value().integer_value
+        height = self.declare_parameter('image_height', 720).get_parameter_value().integer_value
         focal_length = width / 2 / math.tan(math.radians(hfov)/2) # for defaults = 1078.467509; 
         image_center = (width//2, height//2)
         self.camera_matrix = np.array([
@@ -264,20 +264,18 @@ class KeyboardLocaliser(Node):
 
         return R.astype(np.float32), t.reshape(3, 1).astype(np.float32)
         
-    def get_corners(self, rmat, tvec) -> None:
-        """ Publish keyboard corners by projecting the known keyboard points to image space"""        
+    def get_corners(self, detected_pts) -> None:
+        fx = self.camera_matrix[0, 0]
+        fy = self.camera_matrix[1, 1]
+        cx = self.camera_matrix[0, 2]
+        cy = self.camera_matrix[1, 2]
 
-        rvec, _ = cv2.Rodrigues(rmat)
-        image_points, _ = cv2.projectPoints(
-            self.keyboard_points_m,
-            rvec,
-            tvec,
-            self.camera_matrix,
-            self.dist_coeffs
-        )
-        image_points = image_points.reshape(-1, 2).astype(np.float32)
+        image_points = []
+        for pt in detected_pts:
+            u = fx * pt[0] / pt[2] + cx
+            v = fy * pt[1] / pt[2] + cy
+            image_points.append([u, v])
 
-        # Publish points
         kb_msg = KeyboardPoints()
         kb_msg.points = [int(i) for point in image_points for i in point]
         kb_msg.width, kb_msg.height = self.camera_resolution
@@ -290,6 +288,9 @@ class KeyboardLocaliser(Node):
         if detected_points_m is None:
             return None
         
+        # Publish keyboard corner points to gui
+        self.get_corners(detected_points_m)
+        
         # Get the rotation matrix and translation vector
         rmat, tvec = self.estimate_rigid_transform(self.keyboard_points_m, detected_points_m)
         if rmat is None or tvec is None:
@@ -300,9 +301,6 @@ class KeyboardLocaliser(Node):
         if np.dot(rmat[:, 2], tvec_unit) > 0:
             rmat[:, 2] *= -1
             rmat[:, 1] *= -1
-
-        # Publish keyboard corner points to gui
-        self.get_corners(rmat, tvec)
         
         # Convert to rotation matrix then to quaternion 
         rot = R.from_matrix(rmat)
