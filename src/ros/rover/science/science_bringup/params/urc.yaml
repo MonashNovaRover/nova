@@ -17,8 +17,8 @@ analysis_arm:
     hardware:
       actuation:
         can_id: 0x032
-        max_effort: 1.0
-        reversed: false
+        max_effort: 0.3
+        reversed: true
 
 #time_of_flight_sensor:
 #  ros__parameters:
