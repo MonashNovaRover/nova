@@ -123,75 +123,45 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
       </Dropdown>
     </CardHeader>
     <CardBody className="grid grid-cols-5 gap-3">
-      {/*<div className="flex flex-col col-span-2 gap-3">*/}
-
-      {/*  <SegmentedPicker*/}
-      {/*    selectedIndex={selectedTab}*/}
-      {/*    onIndexChange={setSelectedTab}*/}
-      {/*    children={[*/}
-      {/*      "Analysis", "Calibration"*/}
-      {/*    ]}*/}
-      {/*    color="primary"*/}
-      {/*    className="pb-0"*/}
-      {/*    fullWidth*/}
-      {/*    variant="bordered"*/}
-      {/*  />*/}
-
-      {/*  /!*<CarouselInputs*!/*/}
-      {/*  /!*  currentCuvettes={currentCuvettes}*!/*/}
-      {/*  /!*  showCalibration={showCalibration}*!/*/}
-      {/*  /!*  setCurrentCuvette={(positions) => {*!/*/}
-      {/*  /!*    setCuvettePosition(RING.INNER, positions[RING.INNER]);*!/*/}
-      {/*  /!*    setCuvettePosition(RING.OUTER, positions[RING.OUTER]);*!/*/}
-      {/*  /!*  }}*!/*/}
-      {/*  /!*  moveXCuvettes={moveXCuvettes}*!/*/}
-      {/*  /!*  triggerZero={triggerZero}*!/*/}
-      {/*  /!*  incrementZero={incrementZero}*!/*/}
-      {/*  /!*  resetZero={resetZero}*!/*/}
-      {/*  /!*  isZeroing={isZeroing}*!/*/}
-        {/*/>/*/}
-      {/*</div>*/}
-
-      <div className="col-span-5 flex flex-col gap-3 items-center">
-        <CarouselControls
-          moveXCuvettes={moveXCuvettes(RING.OUTER)}
-          calibrateByDegrees={incrementZero(RING.OUTER)}
-          showCalibration={false}
-          variant={RING.OUTER}
-          disabled={isZeroing}
-        />
-        <CarouselControls
-          moveXCuvettes={moveXCuvettes(RING.INNER)}
-          calibrateByDegrees={incrementZero(RING.INNER)}
-          showCalibration={false}
-          variant={RING.INNER}
-          disabled={isZeroing}
-        />
-        <div className="w-3/4">
-          <CarouselDial
-            inner={{current: currentCuvettes[RING.INNER], onClick: onCuvetteClick(RING.INNER)}}
-            outer={{current: currentCuvettes[RING.OUTER], onClick: onCuvetteClick(RING.OUTER)}}
-          />
-        </div>
-        <CarouselControls
-          moveXCuvettes={moveXCuvettes(RING.OUTER)}
-          calibrateByDegrees={incrementZero(RING.OUTER)}
-          showCalibration={true}
-          variant={RING.OUTER}
-          disabled={isZeroing}
-        />
-        <CarouselControls
-          moveXCuvettes={moveXCuvettes(RING.INNER)}
-          calibrateByDegrees={incrementZero(RING.INNER)}
-          showCalibration={true}
-          variant={RING.INNER}
-          disabled={isZeroing}
-        />
-        <div className="grid grid-cols-2 gap-3 w-full mt-2">
-          <Button color="primary" onPressStart={() => triggerZero(RING.INNER)}>Zero Inner</Button>
-          <Button color="secondary" onPressStart={() => triggerZero(RING.OUTER)}>Zero Outer</Button>
-        </div>
+      <div className="col-span-2 flex flex-col gap-3 items-center w-full">
+        <Button className="w-full" color="primary" onPressStart={() => triggerZero(RING.INNER)}>Zero Inner</Button>
+        <Button className="w-full" color="secondary" onPressStart={() => triggerZero(RING.OUTER)}>Zero Outer</Button>
         <CarouselHallEffects/>
+      </div>
+
+      <div className="col-span-3 flex flex-col gap-3 items-center">
+        <CarouselControls
+          moveXCuvettes={moveXCuvettes(RING.OUTER)}
+          calibrateByDegrees={incrementZero(RING.OUTER)}
+          showCalibration={false}
+          variant={RING.OUTER}
+          disabled={isZeroing}
+        />
+        <CarouselControls
+          moveXCuvettes={moveXCuvettes(RING.INNER)}
+          calibrateByDegrees={incrementZero(RING.INNER)}
+          showCalibration={false}
+          variant={RING.INNER}
+          disabled={isZeroing}
+        />
+        <CarouselDial
+          inner={{current: currentCuvettes[RING.INNER], onClick: onCuvetteClick(RING.INNER)}}
+          outer={{current: currentCuvettes[RING.OUTER], onClick: onCuvetteClick(RING.OUTER)}}
+        />
+        <CarouselControls
+          moveXCuvettes={moveXCuvettes(RING.OUTER)}
+          calibrateByDegrees={incrementZero(RING.OUTER)}
+          showCalibration={true}
+          variant={RING.OUTER}
+          disabled={isZeroing}
+        />
+        <CarouselControls
+          moveXCuvettes={moveXCuvettes(RING.INNER)}
+          calibrateByDegrees={incrementZero(RING.INNER)}
+          showCalibration={true}
+          variant={RING.INNER}
+          disabled={isZeroing}
+        />
       </div>
     </CardBody>
   </Card>

@@ -38,11 +38,11 @@ const URCScienceView: React.FC = () => {
 
   const VisSpecView = (
     <div className="grid grid-flow-col auto-cols-fr gap-3 p-3 overflow-auto flex-1 min-h-0">
-      <div className="flex flex-col gap-3 col-span-2">
+      <div className="flex flex-col gap-3 col-span-3">
         <URCUVVisSpecView/>
       </div>
 
-      <div className="flex flex-col gap-3 col-span-2">
+      <div className="flex flex-col gap-3 col-span-3">
         <PumpsWidget/>
         <CarouselWidgetV2/>
       </div>
