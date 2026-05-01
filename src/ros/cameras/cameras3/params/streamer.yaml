@@ -316,7 +316,7 @@ camera_streamer:
       # auto:
       delivery:
         drive:
-          mast_forward: default
+          mast_forward: snail
           mast_backward: default
           mast_arm_stow: default
           mast_belly: default
@@ -336,7 +336,33 @@ camera_streamer:
           arm_end_side: default
           arm_wrist: default
 
-      # science:
+      delivery:
+        drive:
+          mast_forward: snail
+          mast_backward: default
+          mast_arm_stow: default
+          mast_belly: default
+          science_gimbal_cam: default
+          science_boom: snail
+          science_cache_left: snail
+          science_cache_right: snail
+          science_microscope: snail
+          science_cuvettes: snail
+          science_litmus: snail
+          science_spectroscope: snail
+        payload:
+          mast_forward: snail
+          mast_backward: snail
+          mast_arm_stow: snail
+          mast_belly: snail
+          science_gimbal_cam: default
+          science_boom: default
+          science_cache_left: snail
+          science_cache_right: snail
+          science_microscope: default
+          science_cuvettes: default
+          science_litmus: still
+          science_spectroscope: still
 
     defaults:
       # Waveshare

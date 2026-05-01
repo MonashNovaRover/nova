@@ -52,10 +52,12 @@ export enum CameraSerials {
 
   ARC_ACTIVATED_NODES = "arc_activated_nodes",
 
-  URC_SCIENCE_UV_VIS = "science_spectroscope",
+  URC_SCIENCE_BOOM = "science_boom",
+  URC_SCIENCE_CACHE_LEFT = "science_cache_left",
+  URC_SCIENCE_CACHE_RIGHT = "science_cache_right",
   URC_SCIENCE_CUVETTE = "science_cuvettes",
-  URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
-  URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
+  URC_SCIENCE_LITMUS = "science_litmus", 
+  URC_SCIENCE_UV_VIS = "science_spectroscope",
   URC_ACTIVATED_NODES = "urc_activated_nodes",
   URC_SCIENCE_AUGER_DEPTH_SENSORS = "science_auger_depth_sensors",
 
@@ -111,10 +113,14 @@ const arcScienceCams = [
 ];
 
 const urcScienceCams = [
-  CameraSerials.URC_SCIENCE_CUVETTE,
-  CameraSerials.SCIENCE_MICROSCOPE,
-  CameraSerials.URC_SCIENCE_UV_VIS,
   CameraSerials.SCIENCE_GIMBAL,
+  CameraSerials.URC_SCIENCE_BOOM,
+  CameraSerials.URC_SCIENCE_CACHE_LEFT,
+  CameraSerials.URC_SCIENCE_CACHE_RIGHT,
+  CameraSerials.SCIENCE_MICROSCOPE,
+  CameraSerials.URC_SCIENCE_CUVETTE,
+  CameraSerials.URC_SCIENCE_LITMUS,
+  CameraSerials.URC_SCIENCE_UV_VIS,
 ]
 
 const driveCams = [
@@ -228,17 +234,21 @@ export const urc_autonomous_views: CameraViewConfig[] = [
 
 export const urc_science_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS
+    cameraSerials: [...mastCams, ...urcScienceCams.slice(0,4), ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, ...urcScienceCams.slice(4,8)
     ],
     viewTitle: "All Cams",
   },
   {
-    cameraSerials:  mastCams,
-    viewTitle: "Mast Cams",
+    cameraSerials: [...mastCams, ...driveCams],
+    viewTitle: "Exploration",
   },
   {
-    cameraSerials: urcScienceCams,
-    viewTitle: "Science Cams"
+    cameraSerials: [...urcScienceCams.slice(0,4), CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS],
+    viewTitle: "External Science"
+  },
+  {
+    cameraSerials: [...urcScienceCams.slice(4,8)],
+    viewTitle: "Internal Science"
   }
 ]
 
