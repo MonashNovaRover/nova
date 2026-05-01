@@ -1,9 +1,8 @@
-import React, { createContext, useContext, useRef, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import * as ROSLIB from "roslib"; // Ensure you run: npm install roslib
+import React, { createContext, useContext, useRef, useEffect } from "react";
 import { ActiveYoloConfig } from "./YoloConfig";
 import { Detection, useYoloDetection } from "./useYoloDetection";
-import { RootState } from "../../../redux/RootState";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
+import { RosTopic } from "../../../ros/topics/rosTopic";
 
 interface YoloContextValue {
   registerVideoRef: (ref: React.RefObject<HTMLVideoElement | null>) => number;
@@ -14,51 +13,7 @@ const YoloContext = createContext<YoloContextValue | null>(null);
 
 export function YoloProvider({ children }: { children: React.ReactNode }) {
   const videoRefs = useRef<React.RefObject<HTMLVideoElement | null>[]>([]);
-  const baseStationIP = useSelector((state: RootState) => state.uiState.baseStationIP);
-  
-  // State to track if ROS is actually connected
-  const [isRosConnected, setIsRosConnected] = useState(false);
-
-  // Refs to hold the ROS connection and Topic so they persist across renders
-  const rosRef = useRef<ROSLIB.Ros | null>(null);
-  const topicRef = useRef<ROSLIB.Topic<any> | null>(null);
-
-  // Initialize ROS Connection on Mount
-  useEffect(() => {
-    const ros = new ROSLIB.Ros({
-      url: "ws://" + baseStationIP + ":9090", 
-    });
-
-    ros.on("connection", () => {
-      console.log("ROS: Connected to websocket server.");
-      setIsRosConnected(true);
-    });
-    
-    ros.on("error", (error) => {
-      console.error("ROS: Error connecting:", error);
-      setIsRosConnected(false);
-    });
-    
-    ros.on("close", () => {
-      console.log("ROS: Connection closed.");
-      setIsRosConnected(false);
-    });
-
-    // Detection2DArray topic definition
-    const detectionTopic = new ROSLIB.Topic({
-      ros: ros,
-      name: "/yolo/object_detections",
-      messageType: "nova_interfaces/Detection2DArray",
-    });
-
-    rosRef.current = ros;
-    topicRef.current = detectionTopic;
-
-    // Cleanup connection when the provider unmounts
-    return () => {
-      ros.close();
-    };
-  }, [baseStationIP]);
+  const bifrostDetections = useBifrost({ topic: RosTopic.YOLO_DETECTIONS });
 
   const registerVideoRef = (ref: React.RefObject<HTMLVideoElement | null>) => {
     videoRefs.current.push(ref);
@@ -74,10 +29,7 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
 
   // Publish Logic
   useEffect(() => {
-    if (!topicRef.current || !detections) return;
-    
-    // Don't try to publish if the websocket is offline
-    if (!isRosConnected) return;
+    if (!detections) return;
 
     const activeVideo = videoRefs.current[0]?.current;
     if (!activeVideo) return;
@@ -90,10 +42,10 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
     const msg = {
       header: {
         frame_id: "camera_link",
-        stamp: { secs: 0, nsecs: 0 },
+        stamp: { sec: 0, nanosec: 0 },
       },
       detections: activeDetections.map((d) => ({
-        class: ActiveYoloConfig.classNames[d.classId] ?? `class_${d.classId}`,
+        class_name: ActiveYoloConfig.classNames[d.classId] ?? `class_${d.classId}`,
         score: d.score,
         pose: {
           position: {
@@ -109,8 +61,8 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
       })),
     };
 
-    topicRef.current.publish(msg);
-  }, [detections, isRosConnected]);
+    bifrostDetections.publishToTopic(msg);
+  }, [detections, bifrostDetections]);
 
   return (
     <YoloContext.Provider

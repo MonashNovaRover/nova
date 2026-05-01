@@ -1,7 +1,7 @@
 # A 2D detection result
 
 # The classification of the detected object
-string class
+string class_name
 
 # Confidence score [0-1]
 float64 score
