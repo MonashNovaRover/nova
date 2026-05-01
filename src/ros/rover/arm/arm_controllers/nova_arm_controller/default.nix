@@ -17,9 +17,8 @@
 , tf2-msgs
 , geometry-msgs
 , nova-interfaces
-, moveit-core
-, moveit-ros-planning
-, moveit-ros-planning-interface
+, nova-arm-kinematics
+, fcl
 }:
 
 buildRosPackage {
@@ -50,9 +49,8 @@ buildRosPackage {
     tf2-msgs
     geometry-msgs
     nova-interfaces
-    moveit-core
-    moveit-ros-planning
-    moveit-ros-planning-interface
+    nova-arm-kinematics
+    fcl
   ];
 }
 

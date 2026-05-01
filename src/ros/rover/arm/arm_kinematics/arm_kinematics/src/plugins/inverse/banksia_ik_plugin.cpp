@@ -4,11 +4,96 @@
 
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
 
-namespace {
-  const auto ENDEFFECTOR_BASIS_INVERSE = Eigen::Quaternionf(0.5, -0.5, 0.5, 0.5).toRotationMatrix().inverse();
-}
+#include <array>
+#include <cassert>
+#include <cmath>
+
+#include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/forward/utilities/analysis_tree.hpp"
 
 namespace arm_kinematics {
+
+namespace {
+
+struct AxisLine
+{
+  Eigen::Vector3d point = Eigen::Vector3d::Zero();
+  Eigen::Vector3d direction = Eigen::Vector3d::UnitZ();
+};
+
+constexpr size_t kExpectedBanksiaJointCount = 6;
+constexpr size_t kShoulderJointIndex = 1;
+constexpr size_t kElbowActuatedJointIndex = 2;
+constexpr size_t kWristRollJointIndex = 3;
+constexpr size_t kWristPitchJointIndex = 4;
+constexpr size_t kWristYawJointIndex = 5;
+constexpr char kBanksiaElbowPivotJointName[] = "l1_l2_pivot";
+
+[[nodiscard]] AxisLine make_axis_line(
+  const AnalysisTree & analysis_tree,
+  const Eigen::Isometry3d & root_T_base,
+  const std::string & joint_name)
+{
+  const auto joint = analysis_tree.query_joint(joint_name);
+  const Eigen::Isometry3d base_T_joint = root_T_base.inverse() * joint.root_T_joint;
+
+  return AxisLine{
+    base_T_joint.translation(),
+    (base_T_joint.rotation() * joint.axis_in_joint).normalized(),
+  };
+}
+
+[[nodiscard]] Eigen::Vector3d closest_point_on_line(
+  const AxisLine & line,
+  const Eigen::Vector3d & point)
+{
+  return line.point + line.direction.dot(point - line.point) * line.direction;
+}
+
+[[nodiscard]] double distance_to_line(
+  const AxisLine & line,
+  const Eigen::Vector3d & point)
+{
+  return (point - closest_point_on_line(line, point)).norm();
+}
+
+[[nodiscard]] double distance_between_lines(
+  const AxisLine & a,
+  const AxisLine & b)
+{
+  const Eigen::Vector3d normal = a.direction.cross(b.direction);
+  const double normal_norm = normal.norm();
+  if (normal_norm < 1e-9) {
+    return (a.direction.cross(b.point - a.point)).norm();
+  }
+  return std::abs(normal.normalized().dot(b.point - a.point));
+}
+
+[[nodiscard]] Eigen::Vector3d closest_midpoint_between_lines(
+  const AxisLine & a,
+  const AxisLine & b)
+{
+  const Eigen::Vector3d delta = b.point - a.point;
+  const double aa = a.direction.dot(a.direction);
+  const double bb = b.direction.dot(b.direction);
+  const double ab = a.direction.dot(b.direction);
+  const double denom = aa * bb - ab * ab;
+
+  if (std::abs(denom) < 1e-9) {
+    const Eigen::Vector3d on_a = closest_point_on_line(a, b.point);
+    return 0.5 * (on_a + b.point);
+  }
+
+  const double ad = a.direction.dot(delta);
+  const double bd = b.direction.dot(delta);
+  const double ta = (ad * bb - bd * ab) / denom;
+  const double tb = (ad * ab - bd * aa) / denom;
+  const Eigen::Vector3d on_a = a.point + ta * a.direction;
+  const Eigen::Vector3d on_b = b.point + tb * b.direction;
+  return 0.5 * (on_a + on_b);
+}
+
+}  // namespace
 
 /**
  * IK plugin for Taipan with the original (bad) carbon fibre wrist
@@ -17,33 +102,140 @@ class BanksiaIKPlugin : public InverseKinematicsPlugin {
 public:
 
   bool on_initialize() override {
-    // TODO: Auto measure link_lengths_ using get_robot_model().get_analysis_tree() ?
+    const auto & params = get_kinematics_params();
+    const auto & analysis_tree = get_robot_model().get_analysis_tree();
+    const auto & joints = analysis_tree.get_joints();
+    const auto & frames = analysis_tree.get_frames();
+
+    if (params.joint_names.size() < kExpectedBanksiaJointCount) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK expects at least %zu configured joint_names, got %zu.",
+        kExpectedBanksiaJointCount,
+        params.joint_names.size());
+      return false;
+    }
+
+    const std::string & shoulder_joint_name = params.joint_names[kShoulderJointIndex];
+    const std::string & elbow_actuated_joint_name = params.joint_names[kElbowActuatedJointIndex];
+    const std::string & wrist_roll_joint_name = params.joint_names[kWristRollJointIndex];
+    const std::string & wrist_pitch_joint_name = params.joint_names[kWristPitchJointIndex];
+    const std::string & wrist_yaw_joint_name = params.joint_names[kWristYawJointIndex];
+
+    if (!frames.contains(params.base_link_name)) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK could not find base_link_name '%s' in the AnalysisTree.",
+        params.base_link_name.c_str());
+      return false;
+    }
+    if (!frames.contains(params.ee_link_name)) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK could not find ee_link_name '%s' in the AnalysisTree.",
+        params.ee_link_name.c_str());
+      return false;
+    }
+
+    if (!joints.contains(shoulder_joint_name) ||
+      !joints.contains(wrist_roll_joint_name) ||
+      !joints.contains(wrist_pitch_joint_name) ||
+      !joints.contains(wrist_yaw_joint_name))
+    {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK could not find the configured active chain joints in the AnalysisTree.");
+      return false;
+    }
+
+    if (!joints.contains(kBanksiaElbowPivotJointName)) {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK could not find the physical elbow pivot joint '%s' for configured elbow joint '%s'.",
+        kBanksiaElbowPivotJointName,
+        elbow_actuated_joint_name.c_str());
+      return false;
+    }
+
+    const Eigen::Isometry3d root_T_base = analysis_tree.query_frame(params.base_link_name);
+
+    const AxisLine shoulder_axis = make_axis_line(analysis_tree, root_T_base, shoulder_joint_name);
+    const AxisLine elbow_axis = make_axis_line(analysis_tree, root_T_base, kBanksiaElbowPivotJointName);
+    const AxisLine wrist_roll_axis = make_axis_line(analysis_tree, root_T_base, wrist_roll_joint_name);
+    const AxisLine wrist_pitch_axis = make_axis_line(analysis_tree, root_T_base, wrist_pitch_joint_name);
+    const AxisLine wrist_yaw_axis = make_axis_line(analysis_tree, root_T_base, wrist_yaw_joint_name);
+
+    const Eigen::Vector3d wrist_center =
+      (closest_midpoint_between_lines(wrist_roll_axis, wrist_pitch_axis) +
+      closest_midpoint_between_lines(wrist_pitch_axis, wrist_yaw_axis) +
+      closest_midpoint_between_lines(wrist_roll_axis, wrist_yaw_axis)) / 3.0;
+
+    const Eigen::Vector3d ee_target =
+      analysis_tree.query_transform_between_frames(params.base_link_name, params.ee_link_name)
+      .translation();
+
+    link_lengths_[0] = distance_between_lines(shoulder_axis, elbow_axis) +
+      distance_to_line(shoulder_axis, Eigen::Vector3d::Zero());
+
+    link_lengths_[1] = distance_to_line(elbow_axis, wrist_center);
+    link_lengths_[2] = (ee_target - wrist_center).norm();
+
+    if (!std::isfinite(link_lengths_[0]) || !std::isfinite(link_lengths_[1]) ||
+      !std::isfinite(link_lengths_[2]) || link_lengths_[0] <= 0.0 || link_lengths_[1] <= 0.0 ||
+      link_lengths_[2] <= 0.0)
+    {
+      RCLCPP_ERROR(
+        get_logger(),
+        "Banksia IK measured invalid link lengths: l1=%f l2=%f l3=%f",
+        link_lengths_[0],
+        link_lengths_[1],
+        link_lengths_[2]);
+      return false;
+    }
+
+    RCLCPP_INFO(
+      get_logger(),
+      "Banksia IK measured link lengths from AnalysisTree: l1=%.6f l2=%.6f l3=%.6f",
+      link_lengths_[0],
+      link_lengths_[1],
+      link_lengths_[2]);
 
     return true;
   }
 
-  bool get_position_ik(
-    const Eigen::Isometry3f & ik_pose,
-    const std::vector<double> & ik_seed_state,
-    std::vector<double> & solution_state) const override
+  IKResult get_position_ik(
+    const Eigen::Isometry3d & ik_pose,
+    const span<const double> ik_seed_state,
+    const span<double> solution_state) const override
   {
-    assert(ik_seed_state.size() >= 6);
+    if (ik_seed_state.size() < 6) {
+      return tl::unexpected(IKFailure::InvalidSeed{
+        "Banksia IK expects at least 6 seed joints"});
+    }
+    if (solution_state.size() < 6) {
+      return tl::unexpected(IKFailure::InvalidSeed{
+        "Banksia IK requires a pre-allocated output buffer with at least 6 elements"});
+    }
+    if (!ik_pose.matrix().allFinite()) {
+      return tl::unexpected(IKFailure::InvalidTarget{
+        "target pose contains NaN or Inf"});
+    }
 
-    // Adapted from Abby's code
+    // Ported from arm_controllers_old/banksia_kinematics_plugin.
     const auto origin = ik_pose.translation();
     const auto x = origin.x();
     const auto y = origin.y();
     const auto z = origin.z();
 
-    const Eigen::Matrix3f rotated_basis = ik_pose.rotation() * ENDEFFECTOR_BASIS_INVERSE;
+    const Eigen::Matrix3d rotated_basis = ik_pose.rotation();
 
     double l1r = link_lengths_[0];
     double l2r = link_lengths_[1];
     double l3  = link_lengths_[2];
 
-    const Eigen::Matrix3f & rxyz = rotated_basis;
+    const Eigen::Matrix3d & rxyz = rotated_basis;
 
-    Eigen::Matrix4f t07r = Eigen::Matrix4f::Zero();
+    Eigen::Matrix4d t07r = Eigen::Matrix4d::Zero();
     t07r.topLeftCorner<3,3>() = rxyz;
 
     t07r(3, 3) = 1;
@@ -51,13 +243,9 @@ public:
     t07r(1, 3) = y;
     t07r(2, 3) = z;
 
-    Eigen::Matrix4f t67 = to_matrix4(
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, l3,
-      0, 0, 0, 1
-    );
-    Eigen::Matrix4f t0_wrist = t07r * t67.inverse();
+    // Need two DH transforms to get x of end effector frame pointing forwards.
+    Eigen::Matrix4d t67 = sub_dh(M_PI / 2, 0, 0, M_PI / 2) * sub_dh(M_PI / 2, l3, 0, 0);
+    Eigen::Matrix4d t0_wrist = t07r * t67.inverse();
 
     double wrist_x = t0_wrist(0, 3);
     double wrist_y = t0_wrist(1, 3);
@@ -65,77 +253,74 @@ public:
 
     double j1 = atan2(wrist_y, wrist_x);
     double l = sqrt(pow(wrist_x, 2) + pow(wrist_y, 2));
-    double j3a = acos((pow(l, 2) + pow(wrist_z, 2) - pow(l1r, 2) - pow(l2r, 2)) / (2 * l1r * l2r));
-    double j3b = -j3a; // expands to -acos((l^2+wrist_z^2-L1r^2-L2r^2)/(2*L1r*L2r)) as per keenan's notes
-    // double j3ao = j3a + M_PI / 2;
-    double j3bo = j3b + M_PI / 2;
+    const double cosine_argument =
+      (pow(l, 2) + pow(wrist_z, 2) - pow(l1r, 2) - pow(l2r, 2)) / (2 * l1r * l2r);
+    if (!std::isfinite(cosine_argument)) {
+      return tl::unexpected(IKFailure::BackendError{
+        "computed elbow cosine argument is non-finite"});
+    }
+    if (cosine_argument < -1.0 || cosine_argument > 1.0) {
+      return tl::unexpected(IKFailure::OutsideWorkspace{
+        "requested pose cannot be reached by the Banksia arm geometry"});
+    }
 
-    double k1a = l1r + l2r * cos(j3a);
-    double k2a = l2r * sin(j3a);
+    double j3a = acos(cosine_argument);
+    double j3b = -j3a; // expands to -acos((l^2+wrist_z^2-L1r^2-L2r^2)/(2*L1r*L2r)) as per keenan's notes
+    double j3bo = -j3b - M_PI / 2;
+
     double k1b = l1r + l2r * cos(j3b);
     double k2b = l2r * sin(j3b);
 
-    double j2a = atan2(wrist_z, l) - atan2(k2a, k1a);
     double j2b = atan2(wrist_z, l) - atan2(k2b, k1b);
-    double j2ao = j2a - M_PI / 2;
-    double j2bo = j2b - M_PI / 2;
+    double j2bo = -j2b;
 
     Eigen::Matrix4d t01 = sub_dh(0, 0, 0, j1);
-    Eigen::Matrix4d t12 = sub_dh(M_PI / 2, 0, 0, j2bo + M_PI / 2);
-    Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo - M_PI / 2);
+    Eigen::Matrix4d t12 = sub_dh(-M_PI / 2, 0, 0, j2bo);
+    Eigen::Matrix4d t23 = sub_dh(0, l1r, 0, j3bo);
     Eigen::Matrix4d t02 = t01 * t12;
     Eigen::Matrix4d t03_wrist = t02 * t23;
     Eigen::Matrix3d r03_wrist = t03_wrist.topLeftCorner<3, 3>(); // R03_wrist = T03_wrist(1:3,1:3); in matlab
-    Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>().cast<double>(); // see above
+    Eigen::Matrix3d r07r = t07r.topLeftCorner<3, 3>(); // see above
     Eigen::Matrix3d r37r = r03_wrist.inverse() * r07r;
 
-    double j4 = atan2(r37r(1, 2), r37r(0, 2));
-    double j5 = atan2(-r37r(2, 2), r37r(0, 2) / cos(j4));
-    double j6 = atan2(-r37r(2, 1) / cos(j5), r37r(2, 0) / cos(j5));
+    // I don't know why we have to roll the rows of the matrix by one.
+    Eigen::Vector3i indicies = {1, 2, 0};
+    Eigen::Matrix3d r37r_shifted = r37r(indicies, Eigen::all);
 
-    // Old implementation needed to be in the same order as when they get put in a joint group
-    // std::array<double, 6> new_joints = { j1, j2bo, -j4, j5, j6, j3bo + j2bo };
+    // Returns in range [0:pi]x[-pi:pi]x[-pi:pi]. The old implementation chose this
+    // over canonical Euler angles so j4 moves less.
+    Eigen::Vector3d rpr = r37r_shifted.eulerAngles(0, 1, 0);
 
-    // New implementation allows for us to operate on an arbitrary joint order of our choosing,
-    // with any reordering being handled by joint_map
+    double j4 = -rpr(0);
+    double j5 = rpr(1) - M_PI / 2;
+    double j6 = rpr(2);
+
+    // Move j4's range from [-pi:0] to [-pi/2:pi/2]. If j4 rotates 180 degrees
+    // because of this, j5 and j6 need inverting too.
+    if (j4 < -M_PI / 2) {
+      j4 = j4 + M_PI;
+      j5 = -rpr(1) - M_PI / 2;
+      j6 = j6 + (j6 < 0 ? M_PI : -M_PI);
+    }
+
+    // The old plugin returned {j1, j2, j4, j5, j6, j3} because MoveIt reordered
+    // Banksia's active joint group. This plugin writes the configured controller order.
     assert(solution_state.size() >= 6);
     solution_state[0] = j1;
-    solution_state[1] = j2bo;
-    solution_state[2] = j3bo + j2bo;
-    solution_state[3] = -j4;
+    solution_state[1] = j2bo + M_PI / 2;
+    solution_state[2] = j3bo + j2bo + M_PI / 2;
+    solution_state[3] = j4;
     solution_state[4] = j5;
     solution_state[5] = j6;
 
-    return true;
-  }
+    for (size_t i = 0; i < 6; ++i) {
+      if (!std::isfinite(solution_state[i])) {
+        return tl::unexpected(IKFailure::BackendError{
+          "Banksia IK produced NaN or Inf joint values"});
+      }
+    }
 
-  static Eigen::Matrix4f to_matrix4(
-      float r00, float r01, float r02, float tx,
-      float r10, float r11, float r12, float ty,
-      float r20, float r21, float r22, float tz,
-      float b0 = 0,  float b1 = 0,  float b2 = 0, float b3 = 1)
-  {
-    Eigen::Matrix4f m;
-    m << r00, r01, r02, tx,
-         r10, r11, r12, ty,
-         r20, r21, r22, tz,
-         b0,  b1,  b2,  b3;
-    return m;
-  }
-
-  static Eigen::Isometry3f to_isometry(
-      float r00, float r01, float r02, float tx,
-      float r10, float r11, float r12, float ty,
-      float r20, float r21, float r22, float tz)
-  {
-    Eigen::Matrix4f m;
-    m << r00, r01, r02, tx,
-         r10, r11, r12, ty,
-         r20, r21, r22, tz,
-         0.0, 0.0, 0.0, 1.0;
-
-    Eigen::Isometry3f T(m);   // or: Eigen::Isometry3f T = m;
-    return T;
+    return {};
   }
 
   // substitutes values into our DH table.
@@ -152,7 +337,7 @@ public:
   }
 
 private:
-  std::array<double, 3> link_lengths_ {0.5, 0.41799975417, 0.417};
+  std::array<double, 3> link_lengths_ {0.5052, 0.6193, 0.2225 + 0.021040};
 };
 
 } // namespace arm_kinematics

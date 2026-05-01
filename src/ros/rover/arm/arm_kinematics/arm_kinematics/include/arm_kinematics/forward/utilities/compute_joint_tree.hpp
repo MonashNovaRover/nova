@@ -25,8 +25,8 @@ public:
 
   ComputeJointTree() = default;
   ComputeJointTree(std::vector<JointType> joint_types,
-                Vector3fVector joint_axes,
-                Isometry3fVector origins,
+                Vector3dVector joint_axes,
+                Isometry3dVector origins,
                 std::vector<size_t> parents,
                 const size_t root_relative_count)
       : joint_types_(std::move(joint_types)),
@@ -44,16 +44,16 @@ public:
     auto logger = rclcpp::get_logger("compute_joint_tree");
   }
 
-  inline static void apply_joint(Eigen::Isometry3f & pose, const float state, const Eigen::Vector3f & axis, const JointType type) {
+  inline static void apply_joint(Eigen::Isometry3d & pose, const double state, const Eigen::Vector3d & axis, const JointType type) {
     switch (type) {
       case JointType::REVOLUTE:
       case JointType::CONTINUOUS: {
-        const auto rotation = Eigen::AngleAxisf(state, axis);
+        const auto rotation = Eigen::AngleAxisd(state, axis);
         pose.linear() *= rotation.toRotationMatrix();
       }
       break;
       case JointType::PRISMATIC: {
-        const Eigen::Vector3f translation = pose.linear() * axis * state;
+        const Eigen::Vector3d translation = pose.linear() * axis * state;
         pose.translation().noalias() += translation;
       }
       break;
@@ -62,7 +62,7 @@ public:
     }
   }
 
-  void update(const std::vector<float> & joint_states) {
+  void update(const std::vector<double> & joint_states) {
     assert(joint_states.size() == poses.size());
 
     // Calculate joints relative to the root
@@ -81,10 +81,10 @@ public:
     }
   }
 
-  [[nodiscard]] const Isometry3fVector & get_origins() const noexcept {
+  [[nodiscard]] const Isometry3dVector & get_origins() const noexcept {
     return origins_;
   }
-  [[nodiscard]] const Vector3fVector & get_axes() const noexcept {
+  [[nodiscard]] const Vector3dVector & get_axes() const noexcept {
     return joint_axes_;
   }
   [[nodiscard]] const std::vector<JointType> & get_types() const noexcept {
@@ -103,10 +103,10 @@ private:
   std::vector<JointType> joint_types_{};
 
   /// The axis the joint actuates about in local space
-  Vector3fVector joint_axes_{};
+  Vector3dVector joint_axes_{};
 
   /// Origin of each frame relative to the parent. Transforms from parent to child frame (when joint state is 0)
-  Isometry3fVector origins_{};
+  Isometry3dVector origins_{};
 
   /// The index of the parent of all non-root joint links. Excludes those relative to the root! This is shorter than
   /// all the other vectors.
@@ -121,7 +121,7 @@ public:
    * with the invariant that for all i, poses[0...i-1] are independent of poses[i...poses.size()].
    * This invariant allows us to calculate each pose in order, using previous values in poses in calculations.
    */
-  Isometry3fVector poses{}; //< Moved to bottom for correct initialization order
+  Isometry3dVector poses{}; //< Moved to bottom for correct initialization order
 };
 
 } // arm_kinematics

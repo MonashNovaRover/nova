@@ -1,163 +1,113 @@
 //
-// Created by Bailey Chessum on 15/10/2025.
+// Created by Bailey Chessum on 21/03/2026.
 //
 
 #ifndef ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP
 #define ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP
 
-#include <urdf/model.h>
-#include <kdl_parser/kdl_parser.hpp>
-#include <rclcpp/logger.hpp>
-#include <hardware_interface/component_parser.hpp>
-#include <tinyxml2.h>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <variant>
+#include <vector>
 
-#include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/joint_map/joint_map.hpp"
-
-namespace
-{
-constexpr const auto kRobotTag = "robot";
-constexpr const auto kSDFTag = "sdf";
-constexpr const auto kModelTag = "model";
-constexpr const auto kROS2ControlTag = "ros2_control";
-constexpr const auto kPluginNameTag = "plugin";
-constexpr const auto kParamTag = "param";
-constexpr const auto kActuatorTag = "actuator";
-constexpr const auto kJointTag = "joint";
-constexpr const auto kTransmissionTag = "transmission";
-constexpr const auto kNameAttribute = "name";
-constexpr const auto kRoleAttribute = "role";
-constexpr const auto kReductionAttribute = "mechanical_reduction";
-constexpr const auto kOffsetAttribute = "offset";
-}  // namespace
+#include "arm_kinematics/joint_map/missing_input_resolution.hpp"
+#include "arm_kinematics/joint_map/state_interface_definition.hpp"
+#include "arm_kinematics/joint_map/state_interface_producer.hpp"
+#include "arm_kinematics/joint_map/transmission_types.hpp"
+#include "arm_kinematics/utilities/expected.hpp"
+#include "arm_kinematics/utilities/span.hpp"
+#include "arm_kinematics/visibility_control.h"
 
 namespace arm_kinematics {
 
-class ARM_KINEMATICS_PUBLIC JointMapBuilder {
-public:
-  JointMapBuilder() = default;
-
-  /**
-   * Constructs a JointMap using the data from previous with_* calls, that maps inputs with input_names to outputs with
-   * output_names.
-   *
-   * \warning Not real-time safe
-   */
-  [[nodiscard]] JointMap build(const std::vector<std::string> & input_names,
-                               const std::vector<std::string> & output_names) const;
-
-  /**
-   * Constructs a JointMap using the data from previous with_* calls, that maps inputs with input_names to each Jnt from
-   * a KDL::Chain's JntArray.
-   *
-   * \warning Not real-time safe
-   */
-  [[nodiscard]] JointMap build(const std::vector<std::string> & input_names,
-                               const KDL::Chain & chain) const;
-
-  /**
-   * Uses the given URDF model to add mimic joints.
-   *
-   * \param urdf_model The urdf::Model to get mimic joints from.
-   */
-  JointMapBuilder & with_urdf(const urdf::Model & urdf_model);
-
-  /**
-   * Manually parses the given URDF string to get transmission definitions to include in the joint map.
-   *
-   * \note This overload gracefully fails with a log message rather than throwing an exception. No transmissions are
-   *       added in the case of an exception occuring.
-   *
-   * \param urdf_string The URDF as a string, containing a ros2_control definition
-   * \param logger the logger to log any caught exceptions to
-   */
-  JointMapBuilder & with_transmissions(const std::string & urdf_string, rclcpp::Logger logger);
-
-  /**
-   * Manually parses the given URDF string to get transmission definitions to include in the joint map.
-   *
-   * \param urdf_string The URDF as a string, containing a ros2_control definition
-   * \throws std::runtime_error for invalid URDFs
-   */
-  JointMapBuilder & with_transmissions_dangerous(const std::string & urdf_string);
-
-  std::vector<hardware_interface::TransmissionInfo> transmissions_{};
-  std::map<std::string, std::shared_ptr<urdf::JointMimic>> mimic_joints{};
-
-private:
-
-  // ros2_control transmission XML parsers
-  // source from https://github.com/ros-controls/ros2_control/blob/896de9646ac73780a314f900fe72a11f2666fbd2/hardware_interface/src/component_parser.cpp#L562
-
-  /// Gets value of the text between tags.
-  /**
-   * \param[in] element_it XMLElement iterator to search for the text.
-   * \param[in] tag_name parent tag name where text is searched for (used for error output)
-   * \return text of for the tag
-   * \throws std::runtime_error if text is not found
-   */
-  static std::string get_text_for_element(
-    const tinyxml2::XMLElement * element_it, const std::string & tag_name);
-
-  /// Gets value of the attribute on an XMLelement.
-  /**
-   * If attribute is not found throws an error.
-   *
-   * \param[in] element_it XMLElement iterator to search for the attribute
-   * \param[in] attribute_name attribute name to search for and return value
-   * \param[in] tag_name parent tag name where attribute is searched for (used for error output)
-   * \return attribute value
-   * \throws std::runtime_error if attribute is not found
-   */
-  static std::string get_attribute_value(
-    const tinyxml2::XMLElement * element_it, const char * attribute_name, std::string tag_name);
-
-  /// Gets value of the attribute on an XMLelement.
-  /**
-   * If attribute is not found throws an error.
-   *
-   * \param[in] element_it XMLElement iterator to search for the attribute
-   * \param[in] attribute_name attribute name to search for and return value
-   * \param[in] tag_name parent tag name where attribute is searched for (used for error output)
-   * \return attribute value
-   * \throws std::runtime_error if attribute is not found
-   */
-  static std::string get_attribute_value(
-    const tinyxml2::XMLElement * element_it, const char * attribute_name, const char * tag_name);
-
-  static hardware_interface::JointInfo parse_transmission_joint_from_xml(const tinyxml2::XMLElement * element_it);
-
-  static hardware_interface::ActuatorInfo parse_transmission_actuator_from_xml(const tinyxml2::XMLElement * element_it);
-
-  /// Gets value of the parameter on an XMLelement.
 /**
- * If parameter is not found, returns specified default value
+ * Error returned by `JointMapBuilder::build_expected` when a request cannot be satisfied.
  *
- * \param[in] element_it XMLElement iterator to search for the attribute
- * \param[in] attribute_name attribute name to search for and return value
- * \param[in] default_value When the attribute is not found, this value is returned instead
- * \return attribute value or default
+ * The error is a tagged `std::variant` with one payload per failure mode. This avoids the
+ * old "enum discriminator + mostly-empty fields" shape and makes the compiler enforce which
+ * payload exists for a given failure.
  */
-  static double get_parameter_value_or(
-    const tinyxml2::XMLElement * params_it, const char * parameter_name, const double default_value);
+struct JointMapBuildError {
+  struct MissingInputs {
+    std::vector<NamedStateInterfaceDefinition> unproducible_outputs{};
+    std::vector<NamedMissingInputResolution> resolutions{};
 
-  /// Search XML snippet from URDF for parameters.
-  /**
-   * \param[in] params_it pointer to the iterator where parameters info should be found
-   * \return key-value map with parameters
-   * \throws std::runtime_error if a component attribute or tag is not found
-   */
-  static std::unordered_map<std::string, std::string> parse_parameters_from_xml(const tinyxml2::XMLElement * params_it);
+    [[nodiscard]] std::string format() const;
+  };
 
-  /// Search XML snippet from URDF for information about a transmission.
-  /**
-   * \param[in] transmission_it pointer to the iterator where transmission info should be found
-   * \return TransmissionInfo filled with information about transmission
-   * \throws std::runtime_error if an attribute or tag is not found
-   */
-  static hardware_interface::TransmissionInfo parse_transmission_from_xml(const tinyxml2::XMLElement * transmission_it);
+  struct Ambiguous {
+    std::vector<producers::AmbiguousInterface> ambiguous_interfaces{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  struct UnknownJoint {
+    std::vector<std::string> unknown_joints{};
+
+    [[nodiscard]] std::string format() const;
+  };
+
+  using Variant = std::variant<MissingInputs, Ambiguous, UnknownJoint>;
+  Variant value;
+
+  template <
+    typename T,
+    typename Decayed = std::decay_t<T>,
+    typename = std::enable_if_t<!std::is_same_v<Decayed, JointMapBuildError>>>
+  JointMapBuildError(T && t)
+  : value(std::forward<T>(t))
+  {
+  }
+
+  [[nodiscard]] std::string format() const;
 };
 
-} // arm_kinematics
+/**
+ * Builder interface for constructing `JointMap` instances.
+ *
+ * A builder is responsible for translating a request — "given these inputs, produce these
+ * outputs" — into a runtime `JointMap` that performs the mapping at compute time. The default
+ * implementation (`DefaultJointMapBuilder`) constructs a `TransmissionReachability` and a
+ * `JointMapBlueprint` to plan and emit the runtime joint map, but FK plugins may return
+ * specialized builders from
+ * `ForwardKinematicsPlugin::get_joint_map_builder()` to express backend-specific mapping
+ * policies (e.g. supplying default values for missing inputs, applying custom transformations,
+ * etc.).
+ *
+ * Strategy for handling missing inputs lives entirely in subclasses (open/closed principle).
+ * The base interface only commits to the request shape and the failure modes.
+ *
+ * \note **Duplicate output state interfaces are allowed in builder requests** (asking for the
+ * same value in two output positions is legitimate, e.g. fan-out into multiple consumers) and
+ * are not an error.
+ */
+class ARM_KINEMATICS_PUBLIC JointMapBuilder {
+public:
+  virtual ~JointMapBuilder() = default;
 
-#endif //ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP
+  /**
+   * Constructs a `JointMap` that maps the given input state interfaces to the given output
+   * state interfaces.
+   *
+   * The canonical request boundary uses `StateInterfaceDefinition` (`JointId` + `InterfaceId`):
+   * callers resolve joint names against a `TransmissionAnalysis` via `joint_order()` to obtain
+   * `JointId`s, then pair them with the desired `InterfaceId`.
+   * `TransmissionAnalysis::StateInterfaceId` is an
+   * implementation detail of the builder — callers never need to pre-register state interfaces.
+   *
+   * Any registered joint paired with any `InterfaceId` is a valid request. A `JointId` that is
+   * not registered in the analysis returns `JointMapBuildError::UnknownJoint`.
+   *
+   * \warning Not real-time safe — performs allocation and graph analysis. Call once at setup
+   * time and reuse the resulting `JointMap` at runtime.
+   */
+  [[nodiscard]] virtual tl::expected<JointMap, JointMapBuildError> build_expected(
+    span<const StateInterfaceDefinition> inputs,
+    span<const StateInterfaceDefinition> outputs) const = 0;
+};
+
+}  // namespace arm_kinematics
+
+#endif  // ARM_KINEMATICS_JOINT_MAP_BUILDER_HPP

@@ -4,6 +4,10 @@
 
 #include "arm_kinematics/common/kinematics_base.hpp"
 
+#include <stdexcept>
+
+#include "arm_kinematics/common/robot_model.hpp"
+
 namespace arm_kinematics {
 
 bool KinematicsBase::initialize_base(
@@ -39,6 +43,14 @@ const KinematicsParams & KinematicsBase::get_kinematics_params() const {
                            "initialize() failed.");
 
   return *kinematics_params_;
+}
+
+KinematicsBase::KinematicsNodeInterfaces & KinematicsBase::get_node_interfaces() {
+  if (!node_interfaces_.has_value())
+    throw std::logic_error("Used get_node_interfaces() on a kinematics plugin before calling initialize() or after "
+                           "initialize() failed.");
+
+  return *node_interfaces_;
 }
 
 const KinematicsBase::KinematicsNodeInterfaces & KinematicsBase::get_node_interfaces() const {

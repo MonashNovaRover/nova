@@ -5,19 +5,28 @@
 #include <gtest/gtest.h>
 #include <urdf_model/model.h>
 #include <Eigen/Geometry>
+#include <fcl/geometry/shape/cylinder.h>
 
+#include <pluginlib/class_loader.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include "arm_kinematics/forward/utilities/compute_joint_tree.hpp"
 #include "arm_kinematics/forward/utilities/compute_frame_tree.hpp"
-#include "arm_kinematics/plugins/forward/eigen_forward_kinematics_plugin.hpp"
+#include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/plugins/forward/default_forward_kinematics_plugin.hpp"
 #include "arm_kinematics/joint_map/joint_map.hpp"
 #include "arm_kinematics/joint_map/joint_map_builder.hpp"
+#include "arm_kinematics/joint_map/state_interface_definition.hpp"
+#include "arm_kinematics/joint_map/transmission_types.hpp"
 #include "arm_kinematics/utilities/reordered.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/collision/collision_manager.hpp"
+#include "arm_kinematics/collision/collision_config.hpp"
+#include "arm_kinematics/collision/collision_utilities.hpp"
 #include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 #include "arm_kinematics/plugins/collision/fcl/fcl_collision_plugin.hpp"
 #include "arm_kinematics/collision/collider_definitions.hpp"
+#include "arm_kinematics/plugin_loader.hpp"
 
 using arm_kinematics::ComputeFrameTree;
 using arm_kinematics::ComputeJointTree;
@@ -25,7 +34,7 @@ using arm_kinematics::FrameDefinitions;
 using arm_kinematics::JointMap;
 using arm_kinematics::JointMapBuilder;
 using arm_kinematics::ForwardKinematicsPlugin;
-using arm_kinematics::EigenForwardKinematicsPlugin;
+using arm_kinematics::DefaultForwardKinematicsPlugin;
 using arm_kinematics::AnalysisTree;
 using arm_kinematics::KinematicsParams;
 using arm_kinematics::Reordered;
@@ -34,10 +43,86 @@ using arm_kinematics::RobotModel;
 
 namespace {
 
+class NoopJointMapBuilder final : public arm_kinematics::JointMapBuilder
+{
+public:
+  tl::expected<arm_kinematics::JointMap, arm_kinematics::JointMapBuildError> build_expected(
+    arm_kinematics::span<const arm_kinematics::StateInterfaceDefinition>,
+    arm_kinematics::span<const arm_kinematics::StateInterfaceDefinition>) const override
+  {
+    return tl::unexpected(arm_kinematics::JointMapBuildError::UnknownJoint{{"unused"}});
+  }
+};
+
+class SpyTree final : public arm_kinematics::ForwardKinematicsPlugin::Tree
+{
+public:
+  explicit SpyTree(const std::size_t link_count)
+  : Tree(link_count)
+  {
+  }
+
+  void position_fk(
+    arm_kinematics::span<const double>,
+    arm_kinematics::Isometry3dVector & link_poses) override
+  {
+    for (auto & pose : link_poses) {
+      pose = Eigen::Isometry3d::Identity();
+    }
+  }
+};
+
+class SpyForwardKinematicsPlugin final : public arm_kinematics::ForwardKinematicsPlugin
+{
+public:
+  tl::expected<MakeTreeResult, MakeTreeError> make_tree(
+    arm_kinematics::span<const arm_kinematics::StateInterfaceDefinition>,
+    const std::string & base_link_name,
+    const arm_kinematics::FrameDefinitions & frames,
+    const arm_kinematics::JointMapBuilder &) override
+  {
+    last_base_link_name = base_link_name;
+    return MakeTreeResult{
+      std::make_unique<SpyTree>(frames.size()),
+      arm_kinematics::Order<>(frames.size(), frames.size())
+    };
+  }
+
+  tl::expected<MakeTreeResult, MakeTreeError> make_tree(
+    arm_kinematics::span<const arm_kinematics::NamedStateInterfaceDefinition>,
+    const std::string & base_link_name,
+    const arm_kinematics::FrameDefinitions & frames,
+    const arm_kinematics::JointMapBuilder &) override
+  {
+    last_base_link_name = base_link_name;
+    return MakeTreeResult{
+      std::make_unique<SpyTree>(frames.size()),
+      arm_kinematics::Order<>(frames.size(), frames.size())
+    };
+  }
+
+  const arm_kinematics::JointMapBuilder & get_joint_map_builder() const noexcept override
+  {
+    return builder_;
+  }
+
+protected:
+  bool on_initialize() override
+  {
+    return true;
+  }
+
+private:
+  NoopJointMapBuilder builder_{};
+
+public:
+  std::string last_base_link_name{};
+};
+
 constexpr double EPSILON = 1e-7;
 
-static void ExpectVectorNear(const Eigen::Vector3f & actual,
-                             const Eigen::Vector3f & expected,
+static void ExpectVectorNear(const Eigen::Vector3d & actual,
+                             const Eigen::Vector3d & expected,
                              const char * message = "", double tol = EPSILON)
 {
   EXPECT_NEAR(actual.x(), expected.x(), tol) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix();
@@ -46,8 +131,8 @@ static void ExpectVectorNear(const Eigen::Vector3f & actual,
 }
 
 // Small helper for comparing isometries
-static void ExpectIsometryNear(const Eigen::Isometry3f & actual,
-                               const Eigen::Isometry3f & expected,
+static void ExpectIsometryNear(const Eigen::Isometry3d & actual,
+                               const Eigen::Isometry3d & expected,
                                const char * message = "", double tol = EPSILON)
 {
   ExpectVectorNear(actual.translation(), expected.translation(), message, tol);
@@ -57,19 +142,31 @@ static void ExpectIsometryNear(const Eigen::Isometry3f & actual,
   EXPECT_TRUE(actual.linear().isApprox(expected.linear(), tol)) << message << "\n" << actual.matrix() << "\n vs \n" << expected.matrix() << "\n";
 }
 
-Eigen::Isometry3f to_isometry(
-    float r00, float r01, float r02, float tx,
-    float r10, float r11, float r12, float ty,
-    float r20, float r21, float r22, float tz)
+Eigen::Isometry3d to_isometry(
+    double r00, double r01, double r02, double tx,
+    double r10, double r11, double r12, double ty,
+    double r20, double r21, double r22, double tz)
 {
-  Eigen::Matrix4f m;
+  Eigen::Matrix4d m;
   m << r00, r01, r02, tx,
        r10, r11, r12, ty,
        r20, r21, r22, tz,
        0.0, 0.0, 0.0, 1.0;
 
-  Eigen::Isometry3f T(m);   // or: Eigen::Isometry3f T = m;
+  Eigen::Isometry3d T(m);   // or: Eigen::Isometry3d T = m;
   return T;
+}
+
+arm_kinematics::AllowedCollisionMatrix RemapAcmForOrder(
+  const arm_kinematics::AllowedCollisionMatrix & acm,
+  const arm_kinematics::Order<> & order)
+{
+  std::vector<std::size_t> new_to_old;
+  new_to_old.reserve(order.size());
+  for (const auto old_index : order) {
+    new_to_old.push_back(old_index);
+  }
+  return acm.remap(new_to_old);
 }
 
 }
@@ -123,18 +220,40 @@ protected:
     robot_model_ = std::make_unique<RobotModel>(robot_description_);
     kinematics_params_ = std::make_shared<KinematicsParams>(*node_);
 
-    fk_plugin_ = std::make_shared<EigenForwardKinematicsPlugin>();
+    fk_plugin_ = std::make_shared<DefaultForwardKinematicsPlugin>();
     init_result_ = fk_plugin_->initialize(*node_, *robot_model_, kinematics_params_);
     ASSERT_TRUE(init_result_);
 
     auto collision = std::make_shared<FclCollisionPlugin>();
     auto [colliders, frames, acm] = arm_kinematics::ColliderDefinitions(robot_model_->get_urdf_model());
+    parent_link_names_ = frames.parent_link_names;
 
-    auto [tree, order] = fk_plugin_->make_tree(joint_names_, "base_link", std::move(frames));
-    init_result_ = collision->initialize(*node_, order.reorder(std::move(colliders)), std::move(acm));
+    // Build position-interface NamedStateInterfaceDefinitions for the joint inputs and call
+    // the new make_tree convenience overload, which returns tl::expected<MakeTreeResult, ...>.
+    static const arm_kinematics::InterfaceId k_position{"position"};
+    std::vector<arm_kinematics::NamedStateInterfaceDefinition> named_inputs;
+    named_inputs.reserve(joint_names_.size());
+    for (const auto & name : joint_names_) {
+      named_inputs.emplace_back(name, k_position);
+    }
+
+    auto make_tree_result = fk_plugin_->make_tree(
+      arm_kinematics::span<const arm_kinematics::NamedStateInterfaceDefinition>(
+        named_inputs.data(), named_inputs.size()),
+      "base_link",
+      frames);
+    ASSERT_TRUE(make_tree_result.has_value())
+      << "make_tree failed: " << make_tree_result.error().format();
+    auto tree = std::move(make_tree_result.value().tree);
+    const auto & order = make_tree_result.value().frame_order;
+    parent_link_names_ = order.reorder(std::move(parent_link_names_));
+
+    init_result_ = collision->initialize(*node_, order.reorder(std::move(colliders)), RemapAcmForOrder(acm, order));
     ASSERT_TRUE(init_result_);
 
-    manager_ = arm_kinematics::CollisionManager(std::move(tree), std::move(collision));
+    tree_ = std::move(tree);
+    collision_plugin_ = collision;
+    manager_ = arm_kinematics::CollisionManager(tree_, collision_plugin_);
   }
 
   void TearDown() override {
@@ -151,6 +270,9 @@ protected:
   bool init_result_ = false;
 
   arm_kinematics::CollisionManager manager_{};
+  ForwardKinematicsPlugin::Tree::SharedPtr tree_{};
+  arm_kinematics::DiscreteCollisionPlugin::SharedPtr collision_plugin_{};
+  std::vector<std::string> parent_link_names_{};
 
   std::vector<std::string> joint_names_ = {"j1", "j2"};
 };
@@ -159,11 +281,256 @@ TEST_F(SimpleUrdfCollisionTests, SimpleCollisions)
 {
   ASSERT_TRUE(init_result_) << "Failed to init either fk or collision plugin";
 
-  manager_.update_poses({0,0});
+  manager_.update_poses(std::vector<double>{0, 0});
   ASSERT_FALSE(manager_.collide()) << "Collision found when there should not be a collision!";
 
-  manager_.update_poses({-2,-2});
+  manager_.update_poses(std::vector<double>{-2, -2});
   ASSERT_TRUE(manager_.collide()) << "Collision not found when there should be a collision!";
 }
 
+TEST_F(SimpleUrdfCollisionTests, CollideWithPairsReturnsDetectedColliderIndices)
+{
+  ASSERT_TRUE(init_result_) << "Failed to init either fk or collision plugin";
 
+  manager_.update_poses(std::vector<double>{-2, -2});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  ASSERT_TRUE(manager_.collide(colliding_pairs));
+  ASSERT_FALSE(colliding_pairs.empty());
+  EXPECT_EQ(colliding_pairs[0], std::make_pair(std::size_t{0}, std::size_t{1}));
+}
+
+TEST_F(SimpleUrdfCollisionTests, ProbeAndAllowCollisionsAllowsPairsAtConfiguredPose)
+{
+  ASSERT_TRUE(init_result_) << "Failed to init either fk or collision plugin";
+
+  arm_kinematics::probe_and_allow_collisions(
+    *collision_plugin_,
+    *tree_,
+    std::vector<double>{-2.0, -2.0});
+
+  manager_.update_poses(std::vector<double>{-2, -2});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  EXPECT_FALSE(manager_.collide(colliding_pairs));
+  EXPECT_TRUE(colliding_pairs.empty());
+  EXPECT_TRUE(collision_plugin_->get_allowed_collision_matrix().get(0, 1));
+}
+
+TEST_F(SimpleUrdfCollisionTests, MakeCollisionManagerWithConfigProbesDefaultPose)
+{
+  arm_kinematics::PluginLoader loader(*node_, robot_description_);
+  std::shared_ptr<arm_kinematics::ForwardKinematicsPlugin> fk;
+  try {
+    fk = loader.make_fk("arm_kinematics/DefaultForwardKinematicsPlugin");
+  } catch (const pluginlib::PluginlibException & e) {
+    GTEST_SKIP() << "pluginlib unavailable in this environment: " << e.what();
+  }
+  ASSERT_TRUE(fk);
+
+  arm_kinematics::CollisionConfig config;
+  config.default_pose_overrides["j1"] = -2.0;
+  config.default_pose_overrides["j2"] = -2.0;
+
+  auto manager_result = arm_kinematics::make_collision_manager(loader, fk, joint_names_, config);
+  ASSERT_TRUE(manager_result.has_value()) << manager_result.error().format();
+
+  auto manager = std::move(manager_result.value());
+  manager.update_poses(std::vector<double>{-2.0, -2.0});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  EXPECT_FALSE(manager.collide(colliding_pairs));
+  EXPECT_TRUE(colliding_pairs.empty());
+}
+
+TEST_F(SimpleUrdfCollisionTests, MakeCollisionRemapsAcmWhenFramesAreReordered)
+{
+  const std::string robot_description = R"(
+    <robot name="same_link_collision_robot">
+      <link name="base_link">
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <sphere radius="0.5"/>
+          </geometry>
+        </collision>
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <sphere radius="0.5"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <link name="link1">
+        <collision>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+            <sphere radius="0.1"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="j1" type="prismatic">
+        <parent link="base_link"/>
+        <child link="link1"/>
+        <origin xyz="10 0 0" rpy="0 0 0"/>
+        <axis xyz="1 0 0"/>
+        <limit lower="-1.0" upper="1.0" effort="10.0" velocity="10.0"/>
+      </joint>
+    </robot>
+  )";
+
+  arm_kinematics::PluginLoader loader(*node_, robot_description);
+  std::shared_ptr<arm_kinematics::ForwardKinematicsPlugin> fk;
+  try {
+    fk = loader.make_fk("arm_kinematics/DefaultForwardKinematicsPlugin");
+  } catch (const pluginlib::PluginlibException & e) {
+    GTEST_SKIP() << "pluginlib unavailable in this environment: " << e.what();
+  }
+  ASSERT_TRUE(fk);
+
+  auto manager_result = arm_kinematics::make_collision_manager(loader, fk, std::vector<std::string>{"j1"});
+  ASSERT_TRUE(manager_result.has_value()) << manager_result.error().format();
+
+  auto manager = std::move(manager_result.value());
+  manager.update_poses(std::vector<double>{0.0});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  EXPECT_FALSE(manager.collide(colliding_pairs));
+  EXPECT_TRUE(colliding_pairs.empty());
+}
+
+TEST_F(SimpleUrdfCollisionTests, MakeCollisionManagerWithConfigAllowsPairsByLink)
+{
+  arm_kinematics::PluginLoader loader(*node_, robot_description_);
+  std::shared_ptr<arm_kinematics::ForwardKinematicsPlugin> fk;
+  try {
+    fk = loader.make_fk("arm_kinematics/DefaultForwardKinematicsPlugin");
+  } catch (const pluginlib::PluginlibException & e) {
+    GTEST_SKIP() << "pluginlib unavailable in this environment: " << e.what();
+  }
+  ASSERT_TRUE(fk);
+
+  arm_kinematics::CollisionConfig config;
+  config.generate_from_default_pose = false;
+  config.allowed_pairs.emplace_back("link1", "link2");
+
+  auto manager_result = arm_kinematics::make_collision_manager(loader, fk, joint_names_, config);
+  ASSERT_TRUE(manager_result.has_value()) << manager_result.error().format();
+
+  auto manager = std::move(manager_result.value());
+  manager.update_poses(std::vector<double>{-2.0, -2.0});
+  std::vector<std::pair<size_t, size_t>> colliding_pairs;
+  EXPECT_FALSE(manager.collide(colliding_pairs));
+  EXPECT_TRUE(colliding_pairs.empty());
+}
+
+TEST(GeometryCacheTest, ConvertsCylinderToExactCylinder)
+{
+  urdf::Collision collision;
+  auto cylinder = std::make_shared<urdf::Cylinder>();
+  cylinder->radius = 0.5;
+  cylinder->length = 2.0;
+  collision.geometry = cylinder;
+
+  arm_kinematics::GeometryCache cache;
+  auto geometry = cache.from_urdf(collision, "test_link");
+  ASSERT_TRUE(geometry);
+
+  auto cylinder_geometry = std::dynamic_pointer_cast<fcl::Cylinderd>(geometry);
+  ASSERT_TRUE(cylinder_geometry);
+  EXPECT_DOUBLE_EQ(cylinder_geometry->radius, 0.5);
+  EXPECT_DOUBLE_EQ(cylinder_geometry->lz, 2.0);
+}
+
+TEST(PluginLoaderCollisionTest, UsesConfiguredBaseLinkNameWhenBuildingCollisionTree)
+{
+  auto node = std::make_shared<rclcpp::Node>("test_collision_base_link");
+  node->declare_parameter("base_link_name", "configured_base");
+
+  const std::string robot_description = R"(
+    <robot name="collision_base_link_robot">
+      <link name="world"/>
+      <link name="configured_base">
+        <collision>
+          <geometry>
+            <sphere radius="0.1"/>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="world_to_base" type="fixed">
+        <parent link="world"/>
+        <child link="configured_base"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </joint>
+    </robot>
+  )";
+
+  arm_kinematics::PluginLoader loader(*node, robot_description);
+  auto fk = std::make_shared<SpyForwardKinematicsPlugin>();
+
+  try {
+    auto collision_result = loader.make_collision(std::vector<std::string>{}, fk);
+    ASSERT_TRUE(collision_result.has_value()) << collision_result.error().format();
+  } catch (const pluginlib::PluginlibException & e) {
+    GTEST_SKIP() << "pluginlib unavailable in this environment: " << e.what();
+  }
+
+  EXPECT_EQ(fk->last_base_link_name, "configured_base");
+}
+
+TEST(PluginLoaderCollisionTest, CompactsUnsupportedCollidersBeforeInitializingPlugin)
+{
+  auto node = std::make_shared<rclcpp::Node>("test_collision_compaction");
+  node->declare_parameter("base_link_name", "base_link");
+  node->declare_parameter("kinematics.collision_plugin", "arm_kinematics/FclCollisionPlugin");
+
+  const std::string robot_description = R"(
+    <robot name="compaction_robot">
+      <link name="base_link">
+        <collision name="mesh_collision">
+          <geometry>
+            <mesh filename="dummy.stl"/>
+          </geometry>
+        </collision>
+        <collision name="sphere_collision">
+          <geometry>
+            <sphere radius="0.25"/>
+          </geometry>
+        </collision>
+      </link>
+    </robot>
+  )";
+
+  arm_kinematics::PluginLoader loader(*node, robot_description);
+  auto fk = std::make_shared<SpyForwardKinematicsPlugin>();
+
+  try {
+    auto collision_result = loader.make_collision(std::vector<std::string>{}, fk);
+    ASSERT_TRUE(collision_result.has_value()) << collision_result.error().format();
+    EXPECT_EQ(collision_result->parent_link_names.size(), 1u);
+    EXPECT_EQ(collision_result->parent_link_names.front(), "base_link");
+  } catch (const pluginlib::PluginlibException & e) {
+    GTEST_SKIP() << "pluginlib unavailable in this environment: " << e.what();
+  }
+}
+
+TEST(FclCollisionPluginTest, RejectsUnsupportedGeometryAtInitialization)
+{
+  auto node = std::make_shared<rclcpp::Node>("test_fcl_skipped_colliders");
+
+  urdf::Collision unsupported_collision;
+  auto mesh = std::make_shared<urdf::Mesh>();
+  mesh->filename = "dummy.stl";
+  unsupported_collision.geometry = mesh;
+
+  urdf::Collision supported_collision;
+  auto sphere = std::make_shared<urdf::Sphere>();
+  sphere->radius = 0.25;
+  supported_collision.geometry = sphere;
+
+  std::vector<std::reference_wrapper<const urdf::Collision>> geometries{
+    std::cref(unsupported_collision),
+    std::cref(supported_collision),
+  };
+
+  auto plugin = std::make_shared<FclCollisionPlugin>();
+  EXPECT_FALSE(plugin->initialize(*node, geometries, arm_kinematics::AllowedCollisionMatrix(2)));
+}
