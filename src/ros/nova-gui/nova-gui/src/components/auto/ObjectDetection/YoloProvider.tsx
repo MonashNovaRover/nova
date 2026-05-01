@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useRef, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import * as ROSLIB from "roslib"; // Ensure you run: npm install roslib
 import { ActiveYoloConfig } from "./YoloConfig";
 import { Detection, useYoloDetection } from "./useYoloDetection";
+import { RootState } from "../../../redux/RootState";
 
 interface YoloContextValue {
   registerVideoRef: (ref: React.RefObject<HTMLVideoElement | null>) => number;
@@ -12,6 +14,7 @@ const YoloContext = createContext<YoloContextValue | null>(null);
 
 export function YoloProvider({ children }: { children: React.ReactNode }) {
   const videoRefs = useRef<React.RefObject<HTMLVideoElement | null>[]>([]);
+  const baseStationIP = useSelector((state: RootState) => state.uiState.baseStationIP);
   
   // State to track if ROS is actually connected
   const [isRosConnected, setIsRosConnected] = useState(false);
@@ -23,7 +26,7 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
   // Initialize ROS Connection on Mount
   useEffect(() => {
     const ros = new ROSLIB.Ros({
-      url: "ws://10.0.0.12:9090", 
+      url: "ws://" + baseStationIP + ":9090", 
     });
 
     ros.on("connection", () => {
@@ -55,7 +58,7 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
     return () => {
       ros.close();
     };
-  }, []);
+  }, [baseStationIP]);
 
   const registerVideoRef = (ref: React.RefObject<HTMLVideoElement | null>) => {
     videoRefs.current.push(ref);
