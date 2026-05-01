@@ -39,10 +39,13 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
 
     const activeDetections = detections.flat();
 
+    const nowMs = Date.now();
+    const sec = Math.floor(nowMs / 1000);
+    const nanosec = (nowMs % 1000) * 1_000_000;
     const msg = {
       header: {
         frame_id: "camera_link",
-        stamp: { sec: 0, nanosec: 0 },
+        stamp: { sec, nanosec },
       },
       detections: activeDetections.map((d) => ({
         class_name: ActiveYoloConfig.classNames[d.classId] ?? `class_${d.classId}`,
