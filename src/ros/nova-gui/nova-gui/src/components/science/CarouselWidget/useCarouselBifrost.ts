@@ -64,15 +64,17 @@ export const useCarouselSetPosition = () => {
  * Hook to trigger zeroing of the carousel
  * Returns triggerZero function
  */
-// export const useCarouselZero = () => {
-//   const bifrost = useBifrost({service: RosService.CAROUSEL_TRIGGER_ZERO});
-//
-//   const triggerZero = useCallback(() => {
-//     return bifrost.callService({});
-//   }, [bifrost]);
-//
-//   return { triggerZero };
-// }
+export const useCarouselZero = () => {
+  const innerBifrost = useBifrost({service: RosService.CAROUSEL_INNER_TRIGGER_ZERO});
+  const outerBifrost = useBifrost({service: RosService.CAROUSEL_OUTER_TRIGGER_ZERO});
+
+  const triggerZero = useCallback((ring: RING) => {
+    const bifrost = ring === RING.INNER ? innerBifrost : outerBifrost;
+    return bifrost.callService({});
+  }, [innerBifrost, outerBifrost]);
+
+  return { triggerZero };
+}
 
 /**
  * Hook for increment zero functionality
