@@ -134,7 +134,13 @@ export const useCameraStream = (
 
   const handlePeerMessage = useCallback(
     async (rtcPeerConnection: RTCPeerConnection, message: PeerMessage) => {
-      if (message.sdp) {
+      if (!rtcPeerConnection || rtcPeerConnection.signalingState === 'closed') {
+        if (rtcRef.current) {
+          rtcRef.current.close();
+        }
+        rtcRef.current = null; // Reset the RTC connection
+        sendSessionStartMessage();
+      } else if (message.sdp) {
         rtcPeerConnection.setRemoteDescription(message.sdp);
         const answer = await rtcPeerConnection.createAnswer();
         await rtcPeerConnection.setLocalDescription(answer);
@@ -146,12 +152,13 @@ export const useCameraStream = (
         });
       } else if (message.ice) {
         const candidate = new RTCIceCandidate(message.ice);
-        await rtcPeerConnection.addIceCandidate(candidate);
+        // TODO: Have actual error checking rather than ignore race condition
+        await rtcPeerConnection.addIceCandidate(candidate).catch(() => null);
       } else {
         throw new Error(`Unknown peer message: ${message.type}`);
       }
     },
-    [sendJsonMessage, sessionId]
+    [sendJsonMessage, sessionId, sendSessionStartMessage]
   );
 
   const handOverRTCPeerConnection: () => RTCPeerConnection = useCallback(() => {
