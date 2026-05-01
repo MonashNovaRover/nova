@@ -104,7 +104,7 @@ export function useYoloDetection({
       modelPath,
       inputSize,
       scoreThreshold,
-      useWebGPU: import.meta.env.VITE_ENABLE_WEBGPU !== "false",
+      useWebGPU: import.meta.env.VITE_ENABLE_WEBGPU === "true",
       outputFormat,
     };
     worker.postMessage(initMessage);
