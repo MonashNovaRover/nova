@@ -29,7 +29,7 @@ export const KeyboardOverlayedCameraComponent: FC<BaseCameraComponentProps> = (p
       <svg 
         className="absolute top-0 left-0 w-full h-full pointer-events-none"
         viewBox={`0 0 ${camera_width} ${camera_height}`}
-        preserveAspectRatio="none"
+        preserveAspectRatio="xMidYMid slice"
       >
         <polygon
           points={polygonPoints}
