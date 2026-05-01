@@ -6,7 +6,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
 endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
+  arm_kinematics
   controller_interface
+  fcl
   generate_parameter_library
   geometry_msgs
   hardware_interface
@@ -17,11 +19,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   realtime_tools
   tf2
   tf2_msgs
+  tf2_eigen
   tf2_geometry_msgs
-  moveit_core
-  moveit_ros_planning
-  moveit_ros_planning_interface
-  urdf
 )
 
 find_package(ament_cmake REQUIRED)

@@ -54,6 +54,12 @@ def launch_setup(context, *args, **kwargs):
     rviz = LaunchConfiguration('rviz').perform(context)
     fixed_frame = 'base_link'
 
+    arm_velocity_controller_name = 'nova_arm_velocity_controller'
+    arm_position_controller_name = 'nova_arm_position_controller'
+    end_effector_velocity_controller_name = 'nova_end_effector_velocity_controller'
+    twistmapper_controller_name = 'nova_twistmapper',
+    twistmapper_velocity_controller_name = 'nova_twistmapper_velocity'
+
     show_colours_additional_env = {
         # Show colors in the terminal output
         'RCUTILS_COLORIZED_OUTPUT': '1',
@@ -82,19 +88,25 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
+                    arguments=[arm_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_arm_position_controller', 'nova_twistmapper', '--inactive', "-c", "/arm/controller_manager"],
+                    arguments=[arm_position_controller_name, twistmapper_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 Node(
                     package='controller_manager',
                     executable='spawner',
-                    arguments=['nova_end_effector_velocity_controller', '--inactive', "-c", "/arm/controller_manager"],
+                    arguments=[twistmapper_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
+                    additional_env=show_colours_additional_env,
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=[end_effector_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 IncludeLaunchDescription(

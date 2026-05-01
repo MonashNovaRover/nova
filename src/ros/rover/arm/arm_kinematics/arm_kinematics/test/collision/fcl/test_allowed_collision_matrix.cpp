@@ -149,3 +149,35 @@ TEST_F(AllowedCollisionMatrixTest, SymmetryAndDiagonalDoNotAlias) {
     EXPECT_TRUE(acm.get(i, i));
 }
 
+TEST_F(AllowedCollisionMatrixTest, ResizePreservesExistingAllowedPairs) {
+  AllowedCollisionMatrix acm(4);
+
+  acm.set(0, 2, true);
+  acm.set(1, 3, true);
+  acm.set(0, 1, false);
+
+  acm.resize(8);
+
+  EXPECT_TRUE(acm.get(0, 2));
+  EXPECT_TRUE(acm.get(2, 0));
+  EXPECT_TRUE(acm.get(1, 3));
+  EXPECT_TRUE(acm.get(3, 1));
+  EXPECT_FALSE(acm.get(0, 1));
+  EXPECT_FALSE(acm.get(4, 5));
+}
+
+TEST_F(AllowedCollisionMatrixTest, RemapPreservesAllowedPairsInNewIndexOrder) {
+  AllowedCollisionMatrix acm(4);
+
+  acm.set(0, 2, true);
+  acm.set(1, 3, true);
+  acm.set(0, 3, false);
+
+  const std::vector<std::size_t> new_to_old{2, 0, 3, 1};
+  const auto remapped = acm.remap(new_to_old);
+
+  EXPECT_TRUE(remapped.get(0, 1));  // old 2 <-> old 0
+  EXPECT_TRUE(remapped.get(2, 3));  // old 3 <-> old 1
+  EXPECT_FALSE(remapped.get(1, 2)); // old 0 <-> old 3
+  EXPECT_FALSE(remapped.get(0, 2)); // old 2 <-> old 3
+}

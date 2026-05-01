@@ -6,10 +6,11 @@
 #define ARM_KINEMATICS_COLLIDER_DEFINITIONS_HPP
 
 #include <vector>
-#include <urdf/urdf/model.h>
+#include <urdf/model.h>
 
 #include "arm_kinematics/visibility_control.h"
 #include "arm_kinematics/forward/frame_definitions.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 #include "allowed_collision_matrix.hpp"
 
 namespace arm_kinematics {
@@ -23,6 +24,14 @@ struct ARM_KINEMATICS_PUBLIC ColliderDefinitions {
   AllowedCollisionMatrix acm{};
 
   explicit ColliderDefinitions(const urdf::Model & urdf_model);
+
+  /**
+   * Construct collider definitions, excluding any links whose names appear in \p ignored_links.
+   * Excluded links contribute no collision geometry and require no joint state in the FK tree.
+   */
+  ColliderDefinitions(
+    const urdf::Model & urdf_model,
+    span<const std::string> ignored_links);
 };
 
 } // arm_kinematics

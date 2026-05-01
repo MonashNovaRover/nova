@@ -2,7 +2,7 @@
 arm:
   controller_manager:
     ros__parameters:
-      update_rate: 20
+      update_rate: 100
       use_sim_time: false
 
       nova_arm_velocity_controller:
@@ -15,6 +15,9 @@ arm:
         type: nova_arm_controller/NovaArmController
 
       nova_twistmapper:
+        type: nova_twistmapper/NovaTwistmapper
+      
+      nova_twistmapper_velocity:
         type: nova_twistmapper/NovaTwistmapper
 
       nova_path_planner:
@@ -52,26 +55,38 @@ arm:
           has_position_limits: true
           max_position: 1.57
           min_position: -1.57
+          has_velocity_limits: true
+          max_velocity: 0.188   #< matches teleop.yaml
         j2:
           has_position_limits: true
           max_position: 2.35
           min_position: -1.6364
+          has_velocity_limits: true
+          max_velocity: 0.188   #< matches teleop.yaml
         j3:
           has_position_limits: true
           max_position: 2.9
           min_position: -0.6535
+          has_velocity_limits: true
+          max_velocity: 0.188   #< matches teleop.yaml
         j4:
           has_position_limits: true
           max_position: 3.14
           min_position: -3.14
+          has_velocity_limits: true
+          max_velocity: 0.4     #< matches teleop.yaml
         j5: # wrist pitch
           has_position_limits: true
           max_position: -0.1153
           min_position: -2.44
+          has_velocity_limits: true
+          max_velocity: 0.7     #< matches teleop.yaml
         j6: # wrist roll
           has_position_limits: true
           max_position: 6.0
           min_position: -6.0
+          has_velocity_limits: true
+          max_velocity: 0.7     #< matches teleop.yaml
 
   nova_arm_position_controller:
     ros__parameters:
@@ -162,13 +177,116 @@ arm:
         - j4
         - j5
         - j6
-      kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
-      kinematics_solver_timeout: 0.02
-      kinematics_base_frame: "arm_kinematics_origin"
-      kinematics_endeffector_frame: "endeffector_kinematics"
-      add_chain_to_srdf: false
-      add_allowed_collisions_to_srdf: false
+      use_position_control: true
+      cmd_timeout: 0.5
+      velocity_ik_time_step: 0.01
+      use_control_period_for_velocity_ik: false
+      max_velocity_control_period: 0.1
+      fallback_frame_id: "endeffector_kinematics"
       publish_debug_frames: false
+      base_link_name: "arm_kinematics_origin"
+      ee_link_name: "endeffector_kinematics"
+      kinematics_output_target_frame: "arm_twistmapper_target"
+      self_intersection_max_step_size: 0.05
+      kinematics:
+        forward_kinematics_plugin: "arm_kinematics/DefaultForwardKinematicsPlugin"
+        inverse_kinematics_plugin: "arm_kinematics/BanksiaIKPlugin"
+        collision_plugin: "arm_kinematics/FclCollisionPlugin"
+        default_state_interface_values:
+          - "chassis_to_left_leg/position=0.0"
+          - "chassis_to_right_leg/position=0.0"
+          - "blp/position=0.0"
+          - "brp/position=0.0"
+          - "flp/position=0.0"
+          - "frp/position=0.0"
+          - "blw/position=0.0"
+          - "brw/position=0.0"
+          - "flw/position=0.0"
+          - "frw/position=0.0"
+
+      collision:
+        generate_from_default_pose: true
+        ignored_links:
+          - diffbar
+          - left_leg
+          - right_leg
+          - back_left_pivot
+          - front_left_pivot
+          - back_right_pivot
+          - front_right_pivot
+          - back_left_wheel
+          - front_left_wheel
+          - back_right_wheel
+          - front_right_wheel
+          - bl_ankle
+          - fl_ankle
+          - br_ankle
+          - fr_ankle
+          - bl_wheel
+          - fl_wheel
+          - br_wheel
+          - fr_wheel
+
+  nova_twistmapper_velocity:
+    ros__parameters:
+      chained_controller_name: "nova_arm_velocity_controller"
+      twist_stamped_topic: "/arm/task_space_twist_command"
+      joint_names:
+        - j1
+        - j2
+        - j3
+        - j4
+        - j5
+        - j6
+      use_position_control: false
+      cmd_timeout: 0.5
+      velocity_ik_time_step: 0.01
+      use_control_period_for_velocity_ik: false
+      max_velocity_control_period: 0.1
+      fallback_frame_id: "endeffector_kinematics"
+      publish_debug_frames: false
+      base_link_name: "arm_kinematics_origin"
+      ee_link_name: "endeffector_kinematics"
+      kinematics_output_target_frame: "arm_twistmapper_target"
+      self_intersection_max_step_size: 0.05
+      kinematics:
+        forward_kinematics_plugin: "arm_kinematics/DefaultForwardKinematicsPlugin"
+        inverse_kinematics_plugin: "arm_kinematics/BanksiaIKPlugin"
+        collision_plugin: "arm_kinematics/FclCollisionPlugin"
+        default_state_interface_values:
+          - "chassis_to_left_leg/position=0.0"
+          - "chassis_to_right_leg/position=0.0"
+          - "blp/position=0.0"
+          - "brp/position=0.0"
+          - "flp/position=0.0"
+          - "frp/position=0.0"
+          - "blw/position=0.0"
+          - "brw/position=0.0"
+          - "flw/position=0.0"
+          - "frw/position=0.0"
+
+      collision:
+        generate_from_default_pose: true
+        ignored_links:
+          - diffbar
+          - left_leg
+          - right_leg
+          - back_left_pivot
+          - front_left_pivot
+          - back_right_pivot
+          - front_right_pivot
+          - back_left_wheel
+          - front_left_wheel
+          - back_right_wheel
+          - front_right_wheel
+          - bl_ankle
+          - fl_ankle
+          - br_ankle
+          - fr_ankle
+          - bl_wheel
+          - fl_wheel
+          - br_wheel
+          - fr_wheel
 
   nova_path_planner:
     ros__parameters:
@@ -181,12 +299,37 @@ arm:
         - j4
         - j5
         - j6
-      kinematics_solver: "banksia_kinematics_plugin/BanksiaKinematicsPlugin"
-      kinematics_solver_timeout: 1.0
-      kinematics_base_frame: "arm_kinematics_origin"
-      kinematics_endeffector_frame: "endeffector_kinematics"
-      add_chain_to_srdf: false
-      add_allowed_collisions_to_srdf: false
+      action_name: "/arm/plan_path"
+      base_link_name: "arm_kinematics_origin"
+      ee_link_name: "endeffector_kinematics"
+      kinematics_output_target_frame: "arm_path_planner_target"
+      self_intersection_max_step_size: 0.05
+      kinematics:
+        forward_kinematics_plugin: "arm_kinematics/DefaultForwardKinematicsPlugin"
+        inverse_kinematics_plugin: "arm_kinematics/BanksiaIKPlugin"
+        collision_plugin: "arm_kinematics/FclCollisionPlugin"
+      collision:
+        generate_from_default_pose: true
+        ignored_links:
+          - diffbar
+          - left_leg
+          - right_leg
+          - back_left_pivot
+          - front_left_pivot
+          - back_right_pivot
+          - front_right_pivot
+          - back_left_wheel
+          - front_left_wheel
+          - back_right_wheel
+          - front_right_wheel
+          - bl_ankle
+          - fl_ankle
+          - br_ankle
+          - fr_ankle
+          - bl_wheel
+          - fl_wheel
+          - br_wheel
+          - fr_wheel
 
   joint_state_broadcaster_arm:
     ros__parameters:

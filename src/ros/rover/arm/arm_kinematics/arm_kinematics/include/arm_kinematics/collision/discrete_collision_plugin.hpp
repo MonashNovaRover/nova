@@ -52,7 +52,7 @@ public:
    * @param idx The index of the collider to set the pose for.
    * @param collider_pose The new pose for that collider.
    */
-  virtual void update_pose(size_t idx, const Eigen::Isometry3f & collider_pose) = 0;
+  virtual void update_pose(size_t idx, const Eigen::Isometry3d & collider_pose) = 0;
 
   /**
    * Update the pose for many colliders contiguously.
@@ -60,7 +60,7 @@ public:
    * @param collider_poses The new poses for colliders starting from start_idx up until
    * start_idx + collider_poses.size().
    */
-  virtual void update_poses(const size_t start_idx, const span<const Eigen::Isometry3f> collider_poses) {
+  virtual void update_poses(const size_t start_idx, const span<const Eigen::Isometry3d> collider_poses) {
     for (size_t i = 0; i < collider_poses.size(); ++i) {
       update_pose(start_idx + i, collider_poses[i]);
     }
@@ -85,6 +85,16 @@ public:
   virtual bool collide(
     std::vector<std::pair<size_t, size_t>> & colliding_pairs,
     size_t max_colliding_pairs) = 0;
+
+  /**
+   * Reports whether this backend can represent the given URDF collider exactly or safely enough
+   * to include it in the final dense collider set.
+   *
+   * Collision-manager construction uses this at configure time to decide which colliders are
+   * part of the final index space. Backends must keep this answer consistent with
+   * `on_initialize()`: geometry reported unsupported here must not later be silently skipped.
+   */
+  [[nodiscard]] virtual bool supports_geometry(const urdf::Collision & collider) const noexcept = 0;
 
   /**
    * Perform a self intersection check with the given joint states, preserving which colliders would intersect.

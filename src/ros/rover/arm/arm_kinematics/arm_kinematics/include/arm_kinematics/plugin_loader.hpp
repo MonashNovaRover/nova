@@ -7,10 +7,13 @@
 
 #include <pluginlib/class_loader.hpp>
 
+#include "arm_kinematics/common/robot_model.hpp"
+#include "arm_kinematics/collision/collision_build_error.hpp"
+#include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 #include "arm_kinematics/forward/forward_kinematics_plugin.hpp"
 #include "arm_kinematics/inverse/inverse_kinematics_plugin.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 #include "arm_kinematics/visibility_control.h"
-#include "arm_kinematics/collision/discrete_collision_plugin.hpp"
 
 namespace arm_kinematics {
 
@@ -35,20 +38,29 @@ public:
   explicit PluginLoader() = default;
 
   /// Make an FK plugin using the plugin name defined in the `kinematics.forward_kinematics_plugin` parameter.
+  /// \warning Returns `nullptr` if plugin loading or initialization fails (an error is logged).
+  /// Callers **must** null-check before using the returned pointer.
   ForwardKinematicsPlugin::SharedPtr make_fk();
   /// Make an FK plugin, manually specifying the plugin name.
+  /// \warning Returns `nullptr` on failure. See the parameterless overload's warning.
   ForwardKinematicsPlugin::SharedPtr make_fk(const std::string & name);
 
   /// Make an IK plugin using the plugin name defined in the `kinematics.inverse_kinematics_plugin` parameter.
+  /// \warning Returns `nullptr` if the parameter is unset or if plugin loading/initialization fails.
+  /// Callers **must** null-check before using the returned pointer.
   InverseKinematicsPlugin::SharedPtr make_ik();
   /// Make an IK plugin, manually specifying the plugin name.
+  /// \warning Returns `nullptr` on failure. See the parameterless overload's warning.
   InverseKinematicsPlugin::SharedPtr make_ik(const std::string & name);
 
   /// Make a collision plugin using the plugin name defined in the `kinematics.collision_plugin` parameter.
+  /// \warning Returns `nullptr` if plugin loading or initialization fails (an error is logged).
+  /// Callers **must** null-check before using the returned pointer.
   DiscreteCollisionPlugin::SharedPtr make_collision(
     const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
     AllowedCollisionMatrix acm);
   /// Make a collision plugin, manually specifying the plugin name.
+  /// \warning Returns `nullptr` on failure. See the parameterless overload's warning.
   DiscreteCollisionPlugin::SharedPtr make_collision(
     const std::string & name,
     const std::vector<std::reference_wrapper<const urdf::Collision>> & collider_geometries,
@@ -58,18 +70,32 @@ public:
   struct MakeCollisionResult {
     ForwardKinematicsPlugin::Tree::SharedPtr fk_tree;
     DiscreteCollisionPlugin::SharedPtr collision;
+    std::vector<std::string> parent_link_names;
   };
 
   /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, using the plugin name defined in the
   /// `kinematics.collision_plugin` parameter
-  MakeCollisionResult make_collision(
+  tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
     const std::vector<std::string> & joint_names,
     const ForwardKinematicsPlugin::SharedPtr & fk);
+  /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, using the plugin name defined in the
+  /// `kinematics.collision_plugin` parameter. Links named in \p ignored_links are excluded from collision geometry.
+  tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
+    const std::vector<std::string> & joint_names,
+    const ForwardKinematicsPlugin::SharedPtr & fk,
+    span<const std::string> ignored_links);
   /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, manually specifying the plugin name.
-  MakeCollisionResult make_collision(
+  tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
     const std::string & name,
     const std::vector<std::string> & joint_names,
     const ForwardKinematicsPlugin::SharedPtr & fk);
+  /// Make a collision plugin with associated ForwardKinematicsPlugin::Tree, manually specifying the plugin name.
+  /// Links named in \p ignored_links are excluded from collision geometry.
+  tl::expected<MakeCollisionResult, MakeCollisionError> make_collision(
+    const std::string & name,
+    const std::vector<std::string> & joint_names,
+    const ForwardKinematicsPlugin::SharedPtr & fk,
+    span<const std::string> ignored_links);
 
   /// Gets the robot model containing robot_description
   [[nodiscard]] const RobotModel & get_robot_model() const;

@@ -25,10 +25,13 @@ struct Kinematics final {
   struct Collision final {
     CollisionManager manager{};
 
-    explicit Collision(tl::expected<CollisionManager, const char *> maybe_collision_manager) {
+    explicit Collision(
+      tl::expected<CollisionManager, MakeCollisionError> maybe_collision_manager)
+    {
       if (!maybe_collision_manager.has_value()) {
-        RCLCPP_FATAL(rclcpp::get_logger("arm_kinematics"), "%s", maybe_collision_manager.error());
-        throw std::runtime_error(maybe_collision_manager.error());
+        const auto message = maybe_collision_manager.error().format();
+        RCLCPP_FATAL(rclcpp::get_logger("arm_kinematics"), "%s", message.c_str());
+        throw std::runtime_error(message);
       }
 
       manager = maybe_collision_manager.value();
@@ -52,13 +55,12 @@ struct Kinematics final {
   Collision collision;
   Inverse inverse;
 
-  explicit Kinematics(PluginLoader plugin_loader)
-  : plugin_loader(std::move(plugin_loader)),
+  explicit Kinematics(PluginLoader loader)
+  : plugin_loader(std::move(loader)),
     forward(plugin_loader),
-    collision(plugin_loader, forward.plugin), //< TODO: Make make_collision_manager() constexpr and use it here :/
+    collision(plugin_loader, forward.plugin),
     inverse()
   {
-
   }
 };
 

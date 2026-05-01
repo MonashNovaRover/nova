@@ -1,11 +1,14 @@
 { lib
 , buildRosPackage
 , ament-cmake
+, fcl
+, nova-arm-kinematics
 , control-msgs
 , controller-interface
 , hardware-interface
 , pluginlib
 , rclcpp
+, rclcpp-action
 , rclcpp-lifecycle
 , std-srvs
 , generate-parameter-library
@@ -13,12 +16,10 @@
 , backward-ros
 , realtime-tools
 , tf2
+, tf2-eigen
 , tf2-msgs
 , geometry-msgs
 , tf2-geometry-msgs
-, moveit-core
-, moveit-ros-planning
-, moveit-ros-planning-interface
 , nova-interfaces
 }:
 
@@ -35,24 +36,24 @@ buildRosPackage {
   nativeBuildInputs = [ ament-cmake ];
 
   buildInputs = [
+    nova-arm-kinematics
     control-msgs
     controller-interface
+    fcl
     hardware-interface
     pluginlib
     rclcpp
+    rclcpp-action
     rclcpp-lifecycle
     std-srvs
     generate-parameter-library
     backward-ros
     realtime-tools
     tf2
+    tf2-eigen
     tf2-msgs
     geometry-msgs
     tf2-geometry-msgs
-    moveit-core
-    moveit-ros-planning
-    moveit-ros-planning-interface
     nova-interfaces
   ];
 }
-

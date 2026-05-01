@@ -10,8 +10,9 @@ with pkgs;
   nova-gimbal-cam = callPackage ./old_arm/gimbal_cam { };
   nova-teleop-arm-joy = callPackage ./teleop_arm_joy { };
   nova-teleop-arm = callPackage ./teleop_arm { };
-  nova-arm-kinematics = callPackage ./arm_kinematics/arm_kinematics { };
   teleop-turtle = callPackage ./teleop_turtle { };
 }
+// import ./arm_kinematics { inherit pkgs; }
 // import ./arm_controllers { inherit pkgs; }
+// import ./arm_controllers_old { inherit pkgs; }
 // import ./arm_control_modes { inherit pkgs; }

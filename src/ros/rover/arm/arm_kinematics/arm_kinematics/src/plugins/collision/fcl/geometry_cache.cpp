@@ -6,7 +6,7 @@
 
 #include <utility>
 #include <fcl/geometry/shape/box.h>
-#include <fcl/geometry/shape/capsule.h>
+#include <fcl/geometry/shape/cylinder.h>
 #include <fcl/geometry/shape/sphere.h>
 #include <rclcpp/logging.hpp>
 
@@ -15,17 +15,31 @@ namespace arm_kinematics {
 GeometryCache::GeometryCache(rclcpp::Logger logger) : logger_(std::move(logger)) {}
 
 GeometryCache::GeoPtr GeometryCache::get_box(const double x, const double y, const double z) {
-  return std::make_unique<fcl::Boxf>(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+  return std::make_unique<fcl::Boxd>(x, y, z);
 }
 
 GeometryCache::GeoPtr GeometryCache::get_sphere(const double r) {
-  return std::make_unique<fcl::Spheref>(static_cast<float>(r));
+  return std::make_unique<fcl::Sphered>(r);
 }
 
-GeometryCache::GeoPtr GeometryCache::get_capsule(const double r, const double halfLen) {
-  return std::make_unique<fcl::Capsulef>(
-    static_cast<float>(r),
-    static_cast<float>(halfLen));
+GeometryCache::GeoPtr GeometryCache::get_cylinder(const double r, const double length) {
+  return std::make_unique<fcl::Cylinderd>(r, length);
+}
+
+bool GeometryCache::supports_geometry(const urdf::Collision & col) noexcept
+{
+  if (!col.geometry) {
+    return false;
+  }
+
+  switch (col.geometry->type) {
+    case urdf::Geometry::BOX:
+    case urdf::Geometry::SPHERE:
+    case urdf::Geometry::CYLINDER:
+      return true;
+    default:
+      return false;
+  }
 }
 
 GeometryCache::GeoPtr GeometryCache::from_urdf(const urdf::Collision & col, const std::string & link_name) {
@@ -43,14 +57,10 @@ GeometryCache::GeoPtr GeometryCache::from_urdf(const urdf::Collision & col, cons
     }
     case urdf::Geometry::CYLINDER: {
       const auto geometry = std::static_pointer_cast<urdf::Cylinder>(col.geometry);
-      if (warn_on_cylinder_) {
-        RCLCPP_WARN(logger_, "Replacing CYLINDER with CAPSULE on link \"%s\" (conservative).",
-                    link_name.c_str());
-      }
-      return get_capsule(geometry->radius, 0.5 * geometry->length);
+      return get_cylinder(geometry->radius, geometry->length);
     }
     default:
-      RCLCPP_WARN(logger_, "Unsupported mesh geometry on link \"%s\". Skipping collider.",
+      RCLCPP_WARN(logger_, "Unsupported geometry on link \"%s\". Skipping collider.",
                   link_name.c_str());
       return nullptr;
   }

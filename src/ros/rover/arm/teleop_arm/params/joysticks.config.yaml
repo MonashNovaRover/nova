@@ -77,7 +77,7 @@ thrustmaster_left:
           from: "l_btn_bottom_l2_state"
         unlock:
           from: "l_btn_bottom_l5_state"
-        task_space:
+        task_space_velocity:
           from: "l_btn_thumb_u_state"
 
 thrustmaster_right:
@@ -125,7 +125,6 @@ thrustmaster_right:
 
         lead_left:
           from: "r_ax_thumb_y"
-          invert: true
 
         # Task space
         angular:
@@ -135,5 +134,8 @@ thrustmaster_right:
               from: "r_ax_stick_y"
           z:
             from: "r_ax_stick_twist"
+      buttons:
+        task_space:
+            from: "r_btn_thumb_u_state"
 
 

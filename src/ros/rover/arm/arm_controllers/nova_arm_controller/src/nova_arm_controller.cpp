@@ -5,6 +5,11 @@
 #include <vector>
 
 #include "nova_arm_controller/nova_arm_controller.hpp"
+
+#include <cassert>
+
+#include "arm_kinematics/collision/collision_manager.hpp"
+#include "arm_kinematics/collision/collision_utilities.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/logging.hpp"
@@ -52,11 +57,6 @@ controller_interface::CallbackReturn NovaArmController::on_init()
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  if (!this->collision_limiter.init(params_.joint_names, get_node(), get_robot_description())) {
-    RCLCPP_ERROR(get_node()->get_logger(), "Failed to init collision limiter");
-    return controller_interface::CallbackReturn::ERROR;
-  }
-
   return controller_interface::CallbackReturn::SUCCESS;
 }
 
@@ -89,7 +89,8 @@ std::vector<hardware_interface::CommandInterface> NovaArmController::on_export_r
   RCLCPP_INFO(get_node()->get_logger(), "Export reference interfaces");
 
   const auto joint_count = params_.joint_names.size();
-  reference_interfaces_.reserve(joint_count);
+  reference_interfaces_.assign(joint_count, std::numeric_limits<double>::quiet_NaN());
+  reference_interfaces.reserve(joint_count);
 
   // Either "position" or "velocity" based on params_.use_position_control
   const auto& interface_name_suffix = joint_command_type();
@@ -112,56 +113,64 @@ controller_interface::return_type NovaArmController::update_reference_from_subsc
 }
 
 controller_interface::return_type NovaArmController::update_velocity_reference_from_subscribers() {
-  auto logger = get_node()->get_logger();
-
   RCLCPP_INFO_ONCE(get_node()->get_logger(), "Update velocity reference from subscribers");
 
-  std::shared_ptr<nova_interfaces::msg::ArmFkVelocityTargets> last_msg;
-  received_msg_ptr_.get(last_msg);
+  std::shared_ptr<std::vector<double>> velocities;
+  received_velocity_ptr_.get(velocities);
 
-  if (last_msg == nullptr) {
-    RCLCPP_WARN_ONCE(logger, "Velocity message received was a nullptr.");
+  if (velocities == nullptr) {
+    RCLCPP_WARN_ONCE(get_node()->get_logger(), "No velocity message received yet.");
     return controller_interface::return_type::OK;
   }
 
-  if (last_msg->name.size() != last_msg->velocity.size()) {
-    RCLCPP_WARN(logger, "Velocity message received had a different number of names and velocities.");
-    return controller_interface::return_type::ERROR;
-  }
-
-  // Make map of joint name -> velocity (from message)
-  auto velocities = std::map<std::string, double>();
-  for (unsigned int i = 0; i < last_msg->name.size(); ++i) {
-    velocities[last_msg->name[i]] = last_msg->velocity[i];
-  }
-
-  for (unsigned int i = 0; i < params_.joint_names.size(); i++)
-  {
-    const auto& joint_name = params_.joint_names[i];
-
-    // Ensure the map contains the handle
-    if (velocities.find(joint_name) == velocities.end()) {
-      if (last_msg->name.size() != 0) {
-        RCLCPP_WARN(logger, "Joint '%s' not defined in input message from teleop-arm-joy.", joint_name.c_str());
-      }
-      reference_interfaces_[i] = 0;
-      continue;
-    }
-
-    reference_interfaces_[i] = velocities[joint_name];
+  for (std::size_t i = 0; i < params_.joint_names.size(); ++i) {
+    reference_interfaces_[i] = (*velocities)[i];
   }
 
   return controller_interface::return_type::OK;
+}
+
+void NovaArmController::resize_trajectory_point_storage()
+{
+  const auto joint_count = params_.joint_names.size();
+
+  auto resize_current = [&](trajectory_msgs::msg::JointTrajectoryPoint & point) {
+    if (params_.position_feedback) {
+      point.positions.assign(joint_count, 0.0);
+    } else {
+      point.positions.clear();
+    }
+
+    if (params_.velocity_feedback) {
+      point.velocities.assign(joint_count, 0.0);
+    } else {
+      point.velocities.clear();
+    }
+  };
+
+  auto resize_command = [&](trajectory_msgs::msg::JointTrajectoryPoint & point) {
+    if (joint_command_type() == HW_IF_POSITION) {
+      point.positions.assign(joint_count, 0.0);
+      point.velocities.clear();
+    } else {
+      point.positions.clear();
+      point.velocities.assign(joint_count, 0.0);
+    }
+  };
+
+  resize_current(current_point_);
+  resize_command(desired_point_);
+  resize_command(original_desired_point_);
 }
 
 // this assumes that the number of joints match
 void NovaArmController::get_joint_states(trajectory_msgs::msg::JointTrajectoryPoint &current) {
   //TODO: maybe try to calculate accel as well - this is needed for jerk limits
   if (params_.position_feedback) {
-    current.positions.resize(params_.joint_names.size());
+    assert(current.positions.size() == params_.joint_names.size());
   }
   if (params_.velocity_feedback) {
-    current.velocities.resize(params_.joint_names.size());
+    assert(current.velocities.size() == params_.joint_names.size());
   }
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
@@ -218,15 +227,9 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
     return controller_interface::return_type::ERROR;
   }
 
-  trajectory_msgs::msg::JointTrajectoryPoint originalDesired, desired, current;
-
-  if (this->joint_command_type() == HW_IF_POSITION) {
-    desired.positions.resize(params_.joint_names.size());
-    originalDesired.positions.resize(params_.joint_names.size());
-  } else { // velocity
-    desired.velocities.resize(params_.joint_names.size());
-    originalDesired.velocities.resize(params_.joint_names.size());
-  }
+  auto & originalDesired = original_desired_point_;
+  auto & desired = desired_point_;
+  auto & current = current_point_;
 
   for (unsigned int i = 0; i < registered_joint_handles_.size(); i++)
   {
@@ -393,10 +396,9 @@ controller_interface::return_type NovaArmController::update_and_write_commands(
 controller_interface::CallbackReturn NovaArmController::hot_param_update() {
   auto logger = get_node()->get_logger();
   // process parameter updates that we can apply without reconfigure
-  trajectory_msgs::msg::JointTrajectoryPoint current;
-  this->get_joint_states(current);
+  this->get_joint_states(current_point_);
   
-  if (!this->joint_limiter.configure(current)) {
+  if (!this->joint_limiter.configure(current_point_)) {
     RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
     return controller_interface::CallbackReturn::ERROR;
   }
@@ -427,16 +429,47 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
     return controller_interface::CallbackReturn::ERROR;
   }
 
-  trajectory_msgs::msg::JointTrajectoryPoint current;
-  this->get_joint_states(current);
+  resize_trajectory_point_storage();
+  this->get_joint_states(current_point_);
   
-  if (!this->joint_limiter.configure(current)) {
+  if (!this->joint_limiter.configure(current_point_)) {
     RCLCPP_ERROR(logger, "Failed to configure joint limiter!");
     return controller_interface::CallbackReturn::ERROR;
   }
-  if (!this->collision_limiter.configure(current)) {
-    RCLCPP_ERROR(logger, "Failed to configure collision limiter!");
-    return controller_interface::CallbackReturn::ERROR;
+
+  // Build arm_kinematics collision support.
+  // Only runs when use_collision_limits=true.
+  // Requires kinematics.forward_kinematics_plugin and kinematics.collision_plugin parameters.
+  // Collision ACM parameters are read from the "collision.*" prefix via
+  // arm_kinematics::read_collision_config() - do NOT add them to nova_arm_controller_parameter.yaml.
+  if (params_.use_collision_limits) {
+    kinematics_ = Kinematics{
+      arm_kinematics::PluginLoader{*get_node(), get_robot_description()},
+      nullptr};
+    kinematics_->fk = kinematics_->loader.make_fk();
+    if (!kinematics_->fk) {
+      RCLCPP_ERROR(logger, "Failed to create FK plugin - cannot set up collision");
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    auto collision_config = arm_kinematics::read_collision_config(
+      get_node()->get_node_parameters_interface());
+
+    auto collision_result = arm_kinematics::make_collision_manager(
+      kinematics_->loader, kinematics_->fk, params_.joint_names, collision_config);
+    if (!collision_result) {
+      RCLCPP_ERROR(logger, "Failed to build collision manager: %s",
+                   collision_result.error().format().c_str());
+      return controller_interface::CallbackReturn::ERROR;
+    }
+
+    collision_limiter.set_collision_manager(
+      std::move(*collision_result),
+      get_node()->get_logger(),
+      get_node()->get_clock(),
+      params_.joint_names.size());
+  } else {
+    RCLCPP_INFO(logger, "Self-collision limiting disabled (use_collision_limits=false)");
   }
 
   // TODO: setup publishers?
@@ -452,23 +485,47 @@ controller_interface::CallbackReturn NovaArmController::on_configure(
           get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
       return;
     }
-    if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0))
-    {
-      RCLCPP_WARN_ONCE(
+
+    if (msg->name.size() != msg->velocity.size()) {
+      RCLCPP_WARN(
           get_node()->get_logger(),
-          "Received message with zero timestamp, setting it to current "
-          "time, this message will only be shown once");
-      msg->header.stamp = get_node()->get_clock()->now();
+          "Velocity message has mismatched name (%zu) and velocity (%zu) sizes, ignoring.",
+          msg->name.size(), msg->velocity.size());
+      return;
     }
 
-    received_msg_ptr_.set(std::move(msg));
+    auto ordered = std::make_shared<std::vector<double>>(params_.joint_names.size(), 0.0);
+    for (std::size_t i = 0; i < params_.joint_names.size(); ++i) {
+      const auto it = std::find(msg->name.begin(), msg->name.end(), params_.joint_names[i]);
+      if (it == msg->name.end()) {
+        if (!msg->name.empty()) {
+          RCLCPP_WARN(
+              get_node()->get_logger(),
+              "Joint '%s' not defined in velocity message, defaulting to 0.",
+              params_.joint_names[i].c_str());
+        }
+      } else {
+        (*ordered)[i] = msg->velocity[std::distance(msg->name.begin(), it)];
+      }
+    }
+
+    received_velocity_ptr_.set(std::move(ordered));
   });
 
   // Set number of reference interface.
   // https://github.com/ros-controls/ros2_control_demos/blob/332ede0ee44f9c3382666df91a0b7d49a368652f/example_12/controllers/src/passthrough_controller.cpp#L78
   const unsigned int reference_interface_count = params_.joint_names.size();
   command_interfaces_.reserve(reference_interface_count);
-  reference_interfaces_.resize(reference_interface_count, std::numeric_limits<double>::quiet_NaN());
+  if (reference_interfaces_.size() != reference_interface_count) {
+    reference_interfaces_.assign(
+      reference_interface_count,
+      std::numeric_limits<double>::quiet_NaN());
+  } else {
+    std::fill(
+      reference_interfaces_.begin(),
+      reference_interfaces_.end(),
+      std::numeric_limits<double>::quiet_NaN());
+  }
 
   previous_update_timestamp_ = get_node()->get_clock()->now();
   return controller_interface::CallbackReturn::SUCCESS;
@@ -558,6 +615,10 @@ bool NovaArmController::reset()
 
   // release the old queue
   subscriber_is_active_ = false;
+  kinematics_.reset();
+  current_point_ = trajectory_msgs::msg::JointTrajectoryPoint{};
+  desired_point_ = trajectory_msgs::msg::JointTrajectoryPoint{};
+  original_desired_point_ = trajectory_msgs::msg::JointTrajectoryPoint{};
 
   is_halted = false;
   return true;

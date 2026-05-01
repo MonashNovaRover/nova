@@ -27,10 +27,25 @@ AllowedCollisionMatrix::AllowedCollisionMatrix(const AllowedCollisionMatrix & ot
 
   // Copy all values from the old matrix
   for (size_t b = 0; b < other.capacity; b++) {
-    for (size_t a = 0; a < b; b++) {
+    for (size_t a = 0; a < b; a++) {
       set(a, b, other.get(a, b));
     }
   }
+}
+
+AllowedCollisionMatrix AllowedCollisionMatrix::remap(const span<const std::size_t> new_to_old) const
+{
+  AllowedCollisionMatrix remapped(new_to_old.size());
+
+  for (std::size_t new_b = 0; new_b < new_to_old.size(); ++new_b) {
+    const auto old_b = new_to_old[new_b];
+    for (std::size_t new_a = 0; new_a < new_b; ++new_a) {
+      const auto old_a = new_to_old[new_a];
+      remapped.set(new_a, new_b, get(old_a, old_b));
+    }
+  }
+
+  return remapped;
 }
 
 } // arm_kinematics
