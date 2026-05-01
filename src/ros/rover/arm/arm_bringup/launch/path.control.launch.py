@@ -64,14 +64,6 @@ def launch_setup(context, *args, **kwargs):
     ]
     urdf_value = ParameterValue(Command(['xacro ', model, ' '] + xacro_args), value_type=str)
 
-    show_colours_additional_env = {
-        # Show colors in the terminal output
-        'RCUTILS_COLORIZED_OUTPUT': '1',
-        # (Optional!) omit time from the logs
-        'RCUTILS_CONSOLE_OUTPUT_FORMAT': '[{severity}] [{name}] {message}',
-    }
-
-
     return [
         LogInfo(msg=['Using arm_bringup := ', arm_bringup_dir]),
         LogInfo(msg=['Using model := ', model]),
@@ -101,7 +93,6 @@ def launch_setup(context, *args, **kwargs):
             executable='robot_state_publisher',
             namespace='/arm',
             parameters=[{'robot_description': urdf_value}],
-            additional_env=show_colours_additional_env,
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -160,7 +151,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.new.controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
