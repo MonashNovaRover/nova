@@ -238,6 +238,10 @@ export interface RosServiceInterface {
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;
+  [RosService.BME_TRIGGER]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
 
   // General
   [RosService.RGBInput]: RosServiceMessage<

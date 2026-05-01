@@ -23,7 +23,9 @@ from rclpy.node import Node
 from typing import Optional
 from python_control2 import PythonControl, Controller, Contexts, InterfaceCollection, Interface, HardwareInterface
 from science_interfaces.msg import BMESensor
-from python_control2.hardware_interfaces import CMDHardware, MultiSensorHardware
+from std_srvs.srv import Trigger
+from python_control2.hardware_interfaces import CMDHardware, MultiSensorHardware, TriggerHardware
+from teleop_python_utils import EventCollection
 
 CAN_BUS = "can1"
 
@@ -49,7 +51,7 @@ class URCBMESensorController(Controller):
         """
         super().__init__(contexts)
         self.logger.info(f"URCBMESensorController -- I have been __init__ialized")
-           
+
         if len(sensors) == len(units):
             self.sensors_names = self.declare_parameter("sensor_names", sensors).value
             self.units = self.declare_parameter("sensor_units", units).value
@@ -59,9 +61,20 @@ class URCBMESensorController(Controller):
         self.sensor_last_readings = {
             f"{name}/{unit}": 0.0
             for name, unit in self.sensors
-        }    
+        }
         self.data_topic = self.declare_parameter("data_topic", data_topic).value
         self.bme_publisher = self.node.create_publisher(BMESensor, self.data_topic, 10)
+
+        # Create trigger service
+        self.trigger_service = self.node.create_service(Trigger, "/science/bme/trigger", self.trigger_callback)
+
+        # Get trigger event
+        self.trigger_event = None
+        if EventCollection in contexts:
+            events = contexts[EventCollection]
+            self.trigger_event = events.get("bme_trigger/trigger")
+        else:
+            self.logger.error("Could not find EventCollection in the python control contexts, cannot trigger BME.")
     
         
 
@@ -81,7 +94,7 @@ class URCBMESensorController(Controller):
         for sensor in self.sensors:
             sensor_name, sensor_unit = sensor
             self.sensor_states[f"{sensor_name}/{sensor_unit}"] = state_interfaces[f"{sensor_name}/{sensor_unit}"]
-        self.publisher_timer = self.node.create_timer(1 / 10, self.publish_data)
+        self.publisher_timer = self.node.create_timer(1, self.publish_data)
         return True
 
 
@@ -97,6 +110,18 @@ class URCBMESensorController(Controller):
             self.sensor_last_readings[f"{sensor_name}/{sensor_unit}"] = self.sensor_states[f"{sensor_name}/{sensor_unit}"].value
             
 
+    def trigger_callback(self, _: Trigger.Request, response: Trigger.Response):
+        """ Callback function when trigger_bme service is called """
+        try:
+            self.trigger_event.invoke()
+            self.logger.info("BME trigger invoked.")
+            response.success = True
+            response.message = "BME trigger sent"
+        except Exception as e:
+            self.logger.error(f"An error occurred while attempting to trigger BME: {e}")
+            response.success = False
+            response.message = f"Error: {e}"
+        return response
 
     def publish_data(self):
         msg = BMESensor()
@@ -124,12 +149,16 @@ if __name__ == "__main__":
         .with_hardware("bme_multisensor", MultiSensorHardware,
                         can_id = 0x4F5,
                         interpret_data_list = [
-                            lambda x: float(x[0]) + (float(x[1]) / 100.0), 
-                            lambda x: float(x[2]) + (float(x[3]) / 100.0), 
-                            lambda x: float(x[4])                          
+                            lambda x: float(x[0]) + (float(x[1]) / 100.0),
+                            lambda x: float(x[2]) + (float(x[3]) / 100.0),
+                            lambda x: float(x[4])
                         ],
                         hardware_names = sensor_names,
                         hardware_units = sensor_units,
                         initial_values = [0.0, 0.0, 0.0]) \
+        .with_hardware("bme_trigger", TriggerHardware,
+                        can_id=0x0FE,
+                        can_message=[]) \
         .with_jcan() \
+        .with_event_collection() \
         .spin()
