@@ -203,8 +203,6 @@ in
           N2 = "ssh -C -Y nova@10.0.2.12";
           N3 = "ssh -C -Y nova@10.0.2.13";
 
-          # Application 
-          urdf-tool = "nom-shell ${cfg.nixfileDir}/modules/home/macros/urdf-tool.nix";
 
           # Nano v Vim
           set_vim = "export EDITOR=vim";
