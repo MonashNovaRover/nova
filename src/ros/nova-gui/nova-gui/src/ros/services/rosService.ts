@@ -59,6 +59,7 @@ export enum RosService {
   PUMPS_STOP = "/science/pumps/stop",
   UV_VIS_SPEC_STOP = "/science/uv_vis_spec/stop",
   UV_VIS_SPEC_START = "/science/uv_vis_spec/start",
+  BME_TRIGGER = "/science/bme/trigger",
 
   // General
   REQUEST_HYDRAPROBE_READING = "/science/request_hydraprobe_reading",

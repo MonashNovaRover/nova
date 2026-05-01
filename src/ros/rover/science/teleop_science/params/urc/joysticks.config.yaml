@@ -55,7 +55,7 @@ thrustmaster_left:
 
         # Caches
         cache_left_actuation:
-          from: "l_ax_stick_y"
+          from: "l_ax_thumb_y"
         cache_left_speed:
           from: "l_ax_slider"
 
@@ -113,21 +113,17 @@ thrustmaster_right:
 
         # Caches
         cache_right_actuation:
-          from: "r_ax_stick_y"
+          from: "r_ax_thumb_y"
         cache_right_speed:
           from: "r_ax_slider"
-        cache_left_actuation:
-          from: "l_ax_stick_y"
-        cache_left_speed:
-          from: "l_ax_slider"
 
 
       buttons:
         # Auger
         activate_auger_left:
-          from: "r_btn_bottom_l3_state"
+          from: "r_btn_bottom_l1_state"
         activate_auger_right:
-          from: "r_btn_bottom_l6_state"
+          from: "r_btn_bottom_l4_state"
         auger_drill:
           from: "r_btn_thumb_u_state"
         auger_drill_clockwise:
