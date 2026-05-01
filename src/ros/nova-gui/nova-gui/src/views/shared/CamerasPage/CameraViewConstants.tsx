@@ -240,15 +240,15 @@ export const urc_science_views: CameraViewConfig[] = [
   },
   {
     cameraSerials: [...mastCams, ...driveCams],
-    viewTitle: "Exploration",
+    viewTitle: "Exploration Cams",
   },
   {
     cameraSerials: [...urcScienceCams.slice(0,4), CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS],
-    viewTitle: "External Science"
+    viewTitle: "External Science Cams"
   },
   {
     cameraSerials: [...urcScienceCams.slice(4,8)],
-    viewTitle: "Internal Science"
+    viewTitle: "Internal Science Cams"
   }
 ]
 
