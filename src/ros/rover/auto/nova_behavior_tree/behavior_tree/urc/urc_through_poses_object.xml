@@ -4,7 +4,7 @@
       
       <ReactiveFallback name="ExitOnObjectDetected">
         
-        <ObjectDetected detections_topic="/yolo/objects" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
+        <ObjectDetected detections_topic="/vision/object_markers" min_detections="2" buffer_time="5.0" cluster_radius="0.05" detections="{detected_goals}"/>
         
         <PipelineSequence name="NavigateWithReplanning">
           <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>

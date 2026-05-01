@@ -15,6 +15,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   # Message definitions
   "msg/ActiveNodeStatus.msg"
   "msg/ArmFkVelocityTargets.msg"
+  "msg/Detection2D.msg"
+  "msg/Detection2DArray.msg"
   "msg/DriveInfo.msg"
   "msg/DriveInput.msg"
   "msg/DriveInputStamped.msg"

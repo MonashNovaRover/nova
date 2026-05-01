@@ -31,6 +31,7 @@ import {
   IRosNovaInterfacesGpsData,
   IRosScienceInterfacesCarouselFeedback,
   IRosSensorMsgsJoy,
+  IRosNovaInterfacesDetection2DArray
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -101,4 +102,7 @@ export interface RosTopicInterfaces {
   [RosTopic.ACTIVATED_NODES]: IRosNovaInterfacesActiveNodeStatus;
   [RosTopic.RADIO_STATUS]: IRosNovaInterfacesRadioStatus;
   [RosTopic.LOCKED_STATUS]: IRosNovaInterfacesLockedStatus;
+
+  // Vision Related
+  [RosTopic.YOLO_DETECTIONS]: IRosNovaInterfacesDetection2DArray;
 }

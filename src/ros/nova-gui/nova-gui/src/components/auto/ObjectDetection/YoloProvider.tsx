@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useRef } from "react";
+import React, { createContext, useContext, useRef, useEffect } from "react";
 import { ActiveYoloConfig } from "./YoloConfig";
 import { Detection, useYoloDetection } from "./useYoloDetection";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
+import { RosTopic } from "../../../ros/topics/rosTopic";
 
 interface YoloContextValue {
-  // Accept nullable refs since React sets .current after mount.
   registerVideoRef: (ref: React.RefObject<HTMLVideoElement | null>) => number;
   detections: Detection[][];
 }
@@ -11,25 +12,60 @@ interface YoloContextValue {
 const YoloContext = createContext<YoloContextValue | null>(null);
 
 export function YoloProvider({ children }: { children: React.ReactNode }) {
-  // Collect video refs from all mounted camera layers.
   const videoRefs = useRef<React.RefObject<HTMLVideoElement | null>[]>([]);
+  const bifrostDetections = useBifrost({ topic: RosTopic.YOLO_DETECTIONS });
 
   const registerVideoRef = (ref: React.RefObject<HTMLVideoElement | null>) => {
-    // Register in order and return the index for lookup.
     videoRefs.current.push(ref);
-
     return videoRefs.current.length - 1;
   };
 
-  // Run detection whenever refs are available.
   const detections = useYoloDetection({
-    // Preserve the existing mutable ref registration flow because the state-based rewrite broke overlays.
     // eslint-disable-next-line react-hooks/refs
     videoRefs: videoRefs.current,
     modelPath: `/models/${ActiveYoloConfig.modelName}`,
-    inputSize: 640,
     outputFormat: ActiveYoloConfig.outputFormat,
   });
+
+  // Publish Logic
+  useEffect(() => {
+    if (!detections) return;
+
+    const activeVideo = videoRefs.current[0]?.current;
+    if (!activeVideo) return;
+
+    const vidWidth = activeVideo.videoWidth || 640; // Fallback to 640p width
+    const vidHeight = activeVideo.videoHeight || 480; // Fallback to 480p height
+
+    const activeDetections = detections.flat();
+
+    const nowMs = Date.now();
+    const sec = Math.floor(nowMs / 1000);
+    const nanosec = (nowMs % 1000) * 1_000_000;
+    const msg = {
+      header: {
+        frame_id: "camera_link",
+        stamp: { sec, nanosec },
+      },
+      detections: activeDetections.map((d) => ({
+        class_name: ActiveYoloConfig.classNames[d.classId] ?? `class_${d.classId}`,
+        score: d.score,
+        pose: {
+          position: {
+            // Publish center in pixel coordinates as required by Detection2D.msg.
+            x: d.box.x + (d.box.width / 2),
+            y: d.box.y + (d.box.height / 2),
+            z: 0.0,
+          },
+          orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 },
+        },
+        image_width: vidWidth,
+        image_height: vidHeight,
+      })),
+    };
+
+    bifrostDetections.publishToTopic(msg);
+  }, [detections, bifrostDetections]);
 
   return (
     <YoloContext.Provider
@@ -46,7 +82,6 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
 export function useYoloContext() {
   const context = useContext(YoloContext);
   if (!context) {
-    // Enforce provider usage for safe context access.
     throw new Error("useYoloContext must be used within YoloProvider");
   }
   return context;
