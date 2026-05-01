@@ -20,9 +20,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_msgs
   nova_interfaces
   joint_limits
-  moveit_core
-  moveit_ros_planning
-  moveit_ros_planning_interface
+  arm_kinematics
   urdf
 )
 

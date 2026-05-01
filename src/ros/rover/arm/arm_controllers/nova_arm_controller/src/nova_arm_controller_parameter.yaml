@@ -68,3 +68,7 @@ nova_arm_controller:
     default_value: true,
     description: "True if the arm should perform self intersection checks",
   }
+# Collision configuration (generate_from_default_pose, default_pose_overrides, allowed_pairs)
+# is read separately via arm_kinematics::read_collision_config() from the "collision.*"
+# parameter prefix. These are NOT declared here - see arm_kinematics/collision/collision_utilities.hpp
+# for the supported keys and their format.

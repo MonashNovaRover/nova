@@ -5,34 +5,193 @@
 #ifndef ARM_KINEMATICS_ORDERING_HPP
 #define ARM_KINEMATICS_ORDERING_HPP
 
+#include <map>
+#include <optional>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
 #include <vector>
+
+#include "arm_kinematics/utilities/expected.hpp"
+#include "arm_kinematics/utilities/span.hpp"
 
 namespace arm_kinematics {
 
+namespace detail {
+
+template<typename TKey, typename TValue, typename Enable = void>
+struct LookupStorage {
+  using type = std::map<TKey, TValue>;
+
+  static type make_sized(const size_t) {
+    return {};
+  }
+
+  static void set(type & container, const TKey & key, const TValue & value) {
+    container[key] = value;
+  }
+
+  static TValue & at(type & container, const TKey & key) {
+    return container.at(key);
+  }
+
+  static const TValue & at(const type & container, const TKey & key) {
+    return container.at(key);
+  }
+
+  static bool contains_key(const type & container, const TKey & key) {
+    return container.find(key) != container.end();
+  }
+};
+
+template<typename TKey>
+inline constexpr bool is_contiguous_lookup_key_v = std::is_integral_v<TKey> || std::is_enum_v<TKey>;
+
+template<typename TKey, typename TValue>
+struct LookupStorage<TKey, TValue, std::enable_if_t<is_contiguous_lookup_key_v<TKey>>> {
+  using type = std::vector<TValue>;
+
+  static type make_sized(const size_t size) {
+    return type(size);
+  }
+
+  static void set(type & container, const TKey & key, const TValue & value) {
+    const auto index = static_cast<size_t>(key);
+    if (index >= container.size()) {
+      container.resize(index + 1);
+    }
+    container[index] = value;
+  }
+
+  static TValue & at(type & container, const TKey & key) {
+    return container[static_cast<size_t>(key)];
+  }
+
+  static const TValue & at(const type & container, const TKey & key) {
+    return container[static_cast<size_t>(key)];
+  }
+
+  static bool contains_key(const type & container, const TKey & key) {
+    return static_cast<size_t>(key) < container.size();
+  }
+};
+
+template <typename T, typename = void>
+struct is_hashable : std::false_type {};
+
+template <typename T>
+struct is_hashable<T, std::void_t<decltype(std::hash<T>{}(std::declval<T>()))>>
+  : std::true_type {};
+
+template <typename T, typename = void>
+struct is_eq_comparable : std::false_type {};
+
+template <typename T>
+struct is_eq_comparable<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+  : std::true_type {};
+
+template<typename TKey, typename TValue>
+struct LookupStorage<TKey, TValue, std::enable_if_t<!is_contiguous_lookup_key_v<TKey> && is_hashable<TKey>::value && is_eq_comparable<TKey>::value>> {
+  using type = std::unordered_map<TKey, TValue>;
+
+  static type make_sized(const size_t size) {
+    type container;
+    container.reserve(size);
+    return container;
+  }
+
+  static void set(type & container, const TKey & key, const TValue & value) {
+    container[key] = value;
+  }
+
+  static TValue & at(type & container, const TKey & key) {
+    return container.at(key);
+  }
+
+  static const TValue & at(const type & container, const TKey & key) {
+    return container.at(key);
+  }
+
+  static bool contains_key(const type & container, const TKey & key) {
+    return container.find(key) != container.end();
+  }
+};
+
+
+template<typename TContainer, bool IsContiguous>
+struct ReverseIteratorType;
+
+template<typename TContainer>
+struct ReverseIteratorType<TContainer, true> {
+  using type = typename TContainer::const_reverse_iterator;
+};
+
+template<typename TContainer>
+struct ReverseIteratorType<TContainer, false> {
+  using type = void;
+};
+
+} // namespace detail
+
 /**
- * Represents a permutation between 'original' and 'reordered' indices.
+ * Represents an ordering/permutation relationship between two indexed collections.
+ *
+ * The most important mental model is:
+ *
+ * - `Order` does not primarily describe a semantic relationship between items
+ * - `Order` describes where items from one indexed layout appear in another indexed layout
+ *
+ * In other words, use `Order` when you care about:
+ *
+ * - reordering a collection
+ * - converting between "old index" and "new index"
+ * - crossing a boundary where named items are assigned stable internal ids
+ * - composing multiple index-layout transformations
+ *
+ * Do not use `Order` as a general-purpose lookup table when plain ids or arrays are enough.
  *
  * Let the original sequence be indexed 0..N-1.
- *   - order[i]         = original index of the element that is now at new index i
- *   - order.inverse[j] = new index of the element that originally was at index j
-
+ *
+ * - `order[i]` is the original index of the element that is now at new index `i`
+ * - `order.inverse[j]` is the new index of the element that originally was at index `j`
+ *
+ * That means:
+ *
+ * - use `order[...]` when you have a new index and need to know which original element lives there
+ * - use `order.inverse[...]` when you have an original index and need to know where it moved
+ *
  * To create a reordered copy of a vector:
  * \code
- *   std::vector<std::string> my_vec;
+ *   std::vector<std::string> names = { ... };
+ *   Order<> order(names.size(), names.size());
  *   // ...
- *   my_vec = order.map(my_vec);
+ *
+ *   auto reordered = order.reorder(names);
+ *   // reordered[i] == names[ order[i] ]
+ * \endcode
+ *
+ * `Order` is also useful at representation boundaries.
+ * For example, if named items are assigned stable internal ids:
+ * \code
+ *   Order<std::string, size_t> names;
+ *   // names[new_id] gives the original named key stored at that id
+ *   // names.inverse[original_name_index] gives the assigned internal id
  * \endcode
  *
  * If you don't want to modify the original collection, the \c Reordered helper lets you index through the
- * permutation without modifying the original container:
+ * permutation without copying the original container:
  * \code
  *   std::vector<std::string> names = { ... };
- *   Order<> order(num_in, num_out);
+ *   Order<> order(names.size(), names.size());
  *   // ...
  *
  *   auto view = Reordered(names, order);
  *   // view[i] gives names[ order[i] ] without copying
  * \endcode
+ *
+ * Orders can also be composed. If `r` maps A -> B and `l` maps B -> C, then `l * r` maps A -> C.
+ * This is useful when several layout changes happen in sequence and you want one combined transform.
  *
  * \tparam TKey the type used to index into the underlying collection
  * \tparam TValue the type stored in the collection for indices
@@ -43,8 +202,8 @@ namespace arm_kinematics {
 template<typename TKey = std::size_t, typename TValue = std::size_t, bool StoresInverse = true>
 class Order {
 public:
-  using Container        = std::vector<TValue>;
-  using InverseContainer = std::vector<TKey>;
+  using Container        = typename detail::LookupStorage<TKey, TValue>::type;
+  using InverseContainer = typename detail::LookupStorage<TValue, TKey>::type;
 
   using InverseType      = Order<TValue, TKey, !StoresInverse>;
   /// When StoresInverse=true, this stores the actual inverse directly, otherwise it is a reference to its owning parent
@@ -55,14 +214,17 @@ public:
   >;
 
   using value_type      = TValue;
-  using size_type       = typename Container::size_type;
-  using const_reference = typename Container::const_reference;
+  using size_type       = std::size_t;
+  using const_reference = const TValue &;
   using const_iterator  = typename Container::const_iterator;
-  using const_reverse_iterator = typename Container::const_reverse_iterator;
+  using const_reverse_iterator =
+    typename detail::ReverseIteratorType<Container, detail::is_contiguous_lookup_key_v<TKey>>::type;
 
   /**
-   * This is the type returned when indexing into the order, which allows us to set the inverse relationship as a
-   * side-effect of assigning elements in the array (i.e. `order[i] = v;` will also assign `order.inverse[v] = i;`)
+   * This is the type returned when indexing into the forward order.
+   *
+   * Assigning through this proxy updates both sides of the permutation:
+   * `order[i] = v;` also performs `order.inverse[v] = i;`.
    */
   struct Proxy {
     Order & parent;
@@ -83,7 +245,7 @@ public:
 
     // Conversion to value_type so it behaves like a reference
     operator value_type() const {
-      return parent.data_[idx];
+      return detail::LookupStorage<TKey, TValue>::at(parent.data_, idx);
     }
 
   };
@@ -106,7 +268,7 @@ public:
     size_type index = 0;
 
     reference operator*() const noexcept {
-      return parent[index];
+      return parent[static_cast<TKey>(index)];
     }
 
     iterator & operator++() noexcept {
@@ -135,7 +297,7 @@ public:
     size_type index   = 0;  // index into order, counting backwards
 
     reference operator*() const noexcept {
-      return parent[index];
+      return parent[static_cast<TKey>(index)];
     }
 
     reverse_iterator & operator++() noexcept {
@@ -158,12 +320,18 @@ public:
   // Forward constructor -- only enabled if StoresInverse
   template<bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order(size_t in_size, size_t out_size)
-    : inverse(out_size, *this), data_(in_size) {}
+    : inverse(out_size, *this), data_(detail::LookupStorage<TKey, TValue>::make_sized(in_size)) {}
 
   // Forward default constructor -- only enabled if StoresInverse
   template<bool B = StoresInverse, std::enable_if_t<B, int> = 0>
   explicit Order()
-    : inverse(0, *this), data_(0) {}
+    : inverse(0, *this), data_(detail::LookupStorage<TKey, TValue>::make_sized(0)) {}
+
+  Order(const Order & other)
+    : inverse(copy_inverse(other, *this)), data_(other.data_) {}
+
+  Order(Order && other) noexcept
+    : inverse(move_inverse(std::move(other), *this)), data_(std::move(other.data_)) {}
 
   // Forward copy constructor -- only enabled if StoresInverse
   template<bool OtherStoresInverse, bool B = StoresInverse, std::enable_if_t<B, int> = 0>
@@ -175,11 +343,41 @@ public:
   explicit Order(Order<TKey, TValue, OtherStoresInverse> && other) noexcept
     : inverse(std::move(other.inverse.data_), *this), data_(std::move(other.data_)) {}
 
+  Order & operator=(const Order & other) {
+    if (this == &other) {
+      return *this;
+    }
+
+    if constexpr (StoresInverse) {
+      data_ = other.data_;
+      inverse.data_ = other.inverse.data_;
+    } else {
+      inverse = other.inverse;
+      data_ = other.data_;
+    }
+    return *this;
+  }
+
+  Order & operator=(Order && other) noexcept {
+    if (this == &other) {
+      return *this;
+    }
+
+    if constexpr (StoresInverse) {
+      data_ = std::move(other.data_);
+      inverse.data_ = std::move(other.inverse.data_);
+    } else {
+      inverse = std::move(other.inverse);
+      data_ = std::move(other.data_);
+    }
+    return *this;
+  }
+
   // Forward copy assignment -- only enabled if StoresInverse
   template<bool OtherStoresInverse>
   Order & operator=(const Order<TKey, TValue, OtherStoresInverse> & other) {
     data_ = other.data_;
-    inverse.data_ = other.data_;
+    inverse.data_ = other.inverse.data_;
     return *this;
   }
 
@@ -187,38 +385,92 @@ public:
   template<bool OtherStoresInverse>
   Order & operator=(Order<TKey, TValue, OtherStoresInverse> && other) noexcept {
     data_ = std::move(other.data_);
-    inverse.data_ = std::move(other.data_);
+    inverse.data_ = std::move(other.inverse.data_);
     return *this;
   }
 
-  void set(size_type new_id, value_type old_id) {
-    data_[new_id] = old_id;
-    inverse.data_[old_id] = new_id;
+  void set(const TKey & new_id, const value_type & old_id) {
+    detail::LookupStorage<TKey, TValue>::set(data_, new_id, old_id);
+    detail::LookupStorage<TValue, TKey>::set(inverse.data_, old_id, new_id);
   }
 
   // Indexing into the order
-  reference operator[](size_type idx) noexcept {
+  // `order[new_index] -> old_index`
+  reference operator[](const TKey & idx) noexcept {
     return Proxy{*this, idx};
   }
-  const_reference operator[](size_type idx) const noexcept {
-    return data_[idx];
+  // `order[new_index] -> old_index`
+  const_reference operator[](const TKey & idx) const noexcept {
+    return detail::LookupStorage<TKey, TValue>::at(data_, idx);
+  }
+
+  [[nodiscard]] bool contains_key(const TKey & idx) const noexcept {
+    return detail::LookupStorage<TKey, TValue>::contains_key(data_, idx);
+  }
+
+  /**
+   * For orders into contiguous lookup arrays (e.g. Order<std::string, size_t>), returns the value for the given TKey
+   * if it exists in the order, otherwise sets the value for the given TKey to the size of the number of elements.
+   *
+   * Use this when you want to just make some conversion from an expensive lookup type to some sequential order.
+   *
+   * @param idx The key to get or set a default value for
+   * @return the value for idx if it already exists, otherwise sets the value for idx as the number of previous elements
+   * in the order, and returns that.
+   */
+  template<bool B = detail::is_contiguous_lookup_key_v<TValue>, std::enable_if_t<B, int> = 0>
+  reference ensure(const TKey & idx) noexcept
+  {
+    if (contains_key(idx))
+      return (*this)[idx];
+
+    const auto value = inverse.size();
+    set(idx, value);
+    return (*this)[idx];
+  }
+
+  /**
+   * Gets the value for idx, otherwise sets the value to default_value
+   * @param idx The key to get or set a default value for
+   * @param default_value The value to set for idx if idx has no previous value set
+   * @return The value at idx
+   */
+  reference ensure(const TKey & idx, const value_type & default_value) noexcept
+  {
+    if (contains_key(idx))
+      return (*this)[idx];
+
+    set(idx, default_value);
+    return (*this)[idx];
   }
 
   // Iteration over the indices
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   iterator begin() noexcept { return {*this, 0}; }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_iterator begin() const noexcept { return data_.begin(); }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_iterator cbegin() const noexcept { return data_.cbegin(); }
 
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   iterator end() noexcept { return {*this, size()}; }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_iterator end() const noexcept { return data_.end(); }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_iterator cend() const noexcept { return data_.cend(); }
 
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   reverse_iterator rbegin() noexcept { return {*this, size() - 1}; }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_reverse_iterator rbegin() const noexcept { return data_.rbegin(); }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_reverse_iterator crbegin() const noexcept { return data_.crbegin(); }
 
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   reverse_iterator rend() noexcept { return {*this, static_cast<size_type>(-1)}; }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_reverse_iterator rend() const noexcept { return data_.rend(); }
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   const_reverse_iterator crend() const noexcept { return data_.crend(); }
 
   size_type size() const noexcept { return data_.size(); }
@@ -229,7 +481,7 @@ public:
    * @param original The vector to take elements from
    * @return A copy of the original vector, with the items sorted to match the order
    */
-  template<typename U, typename UAlloc>
+  template<typename U, typename UAlloc, bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   [[nodiscard]] std::vector<U, UAlloc> reorder(const std::vector<U, UAlloc> & original) const noexcept {
     if (original.empty())
       return {};
@@ -250,7 +502,7 @@ public:
    * @param original The vector to take elements from
    * @return A copy of the original vector, with the items sorted to match the order
    */
-  template<typename U, typename UAlloc>
+  template<typename U, typename UAlloc, bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   [[nodiscard]] std::vector<U, UAlloc> reorder(std::vector<U, UAlloc> && original) const noexcept {
     if (original.empty())
       return {};
@@ -266,6 +518,72 @@ public:
     return mapped;
   }
 
+  /**
+   * Maps a span of keys through this order, collecting resolved values or unknown keys.
+   *
+   * @param keys The keys to look up in this order.
+   * @return A tl::expected where the value contains all mapped TValues if every key was found,
+   *         or the error contains the subset of keys that were not found in the order.
+   */
+  [[nodiscard]] tl::expected<std::vector<TValue>, std::vector<TKey>>
+  try_map_collect(span<const TKey> keys) const
+  {
+    std::vector<TValue> resolved;
+    resolved.reserve(keys.size());
+    std::vector<TKey> unknown;
+
+    for (const auto & key : keys) {
+      if (!contains_key(key)) {
+        unknown.push_back(key);
+      } else {
+        resolved.push_back((*this)[key]);
+      }
+    }
+
+    if (!unknown.empty()) {
+      return tl::unexpected(std::move(unknown));
+    }
+    return resolved;
+  }
+
+  /**
+   * Maps a span of inputs through a key extractor and then this order, collecting resolved values
+   * or unknown inputs.
+   *
+   * key_fn should return std::optional<TKey>; returning std::nullopt marks the input as unknown
+   * before the order is even consulted.
+   *
+   * @tparam TIn The input element type.
+   * @tparam KeyFn A callable mapping (const TIn &) to std::optional<TKey>.
+   * @param inputs The input elements to resolve.
+   * @param key_fn Extracts a TKey from each TIn, or returns std::nullopt if the input has no valid key.
+   * @return A tl::expected where the value contains all mapped TValues if every input was resolved,
+   *         or the error contains the subset of TIn inputs that could not be resolved.
+   */
+  template<typename TIn, typename KeyFn>
+  [[nodiscard]] tl::expected<std::vector<TValue>, std::vector<TIn>>
+  try_map_collect(span<const TIn> inputs, KeyFn key_fn) const
+  {
+    std::vector<TValue> resolved;
+    resolved.reserve(inputs.size());
+    std::vector<TIn> unknown;
+
+    for (const auto & input : inputs) {
+      auto maybe_key = key_fn(input);
+      if (!maybe_key || !contains_key(*maybe_key)) {
+        unknown.push_back(input);
+      } else {
+        resolved.push_back((*this)[*maybe_key]);
+      }
+    }
+
+    if (!unknown.empty()) {
+      return tl::unexpected(std::move(unknown));
+    }
+    return resolved;
+  }
+
+  template<bool B = detail::is_contiguous_lookup_key_v<TKey>, std::enable_if_t<B, int> = 0>
   [[nodiscard]] std::string to_string() const {
     std::stringstream ss;
     ss << "Order{";
@@ -283,11 +601,30 @@ public:
   }
 
   /**
-   * Stores the inverse mapping for this order, accepting old indices and outputting new indices.
+   * Stores the inverse mapping for this order:
+   * `inverse[old_index] -> new_index`.
    */
   InverseRef inverse{};
 
 private:
+  static InverseRef copy_inverse(const Order & other, Order & self)
+  {
+    if constexpr (StoresInverse) {
+      return InverseType(other.inverse.data_, self);
+    } else {
+      return other.inverse;
+    }
+  }
+
+  static InverseRef move_inverse(Order && other, Order & self)
+  {
+    if constexpr (StoresInverse) {
+      return InverseType(std::move(other.inverse.data_), self);
+    } else {
+      return other.inverse;
+    }
+  }
+
   // Allow all Order<*,*,*> specializations to access private members
   template<typename, typename, bool>
   friend class Order;
@@ -300,7 +637,7 @@ private:
   // Inverse constructor -- only enabled if not StoresInverse
   template<bool B = StoresInverse, std::enable_if_t<!B, int> = 0>
   explicit Order(size_type out_size, Order<TValue, TKey, true> & parent)
-    : inverse(parent), data_(out_size) {}
+    : inverse(parent), data_(detail::LookupStorage<TKey, TValue>::make_sized(out_size)) {}
 
   // Inverse constructor -- only enabled if not StoresInverse
   template<bool B = StoresInverse, std::enable_if_t<!B, int> = 0>
@@ -310,7 +647,8 @@ private:
   Container data_{};
 };
 
-/// Function style composition, where output applies mapping r, then l
+/// Function style composition, where the resulting order applies `r` first, then `l`.
+/// If `r` maps A -> B and `l` maps B -> C, then `l * r` maps A -> C.
 template<typename TA, typename TB, typename TC, bool StoresInverseL, bool StoresInverseR>
 Order<TA, TB, true>
 operator*(
@@ -328,7 +666,7 @@ operator*(
 }
 
 /// Function style composition with a vector
-template<typename TKey, typename TValue, typename TKeyAlloc, typename TValueAlloc = std::allocator<TKey>, bool StoresInverse>
+template<typename TKey, typename TValue, typename TKeyAlloc, typename TValueAlloc = std::allocator<TValue>, bool StoresInverse>
 std::vector<TValue, TValueAlloc> operator*(
   const Order<TKey, TValue, StoresInverse>& order,
   const std::vector<TKey, TKeyAlloc>& indices)

@@ -6,12 +6,11 @@
 #define ARM_KINEMATICS_KINEMATICS_PARAMS_HPP
 
 #include <string>
+#include <vector>
 #include <rclcpp/node_interfaces/node_interfaces.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
-#include <urdf/model.h>
 
 #include "arm_kinematics/visibility_control.h"
-#include "robot_model.hpp"
 
 namespace arm_kinematics {
 

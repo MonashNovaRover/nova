@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
     use_local_mesh = LaunchConfiguration('use_local_mesh')
     use_mock_hardware = LaunchConfiguration('use_mock_hardware')
+    path_planner_controller_name = 'nova_path_planner'
 
     return [
         # Node( # TODO: only when arm is enabled
@@ -49,7 +50,7 @@ def launch_setup(context, *args, **kwargs):
         Node( # TODO: only when arm is enabled
             package='controller_manager',
             executable='spawner',
-            arguments=['nova_path_planner', '--inactive'],
+            arguments=[path_planner_controller_name, '--inactive'],
         ),
         GroupAction(
             condition=UnlessCondition(gazebo),
@@ -85,7 +86,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='controllers',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'old.controllers.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'new.controllers.yaml']),
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
