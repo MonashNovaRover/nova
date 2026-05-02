@@ -105,7 +105,7 @@ public:
         BT::InputPort<std::string>("global_frame", "map", "Global reference frame"),
         BT::InputPort<std::string>("robot_base_frame", "base_link", "Robot base frame"),
         // 254 = lethal, 253 = inscribed
-        BT::InputPort<double>("cost_threshold", 254.0, "Cost threshold for considering a goal in collision"),
+        BT::InputPort<double>("cost_threshold", 253.0, "Cost threshold for considering a goal in collision"),
         BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals removed"),
       };
   }
