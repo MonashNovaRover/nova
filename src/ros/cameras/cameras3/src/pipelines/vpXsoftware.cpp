@@ -111,6 +111,10 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
 
   if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
   if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
+  else {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
   if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
 
   if (link_elements(streamer_node, next_element, tee, props->serial)) next_element = tee;
@@ -127,7 +131,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
   if (link_elements(streamer_node, next_element, cropper, props->serial)) next_element = cropper;
   if (link_elements(streamer_node, next_element, clock, props->serial)) next_element = clock;
   if (link_elements(streamer_node, next_element, encode, props->serial)) next_element = encode;
-  if (link_elements(streamer_node, next_element, webrtc, props->serial)) next_element = webrtc;
+  link_elements(streamer_node, next_element, webrtc, props->serial);
 
   next_element = nullptr;
 
@@ -155,8 +159,6 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", "mmap");
-
-  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // filter
   props->format = "I420";

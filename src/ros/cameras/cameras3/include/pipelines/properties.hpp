@@ -22,7 +22,6 @@ struct v4lProperties
   std::string io_mode;
 
   bool strict_devname;
-  bool verify_resolution;
 };
 
 struct capsProperties
