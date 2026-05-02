@@ -68,16 +68,15 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelin
 
   // 4. Link elements
   
-  // Change fps
-  if (props->downrate > 1) {
-    if (!link_elements(streamer_node, source, rate, props->serial)) return nullptr;
-    if (!link_elements(streamer_node, rate, srcfilter, props->serial)) return nullptr;
-  } else {
-    if (!link_elements(streamer_node, source, srcfilter, props->serial)) return nullptr;
-  }
+  GstElement* next_element = source;
 
-  // Convert to raw
-  if (!link_elements(streamer_node, srcfilter, decode, props->serial)) return nullptr;
+  if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
+  if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
+  else {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+  if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
 
   g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
       GstElement* convert = static_cast<GstElement*>(user_data);
@@ -88,24 +87,12 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelin
       if (sink_pad) gst_object_unref(sink_pad);
   }), convert);
 
-  if (!link_elements(streamer_node, convert, scalefilter, props->serial)) return nullptr;
+  if (link_elements(streamer_node, next_element, scalefilter, props->serial)) next_element = scalefilter;
+  if (link_elements(streamer_node, next_element, cropper, props->serial)) next_element = cropper;
+  if (link_elements(streamer_node, next_element, clock, props->serial)) next_element = clock;
+  link_elements(streamer_node, next_element, webrtc, props->serial);
 
-  // Enable crop and/or clock
-  if (props->crop43 && props->show_clock) {
-      if (!link_elements(streamer_node, scalefilter, cropper, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, cropper, clock, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, clock, webrtc, props->serial)) return nullptr;
-  } else
-  if (props->crop43) {
-      if (!link_elements(streamer_node, scalefilter, cropper, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, cropper, webrtc, props->serial)) return nullptr;
-  } else
-  if (props->show_clock) {
-      if (!link_elements(streamer_node, scalefilter, clock, props->serial)) return nullptr;
-      if (!link_elements(streamer_node, clock, webrtc, props->serial)) return nullptr;  } 
-  else {
-      if (!link_elements(streamer_node, scalefilter, webrtc, props->serial)) return nullptr;
-  }
+  next_element = nullptr;
 
   return gst_pipeline;
 }
@@ -138,8 +125,6 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
 
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
-
-  props->verify_resolution = set_property(streamer_node, camera, "verify_resolution", false);
 
   // filter
   default_string = "I420";
