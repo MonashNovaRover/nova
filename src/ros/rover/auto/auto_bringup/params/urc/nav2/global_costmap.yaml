@@ -5,6 +5,7 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
+      rolling_window: true
       width: 400
       height: 400
       origin_x: -200.0
