@@ -16,6 +16,7 @@
   std-srvs, 
   launch, 
   launch-ros, 
+  nova-interfaces
 }:
 
 buildRosPackage {
@@ -42,6 +43,7 @@ buildRosPackage {
     vision-msgs 
     aruco-opencv-msgs 
     visualization-msgs 
+    nova-interfaces
   ];
   propagatedBuildInputs = [ launch launch-ros ];
 }

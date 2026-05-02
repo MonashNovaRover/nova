@@ -7,7 +7,7 @@ string class_name
 float64 score
 
 # Pose of the detected object on the image. X and Y should be set to the corresponding
-# pixel coordinates while Z should be 0.
+# pixel coordinates for the middle of the bounding box while Z should be 0.
 geometry_msgs/Pose pose
 
 # Resolution of the image the detection pose is in reference to

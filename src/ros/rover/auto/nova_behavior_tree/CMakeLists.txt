@@ -33,6 +33,7 @@ find_package(nav2_behavior_tree REQUIRED)
 find_package(behaviortree_cpp REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(nova_interfaces REQUIRED)
 
 set(dep_pkgs
   rclcpp
@@ -47,6 +48,7 @@ set(dep_pkgs
   behaviortree_cpp
   ament_index_cpp
   visualization_msgs
+  nova_interfaces
 )
 
 # === Build ===
