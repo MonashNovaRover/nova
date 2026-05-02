@@ -87,7 +87,7 @@ export const useCameraStream = (
     if (rtcRef.current) {
       rtcRef.current.close();
     }
-    rtcRef.current = null; // Reset the RTC connection
+    rtcRef.current = undefined; // Reset the RTC connection
 
     if (videoRef.current) videoRef.current.srcObject = null;
 
