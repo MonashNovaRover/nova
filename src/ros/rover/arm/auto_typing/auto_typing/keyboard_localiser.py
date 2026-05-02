@@ -116,7 +116,7 @@ class KeyboardLocaliser(Node):
             [0, focal_length, image_center[1]],
             [0, 0, 1]
         ], dtype=np.float32)
-        dist_arr = self.declare_parameter('distortion_matrix', [0.0,0.0,0.0,0.0,0.0]).get_parameter_value().double_array_value
+        dist_arr = self.declare_parameter('distortion_matrix', [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]).get_parameter_value().double_array_value
         self.dist_coeffs = np.array(dist_arr)
         self.camera_resolution = width, height
 
@@ -124,15 +124,16 @@ class KeyboardLocaliser(Node):
         self.camera_frame = self.declare_parameter('camera_frame', 'image_frame').get_parameter_value().string_value
 
         self.aruco_detection = None
-        self.aruco_ids = list(self.declare_parameter('aruco_ids', [1, 4, 3, 2]).get_parameter_value().integer_array_value)
+        self.marker_ids = list(self.declare_parameter('marker_ids', [1, 4, 3, 2]).get_parameter_value().integer_array_value)
         self.aruco_topic = self.declare_parameter('aruco_topic', ARUCO_TOPIC).get_parameter_value().string_value
         self.aruco_sub = self.create_subscription(ArucoDetection, self.aruco_topic, self.aruco_callback, qos_profile=qos_profile_sensor_data)
 
-        self.keyboard_points = np.array([   # Corner points of the keyboard relative to the keyboard frame in mm (center of keyboard)
-            [-KEYBOARD[1]/2, -KEYBOARD[0]/2, 0],    # top-left
-            [KEYBOARD[1]/2,  -KEYBOARD[0]/2, 0],    # top-right
-            [KEYBOARD[1]/2,  KEYBOARD[0]/2, 0],     # bottom-right
-            [-KEYBOARD[1]/2, KEYBOARD[0]/2, 0]      # bottom-left
+        marker_offset = self.declare_parameter('marker_offset', 10.0).get_parameter_value().double_value  # mm
+        self.keyboard_points = np.array([
+            [-(KEYBOARD[1]/2 - marker_offset), -(KEYBOARD[0]/2 - marker_offset), 0],  # top-left
+            [ (KEYBOARD[1]/2 - marker_offset), -(KEYBOARD[0]/2 - marker_offset), 0],  # top-right
+            [ (KEYBOARD[1]/2 - marker_offset),  (KEYBOARD[0]/2 - marker_offset), 0],  # bottom-right
+            [-(KEYBOARD[1]/2 - marker_offset),  (KEYBOARD[0]/2 - marker_offset), 0],  # bottom-left
         ], dtype=np.float32)
         self.keyboard_points_m = self.keyboard_points / 1000.0
 
@@ -204,11 +205,11 @@ class KeyboardLocaliser(Node):
         Return marker centre positions as [x,y,z] in order
         """        
         marker_lookup = {marker.marker_id: marker for marker in self.aruco_detection.markers}
-        if any(marker_id not in marker_lookup for marker_id in self.aruco_ids):
+        if any(marker_id not in marker_lookup for marker_id in self.marker_ids):
             return None
 
         ordered_points = []
-        for marker_id in self.aruco_ids:
+        for marker_id in self.marker_ids:
             marker = marker_lookup[marker_id]
             ordered_points.append(
                 [
