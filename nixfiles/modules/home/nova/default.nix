@@ -117,6 +117,7 @@ in
         gpsd
         can-utils
         btop
+        bmon
         nix-output-monitor
         ffmpeg
         unzip
