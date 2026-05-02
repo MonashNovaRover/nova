@@ -34,13 +34,12 @@ camera_directory:
         # the path corresponds to the slot on a usb hub
         mast:
           '1:1.0': mast_arm_stow
-          '2:1.0': mast_belly
-          '3:1.0': mast_backward
+          '3:1.0': mast_belly
           '4:1.0': mast_forward
-          '4:1:1.0': mast_forward
-          '4:2:1.0': payload_mast_2
-          '4:3:1.0': payload_mast_3
-          '4:4:1.0': payload_mast_4
+          '2:1:1.0': payload_mast_1
+          '2:2:1.0': payload_mast_2
+          '2:3:1.0': payload_mast_3
+          '2:4:1.0': payload_mast_4
         payload:
           '1:1.0': payload_1
           '2:1.0': payload_2
@@ -56,14 +55,14 @@ camera_directory:
         # if a non-default path is needed, it can be specified in its named root followed by the path.
         # Take a look at example for the possible override methods
         science-urc:
-          payload_1: science_boom
-          payload_2: science_cache_left
+          payload_1: science_cache_left
+          payload_2: science_microscope
           payload_3: science_cache_right
-          payload_4_1: science_microscope
-          payload_4_2: science_cuvettes
           payload_4_3: science_litmus
-          payload_4_4: science_spectroscope
-          payload_mast_2: science_gimbal_cam
+          #payload_mast_3: science_gimbal_cam
+          'mast.2.1:1.0': science_cuvettes
+          'mast.2.3:1.0': mast_backward
+          'mast.2.2:1.0': science_spectroscope
         delivery:
           payload_1: arm_end_side
           payload_2: arm_end_finger
