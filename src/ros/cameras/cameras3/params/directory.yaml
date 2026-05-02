@@ -7,6 +7,7 @@ camera_directory:
       # This is incompatible with the current design of the camera_directory node. But could be fixed in the future...
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455_210523060485
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455 # Jetson TX2 does not see the serial number??
+      - Ricoh_Company__Ltd._RICOH_THETA_Z1_34122798 # Keep blacklisted until kernel module works again
 
     serial_overrides:
       # cameras at the specified root.path combo will have their serials overridden as specified by the platform and task passed to the directory node
