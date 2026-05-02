@@ -84,13 +84,14 @@ camera_streamer:
           downscale: 2
           framerate: 30
           downrate: 3
-          deadline: 250
+          deadline: 1
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 256
+          threads: 2
           gop: 5
         snail:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp8softwareGL
           width: 640
           height: 480
           downscale: 2
@@ -137,13 +138,14 @@ camera_streamer:
           downscale: 2
           framerate: 30
           downrate: 3
-          deadline: 250
+          deadline: 1
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 256
+          threads: 2
           gop: 5
         snail:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp8softwareGL
           width: 1920
           height: 1080
           downscale: 4
@@ -182,10 +184,11 @@ camera_streamer:
           downscale: 2
           framerate: 30
           downrate: 3
-          deadline: 250
+          deadline: 1
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 256
+          threads: 2
           gop: 5
         snail:
           pipeline_type: h264passthrough
@@ -233,13 +236,14 @@ camera_streamer:
           downscale: 2
           framerate: 30
           downrate: 3
-          deadline: 250
+          deadline: 1
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 256
+          threads: 2
           gop: 5
         snail: 
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp8softwareGL
           width: 640
           height: 480
           downscale: 2
@@ -281,18 +285,19 @@ camera_streamer:
           gop: 3
         still:
           pipeline_type: vp9softwareGL
-          mime: video/x-raw
+          mime: image/jpeg
           width: 1280
-          height: 800
+          height: 720
           downscale: 2
           framerate: 10
-          deadline: 250
+          deadline: 1
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 256
+          threads: 2
           gop: 5
         snail:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp8softwareGL
           width: 1280
           height: 720
           downscale: 3
@@ -342,25 +347,31 @@ camera_streamer:
           mast_backward: default
           mast_arm_stow: default
           mast_belly: default
-          science_gimbal_cam: default
-          science_boom: snail
+
           science_cache_left: snail
           science_cache_right: snail
           science_microscope: snail
+
+          science_gimbal_cam: default
+          science_boom: snail
           science_cuvettes: snail
-          science_litmus: snail
+
+          science_litmus: default
           science_spectroscope: snail
         payload:
-          mast_forward: snail
+          mast_forward: still
           mast_backward: snail
           mast_arm_stow: snail
           mast_belly: snail
-          science_gimbal_cam: default
-          science_boom: default
+
           science_cache_left: snail
           science_cache_right: snail
           science_microscope: default
+
+          science_gimbal_cam: default
+          science_boom: default
           science_cuvettes: default
+
           science_litmus: still
           science_spectroscope: still
 
