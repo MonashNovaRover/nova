@@ -32,7 +32,8 @@ keyboard_localiser:
 
     # ArUco marker params
     aruco_topic: /aruco_detections
-    aruco_ids: [1, 4, 3, 2]  # top-left, top-right, bottom-right, bottom-left
+    marker_ids: [1, 4, 3, 2]  # top-left, top-right, bottom-right, bottom-left
+    marker_offset: 10.0
 
     # (auto) keyboard pose analysis initalisation
     camera_frame: image_frame
