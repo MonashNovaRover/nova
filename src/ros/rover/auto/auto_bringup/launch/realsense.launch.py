@@ -57,6 +57,7 @@ def launch_setup(context, *args, **kwargs):
                     package='realsense2_camera',
                     plugin='realsense2_camera::RealSenseNodeFactory',
                     name='d415',
+                    namespace='',
                     parameters=[rs_params, {'camera_name': cam_name}],
                 ),
                 ComposableNode(
@@ -64,6 +65,7 @@ def launch_setup(context, *args, **kwargs):
                     package='aruco_opencv',
                     plugin='aruco_opencv::ArucoTrackerAutostart',
                     name='aruco_tracker',
+                    namespace='',
                     parameters=[ar_params,
                                 {'cam_base_topic': f'{cam_name}/color/image_raw',
                                  'use_sim_time': sim}],
