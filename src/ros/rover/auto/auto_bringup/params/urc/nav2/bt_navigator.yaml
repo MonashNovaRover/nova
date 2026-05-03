@@ -8,6 +8,7 @@ bt_navigator:
     wait_for_service_timeout: 1000
     action_service_result_timeout: 900.0
     goal_reached_tol: 1.0
+    goal_offset_radius: 1.0 # should be more than robot radius
     error_code_names:
       - compute_path_error_code
       - follow_path_error_code
@@ -19,15 +20,15 @@ bt_navigator:
     
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_nearby_collision_goals.xml
+    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_in_collision_goals.xml
     
     urc_through_poses:
-      plugin: "nova_bt_navigators::URCNavigator"
+      plugin: "nova_bt_navigators::URCThroughPoses"
     default_urc_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/urc/urc_through_poses_aruco.xml
     
     plugin_lib_names:
       - nova_blackboard_publisher_bt_node
-      - nova_remove_nearby_in_collision_goals_action_bt_node
+      - nova_remove_in_collision_goals_action_bt_node
       - nova_ar_tag_detected_condition_bt_node
       - nova_get_goal_action_bt_node
       - nova_set_detection_goal_action_bt_node

@@ -3,6 +3,7 @@
 , ament-cmake
 , launch
 , launch-ros
+, nova-electronics
 }:
 
 buildRosPackage {
@@ -20,5 +21,6 @@ buildRosPackage {
   propagatedBuildInputs = [
     launch
     launch-ros
+    nova-electronics
   ];
 }

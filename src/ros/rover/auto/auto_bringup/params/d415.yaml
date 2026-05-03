@@ -1,6 +1,7 @@
 d415:
   ros__parameters:
     camera_name: d415
+    camera_namespace: ""
     enable_color: true
     enable_depth: false
     enable_infra: false

@@ -48,7 +48,7 @@ def launch_setup(context, *args, **kwargs):
     comp = LaunchConfiguration('comp').perform(context).lower()
 
     # comp agnostic arguments
-    gazebo = LaunchConfiguration('gazebo')
+    sim = LaunchConfiguration('sim')
 
     # comp defaults
     if comp == 'arch':
@@ -73,7 +73,7 @@ def launch_setup(context, *args, **kwargs):
             executable='ekf_node',
             name='ekf_filter_node',
             output='screen',
-            parameters=[rl_params, {'use_sim_time': gazebo}],
+            parameters=[rl_params, {'use_sim_time': sim}],
         ),
         GroupAction(
             condition=IfCondition(str(comp == 'urc')),
@@ -83,14 +83,14 @@ def launch_setup(context, *args, **kwargs):
                     executable='ekf_node',
                     name='ekf_filter_node_odom',
                     output='screen',
-                    parameters=[rl_params, {'use_sim_time': gazebo}],
+                    parameters=[rl_params, {'use_sim_time': sim}],
                 ),
                 Node(
                     package='robot_localization',
                     executable='ekf_node',
                     name='ekf_filter_node_map',
                     output='screen',
-                    parameters=[rl_params, {'use_sim_time': gazebo}],
+                    parameters=[rl_params, {'use_sim_time': sim}],
                     remappings=[('odometry/filtered', 'odometry/global')],
                 ),
                 Node(
@@ -109,7 +109,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='navsat_transform_node',
                     name='navsat_transform',
                     output='screen',
-                    parameters=[rl_params, {'use_sim_time': gazebo}],
+                    parameters=[rl_params, {'use_sim_time': sim}],
                     remappings=[('odometry/filtered', 'odometry/global'),
                                 ('gps/fix', 'gps_rover/fix'),
                                 ('imu', 'gps_rover/heading_imu')],
@@ -132,9 +132,9 @@ def generate_launch_description():
         ),
         # comp agnostic arguments
         DeclareLaunchArgument(
-            name='gazebo',
+            name='sim',
             default_value='False',
-            description='Flag if using gazebo',
+            description='Use simulation clock if True',
         ),
         # arguments with comp defaults
         DeclareLaunchArgument(

@@ -47,7 +47,7 @@ public:
     return {
       BT::InputPort<Goal>("detected_goal", "Detected goal (AR tag / object)"),
       BT::InputPort<Goal>("current_pose", "The current pose of the rover"),
-      BT::InputPort<double>("offset_radius", "Radius away from actual pose to set goal"),
+      BT::InputPort<double>("goal_offset_radius", "Radius away from actual pose to set goal"),
       BT::InputPort<Goals>("input_goals", "Input goals to be updated"),
       BT::OutputPort<Goals>("output_goals", "Updated goals"),
     };

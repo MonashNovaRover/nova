@@ -17,7 +17,7 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('auto_bringup')
     )
 
-    gazebo = LaunchConfiguration('gazebo').perform(context)
+    sim = LaunchConfiguration('sim').perform(context)
     rviz_params = LaunchConfiguration('rviz_params').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
@@ -36,7 +36,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         ExecuteProcess(
             cmd=['xacro', model,
-                 f'gazebo:={gazebo}',
+                 f'gazebo:={sim}',
                  f'robot_name:={robot_name}',
                  'auto_mount:=True',
                  '-o', expanduser("~/rviz.urdf")],
@@ -59,9 +59,9 @@ def generate_launch_description():
             description='Whether to use local directories instead of the nix store.',
         ),
         DeclareLaunchArgument(
-            name='gazebo',
+            name='sim',
             default_value='false',
-            description='',
+            description='Use simulation clock if True',
         ),
         DeclareLaunchArgument(
             name='rviz_params',

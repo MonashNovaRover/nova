@@ -19,18 +19,20 @@ controller_server:
       #
       # prediction horizon (m) = v_max * time_steps * model_dt
 
-      vx_std: 0.3   # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
-      vy_std: 0.2   # only used in Omni motion model
-      wz_std: 0.6   # similar to vx_std, higher values allow trajectories with higher rotation
-      vx_max: 0.3   # max linear velocity, ~1.08 km/h
-      vx_min: -0.21 # vx_max * 0.7
-      vy_max: 0.5   # only used in Omni motion model
-      wz_max: 0.78  # max angular velocity (rad/s), ~45 degrees/s
-      ax_max: 4.0   # max linear acceleration. going lower gives preference to rotational trajectories
-      ax_min: -4.0
-      az_max: 4.0   # max angular acceleration
+      vx_std: 0.3    # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
+      vy_std: 0.2    # only used in Omni motion model
+      wz_std: 0.6    # similar to vx_std, higher values allow trajectories with higher rotation
+      vx_max: 0.3    # max linear velocity, ~1.08 km/h
+      vx_min: -0.21  # vx_max * 0.7
+      vy_max: 0.5    # only used in Omni motion model
+      wz_max: 0.7854 # max angular velocity (rad/s), ~45 degrees/s
+      ax_max: 1.0    # max linear acceleration. going lower gives preference to rotational trajectories
+      ax_min: -1.0
+      ay_max: 3.0    # only used in Omni motion model
+      ay_min: -3.0   # only used in Omni motion model
+      az_max: 0.7854 # max angular acceleration
       temperature: 0.3
-      prune_distance: 1.7       # slightly longer than prediction horizon
+      prune_distance: 1.7 # slightly longer than prediction horizon
       GoalCritic:
         threshold_to_consider: 1.2 # prediction horizon
       # The Cost Critic incentivizes navigating away from obstacles and critical collisions
@@ -58,7 +60,7 @@ local_costmap:
 velocity_smoother:
   ros__parameters:
     # Match angular velocity limits with those in Rotation Shim Controller
-    max_velocity: [0.3, 0.0, 0.5236]
-    min_velocity: [-0.21, 0.0, -0.5236]
-    max_accel: [4.0, 0.0, 4.0]
-    max_decel: [-4.0, 0.0, -4.0]
+    max_velocity: [0.3, 0.0, 0.7854]
+    min_velocity: [-0.21, 0.0, -0.7854]
+    max_accel: [1.0, 0.0, 0.7854]
+    max_decel: [-1.0, 0.0, -0.7854]

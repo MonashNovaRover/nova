@@ -50,7 +50,7 @@ set(dependencies
 )
 
 add_library(${lib_name} SHARED 
-  src/urc_navigator.cpp
+  src/urc_through_poses.cpp
 )
 
 

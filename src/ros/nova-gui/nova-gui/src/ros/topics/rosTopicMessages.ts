@@ -66,4 +66,7 @@ export const rosTopicMessages = {
   [RosTopic.ACTIVATED_NODES]: "nova_interfaces/msg/ActiveNodeStatus",
   [RosTopic.RADIO_STATUS]: "nova_interfaces/msg/RadioStatus",
   [RosTopic.LOCKED_STATUS]: "nova_interfaces/msg/LockedStatus",
+  
+  // Vision Related
+  [RosTopic.YOLO_DETECTIONS]: "nova_interfaces/msg/Detection2DArray",
 };
