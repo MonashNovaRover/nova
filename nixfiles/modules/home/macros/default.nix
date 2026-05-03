@@ -285,8 +285,8 @@ in
           launch-rviz = "~/Builds/active/bin/ros2 launch auto_bringup rviz.launch.py";
           launch-auto-urdf = "~/Builds/active/bin/ros2 launch auto_bringup urdf.launch.py";
           launch-yolo = "~/Builds/active/bin/ros2 launch auto_bringup yolo.launch.py";
-          start-arch = "~/Builds/active/bin/ros2 run auto_start start_auto_arch.py";
-          start-urc = "~/Builds/active/bin/ros2 run auto_start start_auto_urc.py";
+          start-auto-arch = "~/Builds/active/bin/ros2 run auto_start start_auto_arch.py";
+          start-auto-urc = "~/Builds/active/bin/ros2 run auto_start start_auto_urc.py";
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
 
           # GPS
