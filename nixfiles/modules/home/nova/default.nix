@@ -66,9 +66,8 @@ in
         defaultEditor = true;
       };
 
-      tmux = {
-        enable = true;
-      };
+      tmux.enable = true;
+      btop.enable = true;
     };
 
     home = {
@@ -116,7 +115,6 @@ in
         usbutils
         gpsd
         can-utils
-        btop
         nix-output-monitor
         ffmpeg
         unzip
