@@ -261,6 +261,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                           <TableColumn>Name</TableColumn>
                           <TableColumn>Latitude</TableColumn>
                           <TableColumn>Longitude</TableColumn>
+                          <TableColumn>Radius</TableColumn>
                           <TableColumn>Label</TableColumn>
                           <TableColumn align="end">
                             <div className="flex flex-row justify-end">Actions</div>
@@ -272,6 +273,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                               <TableCell>{point.name}</TableCell>
                               <TableCell>{point.lat}</TableCell>
                               <TableCell>{point.long}</TableCell>
+                              <TableCell>{point.searchRadius != null ? `${point.searchRadius}m` : ''}</TableCell>
                               <TableCell>{point.labelName != null ? point.labelName : ''}</TableCell>
                               <TableCell className="flex flex-row justify-end">
                                 <ToolTipButton

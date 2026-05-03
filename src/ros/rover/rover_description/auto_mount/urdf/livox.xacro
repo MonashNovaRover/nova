@@ -24,7 +24,7 @@
         <gazebo reference="livox_frame">
             <visibility_flags>0x02</visibility_flags>
             <sensor name="mid360" type="gpu_lidar">
-                <update_rate>10</update_rate>
+                <update_rate>20</update_rate>
                 <topic>livox/lidar</topic>
                 <gz_frame_id>livox_frame</gz_frame_id>
                 <visibility_mask>0xFFFFFFFD</visibility_mask> <!-- All bits except bit 1 -->

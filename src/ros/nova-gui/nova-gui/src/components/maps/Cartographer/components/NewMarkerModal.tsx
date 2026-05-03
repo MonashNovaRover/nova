@@ -6,9 +6,7 @@ import {
   ModalBody,
   ModalContent,
   ModalFooter,
-  ModalHeader,
-  Select,
-  SelectItem
+  ModalHeader, Select, SelectItem,
 } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
@@ -32,6 +30,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
   const [latitude, setLatitude] = useState("");
   const [labelNumber, setLabelNumber] = useState<number | null>(null);
   const [labelName, setLabelName] = useState<string | null>(null);
+  const [searchRadius, setSearchRadius] = useState<string>("");
 
   const points = useSelector(
     (state: RootState) => state.cartographerState.points
@@ -55,6 +54,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
         labelNumber: labelNumber,
         labelName: labelName,
         name: !name || name === "" ? `Point ${points.length + 1}` : name,
+        searchRadius: searchRadius !== "" ? Number(searchRadius) : null,
       } as MapPoint
       props.addPoint(newPoint);
       setName(undefined);
@@ -70,6 +70,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       setLatitude(props.latitude?.toString() ?? "");
       setLabelNumber(props.labels && props.labels.length > 0 ? 0 : null);
       setLabelName(props.labels && props.labels.length > 0 ? props.labels[0].text : null);
+      setSearchRadius("");
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.isOpen]
@@ -136,6 +137,21 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               ))}
             </Select>
           )}
+          <Input
+            type="number"
+            value={searchRadius}
+            onChange={(event) => setSearchRadius(event.target.value)}
+            placeholder="Optional"
+            label="Search Radius"
+            min="0"
+            max="50"
+            step="1"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && isValidPoint()) {
+                handleDropPin();
+              }
+            }}
+          />
         </ModalBody>
         <ModalFooter>
           <Button fullWidth onClick={handleDropPin}>

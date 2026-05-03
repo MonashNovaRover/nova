@@ -53,5 +53,26 @@ which is how it gets added to the gazebo sim. Author/s: Dylan Gonzalez-->
         </velocity_sensing>
       </gps>
     </sensor>
+
+    <!-- Simulated heading source for navsat_transform IMU input. -->
+    <sensor name="gps_rover_heading_imu" type="imu">
+      <topic>gps/heading_imu</topic>
+      <gz_frame_id>gps</gz_frame_id>
+      <always_on>true</always_on>
+      <update_rate>10</update_rate>
+      <visualize>false</visualize>
+      <imu>
+        <angular_velocity>
+          <x><noise type="gaussian"><mean>0.0</mean><stddev>0.0</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0.0</mean><stddev>0.0</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0.0</mean><stddev>0.0</stddev></noise></z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x><noise type="gaussian"><mean>0.0</mean><stddev>0.0</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0.0</mean><stddev>0.0</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0.0</mean><stddev>0.0</stddev></noise></z>
+        </linear_acceleration>
+      </imu>
+    </sensor>
   </gazebo>
 </robot>

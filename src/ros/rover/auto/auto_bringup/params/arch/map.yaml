@@ -1,7 +1,7 @@
 # publishes to /map (and is remapped to /static_map in navigation.launch.py)
 # subscribed to by global_costmap layer in the static_layer plugin under map_topic parameter
 
-# Rover will always be spawned at 0,0 in 2D POSE (at least in gazebo, haven't tested IRL)
+# Rover will always be spawned at 0,0 in 2D POSE (at least in sim, haven't tested IRL)
 # Open picture in application that can view pixels, MS Paint for Windows or Pinta for Nixos (nix-shell -p pinta)
 # To calculate the rover's position on the map image:
 #   Pixel[x] = -1 * Origin[x] / resolution

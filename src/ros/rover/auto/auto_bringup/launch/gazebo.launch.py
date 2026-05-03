@@ -22,7 +22,8 @@ EDITED:     05/01/2026
 '''
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, AppendEnvironmentVariable, OpaqueFunction, GroupAction
+from launch.conditions import IfCondition
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution, EnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
@@ -53,7 +54,7 @@ def launch_setup(context, *args, **kwargs):
     # comp agnostic arguments
     gz_params = LaunchConfiguration('gz_params')
     gz_qos_params = LaunchConfiguration('gz_qos_params')
-    controller_params = LaunchConfiguration('controller_params')
+    log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
@@ -90,11 +91,11 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
-            launch_arguments={'urdf': 'False', 'auto': 'True', 'auto_params': controller_params, 'gazebo': 'True'}.items(),
+            launch_arguments={'local': local, 'urdf': 'False', 'auto': 'True', 'sim': 'True'}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'model': model, 'gazebo': 'true', 'robot_name': robot_name, 'rviz': rviz, 'rviz_params': rviz_params}.items(),
+            launch_arguments={'local': local, 'model': model, 'sim': 'true', 'robot_name': robot_name, 'rviz': rviz, 'rviz_params': rviz_params}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -110,6 +111,7 @@ def launch_setup(context, *args, **kwargs):
                 '-robot_namespace', namespace,
                 '-x', pose['x'], '-y', pose['y'], '-z', pose['z'],
                 '-R', pose['R'], '-P', pose['P'], '-Y', pose['Y']],
+            ros_arguments=['--log-level', log_level],
         ),
         Node(
             package='ros_gz_bridge',
@@ -120,7 +122,26 @@ def launch_setup(context, *args, **kwargs):
             respawn=False,
             respawn_delay=2.0,
             parameters=[{'config_file': gz_params}, gz_qos_params],
-            arguments=['--ros-args', '--log-level', 'info'],
+            ros_arguments=['--log-level', log_level],
+        ),
+        GroupAction(
+            condition=IfCondition(str(comp == 'urc')),
+            actions=[
+                Node(
+                    package='nova_utils', 
+                    executable='gz_gps_fixer.py', 
+                    output='screen', 
+                    emulate_tty=True,
+                    ros_arguments=['--log-level', log_level],
+                ),
+                Node(
+                    package='nova_utils',
+                    executable='gz_heading_imu_fixer.py',
+                    output='screen',
+                    emulate_tty=True,
+                    ros_arguments=['--log-level', log_level],
+                ),
+            ],
         ),
     ]
 
@@ -149,7 +170,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='comp',
-            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
+            default_value=EnvironmentVariable('COMP', default_value='URC'),
             description='ARCh or URC',
         ),
         # comp agnostic arguments
@@ -164,9 +185,9 @@ def generate_launch_description():
             description='Absolute path to ros_gz_bridge params file',
         ),
         DeclareLaunchArgument(
-            name='controller_params',
-            default_value=PathJoinSubstitution([drive_bringup_dir, 'params', 'auto.yaml']),
-            description='Absolute path to the auto drive controllers\' params file',
+            name='log_level',
+            default_value='info',
+            description='What level of logging output should be displayed',
         ),
         DeclareLaunchArgument(
             name='model',

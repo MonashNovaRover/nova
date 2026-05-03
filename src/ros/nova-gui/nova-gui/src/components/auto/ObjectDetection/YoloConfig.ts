@@ -9,7 +9,7 @@ export interface YOLOConfig {
 }
 
 export const URCYOLOConfig : YOLOConfig = {
-  modelName: "rocky.onnx",
+  modelName: "urc-dino.onnx",
   classNames: [
     "bottle",
     "hammer_pick",

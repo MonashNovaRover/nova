@@ -77,12 +77,12 @@ pivot_drive_controller:
       has_acceleration_limits: true
       max_velocity: 2.5
       min_velocity: -0.75
-      max_acceleration: 2.0
-      min_acceleration: -5.0
+      max_acceleration: 1.0
+      min_acceleration: -1.0
     angular: # radians
       has_velocity_limits: true
-      max_velocity: 1.57079632 # PI/2 rad/s = 90 deg/s
-      min_velocity: -1.57079632
+      max_velocity: 0.78539816 # PI/4 rad/s = 45 deg/s
+      min_velocity: -0.78539816
     pivot:
       has_velocity_limits: true
       max_velocity: 3.53429174 # 2*PI * 0.5625 (defined in firmware)
@@ -101,7 +101,7 @@ strafe_drive_controller:
       has_velocity_limits: true
       has_acceleration_limits: true
       max_velocity: 1.5
-      max_acceleration: 3.0
+      max_acceleration: 1.0
 
 diff_drive_controller:
   ros__parameters:
@@ -118,8 +118,8 @@ diff_drive_controller:
       has_acceleration_limits: true
       max_velocity: 1.5
       min_velocity: -0.75
-      max_acceleration: 2.0
-      min_acceleration: -5.0
+      max_acceleration: 1.0
+      min_acceleration: -1.0
     angular: # radians
       has_velocity_limits: true
       max_velocity: 0.78539816 # PI/4 rad/s = 45 deg/s

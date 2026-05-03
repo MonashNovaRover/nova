@@ -6,6 +6,7 @@
   pluginlib, 
   rosidl-default-generators, 
   behaviortree-cpp, 
+  nav2-costmap-2d,
   geometry-msgs, 
   vision-msgs, 
   aruco-opencv-msgs, 
@@ -15,6 +16,7 @@
   std-srvs, 
   launch, 
   launch-ros, 
+  nova-interfaces
 }:
 
 buildRosPackage {
@@ -34,12 +36,14 @@ buildRosPackage {
     rclcpp 
     nav2-behavior-tree 
     behaviortree-cpp 
+    nav2-costmap-2d
     nav2-util 
     tf2-ros 
     geometry-msgs 
     vision-msgs 
     aruco-opencv-msgs 
     visualization-msgs 
+    nova-interfaces
   ];
   propagatedBuildInputs = [ launch launch-ros ];
 }

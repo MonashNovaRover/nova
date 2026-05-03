@@ -28,10 +28,12 @@ find_package(vision_msgs REQUIRED)
 find_package(aruco_opencv_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav2_util REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
 find_package(behaviortree_cpp REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(nova_interfaces REQUIRED)
 
 set(dep_pkgs
   rclcpp
@@ -41,10 +43,12 @@ set(dep_pkgs
   aruco_opencv_msgs
   tf2_ros
   nav2_util
+  nav2_costmap_2d
   nav2_behavior_tree
   behaviortree_cpp
   ament_index_cpp
   visualization_msgs
+  nova_interfaces
 )
 
 # === Build ===
@@ -81,6 +85,9 @@ list(APPEND plugin_libs nova_snap_in_collision_goals_action_bt_node)
 
 add_library(nova_remove_nearby_in_collision_goals_action_bt_node SHARED plugins/action/remove_nearby_in_collision_goals_action.cpp)
 list(APPEND plugin_libs nova_remove_nearby_in_collision_goals_action_bt_node)
+
+add_library(nova_remove_in_collision_goals_action_bt_node SHARED plugins/action/remove_in_collision_goals_action.cpp)
+list(APPEND plugin_libs nova_remove_in_collision_goals_action_bt_node)
 
 add_library(nova_get_dist_between_poses_action_bt_node SHARED plugins/action/get_dist_between_poses_action.cpp)
 list(APPEND plugin_libs nova_get_dist_between_poses_action_bt_node)

@@ -66,5 +66,8 @@ export enum RosTopic {
   // Joy
   DRIVE_JOY = "/drive/joy",
   ARM_JOY_LEFT = "/arm/joy/left",
-  ARM_JOY_RIGHT = "/arm/joy/right"
+  ARM_JOY_RIGHT = "/arm/joy/right",
+
+  // Vision Related Topics
+  YOLO_DETECTIONS = "/yolo/object_detections",
 }

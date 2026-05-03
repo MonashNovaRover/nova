@@ -19,11 +19,11 @@ bt_navigator:
     
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
-    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_nearby_collision_goals.xml
+    default_nav_through_poses_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_through_poses_remove_in_collision_goals.xml
     
     plugin_lib_names:
       - nova_blackboard_publisher_bt_node
-      - nova_remove_nearby_in_collision_goals_action_bt_node
+      - nova_remove_in_collision_goals_action_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
