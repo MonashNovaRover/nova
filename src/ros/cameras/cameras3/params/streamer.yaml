@@ -21,7 +21,7 @@ camera_streamer:
       # Science
       science_microscope:
         meta: Science - Microscope
-        pipeline_type: vp9software
+        pipeline_type: vp9softwareGL
         mime: video/x-raw
         width: 640
         height: 480
@@ -59,7 +59,7 @@ camera_streamer:
     profiles:
       unknown:
         default:
-          pipeline_type: vp8software
+          pipeline_type: vp8softwareGL
           width: 1920
           height: 1080
           downscale: 3
@@ -67,7 +67,7 @@ camera_streamer:
           cpu_usage: 0
           bitrate: 512
         super:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1280
           height: 720
           framerate: 30
@@ -78,7 +78,7 @@ camera_streamer:
           threads: 6
           gop: 3
         still:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1920
           height: 1080
           downscale: 2
@@ -90,7 +90,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 640
           height: 480
           downscale: 2
@@ -99,7 +99,7 @@ camera_streamer:
           bitrate: 128
           denoise: true
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 640
           height: 480
           downscale: 5
@@ -112,7 +112,7 @@ camera_streamer:
 
       openaicam_openaicam_2505121128:
         default:
-          pipeline_type: vp8software
+          pipeline_type: vp8softwareGL
           width: 1920
           height: 1080
           downscale: 3
@@ -120,7 +120,7 @@ camera_streamer:
           cpu_usage: 0
           bitrate: 512
         super:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1280
           height: 720
           framerate: 30
@@ -131,7 +131,7 @@ camera_streamer:
           threads: 6
           gop: 3
         still:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1920
           height: 1080
           downscale: 2
@@ -143,7 +143,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1920
           height: 1080
           downscale: 4
@@ -152,7 +152,7 @@ camera_streamer:
           bitrate: 128
           denoise: true
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1920
           height: 1080
           downscale: 12
@@ -175,7 +175,7 @@ camera_streamer:
           height: 960
           framerate: 30
         still:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           mime: image/jpeg
           width: 1280
           height: 960
@@ -193,7 +193,7 @@ camera_streamer:
           height: 240
           framerate: 30
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1280
           height: 960
           downscale: 10
@@ -205,7 +205,7 @@ camera_streamer:
 
       HZ_USB_Camera_20220301104:
         default:
-          pipeline_type: vp8software
+          pipeline_type: vp8softwareGL
           mime: image/jpeg
           width: 1024
           height: 768
@@ -214,7 +214,7 @@ camera_streamer:
           cpu_usage: 0
           bitrate: 512
         super:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           mime: image/jpeg
           width: 1024
           height: 768
@@ -226,7 +226,7 @@ camera_streamer:
           threads: 6
           gop: 3
         still:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           mime: image/jpeg
           width:  1024
           height: 768
@@ -239,7 +239,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail: 
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 640
           height: 480
           downscale: 2
@@ -248,7 +248,7 @@ camera_streamer:
           bitrate: 128
           denoise: true
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 640
           height: 480
           downscale: 5
@@ -260,7 +260,7 @@ camera_streamer:
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         default:
-          pipeline_type: vp8software
+          pipeline_type: vp8softwareGL
           width: 1280
           height: 720
           downscale: 2
@@ -268,7 +268,7 @@ camera_streamer:
           cpu_usage: 0
           bitrate: 512
         super:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           mime: image/jpeg
           width: 800
           height: 600
@@ -280,7 +280,7 @@ camera_streamer:
           threads: 6
           gop: 3
         still:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           mime: video/x-raw
           width: 1280
           height: 800
@@ -292,7 +292,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1280
           height: 720
           downscale: 3
@@ -301,7 +301,7 @@ camera_streamer:
           bitrate: 128
           denoise: true
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: vp9softwareGL
           width: 1280
           height: 720
           downscale: 8
@@ -341,7 +341,7 @@ camera_streamer:
     defaults:
       # Waveshare
       openaicam_openaicam_2505121128:
-        pipeline_type: vp8software
+        pipeline_type: vp8softwareGL
         width: 1280
         height: 720
         framerate: 30
@@ -361,7 +361,7 @@ camera_streamer:
         undistort_k2: 0.01
 
       HZ_USB_Camera_20220301104:
-        pipeline_type: vp9software
+        pipeline_type: vp9softwareGL
         width: 1024
         height: 768
         framerate: 30
@@ -372,7 +372,7 @@ camera_streamer:
 
       # Legacy
       Microsoft_Microsoft®_LifeCam_HD-3000:
-        pipeline_type: vp8software
+        pipeline_type: vp8softwareGL
         width: 800
         height: 600
         framerate: 30

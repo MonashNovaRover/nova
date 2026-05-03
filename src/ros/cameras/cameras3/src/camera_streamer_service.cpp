@@ -90,7 +90,7 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::GetCameraStreamStats>::SharedPtr stats_service_;
   rclcpp::Service<camera_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
-  std::unordered_map<std::string, Pipeline*> pipelines;
+  std::unordered_map<std::string, std::unique_ptr<Pipeline>> pipelines;
   const std::unordered_set<std::string> profiles = {"default", "super", "still", "snail", "emergency"};
 
   // Initialize gstreamer opengl
@@ -99,38 +99,32 @@ class CameraStreamer : public rclcpp::Node
   GstContext *display_ctx = gst_context_new("gst.gl.GLDisplay", TRUE);
   GstContext *gl_ctx = gst_context_new("gst.gl.GLContext", TRUE);
   
-  private: void start_pipeline(Pipeline* pipeline)
+  private: void start_pipeline(const std::unique_ptr<Pipeline>& pipeline)
   {
     // get pipeline properties and use them to create the pipeline
     if (pipeline->camera->pipeline_type == "v4lfallback")
     {
-      v4lfallbackPipelineProperties* props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
-      pipeline->props = props;
+      std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
-      h264passthroughPipelineProperties* props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
-      pipeline->props = props;
+      std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
-      vpXsoftwarePipelineProperties* props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
-      pipeline->props = props;
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 8);
     } else if (pipeline->camera->pipeline_type == "vp8softwareGL") {
-      vpXsoftwareGLPipelineProperties* props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 8);
-      pipeline->props = props;
+      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 8);
       pipeline->gst_pipeline = vpXsoftwareGL_pipeline(this, props, 8, display_ctx, gl_ctx);
     } else if (pipeline->camera->pipeline_type == "vp9software") {
-      vpXsoftwarePipelineProperties* props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
-      pipeline->props = props;
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 9);
     } else if (pipeline->camera->pipeline_type == "vp9softwareGL") {
-      vpXsoftwareGLPipelineProperties* props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 9);
-      pipeline->props = props;
+      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 9);
       pipeline->gst_pipeline = vpXsoftwareGL_pipeline(this, props, 9, display_ctx, gl_ctx);
     }
   }
 
-  private: void get_pipeline_type(Pipeline* pipeline)
+  private: void get_pipeline_type(const std::unique_ptr<Pipeline>& pipeline)
   {
 
     // Get pipeline type
@@ -156,15 +150,10 @@ class CameraStreamer : public rclcpp::Node
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
   {
     for (camera_msgs::msg::Camera camera : msg.cameras) {
-      if (this->pipelines.find(camera.serial) != pipelines.end()) {
-      // update node if it changed
-        Pipeline* pipeline = this->pipelines.at(camera.serial);
-        if (pipeline->camera->node != camera.node) pipeline->props->node = camera.node;
-        // reset camera? now with the change
-      } else {
-      // otherwise make the pipeline
-        Pipeline* pipeline = new Pipeline;
-        pipeline->camera = new camera_msgs::msg::Camera;
+      // Make the pipeline if it doesn't exist
+      if (this->pipelines.find(camera.serial) == pipelines.end()) {
+        std::unique_ptr<Pipeline> pipeline = std::make_unique<Pipeline>();
+        pipeline->camera = std::make_unique<camera_msgs::msg::Camera>();
         pipeline->camera->serial = camera.serial;
         pipeline->camera->node = camera.node;
         pipeline->camera->original_serial = camera.original_serial;
@@ -183,7 +172,7 @@ class CameraStreamer : public rclcpp::Node
         if (autostart) {
           gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
         }
-        this->pipelines[camera.serial] = pipeline;
+        this->pipelines[camera.serial] = std::move(pipeline);
       }
     }
   }
@@ -199,7 +188,7 @@ class CameraStreamer : public rclcpp::Node
       case CameraState::START:
         for (std::string serial : request->serials) {
           if (this->pipelines.find(serial) != pipelines.end()) {
-            Pipeline* pipeline = pipelines[serial];
+            std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
             if (this->pipelines[serial]->gst_pipeline != nullptr) {
             // gstreamer play pipeline if paused
               RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
@@ -219,7 +208,7 @@ class CameraStreamer : public rclcpp::Node
       case CameraState::STOP:
         for (std::string serial : request->serials) {
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
-            Pipeline* pipeline = pipelines[serial];
+            std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
             gst_object_unref(pipeline->gst_pipeline);
             pipeline->gst_pipeline = nullptr;
@@ -233,7 +222,7 @@ class CameraStreamer : public rclcpp::Node
       case CameraState::PAUSE:
         for (std::string serial : request->serials) {
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
-            Pipeline* pipeline = pipelines[serial];
+            std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
             RCLCPP_INFO(this->get_logger(), "%sPausing %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
           } else {
@@ -252,7 +241,7 @@ class CameraStreamer : public rclcpp::Node
     response->success = true;
     for (std::string serial : request->serials) { 
       if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
-        Pipeline* pipeline = pipelines[serial];
+        std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
         bool correct_camera = false;
 
         // From presets
@@ -293,9 +282,7 @@ class CameraStreamer : public rclcpp::Node
           gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
         } else {
           RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
-
         }
-        this->pipelines[pipeline->camera->serial] = pipeline;
       }
     }
   }
@@ -363,3 +350,4 @@ int main(int argc, char * argv[])
   rclcpp::shutdown();
   return 0;
 }
+

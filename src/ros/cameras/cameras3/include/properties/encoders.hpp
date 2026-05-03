@@ -8,7 +8,7 @@
 
 static int num_cores = std::thread::hardware_concurrency();
 
-template <typename properties> void set_vp8enc(GstElement* encode, const properties props) {
+template <typename properties> void set_vp8enc(GstElement* encode, const properties& props) {
   const int num_cores = std::thread::hardware_concurrency();
   g_object_set(encode,
     "deadline", props->deadline, // 1 for lowest latency
@@ -37,7 +37,7 @@ template <typename properties> void set_vp8enc(GstElement* encode, const propert
 }
 
 
-template <typename properties> void set_vp9enc(GstElement* encode, const properties props) {
+template <typename properties> void set_vp9enc(GstElement* encode, const properties& props) {
   g_object_set(encode,
     "deadline", props->deadline, // 1 for lowest latency
     "cpu-used", (

@@ -4,7 +4,7 @@
 #include <string>
 #include <gst/gst.h>
 
-template<typename properties> void set_jpegdec(GstElement* decode, const properties props) {
+template<typename properties> void set_jpegdec(GstElement* decode, const properties& props) {
   g_object_set(decode,
     "idct-method", (
       props->jpegdec_method == "ifast" ? 1:
