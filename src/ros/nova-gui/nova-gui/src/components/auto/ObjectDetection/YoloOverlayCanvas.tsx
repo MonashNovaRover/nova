@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
-import { ActiveYoloConfig } from "./YoloConfig";
+import { getYoloConfig } from "./YoloConfig";
 import { Detection } from "./useYoloDetection";
 import AutosizedCanvas from "../../shared/components/AutosizedCanvas/AutosizedCanvas.tsx";
+import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 
 export default function YoloOverlayCanvas({
   detections,
@@ -14,6 +15,8 @@ export default function YoloOverlayCanvas({
   // Canvas overlay that draws detections in video space.
   // AutosizedCanvas expects a non-null ref object; React assigns .current post-mount.
   const canvasRef = useRef<HTMLCanvasElement>(null!);
+  const [activeModelId] = useGenericStore<string>("yoloActiveModel");
+  const activeYoloConfig = getYoloConfig(activeModelId);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -62,7 +65,7 @@ export default function YoloOverlayCanvas({
       ctx.strokeRect(x, y, width, height);
 
       // Create label
-      const className = ActiveYoloConfig.classNames[d.classId] ?? `#${d.classId}`;
+      const className = activeYoloConfig.classNames[d.classId] ?? `#${d.classId}`;
       const label = `${className} ${Math.round(d.score * 100)}%`;
       const textX = x;
       const textY = Math.max(y - 14, 0);
@@ -73,7 +76,7 @@ export default function YoloOverlayCanvas({
       ctx.fillStyle = "#00ff88";
       ctx.fillText(label, textX + 3, textY + 1);
     });
-  }, [detections, videoRef]);
+  }, [detections, videoRef, activeYoloConfig]);
 
   return (
     <AutosizedCanvas
