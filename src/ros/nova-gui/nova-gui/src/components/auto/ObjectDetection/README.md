@@ -21,7 +21,7 @@ ONNX Runtime Web (ORT). Cameras register their `<video>` refs through
 - **Letterboxing**: Frames are letterboxed (with black bars) to maintain aspect ratio
   when preprocessing. This prevents distortion and ensures accurate detections on
   non-square video feeds (e.g., 16:9 aspect ratio).
-- WASM is the default execution provider. WebGPU is optional via `VITE_ENABLE_WEBGPU=true`,
+- WASM is the default execution provider. WebGPU is optional via `VITE_DISABLE_WEBGPU=true`,
   with fallback to WASM if WebGPU session creation fails.
 
 ## Batching
