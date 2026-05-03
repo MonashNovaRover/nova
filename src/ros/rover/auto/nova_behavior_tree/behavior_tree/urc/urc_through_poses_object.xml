@@ -4,7 +4,7 @@
       
       <ReactiveFallback name="ExitOnObjectDetected">
         
-        <ObjectDetected detections_topic="/yolo/objects" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
+        <ObjectDetected detections_topic="/yolo/object_detections" min_detections="2" buffer_time="5.0" cluster_radius="0.3" detections="{detected_goals}"/>
         
         <PipelineSequence name="NavigateWithReplanning">
           <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
@@ -16,7 +16,7 @@
           <RateController hz="1.0">
             <Sequence name="ComputeAndSmoothPathThroughPoses">
               <ReactiveSequence>
-                <RemoveNearbyInCollisionGoals input_goals="{goals}" max_distance_threshold="3.0" global_frame="map" robot_base_frame="base_link" cost_threshold="99.0" output_goals="{goals}"/>
+                <RemoveInCollisionGoals input_goals="{goals}" output_goals="{goals}"/>
                 <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
                 <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="NavFn"/>
               </ReactiveSequence>

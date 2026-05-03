@@ -7,10 +7,10 @@ velocity_smoother:
     # Angular velocity and acceleration limits are more strict than in MPPI.
     # This is to allow MPPI to plan more aggressive trajectories while still
     # ensuring the controller can follow them accurately.
-    max_velocity: [0.3, 0.0, 0.52]
-    min_velocity: [-0.21, 0.0, -0.52]
-    max_accel: [4.0, 0.0, 4.0]
-    max_decel: [-4.0, 0.0, -4.0]
+    max_velocity: [0.3, 0.0, 0.7854]
+    min_velocity: [-0.21, 0.0, -0.7854]
+    max_accel: [1.0, 0.0, 0.7854]
+    max_decel: [-1.0, 0.0, -0.7854]
     odom_topic: /odometry/filtered
     odom_duration: 0.1
     deadband_velocity: [0.05, 0.05, 0.01]

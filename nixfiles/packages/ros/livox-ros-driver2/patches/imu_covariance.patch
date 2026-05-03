@@ -1,50 +1,150 @@
 diff --git a/src/lddc.cpp b/src/lddc.cpp
-index 06195df..50743e9 100644
+index 06195df..99062f6 100644
 --- a/src/lddc.cpp
 +++ b/src/lddc.cpp
-@@ -490,9 +490,14 @@ void Lddc::InitImuMsg(const ImuData& imu_data, ImuMsg& imu_msg, uint64_t& timest
-   imu_msg.angular_velocity.x = imu_data.gyro_x;
-   imu_msg.angular_velocity.y = imu_data.gyro_y;
-   imu_msg.angular_velocity.z = imu_data.gyro_z;
-+  std::copy(angular_velocity_covariance.begin(), angular_velocity_covariance.end(), 
-+    imu_msg.angular_velocity_covariance.begin());
-+  imu_msg.angular_velocity_covariance = imu_data.gyro_z;
+@@ -49,6 +49,8 @@ Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
+       output_type_(output_type),
+       publish_frq_(frq),
+       frame_id_(frame_id),
++      imu_linear_acceleration_covariance_{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
++      imu_angular_velocity_covariance_{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+       enable_lidar_bag_(lidar_bag),
+       enable_imu_bag_(imu_bag) {
+   publish_period_ns_ = kNsPerSecond / publish_frq_;
+@@ -62,13 +64,17 @@ Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
+ }
+ #elif defined BUILDING_ROS2
+ Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
+-           double frq, std::string &frame_id)
++           double frq, std::string &frame_id,
++           const std::array<double, 9>& imu_linear_acceleration_covariance,
++           const std::array<double, 9>& imu_angular_velocity_covariance)
+     : transfer_format_(format),
+       use_multi_topic_(multi_topic),
+       data_src_(data_src),
+       output_type_(output_type),
+       publish_frq_(frq),
+-      frame_id_(frame_id) {
++      frame_id_(frame_id),
++      imu_linear_acceleration_covariance_(imu_linear_acceleration_covariance),
++      imu_angular_velocity_covariance_(imu_angular_velocity_covariance) {
+   publish_period_ns_ = kNsPerSecond / publish_frq_;
+   lds_ = nullptr;
+ #if 0
+@@ -493,6 +499,11 @@ void Lddc::InitImuMsg(const ImuData& imu_data, ImuMsg& imu_msg, uint64_t& timest
    imu_msg.linear_acceleration.x = imu_data.acc_x;
    imu_msg.linear_acceleration.y = imu_data.acc_y;
    imu_msg.linear_acceleration.z = imu_data.acc_z;
-+  std::copy(linear_acceleration_covariance.begin(), linear_acceleration_covariance.end(), 
-+    imu_msg.linear_acceleration_covariance.begin());
++
++  for (size_t i = 0; i < imu_msg.angular_velocity_covariance.size(); ++i) {
++    imu_msg.angular_velocity_covariance[i] = imu_angular_velocity_covariance_[i];
++    imu_msg.linear_acceleration_covariance[i] = imu_linear_acceleration_covariance_[i];
++  }
  }
  
  void Lddc::PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index) {
+diff --git a/src/lddc.h b/src/lddc.h
+index 6d146d1..d36db3e 100644
+--- a/src/lddc.h
++++ b/src/lddc.h
+@@ -25,6 +25,8 @@
+ #ifndef LIVOX_ROS_DRIVER2_LDDC_H_
+ #define LIVOX_ROS_DRIVER2_LDDC_H_
+ 
++#include <array>
++
+ #include "include/livox_ros_driver2.h"
+ 
+ #include "driver_node.h"
+@@ -76,7 +78,9 @@ class Lddc final {
+       std::string &frame_id, bool lidar_bag, bool imu_bag);
+ #elif defined BUILDING_ROS2
+   Lddc(int format, int multi_topic, int data_src, int output_type, double frq,
+-      std::string &frame_id);
++      std::string &frame_id,
++      const std::array<double, 9>& imu_linear_acceleration_covariance,
++      const std::array<double, 9>& imu_angular_velocity_covariance);
+ #endif
+   ~Lddc();
+ 
+@@ -139,6 +143,8 @@ class Lddc final {
+   double publish_frq_;
+   uint32_t publish_period_ns_;
+   std::string frame_id_;
++  std::array<double, 9> imu_linear_acceleration_covariance_;
++  std::array<double, 9> imu_angular_velocity_covariance_;
+ 
+ #ifdef BUILDING_ROS1
+   bool enable_lidar_bag_;
 diff --git a/src/livox_ros_driver2.cpp b/src/livox_ros_driver2.cpp
-index 6dda05f..a3d3f80 100644
+index 6dda05f..2f1fd5e 100644
 --- a/src/livox_ros_driver2.cpp
 +++ b/src/livox_ros_driver2.cpp
-@@ -127,6 +127,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+@@ -24,6 +24,7 @@
+ 
+ #include <iostream>
+ #include <chrono>
++#include <array>
+ #include <vector>
+ #include <csignal>
+ #include <thread>
+@@ -127,6 +128,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
    double publish_freq = 10.0; /* Hz */
    int output_type = kOutputToRos;
    std::string frame_id;
-+  std::vector<double> angular_velocity_covariance;
-+  std::vector<double> linear_acceleration_covariance;
++  std::vector<double> imu_linear_acceleration_covariance{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
++  std::vector<double> imu_angular_velocity_covariance{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
  
    this->declare_parameter("xfer_format", xfer_format);
    this->declare_parameter("multi_topic", 0);
-@@ -137,6 +139,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+@@ -134,6 +137,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   this->declare_parameter("publish_freq", 10.0);
+   this->declare_parameter("output_data_type", output_type);
+   this->declare_parameter("frame_id", "frame_default");
++  this->declare_parameter("imu_linear_acceleration_covariance", imu_linear_acceleration_covariance);
++  this->declare_parameter("imu_angular_velocity_covariance", imu_angular_velocity_covariance);
    this->declare_parameter("user_config_path", "path_default");
    this->declare_parameter("cmdline_input_bd_code", "000000000000001");
    this->declare_parameter("lvx_file_path", "/home/livox/livox_test.lvx");
-+  this->declare_parameter("angular_velocity_covariance", std::vector<double>(9, 0.0));
-+  this->declare_parameter("linear_acceleration_covariance", std::vector<double>(9, 0.0));
- 
-   this->get_parameter("xfer_format", xfer_format);
-   this->get_parameter("multi_topic", multi_topic);
-@@ -144,6 +148,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+@@ -144,6 +149,31 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
    this->get_parameter("publish_freq", publish_freq);
    this->get_parameter("output_data_type", output_type);
    this->get_parameter("frame_id", frame_id);
-+  this->get_parameter("angular_velocity_covariance", angular_velocity_covariance);
-+  this->get_parameter("linear_acceleration_covariance", linear_acceleration_covariance);
++  this->get_parameter("imu_linear_acceleration_covariance", imu_linear_acceleration_covariance);
++  this->get_parameter("imu_angular_velocity_covariance", imu_angular_velocity_covariance);
++
++  auto to_covariance_array =
++    [this](const std::vector<double>& covariance, const char* param_name) {
++      std::array<double, 9> covariance_array{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
++      if (covariance.size() != covariance_array.size()) {
++        DRIVER_ERROR(*this,
++                     "Parameter '%s' must contain 9 values, got %zu. Using defaults.",
++                     param_name, covariance.size());
++        return covariance_array;
++      }
++
++      for (size_t i = 0; i < covariance_array.size(); ++i) {
++        covariance_array[i] = covariance[i];
++      }
++      return covariance_array;
++    };
++
++  std::array<double, 9> imu_linear_acceleration_covariance_array =
++    to_covariance_array(imu_linear_acceleration_covariance,
++                        "imu_linear_acceleration_covariance");
++  std::array<double, 9> imu_angular_velocity_covariance_array =
++    to_covariance_array(imu_angular_velocity_covariance,
++                        "imu_angular_velocity_covariance");
  
    if (publish_freq > 100.0) {
      publish_freq = 100.0;
+@@ -156,7 +186,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   future_ = exit_signal_.get_future();
+ 
+   /** Lidar data distribute control and lidar data source set */
+-  lddc_ptr_ = std::make_unique<Lddc>(xfer_format, multi_topic, data_src, output_type, publish_freq, frame_id);
++  lddc_ptr_ = std::make_unique<Lddc>(xfer_format, multi_topic, data_src, output_type, publish_freq, frame_id,
++                                     imu_linear_acceleration_covariance_array, imu_angular_velocity_covariance_array);
+   lddc_ptr_->SetRosNode(this);
+ 
+   if (data_src == kSourceRawLidar) {

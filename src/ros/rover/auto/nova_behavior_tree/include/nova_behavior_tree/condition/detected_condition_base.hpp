@@ -110,7 +110,7 @@ namespace nova_behavior_tree
       return 
       {
         BT::InputPort<std::string>("detections_topic", "Topic to subscribe to for detections"),
-        BT::InputPort<int>("min_detections", 2, "Minimum number of detections within buffer time to be considered valid"),
+        BT::InputPort<unsigned>("min_detections", 2, "Minimum number of detections within buffer time to be considered valid"),
         BT::InputPort<double>("buffer_time", 5.0, "Keep track of detections in the last n seconds"),
         BT::InputPort<double>("cluster_radius", 1.5, "Radius for a detection to be considered part of a cluster"),
         BT::OutputPort<Goals>("detections", "Detected poses"),
@@ -176,7 +176,7 @@ namespace nova_behavior_tree
     typename rclcpp::Subscription<MsgT>::SharedPtr subscription_;
 
     std::string detections_topic_;
-    int min_detections_;
+    unsigned min_detections_;
     double buffer_time_;
     double cluster_radius_;
     Goals raw_detections_;
@@ -224,7 +224,7 @@ namespace nova_behavior_tree
       for (size_t i = 0; i < detection_clusters_.size();)
       {
         tf2::Vector3 point_sum(0, 0, 0);
-        int removed_count = 0;
+        size_t removed_count = 0;
         while (!detection_clusters_[i].goals.empty() && 
                (node_->now() - detection_clusters_[i].goals.front().header.stamp).seconds() > buffer_time_)
         {

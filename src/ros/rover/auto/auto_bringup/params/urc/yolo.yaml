@@ -21,7 +21,7 @@ yolo_ros_debug_node:
 
 object_localiser:
   ros__parameters:
-    depth_image_units_divisor: 1000.0   # in irl  # 1.0 in gazebo  # define the divisor to get the depth value to be meters
+    depth_image_units_divisor: 1000.0   # in irl  # 1.0 in sim  # define the divisor to get the depth value to be meters
     maximum_detection_threshold: 0.3    # the maximum variance in depth value to calculate a point for a bounding box (2d mode only)
     x_scalar: 1.0                       # amount to multiply detection to account for image sizes
     y_scalar: 0.625                     # (e.g to transform the y axis 640px detection frame to the 400px depth frame)

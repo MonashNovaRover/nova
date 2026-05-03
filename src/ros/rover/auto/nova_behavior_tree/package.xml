@@ -17,6 +17,7 @@
   <depend>aruco_opencv_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>nav2_util</depend>
+  <depend>nav2_costmap_2d</depend>
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
 

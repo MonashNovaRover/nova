@@ -50,7 +50,7 @@ def launch_setup(context, *args, **kwargs):
     namespace = LaunchConfiguration('namespace')
     publish_goals = LaunchConfiguration('publish_goals')
     use_respawn = LaunchConfiguration('use_respawn')
-    gazebo = LaunchConfiguration('gazebo')
+    sim = LaunchConfiguration('sim')
     mppi = LaunchConfiguration('mppi').perform(context).lower() == 'true'
     mppi_config = LaunchConfiguration('mppi_config').perform(context)
 
@@ -70,7 +70,7 @@ def launch_setup(context, *args, **kwargs):
 
     # Substitute params for each node with launch params
     substitution_params = {
-        'use_sim_time': gazebo,
+        'use_sim_time': sim,
         'autostart': autostart,
     }
     # Combine all params from sim, substitution, and nav2 directory
@@ -183,7 +183,7 @@ def launch_setup(context, *args, **kwargs):
                     name='lifecycle_manager_navigation',
                     output='screen',
                     arguments=['--ros-args', '--log-level', log_level],
-                    parameters=[{'use_sim_time': gazebo},
+                    parameters=[{'use_sim_time': sim},
                                 {'autostart': autostart},
                                 {'node_names': lifecycle_nodes}],
                 ),
@@ -265,9 +265,9 @@ def generate_launch_description():
             description='Whether to respawn if a node crashes. Applied when composition is disabled.',
         ),
         DeclareLaunchArgument(
-            name='gazebo',
+            name='sim',
             default_value='False',
-            description='Use simulation (Gazebo) clock if True',
+            description='Use simulation clock if True',
         ),
         DeclareLaunchArgument(
             name='mppi',
@@ -276,7 +276,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             name='mppi_config',
-            default_value='fast',
+            default_value='regular',
             description='Name of the MPPI config to use (without .yaml)', 
         ),
     ]

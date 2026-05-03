@@ -73,7 +73,7 @@ namespace nova_behavior_tree
 
     double yaw = tf2::getYaw(centre_goal.pose.orientation);
     tf2::Vector3 dir = tf2::Vector3(std::cos(yaw), std::sin(yaw), 0);
-    for (int i = 0; i < search_corners_ + 1; ++i)
+    for (int i = 0; i < search_corners_; ++i)
     {
       // rotate the direction vector by (360 / search_corners) degrees
       double angle = utils::nav2::radians((360 / search_corners_) * i);
