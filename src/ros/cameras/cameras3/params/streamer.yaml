@@ -314,8 +314,11 @@ camera_streamer:
 
     presets:
       # auto:
+
       es:
-        good_preset:
+
+        # best quality; uses most bandwidth (>=15mbps from rover to base)
+        super:
           mast_forward: default
           mast_backward: snail
           mast_arm_stow: default
@@ -325,7 +328,9 @@ camera_streamer:
           arm_end_finger: snail
           arm_end_side: default
           arm_wrist: default
-        default_preset:
+
+        # best compromise between quality and bandwidth (>=10mbps from rover to base)
+        drive:
           mast_forward: default
           mast_backward: snail
           mast_arm_stow: snail
@@ -335,7 +340,9 @@ camera_streamer:
           arm_end_finger: snail
           arm_end_side: snail
           arm_wrist: snail
-        default_preset:
+
+        # lowest acceptable camera quality
+        payload:
           mast_forward: snail
           mast_backward: snail
           mast_arm_stow: snail
