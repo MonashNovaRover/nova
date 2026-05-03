@@ -27,16 +27,13 @@
  * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-vpX
  */
 
-GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwareGLPipelineProperties>& props, const int vpX, GstContext *display_ctx, GstContext *gl_ctx)
+GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwareGLPipelineProperties>& props, const int vpX)
 {
   // 0. Initialize constants
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
 
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
-  gst_element_set_context(gst_pipeline, display_ctx);
-  gst_element_set_context(gst_pipeline, gl_ctx);
-
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rater") : nullptr;
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");

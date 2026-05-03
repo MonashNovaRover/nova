@@ -213,6 +213,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->cpu_used = set_property(streamer_node, camera, "cpu_used", 1);
   props->deadline = set_property(streamer_node, camera, "deadline", 1);
   props->gop = set_property(streamer_node, camera, "gop", 1);
+  props->noise = set_property(streamer_node, camera, "noise", 6);
   props->threads = set_property(streamer_node, camera, "threads", 1);
 
   // webrtc

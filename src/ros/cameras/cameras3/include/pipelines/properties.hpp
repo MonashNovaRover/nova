@@ -69,6 +69,7 @@ struct softwareEncProperties
   int cpu_used;
   int deadline;
   int gop;
+  int noise;
   int threads;
 };
 
@@ -117,6 +118,7 @@ struct rossinkProperties
 struct Pipeline
 {
   GstElement* gst_pipeline;
+  GstContext* gl_context;
   std::unique_ptr<camera_msgs::msg::Camera> camera;
 };
 
@@ -130,7 +132,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, const std::unique_ptr<v
 
 struct vpXsoftwareGLPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, glProperties {};
 std::unique_ptr<vpXsoftwareGLPipelineProperties> get_vpXsoftwareGL_pipeline_properties(rclcpp::Node* log_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const int vpX);
-GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* log_node, const std::unique_ptr<vpXsoftwareGLPipelineProperties>& props, const int vpX, GstContext *display_ctx, GstContext *gl_ctx);
+GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* log_node, const std::unique_ptr<vpXsoftwareGLPipelineProperties>& props, const int vpX);
 
 struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cpuFiltersProperties, clockProperties {};
 std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properties(rclcpp::Node* log_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
