@@ -130,7 +130,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, vpXsoftwarePipelineProp
 
 struct vpXsoftwareGLPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, glProperties {};
 vpXsoftwareGLPipelineProperties* get_vpXsoftwareGL_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera, const int vpX);
-GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* log_node, vpXsoftwareGLPipelineProperties* props, const int vpX);
+GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* log_node, vpXsoftwareGLPipelineProperties* props, const int vpX, GstContext *display_ctx, GstContext *gl_ctx);
 
 struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cpuFiltersProperties, clockProperties {};
 v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* log_node, camera_msgs::msg::Camera* camera);

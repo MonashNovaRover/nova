@@ -67,7 +67,7 @@ camera_streamer:
           cpu_usage: 0
           bitrate: 512
         super:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1280
           height: 720
           framerate: 30
@@ -78,7 +78,7 @@ camera_streamer:
           threads: 6
           gop: 3
         still:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1920
           height: 1080
           downscale: 2
@@ -90,7 +90,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 640
           height: 480
           downscale: 2
@@ -99,7 +99,7 @@ camera_streamer:
           bitrate: 128
           denoise: true
         emergency:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 640
           height: 480
           downscale: 5
@@ -120,7 +120,7 @@ camera_streamer:
           cpu_usage: 0
           bitrate: 512
         super:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1280
           height: 720
           framerate: 30
@@ -131,7 +131,7 @@ camera_streamer:
           threads: 6
           gop: 3
         still:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1920
           height: 1080
           downscale: 2
@@ -143,7 +143,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1920
           height: 1080
           downscale: 4
@@ -152,7 +152,7 @@ camera_streamer:
           bitrate: 128
           denoise: true
         emergency:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1920
           height: 1080
           downscale: 12
@@ -175,7 +175,7 @@ camera_streamer:
           height: 960
           framerate: 30
         still:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           mime: image/jpeg
           width: 1280
           height: 960
@@ -193,7 +193,7 @@ camera_streamer:
           height: 240
           framerate: 30
         emergency:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1280
           height: 960
           downscale: 10
@@ -214,7 +214,7 @@ camera_streamer:
           cpu_usage: 0
           bitrate: 512
         super:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           mime: image/jpeg
           width: 1024
           height: 768
@@ -226,7 +226,7 @@ camera_streamer:
           threads: 6
           gop: 3
         still:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           mime: image/jpeg
           width:  1024
           height: 768
@@ -239,7 +239,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail: 
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 640
           height: 480
           downscale: 2
@@ -248,7 +248,7 @@ camera_streamer:
           bitrate: 128
           denoise: true
         emergency:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 640
           height: 480
           downscale: 5
@@ -268,7 +268,7 @@ camera_streamer:
           cpu_usage: 0
           bitrate: 512
         super:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           mime: image/jpeg
           width: 800
           height: 600
@@ -280,7 +280,7 @@ camera_streamer:
           threads: 6
           gop: 3
         still:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           mime: video/x-raw
           width: 1280
           height: 800
@@ -292,7 +292,7 @@ camera_streamer:
           bitrate: 256
           gop: 5
         snail:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1280
           height: 720
           downscale: 3
@@ -301,7 +301,7 @@ camera_streamer:
           bitrate: 128
           denoise: true
         emergency:
-          pipeline_type: vp9softwareGL
+          pipeline_type: vp9software
           width: 1280
           height: 720
           downscale: 8
