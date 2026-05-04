@@ -55,6 +55,22 @@ test(`nova-gui persistence bench [${SNAPSHOT_LABEL}]`, async ({ page }) => {
   );
   console.log("[nav 5 routes] parses:", navParses);
 
+  // ----- remount phase: bounce / <-> /test/state 10 times.
+  // Exposes the draft's per-mount-reparse problem; cached/master both 0.
+  await page.goto("/test/state");
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => (window as unknown as PerfWin).perf.reset());
+  for (let i = 0; i < 10; i++) {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.goto("/test/state");
+    await page.waitForLoadState("networkidle");
+  }
+  const remountParses = await page.evaluate(
+    () => (window as unknown as PerfWin).perf.parses(),
+  );
+  console.log("[remount /test/state x10] parses:", remountParses);
+
   // ----- modal phase: open/close a modal 10x on the NIR view
   await page.goto("/arc/space-resources/nir-spectroscopy");
   await page.waitForLoadState("networkidle");
@@ -86,5 +102,6 @@ test(`nova-gui persistence bench [${SNAPSHOT_LABEL}]`, async ({ page }) => {
   console.log("parses at first paint:", boot.parses);
   console.log("bytes parsed at boot:", boot.bytesParsed);
   console.log("nav parses (5 routes):", navParses);
+  console.log("remount parses (x10):", remountParses);
   console.log(`modal parses (x${opened}): `, modalParses);
 });

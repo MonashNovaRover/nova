@@ -105,8 +105,12 @@ const persisted = {
   _persist: JSON.stringify({ version: -1, rehydrated: true }),
 };
 
+// Top-level keys (as the new draft/cached hooks would store them — outside of
+// the redux-persist blob). Bench needs these so migrated hooks have something
+// to read on mount.
 const localStorageObj = {
   "persist:nova-gui": JSON.stringify(persisted),
+  "counter": JSON.stringify(20),
 };
 
 const out = JSON.stringify(localStorageObj);
