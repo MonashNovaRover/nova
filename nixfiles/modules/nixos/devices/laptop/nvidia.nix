@@ -36,5 +36,8 @@ in
     # Switching between igpu and nvidia gpu
     services.switcherooControl.enable = lib.mkDefault true;
     services.xserver.videoDrivers = lib.mkDefault [ "nvidia" ];
+
+    # Enable Nvidia GPU support for Chromium
+    nova.desktop.browser.nvidiaOffload = lib.mkDefault true;
   };
 }

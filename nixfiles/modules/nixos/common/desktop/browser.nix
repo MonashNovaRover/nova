@@ -5,6 +5,7 @@ let
 in
 {
   options.nova.desktop.browser.enable = lib.mkEnableOption "Nova Rover Chromium configuration";
+  options.nova.desktop.browser.nvidiaOffload = lib.mkEnableOption "Use nvidia offloading for Chromium";
 
   config = lib.mkIf cfg.enable {
     programs.chromium = {
@@ -53,6 +54,6 @@ in
       };
     };
 
-    home-manager.nova.sharedModules = [{ nova.desktop.browser.enable = true; }];
+    home-manager.nova.sharedModules = [{ nova.desktop.browser.enable = true; nova.desktop.browser.nvidiaOffload = false; }];
   };
 }
