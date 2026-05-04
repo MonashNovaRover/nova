@@ -131,6 +131,9 @@ export interface RootState {
   uvVisBlankStore : GenericStoreState<number[]>;
   clickAndHold : GenericStoreState<boolean>;
   windowWideWASD : GenericStoreState<boolean>;
+  yoloActiveModel: GenericStoreState<string>;
+  yoloUseWebGPU: GenericStoreState<boolean>;
+  yoloTimingLogs: GenericStoreState<boolean>;
   toolRotatorPresets: GenericStoreState<PresetPositions>
   toolRotatorTwitchStep: GenericStoreState<number>;
   pumpDefaultDurations: GenericStoreState<Record<string, number>>;

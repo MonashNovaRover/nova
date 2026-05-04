@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useRef, useEffect } from "react";
-import { ActiveYoloConfig } from "./YoloConfig";
+import { getYoloConfig } from "./YoloConfig";
 import { Detection, useYoloDetection } from "./useYoloDetection";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
 import { RosTopic } from "../../../ros/topics/rosTopic";
+import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 
 interface YoloContextValue {
   registerVideoRef: (ref: React.RefObject<HTMLVideoElement | null>) => number;
@@ -14,6 +15,8 @@ const YoloContext = createContext<YoloContextValue | null>(null);
 export function YoloProvider({ children }: { children: React.ReactNode }) {
   const videoRefs = useRef<React.RefObject<HTMLVideoElement | null>[]>([]);
   const bifrostDetections = useBifrost({ topic: RosTopic.YOLO_DETECTIONS });
+  const [activeModelId] = useGenericStore<string>("yoloActiveModel");
+  const activeYoloConfig = getYoloConfig(activeModelId);
 
   const registerVideoRef = (ref: React.RefObject<HTMLVideoElement | null>) => {
     videoRefs.current.push(ref);
@@ -23,8 +26,8 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
   const detections = useYoloDetection({
     // eslint-disable-next-line react-hooks/refs
     videoRefs: videoRefs.current,
-    modelPath: `/models/${ActiveYoloConfig.modelName}`,
-    outputFormat: ActiveYoloConfig.outputFormat,
+    modelPath: `/models/${activeYoloConfig.modelName}`,
+    outputFormat: activeYoloConfig.outputFormat,
   });
 
   // Publish Logic
@@ -48,7 +51,7 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
         stamp: { sec, nanosec },
       },
       detections: activeDetections.map((d) => ({
-        class_name: ActiveYoloConfig.classNames[d.classId] ?? `class_${d.classId}`,
+        class_name: activeYoloConfig.classNames[d.classId] ?? `class_${d.classId}`,
         score: d.score,
         pose: {
           position: {
@@ -65,7 +68,7 @@ export function YoloProvider({ children }: { children: React.ReactNode }) {
     };
 
     bifrostDetections.publishToTopic(msg);
-  }, [detections, bifrostDetections]);
+  }, [detections, bifrostDetections, activeYoloConfig]);
 
   return (
     <YoloContext.Provider
