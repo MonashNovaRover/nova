@@ -36,10 +36,5 @@ in
     # Switching between igpu and nvidia gpu
     services.switcherooControl.enable = lib.mkDefault true;
     services.xserver.videoDrivers = lib.mkDefault [ "nvidia" ];
-
-    # Monitor GPU with btop
-    programs.btop = {
-      package = pkgs.btop-cuda;
-    };
   };
 }
