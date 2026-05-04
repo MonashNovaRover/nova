@@ -1,5 +1,5 @@
 import {Button, Card, CardHeader} from "@nextui-org/react";
-import {useGenericStore} from "../../../hooks/useGenericStore.ts";
+import {usePersistentState} from "../../../hooks/usePersistantState.ts";
 
 /**
  * A card that displays a counter and increments and decrements it
@@ -7,7 +7,7 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
  */
 export default function GenericStoreCard() {
 
-    const [counter, setCounter] = useGenericStore<number>("counter");
+    const [counter, setCounter] = usePersistentState<number>("counter", 0);
 
     if (counter === undefined) {
       return <div/>
