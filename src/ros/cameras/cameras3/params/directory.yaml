@@ -7,6 +7,7 @@ camera_directory:
       # This is incompatible with the current design of the camera_directory node. But could be fixed in the future...
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455_210523060485
       - Intel_R__RealSense_TM__Depth_Camera_455_Intel_R__RealSense_TM__Depth_Camera_455 # Jetson TX2 does not see the serial number??
+      - Ricoh_Company__Ltd._RICOH_THETA_Z1_34122798 # Keep blacklisted until kernel module works again
 
     serial_overrides:
       # cameras at the specified root.path combo will have their serials overridden as specified by the platform and task passed to the directory node
@@ -19,9 +20,11 @@ camera_directory:
         orin:
           "platform-3610000.usb-usb-0:3": mast
           "platform-3610000.usb-usb-0:2": payload
+          "platform-3610000.usb-usb-0:1": payload2
         orin_dev_board:
           "platform-3610000.usb-usb-0:2.1": mast
-          "platform-3610000.usb-usb-0:2.1.4": payload 
+          "platform-3610000.usb-usb-0:2.2": payload
+          "platform-3610000.usb-usb-0:2.3": payload2
           # Expected USB slots:
           # -------------------------------------
           # ---- | Mast hub     |      | --------
@@ -36,7 +39,7 @@ camera_directory:
           '1:1.0': mast_arm_stow
           '2:1.0': mast_belly
           '3:1.0': mast_backward
-          '4:1.0': mast_forward
+          '4:1.0': mast_forward         
         payload:
           '1:1.0': payload_1
           '2:1.0': payload_2
@@ -47,17 +50,27 @@ camera_directory:
           '4.3:1.0': payload_4_3
           '4.4:1.0': payload_4_4
 
+        payload2:
+          '1:1.0': payload2_1
+          '2:1.0': payload2_2
+          # '3:1.0': payload2_3 # Reserved for 360 cam
+          # '4:1.0': payload2_4 # Reserved for gps
 
       task_paths:
         # the set of overrides can be selected by setting the "task" parameter
         # if a non-default path is needed, it can be specified in its named root followed by the path.
         # Take a look at example for the possible override methods
         science-urc:
-          payload_1: science_gimbal_cam
+          payload_1: science_cache_left 
           payload_2: science_microscope
-          payload_3: science_spectroscope
-          payload:
-            '4.1:1.0': science_cuvettes
+          payload_3: science_cache_right
+
+          payload_4_1: science_gimbal_cam
+          payload_4_3: science_cuvettes
+          payload_4_4: science_boom
+          
+          payload2_1: science_litmus
+          payload2_2: science_spectroscope
         delivery:
           payload_1: arm_end_side
           payload_2: arm_end_finger
@@ -84,5 +97,3 @@ camera_directory:
       # a serial remap occurs after an override, so you can essentially rename an override! 
       # These are global overrides and will occur irrespective of platform and task.
       046d_C270_HD_WEBCAM_2A3D8660: anthony-cam
-      SunplusIT_Inc_ACER_FHD_User_Facing_01.00.00: arm_wrist
-      SYX_Hua_Que_200901010001: mast_belly

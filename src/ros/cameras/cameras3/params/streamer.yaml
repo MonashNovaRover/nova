@@ -21,7 +21,7 @@ camera_streamer:
       # Science
       science_microscope:
         meta: Science - Microscope
-        pipeline_type: vp9softwareGL
+        pipeline_type: vp9software
         mime: video/x-raw
         width: 640
         height: 480
@@ -352,7 +352,7 @@ camera_streamer:
     defaults:
       # Waveshare
       openaicam_openaicam_2505121128:
-        pipeline_type: vp8softwareGL
+        pipeline_type: vp8software
         width: 1280
         height: 720
         framerate: 30
@@ -372,7 +372,7 @@ camera_streamer:
         undistort_k2: 0.01
 
       HZ_USB_Camera_20220301104:
-        pipeline_type: vp9softwareGL
+        pipeline_type: vp9software
         width: 1024
         height: 768
         framerate: 30
@@ -383,7 +383,7 @@ camera_streamer:
 
       # Legacy
       Microsoft_Microsoft®_LifeCam_HD-3000:
-        pipeline_type: vp8softwareGL
+        pipeline_type: vp8software
         width: 800
         height: 600
         framerate: 30
