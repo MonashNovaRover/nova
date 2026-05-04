@@ -21,14 +21,15 @@ in
         NTPContentSuggestionsEnabled = false;
         NTPMiddleSlotAnnouncementVisible = false;
 
-        # Shortcuts
+        # Bookmarks
         ManagedBookmarks = [
           {
-            toplevel_name = "Bookmarks";
+            name = "nova";
+            url = "https://github.com/monashNovaRover/nova/";
           }
           {
-            name = "Monash Nova Rover";
-            url = "https://www.novarover.space";
+            name = "GUI";
+            url = "localhost:5173";
           }
         ];
 
@@ -42,9 +43,9 @@ in
         DefaultBrowserSettingEnabled = false;
         BrowserSignin = 0;
         SyncDisabled = true;
-        EditBookmarksEnabled = false;
+        EditBookmarksEnabled = true;
         BrowserAddPersonEnabled = false;
-        BookmarkBarEnabled = true;
+        BookmarkBarEnabled = 0;
         BrowserLabsEnabled = false;
         HideWebStoreIcon = true;
         NTPCustomBackgroundEnabled = false;
