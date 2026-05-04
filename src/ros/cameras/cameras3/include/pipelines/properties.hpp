@@ -118,7 +118,6 @@ struct rossinkProperties
 struct Pipeline
 {
   GstElement* gst_pipeline;
-  GstContext* gl_context;
   std::unique_ptr<camera_msgs::msg::Camera> camera;
 };
 

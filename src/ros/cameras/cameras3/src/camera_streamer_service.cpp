@@ -111,7 +111,6 @@ class CameraStreamer : public rclcpp::Node
       GstContext *gl_context = gst_context_new("gst.gl.GLDisplay", TRUE);
       gst_context_set_gl_display(gl_context, gl_display);
       gst_element_set_context(pipeline->gst_pipeline, gl_context);
-      pipeline->gl_context = gl_context;
       gst_context_unref(gl_context);
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
@@ -122,7 +121,6 @@ class CameraStreamer : public rclcpp::Node
       GstContext *gl_context = gst_context_new("gst.gl.GLDisplay", TRUE);
       gst_context_set_gl_display(gl_context, gl_display);
       gst_element_set_context(pipeline->gst_pipeline, gl_context);
-      pipeline->gl_context = gl_context;
       gst_context_unref(gl_context);
     }
   }
@@ -167,8 +165,6 @@ class CameraStreamer : public rclcpp::Node
         // Get pipeline_type
         this->get_pipeline_type(pipeline);
         this->start_pipeline(pipeline);
-
-        pipeline->gl_context = nullptr;
 
         bool autostart = false;
         this->get_parameter("autostart", autostart);
@@ -220,7 +216,6 @@ class CameraStreamer : public rclcpp::Node
             gst_object_unref(pipeline->gst_pipeline);
 
             pipeline->gst_pipeline = nullptr;
-            if (pipeline->gl_context != nullptr) pipeline->gl_context = nullptr;
 
             RCLCPP_INFO(this->get_logger(), "%sStopping %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
           } else {
@@ -258,7 +253,6 @@ class CameraStreamer : public rclcpp::Node
         gst_object_unref(pipeline->gst_pipeline);
 
         pipeline->gst_pipeline = nullptr;
-        if (pipeline->gl_context != nullptr) pipeline->gl_context = nullptr;
 
         bool correct_camera = false;
 
