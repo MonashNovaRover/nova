@@ -6,7 +6,7 @@
 
 void set_glgreyscale(GstElement* glgreyscale);
 
-template<typename properties> void set_gldenoise(GstElement* gldenoise, const properties props) {
+template<typename properties> void set_gldenoise(GstElement* gldenoise, const properties& props) {
   // fxaa antiliasing
   const std::string shader = R"(#version 100
 precision lowp float;
@@ -75,7 +75,7 @@ void main() {
 }
 
 
-template<typename properties> void set_gledgedetect(GstElement* gledgedetect, const properties props) {
+template<typename properties> void set_gledgedetect(GstElement* gledgedetect, const properties& props) {
   // sobel edge detection
   const std::string shader = R"(#version 100
 precision lowp float;
@@ -124,7 +124,7 @@ void main() {
   gst_structure_free(str);
 }
 
-template<typename properties> void set_glundistort(GstElement* glundistort, const properties props) {
+template<typename properties> void set_glundistort(GstElement* glundistort, const properties& props) {
   const std::string shader = R"(#version 100
 precision lowp float;
 
@@ -169,7 +169,7 @@ void main()
   gst_structure_free(str);
 }
 
-template<typename properties> void set_glcrop43(GstElement* glcrop, const properties props) { 
+template<typename properties> void set_glcrop43(GstElement* glcrop, const properties& props) { 
   g_object_set(glcrop,
     "scale-x", (double) props->width/(props->height/3*4),
   NULL);

@@ -274,7 +274,6 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
   }
 
   sd_device_enumerator_unref(enumerator);
-  sd_device_unref(device);
   return matches;
 }
 

@@ -5,7 +5,7 @@
 #include <gst/gst.h>
 
 
-template<typename properties> void set_srcfilter(GstElement* filter, const properties props) {
+template<typename properties> void set_srcfilter(GstElement* filter, const properties& props) {
   GstCaps *caps = gst_caps_new_simple(
     props->mime.c_str(),
     "width", G_TYPE_INT, props->width,
@@ -18,7 +18,7 @@ template<typename properties> void set_srcfilter(GstElement* filter, const prope
   gst_caps_unref(caps);
 }
 
-template<typename properties> void set_scalefilter(GstElement* filter, const properties props, const std::string format) {
+template<typename properties> void set_scalefilter(GstElement* filter, const properties& props, const std::string format) {
   const std::string mime = "video/x-raw";
   GstCaps *caps = gst_caps_new_simple(
     mime.c_str(),
@@ -31,7 +31,7 @@ template<typename properties> void set_scalefilter(GstElement* filter, const pro
   gst_caps_unref(caps);
 }
 
-template<typename properties> void set_scalefilter(GstElement* filter, const properties props, const int crop_width) {
+template<typename properties> void set_scalefilter(GstElement* filter, const properties& props, const int crop_width) {
   const std::string mime = "video/x-raw";
   GstCaps *caps = gst_caps_new_simple(
     mime.c_str(),
@@ -44,7 +44,7 @@ template<typename properties> void set_scalefilter(GstElement* filter, const pro
   gst_caps_unref(caps);
 }
 
-template<typename properties> void set_scalefilter(GstElement* filter, const properties props) {
+template<typename properties> void set_scalefilter(GstElement* filter, const properties& props) {
   const std::string mime = "video/x-raw";
   GstCaps *caps = gst_caps_new_simple(
     mime.c_str(),
@@ -57,7 +57,7 @@ template<typename properties> void set_scalefilter(GstElement* filter, const pro
   gst_caps_unref(caps);
 }
 
-template<typename properties> void set_rosfilter(GstElement* filter, const properties props) {
+template<typename properties> void set_rosfilter(GstElement* filter, const properties& props) {
   const std::string mime = "video/x-raw";
   GstCaps *caps = gst_caps_new_simple(
     mime.c_str(),
