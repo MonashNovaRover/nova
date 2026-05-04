@@ -336,6 +336,38 @@ camera_streamer:
           auto_forward: still
           auto_behind: snail
 
+      es:
+        good_preset:
+          mast_forward: default
+          mast_backward: snail
+          mast_arm_stow: default
+          mast_belly: default
+          arm_end_periscope: default
+          arm_end_top: default
+          arm_end_finger: snail
+          arm_end_side: default
+          arm_wrist: default
+        default_preset:
+          mast_forward: default
+          mast_backward: snail
+          mast_arm_stow: snail
+          mast_belly: default
+          arm_end_periscope: default
+          arm_end_top: default
+          arm_end_finger: snail
+          arm_end_side: snail
+          arm_wrist: snail
+        default_preset:
+          mast_forward: snail
+          mast_backward: snail
+          mast_arm_stow: snail
+          mast_belly: default
+          arm_end_periscope: default
+          arm_end_top: default
+          arm_end_finger: snail
+          arm_end_side: snail
+          arm_wrist: snail
+
       delivery:
         drive:
           mast_forward: default

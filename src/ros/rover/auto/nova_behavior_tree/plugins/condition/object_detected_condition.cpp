@@ -12,18 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <visualization_msgs/msg/marker_array.hpp>
-#include <visualization_msgs/msg/marker.hpp>
+// TODO: cluster by id as well as distance
+// TODO: highest confidence detections should go to the front of the queue
+
+#include "nova_interfaces/msg/detection2_d_array.hpp"
 #include "rclcpp/logging.hpp"
 
 #include "nova_behavior_tree/condition/detected_condition_base.hpp"
 
 namespace nova_behavior_tree
 {
-  class ObjectDetectedCondition : public DetectedConditionBase<visualization_msgs::msg::MarkerArray>
+  class ObjectDetectedCondition : public DetectedConditionBase<nova_interfaces::msg::Detection2DArray>
   {
   public:
-    using Base = DetectedConditionBase<visualization_msgs::msg::MarkerArray>;
+    using Base = DetectedConditionBase<nova_interfaces::msg::Detection2DArray>;
 
     ObjectDetectedCondition(
       const std::string &condition_name,
@@ -31,37 +33,35 @@ namespace nova_behavior_tree
       : Base(condition_name, conf) {}
 
   private:
-    void callback(const visualization_msgs::msg::MarkerArray::SharedPtr msg) override
+    void callback(const nova_interfaces::msg::Detection2DArray::SharedPtr msg) override
     {
-      for (const auto &marker : msg->markers)
+      for (const auto &detection : msg->detections)
       {
-        if (marker.action == visualization_msgs::msg::Marker::ADD)
-        {
-          goal_ids_.push_back(marker.id);
-          Goal goal;
-          goal.header = marker.header;
-          goal.pose.position.x = marker.pose.position.x;
-          goal.pose.position.y = marker.pose.position.y;
-          raw_detections_.push_back(goal);
-        }
+        goal_class_names_.push_back(detection.class_name);
+        Goal goal;
+        goal.header = msg->header;
+        // Normalise y coordinate to be [0, 1] and x coordinate to be [0, aspect_ratio]
+        goal.pose.position.x = detection.pose.position.x / detection.image_height;
+        goal.pose.position.y = detection.pose.position.y / detection.image_height;
+        raw_detections_.push_back(goal);
       }
     }
 
     void log_detections() override
     {
-      for (const auto &id : goal_ids_)
+      for (const auto &class_name : goal_class_names_)
       {
-        RCLCPP_INFO(node_->get_logger(), "📍 Object %i found, setting goal.", id);
+        RCLCPP_INFO(node_->get_logger(), "📍 Object %s detected.", class_name.c_str());
       }
     }
 
     void clear_processed_detections() override
     {
       Base::clear_processed_detections();
-      goal_ids_.clear();
+      goal_class_names_.clear();
     }
     
-    std::vector<int> goal_ids_;
+    std::vector<std::string> goal_class_names_;
   };
 
 } // namespace nova_behavior_tree

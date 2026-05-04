@@ -273,7 +273,8 @@ in
           cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
 
           # Auto 
-          launch-everything = "~/Builds/active/bin/ros2 launch auto_bringup everything.launch.py";
+          launch-sim = "~/Builds/active/bin/ros2 launch auto_bringup sim.launch.py";
+          launch-gazebo = "~/Builds/active/bin/ros2 launch auto_bringup gazebo.launch.py";
           launch-auto-drive = "~/Builds/active/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
           launch-realsense = "~/Builds/active/bin/ros2 launch auto_bringup realsense.launch.py";
           launch-localization = "~/Builds/active/bin/ros2 launch auto_bringup localization.launch.py";
@@ -282,8 +283,8 @@ in
           launch-rviz = "~/Builds/active/bin/ros2 launch auto_bringup rviz.launch.py";
           launch-auto-urdf = "~/Builds/active/bin/ros2 launch auto_bringup urdf.launch.py";
           launch-yolo = "~/Builds/active/bin/ros2 launch auto_bringup yolo.launch.py";
-          start-arch = "~/Builds/active/bin/ros2 run nova_utils start_auto_arch.py";
-          start-urc = "~/Builds/active/bin/ros2 run nova_utils start_auto_urc.py";
+          start-auto-arch = "~/Builds/active/bin/ros2 run auto_start start_auto_arch.py";
+          start-auto-urc = "~/Builds/active/bin/ros2 run auto_start start_auto_urc.py";
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
 
           # GPS

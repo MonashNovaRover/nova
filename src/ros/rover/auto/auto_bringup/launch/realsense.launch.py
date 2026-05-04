@@ -19,7 +19,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import IfElseSubstitution, LaunchConfiguration, PathJoinSubstitution, EnvironmentVariable
-from launch_ros.actions import Node, ComposableNodeContainer
+from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
@@ -30,7 +30,6 @@ def launch_setup(context, *args, **kwargs):
     cam_name = LaunchConfiguration('cam_name').perform(context)
     rs_params = LaunchConfiguration('rs_params')
     ar_params = LaunchConfiguration('ar_params')
-    log_level = LaunchConfiguration('log_level')
     sim = LaunchConfiguration('sim')
 
     # comp defaults
@@ -57,6 +56,7 @@ def launch_setup(context, *args, **kwargs):
                     package='realsense2_camera',
                     plugin='realsense2_camera::RealSenseNodeFactory',
                     name='d415',
+                    namespace='',
                     parameters=[rs_params, {'camera_name': cam_name}],
                 ),
                 ComposableNode(
@@ -64,32 +64,13 @@ def launch_setup(context, *args, **kwargs):
                     package='aruco_opencv',
                     plugin='aruco_opencv::ArucoTrackerAutostart',
                     name='aruco_tracker',
+                    namespace='',
                     parameters=[ar_params,
-                                {'cam_base_topic': f'/{cam_name}/color/image_raw',
+                                {'cam_base_topic': f'{cam_name}/color/image_raw',
                                  'use_sim_time': sim}],
                 ),
             ],
         ),
-        # Node(
-        #     condition=UnlessCondition(sim),
-        #     package='realsense2_camera',
-        #     name='d415',
-        #     namespace='',
-        #     executable='realsense2_camera_node',
-        #     parameters=[rs_params, {'camera_name': cam_name}],
-        #     output='screen',
-        #     arguments=['--ros-args', '--log-level', log_level],
-        #     emulate_tty=True,
-        # ),
-        # Node(
-        #     condition=IfCondition(ar),
-        #     package='aruco_opencv',
-        #     executable='aruco_tracker_autostart',
-        #     parameters=[ar_params,
-        #                 {'cam_base_topic': f'/{cam_name}/color/image_raw',
-        #                  'use_sim_time': sim}],
-        #     arguments=['--ros-args', '--log-level', log_level],
-        # ),
     ]
 
 
@@ -132,11 +113,6 @@ def generate_launch_description():
             name='ar_params',
             default_value=PathJoinSubstitution([auto_bringup_dir, 'params', 'aruco_tracker.yaml']),
             description='Path to aruco tracker params file',
-        ),
-        DeclareLaunchArgument(
-            name='log_level',
-            default_value='info',
-            description='',
         ),
         DeclareLaunchArgument(
             name='sim',

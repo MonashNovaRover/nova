@@ -2,9 +2,10 @@ global_costmap:
   global_costmap:
     ros__parameters:
       update_frequency: 1.0
-      publish_frequency: 3.0
+      publish_frequency: 0.0
       global_frame: map
       robot_base_frame: base_link
+      rolling_window: true
       width: 400
       height: 400
       origin_x: -200.0
@@ -14,7 +15,7 @@ global_costmap:
       # ([wheel_base, steering_track] / 2) + wheel_radius
       footprint: "[[0.64, 0.57], [0.64, -0.57], [-0.64, -0.57], [-0.64, 0.57]]"
       track_unknown_space: false
-      always_send_full_costmap: true # RemoveNearbyInCollisionGoals needs this to be true to work
+      always_send_full_costmap: false
       plugins: ["static_layer", "denoise_layer", "inflation_layer"]
       
       static_layer:

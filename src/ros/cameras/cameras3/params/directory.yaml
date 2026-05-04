@@ -72,6 +72,12 @@ camera_directory:
           payload_3: arm_end_periscope
           payload_4_2: arm_end_top
           payload_4_4: arm_wrist
+        es:
+          payload_1: arm_end_side
+          payload_2: arm_end_finger
+          payload_3: arm_end_periscope
+          payload_4_2: arm_end_top
+          payload_4_4: arm_wrist
 
         science-urc:
           payload_1: science_cache_left 
