@@ -23,7 +23,7 @@
  * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-h264
  */
 
-GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroughPipelineProperties* props)
+GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<h264passthroughPipelineProperties>& props)
 {
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
@@ -76,10 +76,10 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, h264passthroug
  * Retrieve ros2 parameters for h264passthrough pipeline or sets defaults
 */
 
-h264passthroughPipelineProperties* get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera)
 {
   // 0. Initialize constants
-  h264passthroughPipelineProperties* props = new h264passthroughPipelineProperties;
+  std::unique_ptr<h264passthroughPipelineProperties> props = std::make_unique<h264passthroughPipelineProperties>();
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;

@@ -24,7 +24,7 @@
  * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-vpX
  */
 
-GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelineProperties* props, const int vpX)
+GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX)
 {
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
@@ -143,10 +143,10 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, vpXsoftwarePipelin
  * Retrieve ros2 parameters for vpXsoftware pipeline or sets defaults
 */
 
-vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera, const int vpX)
+std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properties(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const int vpX)
 {
   // 0. Initialize constants
-  vpXsoftwarePipelineProperties* props = new vpXsoftwarePipelineProperties;
+  std::unique_ptr<vpXsoftwarePipelineProperties> props = std::make_unique<vpXsoftwarePipelineProperties>();
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
@@ -213,6 +213,7 @@ vpXsoftwarePipelineProperties* get_vpXsoftware_pipeline_properties(rclcpp::Node*
   props->cpu_used = set_property(streamer_node, camera, "cpu_used", 1);
   props->deadline = set_property(streamer_node, camera, "deadline", 1);
   props->gop = set_property(streamer_node, camera, "gop", 1);
+  props->noise = set_property(streamer_node, camera, "noise", 6);
   props->threads = set_property(streamer_node, camera, "threads", 1);
 
   // webrtc

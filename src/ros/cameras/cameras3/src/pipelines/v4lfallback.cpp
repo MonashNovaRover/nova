@@ -23,7 +23,7 @@
  */
 
 
-GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelineProperties* props)
+GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<v4lfallbackPipelineProperties>& props)
 {
   /* 
      This creates a v4l2src to webrtc pipeline with the following structure:
@@ -102,7 +102,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, v4lfallbackPipelin
  * Retrieve ros2 parameters for v4l2webrtc pipeline or sets defaults
 */
 
-v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node* streamer_node, camera_msgs::msg::Camera* camera)
+std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properties(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera)
 {
   /*
     Pulls ros2 parameters for a given camera and returns a properties struct for the v4l2webrtc pipeline creation function.
@@ -112,7 +112,7 @@ v4lfallbackPipelineProperties* get_v4lfallback_pipeline_properties(rclcpp::Node*
   */
 
   // 0. Initialize constants
-  v4lfallbackPipelineProperties* props = new v4lfallbackPipelineProperties;
+  std::unique_ptr<v4lfallbackPipelineProperties> props = std::make_unique<v4lfallbackPipelineProperties>();
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
