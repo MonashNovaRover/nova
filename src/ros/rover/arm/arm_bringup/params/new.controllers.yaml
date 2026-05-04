@@ -77,8 +77,8 @@ arm:
           max_velocity: 0.4     #< matches teleop.yaml
         j5: # wrist pitch
           has_position_limits: true
-          max_position: -0.144125
-          min_position: -3.05
+          max_position: 0.2
+          min_position: -3.2
           has_velocity_limits: true
           max_velocity: 0.7     #< matches teleop.yaml
         j6: # wrist roll
