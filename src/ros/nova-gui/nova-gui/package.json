@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "lint": "eslint .",
     "lint:ci": "eslint . --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "bench": "playwright test tests/bench.spec.ts --reporter=list",
+    "bench:avg": "playwright test tests/bench.spec.ts --repeat-each=3 --reporter=list"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -62,6 +64,7 @@
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.2",
+    "@playwright/test": "^1.59.1",
     "@types/file-saver": "^2.0.7",
     "@types/lodash": "^4.17.23",
     "@types/plotly.js": "^3.0.9",
