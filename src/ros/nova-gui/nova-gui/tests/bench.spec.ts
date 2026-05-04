@@ -55,21 +55,23 @@ test(`nova-gui persistence bench [${SNAPSHOT_LABEL}]`, async ({ page }) => {
   );
   console.log("[nav 5 routes] parses:", navParses);
 
-  // ----- remount phase: bounce / <-> /test/state 10 times.
-  // Exposes the draft's per-mount-reparse problem; cached/master both 0.
+  // ----- remount phase: SPA-navigate / <-> /test/state 10 times so JS context
+  // stays alive and caches persist across navigations (real-user pattern).
   await page.goto("/test/state");
   await page.waitForLoadState("networkidle");
   await page.evaluate(() => (window as unknown as PerfWin).perf.reset());
   for (let i = 0; i < 10; i++) {
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
-    await page.goto("/test/state");
-    await page.waitForLoadState("networkidle");
+    await page.evaluate(() => window.history.pushState({}, "", "/"));
+    await page.evaluate(() => window.dispatchEvent(new PopStateEvent("popstate")));
+    await page.waitForTimeout(80);
+    await page.evaluate(() => window.history.pushState({}, "", "/test/state"));
+    await page.evaluate(() => window.dispatchEvent(new PopStateEvent("popstate")));
+    await page.waitForTimeout(80);
   }
   const remountParses = await page.evaluate(
     () => (window as unknown as PerfWin).perf.parses(),
   );
-  console.log("[remount /test/state x10] parses:", remountParses);
+  console.log("[SPA remount /test/state x10] parses:", remountParses);
 
   // ----- modal phase: open/close a modal 10x on the NIR view
   await page.goto("/arc/space-resources/nir-spectroscopy");
