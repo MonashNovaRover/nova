@@ -324,7 +324,18 @@ camera_streamer:
           denoise: true
 
     presets:
-      # auto:
+      auto:
+        drive:
+          auto_left: default
+          auto_right: default
+          auto_forward: default 
+          auto_behind: snail
+        payload:
+          auto_left: still
+          auto_right: still
+          auto_forward: still
+          auto_behind: snail
+
       delivery:
         drive:
           mast_forward: default

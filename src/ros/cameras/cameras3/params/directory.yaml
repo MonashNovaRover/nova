@@ -60,17 +60,12 @@ camera_directory:
         # the set of overrides can be selected by setting the "task" parameter
         # if a non-default path is needed, it can be specified in its named root followed by the path.
         # Take a look at example for the possible override methods
-        science-urc:
-          payload_1: science_cache_left 
-          payload_2: science_microscope
-          payload_3: science_cache_right
+        auto:
+          mast_arm_stow: auto_left
+          mast_belly: auto_right
+          mast_forward: auto_forward
+          mast_backward: auto_behind
 
-          payload_4_1: science_gimbal_cam
-          payload_4_3: science_cuvettes
-          payload_4_4: science_boom
-          
-          payload2_1: science_litmus
-          payload2_2: science_spectroscope
         delivery:
           payload_1: arm_end_side
           payload_2: arm_end_finger
@@ -78,11 +73,15 @@ camera_directory:
           payload_4_2: arm_end_top
           payload_4_4: arm_wrist
 
-        auto:
-          mast_arm_stow: auto_left
-          mast_down: auto_right
-          mast_forward: auto_forward
-          mast_backward: auto_behind
+        science-urc:
+          payload_1: science_cache_left 
+          payload_2: science_microscope
+          payload_3: science_cache_right
+          payload_4_1: science_gimbal_cam
+          payload_4_3: science_cuvettes
+          payload_4_4: science_boom
+          payload2_1: science_litmus
+          payload2_2: science_spectroscope
 
         example:
           payload_2: science_kiln
