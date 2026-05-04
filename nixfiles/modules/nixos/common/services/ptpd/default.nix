@@ -21,14 +21,26 @@ in
   config = lib.mkIf cfg.enable {
     systemd.services.ptpd = {
       enable = true;
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
+      after = [ "sys-subsystem-net-devices-${cfg.interfaceName}.device" ];
+      bindsTo = [ "sys-subsystem-net-devices-${cfg.interfaceName}.device" ];
+
       wantedBy = [ "multi-user.target" ];
       description = "Precision Time Protocol Daemon";
       startLimitIntervalSec = 0;
+
+      script = ''
+        while true; do
+          state=$(cat /sys/class/net/${cfg.interfaceName}/operstate 2>/dev/null || echo down)
+          echo "Waiting for network interface ${cfg.interfaceName} to be up..."
+          if [ "$state" = "up" ]; then
+            exec ${pkgs.nova.ptpd}/bin/ptpd2 -C -m -i ${cfg.interfaceName} --ptpengine:priority1=${toString cfg.priority}
+          fi
+          sleep 2
+        done
+      '';
+
       serviceConfig = {
         Type = "simple";
-        ExecStart = ''${pkgs.nova.ptpd}/bin/ptpd2 -C -m -i ${cfg.interfaceName} --ptpengine:priority1=${toString cfg.priority}'';
         Restart = "on-failure";
         RestartSec = 2;
       };
