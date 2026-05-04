@@ -15,14 +15,18 @@ ONNX Runtime Web (ORT). Cameras register their `<video>` refs through
 
 ## Model and runtime
 
-- Active model/labels are selected in `YoloConfig.ts` via `ActiveYoloConfig`.
-- Models are loaded from `/models/${ActiveYoloConfig.modelName}`.
+- Models are defined in `YoloConfig.ts` via `YoloConfigs` and resolved with `getYoloConfig(...)`.
+- The active model is selected at runtime via generic store key `yoloActiveModel`
+  (Settings -> YOLO tab).
+- Models are loaded from `/models/${activeYoloConfig.modelName}`.
 - Input size is currently fixed to `640`.
 - **Letterboxing**: Frames are letterboxed (with black bars) to maintain aspect ratio
   when preprocessing. This prevents distortion and ensures accurate detections on
   non-square video feeds (e.g., 16:9 aspect ratio).
-- WASM is the default execution provider. WebGPU is optional via `VITE_ENABLE_WEBGPU=true`,
-  with fallback to WASM if WebGPU session creation fails.
+- WebGPU preference is configurable at runtime via generic store key `yoloUseWebGPU`
+  (Settings -> YOLO tab), with fallback to WASM if WebGPU session creation fails.
+- Timing debug logs are configurable at runtime via generic store key `yoloTimingLogs`
+  (Settings -> YOLO tab).
 
 ## Batching
 
@@ -43,15 +47,21 @@ Two coordinate formats are supported via the `outputFormat` field in `YoloConfig
 - **`"xywh"`**: Center coordinates `[x_center, y_center, width, height, confidence, classId]`
   - Used by YOLOv8/v11 and most modern YOLO variants
 
-When adding a new model, set the `outputFormat` in your `YOLOConfig`:
+When adding a new model, add a config entry to `YoloConfigs`:
 
 ```typescript
-export const MyModelConfig: YOLOConfig = {
-  modelName: "my-model.onnx",
-  classNames: ["class1", "class2"],
-  outputFormat: "xywh",  // or "xyxy" depending on your model
-}
+export const YoloConfigs = {
+  ...
+  myModel: {
+    label: "My Model",
+    modelName: "my-model.onnx",
+    classNames: ["class1", "class2"],
+    outputFormat: "xywh", // or "xyxy" depending on your model
+  },
+} satisfies Record<string, Omit<YOLOConfig, "id">>;
 ```
+
+Once added, it appears in Settings -> YOLO -> Active YOLO Model automatically.
 
 If your model uses a different output layout (e.g., class probabilities instead
 of a single classId, or transposed dimensions), you'll need to modify the
@@ -74,7 +84,7 @@ to be served in the built app.
 ## Files
 
 - `YoloCameraComponent.tsx`: camera wrapper that attaches the detection overlay
-- `YoloConfig.ts`: available model/class-name configs and active model selection
+- `YoloConfig.ts`: model registry, model options, and config resolution helpers
 - `YoloOverlayCanvas.tsx`: overlay drawing and coordinate mapping
 - `YoloProvider.tsx`: context for video registration and detections
 - `useYoloDetection.ts`: main-thread frame capture and worker messaging

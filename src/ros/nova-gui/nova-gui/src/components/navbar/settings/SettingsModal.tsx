@@ -9,6 +9,7 @@ import { RootState } from "../../../redux/RootState.ts";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 import StoreSettings from "./StoreSettings.tsx";
 import {IPSettings} from "./IPSettings.tsx";
+import { YoloSettings } from "./YoloSettings.tsx";
 
 /**
  * Settings Model containing GUI settings
@@ -41,6 +42,10 @@ export function SettingsModal() {
 
             <Tab title="Store">
               <StoreSettings/>
+            </Tab>
+
+            <Tab title="YOLO">
+              <YoloSettings />
             </Tab>
           </Tabs>
 

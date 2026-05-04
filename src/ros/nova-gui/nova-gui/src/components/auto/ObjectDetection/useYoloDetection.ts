@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { YOLOOutputFormat } from "./YoloConfig";
+import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 
 export interface Detection {
   // Class index in the model's label set.
@@ -74,14 +75,21 @@ export function useYoloDetection({
   outputFormat,
 }: Props) {
   const [detections, setDetections] = useState<Detection[][]>([]);
+  const [useWebGPU] = useGenericStore<boolean>("yoloUseWebGPU");
+  const [enableTimingLogs] = useGenericStore<boolean>("yoloTimingLogs");
   // Worker runs inference off the main thread.
   const workerRef = useRef<Worker | null>(null);
+  const enableTimingLogsRef = useRef(enableTimingLogs);
   // Prevent concurrent batches while a worker request is in flight.
   const inFlightRef = useRef(false);
   // Incrementing id for batches (useful for debugging or ordering).
   const batchIdRef = useRef(0);
   // Track which camera indices were included in each worker batch.
   const pendingBatchIndicesRef = useRef(new Map<number, number[]>());
+
+  useEffect(() => {
+    enableTimingLogsRef.current = enableTimingLogs;
+  }, [enableTimingLogs]);
 
   useEffect(() => {
     let running = true;
@@ -104,7 +112,7 @@ export function useYoloDetection({
       modelPath,
       inputSize,
       scoreThreshold,
-      useWebGPU: import.meta.env.VITE_ENABLE_WEBGPU === "true",
+      useWebGPU,
       outputFormat,
     };
     worker.postMessage(initMessage);
@@ -115,6 +123,16 @@ export function useYoloDetection({
       if (event.data.type === "result") {
         const result = event.data;
         inFlightRef.current = false;
+        if (enableTimingLogsRef.current && result.timings) {
+          console.debug("[YOLO timings]", {
+            mode: result.timings.mode,
+            batch: result.timings.batch,
+            preprocessms: result.timings.preprocessMs,
+            runms: result.timings.runMs,
+            postms: result.timings.postMs,
+            totalms: result.timings.totalMs,
+          });
+        }
         const batchIndices = pendingBatchIndices.get(result.batchId) ?? [];
         pendingBatchIndices.delete(result.batchId);
         const now = performance.now();
@@ -199,7 +217,7 @@ export function useYoloDetection({
       workerRef.current?.terminate();
       workerRef.current = null;
     };
-  }, [videoRefs, modelPath, inputSize, intervalMs, scoreThreshold, outputFormat]);
+  }, [videoRefs, modelPath, inputSize, intervalMs, scoreThreshold, outputFormat, useWebGPU]);
 
   return detections;
 }

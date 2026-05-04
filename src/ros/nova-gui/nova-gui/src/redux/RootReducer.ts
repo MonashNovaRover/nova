@@ -24,6 +24,7 @@ import {StoreType} from "./models/StoreContext.ts";
 import {DEFAULT_NIR_PROBE_CALIBRATION_DATA} from "./models/genericStores/NIRProbeCalibrationData.ts";
 import {initialCameraProfilesState} from "./models/CameraProfilesState.ts";
 import {PresetPositions} from "../components/science/ToolRotatorWidget/ToolRotatorWidget.tsx";
+import { DEFAULT_YOLO_MODEL_ID } from "../components/auto/ObjectDetection/YoloConfig.ts";
 
 /**
  * reduxStores contains all stores in redux as either it's Reducer
@@ -407,6 +408,9 @@ export const reduxStores = {
   cameraProfiles: createGenericStore("cameraProfiles", initialCameraProfilesState),
   clickAndHold: createGenericStore("clickAndHold", false),
   windowWideWASD: createGenericStore("windowWideWASD", false),
+  yoloActiveModel: createGenericStore("yoloActiveModel", DEFAULT_YOLO_MODEL_ID),
+  yoloUseWebGPU: createGenericStore("yoloUseWebGPU", true),
+  yoloTimingLogs: createGenericStore("yoloTimingLogs", true),
   toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 240.0, microscope: 0.0, nir_probe: 120.0} as PresetPositions),
   toolRotatorTwitchStep: createGenericStore("toolRotatorTwitchStep", 5.0),
   toolRotatorKeyboardControl: createGenericStore("toolRotatorKeyboardControl", false),
