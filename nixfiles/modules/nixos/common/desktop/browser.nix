@@ -54,6 +54,9 @@ in
       };
     };
 
-    home-manager.nova.sharedModules = [{ nova.desktop.browser.enable = true; nova.desktop.browser.nvidiaOffload = false; }];
+    home-manager.nova.sharedModules = [{
+      nova.desktop.browser.enable = true;
+      nova.desktop.browser.nvidiaOffload = cfg.nvidiaOffload;
+    }];
   };
 }
