@@ -41,5 +41,7 @@ in
     environment.sessionVariables = {
       __GLX_VENDOR_LIBRARY_NAME = lib.mkDefault "nvidia";
     };
+    # Enable Nvidia GPU support for Chromium
+    nova.desktop.browser.nvidiaOffload = lib.mkDefault true;
   };
 }
