@@ -43,5 +43,8 @@ in
     };
     # Enable Nvidia GPU support for Chromium
     nova.desktop.browser.nvidiaOffload = lib.mkDefault true;
+
+    # Inspect GPU usage in btop
+    home-manager.users.nova.programs.btop.package = lib.mkDefault pkgs.btop-cuda;
   };
 }
