@@ -35,6 +35,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
+  GstElement* valve = gst_element_factory_make("valve", "video-valve");
   GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rater") : nullptr;
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
@@ -65,6 +66,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   if (
     !gst_pipeline ||
     !source ||
+    !valve ||
     (props->downrate > 1 && !rate) ||
     !srcfilter ||
     (props->mime == "image/jpeg" && !decode) ||
@@ -116,6 +118,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
       source,
+      valve,
       srcfilter,
       queue_upload,
       glupload,
@@ -142,6 +145,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
 
   GstElement* next_element = source;
 
+  if (link_elements(streamer_node, next_element, valve, props->serial)) next_element = valve;
   if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
   if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
   else {

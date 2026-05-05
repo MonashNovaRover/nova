@@ -38,7 +38,6 @@ template<typename properties> void set_scalefilter(GstElement* filter, const pro
     "format", G_TYPE_STRING, props->format.c_str(),
     "width", G_TYPE_INT, (int) ((float) (props->width-crop_width)/ (float) props->downscale),
     "height", G_TYPE_INT, (int) ((float) props->height/ (float) props->downscale),
-    "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
   NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);
@@ -51,7 +50,6 @@ template<typename properties> void set_scalefilter(GstElement* filter, const pro
     "format", G_TYPE_STRING, props->format.c_str(),
     "width", G_TYPE_INT, (int) ((float) props->width/ (float) props->downscale),
     "height", G_TYPE_INT, (int) ((float) props->height/ (float) props->downscale),
-    "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
   NULL);
   g_object_set(filter, "caps", caps, NULL);
   gst_caps_unref(caps);

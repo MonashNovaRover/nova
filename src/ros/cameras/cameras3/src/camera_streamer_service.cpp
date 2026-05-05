@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <any>
+#include <thread>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
@@ -24,8 +25,18 @@
 #include <camera_msgs/msg/cameras.hpp>
 
 #include "cameras/globals.hpp"
-#include "properties/common.hpp"
 #include "pipelines/properties.hpp"
+#include "pipelines/pipelines.hpp"
+#include "properties/common.hpp"
+
+#include "properties/sources.hpp"
+#include "properties/sinks.hpp"
+
+#include "properties/capsfilters.hpp"
+#include "properties/cpufilters.hpp"
+#include "properties/glfilters.hpp"
+#include "properties/decoders.hpp"
+#include "properties/encoders.hpp"
 
 #include "cameras/colors.hpp"
 
@@ -125,6 +136,45 @@ class CameraStreamer : public rclcpp::Node
     }
   }
 
+  private: void change_profile_properties(const std::unique_ptr<Pipeline>& pipeline)
+  {
+    // get pipeline properties and use them to create the pipeline
+    if (pipeline->camera->pipeline_type == "v4lfallback")
+    {
+      std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
+      
+    } else if (pipeline->camera->pipeline_type == "h264passthrough") {
+      std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
+      
+    } else if (pipeline->camera->pipeline_type == "vp8software") {
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
+      
+    } else if (pipeline->camera->pipeline_type == "vp8softwareGL") {
+      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 8);
+      
+    } else if (pipeline->camera->pipeline_type == "vp9software") {
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
+      
+    } else if (pipeline->camera->pipeline_type == "vp9softwareGL") {
+      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 9);
+     
+      GstElement *encode = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "encoder");
+      if (encode) {
+        set_vp9enc(encode, props);
+        gst_object_unref(encode);
+      }
+
+      GstElement *scalefilter = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "scalefilter");
+      if (scalefilter) {
+        const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
+        set_scalefilter(scalefilter, props, crop_width*2);
+        gst_object_unref(scalefilter);
+      }
+
+
+    }
+  }
+
   private: void get_pipeline_type(const std::unique_ptr<Pipeline>& pipeline)
   {
 
@@ -192,7 +242,10 @@ class CameraStreamer : public rclcpp::Node
             std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
             if (this->pipelines[serial]->gst_pipeline != nullptr) {
             // gstreamer play pipeline if paused
-              RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
+              RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET); 
+              GstElement *valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "video-valve");
+              g_object_set(valve, "drop", false, NULL);
+              gst_object_unref(valve);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             } else {
               // start pipeline if the gst bin doesn't exist yet
@@ -211,11 +264,11 @@ class CameraStreamer : public rclcpp::Node
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
 
-            gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
-            gst_element_get_state(pipeline->gst_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
-            gst_object_unref(pipeline->gst_pipeline);
+            GstElement *valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "video-valve");
+            g_object_set(valve, "drop", true, NULL);
+            gst_object_unref(valve);
+            gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
 
-            pipeline->gst_pipeline = nullptr;
 
             RCLCPP_INFO(this->get_logger(), "%sStopping %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
           } else {
@@ -248,11 +301,10 @@ class CameraStreamer : public rclcpp::Node
       if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
         std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
 
-        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
-        gst_element_get_state(pipeline->gst_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
-        gst_object_unref(pipeline->gst_pipeline);
+        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
 
-        pipeline->gst_pipeline = nullptr;
+        GstElement *valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "video-valve");
+        g_object_set(valve, "drop", true, NULL);
 
         bool correct_camera = false;
 
@@ -276,10 +328,10 @@ class CameraStreamer : public rclcpp::Node
           }
         }
 
-        response->success = true;
+        // Change a subset of properties that can be changed in runtime
+        change_profile_properties(pipeline);
 
-        this->get_pipeline_type(pipeline);
-        this->start_pipeline(pipeline);
+        response->success = true;
 
         bool autostart = false;
         this->get_parameter("autostart", autostart);
@@ -287,9 +339,11 @@ class CameraStreamer : public rclcpp::Node
         // auto start if true
         if (autostart) {
           gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
+          g_object_set(valve, "drop", false, NULL);
         } else {
           RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
         }
+        gst_object_unref(valve);
       }
     }
   }
