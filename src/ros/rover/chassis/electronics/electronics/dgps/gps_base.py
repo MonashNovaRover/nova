@@ -116,24 +116,24 @@ class GPSBase(Node):
         self.timer = self.create_timer(0, self.loop)
 
         ### INITIALISE ###
-        self.config_rtcm(
-            port_type=self.port_type, 
-        )
-        if (self.svin):
-            self.get_logger().info(f'🛰️ Surveying position for >{self.min_dur}secs until <{self.acc_limit}mm accuracy achieved for RTK...', throttle_duration_sec=2)
-            self.config_svin_rtk(
-                port_type=self.port_type,
-                acc_limit=self.acc_limit,
-                min_dur=self.min_dur, 
-            )
-        else:
-            self.get_logger().info(f'🛰️ Using position at {self.lat}, {self.lon} for RTK.', throttle_duration_sec=2)
-            self.config_fixed_rtk(
-                acc_limit=self.acc_limit, 
-                lat=self.lat,
-                lon=self.lon,
-                height=self.height, 
-            )
+        # self.config_rtcm(
+        #     port_type=self.port_type, 
+        # )
+        # if (self.svin):
+        #     self.get_logger().info(f'🛰️ Surveying position for >{self.min_dur}secs until <{self.acc_limit}mm accuracy achieved for RTK...', throttle_duration_sec=2)
+        #     self.config_svin_rtk(
+        #         port_type=self.port_type,
+        #         acc_limit=self.acc_limit,
+        #         min_dur=self.min_dur, 
+        #     )
+        # else:
+        #     self.get_logger().info(f'🛰️ Using position at {self.lat}, {self.lon} for RTK.', throttle_duration_sec=2)
+        #     self.config_fixed_rtk(
+        #         acc_limit=self.acc_limit, 
+        #         lat=self.lat,
+        #         lon=self.lon,
+        #         height=self.height, 
+        #     )
 
     def config_rtcm(self, port_type : str) -> None:
         '''
@@ -239,7 +239,7 @@ class GPSBase(Node):
             self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!', throttle_duration_sec=2)
             return
 
-        if msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
+        if msg_parsed.msgID == 'GGA':
             if msg_parsed.quality > 0:
                 # Valid fix
                 self.pose.latitude = float(msg_parsed.lat)

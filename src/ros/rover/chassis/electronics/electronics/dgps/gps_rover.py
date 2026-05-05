@@ -127,7 +127,7 @@ class GPSRover(Node):
         self.get_logger().debug(f'\t   raw NMEA message: {msg_raw}')
         self.get_logger().debug(f'\tparsed NMEA message: {msg_parsed}')
 
-        if msg_parsed.talker == 'GP' and msg_parsed.msgID == 'GGA':
+        if msg_parsed.msgID == 'GGA':
             if msg_parsed.quality > 0:
                 # Valid fix
                 self.pose.latitude = float(msg_parsed.lat)
