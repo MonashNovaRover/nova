@@ -41,6 +41,6 @@ in
     nova.desktop.browser.nvidiaOffload = lib.mkDefault true;
 
     # Inspect GPU usage in btop
-    home-manager.users.nova.programs.btop.package = lib.mkDefault pkgs.btop-cuda;
+    home-manager.users.nova.programs.btop.package = lib.mkOverride 990 pkgs.btop-cuda;
   };
 }
