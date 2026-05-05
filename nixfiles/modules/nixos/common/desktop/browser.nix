@@ -5,7 +5,7 @@ let
 in
 {
   options.nova.desktop.browser.enable = lib.mkEnableOption "Nova Rover Chromium configuration";
-  options.nova.desktop.browser.nvidiaOffload = lib.mkEnableOption "Use nvidia offloading for Chromium";
+  options.nova.desktop.browser.nvidiaOffload = lib.mkEnableOption "Enable NVIDIA offloaded Chromium desktop entry";
 
   config = lib.mkIf cfg.enable {
     programs.chromium = {
