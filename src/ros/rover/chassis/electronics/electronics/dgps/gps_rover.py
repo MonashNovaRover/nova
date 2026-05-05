@@ -145,7 +145,12 @@ class GPSRover(Node):
             else:
                 self.pose.status.status = NavSatStatus.STATUS_NO_FIX
                 self.fix_type = 'No fix'
-                self.get_logger().warn(f'❌ GPS (GGA) data is not available!', throttle_duration_sec=2)
+                self.get_logger().warn(f'❌ GNSS (GGA) data is not available!', throttle_duration_sec=2)
+        elif msg_parsed.msgID == 'THS':
+            if msg_parsed.mi != 'V':
+                self.pose_custom.heading = float(msg_parsed.headt)
+            else:
+                self.get_logger().warn(f'❌ GNSS (THS) heading data is invalid!', throttle_duration_sec=2)
 
         ### LOG ###
         msg_log = f'''
