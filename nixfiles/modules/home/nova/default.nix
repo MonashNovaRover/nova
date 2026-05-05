@@ -120,6 +120,7 @@ in
         unzip
         zip
         micro
+        ripgrep
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken
