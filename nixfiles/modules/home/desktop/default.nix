@@ -1,11 +1,11 @@
-{ config, pkgs, lib, ... }:
+{ config, lib, ... }:
 
 let
   cfg = config.nova.desktop;
 in
 {
   imports = [
-    ./browser.nix
+    ./browser
     ./extensions
     ./file-manager.nix
     ./fonts.nix

@@ -32,7 +32,7 @@ in
       exec = chromiumExec;
       startupNotify = true;
       terminal = false;
-      icon = "chromium";
+      icon = ./icons/chromium-nvidia-offload.png;
       type = "Application";
       categories = [ "Network" "WebBrowser" ];
       mimeType = [
