@@ -121,15 +121,27 @@ in
           cyan='\033[1;36m'
           magenta='\033[1;35m'
           yellow='\033[1;33m'
+          black='\033[1;30m'
+          blue='\033[1;94m'
+          grey='\033[1;34m'
+          white='\033[97m'
           end='\033[0m'
+
+          bob0=" $yellow\u2588\u2588\u2588\u2588\u2588\u2588\u2588$end "
+          bob1="$yellow\u2588\u2588$grey\u2588\u2588$yellow\u2588$grey\u2588\u2588$yellow\u2588\u2588$end"
+          bob2="$yellow\u2588$grey\u2588$white\u2588\u2588$grey\u2588$white\u2588\u2588$grey\u2588$yellow\u2588$end"
+          bob3="$yellow\u2588$grey\u2588$black\u2588$white\u2588$grey\u2588$black\u2588$white\u2588$grey\u2588$yellow\u2588$end"
+          bob4="$yellow\u2588\u2588$grey\u2588\u2588$yellow\u2588$grey\u2588\u2588$yellow\u2588\u2588$end"
+          bob5="$blue\u2588$yellow\u2588\u2588\u2588\u2588\u2588\u2588\u2588$blue\u2588"
+          bob6="$yellow\u2588$blue\u2588$yellow\u2588\u2588\u2588\u2588\u2588$blue\u2588$yellow\u2588"
           
-          echo   "┌$border┐"
-          printf "│ $cyan%-$((width-1))s$end│\n" "$title"
-          printf "│ $magenta%s$end%s%-$((width-1-''${#help_label}-''${#help_value}))s│\n" "$help_label" "$help_value" ""
-          printf "│   $yellow%s$end%s%-$((width-3-''${#rmw_label}-''${#rmw_value}))s│\n" "$rmw_label" "$rmw_value" ""
-          printf "│   $yellow%s$end%s%-$((width-3-''${#comp_label}-''${#comp_value}))s│\n" "$comp_label" "$comp_value" ""
-          printf "│   $yellow%s$end%s%-$((width-3-''${#build_label}-''${#build_value}))s│\n" "$build_label" "$build_value" ""
-          echo   "└$border┘"
+          printf   "┌$border┐   $bob0\n"
+          printf "│ $cyan%-$((width-1))s$end│   $bob1\n" "$title"
+          printf "│ $magenta%s$end%s%-$((width-1-''${#help_label}-''${#help_value}))s│   $bob2\n" "$help_label" "$help_value" ""
+          printf "│   $yellow%s$end%s%-$((width-3-''${#rmw_label}-''${#rmw_value}))s│   $bob3\n" "$rmw_label" "$rmw_value" ""
+          printf "│   $yellow%s$end%s%-$((width-3-''${#comp_label}-''${#comp_value}))s│   $bob4\n" "$comp_label" "$comp_value" ""
+          printf "│   $yellow%s$end%s%-$((width-3-''${#build_label}-''${#build_value}))s│   $bob5\n" "$build_label" "$build_value" ""
+          printf   "└$border┘   $bob6"
           echo   ""
         )
 
