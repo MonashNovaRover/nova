@@ -9,7 +9,7 @@ let
 in
 {
   options.nova.desktop.browser.enable = lib.mkEnableOption "Nova Rover user Chromium configuration";
-  options.nova.desktop.browser.nvidiaOffload = lib.mkEnableOption "Use nvidia offloading for Chromium";
+  options.nova.desktop.browser.nvidiaOffload = lib.mkEnableOption "Enable NVIDIA offloaded Chromium desktop entry";
 
   config = lib.mkIf cfg.enable {
     programs.chromium = {
@@ -24,10 +24,10 @@ in
 
     dconf.settings."org/gnome/shell".favorite-apps = [
       "chromium-browser.desktop"
-    ];
+    ] ++ lib.optional cfg.nvidiaOffload "chromium-nvidia-offload.desktop";
 
     # Use nvidia offloading for chromium if enabled
-    xdg.desktopEntries.chromium-browser = lib.mkIf cfg.nvidiaOffload {
+    xdg.desktopEntries."chromium-nvidia-offload" = lib.mkIf cfg.nvidiaOffload {
       name = "Chromium (NVIDIA Offload)";
       exec = chromiumExec;
       startupNotify = true;
