@@ -136,11 +136,11 @@ in
         # Help text for nova shell
         nova_sh_help() {
           local yellow='\033[1;33m' end='\033[0m'
-          printf "''${yellow}RMW:''${end} Set with use_(fast|cyclone)dds aliases.\n"
+          printf "''${yellow}RMW:''${end} Set with use_(fast|cyclone)dds functions.\n"
           echo   "The RMW_IMPLEMENTATION environment variable. Used by ROS2 to select the DDS implementation."
           echo   "Config is written to ~/.config/nova/ros_dds"
           echo   ""
-          printf "''${yellow}COMP:''${end} Set with set_(arch|urc) aliases.\n"
+          printf "''${yellow}COMP:''${end} Set with set_(arch|urc) functions.\n"
           echo   "The COMP environment variable. Used by auto in launch files to choose between params and configurations."
           echo   "Config is written to ~/.config/nova/comp"
           echo   ""
