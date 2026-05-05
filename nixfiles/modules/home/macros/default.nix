@@ -214,24 +214,25 @@ in
           # Launch rover or payloads
           rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
           launch-teleop = "echo 'DEPRECATED - Please use launch-teleop-drive instead for drive teleop'";
-          launch-teleop-drive = "~/Builds/master/bin/ros2 launch teleop_drive_joy teleop.launch.py";
-          launch-drive = "~/Builds/master/bin/ros2 launch drive_bringup drive.launch.py";
-          launch-base = "~/Builds/master/bin/ros2 launch nova_bringup base.launch.py";
-          launch-old-drive = "~/Builds/master/bin/ros2 launch nova_bringup old_drive.launch.py";
-          launch-teleop-arm = "~/Builds/master/bin/ros2 launch teleop_arm teleop.launch.py";
-          launch-arm = "~/Builds/master/bin/ros2 launch arm_bringup control.launch.py";
-          launch-old-arm = "~/Builds/master/bin/ros2 launch nova_bringup arm.launch.py";
-          launch-ec = "~/Builds/master/bin/ros2 launch nova_bringup ec_rover.launch.py";
-          launch-teleop-ec = "~/Builds/master/bin/ros2 launch teleop_ec teleop.launch.py";
-          launch-teleop-science = "~/Builds/master/bin/ros2 launch teleop_science teleop.launch.py";
-          launch-science-arc = "~/Builds/master/bin/ros2 launch science_bringup arc.launch.py";
-          launch-science-urc = "~/Builds/master/bin/ros2 launch science_bringup urc.launch.py";
+          launch-teleop-drive = "~/Builds/active/bin/ros2 launch teleop_drive_joy teleop.launch.py";
+          launch-drive = "~/Builds/active/bin/ros2 launch drive_bringup drive.launch.py";
+          launch-base = "~/Builds/active/bin/ros2 launch nova_bringup base.launch.py";
+          launch-old-drive = "~/Builds/active/bin/ros2 launch nova_bringup old_drive.launch.py";
+          launch-teleop-arm = "~/Builds/active/bin/ros2 launch teleop_arm teleop.launch.py";
+          launch-arm = "~/Builds/active/bin/ros2 launch arm_bringup control.launch.py";
+          launch-old-arm = "~/Builds/active/bin/ros2 launch nova_bringup arm.launch.py";
+          launch-ec = "~/Builds/active/bin/ros2 launch nova_bringup ec_rover.launch.py";
+          launch-teleop-ec = "~/Builds/active/bin/ros2 launch teleop_ec teleop.launch.py";
+          launch-teleop-science = "~/Builds/active/bin/ros2 launch teleop_science teleop.launch.py";
+          launch-science-arc = "~/Builds/active/bin/ros2 launch science_bringup arc.launch.py";
+          launch-science-urc = "~/Builds/active/bin/ros2 launch science_bringup urc_old.launch.py";
+          launch-theta-orin = "sudo LANG=C ~/Builds/active/bin/ros2 run science urc_theta_360_cam.py";
 
           # Cameras
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
 
-          cameras3 = "~/Builds/master/bin/ros2 launch cameras cameras.launch.py";
-          cameras2 = "~/Builds/master/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
+          cameras3 = "~/Builds/active/bin/ros2 launch cameras cameras.launch.py";
+          cameras2 = "~/Builds/active/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
           cameras2-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
           cameras-orin ="echo 'DEPRECATED - Please use cameras instead for cameras operation, or cameras2-legacy for old camera stack'";
           cameras = "${cameras3}";
@@ -245,17 +246,17 @@ in
           mast-up="cansend can0 0E2#1000; sleep 5.2; cansend can0 0E2#0000";
 
           # GUI
-          gui-serve = "~/Builds/master/bin/gui-serve 5173 && echo http://localhost:5173";
+          gui-serve = "~/Builds/active/bin/gui-serve 5173 && echo http://localhost:5173";
 
           gui-dev-shell = "nova-shell -A pkgs.ros.nova-gui-dev-shell";
           gui-shell = "nova-shell -A pkgs.ros.nova-gui";
           gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
-          gui-rosbridge = "~/Builds/master/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
+          gui-rosbridge = "~/Builds/active/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
           gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
           gui-yarn = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui";
 
           # Tile server
-          tileserver = "~/Builds/master/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/maps";
+          tileserver = "~/Builds/active/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/maps";
 
           # LEDs
           leds-red = "cansend can0 095#0100";
@@ -287,25 +288,25 @@ in
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
 
           # GPS
-          launch-gps = "~/Builds/master/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
+          launch-gps = "~/Builds/active/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
           mast = "ssh -C nova@10.0.0.150";
 
           # Master build binaries
-          mros2 = "~/Builds/master/bin/ros2";
-          mrviz2 = "~/Builds/master/bin/rviz2";
-          mrviz = "~/Builds/master/bin/rviz2";
-          mxacro = "~/Builds/master/bin/xacro ${cfg.sourceDir}/ros/rover/rover_description/banksia/urdf/rover.urdf.xacro";
-          mrqt = "~/Builds/master/bin/rqt";
+          mros2 = "~/Builds/active/bin/ros2";
+          mrviz2 = "~/Builds/active/bin/rviz2";
+          mrviz = "~/Builds/active/bin/rviz2";
+          mxacro = "~/Builds/active/bin/xacro ${cfg.sourceDir}/ros/rover/rover_description/banksia/urdf/rover.urdf.xacro";
+          mrqt = "~/Builds/active/bin/rqt";
 
           # Arm
-          launch-typing = "~/Builds/master/bin/ros2 launch arm_bringup typing.launch.py";
-          launch-arm-control = "~/Builds/master/bin/ros2 launch arm_bringup control.launch.py arm:=False old_arm:=True";
-          launch-path-control = "~/Builds/master/bin/ros2 launch arm_bringup path.control.launch.py arm:=False old_arm:=True";
-          launch-arm-urdf = "~/Builds/master/bin/ros2 launch arm_bringup urdf.launch.py arm:=False old_arm:=True auto_camera:=False";
-          launch-arm-teleop = "~/Builds/master/bin/ros2 launch teleop_arm teleop.launch.py";
-          run-arm-teleop = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node";
-          run-arm-teleop-xbox = "~/Builds/master/bin/ros2 run teleop_arm_joy teleop_arm_joy_node --ros-args --params-file ${cfg.sourceDir}/ros/rover/teleop_arm_joy/config/old.xbox.config.yaml";
-          run-joy = "~/Builds/master/bin/ros2 run joy joy_node";
+          launch-typing = "~/Builds/active/bin/ros2 launch arm_bringup typing.launch.py";
+          launch-arm-control = "~/Builds/active/bin/ros2 launch arm_bringup control.launch.py arm:=False old_arm:=True";
+          launch-path-control = "~/Builds/active/bin/ros2 launch arm_bringup path.control.launch.py arm:=False old_arm:=True";
+          launch-arm-urdf = "~/Builds/active/bin/ros2 launch arm_bringup urdf.launch.py arm:=False old_arm:=True auto_camera:=False";
+          launch-arm-teleop = "~/Builds/active/bin/ros2 launch teleop_arm teleop.launch.py";
+          run-arm-teleop = "~/Builds/active/bin/ros2 run teleop_arm_joy teleop_arm_joy_node";
+          run-arm-teleop-xbox = "~/Builds/active/bin/ros2 run teleop_arm_joy teleop_arm_joy_node --ros-args --params-file ${cfg.sourceDir}/ros/rover/teleop_arm_joy/config/old.xbox.config.yaml";
+          run-joy = "~/Builds/active/bin/ros2 run joy joy_node";
 
           # Science
           predict-shell = "nom-shell ~/nova/src/other/ilmenite_ml"; # please come up with a more descriptive and less generic alias
@@ -313,10 +314,10 @@ in
           run-theta = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
 
           # ros2_control
-          controllers-list = "~/Builds/master/bin/ros2 control list_controllers";
-          controllers-set = "~/Builds/master/bin/ros2 control set_controller_state";
-          activate-path = "~/Builds/master/bin/ros2 control set_controller_state nova_path_planner active";
-          deactivate-path = "~/Builds/master/bin/ros2 control set_controller_state nova_path_planner inactive";
+          controllers-list = "~/Builds/active/bin/ros2 control list_controllers";
+          controllers-set = "~/Builds/active/bin/ros2 control set_controller_state";
+          activate-path = "~/Builds/active/bin/ros2 control set_controller_state nova_path_planner active";
+          deactivate-path = "~/Builds/active/bin/ros2 control set_controller_state nova_path_planner inactive";
 
           # Ducket
           ducket = "cansend can0 0E0#FF";
@@ -325,11 +326,11 @@ in
           lscan = "for bus in $(ip link show type vcan | cut -d : -f2 | grep -v -e link -e alias | tr -d ' ') $(ip link show type can | cut -d : -f2 | grep -v -e link -e alias | tr -d ' '); do echo $bus; udevadm info /sys/class/net/$bus | grep DEVPATH; done";
 
           can-sleuth = "can_sleuth";
-          can_sleuth = "~/Builds/master/bin/can_sleuth";
+          can_sleuth = "~/Builds/active/bin/can_sleuth";
 
           # use this as `can_viewer can0` for example to get "-c can0"
           can-viewer = "can_viewer";
-          can_viewer = "~/Builds/master/bin/can_viewer -i socketcan -c";
+          can_viewer = "~/Builds/active/bin/can_viewer -i socketcan -c";
         }
       ];
 
