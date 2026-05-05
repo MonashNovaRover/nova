@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.devices.laptop.amd;
@@ -23,5 +23,8 @@ in
       initrd.enable = lib.mkDefault true;
       opencl.enable = lib.mkDefault true;
     };
+
+    # Inspect GPU usage in btop
+    home-manager.users.nova.programs.btop.package = lib.mkDefault pkgs.btop-rocm;
   };
 }
