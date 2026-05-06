@@ -151,27 +151,13 @@ class CameraStreamer : public rclcpp::Node
       
     } else if (pipeline->camera->pipeline_type == "vp8softwareGL") {
       std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 8);
-      
+      set_vpXsoftwareGL_pipeline_properties(pipeline->gst_pipeline, props, 8);
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
       
     } else if (pipeline->camera->pipeline_type == "vp9softwareGL") {
-      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 9);
-     
-      GstElement *encode = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "encoder");
-      if (encode) {
-        set_vp9enc(encode, props);
-        gst_object_unref(encode);
-      }
-
-      GstElement *scalefilter = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "scalefilter");
-      if (scalefilter) {
-        const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-        set_scalefilter(scalefilter, props, crop_width*2);
-        gst_object_unref(scalefilter);
-      }
-
-
+      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 9); 
+      set_vpXsoftwareGL_pipeline_properties(pipeline->gst_pipeline, props, 9);
     }
   }
 

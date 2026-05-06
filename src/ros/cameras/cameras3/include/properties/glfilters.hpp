@@ -6,26 +6,36 @@
 
 void set_glgreyscale(GstElement* glgreyscale);
 
+void set_no_glgreyscale(GstElement* glgreyscale);
+
+void set_no_glshader(GstElement* glshader);
+
 template<typename properties> void set_gldenoise(GstElement* gldenoise, const properties& props) {
   // fxaa antiliasing
   const std::string shader = R"(#version 100
 precision lowp float;
 
 uniform sampler2D tex;
+varying vec2 v_texcoord;
+
 uniform float width;
 uniform float height;
 uniform float factor;     // default 1
 uniform float sigma;      // spatial sigma (e.g. 2.0)
 uniform float threshold;  // color similarity threshold (e.g. 0.1)
-uniform int radius;     // Default 3
-
-varying vec2 v_texcoord;
+uniform int radius;       // Default 3
+uniform int on;
 
 float gaussian(float x, float s) {
     return exp(-(x * x) / (2.0 * s * s));
 }
 
 void main() {
+    if (on == 0) {
+      gl_FragColor = texture2D(tex, v_texcoord);
+      return;
+    }
+
     vec2 texel = factor / vec2(width, height);
 
     vec3 centerColor = texture2D(tex, v_texcoord).rgb;
@@ -56,6 +66,7 @@ void main() {
 
     gl_FragColor = vec4(result, 1.0);
 })";
+  const int on = props->denoise ? 1 : 0;
   const std::string uniforms = "uniforms";
   GstStructure *str = gst_structure_new(
     uniforms.c_str(),
@@ -66,6 +77,7 @@ void main() {
     "sigma", G_TYPE_FLOAT, props->denoise_factor,
     "threshold", G_TYPE_FLOAT, props->denoise_factor,
     "radius", G_TYPE_INT, props->denoise_radius,
+    "on", G_TYPE_INT, on,
   NULL);
   g_object_set(gldenoise,
     "fragment", shader.c_str(),
@@ -81,12 +93,19 @@ template<typename properties> void set_gledgedetect(GstElement* gledgedetect, co
 precision lowp float;
 
 uniform sampler2D tex;
+varying vec2 v_texcoord;
+
 uniform float factor;
 uniform float width;
 uniform float height;
-varying vec2 v_texcoord;
+uniform int on;
 
 void main() {
+    if (on == 0) {
+      gl_FragColor = texture2D(tex, v_texcoord);
+      return;
+    }
+
     vec2 texOffset = factor / vec2(width, height);
 
     // Sample the 3x3 neighborhood
@@ -110,12 +129,14 @@ void main() {
 
     gl_FragColor = vec4(edge, 1.0);
 })";
+  const int on = props->edgedetect ? 1 : 0;
   const std::string uniforms = "uniforms";
   GstStructure *str = gst_structure_new(
     uniforms.c_str(),
     "factor", G_TYPE_FLOAT, props->edgedetect_factor,
     "width", G_TYPE_FLOAT, ((float) props->width/ (float) props->downscale),
     "height", G_TYPE_FLOAT, ((float) props->height/ (float) props->downscale),
+    "on", G_TYPE_INT, on,
   NULL);
   g_object_set(gledgedetect,
     "fragment", shader.c_str(),
@@ -135,9 +156,15 @@ varying vec2 v_texcoord;
 uniform float k1;  // radial distortion coefficient
 uniform float k2;  // optional higher-order term
 uniform float scale; // zoom adjustment
+uniform int on;
 
 void main()
 {
+    if (on == 0) {
+      gl_FragColor = texture2D(tex, v_texcoord);
+      return;
+    }
+
     // Convert [0,1] → [-1,1]
     vec2 uv = v_texcoord * 2.0 - 1.0;
 
@@ -155,12 +182,14 @@ void main()
 
     gl_FragColor = texture2D(tex, corrected_uv);
 })";
+  const int on = props->undistort ? 1 : 0;
   const std::string uniforms = "uniforms";
   GstStructure *str = gst_structure_new(
     uniforms.c_str(),
     "k1", G_TYPE_FLOAT, props->undistort_k1,
     "k2", G_TYPE_FLOAT, props->undistort_k2,
     "scale", G_TYPE_FLOAT, props->undistort_scale,
+    "on", G_TYPE_INT, on,
   NULL);
   g_object_set(glundistort,
     "fragment", shader.c_str(),
