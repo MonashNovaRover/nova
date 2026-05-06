@@ -16,6 +16,8 @@ template<typename properties> void set_crop43(GstElement* cropper, const propert
   NULL);
 };
 
+void set_no_crop43(GstElement* cropper);
+
 template<typename properties> void set_convertscale(GstElement* convert, const properties& props) {
   g_object_set(convert,
     "chroma-resampler", (

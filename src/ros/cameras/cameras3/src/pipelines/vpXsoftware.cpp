@@ -30,7 +30,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* valve = gst_element_factory_make("valve", "video-valve");
-  GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rate") : nullptr;
+  GstElement* rate = gst_element_factory_make("videorate", "rate");
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
 
@@ -41,27 +41,28 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   GstElement* rossink = (props->rossink) ? gst_element_factory_make("rosimagesink", "rossink") : nullptr;
   GstElement* queue_webrtc = (props->rossink) ? gst_element_factory_make("queue", "queue_webrtc") : nullptr;
 
-  GstElement* greyconvert = (props->greyscale) ? gst_element_factory_make("videoconvertscale", "greyconverter") : nullptr;
-  GstElement* greyfilter = (props->greyscale) ? gst_element_factory_make("capsfilter", "greyfilter") : nullptr;
+  GstElement* greyconvert = gst_element_factory_make("videoconvertscale", "greyconverter");
+  GstElement* greyfilter = gst_element_factory_make("capsfilter", "greyfilter");
   GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
-  GstElement* cropper = (props->crop43) ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
+  GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
   GstElement* encode = (vpX == 9) ? gst_element_factory_make("vp9enc", "encoder") : gst_element_factory_make("vp8enc", "encoder");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
   if (!gst_pipeline ||
       !source ||
       !valve ||
-      (props->downrate > 1 && !rate) ||
+      !rate ||
       !srcfilter ||
       (props->mime == "image/jpeg" && !decode) ||
       (props->rossink && !tee && !queue_ros && !rosconvert && !rosfilter && !rossink && !queue_webrtc) ||
-      (props->greyscale && !greyconvert && !greyfilter) ||
+      !greyconvert ||
+      !greyfilter ||
       !convert ||
       !scalefilter  ||
       (props->show_clock && !clock) ||
-      (props->crop43 && !cropper) ||
+      !cropper ||
       !encode ||
       !webrtc
       ) {
@@ -80,11 +81,8 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     set_rostopicsink(rossink, props);
     set_queue(queue_webrtc);
   }
-  if (props->greyscale) {
-    set_convertscale(greyconvert, props);
-    const std::string format = "GRAY8";
-    set_scalefilter(greyfilter, props, format);
-  }
+  if (props->greyscale) set_greyfilter(greyfilter);
+  else set_no_greyfilter(greyfilter);
   set_convertscale(convert, props);
   set_scalefilter(scalefilter, props);
   if (props->crop43) set_crop43(cropper, props);
@@ -94,8 +92,11 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
       source,
+      rate,
       valve,
       srcfilter,
+      greyconvert,
+      greyfilter,
       convert,
       scalefilter,
       encode,
@@ -103,8 +104,6 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
       NULL);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
   if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue_ros, rosconvert, rosfilter, rossink, queue_webrtc, NULL);
-  if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
-  if (props->greyscale) gst_bin_add_many(GST_BIN(gst_pipeline), greyconvert, greyfilter, NULL);
   if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
 
@@ -241,3 +240,48 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   return props;
 }
 
+void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX) {
+  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
+  if (crop_width == 0) props->crop43 = false;
+
+  // 1. Find the elements
+  GstElement* srcfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "srcfilter");
+  GstElement* decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "decoder");
+  GstElement* greyfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "greyfilter");
+  GstElement* scalefilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "scalefilter");
+  GstElement* cropper = gst_bin_get_by_name(GST_BIN(gst_pipeline), "video-cropper");
+  GstElement* encode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encoder");
+
+  // 2. Set properties for elements
+  if (srcfilter) {
+    if (vpX == 9) set_srcfilter(srcfilter, props);
+    gst_object_unref(srcfilter);
+  }
+
+  if (decode) {
+    if (props->mime == "image/jpeg") set_jpegdec(decode, props);
+    gst_object_unref(decode);
+  }
+  if (greyfilter) {
+    if (props->greyscale) set_greyfilter(greyfilter);
+    else set_no_greyfilter(greyfilter);
+    gst_object_unref(greyfilter);
+  }
+
+  if (scalefilter) { 
+    if (vpX == 9) set_scalefilter(scalefilter, props);
+    gst_object_unref(scalefilter);
+  }
+
+  if (cropper) {
+    if (vpX == 9 && props->crop43) set_crop43(cropper, props);
+    else set_no_crop43(cropper);
+    gst_object_unref(cropper);
+  }
+
+
+  if (encode) {
+    (vpX == 9) ? set_vp9enc(encode, props) : set_vp8enc(encode, props);
+    gst_object_unref(encode);
+  }
+}

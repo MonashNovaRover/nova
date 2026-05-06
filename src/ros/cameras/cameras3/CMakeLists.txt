@@ -40,6 +40,7 @@ ament_target_dependencies(camera_directory_service ${THIS_PACKAGE_INCLUDE_DEPEND
 
 add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp
   # Properties
+  src/properties/capsfilter.cpp
   src/properties/common.cpp
   src/properties/cpufilters.cpp
   src/properties/glfilters.cpp

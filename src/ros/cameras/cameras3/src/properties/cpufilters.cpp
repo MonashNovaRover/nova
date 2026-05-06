@@ -11,3 +11,10 @@ void set_queue(GstElement* queue) {
     "leaky", 2, // Drop old buffers
   NULL);
 };
+
+void set_no_crop43(GstElement* cropper) {
+  g_object_set(cropper,
+    "left", 0,
+    "right", 0,
+  NULL);
+};
