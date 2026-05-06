@@ -51,10 +51,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   GstElement* glupconvert = gst_element_factory_make("glcolorconvert", "glupconverter");
   GstElement* glscale = gst_element_factory_make("glcolorscale", "glscaler");
   GstElement* glcrop = gst_element_factory_make("gltransformation", "glcrop");
-  GstElement* glgreyscale = gst_element_factory_make("glcolorbalance", "glgreyscale");
-  GstElement* gldenoise = gst_element_factory_make("glshader", "gldenoise");
-  GstElement* gledgedetect = gst_element_factory_make("glshader", "gledgedetect");
-  GstElement* glundistort = gst_element_factory_make("glshader", "glundistortion");
+  GstElement* glshaders = gst_element_factory_make("glshader", "glshaders");
   GstElement* gldownconvert = gst_element_factory_make("glcolorconvert", "gldownconverter");
   GstElement* gldownload = gst_element_factory_make("gldownload", "gldownloader");
   GstElement* queue_download = gst_element_factory_make("queue", "queue_download");
@@ -79,10 +76,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
     !glupconvert ||
     (((props->downscale > 1) || (props->crop43)) && !glscale) ||
     !glcrop ||
-    !glgreyscale ||
-    !gldenoise ||
-    !gledgedetect ||
-    !glundistort ||
+    !glshaders ||
     !gldownconvert ||
     !gldownload ||
     !queue_download ||
@@ -109,10 +103,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   set_queue(queue_upload);
 
   if (props->crop43) set_glcrop43(glcrop, props);
-  if (props->greyscale) set_glgreyscale(glgreyscale);
-  set_gldenoise(gldenoise, props);
-  set_gledgedetect(gledgedetect, props);
-  set_glundistort(glundistort, props);
+  set_glshaders(glshaders, props);
   set_queue(queue_download);
 
   set_scalefilter(scalefilter, props, crop_width*2);
@@ -132,10 +123,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
       glupconvert,
       glscale,
       glcrop,
-      glgreyscale,
-      gldenoise,
-      gledgedetect,
-      glundistort,
+      glshaders,
       gldownconvert,
 
       gldownload,
@@ -173,10 +161,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   if (link_elements(streamer_node, next_element, glupconvert, props->serial)) next_element = glupconvert;
   if (link_elements(streamer_node, next_element, glscale, props->serial)) next_element = glscale;
   if (link_elements(streamer_node, next_element, glcrop, props->serial)) next_element = glcrop;
-  //if (link_elements(streamer_node, next_element, glgreyscale, props->serial)) next_element = glgreyscale;
-  //if (link_elements(streamer_node, next_element, glundistort, props->serial)) next_element = glundistort;
-  //if (link_elements(streamer_node, next_element, gldenoise, props->serial)) next_element = gldenoise;
-  //if (link_elements(streamer_node, next_element, gledgedetect, props->serial)) next_element = gledgedetect;
+  if (link_elements(streamer_node, next_element, glshaders, props->serial)) next_element = glshaders;
   if (link_elements(streamer_node, next_element, gldownconvert, props->serial)) next_element = gldownconvert;
   if (link_elements(streamer_node, next_element, gldownload, props->serial)) next_element = gldownload;
   if (link_elements(streamer_node, next_element, queue_download, props->serial)) next_element = queue_download;
@@ -241,7 +226,7 @@ std::unique_ptr<vpXsoftwareGLPipelineProperties> get_vpXsoftwareGL_pipeline_prop
   props->greyscale = set_property(streamer_node, camera, "greyscale", false);
 
   // gl filters
-  props->denoise_factor = set_property(streamer_node, camera, "denoise_factor", 1.0f);
+  props->denoise_factor = set_property(streamer_node, camera, "denoise_factor", 0.5f);
   props->denoise_sigma = set_property(streamer_node, camera, "denoise_sigma", 2.0f);
   props->denoise_threshold = set_property(streamer_node, camera, "denoise_threshold", 0.1f);
   props->denoise_radius = set_property(streamer_node, camera, "denoise_radius", 3);
@@ -313,10 +298,7 @@ void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::
   GstElement* srcfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "srcfilter");
   GstElement* decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "decoder");
   GstElement* glcrop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "glcrop");
-  GstElement* glgreyscale = gst_bin_get_by_name(GST_BIN(gst_pipeline), "glgreyscale");
-  GstElement* gldenoise = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gldenoise");
-  GstElement* gledgedetect = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gledgedetect");
-  GstElement* glundistort = gst_bin_get_by_name(GST_BIN(gst_pipeline), "glundistort");
+  GstElement* glshaders = gst_bin_get_by_name(GST_BIN(gst_pipeline), "glshaders");
   GstElement* scalefilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "scalefilter");
   GstElement* encode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encoder");
 
@@ -336,28 +318,10 @@ void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::
     gst_object_unref(glcrop);
   }
 
-  if (glgreyscale) {
-    if (props->greyscale) set_glgreyscale(glgreyscale);
-    else set_no_glgreyscale(glgreyscale);
-    gst_object_unref(glgreyscale);
+  if (glshaders) {
+    set_glshaders(glshaders, props);
+    gst_object_unref(glshaders);
   }
-
-  if (gldenoise) {
-    set_gldenoise(gldenoise, props);
-    gst_object_unref(gldenoise);
-  }
-
-
-  if (gledgedetect) {
-    set_gledgedetect(gledgedetect, props);
-    gst_object_unref(gledgedetect);
-  }
-
-  if (glundistort) {
-    set_gldenoise(gldenoise, props);
-    gst_object_unref(gldenoise);
-  }
-
 
   if (scalefilter) { 
     if (vpX == 9) set_scalefilter(scalefilter, props, crop_width*2);
