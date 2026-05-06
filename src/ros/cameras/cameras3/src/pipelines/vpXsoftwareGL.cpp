@@ -36,7 +36,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
   GstElement* valve = gst_element_factory_make("valve", "video-valve");
-  GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rater") : nullptr;
+  GstElement* rate = gst_element_factory_make("videorate", "rater");
   GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
   GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
 
@@ -68,7 +68,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
     !gst_pipeline ||
     !source ||
     !valve ||
-    (props->downrate > 1 && !rate) ||
+    !rate ||
     !srcfilter ||
     (props->mime == "image/jpeg" && !decode) ||
 
@@ -122,6 +122,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
       source,
+      rate,
       valve,
       srcfilter,
 
@@ -144,7 +145,6 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
       encode,
       webrtc,
       NULL);
-  if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
   if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue_ros, rosconvert, rosfilter, rossink, NULL);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
@@ -173,10 +173,10 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   if (link_elements(streamer_node, next_element, glupconvert, props->serial)) next_element = glupconvert;
   if (link_elements(streamer_node, next_element, glscale, props->serial)) next_element = glscale;
   if (link_elements(streamer_node, next_element, glcrop, props->serial)) next_element = glcrop;
-  if (link_elements(streamer_node, next_element, glgreyscale, props->serial)) next_element = glgreyscale;
-  if (link_elements(streamer_node, next_element, glundistort, props->serial)) next_element = glundistort;
-  if (link_elements(streamer_node, next_element, gldenoise, props->serial)) next_element = gldenoise;
-  if (link_elements(streamer_node, next_element, gledgedetect, props->serial)) next_element = gledgedetect;
+  //if (link_elements(streamer_node, next_element, glgreyscale, props->serial)) next_element = glgreyscale;
+  //if (link_elements(streamer_node, next_element, glundistort, props->serial)) next_element = glundistort;
+  //if (link_elements(streamer_node, next_element, gldenoise, props->serial)) next_element = gldenoise;
+  //if (link_elements(streamer_node, next_element, gledgedetect, props->serial)) next_element = gledgedetect;
   if (link_elements(streamer_node, next_element, gldownconvert, props->serial)) next_element = gldownconvert;
   if (link_elements(streamer_node, next_element, gldownload, props->serial)) next_element = gldownload;
   if (link_elements(streamer_node, next_element, queue_download, props->serial)) next_element = queue_download;
@@ -307,6 +307,7 @@ std::unique_ptr<vpXsoftwareGLPipelineProperties> get_vpXsoftwareGL_pipeline_prop
 void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwareGLPipelineProperties>& props, const int vpX)
 {
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
+  if (crop_width == 0) props->crop43 = false;
 
   // 1. Find the elements
   GstElement* srcfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "srcfilter");
@@ -321,17 +322,17 @@ void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::
 
   // 2. Set properties for elements
   if (srcfilter) {
-    set_srcfilter(srcfilter, props);
+    if (vpX == 9) set_srcfilter(srcfilter, props);
     gst_object_unref(srcfilter);
   }
 
   if (decode) {
-    if (props->crop43) set_jpegdec(decode, props);
+    if (props->mime == "image/jpeg") set_jpegdec(decode, props);
     gst_object_unref(decode);
   }
 
   if (glcrop) {
-    set_glcrop43(glcrop, props);
+    if (vpX == 9) set_glcrop43(glcrop, props);
     gst_object_unref(glcrop);
   }
 
@@ -359,7 +360,7 @@ void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::
 
 
   if (scalefilter) { 
-    set_scalefilter(scalefilter, props, crop_width*2);
+    if (vpX == 9) set_scalefilter(scalefilter, props, crop_width*2);
     gst_object_unref(scalefilter);
   }
 
