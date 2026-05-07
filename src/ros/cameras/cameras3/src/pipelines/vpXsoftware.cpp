@@ -34,17 +34,19 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source_v4l = gst_element_factory_make("v4l2src", "source_v4l");
-  GstElement* source_valve = gst_element_factory_make("valve", "source_valve");
-  GstElement* source_rate = gst_element_factory_make("videorate", "source_rate");
+  GstElement* source_valve = gst_element_factory_make("valve", "source_valve"); 
   GstElement* source_filter = gst_element_factory_make("capsfilter", "source_filter");
+  GstElement* source_rate = gst_element_factory_make("videorate", "source_rate");
+  GstElement* source_rate_filter = gst_element_factory_make("capsfilter", "source_rate_filter");
   GstElement* source_decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "source_decode") : nullptr;
 
   if (
     !gst_pipeline ||
     !source_v4l ||
-    !source_valve ||
-    !source_rate ||
+    !source_valve || 
     !source_filter ||
+    !source_rate ||
+    !source_rate_filter ||
     (props->mime == "image/jpeg" && !source_decode)
   ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
@@ -151,9 +153,10 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   // 2. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
     source_v4l,
-    source_valve,
-    source_rate, 
+    source_valve, 
     source_filter,
+    source_rate,
+    source_rate_filter,
 
     cpu_gpu_tee,
     cpu_queue,
@@ -189,6 +192,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   // 3. Set element properties
   set_v4lsource(source_v4l, props);
   set_srcfilter(source_filter, props);
+  set_ratefilter(source_rate_filter, props);
   if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(source_decode, props);
 
   if (props->rossink) {
@@ -220,12 +224,13 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   // 4. Link elements
   GstElement* next_element = source_v4l;
 
-  link_elements(streamer_node, next_element, source_valve, props->serial);
-  link_elements(streamer_node, next_element, source_rate, props->serial);
+  link_elements(streamer_node, next_element, source_valve, props->serial); 
   if (!link_elements(streamer_node, next_element, source_filter, props->serial)) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
+  link_elements(streamer_node, next_element, source_rate, props->serial);
+  link_elements(streamer_node, next_element, source_rate_filter, props->serial);
   link_elements(streamer_node, next_element, source_decode, props->serial);
 
   link_elements(streamer_node, next_element, ros_tee, props->serial);
@@ -427,7 +432,7 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
 
 
   // 1. Find the elements
-  GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
+  GstElement* source_rate_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_rate_filter");
   GstElement* source_decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_decode");
 
   GstElement* cpu_grey_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_grey_filter");
@@ -440,9 +445,9 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstElement* encode_vp9 = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_vp9");
 
   // 2. Set properties for elements
-  if (source_filter) {
-    if (vpX == 9) set_srcfilter(source_filter, props);
-    gst_object_unref(source_filter);
+  if (source_rate_filter) {
+    set_ratefilter(source_rate_filter, props);
+    gst_object_unref(source_rate_filter);
   }
   if (source_decode) {
     if (props->mime == "image/jpeg") set_jpegdec(source_decode, props);

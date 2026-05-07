@@ -287,9 +287,6 @@ class CameraStreamer : public rclcpp::Node
       if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
         std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
 
-        GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
-        g_object_set(source_valve, "drop", true, NULL);
-
         bool correct_camera = false;
 
         // From presets
@@ -312,6 +309,9 @@ class CameraStreamer : public rclcpp::Node
           }
         }
 
+        GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
+        g_object_set(source_valve, "drop", true, NULL);
+
         // Change a subset of properties that can be changed in runtime
         change_profile_properties(pipeline);
 
@@ -332,8 +332,8 @@ class CameraStreamer : public rclcpp::Node
 
           gst_element_send_event(encode_vp9, gst_video_event_new_upstream_force_key_unit(GST_CLOCK_TIME_NONE, TRUE, 0));
           gst_object_unref(encode_vp9);
-          
-          g_object_set(source_valve, "drop", false, NULL);
+
+          g_object_set(source_valve, "drop", false, NULL);          
         } else {
           RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
         }

@@ -11,9 +11,18 @@ template<typename properties> void set_srcfilter(GstElement* element, const prop
     props->mime.c_str(),
     "width", G_TYPE_INT, props->width,
     "height", G_TYPE_INT, props->height,
-    "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
+    "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator,
     "brightness", G_TYPE_INT, std::clamp(props->brightness, 0, 255),
     "contrast", G_TYPE_INT,  std::clamp(props->contrast, 0, 255),
+  NULL);
+  g_object_set(element, "caps", caps, NULL);
+  gst_caps_unref(caps);
+}
+
+template<typename properties> void set_ratefilter(GstElement* element, const properties& props) {
+  GstCaps *caps = gst_caps_new_simple(
+    props->mime.c_str(),
+    "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator*props->downrate,
   NULL);
   g_object_set(element, "caps", caps, NULL);
   gst_caps_unref(caps);
