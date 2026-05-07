@@ -28,27 +28,46 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
 {
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
-  GstElement* source = gst_element_factory_make("v4l2src", "video-source");
-  GstElement* valve = gst_element_factory_make("valve", "video-valve");
-  GstElement* rate = gst_element_factory_make("videorate", "rate");
-  GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
-  GstElement* decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "decoder") : nullptr;
+  GstElement* source_v4l = gst_element_factory_make("v4l2src", "source_v4l");
+  GstElement* source_valve = gst_element_factory_make("valve", "source_valve");
+  GstElement* source_rate = gst_element_factory_make("videorate", "source_rate");
+  GstElement* source_filter = gst_element_factory_make("capsfilter", "source_filter");
+  GstElement* source_decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "source_decode") : nullptr;
 
-  GstElement* tee = (props->rossink) ? gst_element_factory_make("tee", "tee") : nullptr;
-  GstElement* queue_ros = (props->rossink) ? gst_element_factory_make("queue", "queue_ros") : nullptr;
-  GstElement* rosconvert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "rosconverter") : nullptr;
-  GstElement* rosfilter = (props->rossink) ? gst_element_factory_make("capsfilter", "rosfilter") : nullptr;
-  GstElement* rossink = (props->rossink) ? gst_element_factory_make("rosimagesink", "rossink") : nullptr;
-  GstElement* queue_webrtc = (props->rossink) ? gst_element_factory_make("queue", "queue_webrtc") : nullptr;
+  GstElement* ros_tee = (props->rossink) ? gst_element_factory_make("tee", "ros_tee") : nullptr;
+  GstElement* ros_queue = (props->rossink) ? gst_element_factory_make("queue", "queue_ros") : nullptr;
+  GstElement* ros_convert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "rosconverter") : nullptr;
+  GstElement* ros_filter = (props->rossink) ? gst_element_factory_make("capsfilter", "rosfilter") : nullptr;
+  GstElement* ros_sink = (props->rossink) ? gst_element_factory_make("rosimagesink", "rossink") : nullptr;
+  
+  GstElement* cpu_gpu_tee = gst_element_factory_make("tee", "cpu_gpu_tee");
+  
+  GstElement* cpu_queue = gst_element_factory_make("queue", "cpu_queue");
+  GstElement* cpu_valve = gst_element_factory_make("queue", "cpu_valve");
+  GstElement* cpu_grey_convert = gst_element_factory_make("videoconvertscale", "cpu_grey_convert");
+  GstElement* cpu_grey_filter = gst_element_factory_make("capsfilter", "cpu_grey_filter");
+  GstElement* cpu_convertscale = gst_element_factory_make("videoconvertscale", "cpu_convertscale");
+  GstElement* cpu_crop = gst_element_factory_make("aspectratiocrop", "cpu_crop");
 
-  GstElement* greyconvert = gst_element_factory_make("videoconvertscale", "greyconverter");
-  GstElement* greyfilter = gst_element_factory_make("capsfilter", "greyfilter");
-  GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
-  GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
-  GstElement* clock = (props->show_clock) ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
-  GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
-  GstElement* encode = (vpX == 9) ? gst_element_factory_make("vp9enc", "encoder") : gst_element_factory_make("vp8enc", "encoder");
-  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
+  GstElement* queue_gpu = gst_element_factory_make("queue", "gpu_queue");
+  GstElement* valve_gpu = gst_element_factory_make("queue", "gpu_valve");
+  GstElement* gpu_upload = gst_element_factory_make("glupload", "gpu_upload");
+  GstElement* gpu_up_convert = gst_element_factory_make("glcolorconvert", "gpu_up_convert");
+  GstElement* gpu_scale = gst_element_factory_make("glcolorscale", "gpu_scale");
+  GstElement* gpu_crop = gst_element_factory_make("gltransformation", "gpu_crop");
+  GstElement* gpu_shaders = gst_element_factory_make("glshader", "gpu_shaders");
+  GstElement* gpu_down_convert = gst_element_factory_make("glcolorconvert", "gpu_down_convert");
+  GstElement* gpu_download = gst_element_factory_make("gldownload", "gpu_download");
+
+  GstElement* encode_tee = gst_element_factory_make("tee", "encode_tee");
+
+  GstElement* encode_queue = gst_element_factory_make("queue", "encode_queue");
+  GstElement* encode_valve = gst_element_factory_make("queue", "encode_valve");
+  GstElement* encode_filter = gst_element_factory_make("capsfilter", "encode_filter");
+  GstElement* encode_vp9 = gst_element_factory_make("vp9enc", "encode_vp9");
+
+  GstElement* encode_selector = gst_element_factory_make("input-selector", "encode_selector");
+  GstElement* sink_webrtc = gst_element_factory_make("webrtcsink", "sink_webrtc");
 
   if (!gst_pipeline ||
       !source ||
