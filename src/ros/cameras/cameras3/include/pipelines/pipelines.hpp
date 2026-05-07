@@ -21,5 +21,6 @@ void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::
 
 GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<v4lfallbackPipelineProperties>& props);
 std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properties(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
+void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props);
 
 #endif

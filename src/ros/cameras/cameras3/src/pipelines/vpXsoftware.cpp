@@ -92,19 +92,19 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   // 3. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
       source,
-      rate,
       valve,
+      rate, 
       srcfilter,
       greyconvert,
       greyfilter,
       convert,
       scalefilter,
+      cropper,
       encode,
       webrtc,
       NULL);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
   if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue_ros, rosconvert, rosfilter, rossink, queue_webrtc, NULL);
-  if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
 
   // 4. Link elements

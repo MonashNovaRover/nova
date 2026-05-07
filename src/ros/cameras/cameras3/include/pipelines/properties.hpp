@@ -138,5 +138,6 @@ void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::
 struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cpuFiltersProperties, clockProperties {};
 GstElement* v4lfallback_pipeline(rclcpp::Node* log_node, const std::unique_ptr<v4lfallbackPipelineProperties>& props);
 std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properties(rclcpp::Node* log_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
+void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props);
 
 #endif

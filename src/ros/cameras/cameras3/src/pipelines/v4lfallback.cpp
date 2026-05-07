@@ -36,20 +36,31 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
-  GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
-  GstElement* rate = (props->downrate > 1) ? gst_element_factory_make("videorate", "rater") : nullptr;
+  GstElement* valve = gst_element_factory_make("valve", "video-valve");
+  GstElement* rate = gst_element_factory_make("videorate", "rater");
+  GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter"); 
   GstElement* decode = gst_element_factory_make("decodebin3", "decoder");
   GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
   GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
   GstElement* clock = props->show_clock ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
-  GstElement* cropper = props->crop43 ? gst_element_factory_make("videocrop", "video-cropper") : nullptr;
+  GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
   GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
 
 
-  if (!gst_pipeline || !source || (props->downrate > 1 && !rate) || !srcfilter || !decode || !convert || !scalefilter || (props->show_clock && !clock) || (props->crop43 && !cropper) || !webrtc 
-      ) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
-      return nullptr;
+  if (!gst_pipeline ||
+    !source ||
+    !valve ||
+    !rate ||
+    !srcfilter ||
+    !decode ||
+    !convert ||
+    !scalefilter ||
+    (props->show_clock && !clock) ||
+    !cropper ||
+    !webrtc 
+    ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
   }
 
   // 2. Set element properties
@@ -61,15 +72,24 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
   set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, decode, convert, scalefilter, webrtc, NULL);
-  if (props->downrate > 1) gst_bin_add(GST_BIN(gst_pipeline), rate);
-  if (props->crop43) gst_bin_add(GST_BIN(gst_pipeline), cropper);
+  gst_bin_add_many(GST_BIN(gst_pipeline),
+    source,
+    valve,
+    rate,
+    srcfilter,
+    decode,
+    convert,
+    cropper,
+    scalefilter,
+    webrtc,
+  NULL);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
 
   // 4. Link elements
   
   GstElement* next_element = source;
 
+  if (link_elements(streamer_node, next_element, valve, props->serial)) next_element = valve;
   if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
   if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
   else {
@@ -86,6 +106,8 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
       }
       if (sink_pad) gst_object_unref(sink_pad);
   }), convert);
+
+  next_element = convert;
 
   if (link_elements(streamer_node, next_element, scalefilter, props->serial)) next_element = scalefilter;
   if (link_elements(streamer_node, next_element, cropper, props->serial)) next_element = cropper;
@@ -180,3 +202,29 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   return props;
 }
 
+void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props, const int vpX) {
+  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
+  if (crop_width == 0) props->crop43 = false;
+
+  // 1. Find the elements
+  GstElement* srcfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "srcfilter");
+  GstElement* scalefilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "scalefilter");
+  GstElement* cropper = gst_bin_get_by_name(GST_BIN(gst_pipeline), "video-cropper");
+
+  // 2. Set properties for elements
+  if (srcfilter) {
+    set_srcfilter(srcfilter, props);
+    gst_object_unref(srcfilter);
+  }
+
+  if (scalefilter) { 
+    set_scalefilter(scalefilter, props);
+    gst_object_unref(scalefilter);
+  }
+
+  if (cropper) {
+    if (props->crop43) set_crop43(cropper, props);
+    else set_no_crop43(cropper);
+    gst_object_unref(cropper);
+  }
+}
