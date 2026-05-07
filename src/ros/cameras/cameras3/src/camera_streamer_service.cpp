@@ -229,9 +229,9 @@ class CameraStreamer : public rclcpp::Node
             if (this->pipelines[serial]->gst_pipeline != nullptr) {
             // gstreamer play pipeline if paused
               RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET); 
-              GstElement *valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "video-valve");
-              g_object_set(valve, "drop", false, NULL);
-              gst_object_unref(valve);
+              GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
+              g_object_set(source_valve, "drop", false, NULL);
+              gst_object_unref(source_valve);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             } else {
               // start pipeline if the gst bin doesn't exist yet
@@ -250,9 +250,9 @@ class CameraStreamer : public rclcpp::Node
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
 
-            GstElement *valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "video-valve");
-            g_object_set(valve, "drop", true, NULL);
-            gst_object_unref(valve);
+            GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
+            g_object_set(source_valve, "drop", true, NULL);
+            gst_object_unref(source_valve);
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
 
 
@@ -287,10 +287,8 @@ class CameraStreamer : public rclcpp::Node
       if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
         std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
 
-        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
-
-        GstElement *valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "video-valve");
-        g_object_set(valve, "drop", true, NULL);
+        GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
+        g_object_set(source_valve, "drop", true, NULL);
 
         bool correct_camera = false;
 
@@ -323,13 +321,23 @@ class CameraStreamer : public rclcpp::Node
         this->get_parameter("autostart", autostart);
 
         // auto start if true
-        if (autostart) {
-          gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
-          g_object_set(valve, "drop", false, NULL);
+        if (autostart) { 
+          GstElement* encode_vp9 = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "encode_vp9");
+
+          GstPad* srcpad = gst_element_get_static_pad(encode_vp9, "src");
+          GstPad* sinkpad = gst_element_get_static_pad(encode_vp9, "sink");
+          gst_pad_push_event(sinkpad, gst_event_new_reconfigure());
+          gst_object_unref(srcpad);
+          gst_object_unref(sinkpad);
+
+          gst_element_send_event(encode_vp9, gst_video_event_new_upstream_force_key_unit(GST_CLOCK_TIME_NONE, TRUE, 0));
+          gst_object_unref(encode_vp9);
+          
+          g_object_set(source_valve, "drop", false, NULL);
         } else {
           RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
         }
-        gst_object_unref(valve);
+        gst_object_unref(source_valve);
       }
     }
   }

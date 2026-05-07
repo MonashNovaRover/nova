@@ -15,6 +15,7 @@
 #include "properties/cpufilters.hpp"
 #include "properties/decoders.hpp"
 #include "properties/encoders.hpp"
+#include "properties/glfilters.hpp"
 
 #include "cameras/colors.hpp"
 
@@ -26,7 +27,11 @@
 
 GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX)
 {
+  // 0. Initialize constants
+  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
+
   // 1. Create the elements
+  std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source_v4l = gst_element_factory_make("v4l2src", "source_v4l");
   GstElement* source_valve = gst_element_factory_make("valve", "source_valve");
@@ -34,126 +39,242 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   GstElement* source_filter = gst_element_factory_make("capsfilter", "source_filter");
   GstElement* source_decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "source_decode") : nullptr;
 
+  if (
+    !gst_pipeline ||
+    !source_v4l ||
+    !source_valve ||
+    !source_rate ||
+    !source_filter ||
+    (props->mime == "image/jpeg" && !source_decode)
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
+  section = "ros";
   GstElement* ros_tee = (props->rossink) ? gst_element_factory_make("tee", "ros_tee") : nullptr;
   GstElement* ros_queue = (props->rossink) ? gst_element_factory_make("queue", "queue_ros") : nullptr;
-  GstElement* ros_convert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "rosconverter") : nullptr;
-  GstElement* ros_filter = (props->rossink) ? gst_element_factory_make("capsfilter", "rosfilter") : nullptr;
-  GstElement* ros_sink = (props->rossink) ? gst_element_factory_make("rosimagesink", "rossink") : nullptr;
+  GstElement* ros_convert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "ros_convert") : nullptr;
+  GstElement* ros_filter = (props->rossink) ? gst_element_factory_make("capsfilter", "ros_filter") : nullptr;
+  GstElement* ros_sink = (props->rossink) ? gst_element_factory_make("rosimagesink", "ros_sink") : nullptr;
+
+  if (props->rossink && (
+    !ros_tee ||
+    !ros_queue ||
+    !ros_convert ||
+    !ros_filter ||
+    !ros_sink
+  )) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
   
+  section = "cpu";
   GstElement* cpu_gpu_tee = gst_element_factory_make("tee", "cpu_gpu_tee");
-  
   GstElement* cpu_queue = gst_element_factory_make("queue", "cpu_queue");
-  GstElement* cpu_valve = gst_element_factory_make("queue", "cpu_valve");
+  GstElement* cpu_valve = gst_element_factory_make("valve", "cpu_valve");
   GstElement* cpu_grey_convert = gst_element_factory_make("videoconvertscale", "cpu_grey_convert");
   GstElement* cpu_grey_filter = gst_element_factory_make("capsfilter", "cpu_grey_filter");
   GstElement* cpu_convertscale = gst_element_factory_make("videoconvertscale", "cpu_convertscale");
   GstElement* cpu_crop = gst_element_factory_make("aspectratiocrop", "cpu_crop");
 
-  GstElement* queue_gpu = gst_element_factory_make("queue", "gpu_queue");
-  GstElement* valve_gpu = gst_element_factory_make("queue", "gpu_valve");
+  if (
+    !cpu_gpu_tee ||
+    !cpu_queue ||
+    !cpu_valve ||
+    !cpu_grey_convert ||
+    !cpu_grey_filter ||
+    !cpu_convertscale ||
+    !cpu_crop
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
+  section = "gpu";
+  GstElement* gpu_queue = gst_element_factory_make("queue", "gpu_queue");
+  GstElement* gpu_valve = gst_element_factory_make("valve", "gpu_valve");
   GstElement* gpu_upload = gst_element_factory_make("glupload", "gpu_upload");
-  GstElement* gpu_up_convert = gst_element_factory_make("glcolorconvert", "gpu_up_convert");
+  GstElement* gpu_convertup = gst_element_factory_make("glcolorconvert", "gpu_convertup");
   GstElement* gpu_scale = gst_element_factory_make("glcolorscale", "gpu_scale");
   GstElement* gpu_crop = gst_element_factory_make("gltransformation", "gpu_crop");
   GstElement* gpu_shaders = gst_element_factory_make("glshader", "gpu_shaders");
-  GstElement* gpu_down_convert = gst_element_factory_make("glcolorconvert", "gpu_down_convert");
+  GstElement* gpu_convertdown = gst_element_factory_make("glcolorconvert", "gpu_convertdown");
   GstElement* gpu_download = gst_element_factory_make("gldownload", "gpu_download");
+  GstElement* cpu_gpu_selector = gst_element_factory_make("input-selector", "cpu_gpu_selector");
 
+  if (
+    !gpu_queue ||
+    !gpu_valve ||
+    !gpu_upload ||
+    !gpu_convertup ||
+    !gpu_scale ||
+    !gpu_crop ||
+    !gpu_shaders ||
+    !gpu_convertdown ||
+    !gpu_download ||
+    !cpu_gpu_selector
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
+  section = (std::string) "encode " + (std::string) "vp9";
   GstElement* encode_tee = gst_element_factory_make("tee", "encode_tee");
-
   GstElement* encode_queue = gst_element_factory_make("queue", "encode_queue");
-  GstElement* encode_valve = gst_element_factory_make("queue", "encode_valve");
+  GstElement* encode_valve = gst_element_factory_make("valve", "encode_valve");
   GstElement* encode_filter = gst_element_factory_make("capsfilter", "encode_filter");
   GstElement* encode_vp9 = gst_element_factory_make("vp9enc", "encode_vp9");
-
   GstElement* encode_selector = gst_element_factory_make("input-selector", "encode_selector");
+
+  if (
+    !encode_tee ||
+    !encode_valve ||
+    !encode_filter ||
+    !encode_vp9 ||
+    !encode_selector
+    ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
+  section = "sink";
   GstElement* sink_webrtc = gst_element_factory_make("webrtcsink", "sink_webrtc");
 
-  if (!gst_pipeline ||
-      !source ||
-      !valve ||
-      !rate ||
-      !srcfilter ||
-      (props->mime == "image/jpeg" && !decode) ||
-      (props->rossink && !tee && !queue_ros && !rosconvert && !rosfilter && !rossink && !queue_webrtc) ||
-      !greyconvert ||
-      !greyfilter ||
-      !convert ||
-      !scalefilter  ||
-      (props->show_clock && !clock) ||
-      !cropper ||
-      !encode ||
-      !webrtc
-      ) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
-      return nullptr;
+  if (
+    !sink_webrtc
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
   }
-  
-  // 2. Set element properties
-  set_v4lsource(source, props);
-  set_srcfilter(srcfilter, props);
-  if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(decode, props);
-  if (props->rossink) {
-    set_queue(queue_ros);
-    set_convertscale(rosconvert, props);
-    set_rosfilter(rosfilter, props);
-    set_rostopicsink(rossink, props);
-    set_queue(queue_webrtc);
-  }
-  if (props->greyscale) set_greyfilter(greyfilter);
-  else set_no_greyfilter(greyfilter);
-  set_convertscale(convert, props);
-  set_scalefilter(scalefilter, props);
-  if (props->crop43) set_crop43(cropper, props);
-  (vpX == 9) ? set_vp9enc(encode, props) : set_vp8enc(encode, props);
-  set_webrtcsink(webrtc, props);
 
-  // 3. Add elements to pipeline
+  // 2. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
-      source,
-      valve,
-      rate, 
-      srcfilter,
-      greyconvert,
-      greyfilter,
-      convert,
-      scalefilter,
-      cropper,
-      encode,
-      webrtc,
-      NULL);
-  if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), decode);
-  if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), tee, queue_ros, rosconvert, rosfilter, rossink, queue_webrtc, NULL);
-  if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
+    source_v4l,
+    source_valve,
+    source_rate, 
+    source_filter,
+
+    cpu_gpu_tee,
+    cpu_queue,
+    cpu_valve,
+    cpu_grey_convert,
+    cpu_grey_filter,
+    cpu_crop,
+    cpu_convertscale,
+    
+    gpu_queue,
+    gpu_valve,
+    gpu_upload,
+    gpu_convertup,
+    gpu_scale,
+    gpu_crop,
+    gpu_shaders,
+    gpu_convertdown,
+    gpu_download,
+    cpu_gpu_selector,
+
+    encode_tee,
+    encode_queue,
+    encode_valve,
+    encode_filter,
+    encode_vp9,
+    encode_selector,
+
+    sink_webrtc,
+  NULL);
+  if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), source_decode);
+  if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), ros_tee, ros_queue, ros_convert, ros_filter, ros_sink, NULL);
+
+  // 3. Set element properties
+  set_v4lsource(source_v4l, props);
+  set_srcfilter(source_filter, props);
+  if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(source_decode, props);
+
+  if (props->rossink) {
+    set_queue(ros_queue);
+    set_convertscale(ros_convert, props);
+    set_rosfilter(ros_filter, props);
+    set_rostopicsink(ros_sink, props);
+  }
+
+  set_queue(cpu_queue);
+  g_object_set(cpu_valve, "drop", props->use_gl, NULL);
+  if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter);
+  else set_no_cpu_grey_filter(cpu_grey_filter);
+  if (props->crop43) set_cpu_crop43(cpu_crop);
+  else set_no_cpu_crop43(cpu_crop);
+  set_convertscale(cpu_convertscale, props);
+
+  set_queue(gpu_queue);
+  g_object_set(gpu_valve, "drop", !props->use_gl, NULL);
+  if (props->crop43) set_glcrop43(gpu_crop, props);
+  set_glshaders(gpu_shaders, props);
+
+  set_queue(encode_queue);
+  set_scalefilter(encode_filter, props, crop_width*2);
+  if (vpX == 9) set_vp9enc(encode_vp9, props);
+
+  set_webrtcsink(sink_webrtc, props);
 
   // 4. Link elements
-  
-  GstElement* next_element = source;
+  GstElement* next_element = source_v4l;
 
-  if (link_elements(streamer_node, next_element, valve, props->serial)) next_element = valve;
-  if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
-  if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
-  else {
+  link_elements(streamer_node, next_element, source_valve, props->serial);
+  link_elements(streamer_node, next_element, source_rate, props->serial);
+  if (!link_elements(streamer_node, next_element, source_filter, props->serial)) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
-  if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
+  link_elements(streamer_node, next_element, source_decode, props->serial);
 
-  if (link_elements(streamer_node, next_element, tee, props->serial)) next_element = tee;
-  if (link_elements(streamer_node, next_element, queue_ros, props->serial)) next_element = queue_ros;
-  if (link_elements(streamer_node, next_element, rosconvert, props->serial)) next_element = rosconvert;
-  if (link_elements(streamer_node, next_element, rosfilter, props->serial)) next_element = rosfilter;
-  if (link_elements(streamer_node, next_element, rossink, props->serial)) next_element = tee;
-  if (link_elements(streamer_node, next_element, queue_webrtc, props->serial)) next_element = queue_webrtc;
+  link_elements(streamer_node, next_element, ros_tee, props->serial);
+  link_elements(streamer_node, next_element, ros_queue, props->serial);
+  link_elements(streamer_node, next_element, ros_convert, props->serial);
+  link_elements(streamer_node, next_element, ros_filter, props->serial);
+  link_elements(streamer_node, next_element, ros_sink, props->serial);
 
-  if (link_elements(streamer_node, next_element, greyconvert, props->serial)) next_element = greyconvert;
-  if (link_elements(streamer_node, next_element, greyfilter, props->serial)) next_element = greyfilter;
-  if (link_elements(streamer_node, next_element, convert, props->serial)) next_element = convert;
-  if (link_elements(streamer_node, next_element, scalefilter, props->serial)) next_element = scalefilter;
-  if (link_elements(streamer_node, next_element, cropper, props->serial)) next_element = cropper;
-  if (link_elements(streamer_node, next_element, clock, props->serial)) next_element = clock;
-  if (link_elements(streamer_node, next_element, encode, props->serial)) next_element = encode;
-  link_elements(streamer_node, next_element, webrtc, props->serial);
+  link_elements(streamer_node, next_element, cpu_gpu_tee, props->serial);
+  link_elements(streamer_node, next_element, cpu_queue, props->serial);
+  link_elements(streamer_node, next_element, cpu_valve, props->serial);
+  link_elements(streamer_node, next_element, cpu_grey_convert, props->serial);
+  link_elements(streamer_node, next_element, cpu_grey_filter, props->serial);
+  link_elements(streamer_node, next_element, cpu_crop, props->serial);
+  link_elements(streamer_node, next_element, cpu_convertscale, props->serial);
+
+  next_element = cpu_gpu_tee;
+  link_elements(streamer_node, next_element, gpu_queue, props->serial);
+  link_elements(streamer_node, next_element, gpu_valve, props->serial);
+  link_elements(streamer_node, next_element, gpu_upload, props->serial);
+  link_elements(streamer_node, next_element, gpu_convertup, props->serial);
+  link_elements(streamer_node, next_element, gpu_scale, props->serial);
+  link_elements(streamer_node, next_element, gpu_crop, props->serial);
+  link_elements(streamer_node, next_element, gpu_shaders, props->serial);
+  link_elements(streamer_node, next_element, gpu_convertdown, props->serial);
+  link_elements(streamer_node, next_element, gpu_download, props->serial);
+ 
+  GstPad* cpu_source_pad = gst_element_get_static_pad(cpu_convertscale, "src");
+  GstPad* gpu_source_pad = gst_element_get_static_pad(gpu_download, "src");
+  GstPad* cpu_sink_pad = gst_element_get_request_pad(cpu_gpu_selector, "sink_%u");
+  GstPad* gpu_sink_pad = gst_element_get_request_pad(cpu_gpu_selector, "sink_%u");
+  gst_pad_link(cpu_source_pad, cpu_sink_pad);
+  gst_pad_link(gpu_source_pad, gpu_sink_pad);
+  if (props->use_gl) g_object_set(cpu_gpu_selector, "active-pad", gpu_sink_pad, NULL);
+  else g_object_set(cpu_gpu_selector, "active-pad", cpu_sink_pad, NULL);
+  gst_object_unref(cpu_source_pad);
+  gst_object_unref(gpu_source_pad);
+  gst_object_unref(cpu_sink_pad);
+  gst_object_unref(gpu_sink_pad);
+
+  next_element = cpu_gpu_selector;
+  link_elements(streamer_node, next_element, encode_tee, props->serial);
+  link_elements(streamer_node, next_element, encode_queue, props->serial);
+  link_elements(streamer_node, next_element, encode_valve, props->serial);
+  link_elements(streamer_node, next_element, encode_filter, props->serial);
+  link_elements(streamer_node, next_element, encode_vp9, props->serial);
+  //link_elements(streamer_node, next_element, encode_selector, props->serial);
+
+  link_elements(streamer_node, next_element, sink_webrtc, props->serial);
 
   next_element = nullptr;
 
@@ -176,6 +297,8 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   // 1. Define default properties
   std::string default_string;
 
+  // use opengl
+  props->use_gl = set_property(streamer_node, camera, "use_gl", false);
   // source
   props->device = camera->node;
   
@@ -210,6 +333,20 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
 
   // greyscale
   props->greyscale = set_property(streamer_node, camera, "greyscale", false);
+
+  // gl filters
+  props->denoise_factor = set_property(streamer_node, camera, "denoise_factor", 0.5f);
+  props->denoise_sigma = set_property(streamer_node, camera, "denoise_sigma", 2.0f);
+  props->denoise_threshold = set_property(streamer_node, camera, "denoise_threshold", 0.1f);
+  props->denoise_radius = set_property(streamer_node, camera, "denoise_radius", 3);
+  props->edgedetect_factor = set_property(streamer_node, camera, "edgedetect_factor", 2.0f);
+  props->undistort_k1 = set_property(streamer_node, camera, "undistort_k1", -0.3f);
+  props->undistort_k2 = set_property(streamer_node, camera, "undistort_k2", 0.1f);
+  props->undistort_scale = set_property(streamer_node, camera, "undistort_scale", 1.0f);
+
+  props->denoise = set_property(streamer_node, camera, "denoise", false);
+  props->edgedetect = set_property(streamer_node, camera, "edgedetect", false);
+  props->undistort = set_property(streamer_node, camera, "undistort", false);
   
   // convert
   default_string = "linear";
@@ -263,44 +400,82 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
   if (crop_width == 0) props->crop43 = false;
 
+  // 0. Initialize constants
+  GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
+  GstElement* gpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_valve");
+  g_object_set(cpu_valve, "drop", props->use_gl, NULL);
+  g_object_set(gpu_valve, "drop", !props->use_gl, NULL);
+  gst_object_unref(cpu_valve);
+  gst_object_unref(gpu_valve);
+
+  GstElement* cpu_gpu_selector = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_gpu_selector");
+  GstElement* cpu_convertscale = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_convertscale");
+  GstElement* gpu_download = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_download");
+  GstPad* cpu_source_pad = gst_element_get_static_pad(cpu_convertscale, "src");
+  GstPad* gpu_source_pad = gst_element_get_static_pad(gpu_download, "src");
+  GstPad* cpu_sink_pad = gst_pad_get_peer(cpu_source_pad);
+  GstPad* gpu_sink_pad = gst_pad_get_peer(gpu_source_pad);
+  if (props->use_gl) g_object_set(cpu_gpu_selector, "active-pad", gpu_sink_pad, NULL);
+  else g_object_set(cpu_gpu_selector, "active-pad", cpu_sink_pad, NULL);
+  gst_object_unref(cpu_source_pad);
+  gst_object_unref(gpu_source_pad);
+  gst_object_unref(cpu_sink_pad);
+  gst_object_unref(gpu_sink_pad);
+  gst_object_unref(cpu_gpu_selector);
+  gst_object_unref(cpu_convertscale);
+  gst_object_unref(gpu_download);
+
+
   // 1. Find the elements
-  GstElement* srcfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "srcfilter");
-  GstElement* decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "decoder");
-  GstElement* greyfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "greyfilter");
-  GstElement* scalefilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "scalefilter");
-  GstElement* cropper = gst_bin_get_by_name(GST_BIN(gst_pipeline), "video-cropper");
-  GstElement* encode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encoder");
+  GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
+  GstElement* source_decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_decode");
+
+  GstElement* cpu_grey_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_grey_filter");
+  GstElement* cpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_crop");
+
+  GstElement* gpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_crop");
+  GstElement* gpu_shaders = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_shaders");
+
+  GstElement* encode_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_filter");
+  GstElement* encode_vp9 = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_vp9");
 
   // 2. Set properties for elements
-  if (srcfilter) {
-    if (vpX == 9) set_srcfilter(srcfilter, props);
-    gst_object_unref(srcfilter);
+  if (source_filter) {
+    if (vpX == 9) set_srcfilter(source_filter, props);
+    gst_object_unref(source_filter);
+  }
+  if (source_decode) {
+    if (props->mime == "image/jpeg") set_jpegdec(source_decode, props);
+    gst_object_unref(source_decode);
   }
 
-  if (decode) {
-    if (props->mime == "image/jpeg") set_jpegdec(decode, props);
-    gst_object_unref(decode);
+  if (cpu_grey_filter) {
+    if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter);
+    else set_no_cpu_grey_filter(cpu_grey_filter);
+    gst_object_unref(cpu_grey_filter);
   }
-  if (greyfilter) {
-    if (props->greyscale) set_greyfilter(greyfilter);
-    else set_no_greyfilter(greyfilter);
-    gst_object_unref(greyfilter);
-  }
-
-  if (scalefilter) { 
-    if (vpX == 9) set_scalefilter(scalefilter, props);
-    gst_object_unref(scalefilter);
+  if (cpu_crop) {
+    if (props->crop43) set_cpu_crop43(cpu_crop);
+    else set_no_cpu_crop43(cpu_crop);
+    gst_object_unref(cpu_crop);
   }
 
-  if (cropper) {
-    if (vpX == 9 && props->crop43) set_crop43(cropper, props);
-    else set_no_crop43(cropper);
-    gst_object_unref(cropper);
+  if (gpu_crop) {
+    if (props->crop43) set_glcrop43(gpu_crop, props);
+    else set_no_glcrop43(gpu_crop);
+    gst_object_unref(gpu_crop);
+  }
+  if (gpu_shaders) {
+    set_glshaders(gpu_shaders, props);
+    gst_object_unref(gpu_shaders);
   }
 
-
-  if (encode) {
-    (vpX == 9) ? set_vp9enc(encode, props) : set_vp8enc(encode, props);
-    gst_object_unref(encode);
+  if (encode_filter) { 
+    if (vpX == 9) set_scalefilter(encode_filter, props, crop_width*2);
+    gst_object_unref(encode_filter);
+  }
+  if (encode_vp9) {
+    (vpX == 9) ? set_vp9enc(encode_vp9, props) : set_vp8enc(encode_vp9, props);
+    gst_object_unref(encode_vp9);
   }
 }

@@ -10,7 +10,7 @@ void set_no_glgreyscale(GstElement* glgreyscale);
 
 void set_no_glshader(GstElement* glshader);
 
-template<typename properties> void set_glshaders(GstElement* gldenoise, const properties& props) {
+template<typename properties> void set_glshaders(GstElement* element, const properties& props) {
   const std::string shader = R"(#version 100
 precision mediump float;
 
@@ -139,17 +139,19 @@ void main() {
     "do_denoise", G_TYPE_INT, (int) props->denoise,
     "do_edgedetect", G_TYPE_INT, (int) props->edgedetect,
   NULL);
-  g_object_set(gldenoise,
+  g_object_set(element,
     "fragment", shader.c_str(),
     "uniforms", str,
   NULL);
   gst_structure_free(str);
 }
 
-template<typename properties> void set_glcrop43(GstElement* glcrop, const properties& props) { 
-  g_object_set(glcrop,
+template<typename properties> void set_glcrop43(GstElement* element, const properties& props) { 
+  g_object_set(element,
     "scale-x", (double) props->width/(props->height/3*4),
   NULL);
 };
+
+void set_no_glcrop43(GstElement* element);
 
 #endif

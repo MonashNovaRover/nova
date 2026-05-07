@@ -202,7 +202,7 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   return props;
 }
 
-void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props, const int vpX) {
+void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props) {
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
   if (crop_width == 0) props->crop43 = false;
 
@@ -223,8 +223,8 @@ void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cropper) {
-    if (props->crop43) set_crop43(cropper, props);
-    else set_no_crop43(cropper);
+    if (props->crop43) set_cpu_crop43(cropper);
+    else set_no_cpu_crop43(cropper);
     gst_object_unref(cropper);
   }
 }

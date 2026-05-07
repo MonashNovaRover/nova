@@ -9,7 +9,7 @@
 #include "pipelines/properties.hpp"
 #include "cameras/colors.hpp"
 
-bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, const std::string serial);
+bool link_elements(rclcpp::Node* streamer_node, GstElement*& first_element, GstElement* second_element, const std::string serial);
 
 std::string set_property(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const std::string element, std::string value);
 

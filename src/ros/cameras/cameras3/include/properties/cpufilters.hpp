@@ -8,18 +8,20 @@ int crop43(const int width, const int height);
 
 void set_queue(GstElement* queue);
 
-template<typename properties> void set_crop43(GstElement* cropper, const properties& props) {
+void set_cpu_crop43(GstElement* element);
+
+void set_no_cpu_crop43(GstElement* element);
+
+template<typename properties> void set_crop43(GstElement* element, const properties& props) {
   const int crop_width = crop43(props->width, props->height);
-  g_object_set(cropper,
+  g_object_set(element,
     "left", (int) ((float) crop_width/ (float) props->downscale),
     "right", (int) ((float) crop_width/ (float) props->downscale),
   NULL);
 };
 
-void set_no_crop43(GstElement* cropper);
-
-template<typename properties> void set_convertscale(GstElement* convert, const properties& props) {
-  g_object_set(convert,
+template<typename properties> void set_convertscale(GstElement* element, const properties& props) {
+  g_object_set(element,
     "chroma-resampler", (
       props->chroma_resampler == "nearest" ? 0 :
       props->chroma_resampler == "linear" ? 1 :

@@ -15,6 +15,8 @@ struct Properties
   std::string serial;
   std::string node;
   std::string original_serial;
+
+  bool use_gl;
 };
 
 struct v4lProperties
@@ -56,8 +58,8 @@ struct glProperties
   float undistort_k2;
   float undistort_scale;
 
-  float denoise;
-  float edgedetect;
+  bool denoise;
+  bool edgedetect;
   bool undistort;
 };
 
@@ -125,7 +127,7 @@ struct h264passthroughPipelineProperties : Properties, v4lProperties, capsProper
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, const std::unique_ptr<h264passthroughPipelineProperties>& props);
 std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_properties(rclcpp::Node* log_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
 
-struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties {};
+struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, glProperties {};
 GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX);
 std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properties(rclcpp::Node* log_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const int vpX);
 void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX);
