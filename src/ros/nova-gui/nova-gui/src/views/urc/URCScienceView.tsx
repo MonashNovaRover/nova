@@ -42,14 +42,14 @@ const URCScienceView: React.FC = () => {
         <URCUVVisSpecView/>
       </div>
 
-      <div className="flex flex-col gap-3 col-span-3">
-        <PumpsWidget/>
+      <div className="flex flex-col gap-3 col-span-2">
         <CarouselWidgetV2/>
       </div>
 
-      <div className="flex flex-col gap-3 col-span-2">
-        <HeaterWidget/>
+      <div className="flex flex-col gap-3 col-span-3">
+        <PumpsWidget/>
         <LedWidget/>
+        <HeaterWidget/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_CUVETTE}/>
         <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_UV_VIS}/>
         <CameraControlModalButton/>

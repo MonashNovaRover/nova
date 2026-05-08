@@ -122,14 +122,16 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
         </DropdownMenu>
       </Dropdown>
     </CardHeader>
-    <CardBody className="grid grid-cols-5 gap-3">
-      <div className="col-span-2 flex flex-col gap-3 items-center w-full">
+    <CardBody className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 w-full gap-3">
         <Button className="w-full" color="primary" onPressStart={() => triggerZero(RING.INNER)}>Zero Inner</Button>
         <Button className="w-full" color="secondary" onPressStart={() => triggerZero(RING.OUTER)}>Zero Outer</Button>
+      </div>
+      <div className="flex flex-col gap-3 items-center w-full">
         <CarouselHallEffects/>
       </div>
 
-      <div className="col-span-3 flex flex-col gap-3 items-center">
+      <div className="flex flex-col gap-3 items-center mt-3">
         <CarouselControls
           moveXCuvettes={moveXCuvettes(RING.OUTER)}
           calibrateByDegrees={incrementZero(RING.OUTER)}

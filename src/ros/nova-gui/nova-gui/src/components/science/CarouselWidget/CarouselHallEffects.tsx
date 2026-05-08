@@ -6,11 +6,11 @@ export const CarouselHallEffects = () => {
   const [innerFeedback, outerFeedback] = useCarouselFeedback();
 
   return (
-    <div className="flex flex-col w-full gap-3 mt-3 justify-items-center">
+    <div className="grid grid-cols-2 w-full gap-3 justify-items-center">
       <Chip
         key={"inner_" + innerFeedback.hall_effect_triggered.toString()}
         radius='md'
-        size="lg"
+        size="md"
         variant="dot"
         classNames={{
           base: `h-10 border-3 border-${innerFeedback.hall_effect_triggered ? "success" : "danger"}`,
@@ -22,7 +22,7 @@ export const CarouselHallEffects = () => {
       <Chip
         key={"outer_" + outerFeedback.hall_effect_triggered.toString()}
         radius='md'
-        size="lg"
+        size="md"
         variant="dot"
         classNames={{
           base: `h-10 border-3 border-${outerFeedback.hall_effect_triggered ? "success" : "danger"}`,
