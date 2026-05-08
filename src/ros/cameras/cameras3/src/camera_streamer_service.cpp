@@ -142,7 +142,7 @@ class CameraStreamer : public rclcpp::Node
     if (pipeline->camera->pipeline_type == "v4lfallback")
     {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
-      
+
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       
@@ -312,21 +312,8 @@ class CameraStreamer : public rclcpp::Node
         GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
         g_object_set(source_valve, "drop", true, NULL);
 
-        // Pause pipeline to allow caps renegotiation to complete safely
-        gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
-
         // Change a subset of properties that can be changed in runtime
         change_profile_properties(pipeline);
-
-        // Wait for pipeline to finish renegotiating before resuming
-        GstState state;
-        gst_element_get_state(pipeline->gst_pipeline, &state, nullptr, 2 * GST_SECOND);
-
-        GstElement* encode_vp9 = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "encode_vp9");
-        GstPad* sinkpad = gst_element_get_static_pad(encode_vp9, "sink");
-        gst_pad_push_event(sinkpad, gst_event_new_reconfigure());
-        gst_object_unref(sinkpad);
-        gst_object_unref(encode_vp9);
 
         response->success = true;
 

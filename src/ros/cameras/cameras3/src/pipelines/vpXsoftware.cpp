@@ -429,7 +429,7 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
 
 
   // 1. Find the elements
-  GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
+  //GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
   GstElement* source_rate_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_rate_filter");
   GstElement* source_decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_decode");
 
@@ -443,10 +443,10 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstElement* encode_vp9 = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_vp9");
 
   // 2. Set properties for elements
-  if (source_filter) {
-    set_srcfilter(source_filter, props);
-    gst_object_unref(source_filter);
-  }
+  //if (source_filter) {
+  //  set_srcfilter(source_filter, props);
+  //  gst_object_unref(source_filter);
+  //}
   if (source_rate_filter) {
     set_ratefilter(source_rate_filter, props);
     gst_object_unref(source_rate_filter);
