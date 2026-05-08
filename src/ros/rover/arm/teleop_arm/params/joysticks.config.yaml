@@ -129,11 +129,13 @@ thrustmaster_right:
         # Task space
         angular:
           x:
-            from: "r_ax_stick_x"
+            from: "r_ax_stick_twist"
+            invert: true
           y:
               from: "r_ax_stick_y"
           z:
-            from: "r_ax_stick_twist"
+            from: "r_ax_stick_x"
+            invert: true
       buttons:
         task_space:
             from: "r_btn_thumb_u_state"
