@@ -2,6 +2,7 @@ import UVVisSpecGLGraph from "./UVVisSpecGLGraph.tsx";
 import React from "react";
 import { max } from "lodash";
 import GLState from "../../../hooks/webgl/gl/GLState.ts";
+import { luminanceToPercent } from "./UVVisSpec.tsx";
 
 export interface UVVisSpecGraphProps {
   // The data points to plot
@@ -22,7 +23,7 @@ export interface UVVisSpecGraphProps {
 
 const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
   const luminance = props.luminance;
-  const maxLuminance = (max(luminance) ?? 100) / 4.4167295593
+  const maxLuminance = luminanceToPercent(max(luminance) ?? 100);
 
   const xLabels = Array.from({ length: props.wavelengthLabelCount }, (_, i) => (
     `${(props.startWavelength + (props.endWavelength - props.startWavelength) * (i / (props.wavelengthLabelCount - 1))).toFixed(0)}`

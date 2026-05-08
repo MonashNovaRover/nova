@@ -24,6 +24,21 @@ import RamanLocalStorageSaveButton from "../RamanSpec/RamanLocalStorageSaveButto
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {UVVisSpecStartStopButtons} from "./UVVisSpecStartStopButtons.tsx";
 
+/**
+ * Scale factor derived from max RGB luminance: sqrt(3 * 255^2) / 100 = 4.4167295593
+ * Used to convert raw luminance to percentage scale (0-100%)
+ */
+export const LUMINANCE_SCALE_FACTOR = 4.4167295593;
+
+/**
+ * Converts raw luminance to percentage scale.
+ * @param luminance - Raw luminance value
+ * @returns Value in percentage scale (raw 441.67 → 100%)
+ */
+export function luminanceToPercent(luminance: number): number {
+  return luminance / LUMINANCE_SCALE_FACTOR;
+}
+
 export interface UVVisSpecProps {
   onSave?: (points: number[][], name: string) => void,
 }
@@ -62,11 +77,11 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
 
     const savedLuminance = beerLambertZip;
 
-    const maxLuminance = Math.max(max(savedLuminance) ?? 441.67295593, 10);
+    const maxLuminance = Math.max(luminanceToPercent(max(savedLuminance) ?? 441.67), 10 / LUMINANCE_SCALE_FACTOR);
 
     // [x, y] points to return
     const points = savedLuminance.map((lum, i) => (
-      [colToWavelength((i) / (savedLuminance.length-1)), lum / maxLuminance]
+      [colToWavelength((i) / (savedLuminance.length-1)), luminanceToPercent(lum) / maxLuminance]
     ))
 
     props.onSave(points, graphName);
@@ -74,11 +89,11 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
 
   const download = useDownload("uv-vis-spec.csv", () => {
     const savedLuminance = beerLambertZip;
-    const maxLuminance = Math.max(max(savedLuminance) ?? 441.67295593, 10);
+    const maxLuminance = Math.max(luminanceToPercent(max(savedLuminance) ?? 441.67), 10 / LUMINANCE_SCALE_FACTOR);
 
     // [x, y] points to return
     const points = savedLuminance.map((lum, i) => (
-      [colToWavelength((i) / (savedLuminance.length-1)), lum / maxLuminance]
+      [colToWavelength((i) / (savedLuminance.length-1)), luminanceToPercent(lum) / maxLuminance]
     ));
 
     const lines = ["wavelength,intensity"];

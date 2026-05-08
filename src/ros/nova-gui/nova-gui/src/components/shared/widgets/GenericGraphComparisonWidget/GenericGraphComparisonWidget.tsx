@@ -6,7 +6,7 @@ import React, {memo, ReactNode, useCallback, useMemo} from "react";
 import {ApexDataset} from "../../../science/SpectraDisplay/DataChart.tsx";
 import {ApexOptions} from "apexcharts";
 import {Button, Card, CardBody, CardHeader, Select, SelectItem} from "@nextui-org/react";
-import {X} from "react-feather";
+import {Trash} from "react-feather";
 import ReactApexChart from "react-apexcharts";
 
 
@@ -109,7 +109,7 @@ const GenericGraphComparisonWidgetUnmemoed: React.FC<GenericGraphComparisonWidge
               <div className="flex flex-row items-center">
                 <div className="flex-grow">{name}</div>
                 <Button isIconOnly={true} size="sm" color="danger" variant="light" onPress={() => onDeleteItem(name)}>
-                  <X/>
+                  <Trash/>
                 </Button>
               </div>
             </SelectItem>
