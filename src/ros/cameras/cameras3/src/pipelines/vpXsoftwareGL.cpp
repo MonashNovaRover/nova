@@ -29,9 +29,6 @@
 
 GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwareGLPipelineProperties>& props, const int vpX)
 {
-  // 0. Initialize constants
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-
   // 1. Create the elements
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source = gst_element_factory_make("v4l2src", "video-source");
@@ -106,7 +103,7 @@ GstElement* vpXsoftwareGL_pipeline(rclcpp::Node* streamer_node, const std::uniqu
   set_glshaders(glshaders, props);
   set_queue(queue_download);
 
-  set_scalefilter(scalefilter, props, crop_width*2);
+  set_scalefilter(scalefilter, props);
   (vpX == 9) ? set_vp9enc(encode, props) : set_vp8enc(encode, props);
   set_webrtcsink(webrtc, props);
 
@@ -291,9 +288,6 @@ std::unique_ptr<vpXsoftwareGLPipelineProperties> get_vpXsoftwareGL_pipeline_prop
 */
 void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwareGLPipelineProperties>& props, const int vpX)
 {
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  if (crop_width == 0) props->crop43 = false;
-
   // 1. Find the elements
   GstElement* srcfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "srcfilter");
   GstElement* decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "decoder");
@@ -324,7 +318,7 @@ void set_vpXsoftwareGL_pipeline_properties(GstElement* gst_pipeline, const std::
   }
 
   if (scalefilter) { 
-    if (vpX == 9) set_scalefilter(scalefilter, props, crop_width*2);
+    if (vpX == 9) set_scalefilter(scalefilter, props);
     gst_object_unref(scalefilter);
   }
 

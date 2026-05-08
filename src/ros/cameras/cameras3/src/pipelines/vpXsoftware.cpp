@@ -27,9 +27,6 @@
 
 GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX)
 {
-  // 0. Initialize constants
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-
   // 1. Create the elements
   std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
@@ -78,7 +75,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   GstElement* cpu_grey_convert = gst_element_factory_make("videoconvertscale", "cpu_grey_convert");
   GstElement* cpu_grey_filter = gst_element_factory_make("capsfilter", "cpu_grey_filter");
   GstElement* cpu_convertscale = gst_element_factory_make("videoconvertscale", "cpu_convertscale");
-  GstElement* cpu_crop = gst_element_factory_make("aspectratiocrop", "cpu_crop");
+  GstElement* cpu_crop = gst_element_factory_make("videocrop", "cpu_crop");
 
   if (
     !cpu_gpu_tee ||
@@ -161,10 +158,10 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     cpu_gpu_tee,
     cpu_queue,
     cpu_valve,
-    cpu_grey_convert,
-    cpu_grey_filter,
     cpu_crop,
-    cpu_convertscale,
+    cpu_grey_convert,
+    cpu_grey_filter, 
+    cpu_convertscale, 
     
     gpu_queue,
     gpu_valve,
@@ -204,9 +201,9 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
 
   set_queue(cpu_queue);
   g_object_set(cpu_valve, "drop", props->use_gl, NULL);
-  if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter);
+  if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter, props);
   else set_no_cpu_grey_filter(cpu_grey_filter);
-  if (props->crop43) set_cpu_crop43(cpu_crop);
+  if (props->crop43) set_cpu_crop43(cpu_crop, props);
   else set_no_cpu_crop43(cpu_crop);
   set_convertscale(cpu_convertscale, props);
 
@@ -216,7 +213,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   set_glshaders(gpu_shaders, props);
 
   set_queue(encode_queue);
-  set_scalefilter(encode_filter, props, crop_width*2);
+  set_scalefilter(encode_filter, props);
   if (vpX == 9) set_vp9enc(encode_vp9, props);
 
   set_webrtcsink(sink_webrtc, props);
@@ -432,6 +429,7 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
 
 
   // 1. Find the elements
+  GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
   GstElement* source_rate_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_rate_filter");
   GstElement* source_decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_decode");
 
@@ -445,6 +443,10 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstElement* encode_vp9 = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_vp9");
 
   // 2. Set properties for elements
+  if (source_filter) {
+    set_srcfilter(source_filter, props);
+    gst_object_unref(source_filter);
+  }
   if (source_rate_filter) {
     set_ratefilter(source_rate_filter, props);
     gst_object_unref(source_rate_filter);
@@ -455,12 +457,12 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cpu_grey_filter) {
-    if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter);
+    if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter, props);
     else set_no_cpu_grey_filter(cpu_grey_filter);
     gst_object_unref(cpu_grey_filter);
   }
   if (cpu_crop) {
-    if (props->crop43) set_cpu_crop43(cpu_crop);
+    if (props->crop43) set_cpu_crop43(cpu_crop, props);
     else set_no_cpu_crop43(cpu_crop);
     gst_object_unref(cpu_crop);
   }
@@ -476,7 +478,7 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (encode_filter) { 
-    if (vpX == 9) set_scalefilter(encode_filter, props, crop_width*2);
+    if (vpX == 9) set_scalefilter(encode_filter, props);
     gst_object_unref(encode_filter);
   }
   if (encode_vp9) {

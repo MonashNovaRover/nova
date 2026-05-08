@@ -8,17 +8,15 @@ int crop43(const int width, const int height);
 
 void set_queue(GstElement* queue);
 
-void set_cpu_crop43(GstElement* element);
-
-void set_no_cpu_crop43(GstElement* element);
-
-template<typename properties> void set_crop43(GstElement* element, const properties& props) {
+template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
   const int crop_width = crop43(props->width, props->height);
   g_object_set(element,
-    "left", (int) ((float) crop_width/ (float) props->downscale),
-    "right", (int) ((float) crop_width/ (float) props->downscale),
+    "left", (int) ((float)crop_width/(float)props->downscale)*0,
+    "right", (int) ((float)crop_width/(float)props->downscale)*0,
   NULL);
 };
+
+void set_no_cpu_crop43(GstElement* element);
 
 template<typename properties> void set_convertscale(GstElement* element, const properties& props) {
   g_object_set(element,

@@ -68,7 +68,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
   set_srcfilter(srcfilter, props);
   set_convertscale(convert, props);
   set_scalefilter(scalefilter, props);
-  if (props->crop43) set_crop43(cropper, props);
+  if (props->crop43) set_cpu_crop43(cropper, props);
   set_webrtcsink(webrtc, props);
 
   // 3. Add elements to pipeline
@@ -223,7 +223,7 @@ void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cropper) {
-    if (props->crop43) set_cpu_crop43(cropper);
+    if (props->crop43) set_cpu_crop43(cropper, props);
     else set_no_cpu_crop43(cropper);
     gst_object_unref(cropper);
   }

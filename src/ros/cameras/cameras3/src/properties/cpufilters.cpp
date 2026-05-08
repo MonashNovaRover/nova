@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <string>
 #include <gst/gst.h>
 #include "properties/cpufilters.hpp"
@@ -15,10 +16,9 @@ void set_queue(GstElement* element) {
   NULL);
 };
 
-void set_cpu_crop43(GstElement* element) {
-  gst_util_set_object_arg(G_OBJECT(element), "aspect-ratio", "4/3");
-};
-
 void set_no_cpu_crop43(GstElement* element) {
-  gst_util_set_object_arg(G_OBJECT(element), "aspect-ratio", "0/1");
+  g_object_set(element,
+    "left", 0,
+    "right", 0,
+  NULL);
 };
