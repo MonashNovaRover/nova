@@ -94,8 +94,8 @@ export interface CuvetteGroup {
 
 // Outer wheel groups: { start, end } are 0-indexed, end is exclusive (last cuvette not included in border)
 export const OUTER_GROUPS: CuvetteGroup[] = [
-  { start: 0,  end: 6,  color: Color.ORANGE },
-  { start: 7,  end: 13, color: Color.GRAY },
+  { start: 0,  end: 7,  color: Color.ORANGE },
+  { start: 7,  end: 14, color: Color.GRAY },
 ];
 
 // Inner wheel groups: { start, end } are 0-indexed, end is exclusive
@@ -106,23 +106,26 @@ export const INNER_GROUPS: CuvetteGroup[] = [
 
 // Indicator dot type
 export interface IndicatorDot {
-  cuvette: number;
+  cuvette: number;       // Angular position of the dot (1-indexed cuvette number)
   color: Color;
   radius: number;
+  targetCuvette: number; // Cuvette to rotate to when clicked (1-indexed)
 }
 
 // Static indicator dots (outside the carousel, don't rotate)
 // Positions are cuvette numbers (1-indexed) as if 24 is at the top
+// targetCuvette specifies which cuvette to rotate to when clicked
 export const OUTER_INDICATOR_DOTS: IndicatorDot[] = [
-  { cuvette: 6,  color: Color.ORANGE, radius: 4 },
-  { cuvette: 13, color: Color.GRAY,   radius: 4 },
+  { cuvette: 6,  color: Color.ORANGE, radius: 4, targetCuvette: 19 },
+  { cuvette: 13, color: Color.GRAY,   radius: 4, targetCuvette: 19 },
 ];
 export const OUTER_INDICATOR_DOT_DISTANCE = 152;
 
 // Inner indicator dots (inside center circle, don't rotate)
 // Positions are cuvette numbers (1-indexed) for 15-segment inner wheel
+// targetCuvette specifies which cuvette to rotate to when clicked
 export const INNER_INDICATOR_DOTS: IndicatorDot[] = [
-  { cuvette: 9, color: Color.GRAY,   radius: 4 },
-  { cuvette: 3, color: Color.ORANGE, radius: 4 },
+  { cuvette: 9, color: Color.GRAY,   radius: 4, targetCuvette: 10 },
+  { cuvette: 3, color: Color.ORANGE, radius: 4, targetCuvette: 10 },
 ];
 export const INNER_INDICATOR_DOT_DISTANCE = 37;

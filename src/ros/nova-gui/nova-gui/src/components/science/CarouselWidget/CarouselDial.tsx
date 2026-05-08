@@ -282,14 +282,21 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
             const x = CENTER + OUTER_INDICATOR_DOT_DISTANCE * Math.cos(angleRad);
             const y = CENTER + OUTER_INDICATOR_DOT_DISTANCE * Math.sin(angleRad);
             return (
-              <circle
+              <g
                 key={`outer-indicator-${i}`}
-                cx={x}
-                cy={y}
-                r={dot.radius}
-                fill={dot.color}
-                className="pointer-events-none"
-              />
+                className="cursor-pointer"
+                onClick={() => outerConfig.onClick(dot.targetCuvette - 1)}
+              >
+                {/* Larger invisible hit area */}
+                <circle cx={x} cy={y} r={dot.radius * 3} fill="transparent" />
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={dot.radius}
+                  fill={dot.color}
+                  className="hover:opacity-80 transition-opacity"
+                />
+              </g>
             );
           })}
 
@@ -299,14 +306,21 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
             const x = CENTER + INNER_INDICATOR_DOT_DISTANCE * Math.cos(angleRad);
             const y = CENTER + INNER_INDICATOR_DOT_DISTANCE * Math.sin(angleRad);
             return (
-              <circle
+              <g
                 key={`inner-indicator-${i}`}
-                cx={x}
-                cy={y}
-                r={dot.radius}
-                fill={dot.color}
-                className="pointer-events-none"
-              />
+                className="cursor-pointer"
+                onClick={() => innerConfig.onClick(dot.targetCuvette - 1)}
+              >
+                {/* Larger invisible hit area */}
+                <circle cx={x} cy={y} r={dot.radius * 3} fill="transparent" />
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={dot.radius}
+                  fill={dot.color}
+                  className="hover:opacity-80 transition-opacity"
+                />
+              </g>
             );
           })}
         </svg>
