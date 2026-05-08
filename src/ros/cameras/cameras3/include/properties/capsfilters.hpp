@@ -35,7 +35,7 @@ template<typename properties> void set_scalefilter(GstElement* element, const pr
     mime.c_str(),
     "format", G_TYPE_STRING, props->format.c_str(),
     "width", G_TYPE_INT, (int) ((float) (props->width-crop_width)/ (float) props->downscale),
-    "height", G_TYPE_INT, (int) ((float) props->height/ (float) props->downscale),
+    "height", G_TYPE_INT, (int) ((float) (props->height)/ (float) props->downscale),
   NULL);
   g_object_set(element, "caps", caps, NULL);
   gst_caps_unref(caps);
@@ -59,7 +59,7 @@ template<typename properties> void set_cpu_grey_filter(GstElement* element, cons
     mime.c_str(),
     "format", G_TYPE_STRING, format.c_str(),
     "width", G_TYPE_INT, (int) ((float) (props->width-crop_width)/ (float) props->downscale),
-    "height", G_TYPE_INT, (int) ((float) props->height/ (float) props->downscale),
+    "height", G_TYPE_INT, (int) ((float) (props->height)/ (float) props->downscale),
   NULL);
   g_object_set(element, "caps", caps, NULL);
   gst_caps_unref(caps);

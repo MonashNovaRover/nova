@@ -72,19 +72,19 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   GstElement* cpu_gpu_tee = gst_element_factory_make("tee", "cpu_gpu_tee");
   GstElement* cpu_queue = gst_element_factory_make("queue", "cpu_queue");
   GstElement* cpu_valve = gst_element_factory_make("valve", "cpu_valve");
+  GstElement* cpu_crop = gst_element_factory_make("videocrop", "cpu_crop");
   GstElement* cpu_grey_convert = gst_element_factory_make("videoconvertscale", "cpu_grey_convert");
   GstElement* cpu_grey_filter = gst_element_factory_make("capsfilter", "cpu_grey_filter");
   GstElement* cpu_convertscale = gst_element_factory_make("videoconvertscale", "cpu_convertscale");
-  GstElement* cpu_crop = gst_element_factory_make("videocrop", "cpu_crop");
 
   if (
     !cpu_gpu_tee ||
     !cpu_queue ||
     !cpu_valve ||
+    !cpu_crop ||
     !cpu_grey_convert ||
     !cpu_grey_filter ||
-    !cpu_convertscale ||
-    !cpu_crop
+    !cpu_convertscale
   ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
@@ -201,10 +201,11 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
 
   set_queue(cpu_queue);
   g_object_set(cpu_valve, "drop", props->use_gl, NULL);
-  if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter, props);
-  else set_no_cpu_grey_filter(cpu_grey_filter);
   if (props->crop43) set_cpu_crop43(cpu_crop, props);
   else set_no_cpu_crop43(cpu_crop);
+  if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter, props);
+  else set_no_cpu_grey_filter(cpu_grey_filter);
+  set_convertscale(cpu_grey_convert, props);
   set_convertscale(cpu_convertscale, props);
 
   set_queue(gpu_queue);
@@ -239,9 +240,9 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   link_elements(streamer_node, next_element, cpu_gpu_tee, props->serial);
   link_elements(streamer_node, next_element, cpu_queue, props->serial);
   link_elements(streamer_node, next_element, cpu_valve, props->serial);
+  link_elements(streamer_node, next_element, cpu_crop, props->serial);
   link_elements(streamer_node, next_element, cpu_grey_convert, props->serial);
   link_elements(streamer_node, next_element, cpu_grey_filter, props->serial);
-  link_elements(streamer_node, next_element, cpu_crop, props->serial);
   link_elements(streamer_node, next_element, cpu_convertscale, props->serial);
 
   next_element = cpu_gpu_tee;
@@ -341,13 +342,14 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->denoise_sigma = set_property(streamer_node, camera, "denoise_sigma", 2.0f);
   props->denoise_threshold = set_property(streamer_node, camera, "denoise_threshold", 0.1f);
   props->denoise_radius = set_property(streamer_node, camera, "denoise_radius", 3);
-  props->edgedetect_factor = set_property(streamer_node, camera, "edgedetect_factor", 2.0f);
+  props->sharpen_radius = set_property(streamer_node, camera, "sharpen_radius", 1.0f);
+  props->sharpen_strength = set_property(streamer_node, camera, "sharpen_strength", 2.0f);
   props->undistort_k1 = set_property(streamer_node, camera, "undistort_k1", -0.3f);
   props->undistort_k2 = set_property(streamer_node, camera, "undistort_k2", 0.1f);
   props->undistort_scale = set_property(streamer_node, camera, "undistort_scale", 1.0f);
 
   props->denoise = set_property(streamer_node, camera, "denoise", false);
-  props->edgedetect = set_property(streamer_node, camera, "edgedetect", false);
+  props->sharpen = set_property(streamer_node, camera, "sharpen", false);
   props->undistort = set_property(streamer_node, camera, "undistort", false);
   
   // convert
@@ -374,7 +376,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->cpu_used = set_property(streamer_node, camera, "cpu_used", 1);
   props->deadline = set_property(streamer_node, camera, "deadline", 1);
   props->gop = set_property(streamer_node, camera, "gop", 1);
-  props->noise = set_property(streamer_node, camera, "noise", 6);
+  props->noise = set_property(streamer_node, camera, "noise", (props->use_gl) ? 0 : 6);
   props->threads = set_property(streamer_node, camera, "threads", 1);
 
   // webrtc
@@ -399,8 +401,6 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
 }
 
 void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX) {
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  if (crop_width == 0) props->crop43 = false;
 
   // 0. Initialize constants
   GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
@@ -433,8 +433,8 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstElement* source_rate_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_rate_filter");
   GstElement* source_decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_decode");
 
-  GstElement* cpu_grey_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_grey_filter");
   GstElement* cpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_crop");
+  GstElement* cpu_grey_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_grey_filter");
 
   GstElement* gpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_crop");
   GstElement* gpu_shaders = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_shaders");
@@ -456,15 +456,15 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
     gst_object_unref(source_decode);
   }
 
-  if (cpu_grey_filter) {
-    if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter, props);
-    else set_no_cpu_grey_filter(cpu_grey_filter);
-    gst_object_unref(cpu_grey_filter);
-  }
   if (cpu_crop) {
     if (props->crop43) set_cpu_crop43(cpu_crop, props);
     else set_no_cpu_crop43(cpu_crop);
     gst_object_unref(cpu_crop);
+  }
+  if (cpu_grey_filter) {
+    if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter, props);
+    else set_no_cpu_grey_filter(cpu_grey_filter);
+    gst_object_unref(cpu_grey_filter);
   }
 
   if (gpu_crop) {

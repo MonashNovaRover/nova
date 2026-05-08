@@ -227,13 +227,12 @@ std::unique_ptr<vpXsoftwareGLPipelineProperties> get_vpXsoftwareGL_pipeline_prop
   props->denoise_sigma = set_property(streamer_node, camera, "denoise_sigma", 2.0f);
   props->denoise_threshold = set_property(streamer_node, camera, "denoise_threshold", 0.1f);
   props->denoise_radius = set_property(streamer_node, camera, "denoise_radius", 3);
-  props->edgedetect_factor = set_property(streamer_node, camera, "edgedetect_factor", 2.0f);
   props->undistort_k1 = set_property(streamer_node, camera, "undistort_k1", -0.3f);
   props->undistort_k2 = set_property(streamer_node, camera, "undistort_k2", 0.1f);
   props->undistort_scale = set_property(streamer_node, camera, "undistort_scale", 1.0f);
 
   props->denoise = set_property(streamer_node, camera, "denoise", false);
-  props->edgedetect = set_property(streamer_node, camera, "edgedetect", false);
+  props->sharpen = set_property(streamer_node, camera, "sharpen", false);
   props->undistort = set_property(streamer_node, camera, "undistort", false);
 
   // convert

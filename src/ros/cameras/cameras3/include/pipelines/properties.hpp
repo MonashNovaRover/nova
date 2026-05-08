@@ -53,13 +53,14 @@ struct glProperties
   float denoise_sigma;
   float denoise_threshold;
   int denoise_radius;
-  float edgedetect_factor;
+  float sharpen_radius;
+  float sharpen_strength;
   float undistort_k1;
   float undistort_k2;
   float undistort_scale;
 
   bool denoise;
-  bool edgedetect;
+  bool sharpen;
   bool undistort;
 };
 

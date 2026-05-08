@@ -29,12 +29,13 @@ uniform float denoise_sigma;      // spatial sigma (e.g. 2.0)
 uniform float denoise_threshold;  // color similarity threshold (e.g. 0.1)
 uniform int denoise_radius;       // Default 3
 
-uniform float edgedetect_factor;  // Default 2.0
+uniform float sharpen_radius;   // Default 0.2
+uniform float sharpen_strength; // Default 4.0
 
 uniform int do_undistort;
 uniform int do_greyscale;
 uniform int do_denoise;
-uniform int do_edgedetect;
+uniform int do_sharpen;
 
 // 1D Bilateral Function
 vec3 computeBlur(vec3 centerColor, vec2 direction) {
@@ -88,30 +89,34 @@ void main() {
     vec3 vBlur = computeBlur(centerColor, vDir);
 
     // Average them or combine
-    result = result * ((hBlur + vBlur) * 0.5) * denoise_factor + centerColor * (1.0 - denoise_factor);
+    result = ((hBlur + vBlur) * 0.5) * denoise_factor + result * (1.0 - denoise_factor);
   }
 
-  if (do_edgedetect == 1) {
-    vec2 texOffset = edgedetect_factor / vec2(width, height);
+  if (do_sharpen == 1) {
+    vec2 texOffset = sharpen_radius / vec2(width, height);
+
+    vec3 blur = vec3(0.0);
 
     // Sample the 3x3 neighborhood
-    vec3 c00 = texture2D(tex, uv + texOffset * vec2(-1.0, -1.0)).rgb;
-    vec3 c10 = texture2D(tex, uv + texOffset * vec2( 0.0, -1.0)).rgb;
-    vec3 c20 = texture2D(tex, uv + texOffset * vec2( 1.0, -1.0)).rgb;
+    blur += texture2D(tex, uv + texOffset * vec2(-1.0, -1.0)).rgb;
+    blur += 2.0 * texture2D(tex, uv + texOffset * vec2( 0.0, -1.0)).rgb;
+    blur += texture2D(tex, uv + texOffset * vec2( 1.0, -1.0)).rgb;
 
-    vec3 c01 = texture2D(tex, uv + texOffset * vec2(-1.0,  0.0)).rgb;
-    vec3 c11 = texture2D(tex, uv + texOffset * vec2( 0.0,  0.0)).rgb;
-    vec3 c21 = texture2D(tex, uv + texOffset * vec2( 1.0,  0.0)).rgb;
+    blur += 2.0 * texture2D(tex, uv + texOffset * vec2(-1.0,  0.0)).rgb;
+    blur += 4.0 * texture2D(tex, uv + texOffset * vec2( 0.0,  0.0)).rgb;
+    blur += 2.0 * texture2D(tex, uv + texOffset * vec2( 1.0,  0.0)).rgb;
 
-    vec3 c02 = texture2D(tex, uv + texOffset * vec2(-1.0,  1.0)).rgb;
-    vec3 c12 = texture2D(tex, uv + texOffset * vec2( 0.0,  1.0)).rgb;
-    vec3 c22 = texture2D(tex, uv + texOffset * vec2( 1.0,  1.0)).rgb;
+    blur += texture2D(tex, uv + texOffset * vec2(-1.0,  1.0)).rgb;
+    blur += 2.0 * texture2D(tex, uv + texOffset * vec2( 0.0,  1.0)).rgb;
+    blur += texture2D(tex, uv + texOffset * vec2( 1.0,  1.0)).rgb;
 
-    // Sobel kernels
-    vec3 gx = -c00 - 2.0*c01 - c02 + c20 + 2.0*c21 + c22;
-    vec3 gy = -c00 - 2.0*c10 - c20 + c02 + 2.0*c12 + c22;
+    blur /= 16.0;
 
-    result = result * sqrt(gx*gx + gy*gy);
+    // Edge
+    vec3 edge = result - blur;
+
+    // Apply sharpening
+    result += edge * sharpen_strength;
   }
 
   if (do_greyscale == 1) {
@@ -133,11 +138,12 @@ void main() {
     "denoise_sigma", G_TYPE_FLOAT, props->denoise_sigma,
     "denoise_threshold", G_TYPE_FLOAT, props->denoise_threshold,
     "denoise_radius", G_TYPE_INT, props->denoise_radius,
-    "edgedetect_factor", G_TYPE_FLOAT, props->edgedetect_factor,
+    "sharpen_radius", G_TYPE_FLOAT, props->sharpen_radius,
+    "sharpen_strength", G_TYPE_FLOAT, props->sharpen_strength,
     "do_undistort", G_TYPE_INT, (int) props->undistort,
     "do_greyscale", G_TYPE_INT, (int) props->greyscale,
     "do_denoise", G_TYPE_INT, (int) props->denoise,
-    "do_edgedetect", G_TYPE_INT, (int) props->edgedetect,
+    "do_sharpen", G_TYPE_INT, (int) props->sharpen,
   NULL);
   g_object_set(element,
     "fragment", shader.c_str(),

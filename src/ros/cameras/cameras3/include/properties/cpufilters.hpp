@@ -11,8 +11,8 @@ void set_queue(GstElement* queue);
 template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
   const int crop_width = crop43(props->width, props->height);
   g_object_set(element,
-    "left", (int) ((float)crop_width/(float)props->downscale)*0,
-    "right", (int) ((float)crop_width/(float)props->downscale)*0,
+    "left", crop_width,
+    "right", crop_width,
   NULL);
 };
 
