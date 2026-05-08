@@ -105,10 +105,10 @@ joy_input_source:
               positive: "X"
               negative: "B"
           y:
-            from: "RIGHTX"
-          z:
             from: "RIGHTY"
             invert: true
+          z:
+            from: "RIGHTX"  
 
       buttons:
         lock:
@@ -119,7 +119,5 @@ joy_input_source:
           from_axis:
             name: "TRIGGERLEFT"
             threshold: -0.5
-          from: "LEFTSHOULDER"
-        task_space:
-          from: "RIGHTSHOULDER"
+          from: "PADDLE1"
 
