@@ -44,11 +44,19 @@
   <!--    forward 0.012512-->
 
 
+  <!-- Linear actuator tip frame for auto-typing -->
+  <link name="actuator"/>
+  <joint name="actuator_tip_joint" type="fixed">
+    <origin xyz="0 0 -0.05" rpy="3.14159 0 0"/>
+    <parent link="linear_actuator"/>
+    <child link="actuator"/>
+  </joint>
+
   <!-- Periscope camera frame for auto-typing -->
   <link name="image_frame"/>
   <joint name="camera_ee_periscope" type="fixed">
-    <origin xyz="0.0001 -0.014 0.013" rpy="1.5708 1.5708 0"/>
-    <parent link="diff_support"/>
+    <origin xyz="0.0097 -0.037 -0.055" rpy="-3.14159 0 0.2618"/>
+    <parent link="ee_base"/>
     <child link="image_frame"/>
   </joint>
 
