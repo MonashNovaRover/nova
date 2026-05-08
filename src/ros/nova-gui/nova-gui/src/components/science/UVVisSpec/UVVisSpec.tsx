@@ -23,6 +23,8 @@ import useDownload from "../../../hooks/useDownload.ts";
 import RamanLocalStorageSaveButton from "../RamanSpec/RamanLocalStorageSaveButton.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {UVVisSpecStartStopButtons} from "./UVVisSpecStartStopButtons.tsx";
+import {useCarouselPosition} from "../CarouselWidget/CarouselPositionContext.tsx";
+import {getCuvetteName} from "../CarouselWidget/cuvetteName.ts";
 
 /**
  * Scale factor derived from max RGB luminance: sqrt(3 * 255^2) / 100 = 4.4167295593
@@ -46,6 +48,22 @@ export interface UVVisSpecProps {
 const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const bifrost = useBifrost({ topic: RosTopic.UV_VIS_SPEC });
   const luminance = useSelector((state: RootState) => state.uvVisSpecStore.luminance);
+
+  /**
+   * Dynamic graph naming based on carousel position.
+   *
+   * The name is determined by which cuvette is currently positioned:
+   * - When inner ring is at position 12: uses outer cuvette name
+   * - When outer ring is at positions 22-24: uses inner cuvette name
+   * - Otherwise: no auto-name (user must enter manually)
+   *
+   * If the carousel context is not available (e.g., component used
+   * outside URCScienceView), this gracefully falls back to no auto-name.
+   */
+  const carouselPosition = useCarouselPosition();
+  const suggestedName = carouselPosition
+    ? getCuvetteName(carouselPosition.innerCuvette, carouselPosition.outerCuvette)
+    : undefined;
 
   const [blankLuminance, setBlankLuminance] = useGenericStore<number[]>("uvVisBlankStore");
   const saveBlankLuminance = () => {setBlankLuminance(luminance)};
@@ -190,7 +208,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
         </div>
         <div className="flex flex-row gap-3 items-end">
           {blankButtons}
-          <RamanLocalStorageSaveButton onSave={onSave} onCSVSave={download}></RamanLocalStorageSaveButton>
+          <RamanLocalStorageSaveButton onSave={onSave} onCSVSave={download} suggestedName={suggestedName} />
           <UVVisSpecStartStopButtons/>
         </div>
       </CardBody>

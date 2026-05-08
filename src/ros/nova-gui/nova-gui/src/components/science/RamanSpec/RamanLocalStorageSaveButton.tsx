@@ -1,15 +1,23 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Input} from "@nextui-org/react";
 
 
 export interface RamanLocalStorageSaveButtonProps {
   onSave: (name: string) => void,
   onCSVSave?: () => void,
+  suggestedName?: string,  // Auto-populated name based on carousel position
 }
 
 // A distinct component to contain the useState for graphName
 const RamanLocalStorageSaveButton: React.FC<RamanLocalStorageSaveButtonProps> = (props) => {
   const [graphName, setGraphName] = useState<string>("");
+
+  // Update input when suggestedName changes (pre-fill with cuvette name)
+  useEffect(() => {
+    if (props.suggestedName !== undefined) {
+      setGraphName(props.suggestedName);
+    }
+  }, [props.suggestedName]);
 
   return (
     <div className="flex flex-row gap-3 my-3 mb-0">

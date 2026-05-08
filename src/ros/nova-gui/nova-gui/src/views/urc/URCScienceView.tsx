@@ -4,6 +4,7 @@ import PumpsWidget from "../../components/science/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/science/BMESensor/BMESensor";
 import URCNIRProbeWidget from "../../components/science/NIRProbe/URCNIRProbeWidget.tsx";
 import CarouselWidgetV2 from "../../components/science/CarouselWidget/CarouselWidget.tsx";
+import {CarouselPositionProvider} from "../../components/science/CarouselWidget/CarouselPositionContext.tsx";
 import SegmentedPicker from "../../components/shared/components/SegmentedPicker/SegmentedPicker.tsx";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import URCUVVisSpecView from "./URCUVVisSpecView.tsx";
@@ -36,25 +37,35 @@ const URCScienceView: React.FC = () => {
     </div>
   )
 
+  /**
+   * CarouselPositionProvider shares the carousel's current cuvette positions
+   * with child components. This enables UVVisSpec to auto-populate graph names
+   * based on which cuvette is currently under the spectrometer.
+   *
+   * The context respects the "Use Manual Position" toggle - it reflects what
+   * the GUI shows, not necessarily the physical carousel feedback.
+   */
   const VisSpecView = (
-    <div className="grid grid-flow-col auto-cols-fr gap-3 p-3 overflow-auto flex-1 min-h-0">
-      <div className="flex flex-col gap-3 col-span-3">
-        <URCUVVisSpecView/>
-      </div>
+    <CarouselPositionProvider>
+      <div className="grid grid-flow-col auto-cols-fr gap-3 p-3 overflow-auto flex-1 min-h-0">
+        <div className="flex flex-col gap-3 col-span-3">
+          <URCUVVisSpecView/>
+        </div>
 
-      <div className="flex flex-col gap-3 col-span-2">
-        <CarouselWidgetV2/>
-      </div>
+        <div className="flex flex-col gap-3 col-span-2">
+          <CarouselWidgetV2/>
+        </div>
 
-      <div className="flex flex-col gap-3 col-span-3">
-        <PumpsWidget/>
-        <LedWidget/>
-        <HeaterWidget/>
-        <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_CUVETTE}/>
-        <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_UV_VIS}/>
-        <CameraControlModalButton/>
+        <div className="flex flex-col gap-3 col-span-3">
+          <PumpsWidget/>
+          <LedWidget/>
+          <HeaterWidget/>
+          <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_CUVETTE}/>
+          <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_UV_VIS}/>
+          <CameraControlModalButton/>
+        </div>
       </div>
-    </div>
+    </CarouselPositionProvider>
   )
 
   return (

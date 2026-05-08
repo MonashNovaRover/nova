@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Button, Card, CardBody, CardHeader, CardProps, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger
 } from "@nextui-org/react";
 import {Check, MoreHorizontal} from "react-feather";
@@ -11,6 +11,7 @@ import {
   useCarouselZero
 } from "./useCarouselBifrost.ts";
 import {CarouselHallEffects} from "./CarouselHallEffects.tsx";
+import {useCarouselPosition} from "./CarouselPositionContext.tsx";
 
 export enum RING {
   INNER = 0,
@@ -57,6 +58,9 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   const [manualPositions, setManualPositions] = useState<CuvettePositions>([0, 0]); // Current Degrees
   const [ignoreZeroingStatus, setIgnoreZeroingStatus] = useState(true);
 
+  // Context for sharing position with other components (e.g., UVVisSpec for graph naming)
+  const carouselContext = useCarouselPosition();
+
   // Derive current cuvette positions from feedback positions (in degrees)
   const currentCuvettes: CuvettePositions = useMemo(() => [
     degreesToCuvette(RING.INNER, useManualPosition ? manualPositions[RING.INNER] : innerFeedback.position),
@@ -65,6 +69,14 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
 
   // Check if either ring is zeroing
   const isZeroing = ignoreZeroingStatus ? false : (innerFeedback.zeroing || outerFeedback.zeroing);
+
+  // Sync current cuvette positions to context for use by other components
+  useEffect(() => {
+    carouselContext?.setPositions(
+      currentCuvettes[RING.INNER],
+      currentCuvettes[RING.OUTER]
+    );
+  }, [currentCuvettes, carouselContext]);
 
   // const [selectedTab, setSelectedTab] = useState(0)
   // const showCalibration = selectedTab === 1

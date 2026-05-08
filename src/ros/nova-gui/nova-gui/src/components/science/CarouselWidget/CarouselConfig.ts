@@ -129,3 +129,48 @@ export const INNER_INDICATOR_DOTS: IndicatorDot[] = [
   { cuvette: 3, color: Color.ORANGE, radius: 4, targetCuvette: 10 },
 ];
 export const INNER_INDICATOR_DOT_DISTANCE = 37;
+
+export const OUTER_CUVETTE_NAMES: string[] = [
+  "O1 - Molish S1 1",
+  "O2 - Molish S1 2",
+  "O3 - Molish S1 3",
+  "O4 - UV Fluor S1 1",
+  "O5 - UV Fluor S1 2",
+  "O6 - UV Fluor S1 3",
+  "O7 - Blank S1",
+  "O8 - Molish S2 1",
+  "O9 - Molish S2 2",
+  "O10 - Molish S2 3",
+  "O11 - UV Fluor S2 1",
+  "O12 - UV Fluor S2 2",
+  "O13 - UV Fluor S2 3",
+  "O14 - Blank S2",
+  "O15 - Molish con 1",
+  "O16 - Molish con 2",
+  "O17 - UV Fluor con 1",
+  "O18 - UV Fluor con 2",
+  "O19 - Ninhydrin con 1",
+  "O20 - Ninhydrin con 2",
+  "O21 - Blank con",
+  "",
+  "",
+  "",
+];
+
+export const INNER_CUVETTE_NAMES: string[] = [
+  "I1 - Nile Red S1 1",
+  "I2 - Nile Red S1 2",
+  "I3 - Nile Red S1 3",
+  "I4 - Ninhydrin S2 1",
+  "I5 - Ninhydrin S2 2",
+  "I6 - Ninhydrin S2 3",
+  "I7 - Nile Red S2 1",
+  "I8 - Nile Red S2 2",
+  "I9 - Nile Red S2 3",
+  "I10 - Nile Red con 1",
+  "I11 - Nile Red con 2",
+  "",
+  "I13 - Ninhydrin S1 1",
+  "I14 - Ninhydrin S1 2",
+  "I15 - Ninhydrin S1 3",
+];
