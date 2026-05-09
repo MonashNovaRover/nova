@@ -17,7 +17,8 @@ PACKAGE: 	auto_typing
 AUTHOR(S):  Anthony Lew
 CREATION:	9/05/2024
 EDITED:     08/05/2026
-EDITED BY: Binuda Kalugalage
+EDITED BY:  Binuda Kalugalage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
 import time
@@ -29,7 +30,7 @@ from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster, TransformStamped
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import Transform, Pose
-from controller_manager_msgs.srv import SwitchController
+from controller_manager_msgs.srv import ListControllers, SwitchController
 
 import threading
 import tf2_geometry_msgs
@@ -41,14 +42,22 @@ from nova_interfaces.action import ArmPlanPath, EndEffector
 TYPING_SEQUENCER_START = "/type_sequence/start"
 TYPING_SEQUENCER_STOP = "/type_sequence/stop"
 CONTROLLER_SWITCH_SERVICE = "/arm/controller_manager/switch_controller"
+CONTROLLER_LIST_SERVICE = "/arm/controller_manager/list_controllers"
 KEY_POSITION_SERVICE = "/arm/keyboard/pub_key_position"
 PATH_PLANNER_ACTION = '/arm/plan_path'
 POKEY_THING_ACTION = "/arm/poke"
 SEQUENCER_TOPIC = "/arm/sequence"
 
-# Controllers to activate/deactivate when switching modes
+# Controllers for auto typing mode
 AUTO_TYPING_CONTROLLERS = ['nova_arm_position_controller', 'nova_path_planner']
-JOINT_SPACE_CONTROLLERS = ['nova_arm_velocity_controller']
+# All teleop controllers that could conflict with auto typing
+ALL_TELEOP_CONTROLLERS = [
+    'nova_arm_velocity_controller',
+    'nova_arm_position_controller',
+    'nova_twistmapper',
+    'nova_twistmapper_velocity',
+    'nova_end_effector_velocity_controller',
+]
 
 POKE_FORWARD = 1.0
 POKE_BACKWARD = 0.0
@@ -93,8 +102,10 @@ class TypingSequencer(Node):
 
         self.sequence_pub = self.create_publisher(SequencerFeedback, SEQUENCER_TOPIC, 10)
 
-        # Controller switcher service client
+        # Controller switcher service clients
         self.cswitcher_client = self.create_client(SwitchController, CONTROLLER_SWITCH_SERVICE)
+        self.clist_client = self.create_client(ListControllers, CONTROLLER_LIST_SERVICE)
+        self._previous_controllers = []
 
         # Key localiser service client
         self.kblocaliser_client = self.create_client(KeyPosition, KEY_POSITION_SERVICE)
@@ -110,9 +121,26 @@ class TypingSequencer(Node):
         self.pokey_client = ActionClient(self, EndEffector, POKEY_THING_ACTION)
         self.get_logger().info(f'Sequencer initalised!')
 
+    def get_active_controllers(self):
+        """ Query the controller manager for currently active controllers.
+            Returns a list of active controller names, or None on failure."""
+        if not self.clist_client.service_is_ready():
+            self.get_logger().warn(f'{CONTROLLER_LIST_SERVICE} not available')
+            return None
+
+        future = self.clist_client.call_async(ListControllers.Request())
+        self.action_executor.spin_until_future_complete(future, timeout_sec=CONTROLLER_SWITCH_TIMEOUT)
+        if not future.done():
+            self.get_logger().error('List controllers timed out')
+            return None
+        result = future.result()
+        if result is None:
+            return None
+        return [c.name for c in result.controller if c.state == 'active']
+
     def switch_controllers(self, activate, deactivate):
-        """Switch ROS2 controllers via the controller manager service.
-        Returns True on success, False on failure."""
+        """ Switch ROS2 controllers via the controller manager service.
+            Returns True on success, False on failure."""
         if not self.cswitcher_client.service_is_ready():
             self.get_logger().warn(f'{CONTROLLER_SWITCH_SERVICE} not available, skipping controller switch')
             return False
@@ -249,11 +277,8 @@ class TypingSequencer(Node):
             self.stop_event.set()
             self.thread.join(timeout=1.0)
             self.thread = None
-            # Restore joint space mode
-            self.switch_controllers(
-                activate=JOINT_SPACE_CONTROLLERS,
-                deactivate=AUTO_TYPING_CONTROLLERS,
-            )
+            # Restore previous controllers
+            self.restore_previous_controllers()
             self.get_logger().info("Sequencer stopped successfully.")
             response.success = True
             response.message = "Sequencer stopped successfully."
@@ -263,11 +288,24 @@ class TypingSequencer(Node):
             response.message = "No sequencer running."
         return response
 
+    def restore_previous_controllers(self):
+        """Restore the controllers that were active before auto typing started."""
+        self.switch_controllers(
+            activate=self._previous_controllers,
+            deactivate=AUTO_TYPING_CONTROLLERS,
+        )
+        self._previous_controllers = []
+
     def execute_sequencer(self, key_sequence) -> None:
-        # Switch to auto typing mode (activate path planner + position controller)
+        # Save currently active controllers so we can restore them later
+        active = self.get_active_controllers()
+        self._previous_controllers = [c for c in (active or []) if c in ALL_TELEOP_CONTROLLERS]
+        self.get_logger().info(f'Saving active teleop controllers: {self._previous_controllers}')
+
+        # Switch to auto typing mode (deactivate all teleop, activate path planner)
         self.switch_controllers(
             activate=AUTO_TYPING_CONTROLLERS,
-            deactivate=JOINT_SPACE_CONTROLLERS,
+            deactivate=ALL_TELEOP_CONTROLLERS,
         )
 
         # Verify path planner is reachable before proceeding
@@ -275,20 +313,14 @@ class TypingSequencer(Node):
             self.get_logger().error(
                 f'Path planner action server not available after {PATH_PLANNER_TIMEOUT}s. '
                 'Cannot start typing sequence.')
-            self.switch_controllers(
-                activate=JOINT_SPACE_CONTROLLERS,
-                deactivate=AUTO_TYPING_CONTROLLERS,
-            )
+            self.restore_previous_controllers()
             return
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
         ee_transform = self.get_transform_from_frame(self.ee_frame, self.base_frame)
         if ee_transform is None:
             self.get_logger().info(f"Sequencer failed getting {self.ee_frame} transform")
-            self.switch_controllers(
-                activate=JOINT_SPACE_CONTROLLERS,
-                deactivate=AUTO_TYPING_CONTROLLERS,
-            )
+            self.restore_previous_controllers()
             return
         start_pose = Pose() 
         start_pose.position = ee_transform.transform.translation
@@ -348,11 +380,8 @@ class TypingSequencer(Node):
             seq_msg.partial_sequence.append(key)
             self.get_logger().info(f'Completed: {seq_msg.partial_sequence}')
 
-        # Switch back to joint space mode
-        self.switch_controllers(
-            activate=JOINT_SPACE_CONTROLLERS,
-            deactivate=AUTO_TYPING_CONTROLLERS,
-        )
+        # Restore previous controllers
+        self.restore_previous_controllers()
 
         seq_msg.current_key = ""
         self.sequence_pub.publish(seq_msg)
