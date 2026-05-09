@@ -403,10 +403,6 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
 void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX) {
 
   // 0. Initialize constants
-  GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
-  g_object_set(source_valve, "drop", true, NULL);
-
-  // 1. Find the elements
   GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
   GstElement* source_rate_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_rate_filter");
   GstElement* source_decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_decode");
@@ -419,6 +415,20 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
 
   GstElement* encode_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_filter");
   GstElement* encode_vp9 = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_vp9");
+
+  GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
+  GstElement* gpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_valve");
+
+  GstElement* cpu_gpu_selector = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_gpu_selector");
+  GstElement* cpu_convertscale = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_convertscale");
+  GstElement* gpu_download = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_download");
+  GstPad* cpu_source_pad = gst_element_get_static_pad(cpu_convertscale, "src");
+  GstPad* gpu_source_pad = gst_element_get_static_pad(gpu_download, "src");
+  GstPad* cpu_sink_pad = gst_pad_get_peer(cpu_source_pad);
+  GstPad* gpu_sink_pad = gst_pad_get_peer(gpu_source_pad);
+
+  GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
+  g_object_set(source_valve, "drop", true, NULL);
 
   // 2. Set properties for elements
   if (source_filter) {
@@ -465,16 +475,6 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   // 3. Swap input now, avoids race condition
-  GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
-  GstElement* gpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_valve");
-
-  GstElement* cpu_gpu_selector = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_gpu_selector");
-  GstElement* cpu_convertscale = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_convertscale");
-  GstElement* gpu_download = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_download");
-  GstPad* cpu_source_pad = gst_element_get_static_pad(cpu_convertscale, "src");
-  GstPad* gpu_source_pad = gst_element_get_static_pad(gpu_download, "src");
-  GstPad* cpu_sink_pad = gst_pad_get_peer(cpu_source_pad);
-  GstPad* gpu_sink_pad = gst_pad_get_peer(gpu_source_pad);
   g_object_set(cpu_valve, "drop", props->use_gl, NULL);
   g_object_set(gpu_valve, "drop", !props->use_gl, NULL);
   if (props->use_gl) {
@@ -488,6 +488,8 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
     gst_pad_send_event(gpu_sink_pad, gst_event_new_flush_stop(TRUE));
   }
   g_object_set(source_valve, "drop", false, NULL);
+
+  // 4. Unreference every element
   gst_object_unref(cpu_source_pad);
   gst_object_unref(gpu_source_pad);
   gst_object_unref(cpu_sink_pad);
