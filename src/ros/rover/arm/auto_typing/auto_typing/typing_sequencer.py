@@ -5,40 +5,19 @@ Monash Nova Rover Team
 
 ROS action service which runs auto typing, 
     interfaces with the following:
-- Keyboard localiser (arm/keyboard_localiser.py)
-- Path planner (404 not found)
-- Controller switcher (404 not found)
+- Keyboard localiser (auto_typing/keyboard_localiser.py)
+- Path planner (nova_path_planner controller)
+- Controller manager (ROS2 control SwitchController)
 Used for auto typing task at URC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: typing_sequencer
 SERVICES: /type_sequence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	arm
+PACKAGE: 	auto_typing
 AUTHOR(S):  Anthony Lew
 CREATION:	9/05/2024
-EDITED:     29/05/2024
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Add stop functionality to sequencer
- - Integrate Path Planner and Controller Switcher properly
- - Add error handling
- - Test!
- - Integrate with GUI
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Running auto typing:
- - GUI - urc/auto-typing 
- - Rosbridge
- - Cameras2 (legacy if on orin)
-    - Cameras will not show up in firefox, use chromium!
- - arm_bringup/typing.launch.py
-    - Make sure to run can start vcan1
-    - auto_mode:=False if no camera
- - path.mock.launch.py for fake arm
-    - Make to activate path planner
-        - ros2 control list_controllers
-        - ros2 control set_controller_state nova_path_planner active
- - rviz2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EDITED:     08/05/2026
+EDITED BY: Binuda Kalugalage
 '''
 
 import time
@@ -50,26 +29,33 @@ from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster, TransformStamped
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import Transform, Pose
-#from nova_interfaces.action import EndEffector
+from controller_manager_msgs.srv import SwitchController
 
 import threading
 import tf2_geometry_msgs
 
-# from arm_interfaces.action import PathTo
 from arm_interfaces.msg import SequencerFeedback
 from arm_interfaces.srv import KeyPosition, TypeSequence
 from nova_interfaces.action import ArmPlanPath, EndEffector
 
 TYPING_SEQUENCER_START = "/type_sequence/start"
 TYPING_SEQUENCER_STOP = "/type_sequence/stop"
-CONTROLLER_SWITCH_SERVICE = "/controller_manager/switch_controller"
+CONTROLLER_SWITCH_SERVICE = "/arm/controller_manager/switch_controller"
 KEY_POSITION_SERVICE = "/arm/keyboard/pub_key_position"
 PATH_PLANNER_ACTION = '/arm/plan_path'
 POKEY_THING_ACTION = "/arm/poke"
 SEQUENCER_TOPIC = "/arm/sequence"
 
+# Controllers to activate/deactivate when switching modes
+AUTO_TYPING_CONTROLLERS = ['nova_arm_position_controller', 'nova_path_planner']
+JOINT_SPACE_CONTROLLERS = ['nova_arm_velocity_controller']
+
 POKE_FORWARD = 1.0
 POKE_BACKWARD = 0.0
+
+PATH_PLANNER_TIMEOUT = 10.0  # seconds to wait for path planner action server
+POKEY_TIMEOUT = 10.0  # seconds to wait for pokey action server
+CONTROLLER_SWITCH_TIMEOUT = 5.0  # seconds to wait for controller switch
 
 DEFAULT_POSITION = [0.0, 0.0, 0.0]
 DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
@@ -108,10 +94,7 @@ class TypingSequencer(Node):
         self.sequence_pub = self.create_publisher(SequencerFeedback, SEQUENCER_TOPIC, 10)
 
         # Controller switcher service client
-        # TODO: Uncomment once integrated
-        # self.cswitcher_client = self.create_client(Trigger, CONTROLLER_SWITCH_SERVICE)
-        # while not self.cswitcher_client.wait_for_service(timeout_sec=1.0):
-        #     self.get_logger().info(f'{CONTROLLER_SWITCH_SERVICE} service not available, waiting again...')
+        self.cswitcher_client = self.create_client(SwitchController, CONTROLLER_SWITCH_SERVICE)
 
         # Key localiser service client
         self.kblocaliser_client = self.create_client(KeyPosition, KEY_POSITION_SERVICE)
@@ -127,11 +110,30 @@ class TypingSequencer(Node):
         self.pokey_client = ActionClient(self, EndEffector, POKEY_THING_ACTION)
         self.get_logger().info(f'Sequencer initalised!')
 
-    def send_switch_request(self):
-        request = Trigger.Request()
+    def switch_controllers(self, activate, deactivate):
+        """Switch ROS2 controllers via the controller manager service.
+        Returns True on success, False on failure."""
+        if not self.cswitcher_client.service_is_ready():
+            self.get_logger().warn(f'{CONTROLLER_SWITCH_SERVICE} not available, skipping controller switch')
+            return False
+
+        request = SwitchController.Request()
+        request.activate_controllers = activate
+        request.deactivate_controllers = deactivate
+        request.strictness = SwitchController.Request.BEST_EFFORT
+        request.activate_asap = True
+
         future = self.cswitcher_client.call_async(request)
-        rclpy.spin_until_future_complete(self, future)
-        return future.result()
+        self.action_executor.spin_until_future_complete(future, timeout_sec=CONTROLLER_SWITCH_TIMEOUT)
+        if not future.done():
+            self.get_logger().error('Controller switch timed out')
+            return False
+        result = future.result()
+        if result is None or not result.ok:
+            self.get_logger().error('Controller switch failed')
+            return False
+        self.get_logger().info(f'Switched controllers: activated={activate}, deactivated={deactivate}')
+        return True
 
     def send_key_request(self, key, stamp):
         request = KeyPosition.Request()
@@ -168,7 +170,11 @@ class TypingSequencer(Node):
         goal_msg.pose = pose
         goal_msg.speed = speed
 
-        self.pplanner_client.wait_for_server()
+        if not self.pplanner_client.wait_for_server(timeout_sec=PATH_PLANNER_TIMEOUT):
+            self.get_logger().error(f'Path planner action server not available after {PATH_PLANNER_TIMEOUT}s. '
+                                    'Is the nova_path_planner controller active?')
+            return False
+
         future_response = self.pplanner_client.send_goal_async(goal_msg, feedback_callback=self.handle_pp_feedback)
         self.action_executor.spin_until_future_complete(future_response)
         response = future_response.result()
@@ -188,7 +194,11 @@ class TypingSequencer(Node):
     def do_poke(self, poke):
         goal_msg = EndEffector.Goal()
         goal_msg.poke = poke
-        self.pokey_client.wait_for_server()
+
+        if not self.pokey_client.wait_for_server(timeout_sec=POKEY_TIMEOUT):
+            self.get_logger().error(f'Pokey action server not available after {POKEY_TIMEOUT}s')
+            return False
+
         future_response = self.pokey_client.send_goal_async(goal_msg, feedback_callback=self.handle_pk_feedback)
         self.action_executor.spin_until_future_complete(future_response)
         response = future_response.result()
@@ -239,6 +249,11 @@ class TypingSequencer(Node):
             self.stop_event.set()
             self.thread.join(timeout=1.0)
             self.thread = None
+            # Restore joint space mode
+            self.switch_controllers(
+                activate=JOINT_SPACE_CONTROLLERS,
+                deactivate=AUTO_TYPING_CONTROLLERS,
+            )
             self.get_logger().info("Sequencer stopped successfully.")
             response.success = True
             response.message = "Sequencer stopped successfully."
@@ -249,26 +264,35 @@ class TypingSequencer(Node):
         return response
 
     def execute_sequencer(self, key_sequence) -> None:
-        sequencer_result = None
-        partial_sequence = []
+        # Switch to auto typing mode (activate path planner + position controller)
+        self.switch_controllers(
+            activate=AUTO_TYPING_CONTROLLERS,
+            deactivate=JOINT_SPACE_CONTROLLERS,
+        )
+
+        # Verify path planner is reachable before proceeding
+        if not self.pplanner_client.wait_for_server(timeout_sec=PATH_PLANNER_TIMEOUT):
+            self.get_logger().error(
+                f'Path planner action server not available after {PATH_PLANNER_TIMEOUT}s. '
+                'Cannot start typing sequence.')
+            self.switch_controllers(
+                activate=JOINT_SPACE_CONTROLLERS,
+                deactivate=AUTO_TYPING_CONTROLLERS,
+            )
+            return
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
         ee_transform = self.get_transform_from_frame(self.ee_frame, self.base_frame)
         if ee_transform is None:
             self.get_logger().info(f"Sequencer failed getting {self.ee_frame} transform")
-            sequencer_result = False
+            self.switch_controllers(
+                activate=JOINT_SPACE_CONTROLLERS,
+                deactivate=AUTO_TYPING_CONTROLLERS,
+            )
             return
         start_pose = Pose() 
         start_pose.position = ee_transform.transform.translation
         start_pose.orientation = ee_transform.transform.rotation
-
-        # Call controller switcher and switch to "Auto typing mode" (IK only mode)
-        # TODO: Integrate the switcher
-        # switch_result = self.send_switch_request()
-        # if not switch_result.success:
-        #     self.get_logger().error(f'Switching Error: {switch_result.message}')
-        #     return
-    
         seq_msg = SequencerFeedback()
         seq_msg.sequence = key_sequence
         seq_msg.partial_sequence = []
@@ -293,32 +317,28 @@ class TypingSequencer(Node):
             key_transform = self.get_transform_from_frame(self.base_frame, key_frame, stamp)
             if key_transform is None:
                 self.get_logger().warn(f"Failed getting transform for {key}")
-                sequencer_result = False
-                return
+                break
 
             # Start action to move to key via path planner
             pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
             if pose is None:
                 self.get_logger().warn(f"Failed getting pose for {key}")
-                sequencer_result = False
-                return
-            pp_result = self.call_path_planner(pose, self.pp_speed) # TODO: Add proper error handling
+                break
+            pp_result = self.call_path_planner(pose, self.pp_speed)
+            if not pp_result:
+                self.get_logger().warn(f"Path planner failed for {key}")
+                break
             self.get_logger().info(f"Path planner finished!")
 
-            # TODO: Integrate and test this section
-
             # Activate pokey thing
-            # TODO: Add error handling
             poke_out = self.do_poke(POKE_FORWARD)
             if not poke_out:
-                self.get_logger().info(f"Failed poking for {key}")
-                sequencer_result = False
-                return
+                self.get_logger().warn(f"Failed poking for {key}")
+                break
             poke_in = self.do_poke(POKE_BACKWARD)
             if not poke_in:
-                self.get_logger().info(f"Failed poking for {key}")
-                sequencer_result = False
-                return
+                self.get_logger().warn(f"Failed retracting poke for {key}")
+                break
 
             # Move back to starting position
             if self.move_to_start:
@@ -326,18 +346,17 @@ class TypingSequencer(Node):
 
             # Publish feedback to topic for GUI
             seq_msg.partial_sequence.append(key)
-            self.get_logger().info(f'Completed: {partial_sequence}')
+            self.get_logger().info(f'Completed: {seq_msg.partial_sequence}')
 
-        # Call controller switcher and switch back to manual mode
-        # TODO: Integrate the switcher
-        # switch_result = self.send_switch_request()
-        # if not switch_result.success:
-        #     self.get_logger().error(f'Switching Error: {switch_result.message}')
-        #     sequencer_result = False
-        #     return
+        # Switch back to joint space mode
+        self.switch_controllers(
+            activate=JOINT_SPACE_CONTROLLERS,
+            deactivate=AUTO_TYPING_CONTROLLERS,
+        )
+
         seq_msg.current_key = ""
         self.sequence_pub.publish(seq_msg)
-        self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
+        self.get_logger().info(f'Sequencer Complete! {seq_msg.partial_sequence}')
         self.stop_event.set()
         self.thread = None
 

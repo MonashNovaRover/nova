@@ -12,6 +12,7 @@
 , tf2-geometry-msgs
 , opencv4
 , jcan
+, controller-manager-msgs
 }:
 
 buildRosPackage {
@@ -39,6 +40,7 @@ buildRosPackage {
     nova-interfaces
     opencv4
     jcan
+    controller-manager-msgs
   ];
 
   propagatedBuildInputs = [

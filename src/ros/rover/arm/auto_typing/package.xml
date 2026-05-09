@@ -20,6 +20,7 @@
   <depend>tf2_geometry_msgs</depend>
   <depend>arm_interfaces</depend>
   <depend>nova_interfaces</depend>
+  <depend>controller_manager_msgs</depend>
   <depend>opencv_python</depend>
 
   <export>
