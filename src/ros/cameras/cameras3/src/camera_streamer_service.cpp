@@ -116,9 +116,6 @@ class CameraStreamer : public rclcpp::Node
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 8);
-    } else if (pipeline->camera->pipeline_type == "vp8softwareGL") {
-      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 8);
-      pipeline->gst_pipeline = vpXsoftwareGL_pipeline(this, props, 8);
       GstContext *gl_context = gst_context_new("gst.gl.GLDisplay", TRUE);
       gst_context_set_gl_display(gl_context, gl_display);
       gst_element_set_context(pipeline->gst_pipeline, gl_context);
@@ -126,9 +123,6 @@ class CameraStreamer : public rclcpp::Node
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 9);
-    } else if (pipeline->camera->pipeline_type == "vp9softwareGL") {
-      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 9);
-      pipeline->gst_pipeline = vpXsoftwareGL_pipeline(this, props, 9);
       GstContext *gl_context = gst_context_new("gst.gl.GLDisplay", TRUE);
       gst_context_set_gl_display(gl_context, gl_display);
       gst_element_set_context(pipeline->gst_pipeline, gl_context);
@@ -148,16 +142,10 @@ class CameraStreamer : public rclcpp::Node
       
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
-      set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props, 8);
-    } else if (pipeline->camera->pipeline_type == "vp8softwareGL") {
-      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 8);
-      set_vpXsoftwareGL_pipeline_properties(pipeline->gst_pipeline, props, 8);
+      set_vpXsoftware_pipeline_properties(this, pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
-      set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props, 9);
-    } else if (pipeline->camera->pipeline_type == "vp9softwareGL") {
-      std::unique_ptr<vpXsoftwareGLPipelineProperties> props = get_vpXsoftwareGL_pipeline_properties(this, pipeline->camera, 9); 
-      set_vpXsoftwareGL_pipeline_properties(pipeline->gst_pipeline, props, 9);
+      set_vpXsoftware_pipeline_properties(this, pipeline->gst_pipeline, props);
     }
   }
 
@@ -313,9 +301,6 @@ class CameraStreamer : public rclcpp::Node
         change_profile_properties(pipeline);
 
         response->success = true;
-
-        bool autostart = false;
-        this->get_parameter("autostart", autostart);
 
         // auto start if true
         RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);

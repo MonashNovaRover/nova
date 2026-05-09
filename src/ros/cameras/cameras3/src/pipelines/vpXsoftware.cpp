@@ -27,23 +27,25 @@
 
 GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX)
 {
+  // 0. Initialize constants
+  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
+  if (crop_width == 0) props->crop43 = false;
+
   // 1. Create the elements
   std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
   GstElement* source_v4l = gst_element_factory_make("v4l2src", "source_v4l");
-  GstElement* source_valve = gst_element_factory_make("valve", "source_valve"); 
-  GstElement* source_filter = gst_element_factory_make("capsfilter", "source_filter");
+  GstElement* source_valve = gst_element_factory_make("valve", "source_valve");
   GstElement* source_rate = gst_element_factory_make("videorate", "source_rate");
-  GstElement* source_rate_filter = gst_element_factory_make("capsfilter", "source_rate_filter");
+  GstElement* source_filter = gst_element_factory_make("capsfilter", "source_filter");
   GstElement* source_decode = (props->mime == "image/jpeg") ? gst_element_factory_make(props->decoder.c_str(), "source_decode") : nullptr;
 
   if (
     !gst_pipeline ||
     !source_v4l ||
-    !source_valve || 
-    !source_filter ||
+    !source_valve ||
     !source_rate ||
-    !source_rate_filter ||
+    !source_filter ||
     (props->mime == "image/jpeg" && !source_decode)
   ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
@@ -119,18 +121,18 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   }
 
   section = (std::string) "encode " + (std::string) "vp9";
+  GstElement* encode_filter = gst_element_factory_make("capsfilter", "encode_filter");
   GstElement* encode_tee = gst_element_factory_make("tee", "encode_tee");
   GstElement* encode_queue = gst_element_factory_make("queue", "encode_queue");
   GstElement* encode_valve = gst_element_factory_make("valve", "encode_valve");
-  GstElement* encode_filter = gst_element_factory_make("capsfilter", "encode_filter");
-  GstElement* encode_vp9 = gst_element_factory_make("vp9enc", "encode_vp9");
+  GstElement* encode_encoder = (vpX == 9) ? gst_element_factory_make("vp9enc", "encode_encoder") : gst_element_factory_make("vp8enc", "encode_encoder");
   GstElement* encode_selector = gst_element_factory_make("input-selector", "encode_selector");
 
   if (
+    !encode_filter ||
     !encode_tee ||
     !encode_valve ||
-    !encode_filter ||
-    !encode_vp9 ||
+    !encode_encoder ||
     !encode_selector
     ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
@@ -150,10 +152,9 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   // 2. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
     source_v4l,
-    source_valve, 
-    source_filter,
+    source_valve,
     source_rate,
-    source_rate_filter,
+    source_filter,
 
     cpu_gpu_tee,
     cpu_queue,
@@ -174,11 +175,12 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     gpu_download,
     cpu_gpu_selector,
 
+    encode_filter,
+
     encode_tee,
     encode_queue,
     encode_valve,
-    encode_filter,
-    encode_vp9,
+    encode_encoder,
     encode_selector,
 
     sink_webrtc,
@@ -189,7 +191,6 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   // 3. Set element properties
   set_v4lsource(source_v4l, props);
   set_srcfilter(source_filter, props);
-  set_ratefilter(source_rate_filter, props);
   if (props->mime == "image/jpeg" && props->decoder == "jpegdec") set_jpegdec(source_decode, props);
 
   if (props->rossink) {
@@ -203,7 +204,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   g_object_set(cpu_valve, "drop", props->use_gl, NULL);
   if (props->crop43) set_cpu_crop43(cpu_crop, props);
   else set_no_cpu_crop43(cpu_crop);
-  if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter, props);
+  if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter);
   else set_no_cpu_grey_filter(cpu_grey_filter);
   set_convertscale(cpu_grey_convert, props);
   set_convertscale(cpu_convertscale, props);
@@ -213,22 +214,21 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   if (props->crop43) set_glcrop43(gpu_crop, props);
   set_glshaders(gpu_shaders, props);
 
-  set_queue(encode_queue);
   set_scalefilter(encode_filter, props);
-  if (vpX == 9) set_vp9enc(encode_vp9, props);
+  set_queue(encode_queue);
+  (vpX == 9) ? set_vp9enc(encode_encoder, props) : set_vp8enc(encode_encoder, props);
 
   set_webrtcsink(sink_webrtc, props);
 
   // 4. Link elements
   GstElement* next_element = source_v4l;
 
-  link_elements(streamer_node, next_element, source_valve, props->serial); 
+  link_elements(streamer_node, next_element, source_valve, props->serial);
+  link_elements(streamer_node, next_element, source_rate, props->serial);
   if (!link_elements(streamer_node, next_element, source_filter, props->serial)) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
-  link_elements(streamer_node, next_element, source_rate, props->serial);
-  link_elements(streamer_node, next_element, source_rate_filter, props->serial);
   link_elements(streamer_node, next_element, source_decode, props->serial);
 
   link_elements(streamer_node, next_element, ros_tee, props->serial);
@@ -270,11 +270,11 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   gst_object_unref(gpu_sink_pad);
 
   next_element = cpu_gpu_selector;
+  link_elements(streamer_node, next_element, encode_filter, props->serial);
   link_elements(streamer_node, next_element, encode_tee, props->serial);
   link_elements(streamer_node, next_element, encode_queue, props->serial);
   link_elements(streamer_node, next_element, encode_valve, props->serial);
-  link_elements(streamer_node, next_element, encode_filter, props->serial);
-  link_elements(streamer_node, next_element, encode_vp9, props->serial);
+  link_elements(streamer_node, next_element, encode_encoder, props->serial);
   //link_elements(streamer_node, next_element, encode_selector, props->serial);
 
   link_elements(streamer_node, next_element, sink_webrtc, props->serial);
@@ -393,18 +393,19 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
  
   // Disable crop43 if it is already 4:3
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  if (crop_width == 0) props->crop43 = false;
+  //if (crop_width == 0) props->crop43 = false;
 
   display_resolution(streamer_node, props, camera, crop_width);
 
   return props;
 }
 
-void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX) {
+void set_vpXsoftware_pipeline_properties(rclcpp::Node* streamer_node, GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props) {
 
   // 0. Initialize constants
   GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
-  GstElement* source_rate_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_rate_filter");
+  GstPad* source_source_pad = gst_element_get_static_pad(source_filter, "src");
+  GstCaps* source_caps = gst_pad_get_current_caps(source_source_pad);
   GstElement* source_decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_decode");
 
   GstElement* cpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_crop");
@@ -414,7 +415,10 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstElement* gpu_shaders = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_shaders");
 
   GstElement* encode_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_filter");
-  GstElement* encode_vp9 = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_vp9");
+  GstPad* encode_source_pad = gst_element_get_static_pad(encode_filter, "src");
+  GstCaps* encode_caps = gst_pad_get_current_caps(encode_source_pad);
+  GstElement* encode_encoder = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_encoder");
+  GstElementFactory* encode_factory = gst_element_get_factory(encode_encoder);
 
   GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
   GstElement* gpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_valve");
@@ -428,16 +432,24 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstPad* gpu_sink_pad = gst_pad_get_peer(gpu_source_pad);
 
   GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
-  g_object_set(source_valve, "drop", true, NULL);
-
+  
   // 2. Set properties for elements
-  if (source_filter) {
-    set_srcfilter(source_filter, props);
-    gst_object_unref(source_filter);
+  g_object_set(source_valve, "drop", true, NULL);
+  const int vpX = ((std::string) gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(encode_factory)) == "vp9enc") ? 9 : 8;
+
+  const GstStructure* encode_str = gst_caps_get_structure(encode_caps, 0);
+  const GstStructure* source_str = gst_caps_get_structure(source_caps, 0);
+
+
+  // Do not change width or height if using vp8
+  if (vpX == 8) {
+    gst_structure_get_int(encode_str, "width", &props->width);
+    gst_structure_get_int(encode_str, "height", &props->height);
   }
-  if (source_rate_filter) {
-    set_ratefilter(source_rate_filter, props);
-    gst_object_unref(source_rate_filter);
+
+  if (source_filter) {
+    if (vpX == 9) set_srcfilter(source_filter, props);
+    gst_object_unref(source_filter);
   }
   if (source_decode) {
     if (props->mime == "image/jpeg") set_jpegdec(source_decode, props);
@@ -445,18 +457,29 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cpu_crop) {
-    if (props->crop43) set_cpu_crop43(cpu_crop, props);
+    if (props->crop43) {
+      if (vpX == 8) {
+        gst_structure_get_int(source_str, "width", &props->width);
+        gst_structure_get_int(source_str, "height", &props->height);
+      }
+      set_cpu_crop43(cpu_crop, props);
+      if (vpX == 8) {
+        gst_structure_get_int(encode_str, "width", &props->width);
+        gst_structure_get_int(encode_str, "height", &props->height);
+      }
+    }
     else set_no_cpu_crop43(cpu_crop);
     gst_object_unref(cpu_crop);
   }
   if (cpu_grey_filter) {
-    if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter, props);
+    if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter);
     else set_no_cpu_grey_filter(cpu_grey_filter);
     gst_object_unref(cpu_grey_filter);
   }
 
   if (gpu_crop) {
-    if (props->crop43) set_glcrop43(gpu_crop, props);
+    if (props->crop43 && vpX == 8);
+    else if (props->crop43) set_glcrop43(gpu_crop, props);
     else set_no_glcrop43(gpu_crop);
     gst_object_unref(gpu_crop);
   }
@@ -469,9 +492,9 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
     if (vpX == 9) set_scalefilter(encode_filter, props);
     gst_object_unref(encode_filter);
   }
-  if (encode_vp9) {
-    (vpX == 9) ? set_vp9enc(encode_vp9, props) : set_vp8enc(encode_vp9, props);
-    gst_object_unref(encode_vp9);
+  if (encode_encoder) {
+    (vpX == 9) ? set_vp9enc(encode_encoder, props) : set_vp8enc(encode_encoder, props);
+    gst_object_unref(encode_encoder);
   }
 
   // 3. Swap input now, avoids race condition
@@ -489,7 +512,11 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
   g_object_set(source_valve, "drop", false, NULL);
 
-  // 4. Unreference every element
+  // 4. Unreference every elements
+  gst_object_unref(source_source_pad);
+  gst_caps_unref(source_caps);
+  gst_object_unref(encode_source_pad);
+  gst_caps_unref(encode_caps);
   gst_object_unref(cpu_source_pad);
   gst_object_unref(gpu_source_pad);
   gst_object_unref(cpu_sink_pad);

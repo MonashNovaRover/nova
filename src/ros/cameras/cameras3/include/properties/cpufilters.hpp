@@ -1,7 +1,6 @@
 #ifndef CPUFILTERS_HEADER
 #define CPUFILTERS_HEADER
 
-#include <string>
 #include <gst/gst.h>
 
 int crop43(const int width, const int height);
@@ -10,6 +9,13 @@ void set_queue(GstElement* queue);
 
 template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
   const int crop_width = crop43(props->width, props->height);
+  g_object_set(element,
+    "left", crop_width,
+    "right", crop_width,
+  NULL);
+};
+
+template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props, const int crop_width) {
   g_object_set(element,
     "left", crop_width,
     "right", crop_width,
