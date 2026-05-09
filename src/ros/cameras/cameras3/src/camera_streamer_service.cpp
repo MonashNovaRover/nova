@@ -309,9 +309,6 @@ class CameraStreamer : public rclcpp::Node
           }
         }
 
-        GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
-        g_object_set(source_valve, "drop", true, NULL);
-
         // Change a subset of properties that can be changed in runtime
         change_profile_properties(pipeline);
 
@@ -321,13 +318,7 @@ class CameraStreamer : public rclcpp::Node
         this->get_parameter("autostart", autostart);
 
         // auto start if true
-        if (autostart) {
-          gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
-          g_object_set(source_valve, "drop", false, NULL);          
-        } else {
-          RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
-        }
-        gst_object_unref(source_valve);
+        RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
       }
     }
   }
