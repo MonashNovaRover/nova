@@ -164,39 +164,41 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
   const outerConfig: WheelConfig = outer ?? { current: cuvette ?? 0, onClick: noopClick };
   const innerConfig: WheelConfig = inner ?? { current: cuvette ?? 0, onClick: noopClick };
 
+  // Extract current values for stable dependency arrays
+  const outerCurrent = outerConfig.current;
+  const innerCurrent = innerConfig.current;
+
   // Cumulative rotation state - can exceed 360 degrees for smooth boundary crossing
-  const [outerRotation, setOuterRotation] = useState(-outerConfig.current * OUTER_STEP + OUTER_OFFSET);
-  const [innerRotation, setInnerRotation] = useState(-innerConfig.current * INNER_STEP + INNER_OFFSET);
-  const prevOuterRef = useRef(outerConfig.current);
-  const prevInnerRef = useRef(innerConfig.current);
+  const [outerRotation, setOuterRotation] = useState(-outerCurrent * OUTER_STEP + OUTER_OFFSET);
+  const [innerRotation, setInnerRotation] = useState(-innerCurrent * INNER_STEP + INNER_OFFSET);
+  const prevOuterRef = useRef(outerCurrent);
+  const prevInnerRef = useRef(innerCurrent);
 
   // Update outer rotation with shortest path
   useEffect(() => {
     const prev = prevOuterRef.current;
-    const current = outerConfig.current;
-    if (prev !== current) {
-      let delta = current - prev;
+    if (prev !== outerCurrent) {
+      let delta = outerCurrent - prev;
       // Calculate shortest path across the boundary
       if (delta > OUTER_SEGMENTS / 2) delta -= OUTER_SEGMENTS;
       if (delta < -OUTER_SEGMENTS / 2) delta += OUTER_SEGMENTS;
       setOuterRotation(rot => rot - delta * OUTER_STEP);
-      prevOuterRef.current = current;
+      prevOuterRef.current = outerCurrent;
     }
-  }, [outerConfig.current]);
+  }, [outerCurrent]);
 
   // Update inner rotation with shortest path
   useEffect(() => {
     const prev = prevInnerRef.current;
-    const current = innerConfig.current;
-    if (prev !== current) {
-      let delta = current - prev;
+    if (prev !== innerCurrent) {
+      let delta = innerCurrent - prev;
       // Calculate shortest path across the boundary
       if (delta > INNER_SEGMENTS / 2) delta -= INNER_SEGMENTS;
       if (delta < -INNER_SEGMENTS / 2) delta += INNER_SEGMENTS;
       setInnerRotation(rot => rot - delta * INNER_STEP);
-      prevInnerRef.current = current;
+      prevInnerRef.current = innerCurrent;
     }
-  }, [innerConfig.current]);
+  }, [innerCurrent]);
 
   const renderSegments = (
     count: number,

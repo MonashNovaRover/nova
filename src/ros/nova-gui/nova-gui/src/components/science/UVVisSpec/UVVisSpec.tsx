@@ -223,7 +223,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
         </div>
         <div className="flex flex-row gap-3 items-end">
           {blankButtons}
-          <RamanLocalStorageSaveButton onSave={onSave} onCSVSave={download} suggestedName={suggestedName} />
+          <RamanLocalStorageSaveButton key={suggestedName} onSave={onSave} onCSVSave={download} suggestedName={suggestedName} />
         </div>
       </CardBody>
     </Card>
