@@ -34,85 +34,107 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
   */
 
   // 1. Create the elements
+  std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
-  GstElement* source = gst_element_factory_make("v4l2src", "video-source");
-  GstElement* valve = gst_element_factory_make("valve", "video-valve");
-  GstElement* rate = gst_element_factory_make("videorate", "rater");
-  GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter"); 
-  GstElement* decode = gst_element_factory_make("decodebin3", "decoder");
-  GstElement* convert = gst_element_factory_make("videoconvertscale", "converter");
-  GstElement* scalefilter = gst_element_factory_make("capsfilter", "scalefilter");
-  GstElement* clock = props->show_clock ? gst_element_factory_make("clockoverlay", "clock") : nullptr;
-  GstElement* cropper = gst_element_factory_make("videocrop", "video-cropper");
-  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
+  GstElement* source_v4l = gst_element_factory_make("v4l2src", "source_v4l");
+  GstElement* source_valve = gst_element_factory_make("valve", "source_valve");
+  GstElement* source_rate = gst_element_factory_make("videorate", "source_rate");
+  GstElement* source_filter = gst_element_factory_make("capsfilter", "source_filter"); 
+  GstElement* source_decode = gst_element_factory_make("decodebin3", "source_decode");
 
+  if (
+    !gst_pipeline ||
+    !source_v4l ||
+    !source_valve ||
+    !source_rate ||
+    !source_filter ||
+    !source_decode
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
 
-  if (!gst_pipeline ||
-    !source ||
-    !valve ||
-    !rate ||
-    !srcfilter ||
-    !decode ||
-    !convert ||
-    !scalefilter ||
-    (props->show_clock && !clock) ||
-    !cropper ||
-    !webrtc 
+  section = "cpu";
+  GstElement* cpu_crop = gst_element_factory_make("videocrop", "cpu_crop");
+  GstElement* cpu_convertscale = gst_element_factory_make("videoconvertscale", "cpu_convertscale");
+  GstElement* cpu_filter = gst_element_factory_make("capsfilter", "cpu_filter");
+  GstElement* cpu_clock = props->show_clock ? gst_element_factory_make("clockoverlay", "cpu_clock") : nullptr;
+
+  if (
+    !cpu_crop ||
+    !cpu_convertscale ||
+    !cpu_filter ||
+    (props->show_clock && !cpu_clock)
     ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
 
-  // 2. Set element properties
-  set_v4lsource(source, props);
-  set_srcfilter(srcfilter, props);
-  set_convertscale(convert, props);
-  set_scalefilter(scalefilter, props);
-  if (props->crop43) set_cpu_crop43(cropper, props);
-  set_webrtcsink(webrtc, props);
+  section = "sink";
+  GstElement* webrtc_sink = gst_element_factory_make("webrtcsink", "webrtc_sink");
 
-  // 3. Add elements to pipeline
+  if (
+    !webrtc_sink
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
+  // 2. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
-    source,
-    valve,
-    rate,
-    srcfilter,
-    decode,
-    convert,
-    cropper,
-    scalefilter,
-    webrtc,
+    source_v4l,
+    source_valve,
+    source_rate,
+    source_filter,
+    source_decode,
+
+    cpu_crop,
+    cpu_convertscale,
+    cpu_filter,
+
+    webrtc_sink,
   NULL);
-  if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), clock);
+  if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), cpu_clock);
+
+  // 3. Set element properties
+  set_v4lsource(source_v4l, props);
+  set_srcfilter(source_filter, props);
+
+  if (props->crop43) set_cpu_crop43(cpu_crop, props);
+  else set_no_cpu_crop43(cpu_crop);
+  set_convertscale(cpu_convertscale, props);
+  set_scalefilter(cpu_filter, props);
+
+  set_webrtcsink(webrtc_sink, props);
 
   // 4. Link elements
   
-  GstElement* next_element = source;
+  GstElement* next_element = source_v4l;
 
-  if (link_elements(streamer_node, next_element, valve, props->serial)) next_element = valve;
-  if (link_elements(streamer_node, next_element, rate, props->serial)) next_element = rate;
-  if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
+  link_elements(streamer_node, next_element, source_valve, props->serial);
+  link_elements(streamer_node, next_element, source_rate, props->serial);
+  if (link_elements(streamer_node, next_element, source_filter, props->serial));
   else {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
-  if (link_elements(streamer_node, next_element, decode, props->serial)) next_element = decode;
+  link_elements(streamer_node, next_element, source_decode, props->serial);
 
-  g_signal_connect(decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
-      GstElement* convert = static_cast<GstElement*>(user_data);
-      GstPad* sink_pad = gst_element_get_static_pad(convert, "sink");
+  g_signal_connect(source_decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
+      GstElement* cpu_crop = static_cast<GstElement*>(user_data);
+      GstPad* sink_pad = gst_element_get_static_pad(cpu_crop, "sink");
       if (sink_pad && !gst_pad_is_linked(sink_pad)) {
           gst_pad_link(new_pad, sink_pad);
       }
       if (sink_pad) gst_object_unref(sink_pad);
-  }), convert);
+  }), cpu_crop);
 
-  next_element = convert;
+  next_element = cpu_crop;
 
-  if (link_elements(streamer_node, next_element, scalefilter, props->serial)) next_element = scalefilter;
-  if (link_elements(streamer_node, next_element, cropper, props->serial)) next_element = cropper;
-  if (link_elements(streamer_node, next_element, clock, props->serial)) next_element = clock;
-  link_elements(streamer_node, next_element, webrtc, props->serial);
+  link_elements(streamer_node, next_element, cpu_convertscale, props->serial);
+  link_elements(streamer_node, next_element, cpu_filter, props->serial);
+  link_elements(streamer_node, next_element, cpu_clock, props->serial);
+  link_elements(streamer_node, next_element, webrtc_sink, props->serial);
 
   next_element = nullptr;
 
@@ -207,24 +229,24 @@ void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::un
   if (crop_width == 0) props->crop43 = false;
 
   // 1. Find the elements
-  GstElement* srcfilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "srcfilter");
-  GstElement* scalefilter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "scalefilter");
-  GstElement* cropper = gst_bin_get_by_name(GST_BIN(gst_pipeline), "video-cropper");
+  GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
+  GstElement* cpu_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_filter");
+  GstElement* cpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_crop");
 
   // 2. Set properties for elements
-  if (srcfilter) {
-    set_srcfilter(srcfilter, props);
-    gst_object_unref(srcfilter);
+  if (source_filter) {
+    set_srcfilter(source_filter, props);
+    gst_object_unref(source_filter);
   }
 
-  if (scalefilter) { 
-    set_scalefilter(scalefilter, props);
-    gst_object_unref(scalefilter);
+  if (cpu_filter) { 
+    set_scalefilter(cpu_filter, props);
+    gst_object_unref(cpu_filter);
   }
 
-  if (cropper) {
-    if (props->crop43) set_cpu_crop43(cropper, props);
-    else set_no_cpu_crop43(cropper);
-    gst_object_unref(cropper);
+  if (cpu_crop) {
+    if (props->crop43) set_cpu_crop43(cpu_crop, props);
+    else set_no_cpu_crop43(cpu_crop);
+    gst_object_unref(cpu_crop);
   }
 }

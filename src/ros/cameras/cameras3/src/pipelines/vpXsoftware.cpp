@@ -120,30 +120,28 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     return nullptr;
   }
 
-  section = (std::string) "encode " + (std::string) "vp9";
+  section = (std::string) "encode " + (std::string) "vp" + std::to_string(vpX);
   GstElement* encode_filter = gst_element_factory_make("capsfilter", "encode_filter");
   GstElement* encode_tee = gst_element_factory_make("tee", "encode_tee");
   GstElement* encode_queue = gst_element_factory_make("queue", "encode_queue");
   GstElement* encode_valve = gst_element_factory_make("valve", "encode_valve");
   GstElement* encode_encoder = (vpX == 9) ? gst_element_factory_make("vp9enc", "encode_encoder") : gst_element_factory_make("vp8enc", "encode_encoder");
-  GstElement* encode_selector = gst_element_factory_make("input-selector", "encode_selector");
 
   if (
     !encode_filter ||
     !encode_tee ||
     !encode_valve ||
-    !encode_encoder ||
-    !encode_selector
+    !encode_encoder
     ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
 
   section = "sink";
-  GstElement* sink_webrtc = gst_element_factory_make("webrtcsink", "sink_webrtc");
+  GstElement* webrtc_sink = gst_element_factory_make("webrtcsink", "webrtc_sink");
 
   if (
-    !sink_webrtc
+    !webrtc_sink
   ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
@@ -181,9 +179,8 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     encode_queue,
     encode_valve,
     encode_encoder,
-    encode_selector,
 
-    sink_webrtc,
+    webrtc_sink,
   NULL);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), source_decode);
   if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), ros_tee, ros_queue, ros_convert, ros_filter, ros_sink, NULL);
@@ -218,7 +215,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   set_queue(encode_queue);
   (vpX == 9) ? set_vp9enc(encode_encoder, props) : set_vp8enc(encode_encoder, props);
 
-  set_webrtcsink(sink_webrtc, props);
+  set_webrtcsink(webrtc_sink, props);
 
   // 4. Link elements
   GstElement* next_element = source_v4l;
@@ -275,9 +272,8 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   link_elements(streamer_node, next_element, encode_queue, props->serial);
   link_elements(streamer_node, next_element, encode_valve, props->serial);
   link_elements(streamer_node, next_element, encode_encoder, props->serial);
-  //link_elements(streamer_node, next_element, encode_selector, props->serial);
 
-  link_elements(streamer_node, next_element, sink_webrtc, props->serial);
+  link_elements(streamer_node, next_element, webrtc_sink, props->serial);
 
   next_element = nullptr;
 
@@ -343,7 +339,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->denoise_threshold = set_property(streamer_node, camera, "denoise_threshold", 0.1f);
   props->denoise_radius = set_property(streamer_node, camera, "denoise_radius", 3);
   props->sharpen_radius = set_property(streamer_node, camera, "sharpen_radius", 1.0f);
-  props->sharpen_strength = set_property(streamer_node, camera, "sharpen_strength", 2.0f);
+  props->sharpen_strength = set_property(streamer_node, camera, "sharpen_strength", 1.4f);
   props->undistort_k1 = set_property(streamer_node, camera, "undistort_k1", -0.3f);
   props->undistort_k2 = set_property(streamer_node, camera, "undistort_k2", 0.1f);
   props->undistort_scale = set_property(streamer_node, camera, "undistort_scale", 1.0f);
@@ -369,14 +365,11 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   // cropper
   props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
-  // clock
-  props->show_clock = set_property(streamer_node, camera, "show_clock", false);
-
   // encode
   props->cpu_used = set_property(streamer_node, camera, "cpu_used", 1);
   props->deadline = set_property(streamer_node, camera, "deadline", 1);
   props->gop = set_property(streamer_node, camera, "gop", 1);
-  props->noise = set_property(streamer_node, camera, "noise", (props->use_gl) ? 0 : 6);
+  props->encoder_denoise = set_property(streamer_node, camera, "encoder_denoise", (props->use_gl) ? 0 : 6);
   props->threads = set_property(streamer_node, camera, "threads", 1);
 
   // webrtc
@@ -400,7 +393,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   return props;
 }
 
-void set_vpXsoftware_pipeline_properties(rclcpp::Node* streamer_node, GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props) {
+void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props) {
 
   // 0. Initialize constants
   GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
@@ -448,7 +441,15 @@ void set_vpXsoftware_pipeline_properties(rclcpp::Node* streamer_node, GstElement
   }
 
   if (source_filter) {
-    if (vpX == 9) set_srcfilter(source_filter, props);
+    if (vpX == 8) {
+      gst_structure_get_int(source_str, "width", &props->width);
+      gst_structure_get_int(source_str, "height", &props->height);
+    }
+    set_srcfilter(source_filter, props);
+    if (vpX == 8) {
+      gst_structure_get_int(encode_str, "width", &props->width);
+      gst_structure_get_int(encode_str, "height", &props->height);
+    }
     gst_object_unref(source_filter);
   }
   if (source_decode) {

@@ -90,6 +90,32 @@ class CameraStreamer : public rclcpp::Node
     RCLCPP_INFO(this->get_logger(), "%sCameras3 Streamer Running...%s", C_QUIET, C_RESET);
   }
 
+  ~CameraStreamer()
+  {
+      RCLCPP_INFO(this->get_logger(), "%sShutting down CameraStreamer...%s", C_QUIET, C_RESET);
+
+      for (auto &entry : pipelines) {
+          std::unique_ptr<Pipeline> &pipeline = entry.second;
+
+          if (pipeline->gst_pipeline) {
+              // Set pipeline to NULL state before cleanup
+              gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
+
+              // Unref the GStreamer pipeline
+              gst_object_unref(pipeline->gst_pipeline);
+              pipeline->gst_pipeline = nullptr;
+
+              RCLCPP_INFO(this->get_logger(), "%sPipeline for %s stopped and released%s", C_QUIET, pipeline->camera->serial.c_str(), C_RESET);
+          }
+      }
+
+      // Unref GL display if created
+      if (gl_display) {
+          gst_object_unref(gl_display);
+          gl_display = nullptr;
+      }
+  }
+
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr stop_service_;
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr pause_service_;
@@ -133,19 +159,18 @@ class CameraStreamer : public rclcpp::Node
   private: void change_profile_properties(const std::unique_ptr<Pipeline>& pipeline)
   {
     // get pipeline properties and use them to create the pipeline
-    if (pipeline->camera->pipeline_type == "v4lfallback")
-    {
+    if (pipeline->camera->pipeline_type == "v4lfallback") {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
-
+      set_v4lfallback_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
-      set_vpXsoftware_pipeline_properties(this, pipeline->gst_pipeline, props);
+      set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
-      set_vpXsoftware_pipeline_properties(this, pipeline->gst_pipeline, props);
+      set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
     }
   }
 
@@ -223,6 +248,7 @@ class CameraStreamer : public rclcpp::Node
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             } else {
               // start pipeline if the gst bin doesn't exist yet
+              this->get_pipeline_type(pipeline);
               this->start_pipeline(pipeline);
               gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PLAYING);
             }
@@ -241,8 +267,9 @@ class CameraStreamer : public rclcpp::Node
             GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
             g_object_set(source_valve, "drop", true, NULL);
             gst_object_unref(source_valve);
-            gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
-
+            gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
+            gst_object_unref(pipeline->gst_pipeline);
+            pipeline->gst_pipeline = nullptr;
 
             RCLCPP_INFO(this->get_logger(), "%sStopping %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
           } else {
@@ -255,7 +282,13 @@ class CameraStreamer : public rclcpp::Node
         for (std::string serial : request->serials) {
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
+
+            GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
+            g_object_set(source_valve, "drop", true, NULL);
+            gst_object_unref(source_valve);
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
+
+
             RCLCPP_INFO(this->get_logger(), "%sPausing %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
           } else {
             RCLCPP_INFO(this->get_logger(), "%sIssue with pipeline of: %s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_RESET);

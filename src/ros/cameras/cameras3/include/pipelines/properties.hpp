@@ -72,7 +72,7 @@ struct softwareEncProperties
   int cpu_used;
   int deadline;
   int gop;
-  int noise;
+  int encoder_denoise;
   int threads;
 };
 

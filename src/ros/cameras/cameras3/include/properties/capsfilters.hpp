@@ -11,7 +11,7 @@ template<typename properties> void set_srcfilter(GstElement* element, const prop
     props->mime.c_str(),
     "width", G_TYPE_INT, props->width,
     "height", G_TYPE_INT, props->height,
-    "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator,
+    "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator * props->downrate,
     "brightness", G_TYPE_INT, std::clamp(props->brightness, 0, 255),
     "contrast", G_TYPE_INT,  std::clamp(props->contrast, 0, 255),
   NULL);
