@@ -56,15 +56,8 @@ export const PotentiostatWidget = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row justify-between items-center">
-        <div className="flex items-center gap-2">
-          <span>Potentiostat</span>
-          {potentiostatData.is_receiving && (
-            <Chip color="success" size="sm" variant="dot">
-              Receiving Ch{potentiostatData.channel + 1}
-            </Chip>
-          )}
-        </div>
+      <CardHeader className="flex flex-row justify-between items-center pb-0">
+        <span>Potentiostat</span>
         <PotentiostatOptionsMenu
           lockButtonsDuringReading={lockButtonsDuringReading}
           onToggleLock={() => setLockButtonsDuringReading(!lockButtonsDuringReading)}
@@ -76,9 +69,33 @@ export const PotentiostatWidget = () => {
         />
       </CardHeader>
       <CardBody className="flex flex-col gap-6">
-        {/* Trigger buttons */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Status and trigger buttons */}
+        <div className="grid grid-cols-8 gap-3 items-center place-items-center">
+          <Chip
+            radius="md"
+            size="lg"
+            variant="dot"
+            color={
+              !potentiostatData.is_receiving
+                ? "success"
+                : potentiostatData.channel === 0
+                  ? "primary"
+                  : "secondary"
+            }
+            className={`h-10 border-2 col-span-2 ${
+              !potentiostatData.is_receiving
+                ? "border-success"
+                : potentiostatData.channel === 0
+                  ? "border-primary"
+                  : "border-secondary"
+            }`}
+          >
+            {potentiostatData.is_receiving
+              ? `Ch${potentiostatData.channel + 1} Active`
+              : "Idle"}
+          </Chip>
           <Button
+            className="col-span-3 w-full"
             color="primary"
             onPress={() => triggerChannel(0)}
             isDisabled={buttonsDisabled}
@@ -86,6 +103,7 @@ export const PotentiostatWidget = () => {
             Start Channel 1
           </Button>
           <Button
+            className="col-span-3 w-full"
             color="secondary"
             onPress={() => triggerChannel(1)}
             isDisabled={buttonsDisabled}

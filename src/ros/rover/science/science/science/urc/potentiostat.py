@@ -9,10 +9,21 @@ TOPICS:
 SERVICES:
     - service: /science/potentiostat/trigger [TriggerOption]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CAN PROTOCOL:
+  TX: 0x1F1#XX (XX = channel 0 or 1)
+  RX: 0x41C#AA AA BB BB BB BB
+      - AAAA: voltage in mV (int16, big-endian)
+      - BBBBBBBB: current in µA (int32, big-endian)
+  STOP: 0x41C#00 (first byte 0x00 when done)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+UNIT CONVERSION:
+  CAN mV → Published V (÷1000)
+  CAN µA → Published mA (÷1000)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
 CREATION:       09/05/2026
-EDITED:         09/05/2026
+EDITED:         10/05/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -103,16 +114,20 @@ class PotentiostatNode(Node):
             self.data_publisher.publish(msg)
             return
 
-        # Parse voltage (bytes 0-1) and current (bytes 2-5) - raw values
-        voltage = int.from_bytes(data[0:2], 'big', signed=True)
-        current = int.from_bytes(data[2:6], 'big', signed=True)
+        # Parse voltage (bytes 0-1, mV) and current (bytes 2-5, µA)
+        voltage_mv = int.from_bytes(data[0:2], 'big', signed=True)
+        current_ua = int.from_bytes(data[2:6], 'big', signed=True)
+
+        # Convert: mV → V, µA → mA
+        voltage_v = voltage_mv / 1000.0
+        current_ma = current_ua / 1000.0
 
         # Publish
         msg = PotentiostatData()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.channel = self.active_channel
-        msg.voltage = float(voltage)
-        msg.current = float(current)
+        msg.voltage = voltage_v
+        msg.current = current_ma
         msg.is_receiving = True
         self.data_publisher.publish(msg)
 

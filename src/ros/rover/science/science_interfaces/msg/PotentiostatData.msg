@@ -6,10 +6,10 @@ std_msgs/Header header
 # Channel being measured (0 or 1)
 uint8 channel
 
-# Voltage reading (raw value)
+# Voltage reading in Volts (V)
 float32 voltage
 
-# Current reading (raw value)
+# Current reading in milliamps (mA)
 float32 current
 
 # True while actively receiving data, False when measurement complete

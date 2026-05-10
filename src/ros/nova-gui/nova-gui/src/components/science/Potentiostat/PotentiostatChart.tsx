@@ -19,9 +19,9 @@ export const PotentiostatChart = ({
   height = 300,
 }: PotentiostatChartProps) => {
   const chartOption = useMemo(() => {
-    // Convert stored data to scatter plot format [current, voltage]
-    const channel1Data = channel1.map((r) => [r.current, r.voltage]);
-    const channel2Data = channel2.map((r) => [r.current, r.voltage]);
+    // Convert stored data to scatter plot format [voltage, current]
+    const channel1Data = channel1.map((r) => [r.voltage, r.current]);
+    const channel2Data = channel2.map((r) => [r.voltage, r.current]);
 
     const fontSize = 16;
 
@@ -30,7 +30,7 @@ export const PotentiostatChart = ({
       grid: { left: 50, right: 20, top: 30, bottom: 40 },
       xAxis: {
         type: "value",
-        name: "Current",
+        name: "Voltage (v)",
         nameLocation: "center",
         nameGap: 25,
         nameTextStyle: { color: "#fff", fontSize },
@@ -39,7 +39,7 @@ export const PotentiostatChart = ({
       },
       yAxis: {
         type: "value",
-        name: "Voltage",
+        name: "Current (mA)",
         nameTextStyle: { color: "#fff", fontSize },
         axisLabel: { color: "#fff", fontSize },
         splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } },
@@ -55,8 +55,8 @@ export const PotentiostatChart = ({
         borderWidth: 0,
         textStyle: { color: "#fff", fontSize },
         formatter: (params: { seriesName: string; value: [number, number] }) => {
-          const [current, voltage] = params.value;
-          return `${params.seriesName}<br/>Current: ${current.toFixed(4)}<br/>Voltage: ${voltage.toFixed(2)}`;
+          const [voltage, current] = params.value;
+          return `${params.seriesName}<br/>Voltage: ${voltage.toFixed(2)}<br/>Current: ${current.toFixed(4)}`;
         },
       },
       series: [
