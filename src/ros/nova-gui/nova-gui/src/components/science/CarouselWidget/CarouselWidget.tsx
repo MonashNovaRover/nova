@@ -144,20 +144,22 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
       </div>
 
       <div className="flex flex-col gap-3 items-center mt-3">
-        <CarouselControls
-          moveXCuvettes={moveXCuvettes(RING.OUTER)}
-          calibrateByDegrees={incrementZero(RING.OUTER)}
-          showCalibration={false}
-          variant={RING.OUTER}
-          disabled={isZeroing}
-        />
-        <CarouselControls
-          moveXCuvettes={moveXCuvettes(RING.INNER)}
-          calibrateByDegrees={incrementZero(RING.INNER)}
-          showCalibration={false}
-          variant={RING.INNER}
-          disabled={isZeroing}
-        />
+        <div className="grid grid-cols-2 w-full gap-3">
+          <CarouselControls
+            moveXCuvettes={moveXCuvettes(RING.INNER)}
+            calibrateByDegrees={incrementZero(RING.INNER)}
+            showCalibration={false}
+            variant={RING.INNER}
+            disabled={isZeroing}
+          />
+          <CarouselControls
+            moveXCuvettes={moveXCuvettes(RING.OUTER)}
+            calibrateByDegrees={incrementZero(RING.OUTER)}
+            showCalibration={false}
+            variant={RING.OUTER}
+            disabled={isZeroing}
+          />
+        </div>
         <CarouselDial
           inner={{current: currentCuvettes[RING.INNER], onClick: onCuvetteClick(RING.INNER)}}
           outer={{current: currentCuvettes[RING.OUTER], onClick: onCuvetteClick(RING.OUTER)}}

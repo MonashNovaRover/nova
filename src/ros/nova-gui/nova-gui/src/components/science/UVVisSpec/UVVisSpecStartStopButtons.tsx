@@ -1,6 +1,6 @@
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
-import {Button} from "@nextui-org/react";
+import {Button, Tooltip} from "@nextui-org/react";
 import {RefreshCcw, Square} from "react-feather";
 
 export const UVVisSpecStartStopButtons = () => {
@@ -12,24 +12,30 @@ export const UVVisSpecStartStopButtons = () => {
 
   return (
     <div className="flex flex-row gap-3">
-      <Button
-        isIconOnly
-        color="warning"
-        size="sm"
-        variant="light"
-        onPressStart={startCameraFeed}
+      <Tooltip
+        content="Refresh camera stream"
       >
-        <RefreshCcw size={18}/>
-      </Button>
-      <Button
-        isIconOnly
-        color="danger"
-        size="sm"
-        variant="light"
-        onPressStart={stopCameraFeed}
-      >
-        <Square size={18}/>
-      </Button>
+        <Button
+          isIconOnly
+          color="warning"
+          size="sm"
+          variant="light"
+          onPressStart={startCameraFeed}
+        >
+          <RefreshCcw size={18}/>
+        </Button>
+      </Tooltip>
+      <Tooltip content="Stop camera stream">
+        <Button
+          isIconOnly
+          color="danger"
+          size="sm"
+          variant="light"
+          onPressStart={stopCameraFeed}
+        >
+          <Square size={18}/>
+        </Button>
+      </Tooltip>
     </div>
   )
 
