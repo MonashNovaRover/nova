@@ -30,6 +30,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RamanState.msg"
   "msg/SpectrometerData.msg"
   "msg/UVVisSpecData.msg"
+  "msg/CarouselSequenceStatus.msg"
 
   # Service definitions
   "srv/CacheCommand.srv"
@@ -48,7 +49,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetNamedPositions.srv"
   "srv/SetPosition.srv"
   "srv/TakeNIRProbeReading.srv"
-  
+  "srv/CarouselSequence.srv"
+
   # Action definitions
   "action/Stepper.action"
 

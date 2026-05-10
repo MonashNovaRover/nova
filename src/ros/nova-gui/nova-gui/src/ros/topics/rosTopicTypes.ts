@@ -31,7 +31,8 @@ import {
   IRosNovaInterfacesGpsData,
   IRosScienceInterfacesCarouselFeedback,
   IRosSensorMsgsJoy,
-  IRosNovaInterfacesDetection2DArray
+  IRosNovaInterfacesDetection2DArray,
+  IRosScienceInterfacesCarouselSequenceStatus,
 } from "../rosTypes";
 import { RosTopic } from "./rosTopic";
 
@@ -87,6 +88,7 @@ export interface RosTopicInterfaces {
   [RosTopic.CAROUSEL_INNER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
   [RosTopic.CAROUSEL_OUTER_FEEDBACK]: IRosScienceInterfacesCarouselFeedback;
   [RosTopic.LITMUS_DIPPER_STATUS]: IRosScienceInterfacesPumpStatus;
+  [RosTopic.CAROUSEL_SEQUENCE_STATUS]: IRosScienceInterfacesCarouselSequenceStatus;
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;

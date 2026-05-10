@@ -1,0 +1,8 @@
+# Request - only dynamic per-run values
+string ring              # 'inner' or 'outer'
+int32 iterations         # number of fill cycles
+float32 pump_duration    # seconds to run pump each iteration
+---
+# Response
+bool success
+string message

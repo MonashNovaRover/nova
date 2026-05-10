@@ -50,6 +50,7 @@ export enum RosTopic {
   CAROUSEL_INNER_FEEDBACK = "/science/carousel_inner/feedback",
   CAROUSEL_OUTER_FEEDBACK = "/science/carousel_outer/feedback",
   LITMUS_DIPPER_STATUS = "/science/litmus_dipper/status",
+  CAROUSEL_SEQUENCE_STATUS = "/science/carousel_sequence/status",
 
   // Mapping Related Topics
   ROVER_LOCATION = "/gps_rover/fix_custom",

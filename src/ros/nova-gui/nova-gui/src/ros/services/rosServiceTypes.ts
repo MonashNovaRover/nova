@@ -41,6 +41,8 @@ import {
   IRosScienceInterfacesIncrementZeroResponse,
   IRosScienceInterfacesSetNamedBoolRequest,
   IRosScienceInterfacesSetNamedBoolResponse,
+  IRosScienceInterfacesCarouselSequenceRequest,
+  IRosScienceInterfacesCarouselSequenceResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -239,6 +241,14 @@ export interface RosServiceInterface {
     IRosStdSrvsTriggerResponse
   >;
   [RosService.BME_TRIGGER]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
+  [RosService.CAROUSEL_SEQUENCE_START]: RosServiceMessage<
+    IRosScienceInterfacesCarouselSequenceRequest,
+    IRosScienceInterfacesCarouselSequenceResponse
+  >;
+  [RosService.CAROUSEL_SEQUENCE_STOP]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
   >;

@@ -301,6 +301,17 @@ export const reduxStores = {
       time_target: 0,
     }
   ),
+  carouselSequenceStatusStore: createBifrostStore(
+    { topic: RosTopic.CAROUSEL_SEQUENCE_STATUS },
+    {
+      running: false,
+      current_iteration: 0,
+      total_iterations: 0,
+      current_step: "idle",
+      ring: "",
+      error_message: "",
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,

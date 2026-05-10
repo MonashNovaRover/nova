@@ -57,6 +57,8 @@ export const rosServiceMessages = {
   [RosService.UV_VIS_SPEC_STOP]: "std_srvs/srv/Trigger",
   [RosService.UV_VIS_SPEC_START]: "std_srvs/srv/Trigger",
   [RosService.BME_TRIGGER]: "std_srvs/srv/Trigger",
+  [RosService.CAROUSEL_SEQUENCE_START]: "science_interfaces/srv/CarouselSequence",
+  [RosService.CAROUSEL_SEQUENCE_STOP]: "std_srvs/srv/Trigger",
 
   // General
   [RosService.RGBInput]: "nova_interfaces/srv/RGBInput",

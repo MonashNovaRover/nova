@@ -54,6 +54,7 @@ export const rosTopicMessages = {
   [RosTopic.CAROUSEL_INNER_FEEDBACK]: "science_interfaces/msg/CarouselFeedback",
   [RosTopic.CAROUSEL_OUTER_FEEDBACK]: "science_interfaces/msg/CarouselFeedback",
   [RosTopic.LITMUS_DIPPER_STATUS]: "science_interfaces/msg/PumpStatus",
+  [RosTopic.CAROUSEL_SEQUENCE_STATUS]: "science_interfaces/msg/CarouselSequenceStatus",
 
   // Maps Related
   [RosTopic.ROVER_LOCATION]: "nova_interfaces/msg/GPSData",
