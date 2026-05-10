@@ -49,7 +49,7 @@ vec3 computeBlur(vec3 centerColor, vec2 direction) {
     vec2 offset = direction * float(i);
     vec3 sampleColor = texture2D(tex, v_texcoord + offset).rgb;
 
-    float spatialDist = float(abs(i));
+    float spatialDist = abs(float(i));
     float colorDist = length(sampleColor - centerColor);
 
     // Simple Gaussian approximation
