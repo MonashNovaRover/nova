@@ -20,7 +20,7 @@ const RamanLocalStorageSaveButton: React.FC<RamanLocalStorageSaveButtonProps> = 
   }, [props.suggestedName]);
 
   return (
-    <div className="flex flex-row gap-3 my-3 mb-0">
+    <div className="flex flex-row gap-3 my-3 mb-0 flex-grow">
       <Input size="sm" placeholder="Saved graph name" className="flex-grow" onValueChange={setGraphName} value={graphName}></Input>
       <Button
         color={graphName.length > 0 ? "primary" : "default"}
@@ -31,7 +31,7 @@ const RamanLocalStorageSaveButton: React.FC<RamanLocalStorageSaveButtonProps> = 
         Save
       </Button>
       {props.onCSVSave && (
-        <Button color="success" onPress={props.onCSVSave} size="sm" className="px-5">
+        <Button color="default" onPress={props.onCSVSave} size="sm" className="px-5">
           Save to CSV
         </Button>
       )}

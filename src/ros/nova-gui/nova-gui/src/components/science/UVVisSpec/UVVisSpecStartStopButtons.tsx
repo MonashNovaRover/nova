@@ -16,6 +16,7 @@ export const UVVisSpecStartStopButtons = () => {
         isIconOnly
         color="warning"
         size="sm"
+        variant="light"
         onPressStart={startCameraFeed}
       >
         <RefreshCcw size={18}/>
@@ -24,6 +25,7 @@ export const UVVisSpecStartStopButtons = () => {
         isIconOnly
         color="danger"
         size="sm"
+        variant="light"
         onPressStart={stopCameraFeed}
       >
         <Square size={18}/>

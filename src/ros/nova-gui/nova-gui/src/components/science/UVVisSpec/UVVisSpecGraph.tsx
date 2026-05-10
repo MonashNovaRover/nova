@@ -18,6 +18,10 @@ export interface UVVisSpecGraphProps {
 
   onMouseMove: (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => void,
   gl: GLState,
+
+  // Y-axis configuration
+  yAxisLabel?: string,
+  yAxisFormatter?: (value: number) => string,
 }
 
 
@@ -54,29 +58,39 @@ const UVVisSpecGraph: React.FC<UVVisSpecGraphProps> = (props) => {
     </div>
   )
 
+  const defaultFormatter = (val: number) => `${val.toFixed(0)}%`;
+  const formatter = props.yAxisFormatter ?? defaultFormatter;
+
   const yLabels = Array.from({ length: props.percentageLabelCount }, (_, i) => (
-    `${(maxLuminance * ((i + 1) / (props.percentageLabelCount))).toFixed(0)}%`
+    formatter(maxLuminance * ((i + 1) / (props.percentageLabelCount)))
   )).reverse();
 
-  // Put the labels into a JSX
+  // Put the labels into a JSX with Y-axis heading
   const yLabelsElement = (
-    <div className="grid auto-rows-fr grid-flow-row grid-cols-1 content-around pr-2 w-12 text-nowrap">
-      <div className="text-right h-fit translate-y-[-50%] text-small">
-          {yLabels[0]}
+    <div className="flex flex-row h-full">
+      <div className="flex items-center justify-center">
+        <span className="[writing-mode:vertical-lr] rotate-180 whitespace-nowrap text-small">
+          {props.yAxisLabel ?? "Intensity (%)"}
+        </span>
       </div>
-      {yLabels.slice(1).map((label, index) => (
-        <div
-          key={index}
-          className={"flex flex-col row-span-2"}
-        >
-          <div className="flex-grow"></div>
-          <div className="text-right text-small">
-            {label}
-          </div>
-          <div className="flex-grow"></div>
+      <div className="grid auto-rows-fr grid-flow-row grid-cols-1 content-around pr-2 w-12 text-nowrap">
+        <div className="text-right h-fit translate-y-[-50%] text-small">
+            {yLabels[0]}
         </div>
-      ))}
-      <div></div>
+        {yLabels.slice(1).map((label, index) => (
+          <div
+            key={index}
+            className={"flex flex-col row-span-2"}
+          >
+            <div className="flex-grow"></div>
+            <div className="text-right text-small">
+              {label}
+            </div>
+            <div className="flex-grow"></div>
+          </div>
+        ))}
+        <div></div>
+      </div>
     </div>
   )
 
