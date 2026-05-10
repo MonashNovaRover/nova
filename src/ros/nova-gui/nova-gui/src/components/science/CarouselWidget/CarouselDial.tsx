@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ChevronUp, Search } from "react-feather";
 import {
   COLORS,
@@ -164,8 +164,39 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
   const outerConfig: WheelConfig = outer ?? { current: cuvette ?? 0, onClick: noopClick };
   const innerConfig: WheelConfig = inner ?? { current: cuvette ?? 0, onClick: noopClick };
 
-  const outerRotation = -outerConfig.current * OUTER_STEP + OUTER_OFFSET;
-  const innerRotation = -innerConfig.current * INNER_STEP + INNER_OFFSET;
+  // Cumulative rotation state - can exceed 360 degrees for smooth boundary crossing
+  const [outerRotation, setOuterRotation] = useState(-outerConfig.current * OUTER_STEP + OUTER_OFFSET);
+  const [innerRotation, setInnerRotation] = useState(-innerConfig.current * INNER_STEP + INNER_OFFSET);
+  const prevOuterRef = useRef(outerConfig.current);
+  const prevInnerRef = useRef(innerConfig.current);
+
+  // Update outer rotation with shortest path
+  useEffect(() => {
+    const prev = prevOuterRef.current;
+    const current = outerConfig.current;
+    if (prev !== current) {
+      let delta = current - prev;
+      // Calculate shortest path across the boundary
+      if (delta > OUTER_SEGMENTS / 2) delta -= OUTER_SEGMENTS;
+      if (delta < -OUTER_SEGMENTS / 2) delta += OUTER_SEGMENTS;
+      setOuterRotation(rot => rot - delta * OUTER_STEP);
+      prevOuterRef.current = current;
+    }
+  }, [outerConfig.current]);
+
+  // Update inner rotation with shortest path
+  useEffect(() => {
+    const prev = prevInnerRef.current;
+    const current = innerConfig.current;
+    if (prev !== current) {
+      let delta = current - prev;
+      // Calculate shortest path across the boundary
+      if (delta > INNER_SEGMENTS / 2) delta -= INNER_SEGMENTS;
+      if (delta < -INNER_SEGMENTS / 2) delta += INNER_SEGMENTS;
+      setInnerRotation(rot => rot - delta * INNER_STEP);
+      prevInnerRef.current = current;
+    }
+  }, [innerConfig.current]);
 
   const renderSegments = (
     count: number,
