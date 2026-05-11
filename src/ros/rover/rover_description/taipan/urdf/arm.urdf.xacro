@@ -47,7 +47,7 @@
   <!-- Linear actuator tip frame for auto-typing -->
   <link name="actuator"/>
   <joint name="actuator_tip_joint" type="fixed">
-    <origin xyz="0 0 -0.05" rpy="3.14159 0 0"/>
+    <origin xyz="0 0 -0.016" rpy="3.14159 0 1.5707"/>
     <parent link="linear_actuator"/>
     <child link="actuator"/>
   </joint>
