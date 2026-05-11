@@ -11,6 +11,7 @@ export interface MapPoint extends MapCoordinate {
   labelName: string | null;
   selected: boolean;
   searchRadius?: number | null;
+  showSearchZone?: boolean | null;
 }
 
 export enum MapInteractionMode {
