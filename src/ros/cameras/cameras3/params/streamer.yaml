@@ -269,57 +269,64 @@ camera_streamer:
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         default:
-          pipeline_type: vp8software
-          width: 1280
-          height: 720
+          pipeline_type: vp9software
+          use_gl: true
+          width: 800
+          height: 600
           downscale: 2
           framerate: 30
           cpu_usage: 0
           bitrate: 512
+          gop: 3
+          denoise: true
         super:
           pipeline_type: vp9software
           mime: image/jpeg
           width: 800
           height: 600
           framerate: 30
-          downrate: 3
+          downrate: 1
           cpu_usage: 5
           jpegdec_method: float
-          bitrate: 2048
+          bitrate: 1024
           threads: 6
-          gop: 3
+          gop: 5
           noise: 0
         still:
           pipeline_type: vp9software
+          use_gl: true
           mime: image/jpeg
-          width: 1280
-          height: 720
-          downscale: 2
-          framerate: 10
+          width: 800
+          height: 600
+          framerate: 30
+          downrate: 2
           cpu_usage: 5
-          jpegdec_method: float
-          bitrate: 256
-          gop: 5
-          noise: 1
+          bitrate: 512
+          gop: 10
+          denoise: true
+          sharpen: true
         snail:
           pipeline_type: vp8software
-          width: 1280
-          height: 720
+          use_gl: true
+          width: 800
+          height: 600
           downscale: 3
           framerate: 30
           downrate: 2
           cpu_usage: 0
           bitrate: 128
+          gop: 3
           denoise: true
         emergency:
           pipeline_type: vp9software
-          width: 1280
-          height: 720
-          downscale: 8
+          width: 800
+          height: 600
+          downscale: 7
           framerate: 30
           downrate: 4
           cpu_usage: 8
           bitrate: 32
+          gop: 10
           greyscale: true
           denoise: true
 
