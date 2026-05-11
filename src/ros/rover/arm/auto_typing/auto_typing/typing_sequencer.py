@@ -16,7 +16,7 @@ SERVICES: /type_sequence
 PACKAGE: 	arm
 AUTHOR(S):  Anthony Lew
 CREATION:	9/05/2024
-EDITED:     29/05/2024
+EDITED:     11/05/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Add stop functionality to sequencer
@@ -253,7 +253,7 @@ class TypingSequencer(Node):
         partial_sequence = []
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
-        ee_transform = self.get_transform_from_frame(self.ee_frame, self.base_frame)
+        ee_transform = self.get_transform_from_frame(self.base_frame, self.ee_frame)
         if ee_transform is None:
             self.get_logger().info(f"Sequencer failed getting {self.ee_frame} transform")
             sequencer_result = False
@@ -322,7 +322,10 @@ class TypingSequencer(Node):
 
             # Move back to starting position
             if self.move_to_start:
-                self.call_path_planner(start_pose, self.pp_speed)
+                pp_return = self.call_path_planner(start_pose, self.pp_speed)
+                if not pp_return:
+                    self.get_logger().info(f"Failed to return to start position after key {key}")
+                    return
 
             # Publish feedback to topic for GUI
             seq_msg.partial_sequence.append(key)
