@@ -290,8 +290,7 @@ arm:
 
   nova_path_planner:
     ros__parameters:
-  #    chained_controller_name: "nova_arm_position_controller"
-      chained_controller_name: ""
+      chained_controller_name: "nova_arm_position_controller"
       joint_names:
         - j1
         - j2
