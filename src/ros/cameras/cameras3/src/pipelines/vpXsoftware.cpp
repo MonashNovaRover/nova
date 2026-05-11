@@ -366,9 +366,9 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
   // encode
-  props->cpu_used = set_property(streamer_node, camera, "cpu_used", 1);
+  props->cpu_used = set_property(streamer_node, camera, "cpu_used", 0);
   props->deadline = set_property(streamer_node, camera, "deadline", 1);
-  props->gop = set_property(streamer_node, camera, "gop", 1);
+  props->gop = set_property(streamer_node, camera, "gop", 3);
   props->encoder_denoise = set_property(streamer_node, camera, "encoder_denoise", (props->use_gl) ? 0 : 6);
   props->threads = set_property(streamer_node, camera, "threads", 1);
 
@@ -377,7 +377,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
   props->video_caps = (vpX == 9) ? "video/x-vp9" : "video/x-vp8";
 
-  props->bitrate = set_property(streamer_node, camera, "bitrate", 4096);
+  props->bitrate = set_property(streamer_node, camera, "bitrate", 1024);
 
   props->do_fec = set_property(streamer_node, camera, "do_fec", false);
   props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
