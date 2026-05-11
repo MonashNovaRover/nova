@@ -49,7 +49,7 @@ typing_sequencer:
     ee_frame: endeffector_kinematics
     actuator_frame: actuator
 
-    target_quaternion: [ 1.0, 0.0, 0.0, 0.0000463 ]
+    target_quaternion: [0.0, -0.7071, 0.0, 0.7071] # downwards
 
     timeout: 2.0
     pollrate: 10.0
