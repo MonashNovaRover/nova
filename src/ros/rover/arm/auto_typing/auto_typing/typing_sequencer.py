@@ -17,6 +17,7 @@ PACKAGE: 	arm
 AUTHOR(S):  Anthony Lew
 CREATION:	9/05/2024
 EDITED:     11/05/2026
+EDITED BY:  Binuda Kalugalage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Add stop functionality to sequencer
@@ -52,6 +53,8 @@ from std_srvs.srv import Trigger
 from geometry_msgs.msg import Transform, Pose
 #from nova_interfaces.action import EndEffector
 
+import numpy as np
+from scipy.spatial.transform import Rotation as R
 import threading
 import tf2_geometry_msgs
 
@@ -94,7 +97,6 @@ class TypingSequencer(Node):
         self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
         self.pp_speed = self.declare_parameter('speed', 0.5).get_parameter_value().double_value
         self.move_to_start = self.declare_parameter('move_to_start', True).get_parameter_value().bool_value
-        self.target_quaternion = self.declare_parameter('target_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
@@ -140,6 +142,25 @@ class TypingSequencer(Node):
         response = self.kblocaliser_client.call(request)
         return response
 
+    def compute_target_quaternion(self, keyboard_rotation):
+        """Derive target wrist quaternion from actual keyboard orientation."""
+
+        # First convert the keyboard quat to matrix form
+        q = [keyboard_rotation.x, keyboard_rotation.y, keyboard_rotation.z, keyboard_rotation.w]
+        kb_rmat = R.from_quat(q).as_matrix()
+
+        # Z orientation is the opposite of the keyboard normal
+        approach = -kb_rmat[:, 2]
+        # X orientation is the same as the keyboard right direction
+        right = kb_rmat[:, 0]
+        # Remaining Y orientation is just the cross product of the two
+        up = np.cross(approach, right)
+
+        # Form the rotation matrix
+        rmat = np.column_stack((right, up, approach))
+
+        return R.from_matrix(rmat).as_quat()
+
     def pose_calc(self, key_to_base, ee_frame, actuator_frame, stamp) -> Pose | None:
         """ Given the following frames, calculates the pose to feed into the 
             path planner to move actuator of end effector offset from the key """
@@ -151,14 +172,15 @@ class TypingSequencer(Node):
         ate_pose.orientation = act_to_ee.transform.rotation
         ee_to_key = tf2_geometry_msgs.do_transform_pose(ate_pose, key_to_base)
 
+        target_quaternion = self.compute_target_quaternion(key_to_base.transform.rotation)
+
         if self.debug_target_tf:
             tfs = TransformStamped()
             tfs.header.frame_id = self.base_frame
             tfs.child_frame_id = 'target_' + self.keyboard_frame
             tfs.header.stamp = stamp
             tfs.transform.translation = ee_to_key.position
-            #tfs.transform.rotation = ee_to_key.orientation
-            tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = self.target_quaternion
+            tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = target_quaternion
             self.transform_broadcaster.sendTransform(tfs)
 
         return ee_to_key
