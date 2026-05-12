@@ -59,7 +59,7 @@ class EndEffectorController(Controller):
             self.ee_cmd.value = self.callback_ee_value
             self.task_done.set_result(True)
         else:
-            self.ee_cmd.value = self.callback_ee_value
+            self.ee_cmd.value = 0
 
     async def execute_callback(self, goal_handle):
         end_poke = goal_handle.request.poke
