@@ -5,40 +5,18 @@ Monash Nova Rover Team
 
 ROS action service which runs auto typing, 
     interfaces with the following:
-- Keyboard localiser (arm/keyboard_localiser.py)
-- Path planner (404 not found)
-- Controller switcher (404 not found)
+- Keyboard localiser (auto_typing/keyboard_localiser.py)
+- Path planner (nova_path_planner controller)
 Used for auto typing task at URC
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: typing_sequencer
 SERVICES: /type_sequence
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	arm
+PACKAGE: 	auto_typing
 AUTHOR(S):  Anthony Lew
 CREATION:	9/05/2024
-EDITED:     11/05/2026
+EDITED:     12/05/2026
 EDITED BY:  Binuda Kalugalage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Add stop functionality to sequencer
- - Integrate Path Planner and Controller Switcher properly
- - Add error handling
- - Test!
- - Integrate with GUI
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Running auto typing:
- - GUI - urc/auto-typing 
- - Rosbridge
- - Cameras2 (legacy if on orin)
-    - Cameras will not show up in firefox, use chromium!
- - arm_bringup/typing.launch.py
-    - Make sure to run can start vcan1
-    - auto_mode:=False if no camera
- - path.mock.launch.py for fake arm
-    - Make to activate path planner
-        - ros2 control list_controllers
-        - ros2 control set_controller_state nova_path_planner active
- - rviz2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
@@ -65,7 +43,6 @@ from nova_interfaces.action import ArmPlanPath, EndEffector
 
 TYPING_SEQUENCER_START = "/type_sequence/start"
 TYPING_SEQUENCER_STOP = "/type_sequence/stop"
-CONTROLLER_SWITCH_SERVICE = "/controller_manager/switch_controller"
 KEY_POSITION_SERVICE = "/arm/keyboard/pub_key_position"
 PATH_PLANNER_ACTION = '/arm/plan_path'
 POKEY_THING_ACTION = "/arm/poke"
@@ -73,9 +50,6 @@ SEQUENCER_TOPIC = "/arm/sequence"
 
 POKE_FORWARD = 1.0
 POKE_BACKWARD = 0.0
-
-DEFAULT_POSITION = [0.0, 0.0, 0.0]
-DEFAULT_QUATERNION = [0.0, 0.0, 0.0, 1.0]
 
 class TypingSequencer(Node):
 
@@ -96,7 +70,7 @@ class TypingSequencer(Node):
         # path planner arguments
         self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
         self.pp_speed = self.declare_parameter('speed', 0.5).get_parameter_value().double_value
-        self.move_to_start = self.declare_parameter('move_to_start', True).get_parameter_value().bool_value
+        self.relocalise = self.declare_parameter('relocalise', True).get_parameter_value().bool_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
@@ -108,12 +82,6 @@ class TypingSequencer(Node):
         self.transform_broadcaster = TransformBroadcaster(self)
 
         self.sequence_pub = self.create_publisher(SequencerFeedback, SEQUENCER_TOPIC, 10)
-
-        # Controller switcher service client
-        # TODO: Uncomment once integrated
-        # self.cswitcher_client = self.create_client(Trigger, CONTROLLER_SWITCH_SERVICE)
-        # while not self.cswitcher_client.wait_for_service(timeout_sec=1.0):
-        #     self.get_logger().info(f'{CONTROLLER_SWITCH_SERVICE} service not available, waiting again...')
 
         # Key localiser service client
         self.kblocaliser_client = self.create_client(KeyPosition, KEY_POSITION_SERVICE)
@@ -129,13 +97,7 @@ class TypingSequencer(Node):
         self.pokey_client = ActionClient(self, EndEffector, POKEY_THING_ACTION)
         self.get_logger().info(f'Sequencer initalised!')
 
-    def send_switch_request(self):
-        request = Trigger.Request()
-        future = self.cswitcher_client.call_async(request)
-        rclpy.spin_until_future_complete(self, future)
-        return future.result()
-
-    def send_key_request(self, key, stamp):
+    def localise_key(self, key, stamp):
         request = KeyPosition.Request()
         request.key = key
         request.stamp = stamp
@@ -241,6 +203,13 @@ class TypingSequencer(Node):
         else:
             self.get_logger().warn(f'Transform of {target_frame} not available after waiting {self.tf_timeout} seconds')
         return None
+    
+    def return_to_start(self, start_pose):
+        pp_return = self.call_path_planner(start_pose, self.pp_speed)
+        if not pp_return:
+            self.get_logger().info(f"Failed to return to start position")
+            return False
+        return True
 
 
     def start_sequencer(self, request, response):
@@ -271,32 +240,32 @@ class TypingSequencer(Node):
         return response
 
     def execute_sequencer(self, key_sequence) -> None:
-        sequencer_result = None
         partial_sequence = []
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
         ee_transform = self.get_transform_from_frame(self.base_frame, self.ee_frame)
         if ee_transform is None:
             self.get_logger().info(f"Sequencer failed getting {self.ee_frame} transform")
-            sequencer_result = False
             return
         start_pose = Pose() 
         start_pose.position = ee_transform.transform.translation
         start_pose.orientation = ee_transform.transform.rotation
-
-        # Call controller switcher and switch to "Auto typing mode" (IK only mode)
-        # TODO: Integrate the switcher
-        # switch_result = self.send_switch_request()
-        # if not switch_result.success:
-        #     self.get_logger().error(f'Switching Error: {switch_result.message}')
-        #     return
     
         seq_msg = SequencerFeedback()
         seq_msg.sequence = key_sequence
         seq_msg.partial_sequence = []
         seq_msg.current_key = ""
 
-        # Loop through the keys in the sequence
+        key_transforms = {}
+        if not self.relocalise:
+            # Get each key's transform
+            for key in key_sequence:
+                stamp = self.get_clock().now().to_msg()
+                transform = self.localise_and_get_tf(key, stamp)
+                if transform is None:
+                    return
+                key_transforms[key] = (transform, stamp)
+        
         for key in key_sequence:
             if self.stop_event.is_set():
                 self.get_logger().warn(f"Sequencer stopped at {key}")
@@ -305,67 +274,65 @@ class TypingSequencer(Node):
             self.get_logger().info(f'Performing sequence for key: {key}')
             seq_msg.current_key = key
             self.sequence_pub.publish(seq_msg)
-            # Get Key transform to be published on /tf by calling keyboard localiser
-            stamp = self.get_clock().now().to_msg()
-            key_result = self.send_key_request(key, stamp)
-            
-            # Get key transform
-            key_frame = key + "_" + self.keyboard_frame
-            self.get_logger().info(f'Get key: {key}')
-            key_transform = self.get_transform_from_frame(self.base_frame, key_frame, stamp)
-            if key_transform is None:
-                self.get_logger().warn(f"Failed getting transform for {key}")
-                sequencer_result = False
-                return
+
+            # Get the key's transform, or just retreive from dict
+            if self.relocalise:
+                stamp = self.get_clock().now().to_msg()
+                key_transform = self.localise_and_get_tf(key, stamp)
+                if key_transform is None:
+                    return
+            else:
+                key_transform, stamp = key_transforms[key]
 
             # Start action to move to key via path planner
             pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
             if pose is None:
                 self.get_logger().warn(f"Failed getting pose for {key}")
-                sequencer_result = False
                 return
-            pp_result = self.call_path_planner(pose, self.pp_speed) # TODO: Add proper error handling
+            pp_result = self.call_path_planner(pose, self.pp_speed)
+            if not pp_result:
+                self.get_logger().info(f"Failed path planning for {key}")
+                return
             self.get_logger().info(f"Path planner finished!")
 
-            # TODO: Integrate and test this section
-
             # Activate pokey thing
-            # TODO: Add error handling
-            poke_out = self.do_poke(POKE_FORWARD)
-            if not poke_out:
+            if not self.do_poke(POKE_FORWARD) or not self.do_poke(POKE_BACKWARD):
                 self.get_logger().info(f"Failed poking for {key}")
-                sequencer_result = False
                 return
-            poke_in = self.do_poke(POKE_BACKWARD)
-            if not poke_in:
-                self.get_logger().info(f"Failed poking for {key}")
-                sequencer_result = False
-                return
-
-            # Move back to starting position
-            if self.move_to_start:
-                pp_return = self.call_path_planner(start_pose, self.pp_speed)
-                if not pp_return:
-                    self.get_logger().info(f"Failed to return to start position after key {key}")
-                    return
 
             # Publish feedback to topic for GUI
             seq_msg.partial_sequence.append(key)
-            self.get_logger().info(f'Completed: {partial_sequence}')
+            self.get_logger().info(f'Completed: {seq_msg.partial_sequence}')
 
-        # Call controller switcher and switch back to manual mode
-        # TODO: Integrate the switcher
-        # switch_result = self.send_switch_request()
-        # if not switch_result.success:
-        #     self.get_logger().error(f'Switching Error: {switch_result.message}')
-        #     sequencer_result = False
-        #     return
+            # Move back to starting position after each key
+            if self.relocalise:
+                self.return_to_start(start_pose)
+
+        # Move back to starting position after all keys
+        if not self.relocalise:
+            self.return_to_start(start_pose)
+
         seq_msg.current_key = ""
         self.sequence_pub.publish(seq_msg)
-        self.get_logger().info(f'Sequencer Complete! {partial_sequence}')
+        self.get_logger().info(f'Sequencer Complete! {seq_msg.partial_sequence}')
         self.stop_event.set()
         self.thread = None
 
+    def localise_and_get_tf(self, key, stamp):
+        """Localise a key and return its transform, or None on failure."""
+        # Ask keyboard localiser to publish the key transform to /tf
+        key_result = self.localise_key(key, stamp)
+        if not key_result.success:
+            self.get_logger().warn(f"Failed localising {key}")
+            return None
+        
+        # Retreive the key transform from /tf and store it
+        key_frame = key + "_frame"
+        key_transform = self.get_transform_from_frame(self.base_frame, key_frame, stamp)
+        if key_transform is None:
+            self.get_logger().warn(f"Failed getting transform for {key}")
+        
+        return key_transform
 
 
 def main(args=None):
