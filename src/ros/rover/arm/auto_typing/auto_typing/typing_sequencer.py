@@ -70,7 +70,6 @@ class TypingSequencer(Node):
         # path planner arguments
         self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
         self.pp_speed = self.declare_parameter('speed', 0.5).get_parameter_value().double_value
-        self.relocalise = self.declare_parameter('relocalise', True).get_parameter_value().bool_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
@@ -221,7 +220,8 @@ class TypingSequencer(Node):
             response.success = True
             response.message = f"Sequencer successfully started with {request.sequence}"
             self.stop_event.clear()
-            self.thread = threading.Thread(target=self.execute_sequencer, args=[request.sequence])
+            relocalise = request.relocalise
+            self.thread = threading.Thread(target=self.execute_sequencer, args=[request.sequence, relocalise])
             self.thread.start()
         return response
 
@@ -239,7 +239,7 @@ class TypingSequencer(Node):
             response.message = "No sequencer running."
         return response
 
-    def execute_sequencer(self, key_sequence) -> None:
+    def execute_sequencer(self, key_sequence, relocalise) -> None:
         partial_sequence = []
 
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
@@ -257,7 +257,7 @@ class TypingSequencer(Node):
         seq_msg.current_key = ""
 
         key_transforms = {}
-        if not self.relocalise:
+        if not relocalise:
             # Get each key's transform
             for key in key_sequence:
                 stamp = self.get_clock().now().to_msg()
@@ -269,14 +269,14 @@ class TypingSequencer(Node):
         for key in key_sequence:
             if self.stop_event.is_set():
                 self.get_logger().warn(f"Sequencer stopped at {key}")
-                return
+                break
 
             self.get_logger().info(f'Performing sequence for key: {key}')
             seq_msg.current_key = key
             self.sequence_pub.publish(seq_msg)
 
             # Get the key's transform, or just retreive from dict
-            if self.relocalise:
+            if relocalise:
                 stamp = self.get_clock().now().to_msg()
                 key_transform = self.localise_and_get_tf(key, stamp)
                 if key_transform is None:
@@ -304,12 +304,12 @@ class TypingSequencer(Node):
             seq_msg.partial_sequence.append(key)
             self.get_logger().info(f'Completed: {seq_msg.partial_sequence}')
 
-            # Move back to starting position after each key
-            if self.relocalise:
+            # Move back to starting position after each key (relocalise mode)
+            if relocalise:
                 self.return_to_start(start_pose)
 
         # Move back to starting position after all keys
-        if not self.relocalise:
+        if not relocalise:
             self.return_to_start(start_pose)
 
         seq_msg.current_key = ""
