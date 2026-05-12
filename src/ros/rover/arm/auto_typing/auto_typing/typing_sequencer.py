@@ -240,8 +240,6 @@ class TypingSequencer(Node):
         return response
 
     def execute_sequencer(self, key_sequence, relocalise) -> None:
-        partial_sequence = []
-
         # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
         ee_transform = self.get_transform_from_frame(self.base_frame, self.ee_frame)
         if ee_transform is None:
@@ -304,7 +302,7 @@ class TypingSequencer(Node):
             seq_msg.partial_sequence.append(key)
             self.get_logger().info(f'Completed: {seq_msg.partial_sequence}')
 
-            # Move back to starting position after each key (relocalise mode)
+            # Move back to starting position after each key
             if relocalise:
                 self.return_to_start(start_pose)
 
