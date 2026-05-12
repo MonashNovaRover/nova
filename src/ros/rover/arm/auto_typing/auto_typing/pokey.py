@@ -17,8 +17,9 @@ EDITED:         12/05/26
 """
 
 import rclpy
-from rclpy.action import ActionServer
+from rclpy.action import ActionServer, GoalResponse
 from rclpy.node import Node
+from rclpy.task import Future
 import time
 from python_control2 import PythonControl, Controller, Contexts, Interface
 from python_control2.hardware_interfaces import QCMDHardware
@@ -26,16 +27,21 @@ from python_control2.hardware_interfaces import QCMDHardware
 from nova_interfaces.action import EndEffector
 
 EE_CAN_ID = 0x077   # TODO: update CAN IDs
+
+
 class EndEffectorController(Controller):
     CAN_BUS = "can1"
 
     ee_cmd: Interface
+    callback_ee_value = 0
+    ee_timer = 0
+    task_done = None
 
     def __init__(self, contexts: Contexts):
         super().__init__(contexts)
         self.logger.info("Ready to poke!")
 
-        self.poke_speed = self.declare_parameter("poke_speed", 0.1, "The speed at which the end effector moves")
+        self.poke_speed = self.declare_parameter("poke_speed", 1, "The speed at which the end effector moves")
         self.poke_amount = self.declare_parameter("poke_amount", 1, "How long to poke for")
 
         self._action_server = ActionServer(
@@ -48,35 +54,38 @@ class EndEffectorController(Controller):
         self.ee_cmd = command_interfaces["end_effector/effort"]
 
     def on_update(self, now, period):
-        pass
+        if self.ee_timer > 0:
+            self.ee_timer -= period
+            self.ee_cmd.value = self.callback_ee_value
+            self.task_done.set_result(True)
+        else:
+            self.ee_cmd.value = self.callback_ee_value
 
-    def execute_callback(self, goal_handle):
+    async def execute_callback(self, goal_handle):
         end_poke = goal_handle.request.poke
 
-        print(goal_handle.request)
-        forward = False
-
-        if end_poke > 0.5:
-            forward = True
+        forward = end_poke > 0.5
+        self.ee_timer = self.poke_amount.value
 
         self.logger.info(f"Executing end effector goal... poking to {end_poke}")
 
-        for i in range(self.poke_amount):
-            self.poke(forward)
-            time.sleep(0.25)
+        self.poke(forward)
 
-        self.ee_cmd.value = 0
+        self.task_done = Future()
+
+        await self.task_done
 
         goal_handle.succeed()
+
         result = EndEffector.Result()
         result.end_poke = end_poke
         return result
 
     def poke(self, forward: bool):
         if forward:
-            self.ee_cmd.value = self.poke_speed
+            self.callback_ee_value = self.poke_speed.value
         else:
-            self.ee_cmd.value = -self.poke_speed
+            self.callback_ee_value = -1 * self.poke_speed.value
 
 
 def main():
