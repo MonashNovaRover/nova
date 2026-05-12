@@ -26,12 +26,10 @@ from python_control2.hardware_interfaces import QCMDHardware
 from nova_interfaces.action import EndEffector
 
 EE_CAN_ID = 0x077   # TODO: update CAN IDs
-
-
 class EndEffectorController(Controller):
     CAN_BUS = "can1"
 
-    ee_cmd: Interface  # TODO: create EE interface
+    ee_cmd: Interface
 
     def __init__(self, contexts: Contexts):
         super().__init__(contexts)
@@ -41,13 +39,16 @@ class EndEffectorController(Controller):
         self.poke_amount = self.declare_parameter("poke_amount", 1, "How long to poke for")
 
         self._action_server = ActionServer(
-            self,
+            self.node,
             EndEffector,
             '/arm/poke',
             self.execute_callback)
 
     def on_configure(self, command_interfaces, state_interfaces):
         self.ee_cmd = command_interfaces["end_effector/effort"]
+
+    def on_update(self, now, period):
+        pass
 
     def execute_callback(self, goal_handle):
         end_poke = goal_handle.request.poke
