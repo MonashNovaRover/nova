@@ -13,6 +13,7 @@
 , opencv4
 , jcan
 , aruco-opencv-msgs
+, nova-python-control2
 }:
 
 buildRosPackage {
@@ -46,5 +47,7 @@ buildRosPackage {
   propagatedBuildInputs = [
     python3Packages.scipy
     python3Packages.numpy
+  ] ++ [
+    nova-python-control2
   ];
 }
