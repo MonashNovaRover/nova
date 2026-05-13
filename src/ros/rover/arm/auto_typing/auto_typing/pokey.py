@@ -57,8 +57,9 @@ class EndEffectorController(Controller):
         if self.ee_timer > 0:
             self.ee_timer -= period
             self.ee_cmd.value = self.callback_ee_value
-            self.task_done.set_result(True)
         else:
+            if self.task_done and not self.task_done.done():
+                self.task_done.set_result(True)
             self.ee_cmd.value = 0
 
     async def execute_callback(self, goal_handle):
