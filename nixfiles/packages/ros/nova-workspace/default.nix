@@ -45,6 +45,7 @@
       nova-bringup
       nova-auto-bringup
       nova-arm-bringup
+      nova-auto-typing
       nova-drive-bringup
       nova-rover-description
       nova-gazebo
