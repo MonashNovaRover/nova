@@ -160,7 +160,7 @@ class KeyboardLocaliser(Node):
         x, y = self.key_map[key_symbol]
         tfs = TransformStamped()
         tfs.header.frame_id = self.keyboard_frame
-        tfs.child_frame_id = key_symbol + '_' + self.keyboard_frame
+        tfs.child_frame_id = key_symbol + "_frame"
         tfs.header.stamp = request.stamp
         tfs.transform.translation.x = x * 0.001 # convert mm to meters
         tfs.transform.translation.y = y * 0.001
