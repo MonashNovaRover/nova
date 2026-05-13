@@ -26,8 +26,7 @@ from python_control2.hardware_interfaces import QCMDHardware
 
 from nova_interfaces.action import EndEffector
 
-EE_CAN_ID = 0x077   # TODO: update CAN IDs
-
+EE_CAN_ID = 0x0C1
 
 class EndEffectorController(Controller):
     CAN_BUS = "can1"
