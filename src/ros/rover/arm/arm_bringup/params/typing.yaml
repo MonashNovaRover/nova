@@ -56,3 +56,8 @@ typing_sequencer:
     speed: 0.01 # m/s
     debug_target: True
     move_to_start: True # move arm back to starting position between each key
+
+pokey:
+  ros__parameters:
+    poke_speed: 0.1
+    poke_amount: 1
