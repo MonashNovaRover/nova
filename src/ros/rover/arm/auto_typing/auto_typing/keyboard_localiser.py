@@ -15,9 +15,9 @@ NODE: keyboard_mapper
 SERVICES: get_key_position
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	arm
-AUTHOR(S):  Anthony Lew
+AUTHOR(S):  Anthony Lew, Binuda Kalugalage
 CREATION:	6/04/2024
-EDITED:     6/04/2024
+EDITED:     18/04/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Find an IRL alignment
@@ -26,23 +26,21 @@ TODO:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
-from geometry_msgs.msg import PointStamped, TransformStamped
-from arm_interfaces.srv import KeyPosition, StringTrigger
+from geometry_msgs.msg import TransformStamped
+from arm_interfaces.srv import KeyPosition
 from arm_interfaces.msg import KeyboardPoints
-from sensor_msgs.msg import Image
+from aruco_opencv_msgs.msg import ArucoDetection
 
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
 from tf2_ros import Buffer, TransformListener, TransformBroadcaster
-import tf2_geometry_msgs
 
 import math
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import cv2
-from cv_bridge import CvBridge
 
 # Expected keyboard size:
 KEYBOARD = (123, 354, 37) # (L, W, H) in mm 
@@ -54,7 +52,7 @@ KEY_MAP = {
     "esc": (-164, -50), "f1": (-126, -50), "f2": (-107, -50), "f3": (-88, -50), "f4": (-69, -50), "f5": (-40, -50), "f6": (-21, -50), "f7": (-2, -50), "f8": (17, -50), "f9": (46, -50), "f10": (65, -50), "f11": (84, -50), "f12": (103, -50), "prtsc": (126, -50), "scrlk": (145, -50), "pause": (164, -50),
     "`": (-164, -28), "1": (-145, -28), "2": (-126, -28), "3": (-107, -28), "4": (-88, -28), "5": (-69, -28), "6": (-50, -28), "7": (-31, -28), "8": (-12, -28), "9": (7, -28), "0": (26, -28), "-": (45, -28), "=": (64, -28), "backspace": (93, -28), "ins": (126, -28), "home": (145, -28), "pgup": (164, -28),
     "tab": (-159, -9), "q": (-135, -9), "w": (-116, -9), "e": (-97, -9), "r": (-78, -9), "t": (-59, -9), "y": (-40, -9), "u": (-21, -9), "i": (-2, -9), "o": (17, -9), "p": (36, -9), "[": (55, -9), "]": (74, -9), "\\": (97, -9), "del": (126, -9), "end": (145, -9), "pgdn": (164, -9),
-    "capslk": (-157, -10), "a": (-130, -10), "s": (-111, -10), "d": (-92, -10), "f": (-73, -10), "g": (-54, -10), "h": (-35, -10), "j": (-16, -10), "k": (3, -10), "l": (22, -10), ";": (41, -10), "'": (60, -10), "enter": (91, -10),
+    "capslk": (-157, 10), "a": (-130, 10), "s": (-111, 10), "d": (-92, 10), "f": (-73, 10), "g": (-54, 10), "h": (-35, 10), "j": (-16, 10), "k": (3, 10), "l": (22, 10), ";": (41, 10), "'": (60, 10), "enter": (91, 10),
     "lshift": (-152, 29), "z": (-121, 29), "x": (-102, 29), "c": (-83, 29), "v": (-64, 29), "b": (-45, 29), "n": (-26, 29), "m": (-7, 29), ",": (12, 29), ".": (31, 29), "/": (50, 29), "rshift": (86, 29), "uarrow": (145, 29),
     "lctrl": (-161, 48), "win": (-138, 48), "lalt": (-114, 48), "space": (-44, 48), "ralt": (29, 48), "fn": (53, 48), "menu": (76, 48), "rctrl": (101, 48), "larrow": (126, 48), "darrow": (145, 48), "rarrow": (164, 48) 
 }
@@ -83,10 +81,8 @@ In separate terminal:
 """
 
 KEY_SERVICE_NAME = '/arm/keyboard/pub_key_position'
-IMAGE_TOPIC = '/arm/periscope'
-DEBUG_TOPIC = '/arm/keyboard/image'
+ARUCO_TOPIC = '/aruco_detections'
 POINT_TOPIC = '/arm/keyboard/points'
-
 
 class KeyboardLocaliser(Node):
     def __init__(self):
@@ -94,10 +90,8 @@ class KeyboardLocaliser(Node):
 
         # Choose whether to use auto transform or manual align transform
         self.node_is_auto = self.declare_parameter('using_auto', True).get_parameter_value().bool_value
-        # Do we publish the debug image or keyboard points to GUI
-        self.do_debug = self.declare_parameter('debug_image', True).get_parameter_value().bool_value
+        # Publisher for keyboard points to GUI
         self.point_pub = self.create_publisher(KeyboardPoints, POINT_TOPIC, 10)
-        self.debug_pub = self.create_publisher(Image, DEBUG_TOPIC, 10) if self.do_debug else None
 
         # key position initalisation
         self.keyboard_frame = self.declare_parameter('keyboard_frame', 'keyboard_frame').get_parameter_value().string_value
@@ -122,24 +116,26 @@ class KeyboardLocaliser(Node):
             [0, focal_length, image_center[1]],
             [0, 0, 1]
         ], dtype=np.float32)
-        dist_arr = self.declare_parameter('distortion_matrix', [0.0,0.0,0.0,0.0,0.0]).get_parameter_value().double_array_value
+        dist_arr = self.declare_parameter('distortion_matrix', [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]).get_parameter_value().double_array_value
         self.dist_coeffs = np.array(dist_arr)
         self.camera_resolution = width, height
 
         # keyboard pose analysis initalisation
-        self.camera_frame = self.declare_parameter('camera_frame', 'arm_end_periscope_optical').get_parameter_value().string_value
-        self.view = None
-        self.view_sub = self.create_subscription(Image, IMAGE_TOPIC, self.view_callback, qos_profile=qos_profile_sensor_data)
-        self.keyboard_points = np.array([   # Corner points of the keyboard relative to the keyboard frame in mm (center of keyboard)
-            [-KEYBOARD[1]/2, -KEYBOARD[0]/2, 0],    # top-left
-            [KEYBOARD[1]/2,  -KEYBOARD[0]/2, 0],    # top-right
-            [KEYBOARD[1]/2,  KEYBOARD[0]/2, 0],     # bottom-right
-            [-KEYBOARD[1]/2, KEYBOARD[0]/2, 0]      # bottom-left
-        ], dtype=np.float32)
+        self.camera_frame = self.declare_parameter('camera_frame', 'image_frame').get_parameter_value().string_value
 
-        # OpenCV filter params
-        self.dark_threshold = self.declare_parameter('dark_threshold', 120).get_parameter_value().integer_value
-        self.kernel_size = self.declare_parameter('kernel_size', 100).get_parameter_value().integer_value
+        self.aruco_detection = None
+        self.marker_ids = list(self.declare_parameter('marker_ids', [1, 4, 3, 2]).get_parameter_value().integer_array_value)
+        self.aruco_topic = self.declare_parameter('aruco_topic', ARUCO_TOPIC).get_parameter_value().string_value
+        self.aruco_sub = self.create_subscription(ArucoDetection, self.aruco_topic, self.aruco_callback, qos_profile=qos_profile_sensor_data)
+
+        marker_offset = self.declare_parameter('marker_offset', 10.0).get_parameter_value().double_value  # mm
+        self.keyboard_points = np.array([
+            [-(KEYBOARD[1]/2 - marker_offset), -(KEYBOARD[0]/2 - marker_offset), 0],  # top-left
+            [ (KEYBOARD[1]/2 - marker_offset), -(KEYBOARD[0]/2 - marker_offset), 0],  # top-right
+            [ (KEYBOARD[1]/2 - marker_offset),  (KEYBOARD[0]/2 - marker_offset), 0],  # bottom-right
+            [-(KEYBOARD[1]/2 - marker_offset),  (KEYBOARD[0]/2 - marker_offset), 0],  # bottom-left
+        ], dtype=np.float32)
+        self.keyboard_points_m = self.keyboard_points / 1000.0
 
         # tf2 initalisation
         self.tf_buffer = Buffer()
@@ -164,7 +160,7 @@ class KeyboardLocaliser(Node):
         x, y = self.key_map[key_symbol]
         tfs = TransformStamped()
         tfs.header.frame_id = self.keyboard_frame
-        tfs.child_frame_id = key_symbol + '_' + self.keyboard_frame
+        tfs.child_frame_id = key_symbol + "_frame"
         tfs.header.stamp = request.stamp
         tfs.transform.translation.x = x * 0.001 # convert mm to meters
         tfs.transform.translation.y = y * 0.001
@@ -175,19 +171,6 @@ class KeyboardLocaliser(Node):
         self.transform_broadcaster.sendTransform(tfs)
         response.success = True
         return response
-
-
-    def get_transform_to_base_link(self, key_pos):
-        """ 
-        Auto transform functionality to automatically transform key position 
-        from relative to keyboard frame to relative to base link 
-        so that position can be fed directly to path planner/ik
-        """
-        try:
-            base_to_keyboard = self.tf_buffer.lookup_transform(self.base_frame, self.keyboard_frame, key_pos.header.stamp)
-            transformed_point = tf2_geometry_msgs.do_transform_point(key_pos, base_to_keyboard)
-        except:
-            return None
 
     def publish_aligned_tf(self) -> None:
         '''Publish the transform of the keyboard through the alignment method'''
@@ -205,107 +188,123 @@ class KeyboardLocaliser(Node):
 
     def publish_analysis_tf(self) -> None:
         '''Publish the transform of the keyboard through the solvePnP method'''
-        if self.view is None or not self.node_is_auto:
+        if not self.node_is_auto:
             return
         transform = self.estimate_pose()
         if transform is None:
             return None
         self.transform_broadcaster.sendTransform(transform)
 
-    def view_callback(self, view) -> None:
-        """ Callback when Image is recieved (Stores msg for retrieval) """
-        self.view = view
+    def aruco_callback(self, detection: ArucoDetection) -> None:
+        """Store latest ArUco detections"""
+        self.aruco_detection = detection
         self.publish_analysis_tf()
     
-    def msg_to_mat(self, logger, img, encoding) -> np.ndarray:
-        """Converts Image msg to cv2 frame"""
-        mat = None
-        try:
-            mat = CvBridge().imgmsg_to_cv2(img, encoding)
-        except Exception as e:
-            logger.error(str(e))
-        return mat
+    def get_aruco_corners(self) -> None | np.ndarray:
+        """
+        Return marker centre positions as [x,y,z] in order
+        """        
+        marker_lookup = {marker.marker_id: marker for marker in self.aruco_detection.markers}
+        if any(marker_id not in marker_lookup for marker_id in self.marker_ids):
+            return None
 
-    def get_corners(self) -> None | np.ndarray:
-        """ Get the sorted corners of the keyboard from the image msg """
-        image = self.msg_to_mat(self.get_logger(), self.view, 'bgr8')
+        ordered_points = []
+        for marker_id in self.marker_ids:
+            marker = marker_lookup[marker_id]
+            ordered_points.append(
+                [
+                    marker.pose.position.x,
+                    marker.pose.position.y,
+                    marker.pose.position.z
+                ]
+            )
 
-        # Get filtered mask
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
-
-        # filter for dark colours (black keyboard)
-        _, mask = cv2.threshold(v, self.dark_threshold, 255, cv2.THRESH_BINARY_INV)
-
-        # close small gaps in mask
-        kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
-        mask_closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel_close, iterations=2)
-
-        # filter out irregular blobs
-        kern_neck = cv2.getStructuringElement(cv2.MORPH_RECT, (3, self.kernel_size))
-        mask_pruned = cv2.morphologyEx(mask_closed, cv2.MORPH_OPEN, kern_neck, iterations=1)
-        kern_blip = cv2.getStructuringElement(cv2.MORPH_RECT, (self.kernel_size, 3))
-        mask_blip = cv2.morphologyEx(mask_pruned, cv2.MORPH_OPEN, kern_blip, iterations=1)
-        
-        # Get largest contour's hull
-        approx = None
-        contours, _ = cv2.findContours(mask_blip, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if contours:
-            hull = cv2.convexHull(max(contours, key=cv2.contourArea))
-            # simplify contour polygon using algorithm (0.02 *cv2 arcLength is 2% of perimeter)
-            approx = cv2.approxPolyDP(hull, 0.02 * cv2.arcLength(hull, True), True)
-
-        # Sort the points in order: top-left, top-right, bottom-right, bottom-left
-        def sort_corners(approx) -> np.ndarray:
-            if approx is None or len(approx) != 4:
-                return None
-            # Extract and reshape points to 2D array
-            pts = approx.reshape(4, 2)
-
-            sorted_pts = np.zeros((4, 2), dtype="float32")
-            s = pts.sum(axis=1)
-            diff = np.diff(pts, axis=1)
-            sorted_pts[0] = pts[np.argmin(s)]       # top-left
-            sorted_pts[2] = pts[np.argmax(s)]       # bottom-right
-            sorted_pts[1] = pts[np.argmin(diff)]    # top-right
-            sorted_pts[3] = pts[np.argmax(diff)]    # bottom-left
-            return sorted_pts
-
-        image_points = sort_corners(approx)
-        self.pub_debug_image(image, image_points)
-        return image_points
+        return np.array(ordered_points, dtype=np.float32)
     
-    def pub_debug_image(self, img, points) -> None:
-        # Publish points and draw each point
-        if points is not None:
-            kb_msg = KeyboardPoints()
-            kb_msg.points = [int(i) for point in points for i in point]
-            kb_msg.width, kb_msg.height = self.camera_resolution
-            self.point_pub.publish(kb_msg)
-            for point in points:
-                cv2.circle(img, (int(point[0]), int(point[1])), radius=5, color=(0, 255, 0), thickness=-1)
+    def estimate_rigid_transform(self, src_points: np.ndarray, dst_points: np.ndarray):
+        """
+        https://en.wikipedia.org/wiki/Kabsch_algorithm
+        Estimates the rigid transform to map src_points -> dst_points using Kabsch's
+        Returns rotation matrix and translation vector such that dst_points = R @ src_points + t
+        """
 
-        if not self.do_debug:
-            return
+        # Make sure that the two sets of points have the same dimensions and at least 3 points
+        if src_points.shape != dst_points.shape or src_points.shape[0] < 3:
+            return None, None
 
-        # Convert OpenCV image -> ROS Image
-        output_msg = CvBridge().cv2_to_imgmsg(img, encoding="bgr8")
+        # Get the average position/centroids of each set of points A (source) and B (destination)
+        src_centroid = np.mean(src_points, axis=0) # C_A
+        dst_centroid = np.mean(dst_points, axis=0) # C_B
 
-        # Publish the image
-        self.debug_pub.publish(output_msg)
+        # Center each centroid at the origin
+        src_centered = src_points - src_centroid # A'
+        dst_centered = dst_points - dst_centroid # B'
+
+        # Calculate the covariance matrix H = (A')^T*(B') which rotates the source points
+        # such that they are aligned with the destination points about the origin
+        H = src_centered.T @ dst_centered
+
+        # Use SVD to to get U and V^T such that H = U*S*V^T
+        # U represents the orientation of the source points
+        # V represents the orientation of the destination points
+        # S represents scaling/stretching (not used, as this is a rigid transform)
+        U, S, VT = np.linalg.svd(H)
+        
+        # Apply determinant to account for reflections
+        if np.linalg.det(VT.T @ U.T) < 0:
+            VT[2, :] *= -1
+
+        # Calculate the rotation matrix R = V*U^T
+        # U^T rotates the source points to align with the orientation of the standard x, y, z axes, then
+        # VT rotates these points to align with the destination points
+        R = VT.T @ U.T
+
+        # Calculate the translation vector t = C_B - R*C_A
+        # R*C_A rotates the source centroid to align with the destination orientation
+        t = dst_centroid - R @ src_centroid
+
+        return R.astype(np.float32), t.reshape(3, 1).astype(np.float32)
+        
+    def get_corners(self, detected_pts) -> None:
+        fx = self.camera_matrix[0, 0]
+        fy = self.camera_matrix[1, 1]
+        cx = self.camera_matrix[0, 2]
+        cy = self.camera_matrix[1, 2]
+
+        image_points = []
+        for pt in detected_pts:
+            u = fx * pt[0] / pt[2] + cx
+            v = fy * pt[1] / pt[2] + cy
+            image_points.append([u, v])
+
+        kb_msg = KeyboardPoints()
+        kb_msg.points = [int(i) for point in image_points for i in point]
+        kb_msg.width, kb_msg.height = self.camera_resolution
+        self.point_pub.publish(kb_msg)
         
     def estimate_pose(self) -> None | TransformStamped:
         """Estimate pose of keyboard and return its transform"""
-        ## run solvePnP
-        image_points = self.get_corners()
-        if image_points is None:
+        # Get the marker poses in order
+        detected_points_m = self.get_aruco_corners()
+        if detected_points_m is None:
             return None
-
-        success, rvec, tvec = cv2.solvePnP(self.keyboard_points, image_points, self.camera_matrix, self.dist_coeffs)
+        
+        # Publish keyboard corner points to gui
+        self.get_corners(detected_points_m)
+        
+        # Get the rotation matrix and translation vector
+        rmat, tvec = self.estimate_rigid_transform(self.keyboard_points_m, detected_points_m)
+        if rmat is None or tvec is None:
+            return None
+        
+        # Flip keyboard normal if it points in same direction as keyboard->camera
+        tvec_unit = tvec.flatten() / np.linalg.norm(tvec)
+        if np.dot(rmat[:, 2], tvec_unit) < 0:
+            rmat[:, 2] *= -1
+            rmat[:, 1] *= -1
         
         # Convert to rotation matrix then to quaternion 
-        rotation_matrix, _ = cv2.Rodrigues(rvec)
-        rot = R.from_matrix(rotation_matrix)
+        rot = R.from_matrix(rmat)
         quat = rot.as_quat()  # [x, y, z, w]
         ## convert quaternion and transform vector to transform message
         t = TransformStamped()
@@ -313,9 +312,9 @@ class KeyboardLocaliser(Node):
         t.header.frame_id = self.camera_frame
         t.child_frame_id = self.keyboard_frame
 
-        t.transform.translation.x = tvec[0][0] / 1000.0  # mm → meters
-        t.transform.translation.y = tvec[1][0] / 1000.0
-        t.transform.translation.z = tvec[2][0] / 1000.0
+        t.transform.translation.x = float(tvec[0][0])
+        t.transform.translation.y = float(tvec[1][0])
+        t.transform.translation.z = float(tvec[2][0])
 
         t.transform.rotation.x = quat[0]
         t.transform.rotation.y = quat[1]

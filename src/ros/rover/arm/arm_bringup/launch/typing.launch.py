@@ -14,7 +14,8 @@ CREATION:	25/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.conditions import IfCondition
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
@@ -25,6 +26,7 @@ def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
     auto_mode = LaunchConfiguration('auto_mode')
     params = LaunchConfiguration('typing_params')
+    aruco_params = LaunchConfiguration('aruco_params')
 
     base_frame = "arm_kinematics_origin"
     if old_arm.lower() in ["true", "t", "1"]:
@@ -46,7 +48,22 @@ def launch_setup(context, *args, **kwargs):
             package='auto_typing',
             executable='pokey.py',
             parameters=[params]
-        )
+        ),
+        GroupAction(
+            condition=IfCondition(auto_mode),
+            actions=[
+                Node(
+                    package='auto_typing',
+                    executable='camera_info_publisher.py',
+                    parameters=[params],
+                ),
+                Node(
+                    package='aruco_opencv',
+                    executable='aruco_tracker_autostart',
+                    arguments=['--ros-args', '--params-file', aruco_params],
+                ),
+            ]
+        ),
     ]
 
 
@@ -60,8 +77,13 @@ def generate_launch_description():
             description='Absolute path to robot urdf file',
         ),
         DeclareLaunchArgument(
+            name='aruco_params',
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'typing_aruco_tracker.yaml']),
+            description='Absolute path to ArUco tracker params file',
+        ),
+        DeclareLaunchArgument(
             name='old_arm',
-            default_value='True',
+            default_value='False',
             description='Switch to old arm mode if true',
         ),
         DeclareLaunchArgument(

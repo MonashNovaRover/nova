@@ -1,11 +1,19 @@
 # base_frame: old arm = arm_link, new arm = arm_kinematics_origin
 # handled in launch file
 
+periscope_camera_info_publisher:
+  ros__parameters:
+    publish_rate: 10.0
+    camera_info_topic: /arm/camera_info
+    frame_id: image_frame
+    hfov: 61.3727248
+    image_width: 1280 #1280
+    image_height: 720 #720
+    distortion_matrix: [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]
+
 keyboard_localiser:
   ros__parameters:
-    # using auto or manual transform mode
-    #using_auto: true
-    debug_image: false
+
     # key position initalisation params
     keyboard_frame: keyboard_frame
     # base_frame: arm_link
@@ -18,16 +26,17 @@ keyboard_localiser:
 
     # calibrated camera intrinsics
     hfov: 61.3727248
-    image_width: 640 #1280
-    image_height: 480 #720
-    distortion_matrix: [0.59680899,-2.13821558,-0.01071933,0.0900803,4.94332294]
+    image_width: 1280 #1280
+    image_height: 720 #720
+    distortion_matrix: [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]
 
-    # OpenCV filter params
-    dark_threshold: 120 # 0-255
-    kernel_size: 100
+    # ArUco marker params
+    aruco_topic: /aruco_detections
+    marker_ids: [1, 4, 3, 2]  # top-left, top-right, bottom-right, bottom-left
+    marker_offset: 10.0
 
     # (auto) keyboard pose analysis initalisation
-    camera_frame: arm_end_periscope_optical
+    camera_frame: image_frame
 
     # tf2 initalisation
     tf_publish_rate: 1.0 # per second
@@ -40,12 +49,14 @@ typing_sequencer:
     ee_frame: endeffector_kinematics
     actuator_frame: actuator
 
-    target_quaternion: [ 1.0, 0.0, 0.0, 0.0000463 ]
-
     timeout: 2.0
     pollrate: 10.0
 
     # path planner movement
     speed: 0.01 # m/s
     debug_target: True
-    move_to_start: True # move arm back to starting position between each key
+
+pokey:
+  ros__parameters:
+    poke_speed: 0.1
+    poke_amount: 1
