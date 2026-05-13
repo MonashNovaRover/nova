@@ -17,6 +17,7 @@ teleop_arm:
         - task_space_mode
         - task_space_velocity_mode
         - end_effector_mode
+        - auto_typing_mode
 
       joint_space_mode:
         display_name: "Joint Space"
@@ -46,12 +47,21 @@ teleop_arm:
         controllers:
           - nova_end_effector_velocity_controller
 
+      auto_typing_mode:
+        display_name: "Auto typing"
+        type: "empty_control_mode/EmptyControlMode"
+        controllers:
+          - "nova_arm_position_controller"
+          - "nova_path_planner"
+
     commands:
       names:
         - enter_task_space
         - enter_task_space_velocity
         - exit_task_space_velocity
         - enter_joint_space
+        - enter_auto_typing
+        - exit_auto_typing
         - lock
         - unlock
         - log_locked
@@ -87,6 +97,20 @@ teleop_arm:
           - "joint_space_mode"
         deactivate:
           - "task_space_mode"
+      enter_auto_typing:
+        on: "path_planner/down"
+        type: switch_control_mode
+        activate:
+          - "auto_typing_mode"
+        deactivate:
+          - "joint_space_mode"
+      exit_auto_typing:
+        on: "path_planner/up"
+        type: switch_control_mode
+        activate:
+          - "joint_space_mode"
+        deactivate:
+          - "auto_typing_mode"
 
       lock:
         on_any:

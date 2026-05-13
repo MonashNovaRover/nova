@@ -139,5 +139,7 @@ thrustmaster_right:
       buttons:
         task_space:
             from: "r_btn_thumb_u_state"
+        path_planner:
+            from: "r_btn_bottom_r1_state"
 
 
