@@ -51,7 +51,6 @@ teleop_arm:
         display_name: "Auto typing"
         type: "empty_control_mode/EmptyControlMode"
         controllers:
-          - "nova_arm_position_controller"
           - "nova_path_planner"
 
     commands:
