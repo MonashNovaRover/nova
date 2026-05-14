@@ -1,43 +1,85 @@
-import React, {useEffect, useState} from "react";
-import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
-import {RosService} from "../../../ros/services/rosService.ts";
-import {Card, CardBody, CardHeader, CardProps, Tab, Tabs} from "@nextui-org/react";
-import {IRosScienceInterfacesCacheCommandResponse} from "../../../ros/rosTypes.ts";
+import React, { useState } from "react";
+import { Button, Card, CardBody, CardHeader, Input, Tab, Tabs } from "@nextui-org/react";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import { RosService } from "../../../ros/services/rosService.ts";
+import { ArrowClockwise, ArrowCounterclockwise } from "react-bootstrap-icons";
+import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 
-export interface CacheControlWidgetProps extends CardProps {
-  label?: string
-  service: RosService
+interface CacheConfig {
+  label: string
+  positionService: RosService
+  twitchService: RosService
+  storeKey: string
 }
 
-const CacheControlWidget: React.FC<CacheControlWidgetProps> = (props) => {
-  const [selected, setSelected] = useState<number>(0);
-  const bifrost = useBifrost({service: props.service});
+const CachePanel: React.FC<CacheConfig> = ({ positionService, twitchService, storeKey }) => {
+  const bifrostSetPos = useBifrost({ service: positionService });
+  const bifrostTwitch = useBifrost({ service: twitchService });
 
-  useEffect(() => {
-    bifrost.syncWithTopic();
-  }, [bifrost]);
+  const [twitchStep, setTwitchStep] = useGenericStore<number>(storeKey + "TwitchStep");
+  const [twitchInput, setTwitchInput] = useState((twitchStep ?? 5).toString());
 
-  const onSelectionChange = (key: number | string) => {
-    bifrost.callService({angle: Number(key)}, {
-      handleResponse: (response) => {
-        const boolResponse = response as IRosScienceInterfacesCacheCommandResponse;
-        if (boolResponse?.success) {
-          setSelected(Number(key));
-        }
-      }
-    });
-  }
+  const setPosition = (angle: number) => {
+    bifrostSetPos.callService({ position: angle });
+  };
 
-  return <Card {...props}>
-    <CardHeader>{props.label ?? props.service}</CardHeader>
-    <CardBody>
-      <Tabs key="tabs" color="primary" radius="full" fullWidth selectedKey={selected.toString()} onSelectionChange={onSelectionChange}>
-        <Tab key="0" title="0°" />
-        <Tab key="1" title="90°" />
-        <Tab key="2" title="180°" />
-      </Tabs>
-    </CardBody>
-  </Card>
-}
+  const twitch = (step: number) => {
+    bifrostTwitch.callService({ position: step });
+  };
 
-export default CacheControlWidget
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-3 gap-3">
+        <Button color="primary" onPress={() => setPosition(0)}>Closed</Button>
+        <Button color="primary" onPress={() => setPosition(90)}>Half Open</Button>
+        <Button color="primary" onPress={() => setPosition(180)}>Fully Open</Button>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <Button onPress={() => twitch(-(twitchStep ?? 5))}><ArrowCounterclockwise size={18} /></Button>
+        <Input
+          type="number"
+          label="Twitch"
+          size="sm"
+          endContent={
+            <div className="pointer-events-none flex items-center">
+              <span className="text-default-400 text-small">°</span>
+            </div>
+          }
+          value={twitchInput}
+          onValueChange={(v) => { setTwitchInput(v); const n = parseFloat(v); if (!isNaN(n) && n > 0) setTwitchStep(n) }}
+        />
+        <Button onPress={() => twitch(twitchStep ?? 5)}><ArrowClockwise size={18} /></Button>
+      </div>
+    </div>
+  );
+};
+
+const CacheControlWidget: React.FC = () => {
+  return (
+    <Card>
+      <CardHeader>Caches</CardHeader>
+      <CardBody className="pt-0">
+        <Tabs fullWidth>
+          <Tab key="left" title="Left">
+            <CachePanel
+              label="Left"
+              positionService={RosService.CACHE_LEFT_POSITION}
+              twitchService={RosService.CACHE_LEFT_TWITCH}
+              storeKey="cacheLeft"
+            />
+          </Tab>
+          <Tab key="right" title="Right">
+            <CachePanel
+              label="Right"
+              positionService={RosService.CACHE_RIGHT_POSITION}
+              twitchService={RosService.CACHE_RIGHT_TWITCH}
+              storeKey="cacheRight"
+            />
+          </Tab>
+        </Tabs>
+      </CardBody>
+    </Card>
+  );
+};
+
+export default CacheControlWidget;

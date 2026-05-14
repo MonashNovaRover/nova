@@ -426,6 +426,8 @@ export const reduxStores = {
   }),
   litmusDipperDefaultDuration: createGenericStore("litmusDipperDefaultDuration", 2),
   litmusDipperTwitchStep: createGenericStore("litmusDipperTwitchStep", 5.0),
+  cacheLeftTwitchStep: createGenericStore("cacheLeftTwitchStep", 5.0),
+  cacheRightTwitchStep: createGenericStore("cacheRightTwitchStep", 5.0),
 };
 
 // all store reducers
