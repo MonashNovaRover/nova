@@ -97,14 +97,14 @@ teleop_arm:
         deactivate:
           - "task_space_mode"
       enter_auto_typing:
-        on: "path_planner/down"
+        on: "auto_typing/down"
         type: switch_control_mode
         activate:
           - "auto_typing_mode"
         deactivate:
           - "joint_space_mode"
       exit_auto_typing:
-        on: "path_planner/up"
+        on: "auto_typing/up"
         type: switch_control_mode
         activate:
           - "joint_space_mode"

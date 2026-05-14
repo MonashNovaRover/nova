@@ -120,6 +120,6 @@ joy_input_source:
             name: "TRIGGERLEFT"
             threshold: -0.5
           from: "PADDLE1"
-        path_planner:
+        auto_typing:
             from: "LEFTSTICK"
 

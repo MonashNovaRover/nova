@@ -139,7 +139,7 @@ thrustmaster_right:
       buttons:
         task_space:
             from: "r_btn_thumb_u_state"
-        path_planner:
+        auto_typing:
             from: "r_btn_bottom_r1_state"
 
 
