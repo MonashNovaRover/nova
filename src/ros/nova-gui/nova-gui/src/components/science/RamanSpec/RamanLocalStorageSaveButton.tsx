@@ -5,14 +5,16 @@ import {Button, Input} from "@nextui-org/react";
 export interface RamanLocalStorageSaveButtonProps {
   onSave: (name: string) => void,
   onCSVSave?: () => void,
+  suggestedName?: string,  // Auto-populated name based on carousel position
 }
 
 // A distinct component to contain the useState for graphName
+// Uses key prop from parent to reset when suggestedName changes
 const RamanLocalStorageSaveButton: React.FC<RamanLocalStorageSaveButtonProps> = (props) => {
-  const [graphName, setGraphName] = useState<string>("");
+  const [graphName, setGraphName] = useState<string>(props.suggestedName ?? "");
 
   return (
-    <div className="flex flex-row gap-3 my-3 mb-0">
+    <div className="flex flex-row gap-3 my-3 mb-0 flex-grow">
       <Input size="sm" placeholder="Saved graph name" className="flex-grow" onValueChange={setGraphName} value={graphName}></Input>
       <Button
         color={graphName.length > 0 ? "primary" : "default"}
@@ -23,7 +25,7 @@ const RamanLocalStorageSaveButton: React.FC<RamanLocalStorageSaveButtonProps> = 
         Save
       </Button>
       {props.onCSVSave && (
-        <Button color="success" onPress={props.onCSVSave} size="sm" className="px-5">
+        <Button color="default" onPress={props.onCSVSave} size="sm" className="px-5">
           Save to CSV
         </Button>
       )}
