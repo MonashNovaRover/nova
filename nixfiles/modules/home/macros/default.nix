@@ -318,10 +318,7 @@ in
           deactivate-path = "~/Builds/master/bin/ros2 control set_controller_state nova_path_planner inactive";
 
           # Ducket
-          ducket-pos = "cansend can0 0C1#7000";
-          ducket-neg = "cansend can0 0C1#9000";
-          ducket = "cansend can0 0C1#7000";
-          ducketn = "cansend can0 0C1#9000";
+          ducket = "cansend can0 0E0#FF";
 
           # can
           lscan = "for bus in $(ip link show type vcan | cut -d : -f2 | grep -v -e link -e alias | tr -d ' ') $(ip link show type can | cut -d : -f2 | grep -v -e link -e alias | tr -d ' '); do echo $bus; udevadm info /sys/class/net/$bus | grep DEVPATH; done";

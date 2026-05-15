@@ -161,7 +161,7 @@ export const urc_equipment_servicing_views: CameraViewConfig[] = [
 
 export const urc_delivery_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...urcArmCams.slice(0,8), ...driveCams, urcArmCams[urcArmCams.length - 1]],
+    cameraSerials: [...urcArmCams.slice(0,3), urcArmCams[7], ...urcArmCams.slice(4,6), urcArmCams[6], urcArmCams[8], ...driveCams, urcArmCams[3]],
     viewTitle: "All Cams",
   },
   {
