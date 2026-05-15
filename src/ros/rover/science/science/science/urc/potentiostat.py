@@ -43,10 +43,10 @@ class PotentiostatNode(Node):
         can_bus = self.declare_parameter("can_bus", "can1",
             ParameterDescriptor(description="CAN interface name")).value
 
-        self.can_tx_id = self.declare_parameter("can_tx_id", 0x1F1,
+        self.can_tx_id = self.declare_parameter("can_tx_id", 0x01A, # 01A and 01b are two channels
             ParameterDescriptor(description="CAN ID for sending trigger messages")).value
 
-        self.can_rx_id = self.declare_parameter("can_rx_id", 0x41C,
+        self.can_rx_id = self.declare_parameter("can_rx_id", 0x41A, # 41A and 41B are two channels
             ParameterDescriptor(description="CAN ID for receiving voltage/current data")).value
 
         can_spin_rate = self.declare_parameter("can_spin_rate", 20.0,
@@ -114,13 +114,12 @@ class PotentiostatNode(Node):
             self.data_publisher.publish(msg)
             return
 
-        # Parse voltage (bytes 0-1, mV) and current (bytes 2-5, µA)
+        # Parse voltage (bytes 0-1, mV) and current (bytes 2-3, mA)
         voltage_mv = int.from_bytes(data[0:2], 'big', signed=True)
-        current_ua = int.from_bytes(data[2:6], 'big', signed=True)
+        current_ma = int.from_bytes(data[2:4], 'big', signed=True)
 
-        # Convert: mV → V, µA → mA
+        # Convert: mV → V
         voltage_v = voltage_mv / 1000.0
-        current_ma = current_ua / 1000.0
 
         # Publish
         msg = PotentiostatData()
