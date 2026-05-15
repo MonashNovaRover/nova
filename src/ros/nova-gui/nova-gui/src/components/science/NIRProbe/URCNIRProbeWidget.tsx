@@ -23,7 +23,7 @@ const URCNIRProbeWidget: React.FC<INIRProbeWidgetProps> = () => {
         setShowAdvanced={setShowAdvanced}
         readingInfo={URCNIRPRobeReadingTypeInfo}
       />
-      <SiteSelectWidget/>
+      <SiteSelectWidget numSites={2}/>
       <NIRProbeFileTableWidget
         headerTable={<NIRProbeSiteAvgTable readingInfo={URCNIRPRobeReadingTypeInfo}/>}
         readingInfo={URCNIRPRobeReadingTypeInfo}
