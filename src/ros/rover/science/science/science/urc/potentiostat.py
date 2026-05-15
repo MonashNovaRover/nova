@@ -114,12 +114,15 @@ class PotentiostatNode(Node):
             self.data_publisher.publish(msg)
             return
 
-        # Parse voltage (bytes 0-1, mV) and current (bytes 2-3, mA)
-        voltage_mv = int.from_bytes(data[0:2], 'big', signed=True)
-        current_ma = int.from_bytes(data[2:4], 'big', signed=True)
+        # Parse voltage (bytes 0-3, mV) and current (bytes 4-7, mA)
+        voltage_mv = int.from_bytes(data[0:4], 'big', signed=True)
+        current_ma = int.from_bytes(data[4:8], 'big', signed=True)
+
+        self.get_logger().info(f"current: {data[4:8]} -> {current_ma} mA, voltage: {data[0:4]} -> {voltage_mv} mV\n {data}")
 
         # Convert: mV → V
         voltage_v = voltage_mv / 1000.0
+        current_ma = current_ma / 1000.0
 
         # Publish
         msg = PotentiostatData()
