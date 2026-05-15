@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {Button, Card, CardBody, CardHeader, CardProps, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger
 } from "@nextui-org/react";
 import {Check, MoreHorizontal} from "react-feather";
@@ -11,6 +11,7 @@ import {
   useCarouselZero
 } from "./useCarouselBifrost.ts";
 import {CarouselHallEffects} from "./CarouselHallEffects.tsx";
+import {useCarouselPosition} from "./CarouselPositionContext.tsx";
 
 export enum RING {
   INNER = 0,
@@ -57,6 +58,9 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   const [manualPositions, setManualPositions] = useState<CuvettePositions>([0, 0]); // Current Degrees
   const [ignoreZeroingStatus, setIgnoreZeroingStatus] = useState(true);
 
+  // Context for sharing position with other components (e.g., UVVisSpec for graph naming)
+  const carouselContext = useCarouselPosition();
+
   // Derive current cuvette positions from feedback positions (in degrees)
   const currentCuvettes: CuvettePositions = useMemo(() => [
     degreesToCuvette(RING.INNER, useManualPosition ? manualPositions[RING.INNER] : innerFeedback.position),
@@ -65,6 +69,14 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
 
   // Check if either ring is zeroing
   const isZeroing = ignoreZeroingStatus ? false : (innerFeedback.zeroing || outerFeedback.zeroing);
+
+  // Sync current cuvette positions to context for use by other components
+  useEffect(() => {
+    carouselContext?.setPositions(
+      currentCuvettes[RING.INNER],
+      currentCuvettes[RING.OUTER]
+    );
+  }, [currentCuvettes, carouselContext]);
 
   // const [selectedTab, setSelectedTab] = useState(0)
   // const showCalibration = selectedTab === 1
@@ -122,28 +134,32 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
         </DropdownMenu>
       </Dropdown>
     </CardHeader>
-    <CardBody className="grid grid-cols-5 gap-3">
-      <div className="col-span-2 flex flex-col gap-3 items-center w-full">
+    <CardBody className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 w-full gap-3">
         <Button className="w-full" color="primary" onPressStart={() => triggerZero(RING.INNER)}>Zero Inner</Button>
         <Button className="w-full" color="secondary" onPressStart={() => triggerZero(RING.OUTER)}>Zero Outer</Button>
+      </div>
+      <div className="flex flex-col gap-3 items-center w-full">
         <CarouselHallEffects/>
       </div>
 
-      <div className="col-span-3 flex flex-col gap-3 items-center">
-        <CarouselControls
-          moveXCuvettes={moveXCuvettes(RING.OUTER)}
-          calibrateByDegrees={incrementZero(RING.OUTER)}
-          showCalibration={false}
-          variant={RING.OUTER}
-          disabled={isZeroing}
-        />
-        <CarouselControls
-          moveXCuvettes={moveXCuvettes(RING.INNER)}
-          calibrateByDegrees={incrementZero(RING.INNER)}
-          showCalibration={false}
-          variant={RING.INNER}
-          disabled={isZeroing}
-        />
+      <div className="flex flex-col gap-3 items-center mt-3">
+        <div className="grid grid-cols-2 w-full gap-3">
+          <CarouselControls
+            moveXCuvettes={moveXCuvettes(RING.INNER)}
+            calibrateByDegrees={incrementZero(RING.INNER)}
+            showCalibration={false}
+            variant={RING.INNER}
+            disabled={isZeroing}
+          />
+          <CarouselControls
+            moveXCuvettes={moveXCuvettes(RING.OUTER)}
+            calibrateByDegrees={incrementZero(RING.OUTER)}
+            showCalibration={false}
+            variant={RING.OUTER}
+            disabled={isZeroing}
+          />
+        </div>
         <CarouselDial
           inner={{current: currentCuvettes[RING.INNER], onClick: onCuvetteClick(RING.INNER)}}
           outer={{current: currentCuvettes[RING.OUTER], onClick: onCuvetteClick(RING.OUTER)}}

@@ -52,17 +52,16 @@ export const ChartOptions = (style: ChartStyle): ApexOptions => {
                 }
             },
             yaxis: {
-                min: 0,
-                max: 1,
                 title: {
-                    text: 'Normalised intensity',
+                    text: 'Normalized Intensity',
                     style: {
                         fontSize: '14px',
                         color: '#fff'
                     }
                 },
                 labels: {
-                    show: false,
+                    show: true,
+                    formatter: (val: number) => `${(val * 100).toFixed(0)}%`
                 }
             },
             grid: {
