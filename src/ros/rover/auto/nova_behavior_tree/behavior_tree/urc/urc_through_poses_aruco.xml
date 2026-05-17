@@ -10,9 +10,10 @@
             <RunOnce>
               <PlaceSearchGoals search_radius="{search_radius}" search_corners="3" input_goals="{goals}" output_goals="{goals}"/>
             </RunOnce>
+            <GetCurrentPose current_pose="{current_pose}"/>
+            <WithinSearchRadius current_pose="{current_pose}" input_goals="{goals}" radius="{search_radius}"/>
             <ARTagDetected detections_topic="/aruco_detections" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
             <GetGoal index="0" input_goals="{detected_goals}" output_goal="{detected_goal}"/>
-            <GetCurrentPose current_pose="{current_pose}"/>
             <SetDetectionGoal detected_goal="{detected_goal}" current_pose="{current_pose}" input_goals="{goals}" output_goals="{goals}"/>
           </Sequence>
         </ForceSuccess>
