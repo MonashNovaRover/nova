@@ -1,7 +1,7 @@
 import React from "react";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import SensorDataWidget from "./SensorDataWidget.tsx";
-import DualGraphWidget from "./DualGraphWidget.tsx";
+import ChemicalComparisonWidget from "./ChemicalComparisonWidget.tsx";
 
 const PresentationWidgetsContainer: React.FC = () => {
   return (
@@ -9,15 +9,13 @@ const PresentationWidgetsContainer: React.FC = () => {
       {/* Site 1 Column */}
       <div className="flex flex-col gap-3">
         <SensorDataWidget site={Site.SITE_1} />
-        <DualGraphWidget site={Site.SITE_1} title="UV-Vis Spectra 1 - Site 1" />
-        <DualGraphWidget site={Site.SITE_1} title="UV-Vis Spectra 2 - Site 1" />
+        <ChemicalComparisonWidget site={Site.SITE_1} />
       </div>
 
       {/* Site 2 Column */}
       <div className="flex flex-col gap-3">
         <SensorDataWidget site={Site.SITE_2} />
-        <DualGraphWidget site={Site.SITE_2} title="UV-Vis Spectra 1 - Site 2" />
-        <DualGraphWidget site={Site.SITE_2} title="UV-Vis Spectra 2 - Site 2" />
+        <ChemicalComparisonWidget site={Site.SITE_2} />
       </div>
     </div>
   );
