@@ -26,6 +26,7 @@ from rclpy.duration import Duration
 import jcan
 from collections.abc import Callable
 from itertools import chain
+from time import sleep
 
 # import custom messages
 from blcmd_interfaces.msg import BLCMDStatus, BLCMDStatusArray, BLCMDLog
@@ -98,7 +99,7 @@ class BLCMDStatusMonitor(Node):
         self.output_period = 1 / int(self.declare_parameter("output_max_frequency", 1).value) # in logs per second
         self.publish_log_period = 1 / int(self.declare_parameter("publish_log_max_frequency", 10).value) # in logs per second
         self.publish_status_period = 1 / int(self.declare_parameter("publish_status_frequency", 2).value) # in blcmd statuses per second
-        self.check_pivot_zero_period = self.declare_parameter("check_pivot_zero_period", 1).value # in seconds between checks
+        self.check_pivot_zero_period = self.declare_parameter("check_pivot_zero_period", 60).value # in seconds between checks
 
         # ignoring the numbers provided by the gate driver condition errors as they seem unreliable/unused atm
         self.ignore_gate_driver_condition_error_number = self.declare_parameter("ignore_gate_driver_condition_error_number", True).value
@@ -143,6 +144,9 @@ class BLCMDStatusMonitor(Node):
         # workaround required due to inability to call bus.send in a can callback
         self.deferred_functions: list[Callable[[], None]] = []
 
+        # delay after resetting pivot blcmd before setting zero position to previous value
+        self.pivot_set_zero_delay = self.declare_parameter("pivot_set_zero_delay", 3).value # in seconds
+
         #create reset_time variable to prevent multiple resets in a short time
         self.reset_time = self.get_clock().now()
 
@@ -166,6 +170,25 @@ class BLCMDStatusMonitor(Node):
         #create timers
         self.run_callbacks_timer = self.create_timer(0.01, self.run_callbacks)
         self.publish_status_timer = self.create_timer(self.publish_status_period, self.publish_blcmd_status)
+        self.pivot_set_zero_delay_timers = {}
+        for pivot_id in self.pivot_blcmd_ids:
+            def set_pivot_zero(id=pivot_id):
+                if self.pivot_zeros[id] is None:
+                    self.get_logger().error(f'Did not set zero position for pivot BLCMD {id} as a zero position was never received from it')
+                    return
+
+                self.bus.send(
+                    jcan.Frame(id=0x00A | (id << 4), data=[
+                        0xf,
+                        *self.pivot_zeros[id]
+                    ])
+                )
+
+                self.pivot_set_zero_delay_timers[id].cancel()
+
+            self.pivot_set_zero_delay_timers[pivot_id] = self.create_timer(self.pivot_set_zero_delay,
+                                                                           set_pivot_zero,
+                                                                           autostart=False)
 
         # regularly query pivots for zero positions (which are verified against stored initial zero)
         # to ensure that there is no funny business going on
@@ -303,12 +326,7 @@ class BLCMDStatusMonitor(Node):
                 )
 
                 # set pivot zero
-                self.bus.send(
-                    jcan.Frame(id=0x00A | (blcmd_id << 4), data=[
-                        0xf,
-                        *self.pivot_zeros[blcmd_id]
-                    ])
-                )
+                self.pivot_set_zero_delay_timers[blcmd_id].reset()
 
                 self.blcmd_pivot_reset_times[blcmd_id] = None
 

@@ -145,6 +145,7 @@ blcmd_status_monitor:
     auto_reset_pivot_blmcd_ids: [5, 6, 7, 8]
 
     blcmd_zero_response_timeout: 3
+    pivot_set_zero_delay: 3
     canbus: can0
     error_active_duration: 2
     num_blcmds: 8
