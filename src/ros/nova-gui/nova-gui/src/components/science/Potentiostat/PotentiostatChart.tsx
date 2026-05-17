@@ -40,6 +40,8 @@ export const PotentiostatChart = ({
       yAxis: {
         type: "value",
         name: "Current (mA)",
+        nameLocation: "middle",
+        nameGap: 25,
         nameTextStyle: { color: "#fff", fontSize },
         axisLabel: { color: "#fff", fontSize },
         splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } },

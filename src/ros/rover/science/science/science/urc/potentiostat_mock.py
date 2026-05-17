@@ -12,21 +12,23 @@ Simulates potentiostat hardware by:
   4. Sending stop signal when complete
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CAN PROTOCOL:
-  RX: 0x1F1#XX (trigger, XX = channel)
-  TX: 0x41C#AA AA BB BB BB BB (voltage, current)
-  TX: 0x41C#00 (stop signal)
+  RX: 0x01A#XX (trigger, XX = channel 0 or 1)
+  TX: 0x41A#VV VV VV VV CC CC CC CC (voltage, current)
+      - VVVVVVVV: voltage in 10µV units (int32, little-endian)
+      - CCCCCCCC: current in µA (int32, little-endian)
+  TX: 0x41A#00 (stop signal - short message with 0x00)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PARAMETERS:
   can_bus: CAN interface name (default: "can1")
-  can_tx_id: CAN ID for sending data (default: 0x41C)
-  can_rx_id: CAN ID for receiving trigger (default: 0x1F1)
+  can_tx_id: CAN ID for sending data (default: 0x41A)
+  can_rx_id: CAN ID for receiving trigger (default: 0x01A)
   csv_file: Path to CSV file with voltage,current columns
   send_rate: Rate to send data in Hz (default: 10.0)
   can_spin_rate: CAN bus polling rate in Hz (default: 20.0)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-CSV FORMAT (values in mV and µA, matching CAN protocol):
+CSV FORMAT (values in 10µV and µA, matching CAN protocol):
   voltage,current
-  1234,56789
+  100000,50000  (= 1.0V, 50mA)
   ...
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -38,7 +40,7 @@ from rcl_interfaces.msg import ParameterDescriptor
 import jcan
 
 # Default CSV file path (same directory as this script)
-DEFAULT_CSV = os.path.join(os.path.dirname(__file__), "potentiostat_sample.csv")
+DEFAULT_CSV = "/home/nova/nova/src/ros/rover/science/science/science/urc/potentiostat_sample.csv"
 
 
 class PotentiostatMockNode(Node):
@@ -53,12 +55,12 @@ class PotentiostatMockNode(Node):
         ).value
 
         self.can_tx_id = self.declare_parameter(
-            "can_tx_id", 0x41C,
+            "can_tx_id", 0x41A,
             ParameterDescriptor(description="CAN ID for sending voltage/current data")
         ).value
 
         self.can_rx_id = self.declare_parameter(
-            "can_rx_id", 0x1F1,
+            "can_rx_id", 0x01A,
             ParameterDescriptor(description="CAN ID for receiving trigger messages")
         ).value
 
@@ -150,10 +152,10 @@ class PotentiostatMockNode(Node):
 
     def _send_reading(self, voltage: int, current: int):
         """Send voltage/current reading over CAN"""
-        # Pack voltage as 2 bytes (big-endian, signed)
-        voltage_bytes = voltage.to_bytes(2, 'big', signed=True)
-        # Pack current as 4 bytes (big-endian, signed)
-        current_bytes = current.to_bytes(4, 'big', signed=True)
+        # Pack voltage as 4 bytes (little-endian, signed, in 10µV units)
+        voltage_bytes = voltage.to_bytes(4, 'little', signed=True)
+        # Pack current as 4 bytes (little-endian, signed, in µA)
+        current_bytes = current.to_bytes(4, 'little', signed=True)
 
         data = list(voltage_bytes) + list(current_bytes)
         frame = jcan.Frame(self.can_tx_id, data)

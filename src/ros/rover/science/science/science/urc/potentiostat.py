@@ -11,13 +11,13 @@ SERVICES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CAN PROTOCOL:
   TX: 0x1F1#XX (XX = channel 0 or 1)
-  RX: 0x41C#AA AA BB BB BB BB
-      - AAAA: voltage in mV (int16, big-endian)
-      - BBBBBBBB: current in µA (int32, big-endian)
-  STOP: 0x41C#00 (first byte 0x00 when done)
+  RX: 0x41A#VV VV VV VV CC CC CC CC
+      - VVVVVVVV: voltage in 10µV units (int32, little-endian)
+      - CCCCCCCC: current in µA (int32, little-endian)
+  STOP: 0x41A#00 (short message with 0x00 when done)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 UNIT CONVERSION:
-  CAN mV → Published V (÷1000)
+  CAN 10µV → Published V (×0.00001)
   CAN µA → Published mA (÷1000)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
@@ -100,8 +100,8 @@ class PotentiostatNode(Node):
         """CAN callback - parse and publish data"""
         data = frame.data
 
-        # Check for stop alert (first byte == 0x00)
-        if data[0] == 0x00:
+        # Check for stop signal (short message with first byte == 0x00)
+        if len(data) <= 2 and data[0] == 0x00:
             self.is_receiving = False
             self.get_logger().info("Potentiostat measurement complete")
             # Publish final message with is_receiving=False
@@ -114,15 +114,15 @@ class PotentiostatNode(Node):
             self.data_publisher.publish(msg)
             return
 
-        # Parse voltage (bytes 0-3, mV) and current (bytes 4-7, mA)
-        voltage_mv = int.from_bytes(data[0:4], 'big', signed=True)
-        current_ma = int.from_bytes(data[4:8], 'big', signed=True)
+        # Parse voltage (bytes 0-3, 10µV) and current (bytes 4-7, µA)
+        voltage_10uv = int.from_bytes(data[0:4], 'little', signed=True)
+        current_ua = int.from_bytes(data[4:8], 'little', signed=True)
 
-        self.get_logger().info(f"current: {data[4:8]} -> {current_ma} mA, voltage: {data[0:4]} -> {voltage_mv} mV\n {data}")
+        self.get_logger().info(f"current: {data[4:8]} -> {current_ua} µA, voltage: {data[0:4]} -> {voltage_10uv} (10µV)\n {data}")
 
-        # Convert: mV → V
-        voltage_v = voltage_mv / 1000.0
-        current_ma = current_ma / 1000.0
+        # Convert: 10µV → V, µA → mA
+        voltage_v = voltage_10uv * 0.00001  # 10µV to V
+        current_ma = current_ua / 1000.0     # µA to mA
 
         # Publish
         msg = PotentiostatData()
