@@ -89,7 +89,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({site
   return (
     <Card>
       <CardHeader className="flex flex-col items-start pb-2">
-        <div className="text-h1">Site {site + 1} - Chemical Comparison</div>
+        <div className="text-h1">Site {site + 1} Chemical Comparison</div>
         <Select
           size="sm"
           label="Select Chemical"
@@ -116,7 +116,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({site
               data: spec.data
             }))}
             type="line"
-            height={350}
+            height={500}
           />
         ) : (
           <div className="h-[350px] flex items-center justify-center text-default-500">
