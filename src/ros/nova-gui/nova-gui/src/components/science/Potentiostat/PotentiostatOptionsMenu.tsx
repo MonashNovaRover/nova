@@ -38,15 +38,18 @@ export const PotentiostatOptionsMenu = ({
         <DropdownSection title="Settings" showDivider>
           <DropdownItem
             key="lockButtons"
+            textValue="Lock buttons during reading"
             startContent={lockButtonsDuringReading ? <Check size={16} /> : <div className="w-4" />}
             onPress={onToggleLock}
           >
             Lock buttons during reading
           </DropdownItem>
         </DropdownSection>
+
         <DropdownSection title="Clear Data">
           <DropdownItem
             key="clearCh1"
+            textValue="Clear Channel 1"
             startContent={<Trash2 size={16} />}
             className="text-danger"
             color="danger"
@@ -57,6 +60,7 @@ export const PotentiostatOptionsMenu = ({
           </DropdownItem>
           <DropdownItem
             key="clearCh2"
+            textValue="Clear Channel 2"
             startContent={<Trash2 size={16} />}
             className="text-danger"
             color="danger"
@@ -67,6 +71,7 @@ export const PotentiostatOptionsMenu = ({
           </DropdownItem>
           <DropdownItem
             key="clearAll"
+            textValue="Clear All Data"
             startContent={<Trash2 size={16} />}
             className="text-danger"
             color="danger"

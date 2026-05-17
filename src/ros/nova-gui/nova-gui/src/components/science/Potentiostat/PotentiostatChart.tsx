@@ -1,21 +1,27 @@
 import { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
-import { PotentiostatReading } from "./potentiostatStorage.ts";
+import { PotentiostatReading, type CalibrationState } from "./potentiostatStorage.ts";
 
 const CHART_COLORS = {
-  channel1: "#F770AD", // blue
+  channel1: "#F770AD", // pink
   channel2: "#AD2D67", // purple
 };
+
+type WidgetMode = "measurement" | "calibration";
 
 export interface PotentiostatChartProps {
   channel1: PotentiostatReading[];
   channel2: PotentiostatReading[];
+  calibration: CalibrationState;
+  mode: WidgetMode;
   height?: number;
 }
 
 export const PotentiostatChart = ({
   channel1,
   channel2,
+  calibration,
+  mode,
   height = 300,
 }: PotentiostatChartProps) => {
   const chartOption = useMemo(() => {
@@ -25,9 +31,39 @@ export const PotentiostatChart = ({
 
     const fontSize = 16;
 
+    // Build series array
+    const series: any[] = [
+      {
+        name: "Channel 1",
+        type: "scatter",
+        data: channel1Data,
+        symbolSize: 6,
+        itemStyle: { color: CHART_COLORS.channel1 },
+      },
+      {
+        name: "Channel 2",
+        type: "scatter",
+        data: channel2Data,
+        symbolSize: 6,
+        itemStyle: { color: CHART_COLORS.channel2 },
+      },
+    ];
+
     return {
       animation: false,
-      grid: { left: 50, right: 20, top: 30, bottom: 40 },
+      grid: { left: 50, right: 20, top: mode === "calibration" ? 50 : 30, bottom: 40 },
+      title: mode === "calibration"
+        ? {
+            show: true,
+            text: "Calibration Mode - Data not shown on chart",
+            left: "center",
+            top: 25,
+            textStyle: { color: "#FFA500", fontSize: 14 },
+          }
+        : {
+            show: false,
+            text: "",
+          },
       xAxis: {
         type: "value",
         name: "Voltage (v)",
@@ -61,24 +97,9 @@ export const PotentiostatChart = ({
           return `${params.seriesName}<br/>Voltage: ${voltage.toFixed(2)}<br/>Current: ${current.toFixed(4)}`;
         },
       },
-      series: [
-        {
-          name: "Channel 1",
-          type: "scatter",
-          data: channel1Data,
-          symbolSize: 6,
-          itemStyle: { color: CHART_COLORS.channel1 },
-        },
-        {
-          name: "Channel 2",
-          type: "scatter",
-          data: channel2Data,
-          symbolSize: 6,
-          itemStyle: { color: CHART_COLORS.channel2 },
-        },
-      ],
+      series,
     };
-  }, [channel1, channel2]);
+  }, [channel1, channel2, calibration, mode]);
 
   return (
     <div className="w-full" style={{ height }}>

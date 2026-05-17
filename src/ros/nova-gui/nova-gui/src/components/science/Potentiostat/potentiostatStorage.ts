@@ -8,14 +8,32 @@ export interface PotentiostatReading {
   time: number; // timestamp in ms for JSON serialization
 }
 
+export interface CalibrationOffsets {
+  voltageOffset: number; // Volts
+  currentOffset: number; // mA
+  timestamp: number; // When calibration was set
+  isManual: boolean; // True if manually entered, false if calculated
+  dataPoints?: number; // Number of readings used (undefined for manual)
+}
+
+export interface CalibrationState {
+  channel1: CalibrationOffsets | null;
+  channel2: CalibrationOffsets | null;
+}
+
 export interface PotentiostatState {
   channel1: PotentiostatReading[];
   channel2: PotentiostatReading[];
+  calibration: CalibrationState;
 }
 
 const DEFAULT_STATE: PotentiostatState = {
   channel1: [],
   channel2: [],
+  calibration: {
+    channel1: null,
+    channel2: null,
+  },
 };
 
 /**
@@ -66,11 +84,87 @@ export function clearChannel(channel: 1 | 2): PotentiostatState {
 }
 
 /**
- * Clear all potentiostat data
+ * Clear all potentiostat measurement data (preserves calibration)
  */
 export function clearAllData(): PotentiostatState {
-  savePotentiostatData(DEFAULT_STATE);
-  return DEFAULT_STATE;
+  const data = getPotentiostatData();
+  const clearedData: PotentiostatState = {
+    channel1: [],
+    channel2: [],
+    calibration: data.calibration, // Preserve calibration
+  };
+  savePotentiostatData(clearedData);
+  return clearedData;
+}
+
+/**
+ * Calculate mean offset from calibration readings
+ */
+export function calculateMeanOffset(readings: PotentiostatReading[]): CalibrationOffsets | null {
+  if (readings.length === 0) {
+    return null;
+  }
+
+  const sumVoltage = readings.reduce((sum, r) => sum + r.voltage, 0);
+  const sumCurrent = readings.reduce((sum, r) => sum + r.current, 0);
+
+  return {
+    voltageOffset: sumVoltage / readings.length,
+    currentOffset: sumCurrent / readings.length,
+    timestamp: Date.now(),
+    isManual: false,
+    dataPoints: readings.length,
+  };
+}
+
+/**
+ * Create manual offset entry
+ */
+export function setManualOffset(voltageOffset: number, currentOffset: number): CalibrationOffsets {
+  return {
+    voltageOffset,
+    currentOffset,
+    timestamp: Date.now(),
+    isManual: true,
+  };
+}
+
+/**
+ * Apply calibration offsets to a reading
+ */
+export function applyCalibration(
+  reading: PotentiostatReading,
+  offsets: CalibrationOffsets | null
+): PotentiostatReading {
+  if (!offsets) return reading;
+
+  return {
+    voltage: reading.voltage - offsets.voltageOffset,
+    current: reading.current - offsets.currentOffset,
+    time: reading.time,
+  };
+}
+
+/**
+ * Save calibration offsets for a channel
+ */
+export function saveCalibration(channel: 1 | 2, offsets: CalibrationOffsets): PotentiostatState {
+  const data = getPotentiostatData();
+  const key = channel === 1 ? "channel1" : "channel2";
+  data.calibration[key] = offsets;
+  savePotentiostatData(data);
+  return data;
+}
+
+/**
+ * Clear calibration for a channel
+ */
+export function clearCalibration(channel: 1 | 2): PotentiostatState {
+  const data = getPotentiostatData();
+  const key = channel === 1 ? "channel1" : "channel2";
+  data.calibration[key] = null;
+  savePotentiostatData(data);
+  return data;
 }
 
 /**
@@ -106,10 +200,22 @@ export function usePotentiostatStorage() {
     setData(newData);
   }, []);
 
+  const saveCalibrationForChannel = useCallback((channel: 1 | 2, offsets: CalibrationOffsets) => {
+    const newData = saveCalibration(channel, offsets);
+    setData(newData);
+  }, []);
+
+  const clearCalibrationForChannel = useCallback((channel: 1 | 2) => {
+    const newData = clearCalibration(channel);
+    setData(newData);
+  }, []);
+
   return {
     data,
     addReading: addReadingToChannel,
     clearChannel: clearChannelData,
     clearAll,
+    saveCalibration: saveCalibrationForChannel,
+    clearCalibration: clearCalibrationForChannel,
   };
 }

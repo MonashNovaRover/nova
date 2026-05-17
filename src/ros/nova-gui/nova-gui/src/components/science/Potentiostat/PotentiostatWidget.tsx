@@ -5,9 +5,18 @@ import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { RootState } from "../../../redux/RootState.ts";
-import { usePotentiostatStorage } from "./potentiostatStorage.ts";
+import {
+  usePotentiostatStorage,
+  calculateMeanOffset,
+  applyCalibration,
+  setManualOffset,
+  type PotentiostatReading,
+} from "./potentiostatStorage.ts";
 import { PotentiostatChart } from "./PotentiostatChart.tsx";
 import { PotentiostatOptionsMenu } from "./PotentiostatOptionsMenu.tsx";
+import { CalibrationMenu } from "./CalibrationMenu.tsx";
+
+type WidgetMode = "measurement" | "calibration";
 
 export const PotentiostatWidget = () => {
   // Subscribe to potentiostat data topic
@@ -18,10 +27,14 @@ export const PotentiostatWidget = () => {
   const triggerBifrost = useBifrost({ service: RosService.POTENTIOSTAT_TRIGGER });
 
   // Storage hook
-  const { data, addReading, clearChannel, clearAll } = usePotentiostatStorage();
+  const { data, addReading, clearChannel, clearAll, saveCalibration, clearCalibration } =
+    usePotentiostatStorage();
 
   // Settings state
   const [lockButtonsDuringReading, setLockButtonsDuringReading] = useState(true);
+  const [mode, setMode] = useState<WidgetMode>("measurement");
+  const [calibratingChannel, setCalibratingChannel] = useState<1 | 2 | null>(null);
+  const [calibrationReadings, setCalibrationReadings] = useState<PotentiostatReading[]>([]);
 
   // Track previous is_receiving state to detect new readings
   const wasReceiving = useRef(false);
@@ -34,22 +47,68 @@ export const PotentiostatWidget = () => {
   // Store incoming readings
   useEffect(() => {
     if (potentiostatData.is_receiving) {
-      // Add reading to appropriate channel (channel 0 -> channel1, channel 1 -> channel2)
       const channelNum = (potentiostatData.channel === 0 ? 1 : 2) as 1 | 2;
-      addReading(channelNum, {
+      const rawReading: PotentiostatReading = {
         voltage: potentiostatData.voltage,
         current: potentiostatData.current,
         time: Date.now(),
-      });
+      };
+
+      if (mode === "measurement") {
+        // Apply calibration offsets before storing
+        const offsets = data.calibration[channelNum === 1 ? "channel1" : "channel2"];
+        const calibratedReading = applyCalibration(rawReading, offsets);
+        addReading(channelNum, calibratedReading);
+      } else if (mode === "calibration") {
+        // Collect calibration readings in temporary state (not shown on chart)
+        setCalibrationReadings((prev) => [...prev, rawReading]);
+      }
+
       wasReceiving.current = true;
     } else if (wasReceiving.current) {
       // Measurement complete
+      if (mode === "calibration" && calibratingChannel) {
+        handleCalibrationComplete(calibratingChannel);
+      }
       wasReceiving.current = false;
     }
-  }, [potentiostatData, addReading]);
+  }, [potentiostatData, addReading, mode, calibratingChannel]);
 
   const triggerChannel = (channel: 0 | 1) => {
+    if (mode === "calibration") {
+      startCalibration(channel);
+    } else {
+      triggerBifrost.callService({ option: channel });
+    }
+  };
+
+  const startCalibration = (channel: 0 | 1) => {
+    const channelNum = (channel === 0 ? 1 : 2) as 1 | 2;
+    setCalibratingChannel(channelNum);
+    setCalibrationReadings([]);
+    // Auto-clear channel data when starting calibration
+    clearChannel(channelNum);
     triggerBifrost.callService({ option: channel });
+  };
+
+  const handleCalibrationComplete = (channelNum: 1 | 2) => {
+    if (calibrationReadings.length > 0) {
+      const offsets = calculateMeanOffset(calibrationReadings);
+      if (offsets) {
+        saveCalibration(channelNum, offsets);
+      }
+    }
+    setCalibrationReadings([]);
+    setCalibratingChannel(null);
+  };
+
+  const handleSetManualOffset = (channel: 1 | 2, voltage: number, current: number) => {
+    const offsets = setManualOffset(voltage, current);
+    saveCalibration(channel, offsets);
+  };
+
+  const handleModeChange = (newMode: WidgetMode) => {
+    setMode(newMode);
   };
 
   const buttonsDisabled = lockButtonsDuringReading && potentiostatData.is_receiving;
@@ -58,15 +117,27 @@ export const PotentiostatWidget = () => {
     <Card>
       <CardHeader className="flex flex-row justify-between items-center pb-0">
         <span>Potentiostat</span>
-        <PotentiostatOptionsMenu
-          lockButtonsDuringReading={lockButtonsDuringReading}
-          onToggleLock={() => setLockButtonsDuringReading(!lockButtonsDuringReading)}
-          channel1Count={data.channel1.length}
-          channel2Count={data.channel2.length}
-          onClearChannel1={() => clearChannel(1)}
-          onClearChannel2={() => clearChannel(2)}
-          onClearAll={clearAll}
-        />
+        <div className="flex gap-2 items-center">
+          <Chip size="sm" variant="flat" color={mode === "calibration" ? "warning" : "default"}>
+            {mode === "calibration" ? "Calibration" : "Measurement"}
+          </Chip>
+          <CalibrationMenu
+            mode={mode}
+            onSetMode={handleModeChange}
+            calibration={data.calibration}
+            onSetManualOffset={handleSetManualOffset}
+            onClearCalibration={clearCalibration}
+          />
+          <PotentiostatOptionsMenu
+            lockButtonsDuringReading={lockButtonsDuringReading}
+            onToggleLock={() => setLockButtonsDuringReading(!lockButtonsDuringReading)}
+            channel1Count={data.channel1.length}
+            channel2Count={data.channel2.length}
+            onClearChannel1={() => clearChannel(1)}
+            onClearChannel2={() => clearChannel(2)}
+            onClearAll={clearAll}
+          />
+        </div>
       </CardHeader>
       <CardBody className="flex flex-col gap-6">
         {/* Status and trigger buttons */}
@@ -100,7 +171,7 @@ export const PotentiostatWidget = () => {
             onPress={() => triggerChannel(0)}
             isDisabled={buttonsDisabled}
           >
-            Start Channel 1
+            {mode === "calibration" ? "Calibrate Ch1" : "Start Channel 1"}
           </Button>
           <Button
             className="col-span-3 w-full"
@@ -108,7 +179,7 @@ export const PotentiostatWidget = () => {
             onPress={() => triggerChannel(1)}
             isDisabled={buttonsDisabled}
           >
-            Start Channel 2
+            {mode === "calibration" ? "Calibrate Ch2" : "Start Channel 2"}
           </Button>
         </div>
 
@@ -116,6 +187,8 @@ export const PotentiostatWidget = () => {
         <PotentiostatChart
           channel1={data.channel1}
           channel2={data.channel2}
+          calibration={data.calibration}
+          mode={mode}
         />
       </CardBody>
     </Card>
