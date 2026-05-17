@@ -98,8 +98,8 @@ class BLCMDStatusMonitor(Node):
         self.publish_log_period = 1 / int(self.declare_parameter("publish_log_max_frequency", 10).value) # in logs per second
         self.publish_status_period = 1 / int(self.declare_parameter("publish_status_frequency", 2).value) # in blcmd statuses per second
 
-        # disabled by default as there seems to be issues with these messages rn
-        self.log_gate_driver_condition = self.declare_parameter("log_gate_driver_condition", False).value
+        # ignoring the numbers provided by the gate driver condition errors as they seem unreliable/unused atm
+        self.ignore_gate_driver_condition_error_number = self.declare_parameter("ignore_gate_driver_condition_error_number", True).value
 
         # params used to determine BLCMDStatus (i.e. keep track of blcmd error states so they can be published)
         self.blcmd_statuses = [BLCMDStatus(id=i+1) for i in range(self.get_parameter("num_blcmds").value)]
@@ -401,16 +401,13 @@ class BLCMDStatusMonitor(Node):
 
             # gate driver condition
             elif frame.data[0] == 3:
-
-                # don't log if not enabled
-                if not self.log_gate_driver_condition:
-                    return
-
                 data = frame.data[1]
 
                 # message sequence ended; output/publish log
-                if data == 0xFF:
-                    if len(self.gate_driver_registers) > 0:
+                if data == 0xFF or self.ignore_gate_driver_condition_error_number:
+                    if self.ignore_gate_driver_condition_error_number:
+                        gate_driver_condition_messsage = "Gate driver fault"
+                    elif len(self.gate_driver_registers) > 0:
                         gate_driver_condition_messsage = f"Gate driver fault on registers {self.gate_driver_registers}"
                     else:
                         gate_driver_condition_messsage = f"Gate driver fault (but no registers were received)"
