@@ -88,7 +88,7 @@ class BLCMDStatusMonitor(Node):
         #publisher to publish log messages from each blcmd
         self.log_publisher = self.create_publisher(BLCMDLog, "/drive/blcmd_log", 1)
         #service to reset the blcmd
-        self.reset_service = self.create_service(BLCMDReset, "/blcmds/blcmd_reset", self.reset)
+        self.reset_service = self.create_service(BLCMDReset, "/blcmds/blcmd_reset", self.reset_blcmd)
 
         #declare parameters
         self.num_blcmds = self.declare_parameter("num_blcmds", 8).value
@@ -118,10 +118,13 @@ class BLCMDStatusMonitor(Node):
         self.enable_auto_blcmd_reset = self.declare_parameter("enable_auto_blcmd_reset", False).value
         self.max_resets = self.declare_parameter("max_resets", 5).value # set to 0 for no limit
         self.reset_timeout = self.declare_parameter("reset_timeout", 5).value # in seconds; set to 0 for no timeout
-        self.auto_reset_drive_blmcd_ids = self.declare_parameter("auto_reset_drive_blmcd_ids", [1, 2, 3, 4]).value # which drive blcmds are allowed to be reset (by id)
+        self.drive_blcmd_ids = [1, 2, 3, 4]
+        self.auto_reset_drive_blmcd_ids = self.declare_parameter("auto_reset_drive_blmcd_ids", self.drive_blcmd_ids).value # which drive blcmds are allowed to be reset (by id)
         if self.auto_reset_drive_blmcd_ids is None:
             self.auto_reset_drive_blmcd_ids = []
-        self.auto_reset_pivot_blmcd_ids = self.declare_parameter("auto_reset_pivot_blmcd_ids", [5, 6, 7, 8]).value # which pivot blcmds are allowed to be reset (by id)
+
+        self.pivot_blcmd_ids = [5, 6, 7, 8]
+        self.auto_reset_pivot_blmcd_ids = self.declare_parameter("auto_reset_pivot_blmcd_ids", self.pivot_blcmd_ids).value # which pivot blcmds are allowed to be reset (by id)
         if self.auto_reset_pivot_blmcd_ids is None:
             self.auto_reset_pivot_blmcd_ids = []
 
@@ -175,46 +178,58 @@ class BLCMDStatusMonitor(Node):
             function()
         self.deferred_functions = []
 
-    def reset(self,req,res):
+    def reset_blcmd(self, req, res):
         """
         Updates the classes internal msg state
         :param msg: nova_interfaces.msg.BLCMDReset message from the subscriber callback
         :return: None
         """
         try:
-            if req.type == BLCMDReset.Request.BLCMD:
-                frame = jcan.Frame(0x00B | req.id << 4, [0])
-            elif req.type == BLCMDReset.Request.RESOLVER:
-                frame = jcan.Frame(0x00C | req.id << 4, [0])
-
-            self.bus.send(frame)
-            if req.type == BLCMDReset.Request.BLCMD:
-                self.get_logger().info(f'Reset BLCMD {req.id}')
-            elif req.type == BLCMDReset.Request.RESOLVER:
-                self.get_logger().info(f'Reset resolver on BLCMD {req.id}')
+            # assume success unless otherwise provided
             res.success = True
-        except:
-            self.get_logger().error('BLCMD Reset or Resolver Reset Failed')
+
+            # reset resolver (extracted from existing code)
+            if req.type == BLCMDReset.Request.RESOLVER:
+                frame = jcan.Frame(0x00C | req.id << 4, [0])
+                self.bus.send(frame)
+                self.get_logger().info(f'Reset resolver on BLCMD {req.id}')
+                return res
+
+            if req.type != BLCMDReset.Request.BLCMD:
+                self.get_logger().warn(f'Failed to reset BLCMD {req.id} as an unsupported reset type was provided')
+                res.success = False
+                return res
+
+            if req.id in self.drive_blcmd_ids:
+                self.reset_drive_blcmd(req.id, "as requested")
+            elif req.id in self.pivot_blcmd_ids:
+                self.reset_pivot_blcmd(req.id, "as requested")
+            else:
+                self.get_logger().warn(f'Failed to reset BLCMD {req.id} as it is not a valid drive or pivot BLCMD id')
+                res.success = False
+
+        except Exception as e:
+            self.get_logger().error(f'BLCMD Reset Failed due to exception: {e}')
             res.success = False
         return res
 
-    def reset_drive_blcmd(self, blcmd_id: int):
+    def reset_drive_blcmd(self, blcmd_id: int, reason: str):
         msg_id = 0x00B | (blcmd_id << 4)
 
         def deferred_reset():
-            self.get_logger().info(f'Resetting drive BLCMD {blcmd_id} due to errors received')
+            self.get_logger().info(f'Resetting drive BLCMD {blcmd_id} {reason}')
             self.bus.send(
                 jcan.Frame(id=msg_id, data=[])
             )
 
         self.deferred_functions.append(deferred_reset)
 
-    def reset_pivot_blcmd(self, blcmd_id: int):
+    def reset_pivot_blcmd(self, blcmd_id: int, reason: str):
 
         # WARNING: This process is based off firmware electrical has written for arm (they should adapt this feature for pivot firmware)
 
         def deferred_reset():
-            self.get_logger().info(f'Resetting pivot BLCMD {blcmd_id} due to errors received (patched by Will and Terry)')
+            self.get_logger().info(f'Resetting pivot BLCMD {blcmd_id} {reason} (patched by Will and Terry)')
 
             # keep track of when the last request was made
             self.blcmd_pivot_reset_times[blcmd_id] = self.get_clock().now()
@@ -307,9 +322,9 @@ class BLCMDStatusMonitor(Node):
 
 
         if blcmd_id in self.auto_reset_pivot_blmcd_ids:
-            self.reset_pivot_blcmd(blcmd_id)
+            self.reset_pivot_blcmd(blcmd_id, "due to errors received")
         else:
-            self.reset_drive_blcmd(blcmd_id)
+            self.reset_drive_blcmd(blcmd_id, "due to errors received")
 
     def output_rate_limited(self, blcmd: int, output_message: str) -> bool:
         output_id = (blcmd, output_message)
