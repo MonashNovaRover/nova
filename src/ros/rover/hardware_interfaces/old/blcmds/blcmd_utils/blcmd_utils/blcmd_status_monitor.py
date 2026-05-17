@@ -155,7 +155,7 @@ class BLCMDStatusMonitor(Node):
         self.bus.set_id_filter_mask(0x400, 0xF00)
 
         #initialise zero positions
-        self.pivot_zeros = dict.fromkeys(self.auto_reset_pivot_blmcd_ids, None)
+        self.pivot_zeros = dict.fromkeys(self.pivot_blcmd_ids, None)
 
         #add callbacks
 
