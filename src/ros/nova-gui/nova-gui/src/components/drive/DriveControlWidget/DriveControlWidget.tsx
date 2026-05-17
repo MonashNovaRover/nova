@@ -43,9 +43,11 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
   const currentLockedReason = lockedReasons[driveInfo.locked_reason] ?? "Reason Unknown";
 
   // show toast when locked unexpectedly
-  if (!suppressLockedReasonToast.includes(driveInfo.locked_reason) && driveInfo.locked) {
-    toast.error(`Drive Locked due to: ${currentLockedReason}`);
-  }
+  useEffect(() => {
+    if (!suppressLockedReasonToast.includes(driveInfo.locked_reason) && driveInfo.locked) {
+      toast.error(`Drive Locked due to: ${currentLockedReason}`);
+    }
+  }, [driveInfo.locked_reason, driveInfo.locked])
 
   // callback to toggle autolock override in teleop drive
   const onAutolockButtonPress = () => {
