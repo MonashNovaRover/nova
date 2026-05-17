@@ -25,6 +25,7 @@ from rclpy.time import Time
 from rclpy.duration import Duration
 import jcan
 from collections.abc import Callable
+from itertools import chain
 
 # import custom messages
 from blcmd_interfaces.msg import BLCMDStatus, BLCMDStatusArray, BLCMDLog
@@ -97,6 +98,7 @@ class BLCMDStatusMonitor(Node):
         self.output_period = 1 / int(self.declare_parameter("output_max_frequency", 1).value) # in logs per second
         self.publish_log_period = 1 / int(self.declare_parameter("publish_log_max_frequency", 10).value) # in logs per second
         self.publish_status_period = 1 / int(self.declare_parameter("publish_status_frequency", 2).value) # in blcmd statuses per second
+        self.check_pivot_zero_period = self.declare_parameter("check_pivot_zero_period", 1).value # in minutes between checks
 
         # ignoring the numbers provided by the gate driver condition errors as they seem unreliable/unused atm
         self.ignore_gate_driver_condition_error_number = self.declare_parameter("ignore_gate_driver_condition_error_number", True).value
@@ -151,25 +153,31 @@ class BLCMDStatusMonitor(Node):
         #initialise zero positions
         self.pivot_zeros = dict.fromkeys(self.auto_reset_pivot_blmcd_ids, None)
 
-        #add callbacks for each blcmd
-        for i in range(self.num_blcmds):
-            self.bus.add_callback(0x400 | (i + 1) << 4, self.get_callback(i))
-            self.bus.add_callback(0x409 | (i + 1) << 4, self.get_reset_pivot_blcmd_callback(i+1))
+        #add callbacks
+
+        for i in chain(self.drive_blcmd_ids, self.pivot_blcmd_ids):
+
+            # i-1 is for compatibility with legacy code
+            self.bus.add_callback(0x400 | i << 4, self.get_callback(i-1))
+
+        for i in self.pivot_blcmd_ids:
+            self.bus.add_callback(0x409 | i << 4, self.get_reset_pivot_blcmd_callback(i))
 
         #create timers
         self.run_callbacks_timer = self.create_timer(0.01, self.run_callbacks)
         self.publish_status_timer = self.create_timer(self.publish_status_period, self.publish_blcmd_status)
+
+        # regularly query pivots for zero positions (which are verified against stored initial zero)
+        # to ensure that there is no funny business going on
+        if self.check_pivot_zero_period > 0:
+            self.check_pivot_zero_timer = self.create_timer(self.check_pivot_zero_period * 60, self.check_all_pivot_blcmd_zeros)
 
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
 
         # store all "initial" zero positions for pivot reset later
         # (for some reason we can't do this just before resetting a pivot)
-        if self.enable_auto_blcmd_reset:
-            for pivot_id in self.auto_reset_pivot_blmcd_ids:
-                self.bus.send(
-                    jcan.Frame(id=0x009 | pivot_id << 4, data=[0xf])
-                )
+        self.check_all_pivot_blcmd_zeros()
 
     def run_callbacks(self):
         self.bus.spin()
@@ -244,7 +252,26 @@ class BLCMDStatusMonitor(Node):
 
         self.deferred_functions.append(deferred_reset)
 
+    def check_all_pivot_blcmd_zeros(self):
+        for blcmd_id in self.pivot_blcmd_ids:
+            self.check_pivot_blmcd_zero(blcmd_id)
+
+    def check_pivot_blmcd_zero(self, blcmd_id: int):
+
+        # does not trigger reset, as blcmd_pivot_reset_times is not updated
+        def deferred_check():
+
+            # get configuration (blcmd zero position)
+            self.bus.send(
+                jcan.Frame(id=0x009 | blcmd_id << 4, data=[0xf])
+            )
+
+        self.deferred_functions.append(deferred_check)
+
     def get_reset_pivot_blcmd_callback(self, blcmd_id: int):
+        def position_str(position: list[int]):
+            return f'0x{position[0]:02X}{position[1]:02X}'
+
         def callback(frame):
             now = self.get_clock().now()
 
@@ -255,6 +282,10 @@ class BLCMDStatusMonitor(Node):
             # save all pivot zeros on startup
             if self.pivot_zeros[blcmd_id] is None:
                 self.pivot_zeros[blcmd_id] = frame.data[1:3]
+                self.get_logger().info(f'Received pivot BLCMD {blcmd_id} zero position: {position_str(self.pivot_zeros[blcmd_id])} (used for all future resets)')
+
+            elif self.pivot_zeros[blcmd_id] != frame.data[1:3]:
+                self.get_logger().warn(f'Received pivot BLCMD {blcmd_id} zero position {position_str(frame.data[1:3])} does not match the initial/set zero position of {position_str(self.pivot_zeros[blcmd_id])}')
 
             # don't do anything if there wasn't a recent enough request for pivot zero
             if (blcmd_id not in self.blcmd_pivot_reset_times
