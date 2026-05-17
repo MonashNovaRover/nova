@@ -149,8 +149,8 @@ blcmd_status_monitor:
     blcmd_zero_response_timeout: 3
     canbus: can0
     error_active_duration: 2
-    log_gate_driver_condition: false
     num_blcmds: 8
     output_max_frequency: 1
     publish_log_max_frequency: 10
     publish_status_frequency: 2
+    check_pivot_zero_period: 60
