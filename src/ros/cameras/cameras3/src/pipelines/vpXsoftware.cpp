@@ -53,20 +53,16 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   }
 
   section = "ros";
-  GstElement* ros_tee = gst_element_factory_make("tee", "ros_tee");
-  GstElement* ros_queue = gst_element_factory_make("queue", "queue_ros");
-  GstElement* ros_valve = gst_element_factory_make("valve", "ros_valve");
-  GstElement* ros_convert = gst_element_factory_make("videoconvertscale", "ros_convert");
-  GstElement* ros_filter = gst_element_factory_make("capsfilter", "ros_filter");
-  GstElement* ros_sink = gst_element_factory_make("rosimagesink", "ros_sink");
+  GstElement* ros_queue = (props->rossink) ? gst_element_factory_make("queue", "queue_ros") : nullptr;
+  GstElement* ros_convert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "ros_convert") : nullptr;
+  GstElement* ros_filter = (props->rossink) ? gst_element_factory_make("capsfilter", "ros_filter") : nullptr;
+  GstElement* ros_sink = (props->rossink) ? gst_element_factory_make("rosimagesink", "ros_sink") : nullptr;
 
-  if (
-    !ros_tee ||
+  if (props->rossink && ( 
     !ros_queue ||
     !ros_convert ||
     !ros_filter ||
-    !ros_sink
-  ) {
+    !ros_sink)) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
@@ -174,14 +170,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     gpu_download,
     cpu_gpu_selector,
 
-    ros_queue,
-    ros_valve,
-    ros_convert,
-    ros_filter,
-    ros_sink,
-
     encode_filter,
-
     encode_tee,
     encode_queue,
     encode_valve,
@@ -190,6 +179,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     webrtc_sink,
   NULL);
   if (props->mime == "image/jpeg") gst_bin_add(GST_BIN(gst_pipeline), source_decode);
+  if (props->rossink) gst_bin_add_many(GST_BIN(gst_pipeline), ros_queue, ros_convert, ros_filter, ros_sink, NULL);
 
   // 3. Set element properties
   set_v4lsource(source_v4l, props);
@@ -210,11 +200,12 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   if (props->crop43) set_glcrop43(gpu_crop, props);
   set_glshaders(gpu_shaders, props);
 
-  set_queue(ros_queue);
-  g_object_set(ros_valve, "drop", props->rossink, NULL);
-  set_convertscale(ros_convert, props);
-  set_rosfilter(ros_filter, props);
-  set_rostopicsink(ros_sink, props);
+  if (props->rossink) {
+    set_queue(ros_queue);
+    set_convertscale(ros_convert, props);
+    set_rosfilter(ros_filter, props);
+    set_rostopicsink(ros_sink, props);
+  }
 
   set_scalefilter(encode_filter, props);
   set_queue(encode_queue);
@@ -252,12 +243,13 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   link_elements(streamer_node, next_element, gpu_convertdown, props->serial);
   link_elements(streamer_node, next_element, gpu_download, props->serial);
 
-  next_element = cpu_gpu_tee;
-  link_elements(streamer_node, next_element, ros_queue, props->serial);
-  link_elements(streamer_node, next_element, ros_valve, props->serial);
-  link_elements(streamer_node, next_element, ros_convert, props->serial);
-  link_elements(streamer_node, next_element, ros_filter, props->serial);
-  link_elements(streamer_node, next_element, ros_sink, props->serial);
+  if (props->rossink) {
+    next_element = cpu_gpu_tee;
+    link_elements(streamer_node, next_element, ros_queue, props->serial);
+    link_elements(streamer_node, next_element, ros_convert, props->serial);
+    link_elements(streamer_node, next_element, ros_filter, props->serial);
+    link_elements(streamer_node, next_element, ros_sink, props->serial);
+  }
  
   GstPad* cpu_source_pad = gst_element_get_static_pad(cpu_convertscale, "src");
   GstPad* gpu_source_pad = gst_element_get_static_pad(gpu_download, "src");
@@ -305,7 +297,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   // use opengl
   props->use_gl = set_property(streamer_node, camera, "use_gl", false);
   // source
-  props->device = camera->node;
+  props->device = set_property(streamer_node, camera, "device", camera->node);
   
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", "mmap");
@@ -349,7 +341,6 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->undistort_k1 = set_property(streamer_node, camera, "undistort_k1", -0.3f);
   props->undistort_k2 = set_property(streamer_node, camera, "undistort_k2", 0.1f);
   props->undistort_scale = set_property(streamer_node, camera, "undistort_scale", 1.0f);
-
   props->denoise = set_property(streamer_node, camera, "denoise", false);
   props->sharpen = set_property(streamer_node, camera, "sharpen", false);
   props->undistort = set_property(streamer_node, camera, "undistort", false);
@@ -401,7 +392,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
 
 void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props) {
 
-  // 0. Initialize constants
+  // 1. Initialize constants
   GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
   GstPad* source_source_pad = gst_element_get_static_pad(source_filter, "src");
   GstCaps* source_caps = gst_pad_get_current_caps(source_source_pad);
@@ -421,7 +412,7 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
 
   GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
   GstElement* gpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "gpu_valve");
-  GstElement* ros_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "ros_valve");
+  GstElement* source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
 
   GstElement* cpu_gpu_selector = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_gpu_selector");
   GstElement* cpu_convertscale = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_convertscale");
@@ -430,8 +421,6 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstPad* gpu_source_pad = gst_element_get_static_pad(gpu_download, "src");
   GstPad* cpu_sink_pad = gst_pad_get_peer(cpu_source_pad);
   GstPad* gpu_sink_pad = gst_pad_get_peer(gpu_source_pad);
-
-  GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
   
   // 2. Set properties for elements
   g_object_set(source_valve, "drop", true, NULL);
@@ -508,7 +497,6 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   // 3. Swap input now, avoids race condition
   g_object_set(cpu_valve, "drop", props->use_gl, NULL);
   g_object_set(gpu_valve, "drop", !props->use_gl, NULL);
-  g_object_set(ros_valve, "drop", props->rossink, NULL);
   if (props->use_gl) {
     g_object_set(cpu_gpu_selector, "active-pad", gpu_sink_pad, NULL);
     gst_pad_send_event(cpu_sink_pad, gst_event_new_flush_start());
@@ -521,7 +509,7 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
   g_object_set(source_valve, "drop", false, NULL);
 
-  // 4. Unreference every elements
+  // 4. Unreference every element
   gst_object_unref(source_source_pad);
   gst_caps_unref(source_caps);
   gst_object_unref(encode_source_pad);
@@ -536,5 +524,4 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   gst_object_unref(source_valve);
   gst_object_unref(cpu_valve);
   gst_object_unref(gpu_valve);
-  gst_object_unref(ros_valve);
 }

@@ -11,6 +11,7 @@
 struct h264passthroughPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, h264PassthroughProperties {};
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, const std::unique_ptr<h264passthroughPipelineProperties>& props);
 std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
+void set_h264passthrough_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<h264passthroughPipelineProperties>& props);
 
 struct vpXsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, glProperties {};
 GstElement* vpXsoftware_pipeline(rclcpp::Node* log_node, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX);

@@ -164,7 +164,7 @@ class CameraStreamer : public rclcpp::Node
       set_v4lfallback_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
-      
+      set_h264passthrough_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);

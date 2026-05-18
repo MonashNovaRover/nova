@@ -113,8 +113,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
 
   link_elements(streamer_node, next_element, source_valve, props->serial);
   link_elements(streamer_node, next_element, source_rate, props->serial);
-  if (link_elements(streamer_node, next_element, source_filter, props->serial));
-  else {
+  if (!link_elements(streamer_node, next_element, source_filter, props->serial)) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
@@ -165,7 +164,7 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   std::string default_string;
 
   // source
-  props->device = camera->node;
+  props->device = set_property(streamer_node, camera, "device", camera->node);
 
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
@@ -228,12 +227,15 @@ void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::un
   const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
   if (crop_width == 0) props->crop43 = false;
 
-  // 1. Find the elements
+  // 1. Initialize constants
+  GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
   GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
   GstElement* cpu_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_filter");
   GstElement* cpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_crop");
 
   // 2. Set properties for elements
+  g_object_set(source_valve, "drop", true, NULL);
+
   if (source_filter) {
     set_srcfilter(source_filter, props);
     gst_object_unref(source_filter);
@@ -249,4 +251,9 @@ void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::un
     else set_no_cpu_crop43(cpu_crop);
     gst_object_unref(cpu_crop);
   }
+
+  g_object_set(source_valve, "drop", false, NULL);
+
+  // 4. Unreference every element
+  gst_object_unref(source_valve);
 }
