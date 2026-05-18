@@ -1,7 +1,7 @@
 import { SourceSpecification } from "@maptiler/sdk";
-import { MapCoordinate, MapPoint} from "../../../../redux/models/CartographerState.ts";
+import { MapCoordinate, MapPoint } from "../../../../redux/models/CartographerState.ts";
 import { getDistance as computeDistance } from "geolib";
-import { FeatureCollection, Polygon } from "geojson";
+import { Feature, FeatureCollection, Polygon } from "geojson";
 
 const createCircleCoordinates = (
   centerLat: number,
@@ -49,15 +49,14 @@ export const getLineGeoJSONData = (line: MapPoint[]): GeoJSON.GeoJSON => {
 };
 
 export const getSearchRadiusGeoJSONData = (
-  points: MapPoint[],
-  showSearchZone: boolean
+  points: MapCoordinate[]
 ): FeatureCollection<Polygon> => {
   return {
     type: "FeatureCollection",
     features: points
       .filter(
         (point) =>
-          showSearchZone &&
+          point.showSearchZone &&
           point.searchRadius &&
           point.searchRadius > 0
       )
