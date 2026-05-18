@@ -356,8 +356,10 @@ in
           can-sleuth = "can_sleuth";
           can_sleuth = "~/Builds/active/bin/can_sleuth";
 
-          can-monitor-drive = ''cantools monitor -i socketcan -c can0 ~/Builds/master/can-database/banksia/can0_interpreted.dbc'';
-          can-monitor-taipan = ''cantools monitor -i socketcan -c can1 ~/Builds/master/can-database/banksia/can1_taipan_interpreted.dbc'';
+          can-monitor-can0 = "monitor-can0";
+          monitor-can0 = ''cantools monitor -i socketcan -c can0 ~/Builds/master/can-database/banksia/can0_interpreted.dbc'';
+          can-monitor-can1-taipan = "monitor-can1-taipan";
+          monitor-can1-taipan = ''cantools monitor -i socketcan -c can1 ~/Builds/master/can-database/banksia/can1_taipan_interpreted.dbc'';
 
           # use this as `can_viewer can0` for example to get "-c can0"
           can-viewer = "can_viewer";
