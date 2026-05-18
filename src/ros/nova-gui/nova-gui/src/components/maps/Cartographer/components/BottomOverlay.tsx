@@ -40,14 +40,14 @@ interface BottomOverlayProps {
 export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = [], enableDroneTracking = false}) => {
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const { points, centerOnRover, trackRover, showTrackRover, centerOnDrone, trackDrone, showTrackDrone, focusVehicle } = useSelector(
+  const { points, centerOnRover, trackRover, showTrackRover, centerOnDrone, trackDrone, showTrackDrone, focusVehicle, showSearchZones } = useSelector(
     (state: RootState) => state.cartographerState
   );
   const rover = useSelector((state: RootState) => state.roverLocationStore)
   const base = useSelector((state: RootState) => state.baseLocationStore)
   const drone = useSelector((state: RootState) => state.droneLocationStore)
 
-  const { toggleRoverCentering, toggleRoverTracking, toggleShowRoverTracking, toggleDroneCentering, toggleDroneTracking, toggleShowDroneTracking, handleFocusVehicle } =
+  const { toggleRoverCentering, toggleRoverTracking, toggleShowRoverTracking, toggleDroneCentering, toggleDroneTracking, toggleShowDroneTracking, handleFocusVehicle, toggleShowSearchZones } =
     useCartographerActions();
 
   const vehicles = {
@@ -192,6 +192,14 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 </Select>
                 </div>
                 <div className="flex flex-row gap-3 items-center">
+                  <Button
+                    variant="shadow"
+                    fullWidth
+                    color={showSearchZones ? "primary" : "default"}
+                    onPress={toggleShowSearchZones}
+                  >
+                    {"Show Search Zones"}
+                  </Button>
                 {bottomOverlayComponents.map((component, index) => (
                   <React.Fragment key={index}>
                     {component}

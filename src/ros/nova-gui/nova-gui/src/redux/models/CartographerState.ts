@@ -11,7 +11,6 @@ export interface MapPoint extends MapCoordinate {
   labelName: string | null;
   selected: boolean;
   searchRadius?: number | null;
-  showSearchZone?: boolean | null;
 }
 
 export enum MapInteractionMode {
@@ -51,6 +50,7 @@ export interface CartographerState {
   trackDrone: boolean;
   showTrackDrone: boolean;
   focusVehicle: Vehicle;
+  showSearchZones: boolean;
 }
 
 export const initialGPSMessage = <IRosNovaInterfacesGpsData>{
