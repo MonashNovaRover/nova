@@ -32,6 +32,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
   const [labelNumber, setLabelNumber] = useState<number | null>(null);
   const [labelName, setLabelName] = useState<string | null>(null);
   const [searchRadius, setSearchRadius] = useState<string>("");
+  const [showSearchZone, setShowSearchZone] = useState<boolean>(false);
 
   const points = useSelector(
     (state: RootState) => state.cartographerState.points
@@ -56,6 +57,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
         labelName: labelName,
         name: !name || name === "" ? `Point ${points.length + 1}` : name,
         searchRadius: searchRadius !== "" ? Number(searchRadius) : null,
+        showSearchZone,
       } as MapPoint
       props.addPoint(newPoint);
       setName(undefined);
@@ -72,6 +74,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       setLabelNumber(props.labels && props.labels.length > 0 ? 0 : null);
       setLabelName(props.labels && props.labels.length > 0 ? props.labels[0].text : null);
       setSearchRadius("");
+      setShowSearchZone(false);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.isOpen]
@@ -154,6 +157,12 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               }
             }}
           />
+            Search Zone Overlay
+            <Checkbox
+            isSelected={showSearchZone}
+            onValueChange={setShowSearchZone}
+            />
+
             </div>
         </ModalBody>
         <ModalFooter>
