@@ -115,6 +115,10 @@ export const cartographerSlice = createSlice({
         open: false,
       },
     }),
+    TOGGLE_SHOW_SEARCH_ZONES: (state: CartographerState) => ({
+      ...state,
+      showSearchZones: !state.showSearchZones,
+    }),
     TOGGLE_ROVER_CENTER: (state: CartographerState) => ({
       ...state,
       centerOnRover: !state.centerOnRover,
