@@ -132,6 +132,10 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile,
     (state: RootState) => state.cartographerState.points
   );
 
+  const showSearchZones = useSelector(
+    (state: RootState) => state.cartographerState.showSearchZones
+  );
+
   useCartographerMarkers(mapRef, enableDroneTracking);
   useCartographerTracking(mapRef, enableDroneTracking);
 
@@ -168,8 +172,8 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile,
 
     if (!source) return;
 
-    source.setData(getSearchRadiusGeoJSONData(points));
-  }, [points]);
+    source.setData(getSearchRadiusGeoJSONData(points, showSearchZones));
+  }, [points, showSearchZones]);
 
   return (
     <div className="w-full h-full" ref={mapContainer}>
