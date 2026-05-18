@@ -121,10 +121,13 @@ in
         zip
         micro
         ripgrep
+        python3Packages.cantools
+        cannelloni
       ] ++ lib.optionals config.nova.desktop.enable [
         # Desktop apps
         gitkraken
         libreoffice-qt6-fresh
+        savvycan
       ]);
     };
   };
