@@ -16,7 +16,8 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile,
   const mapRef = useRef<maptilersdk.Map | null>(null);
   
   const { updateMousePosition, handleMapClickEvent } = useCartographerActions();
-  
+
+
   useEffect(()=>{
     if (mapRef.current || !mapContainer.current) return;
     const newMap = new maptilersdk.Map({
