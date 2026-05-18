@@ -1,7 +1,6 @@
 import {
   Button,
   Input,
-  Checkbox,
   Kbd,
   Modal,
   ModalBody,
@@ -138,7 +137,6 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               ))}
             </Select>
           )}
-          <div className={"flex items-end gap-3"}>
           <Input
             type="number"
             value={searchRadius}
@@ -154,7 +152,6 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               }
             }}
           />
-            </div>
         </ModalBody>
         <ModalFooter>
           <Button fullWidth onClick={handleDropPin}>
