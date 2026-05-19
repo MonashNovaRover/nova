@@ -5,7 +5,7 @@ import {RosService} from "../../../ros/services/rosService.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../redux/RootState.ts";
-import SensorDataDisplay from "../SensorDataDisplay.tsx";
+import SensorDataDisplay from "../SensorWidgets/SensorDataDisplay.tsx";
 import ThermalControl from "./ThermalControl.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 

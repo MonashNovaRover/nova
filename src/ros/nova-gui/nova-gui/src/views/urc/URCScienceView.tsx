@@ -1,7 +1,7 @@
 import React, {useState} from "react";
-import HydroprobeWidget from "../../components/science/HydroprobeWidget/HydroprobeWidget";
+import HydroprobeWidget from "../../components/science/SensorWidgets/HydroprobeWidget.tsx";
 import PumpsWidget from "../../components/science/PumpsWidget/PumpsWidget";
-import BMESensor from "../../components/science/BMESensor/BMESensor";
+import BMESensor from "../../components/science/SensorWidgets/BMESensor.tsx";
 import URCNIRProbeWidget from "../../components/science/NIRProbe/URCNIRProbeWidget.tsx";
 import CarouselWidgetV2 from "../../components/science/CarouselWidget/CarouselWidget.tsx";
 import {CarouselPositionProvider} from "../../components/science/CarouselWidget/CarouselPositionContext.tsx";

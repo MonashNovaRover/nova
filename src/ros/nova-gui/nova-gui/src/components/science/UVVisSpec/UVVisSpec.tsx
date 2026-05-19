@@ -2,7 +2,7 @@
  * UV Vis Spectrometer component
  * Author: Bailey Chessum
  */
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
   Button,
   Card,
@@ -25,6 +25,7 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {UVVisSpecStartStopButtons} from "./UVVisSpecStartStopButtons.tsx";
 import {useCarouselPosition} from "../CarouselWidget/CarouselPositionContext.tsx";
 import {getCuvetteName} from "../CarouselWidget/cuvetteName.ts";
+import {shouldApplyBlank} from "./chemicalConfig.ts";
 
 /**
  * Scale factor derived from max RGB luminance: sqrt(3 * 255^2) / 100 = 4.4167295593
@@ -68,6 +69,15 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const [blankLuminance, setBlankLuminance] = useGenericStore<number[]>("uvVisBlankStore");
   const [showBlank, setShowBlank] = useState(true);
   const saveBlankLuminance = () => {setBlankLuminance(luminance)};
+
+  // Auto-apply/remove blank when cuvette changes
+  const prevSuggestedName = useRef<string | undefined>(undefined);
+  if (prevSuggestedName.current !== suggestedName) {
+    prevSuggestedName.current = suggestedName;
+    if (suggestedName) {
+      setShowBlank(shouldApplyBlank(suggestedName));
+    }
+  }
 
   const blankLuminanceIsValid = luminance.length === blankLuminance.length;
   const absorbanceData = blankLuminanceIsValid
