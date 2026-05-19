@@ -10,11 +10,11 @@ SERVICES:
     - service: /science/potentiostat/trigger [TriggerOption]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CAN PROTOCOL:
-  TX: 0x1F1#XX (XX = channel 0 or 1)
+  TX: 0x01A#XX (XX = channel 0 or 1)
   RX: 0x41A#VV VV VV VV CC CC CC CC
       - VVVVVVVV: voltage in 10µV units (int32, little-endian)
       - CCCCCCCC: current in µA (int32, little-endian)
-  STOP: 0x41A#00 (short message with 0x00 when done)
+  STOP: 0x41A#00 00 00 00 00 00 00 00 (8-byte all zeros when done)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 UNIT CONVERSION:
   CAN 10µV → Published V (×0.00001)
@@ -100,8 +100,8 @@ class PotentiostatNode(Node):
         """CAN callback - parse and publish data"""
         data = frame.data
 
-        # Check for stop signal (short message with first byte == 0x00)
-        if len(data) <= 2 and data[0] == 0x00:
+        # Check for stop signal (8-byte all zeros)
+        if len(data) == 8 and all(b == 0x00 for b in data):
             self.is_receiving = False
             self.get_logger().info("Potentiostat measurement complete")
             # Publish final message with is_receiving=False

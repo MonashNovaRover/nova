@@ -16,7 +16,7 @@ CAN PROTOCOL:
   TX: 0x41A#VV VV VV VV CC CC CC CC (voltage, current)
       - VVVVVVVV: voltage in 10µV units (int32, little-endian)
       - CCCCCCCC: current in µA (int32, little-endian)
-  TX: 0x41A#00 (stop signal - short message with 0x00)
+  STOP: 0x41A#00 00 00 00 00 00 00 00 (8-byte all zeros when done)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PARAMETERS:
   can_bus: CAN interface name (default: "can1")
@@ -164,8 +164,8 @@ class PotentiostatMockNode(Node):
         self.get_logger().debug(f"Sent: voltage={voltage}, current={current}")
 
     def _send_stop(self):
-        """Send stop signal over CAN"""
-        frame = jcan.Frame(self.can_tx_id, [0x00])
+        """Send stop signal over CAN (8-byte all zeros)"""
+        frame = jcan.Frame(self.can_tx_id, [0x00] * 8)
         self.bus.send(frame)
 
         self.is_sending = False

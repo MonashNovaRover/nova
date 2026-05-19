@@ -1,44 +1,50 @@
 import React, {useState, useMemo} from "react";
-import {Card, CardHeader, CardBody, Select, SelectItem} from "@nextui-org/react";
-import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
+import {Card, CardHeader, CardBody, Button} from "@nextui-org/react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import {ApexDataset} from "../SpectraDisplay/DataChart.tsx";
 import ReactApexChart from "react-apexcharts";
 import {ApexOptions} from "apexcharts";
 import {CHEMICALS, Chemical, CHEMICAL_MEASUREMENT_TYPE, MeasurementType} from "../UVVisSpec/chemicalConfig.ts";
+import SegmentedPicker from "../../shared/components/SegmentedPicker/SegmentedPicker.tsx";
+
+export type Spectrometer = "SL" | "SR";
 
 interface ChemicalComparisonWidgetProps {
-  site: Site;
+  spectrometer: Spectrometer;
+  columnLabel: string;
+  onSwap?: () => void;
+  currentMapping?: string;
 }
 
-const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({site}) => {
+const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
+  spectrometer,
+  columnLabel,
+  onSwap,
+  currentMapping
+}) => {
   const [allSpectra, _] = useLocalStorage<ApexDataset>("uv-vis-spec-saved-data", []);
-  const [selectedChemical, setSelectedChemical] = useState<Chemical | "">("Nile Red");
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const selectedChemical: Chemical = CHEMICALS[selectedIndex];
 
-  // Filter spectra by site and chemical
-  const siteIdentifier = `S${site + 1}`;
+  // Filter spectra by spectrometer and chemical
   const filteredSpectra = useMemo(() => {
-    if (!selectedChemical) return [];
-
     return allSpectra.filter(spec => {
       const name = spec.name;
       // Check if it contains the chemical name
       if (!name.includes(selectedChemical)) return false;
 
-      // Include if it's for this site OR if it's a blank (neg/pos/Blank without site)
-      const isForSite = name.includes(siteIdentifier);
+      // Include if it's for this spectrometer OR if it's a blank (neg/pos/Blank without spectrometer label)
+      const isForSpectrometer = name.includes(spectrometer);
       const isBlank = (name.includes("neg") || name.includes("pos") || name.includes("Blank"))
-        && !name.includes("S1") && !name.includes("S2") && !name.includes("S3") && !name.includes("S4");
+        && !name.includes("SL") && !name.includes("SR");
 
-      return isForSite || isBlank;
+      return isForSpectrometer || isBlank;
     });
-  }, [allSpectra, selectedChemical, siteIdentifier]);
+  }, [allSpectra, selectedChemical, spectrometer]);
 
   // Chart options - y-axis label changes based on chemical measurement type
   const chartOptions: ApexOptions = useMemo(() => {
-    const measurementType = selectedChemical
-      ? CHEMICAL_MEASUREMENT_TYPE[selectedChemical]
-      : MeasurementType.ABSORBANCE;
+    const measurementType = CHEMICAL_MEASUREMENT_TYPE[selectedChemical];
 
     const yAxisLabel = measurementType === MeasurementType.INTENSITY
       ? 'Intensity (normalized)'
@@ -46,7 +52,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({site
 
     return {
       chart: {
-        id: `chemical-comparison-site-${site}`,
+        id: `chemical-comparison-${spectrometer}`,
         background: "transparent",
         toolbar: {
           show: false
@@ -84,31 +90,40 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({site
         fontSize: '10px',
       },
     };
-  }, [site, selectedChemical]);
+  }, [spectrometer, selectedChemical]);
 
   return (
     <Card>
       <CardHeader className="flex flex-col items-start pb-2">
-        <div className="text-h1">Site {site + 1} Chemical Comparison</div>
-        <Select
+        <div className="flex flex-row items-center justify-between w-full">
+          <div className="text-h1">{columnLabel} Chemical Comparison</div>
+          {onSwap && currentMapping && (
+            <div className="flex items-center gap-3">
+              <span className="text-default-500">{currentMapping}</span>
+              <Button
+                variant="flat"
+                isIconOnly
+                onPress={onSwap}
+                title="Swap spectrometer columns"
+              >
+                <span className="text-xl">&#8644;</span>
+              </Button>
+            </div>
+          )}
+        </div>
+        <SegmentedPicker
+          selectedIndex={selectedIndex}
+          onIndexChange={setSelectedIndex}
+          className="mt-2 w-full"
           size="sm"
-          label="Select Chemical"
-          selectedKeys={selectedChemical ? [selectedChemical] : []}
-          onSelectionChange={(keys) => {
-            const key = Array.from(keys)[0] as Chemical;
-            setSelectedChemical(key || "");
-          }}
-          className="max-w-xs mt-2"
+          fullWidth
+          color="secondary"
         >
-          {CHEMICALS.map((chemical) => (
-            <SelectItem key={chemical} value={chemical}>
-              {chemical}
-            </SelectItem>
-          ))}
-        </Select>
+          {CHEMICALS.map((chemical) => chemical)}
+        </SegmentedPicker>
       </CardHeader>
       <CardBody>
-        {selectedChemical && filteredSpectra.length > 0 ? (
+        {filteredSpectra.length > 0 ? (
           <ReactApexChart
             options={chartOptions}
             series={filteredSpectra.map(spec => ({
@@ -120,10 +135,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({site
           />
         ) : (
           <div className="h-[350px] flex items-center justify-center text-default-500">
-            {selectedChemical
-              ? `No data available for ${selectedChemical} at Site ${site + 1}`
-              : "Select a chemical to view comparison"
-            }
+            No data available for {selectedChemical} ({spectrometer})
           </div>
         )}
       </CardBody>
