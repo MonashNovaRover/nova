@@ -73,6 +73,7 @@ teleop_arm:
           - "task_space_mode"
         deactivate:
           - "joint_space_mode"
+          - "auto_typing_mode"
       enter_task_space_velocity:
         on: "task_space_velocity/down"
         type: switch_control_mode
@@ -80,6 +81,7 @@ teleop_arm:
           - "task_space_velocity_mode"
         deactivate:
           - "joint_space_mode"
+          - "auto_typing_mode"
       exit_task_space_velocity:
         on_any:
           - "task_space_velocity/up"
@@ -97,14 +99,14 @@ teleop_arm:
         deactivate:
           - "task_space_mode"
       enter_auto_typing:
-        on: "auto_typing/down"
+        on: "enter_typing/down"
         type: switch_control_mode
         activate:
           - "auto_typing_mode"
         deactivate:
           - "joint_space_mode"
       exit_auto_typing:
-        on: "auto_typing/up"
+        on: "exit_typing/down"
         type: switch_control_mode
         activate:
           - "joint_space_mode"

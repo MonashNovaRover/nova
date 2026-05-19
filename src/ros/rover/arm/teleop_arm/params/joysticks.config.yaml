@@ -139,7 +139,9 @@ thrustmaster_right:
       buttons:
         task_space:
             from: "r_btn_thumb_u_state"
-        auto_typing:
+        enter_typing:
             from: "r_btn_bottom_r1_state"
+        exit_typing:
+            from: "r_btn_bottom_r4_state"
 
 
