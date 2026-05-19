@@ -26,45 +26,81 @@
 GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<h264passthroughPipelineProperties>& props)
 {
   // 1. Create the elements
+  std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
-  GstElement* source = gst_element_factory_make("v4l2src", "video-source");
-  GstElement* srcfilter = gst_element_factory_make("capsfilter", "srcfilter");
-  GstElement* webrtc = gst_element_factory_make("webrtcsink", "webrtc");
-  GstElement* payload = (props->payload_quirk) ? gst_element_factory_make("rtph264pay", "payloader") : nullptr;
-  GstElement* depayload = (props->payload_quirk) ? gst_element_factory_make("rtph264depay", "depayloader") : nullptr;
-  GstElement* parse = (props->payload_quirk) ? gst_element_factory_make("h264parse", "parser") : nullptr;
+  GstElement* source_v4l = gst_element_factory_make("v4l2src", "source_v4l");
+  GstElement* source_valve = gst_element_factory_make("valve", "source_valve");
+  GstElement* source_filter = gst_element_factory_make("capsfilter", "source_filter");
 
-  if (!gst_pipeline || !source || !srcfilter || !webrtc || (props->payload_quirk && !payload) || (props->payload_quirk && !depayload) || (props->payload_quirk && !parse)) {
-      RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create pipeline for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
-      return nullptr;
+  if (
+    !gst_pipeline ||
+    !source_v4l ||
+    !source_valve ||
+    !source_filter
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
   }
 
-  // 2. Set element properties
-  set_v4lsource(source, props);
-  set_srcfilter(srcfilter, props);
+  section = "h264";
+  GstElement* h264_payload = (props->payload_quirk) ? gst_element_factory_make("rtph264pay", "h264_payload") : nullptr;
+  GstElement* h264_depayload = (props->payload_quirk) ? gst_element_factory_make("rtph264depay", "h264_depayload") : nullptr;
+  GstElement* h264_parse = gst_element_factory_make("h264parse", "h264_parse");
+
+  if ((props->payload_quirk && (
+    !h264_payload ||
+    !h264_depayload
+  )) || !h264_parse) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
+  section = "sink";
+  GstElement* webrtc_sink = gst_element_factory_make("webrtcsink", "webrtc_sink");
+
+  if (
+    !webrtc_sink
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
+  // 2. Add elements to pipeline
+  gst_bin_add_many(GST_BIN(gst_pipeline),
+    source_v4l,
+    source_valve,
+    source_filter,
+    h264_parse,
+    webrtc_sink,
+  NULL);
+  if (props->payload_quirk) gst_bin_add_many(GST_BIN(gst_pipeline), h264_payload, h264_depayload, NULL);
+
+  // 3. Set element properties
+  set_v4lsource(source_v4l, props);
+  set_srcfilter(source_filter, props);
+
   if (props->payload_quirk) {
-    set_h264payload(payload);
-    set_h264parse(parse, -1);
+    set_h264payload(h264_payload);
   }
-  set_webrtcsink(webrtc, props);
+  set_h264parse(h264_parse, -1);
 
-  // 3. Add elements to pipeline
-  gst_bin_add_many(GST_BIN(gst_pipeline), source, srcfilter, webrtc, NULL);
-  if (props->payload_quirk) gst_bin_add_many(GST_BIN(gst_pipeline), payload, depayload, parse, NULL);
+  set_webrtcsink(webrtc_sink, props);
 
   // 4. Link elements
   
-  GstElement* next_element = source;
+  GstElement* next_element = source_v4l;
  
-  if (link_elements(streamer_node, next_element, srcfilter, props->serial)) next_element = srcfilter;
-  else {
+  link_elements(streamer_node, next_element, source_valve, props->serial);
+  if (!link_elements(streamer_node, next_element, source_filter, props->serial)) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
-  if (link_elements(streamer_node, next_element, payload, props->serial)) next_element = payload;
-  if (link_elements(streamer_node, next_element, depayload, props->serial)) next_element = depayload;
-  if (link_elements(streamer_node, next_element, parse, props->serial)) next_element = parse;
-  link_elements(streamer_node, next_element, webrtc, props->serial);
+
+  link_elements(streamer_node, next_element, h264_payload, props->serial);
+  link_elements(streamer_node, next_element, h264_depayload, props->serial);
+  link_elements(streamer_node, next_element, h264_parse, props->serial);
+
+  link_elements(streamer_node, next_element, webrtc_sink, props->serial);
 
   next_element = nullptr;
 
@@ -88,9 +124,10 @@ std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_
   std::string default_string;
 
   // source
-  props->device = camera->node;
+  props->device = set_property(streamer_node, camera, "device", camera->node);
 
-  props->io_mode = 4; // dmabuf
+  default_string = "mmap";
+  props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
 
   // scale
   props->downscale = 1; // Do not change scale
@@ -127,3 +164,22 @@ std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_
   return props;
 }
 
+void set_h264passthrough_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<h264passthroughPipelineProperties>& props) {
+
+  // 1. Initialize constants
+  GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
+  GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
+
+  // 2. Set properties for elements
+  g_object_set(source_valve, "drop", true, NULL);
+
+  if (source_filter) {
+    set_srcfilter(source_filter, props);
+    gst_object_unref(source_filter);
+  }
+
+  g_object_set(source_valve, "drop", false, NULL);
+
+  // 4. Unreference every element
+  gst_object_unref(source_valve);
+}
