@@ -1,14 +1,13 @@
-import React from "react";
+import React, {useState} from "react";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
-import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import SensorDataWidget from "./SensorDataWidget.tsx";
 import ChemicalComparisonWidget, {Spectrometer} from "./ChemicalComparisonWidget.tsx";
 import PotentiostatWidget from "./PotentiostatWidget.tsx";
 
 const PresentationWidgetsContainer: React.FC = () => {
-  // State for spectrometer column mapping with localStorage persistence
+  // State for spectrometer column mapping
   // false = default (Left: SL, Right: SR), true = swapped (Left: SR, Right: SL)
-  const [isSwapped, setIsSwapped] = useLocalStorage<boolean>("spectrometer-swap", false);
+  const [isSwapped, setIsSwapped] = useState(false);
 
   const leftSpectrometer: Spectrometer = isSwapped ? "SR" : "SL";
   const rightSpectrometer: Spectrometer = isSwapped ? "SL" : "SR";
