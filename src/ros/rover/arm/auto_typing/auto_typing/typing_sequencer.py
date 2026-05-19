@@ -151,7 +151,9 @@ class TypingSequencer(Node):
         goal_msg.pose = pose
         goal_msg.speed = speed
 
-        self.pplanner_client.wait_for_server()
+        if not self.pplanner_client.wait_for_server(timeout_sec=self.tf_timeout):
+            self.get_logger().error('Path planner action server not available')
+            return False
         future_response = self.pplanner_client.send_goal_async(goal_msg, feedback_callback=self.handle_pp_feedback)
         self.action_executor.spin_until_future_complete(future_response)
         response = future_response.result()
@@ -171,7 +173,9 @@ class TypingSequencer(Node):
     def do_poke(self, poke):
         goal_msg = EndEffector.Goal()
         goal_msg.poke = poke
-        self.pokey_client.wait_for_server()
+        if not self.pokey_client.wait_for_server(timeout_sec=self.tf_timeout):
+            self.get_logger().error('Pokey thing action server not available')
+            return False
         future_response = self.pokey_client.send_goal_async(goal_msg, feedback_callback=self.handle_pk_feedback)
         self.action_executor.spin_until_future_complete(future_response)
         response = future_response.result()
@@ -239,20 +243,28 @@ class TypingSequencer(Node):
             response.message = "No sequencer running."
         return response
 
+    def publish_error(self, seq_msg, error):
+        self.get_logger().error(error)
+        seq_msg.error = error
+        seq_msg.current_key = ""
+        self.sequence_pub.publish(seq_msg)
+        self.stop_event.set()
+        self.thread = None
+
     def execute_sequencer(self, key_sequence, relocalise) -> None:
-        # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
-        ee_transform = self.get_transform_from_frame(self.base_frame, self.ee_frame)
-        if ee_transform is None:
-            self.get_logger().info(f"Sequencer failed getting {self.ee_frame} transform")
-            return
-        start_pose = Pose() 
-        start_pose.position = ee_transform.transform.translation
-        start_pose.orientation = ee_transform.transform.rotation
-    
         seq_msg = SequencerFeedback()
         seq_msg.sequence = key_sequence
         seq_msg.partial_sequence = []
         seq_msg.current_key = ""
+
+        # Get position of EE in base link frame (Assumes operators have aligned keyboard with camera)
+        ee_transform = self.get_transform_from_frame(self.base_frame, self.ee_frame)
+        if ee_transform is None:
+            self.publish_error(seq_msg, f"Failed getting {self.ee_frame} transform")
+            return
+        start_pose = Pose()
+        start_pose.position = ee_transform.transform.translation
+        start_pose.orientation = ee_transform.transform.rotation
 
         key_transforms = {}
         if not relocalise:
@@ -261,9 +273,10 @@ class TypingSequencer(Node):
                 stamp = self.get_clock().now().to_msg()
                 transform = self.localise_and_get_tf(key, stamp)
                 if transform is None:
+                    self.publish_error(seq_msg, f"Failed localising key '{key}'")
                     return
                 key_transforms[key] = (transform, stamp)
-        
+
         for key in key_sequence:
             if self.stop_event.is_set():
                 self.get_logger().warn(f"Sequencer stopped at {key}")
@@ -278,6 +291,7 @@ class TypingSequencer(Node):
                 stamp = self.get_clock().now().to_msg()
                 key_transform = self.localise_and_get_tf(key, stamp)
                 if key_transform is None:
+                    self.publish_error(seq_msg, f"Failed localising key '{key}'")
                     return
             else:
                 key_transform, stamp = key_transforms[key]
@@ -285,17 +299,17 @@ class TypingSequencer(Node):
             # Start action to move to key via path planner
             pose = self.pose_calc(key_transform, self.ee_frame, self.actuator_frame, stamp)
             if pose is None:
-                self.get_logger().warn(f"Failed getting pose for {key}")
+                self.publish_error(seq_msg, f"Failed getting pose for '{key}'")
                 return
             pp_result = self.call_path_planner(pose, self.pp_speed)
             if not pp_result:
-                self.get_logger().info(f"Failed path planning for {key}")
+                self.publish_error(seq_msg, f"Failed path planning for '{key}'")
                 return
             self.get_logger().info(f"Path planner finished!")
 
             # Activate pokey thing
             if not self.do_poke(POKE_FORWARD) or not self.do_poke(POKE_BACKWARD):
-                self.get_logger().info(f"Failed poking for {key}")
+                self.publish_error(seq_msg, f"Failed poking for '{key}'")
                 return
 
             # Publish feedback to topic for GUI
