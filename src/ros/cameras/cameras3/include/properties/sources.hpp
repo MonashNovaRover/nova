@@ -4,8 +4,8 @@
 #include <string>
 #include <gst/gst.h>
 
-template<typename properties> void set_v4lsource(GstElement* source, const properties& props) {
-  g_object_set(source,
+template<typename properties> void set_v4lsource(GstElement* element, const properties& props) {
+  g_object_set(element,
     "device", props->device.c_str(),
     "io-mode", (
       props->io_mode == "rw" ? 1 :
