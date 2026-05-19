@@ -14,6 +14,7 @@ import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
 import LitmusDipperWidget from "../../components/science/LitmusDipperWidget/LitmusDipperWidget.tsx";
 import LedWidget from "../../components/science/LEDWidget/LEDWidget.tsx";
 import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
+import {PotentiostatWidget} from "../../components/science/Potentiostat/PotentiostatWidget.tsx";
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
@@ -35,6 +36,7 @@ const URCScienceView: React.FC = () => {
       <div className="flex flex-col gap-3 col-span-2">
         <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
         <CameraControlModalButton/>
+        <PotentiostatWidget/>
       </div>
     </div>
   )

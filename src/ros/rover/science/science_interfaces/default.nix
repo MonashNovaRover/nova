@@ -2,8 +2,8 @@
   buildRosPackage, 
   ament-cmake, 
   rosidl-default-generators,
-  # Add dependencies here, e.g.:
-  #std-msgs,
+  # Add dependencies here
+  std-msgs,
 }:
 
 buildRosPackage {
@@ -18,7 +18,7 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake rosidl-default-generators ];
   propagatedBuildInputs = [
-    # Add dependencies here, e.g.:
-#    std-msgs
+    # Add dependencies here
+    std-msgs
   ];
 }

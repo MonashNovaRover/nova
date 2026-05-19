@@ -55,14 +55,15 @@ install(PROGRAMS
         science/arc/water_pump.py
         science/arc/diaphragm_pump.py
         science/urc/auger_hall_effect.py
+        science/urc/bme_sensor.py
         science/urc/cache.py
         science/urc/carousel.py
-        science/urc/litmus_dipper.py
         science/urc/heater.py
         science/urc/hydraprobe.py
+        science/urc/litmus_dipper.py
+        science/urc/potentiostat.py
         science/urc/pumps.py
         science/urc/spec_leds.py
-        science/urc/bme_sensor.py
         science/urc/urc_mixers.py
         science/urc/urc_raman_mech_server.py
         science/urc/urc_raman_spec_server.py
@@ -76,6 +77,7 @@ install(PROGRAMS
         science/scimbal_cam.py
         science/control_test.py
         science/time_of_flight.py
+        science/urc/potentiostat_mock.py
         DESTINATION lib/${PROJECT_NAME}
 )
 
