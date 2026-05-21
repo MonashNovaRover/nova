@@ -192,9 +192,11 @@ class BLCMDStatusMonitor(Node):
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
 
-        # store all "initial" zero positions for pivot reset later
-        # (for some reason we can't do this just before resetting a pivot)
-        self.check_all_pivot_blcmd_zeros()
+        # repeatedly attempt to get "initial" zero positions for pivot to use in reset later
+        if self.declare_parameter("get_pivot_blcmd_initial_zero", True).value:
+            self.get_pivot_blmcd_zero_period = self.declare_parameter("get_pivot_blmcd_zero_period", 15).value
+            self.get_pivot_blmcd_zero_timers = {pivot_id: self.create_timer(self.get_pivot_blmcd_zero_period, self.get_pivot_blmcd_zero_timer_callback(pivot_id))
+                                                for pivot_id in self.pivot_blcmd_ids}
 
     def run_callbacks(self):
         self.bus.spin()
@@ -269,11 +271,17 @@ class BLCMDStatusMonitor(Node):
 
         self.deferred_functions.append(deferred_reset)
 
-    def check_all_pivot_blcmd_zeros(self):
-        for blcmd_id in self.pivot_blcmd_ids:
-            self.check_pivot_blmcd_zero(blcmd_id)
+    def get_pivot_blmcd_zero_timer_callback(self, blcmd_id: int):
 
-    def check_pivot_blmcd_zero(self, blcmd_id: int):
+        def callback():
+            if self.pivot_zeros[blcmd_id] is not None:
+                self.get_pivot_blmcd_zero_timers[blcmd_id].cancel()
+            else:
+                self.get_pivot_blmcd_zero(blcmd_id)
+
+        return callback
+
+    def get_pivot_blmcd_zero(self, blcmd_id: int):
 
         # does not trigger reset, as blcmd_pivot_reset_times is not updated
         def deferred_check():
