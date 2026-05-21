@@ -26,11 +26,6 @@ in
   config = lib.mkIf cfg.enable {
     programs.bash = {
       bashrcExtra = lib.mkAfter ''
-        # Defaults
-        export RMW_IMPLEMENTATION="rmw_cyclonedds_cpp"
-        export COMP="ARCh"
-        ln -sfn "$HOME/Builds/master" "$HOME/Builds/active"
-
         # Environment variables
         ## ROS2 DDS configuration
         use_fastdds() {
@@ -79,16 +74,22 @@ in
         # Source the ROS2 DDS configuration if it exists
         if [ -f $HOME/.config/nova/ros_dds ]; then
           . $HOME/.config/nova/ros_dds
+        else
+          export RMW_IMPLEMENTATION="rmw_cyclonedds_cpp"
         fi
 
         # Source the COMP environment variable if it exists
         if [ -f $HOME/.config/nova/comp ]; then
           . $HOME/.config/nova/comp
+        else
+          export COMP="ARCh"
         fi
 
         # Source the active build configuration if it exists
         if [ -f "/run/user/$UID/nova/active_build" ]; then
           . "/run/user/$UID/nova/active_build"
+        else
+          ln -sfn "$HOME/Builds/master" "$HOME/Builds/active"
         fi
 
         # Calculate box width based on longest content line (in subshell to auto-cleanup)
@@ -167,6 +168,13 @@ in
           # System
           off = "sudo poweroff";
           kfc = "can stop can0";
+
+          # Nova sh functions (here so they can be found as aliases)
+          use_fastdds = "use_fastdds";
+          use_cyclonedds = "use_cyclonedds";
+          set_arch = "set_arch";
+          set_urc = "set_urc";
+          set_active = "set_active";
 
           # Nix CLI shortcuts
           nova-build = "nom-build ${cfg.nixfileDir}";
