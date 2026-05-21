@@ -7,14 +7,16 @@ in
   options.nova.monitoring.enable = lib.mkEnableOption "Install monitoring tools";
 
   config = lib.mkIf cfg.enable {
-    # USB bandwidth monitor
+    # Wireshark, USB bandwidth monitor, tcpdump
     programs = {
+      wireshark.enable = true;
       usbtop.enable = true;
+      tcpdump.enable = true;
     };
 
-    # General purpose monitor with network support
-    services = {
-      glances.enable = true;
+    # User groups for wireshark and tcpdump
+    users.users.nova = {
+      extraGroups = [ "wireshark" "pcap" ];
     };
 
     # Network bandwidth by process/application monitor
