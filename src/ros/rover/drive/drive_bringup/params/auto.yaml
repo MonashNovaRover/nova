@@ -141,7 +141,7 @@ ackermann_steering_controller:
 blcmd_status_monitor:
   ros__parameters:
     # auto blcmd reset parameters
-    enable_auto_blcmd_reset: false
+    enable_auto_blcmd_reset: true
     max_resets: 5
     reset_timeout: 5
     auto_reset_drive_blmcd_ids: [1, 2, 3, 4]
