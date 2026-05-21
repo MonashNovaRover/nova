@@ -27,7 +27,7 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         Node(
-            package='electronics',
+            package='dgnss',
             namespace='',
             executable='gps_base.py',
             name='gps_base',

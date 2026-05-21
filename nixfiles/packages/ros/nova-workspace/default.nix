@@ -26,6 +26,7 @@
 , mbtileserver
 , rmw-cyclonedds-cpp
 
+, nova-dgnss ? throw "nova-dgnss is needed, but not available!"
 , nova-electronics ? throw "electronics is needed, but not available!"
 , nova-science ? throw "science is needed, but not available!"
 , nova-cameras2 ? throw "cameras2 is needed, but not available!"
@@ -96,6 +97,7 @@
   ## implicitly included.
 , novaPackages ? {
     inherit
+      nova-dgnss
       nova-electronics
       nova-science
       nova-cameras2
