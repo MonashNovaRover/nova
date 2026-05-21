@@ -1,9 +1,10 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { Button, Input, CardProps, Card, Checkbox } from "@nextui-org/react";
 import { useSelector } from "react-redux";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { Square, Power, HelpCircle } from "react-feather";
+import toast from "react-hot-toast";
 import { OverlayedProgress } from "../../shared/components/OverlayedProgress/OverlayedProgress.tsx";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { RootState } from "../../../redux/RootState.ts";
@@ -28,10 +29,21 @@ const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = (prop
   const fullSequence = useSelector((state: RootState) => state.sequencerDataStore.sequence);
   const partialSequence = useSelector((state: RootState) => state.sequencerDataStore.partial_sequence);
   const currentKey = useSelector((state: RootState) => state.sequencerDataStore.current_key);
+  const error = useSelector((state: RootState) => state.sequencerDataStore.error);
+
+  const prevErrorRef = useRef<string>("");
+  useEffect(() => {
+    if (error && error !== prevErrorRef.current) {
+      toast.error(error);
+    }
+    prevErrorRef.current = error;
+  }, [error]);
 
   useEffect(() => {
     sequenceBifrost.syncWithTopic();
   }, [sequenceBifrost]);
+
+  const isRunning = currentKey !== "";
 
   const [sequence, setSequence] = useState([""]);
   const [relocalise, setRelocalise] = useState(false);
@@ -59,10 +71,10 @@ const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = (prop
         </Checkbox>
       </div>
       <div className="flex flex-row justify-between gap-2">
-        <Button className="w-3/12 text-h1 h-12" color="success"
-          onPress={() => startTyping(sequence, relocalise)}>
-          START TYPING
-          <Power size="15" />
+        <Button
+          isDisabled
+          className={`w-3/12 h-12 opacity-100 ${isRunning ? "bg-success" : "bg-content3"}`}>
+          {isRunning ? "RUNNING" : "IDLE"}
         </Button>
         <div className="w-5/12 content-center">
           <OverlayedProgress size="lg" radius="lg"
@@ -86,10 +98,10 @@ const AutoTypingKeyEntryWidget: React.FC<IAutoTypingKeyEntryWidgetProps> = (prop
             </div>
           </OverlayedProgress>
         </div>
-        <Button className="w-3/12 text-h1 h-12" color="danger"
-          onPress={stopTyping}>
-          STOP TYPING
-          <Square size="15" fill="white" />
+        <Button className="w-3/12 text-h1 h-12" color="primary"
+          onPress={() => isRunning ? stopTyping() : startTyping(sequence, relocalise)}>
+          {isRunning ? "STOP TYPING" : "START TYPING"}
+          {isRunning ? <Square size="15" fill="white" /> : <Power size="15" />}
         </Button>
         <Button className="w-1/12 text-h1 h-12" color="primary"
           onPress={props.showHelp}>
