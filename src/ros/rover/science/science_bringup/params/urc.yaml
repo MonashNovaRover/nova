@@ -220,10 +220,19 @@ litmus_dipper:
         can_id: 0x0E0
         angular_limit: 180.0
 
-heaters:
+heater:
   ros__parameters:
     can_bus: "can1"
     update_rate: 5
+
+potentiostat:
+  ros__parameters:
+    can_bus: "can1"
+    can_trigger_id_ch1: 0x01A
+    can_trigger_id_ch2: 0x01B
+    can_data_id_ch1: 0x41A
+    can_data_id_ch2: 0x41B
+    can_spin_rate: 20.0
 
 spec_leds:
   ros__parameters:

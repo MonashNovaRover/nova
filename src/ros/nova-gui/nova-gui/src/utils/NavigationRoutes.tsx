@@ -116,6 +116,11 @@ export const urcNavigationData: NavigationInterface = {
       title: "Cameras",
       route: `/urc/cameras/${URCCompModes.URC_SCIENCE}`,
       icon: <Camera />,
+    },
+    {
+      title: "Presentation",
+      route: `/urc/science-presentation`,
+      icon: <Tv />,
     }
   ],
   ["Delivery"]: [

@@ -61,8 +61,8 @@ export const initialGPSMessage = <IRosNovaInterfacesGpsData>{
     },
     frame_id: "",
   },
-  latitude: 0, // (38.4062649,-110.7917894) Location: 1.7 Metres Away from MDRS Hanksville
-  longitude: 0,
-  altitude: 0,
+  latitude: 38.4062649, // (38.4062649,-110.7917894) Location: 1.7 Metres Away from MDRS Hanksville
+  longitude: -110.7917894,
+  altitude: 120,
   heading: 45.0,
 };

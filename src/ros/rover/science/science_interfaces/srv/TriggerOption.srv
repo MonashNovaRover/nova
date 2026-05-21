@@ -1,0 +1,7 @@
+# Service to trigger an action with an option parameter
+# Used by potentiostat to select channel (0 or 1)
+
+int32 option
+---
+bool success
+string message

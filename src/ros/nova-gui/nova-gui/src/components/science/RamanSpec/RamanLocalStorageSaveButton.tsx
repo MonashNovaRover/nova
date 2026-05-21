@@ -13,6 +13,15 @@ export interface RamanLocalStorageSaveButtonProps {
 const RamanLocalStorageSaveButton: React.FC<RamanLocalStorageSaveButtonProps> = (props) => {
   const [graphName, setGraphName] = useState<string>(props.suggestedName ?? "");
 
+  // Track previous suggestedName to sync state when prop changes (React recommended pattern)
+  const [prevSuggestedName, setPrevSuggestedName] = useState(props.suggestedName);
+  if (props.suggestedName !== prevSuggestedName) {
+    setPrevSuggestedName(props.suggestedName);
+    if (props.suggestedName !== undefined) {
+      setGraphName(props.suggestedName);
+    }
+  }
+
   return (
     <div className="flex flex-row gap-3 my-3 mb-0 flex-grow">
       <Input size="sm" placeholder="Saved graph name" className="flex-grow" onValueChange={setGraphName} value={graphName}></Input>

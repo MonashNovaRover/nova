@@ -170,6 +170,16 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         Node(
+            name='spec_leds',
+            package='science',
+            executable='spec_leds.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+            ],
+        ),
+        Node(
             name='litmus_dipper',
             package='science',
             executable='litmus_dipper.py',
@@ -183,6 +193,17 @@ def launch_setup(context, *args, **kwargs):
             name='heater',
             package='science',
             executable='heater.py',
+            output='screen',
+            emulate_tty=True,
+            parameters=[
+                science_params,
+                {'can_bus': can_bus},
+            ],
+        ),
+        Node(
+            name='potentiostat',
+            package='science',
+            executable='potentiostat.py',
             output='screen',
             emulate_tty=True,
             parameters=[
@@ -213,16 +234,6 @@ def launch_setup(context, *args, **kwargs):
             parameters=[
                 science_params,
                 {'can_bus': can_bus},
-            ],
-        ),
-        Node(
-            name='spec_leds',
-            package='science',
-            executable='spec_leds.py',
-            output='screen',
-            emulate_tty=True,
-            parameters=[
-                science_params,
             ],
         ),
         Node(

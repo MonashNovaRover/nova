@@ -34,6 +34,7 @@ import { arcNavigationData, compNavigationData, generalNavigationData, testNavig
 import PageNotFoundView from "../views/shared/PageNotFound.tsx";
 import {YoloProvider} from "../components/auto/ObjectDetection/YoloProvider.tsx";
 import TestJoyView from "../views/test/TestJoyView/TestJoyView.tsx";
+import URCSciencePresentationView from "../views/urc/URCSciencePresentationView.tsx";
 
 export const arcRoutes: RouteObject[] = [
   {
@@ -118,6 +119,10 @@ export const urcRoutes: RouteObject[] = [
   {
     path: "/urc/360cam",
     element: <URC360CamView/>
+  },
+  {
+    path: "/urc/science-presentation",
+    element: <URCSciencePresentationView/>
   },
   {
     path: "/urc/raman",
