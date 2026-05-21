@@ -22,7 +22,7 @@ import { ChevronCompactDown, ChevronCompactUp, ChevronDoubleDown, ChevronDoubleU
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { AnimatePresence, motion } from "framer-motion";
-import { Navigation, Trash, Truck, Twitter, X } from "react-feather";
+import { Navigation, Trash, Truck, Twitter, X, Target } from "react-feather";
 import { ToolTipButton } from "../../../shared/components/TooltipButton.tsx";
 import { useCartographerActions } from "../../../../redux/actions/useCartographerActions.ts";
 import { MapTile } from "../config.tsx";
@@ -192,14 +192,6 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 </Select>
                 </div>
                 <div className="flex flex-row gap-3 items-center">
-                  <Button
-                    variant="shadow"
-                    fullWidth
-                    color={showSearchZones ? "primary" : "default"}
-                    onPress={toggleShowSearchZones}
-                  >
-                    {"Show Search Zones"}
-                  </Button>
                 {bottomOverlayComponents.map((component, index) => (
                   <React.Fragment key={index}>
                     {component}
@@ -224,6 +216,15 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   </button>
                   {modal}
                 </div>
+                  <ToolTipButton
+                    tooltipContent={`Toggle Show Search Zone`}
+                    isIconOnly
+                    variant="shadow"
+                    color={currentVehicle.centerOn ? "primary" : "default"}
+                    onPressStart={toggleShowSearchZones}
+                  >
+                    <Target className="w-5" />
+                  </ToolTipButton>
                 <ToolTipButton
                   tooltipContent={`Center ${currentVehicle.label}`}
                   isIconOnly
