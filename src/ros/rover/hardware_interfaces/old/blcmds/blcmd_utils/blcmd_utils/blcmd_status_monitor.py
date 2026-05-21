@@ -195,6 +195,8 @@ class BLCMDStatusMonitor(Node):
         # repeatedly attempt to get "initial" zero positions for pivot to use in reset later
         if self.declare_parameter("get_pivot_blcmd_initial_zero", True).value:
             self.get_pivot_blmcd_zero_period = self.declare_parameter("get_pivot_blmcd_zero_period", 15).value
+            for pivot_id in self.pivot_blcmd_ids:
+                self.get_pivot_blmcd_zero(pivot_id)
             self.get_pivot_blmcd_zero_timers = {pivot_id: self.create_timer(self.get_pivot_blmcd_zero_period, self.get_pivot_blmcd_zero_timer_callback(pivot_id))
                                                 for pivot_id in self.pivot_blcmd_ids}
 
