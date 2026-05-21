@@ -25,6 +25,8 @@ from rclpy.time import Time
 from rclpy.duration import Duration
 import jcan
 from collections.abc import Callable
+from itertools import chain
+from time import sleep
 
 # import custom messages
 from blcmd_interfaces.msg import BLCMDStatus, BLCMDStatusArray, BLCMDLog
@@ -88,7 +90,7 @@ class BLCMDStatusMonitor(Node):
         #publisher to publish log messages from each blcmd
         self.log_publisher = self.create_publisher(BLCMDLog, "/drive/blcmd_log", 1)
         #service to reset the blcmd
-        self.reset_service = self.create_service(BLCMDReset, "/blcmds/blcmd_reset", self.reset)
+        self.reset_service = self.create_service(BLCMDReset, "/blcmds/blcmd_reset", self.reset_blcmd)
 
         #declare parameters
         self.num_blcmds = self.declare_parameter("num_blcmds", 8).value
@@ -98,8 +100,8 @@ class BLCMDStatusMonitor(Node):
         self.publish_log_period = 1 / int(self.declare_parameter("publish_log_max_frequency", 10).value) # in logs per second
         self.publish_status_period = 1 / int(self.declare_parameter("publish_status_frequency", 2).value) # in blcmd statuses per second
 
-        # disabled by default as there seems to be issues with these messages rn
-        self.log_gate_driver_condition = self.declare_parameter("log_gate_driver_condition", False).value
+        # ignoring the numbers provided by the gate driver condition errors as they seem unreliable/unused atm
+        self.ignore_gate_driver_condition_error_number = self.declare_parameter("ignore_gate_driver_condition_error_number", True).value
 
         # params used to determine BLCMDStatus (i.e. keep track of blcmd error states so they can be published)
         self.blcmd_statuses = [BLCMDStatus(id=i+1) for i in range(self.get_parameter("num_blcmds").value)]
@@ -118,10 +120,13 @@ class BLCMDStatusMonitor(Node):
         self.enable_auto_blcmd_reset = self.declare_parameter("enable_auto_blcmd_reset", False).value
         self.max_resets = self.declare_parameter("max_resets", 5).value # set to 0 for no limit
         self.reset_timeout = self.declare_parameter("reset_timeout", 5).value # in seconds; set to 0 for no timeout
-        self.auto_reset_drive_blmcd_ids = self.declare_parameter("auto_reset_drive_blmcd_ids", [1, 2, 3, 4]).value # which drive blcmds are allowed to be reset (by id)
+        self.drive_blcmd_ids = [1, 2, 3, 4]
+        self.auto_reset_drive_blmcd_ids = self.declare_parameter("auto_reset_drive_blmcd_ids", self.drive_blcmd_ids).value # which drive blcmds are allowed to be reset (by id)
         if self.auto_reset_drive_blmcd_ids is None:
             self.auto_reset_drive_blmcd_ids = []
-        self.auto_reset_pivot_blmcd_ids = self.declare_parameter("auto_reset_pivot_blmcd_ids", [5, 6, 7, 8]).value # which pivot blcmds are allowed to be reset (by id)
+
+        self.pivot_blcmd_ids = [5, 6, 7, 8]
+        self.auto_reset_pivot_blmcd_ids = self.declare_parameter("auto_reset_pivot_blmcd_ids", self.pivot_blcmd_ids).value # which pivot blcmds are allowed to be reset (by id)
         if self.auto_reset_pivot_blmcd_ids is None:
             self.auto_reset_pivot_blmcd_ids = []
 
@@ -138,6 +143,9 @@ class BLCMDStatusMonitor(Node):
         # workaround required due to inability to call bus.send in a can callback
         self.deferred_functions: list[Callable[[], None]] = []
 
+        # delay after resetting pivot blcmd before setting zero position to previous value
+        self.pivot_set_zero_delay = self.declare_parameter("pivot_set_zero_delay", 3).value # in seconds
+
         #create reset_time variable to prevent multiple resets in a short time
         self.reset_time = self.get_clock().now()
 
@@ -146,27 +154,51 @@ class BLCMDStatusMonitor(Node):
         self.bus.set_id_filter_mask(0x400, 0xF00)
 
         #initialise zero positions
-        self.pivot_zeros = dict.fromkeys(self.auto_reset_pivot_blmcd_ids, None)
+        self.pivot_zeros = dict.fromkeys(self.pivot_blcmd_ids, None)
 
-        #add callbacks for each blcmd
-        for i in range(self.num_blcmds):
-            self.bus.add_callback(0x400 | (i + 1) << 4, self.get_callback(i))
-            self.bus.add_callback(0x409 | (i + 1) << 4, self.get_reset_pivot_blcmd_callback(i+1))
+        #add callbacks
+
+        for i in chain(self.drive_blcmd_ids, self.pivot_blcmd_ids):
+
+            # i-1 is for compatibility with legacy code
+            self.bus.add_callback(0x400 | i << 4, self.get_callback(i-1))
+
+        for i in self.pivot_blcmd_ids:
+            self.bus.add_callback(0x409 | i << 4, self.get_reset_pivot_blcmd_callback(i))
 
         #create timers
         self.run_callbacks_timer = self.create_timer(0.01, self.run_callbacks)
         self.publish_status_timer = self.create_timer(self.publish_status_period, self.publish_blcmd_status)
+        self.pivot_set_zero_delay_timers = {}
+        for pivot_id in self.pivot_blcmd_ids:
+            def set_pivot_zero(id=pivot_id):
+                if self.pivot_zeros[id] is None:
+                    self.get_logger().error(f'Did not set zero position for pivot BLCMD {id} as a zero position was never received from it')
+                    return
+
+                self.bus.send(
+                    jcan.Frame(id=0x00A | (id << 4), data=[
+                        0xf,
+                        *self.pivot_zeros[id]
+                    ])
+                )
+
+                self.pivot_set_zero_delay_timers[id].cancel()
+
+            self.pivot_set_zero_delay_timers[pivot_id] = self.create_timer(self.pivot_set_zero_delay,
+                                                                           set_pivot_zero,
+                                                                           autostart=False)
 
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)
 
-        # store all "initial" zero positions for pivot reset later
-        # (for some reason we can't do this just before resetting a pivot)
-        if self.enable_auto_blcmd_reset:
-            for pivot_id in self.auto_reset_pivot_blmcd_ids:
-                self.bus.send(
-                    jcan.Frame(id=0x009 | pivot_id << 4, data=[0xf])
-                )
+        # repeatedly attempt to get "initial" zero positions for pivot to use in reset later
+        if self.declare_parameter("get_pivot_blcmd_initial_zero", True).value:
+            self.get_pivot_blmcd_zero_period = self.declare_parameter("get_pivot_blmcd_zero_period", 15).value
+            for pivot_id in self.pivot_blcmd_ids:
+                self.get_pivot_blmcd_zero(pivot_id)
+            self.get_pivot_blmcd_zero_timers = {pivot_id: self.create_timer(self.get_pivot_blmcd_zero_period, self.get_pivot_blmcd_zero_timer_callback(pivot_id))
+                                                for pivot_id in self.pivot_blcmd_ids}
 
     def run_callbacks(self):
         self.bus.spin()
@@ -175,46 +207,58 @@ class BLCMDStatusMonitor(Node):
             function()
         self.deferred_functions = []
 
-    def reset(self,req,res):
+    def reset_blcmd(self, req, res):
         """
         Updates the classes internal msg state
         :param msg: nova_interfaces.msg.BLCMDReset message from the subscriber callback
         :return: None
         """
         try:
-            if req.type == BLCMDReset.Request.BLCMD:
-                frame = jcan.Frame(0x00B | req.id << 4, [0])
-            elif req.type == BLCMDReset.Request.RESOLVER:
-                frame = jcan.Frame(0x00C | req.id << 4, [0])
-
-            self.bus.send(frame)
-            if req.type == BLCMDReset.Request.BLCMD:
-                self.get_logger().info(f'Reset BLCMD {req.id}')
-            elif req.type == BLCMDReset.Request.RESOLVER:
-                self.get_logger().info(f'Reset resolver on BLCMD {req.id}')
+            # assume success unless otherwise provided
             res.success = True
-        except:
-            self.get_logger().error('BLCMD Reset or Resolver Reset Failed')
+
+            # reset resolver (extracted from existing code)
+            if req.type == BLCMDReset.Request.RESOLVER:
+                frame = jcan.Frame(0x00C | req.id << 4, [0])
+                self.bus.send(frame)
+                self.get_logger().info(f'Reset resolver on BLCMD {req.id}')
+                return res
+
+            if req.type != BLCMDReset.Request.BLCMD:
+                self.get_logger().warn(f'Failed to reset BLCMD {req.id} as an unsupported reset type was provided')
+                res.success = False
+                return res
+
+            if req.id in self.drive_blcmd_ids:
+                self.reset_drive_blcmd(req.id, "as requested")
+            elif req.id in self.pivot_blcmd_ids:
+                self.reset_pivot_blcmd(req.id, "as requested")
+            else:
+                self.get_logger().warn(f'Failed to reset BLCMD {req.id} as it is not a valid drive or pivot BLCMD id')
+                res.success = False
+
+        except Exception as e:
+            self.get_logger().error(f'BLCMD Reset Failed due to exception: {e}')
             res.success = False
         return res
 
-    def reset_drive_blcmd(self, blcmd_id: int):
+    def reset_drive_blcmd(self, blcmd_id: int, reason: str):
         msg_id = 0x00B | (blcmd_id << 4)
 
         def deferred_reset():
-            self.get_logger().info(f'Resetting drive BLCMD {blcmd_id} due to errors received')
+            self.get_logger().info(f'Resetting drive BLCMD {blcmd_id} {reason}')
             self.bus.send(
                 jcan.Frame(id=msg_id, data=[])
             )
 
         self.deferred_functions.append(deferred_reset)
 
-    def reset_pivot_blcmd(self, blcmd_id: int):
+    def reset_pivot_blcmd(self, blcmd_id: int, reason: str):
 
         # WARNING: This process is based off firmware electrical has written for arm (they should adapt this feature for pivot firmware)
 
         def deferred_reset():
-            self.get_logger().info(f'Resetting pivot BLCMD {blcmd_id} due to errors received (patched by Will and Terry)')
+            self.get_logger().info(f'Resetting pivot BLCMD {blcmd_id} {reason} (patched by Will and Terry)')
 
             # keep track of when the last request was made
             self.blcmd_pivot_reset_times[blcmd_id] = self.get_clock().now()
@@ -229,7 +273,32 @@ class BLCMDStatusMonitor(Node):
 
         self.deferred_functions.append(deferred_reset)
 
+    def get_pivot_blmcd_zero_timer_callback(self, blcmd_id: int):
+
+        def callback():
+            if self.pivot_zeros[blcmd_id] is not None:
+                self.get_pivot_blmcd_zero_timers[blcmd_id].cancel()
+            else:
+                self.get_pivot_blmcd_zero(blcmd_id)
+
+        return callback
+
+    def get_pivot_blmcd_zero(self, blcmd_id: int):
+
+        # does not trigger reset, as blcmd_pivot_reset_times is not updated
+        def deferred_check():
+
+            # get configuration (blcmd zero position)
+            self.bus.send(
+                jcan.Frame(id=0x009 | blcmd_id << 4, data=[0xf])
+            )
+
+        self.deferred_functions.append(deferred_check)
+
     def get_reset_pivot_blcmd_callback(self, blcmd_id: int):
+        def position_str(position: list[int]):
+            return f'0x{position[0]:02X}{position[1]:02X}'
+
         def callback(frame):
             now = self.get_clock().now()
 
@@ -240,6 +309,10 @@ class BLCMDStatusMonitor(Node):
             # save all pivot zeros on startup
             if self.pivot_zeros[blcmd_id] is None:
                 self.pivot_zeros[blcmd_id] = frame.data[1:3]
+                self.get_logger().info(f'Received pivot BLCMD {blcmd_id} zero position: {position_str(self.pivot_zeros[blcmd_id])} (used for all future resets)')
+
+            elif self.pivot_zeros[blcmd_id] != frame.data[1:3]:
+                self.get_logger().warn(f'Received pivot BLCMD {blcmd_id} zero position {position_str(frame.data[1:3])} does not match the initial/set zero position of {position_str(self.pivot_zeros[blcmd_id])}')
 
             # don't do anything if there wasn't a recent enough request for pivot zero
             if (blcmd_id not in self.blcmd_pivot_reset_times
@@ -257,12 +330,7 @@ class BLCMDStatusMonitor(Node):
                 )
 
                 # set pivot zero
-                self.bus.send(
-                    jcan.Frame(id=0x00A | (blcmd_id << 4), data=[
-                        0xf,
-                        *self.pivot_zeros[blcmd_id]
-                    ])
-                )
+                self.pivot_set_zero_delay_timers[blcmd_id].reset()
 
                 self.blcmd_pivot_reset_times[blcmd_id] = None
 
@@ -307,9 +375,9 @@ class BLCMDStatusMonitor(Node):
 
 
         if blcmd_id in self.auto_reset_pivot_blmcd_ids:
-            self.reset_pivot_blcmd(blcmd_id)
+            self.reset_pivot_blcmd(blcmd_id, "due to errors received")
         else:
-            self.reset_drive_blcmd(blcmd_id)
+            self.reset_drive_blcmd(blcmd_id, "due to errors received")
 
     def output_rate_limited(self, blcmd: int, output_message: str) -> bool:
         output_id = (blcmd, output_message)
@@ -401,16 +469,13 @@ class BLCMDStatusMonitor(Node):
 
             # gate driver condition
             elif frame.data[0] == 3:
-
-                # don't log if not enabled
-                if not self.log_gate_driver_condition:
-                    return
-
                 data = frame.data[1]
 
                 # message sequence ended; output/publish log
-                if data == 0xFF:
-                    if len(self.gate_driver_registers) > 0:
+                if data == 0xFF or self.ignore_gate_driver_condition_error_number:
+                    if self.ignore_gate_driver_condition_error_number:
+                        gate_driver_condition_messsage = "Gate driver fault"
+                    elif len(self.gate_driver_registers) > 0:
                         gate_driver_condition_messsage = f"Gate driver fault on registers {self.gate_driver_registers}"
                     else:
                         gate_driver_condition_messsage = f"Gate driver fault (but no registers were received)"
@@ -423,6 +488,9 @@ class BLCMDStatusMonitor(Node):
 
                     # reset for next sequence
                     self.gate_driver_registers = []
+
+                    # attempt to reset blcmd automatically
+                    self.auto_blcmd_reset(blcmd + 1)
 
                 # received message containing id of faulted register
                 else:
