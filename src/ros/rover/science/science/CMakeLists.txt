@@ -77,7 +77,6 @@ install(PROGRAMS
         science/scimbal_cam.py
         science/control_test.py
         science/time_of_flight.py
-        science/urc/potentiostat_mock.py
         DESTINATION lib/${PROJECT_NAME}
 )
 
