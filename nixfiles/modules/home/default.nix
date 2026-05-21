@@ -6,6 +6,7 @@
     ./branding
     ./desktop
     ./macros
+    ./monitoring
     ./nova
     ./workspace
   ];

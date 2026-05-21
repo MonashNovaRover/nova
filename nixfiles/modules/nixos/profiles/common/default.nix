@@ -33,6 +33,7 @@ in
       users.nova.enable = true;
       branding.enable = true;
       networking.ddsTuning.enable = true;
+      monitoring.enable = true;
     };
   };
 }
