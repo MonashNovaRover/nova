@@ -39,6 +39,8 @@ import {
   IRosScienceInterfacesIncrementZeroResponse,
   IRosScienceInterfacesSetNamedBoolRequest,
   IRosScienceInterfacesSetNamedBoolResponse,
+  IRosScienceInterfacesTriggerOptionRequest,
+  IRosScienceInterfacesTriggerOptionResponse,
 } from "../rosTypes";
 import { RosService } from "./rosService";
 
@@ -247,6 +249,10 @@ export interface RosServiceInterface {
   [RosService.BME_TRIGGER]: RosServiceMessage<
     EmptyMessage,
     IRosStdSrvsTriggerResponse
+  >;
+  [RosService.POTENTIOSTAT_TRIGGER]: RosServiceMessage<
+    IRosScienceInterfacesTriggerOptionRequest,
+    IRosScienceInterfacesTriggerOptionResponse
   >;
 
   // General

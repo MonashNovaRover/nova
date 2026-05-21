@@ -5,12 +5,18 @@ import {
 } from "../../../components/science/NIRProbe/SpaceResourcesSiteType.tsx";
 import {ThresholdingFileEntry} from "../../../components/science/MicroscopeThresholdWidget/MicroscopeThresholdWidget.tsx";
 
+// Simple data structure to hold arbitrary sensor data.
+export interface SensorData {
+  name: string,
+  data: number,
+}
+
 // Data that is associated with a site can be stored here.
 export interface SiteData {
   siteType: SpaceResourcesSiteType,
   spaceResourcesEntries: ISpaceResourcesEntries,
   thresholdingEntries: ThresholdingFileEntry[],
-  MLOutput: string,
+  sensorData: SensorData[],
 }
 
 export interface SiteDataState {
@@ -25,7 +31,7 @@ const EMPTY_SITE_DATA: SiteData = {
   siteType: SpaceResourcesSiteType.WATER,
   spaceResourcesEntries: {1: [], 2: []},
   thresholdingEntries: [],
-  MLOutput: "",
+  sensorData: [],
 };
 
 export const initialSiteDataState: SiteDataState = {

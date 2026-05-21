@@ -75,7 +75,6 @@ const GenericGraphComparisonWidgetUnmemoed: React.FC<GenericGraphComparisonWidge
     xaxis: {
       type: 'numeric',
       tickAmount: 10,
-      stepSize: 50,
     },
     yaxis: {
       show: false

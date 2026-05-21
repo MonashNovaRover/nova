@@ -301,6 +301,16 @@ export const reduxStores = {
       time_target: 0,
     }
   ),
+  potentiostatStore: createBifrostStore(
+    { topic: RosTopic.POTENTIOSTAT_DATA },
+    {
+      header: { stamp: { sec: 0, nanosec: 0 }, frame_id: "" },
+      channel: 0,
+      voltage: 0,
+      current: 0,
+      is_receiving: false,
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
