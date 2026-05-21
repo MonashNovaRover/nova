@@ -32,7 +32,7 @@ const createCircleCoordinates = (
   return coordinates;
 };
 
-export const getLineGeoJSONData = (line: MapPoint[]): GeoJSON.GeoJSON => {
+export const getLineGeoJSONData = (line: MapCoordinate[]): GeoJSON.GeoJSON => {
   return {
     type: "FeatureCollection",
     features: [
@@ -65,7 +65,7 @@ export const getSearchRadiusGeoJSONData = (
         type: "Feature",
         properties: {
           name: point.name,
-          radius: point.searchRadius,
+          radius: point.searchRadius ?? 0,
         },
         geometry: {
           type: "Polygon",
@@ -73,7 +73,7 @@ export const getSearchRadiusGeoJSONData = (
             createCircleCoordinates(
               point.lat,
               point.long,
-              point.searchRadius
+              point.searchRadius ?? 0
             ),
           ],
         },

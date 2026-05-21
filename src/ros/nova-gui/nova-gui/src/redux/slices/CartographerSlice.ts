@@ -189,6 +189,7 @@ export const cartographerSlice = createSlice({
     trackDrone: true,
     showTrackDrone: false,
     focusVehicle: Vehicle.ROVER,
+    showSearchZones: false,
   },
   name: "CartographerReducer",
 });
