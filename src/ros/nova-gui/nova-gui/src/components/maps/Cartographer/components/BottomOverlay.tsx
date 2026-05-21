@@ -22,7 +22,7 @@ import { ChevronCompactDown, ChevronCompactUp, ChevronDoubleDown, ChevronDoubleU
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { AnimatePresence, motion } from "framer-motion";
-import { Navigation, Trash, Truck, Twitter, X } from "react-feather";
+import { Navigation, Trash, Truck, Twitter, X, Target } from "react-feather";
 import { ToolTipButton } from "../../../shared/components/TooltipButton.tsx";
 import { useCartographerActions } from "../../../../redux/actions/useCartographerActions.ts";
 import { MapTile } from "../config.tsx";
@@ -47,7 +47,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
   const base = useSelector((state: RootState) => state.baseLocationStore)
   const drone = useSelector((state: RootState) => state.droneLocationStore)
 
-  const { toggleRoverCentering, toggleRoverTracking, toggleShowRoverTracking, toggleDroneCentering, toggleDroneTracking, toggleShowDroneTracking, handleFocusVehicle } =
+  const { toggleRoverCentering, toggleRoverTracking, toggleShowRoverTracking, toggleDroneCentering, toggleDroneTracking, toggleShowDroneTracking, handleFocusVehicle, toggleShowSearchZones } =
     useCartographerActions();
 
   const vehicles = {
@@ -216,6 +216,15 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   </button>
                   {modal}
                 </div>
+                  <ToolTipButton
+                    tooltipContent={`Toggle Show Search Zone`}
+                    isIconOnly
+                    variant="shadow"
+                    color={currentVehicle.centerOn ? "primary" : "default"}
+                    onPressStart={toggleShowSearchZones}
+                  >
+                    <Target className="w-5" />
+                  </ToolTipButton>
                 <ToolTipButton
                   tooltipContent={`Center ${currentVehicle.label}`}
                   isIconOnly

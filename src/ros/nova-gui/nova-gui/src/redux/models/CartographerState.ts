@@ -50,6 +50,7 @@ export interface CartographerState {
   trackDrone: boolean;
   showTrackDrone: boolean;
   focusVehicle: Vehicle;
+  showSearchZones: boolean;
 }
 
 export const initialGPSMessage = <IRosNovaInterfacesGpsData>{
