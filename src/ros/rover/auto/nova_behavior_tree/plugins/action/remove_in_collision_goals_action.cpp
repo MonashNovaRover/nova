@@ -66,6 +66,10 @@ void RemoveInCollisionGoalsAction::initialize()
 
   // Get input params
   getInput("cost_threshold", cost_threshold_);
+  getInput("snap_last", snap_last_);
+  getInput("max_snap_radius", max_snap_radius_);
+  getInput("goals_offset", goals_offset_);
+
 
   // Subscribe to local and global costmaps via Nav2 costmap transport.
   local_costmap_sub_ = std::make_unique<nav2_costmap_2d::CostmapSubscriber>(
@@ -145,7 +149,6 @@ bool RemoveInCollisionGoalsAction::have_costmaps()
   return static_cast<bool>(local_costmap_) && static_cast<bool>(global_costmap_);
 }
 
-
 bool RemoveInCollisionGoalsAction::remove_goals()
 {
   // Get the current pose of the rover
@@ -158,11 +161,12 @@ bool RemoveInCollisionGoalsAction::remove_goals()
   }
   
   Goals output_goals_;
-  for (size_t i=0; i < input_goals_.size(); i++)
+
+  // Remove all in collision, and snap last if we need 
+  for (size_t i=0; i < input_goals_.size() -1 ; i++)
   {
     Goal goal = input_goals_[i];
     
-    // Check if costmap where goal is at is too high
     if (!is_goal_in_collision(goal))
     {
       output_goals_.push_back(goal);
@@ -171,6 +175,22 @@ bool RemoveInCollisionGoalsAction::remove_goals()
     {
       RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals goal %zu is in collision removing", i);
     }
+  }
+
+  // Snap the last goal if the flag is set
+  if (snap_last_) {
+    Goal goal = input_goals_[input_goals.size() - 1];
+
+    if (!is_goal_in_collision(goal))
+    {
+      output_goals_.push_back(goal);
+    }
+    else 
+    {
+      RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals last goal is in collision, snapping to nearest available cell";
+      snap(input_goals_[input_goals_.size() - 1], output_goals_);
+    }
+    
   }
 
   // If all goals have been removed, add the rovers current position as final goal
@@ -237,6 +257,105 @@ bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
       "Cost at goal cell - global: %u local: %u", global_cost, local_cost);
 
     return global_cost < cost_threshold_ && local_cost < cost_threshold_;
+}
+
+/**
+ * @brief Core method of this node. Snaps goals that are in collision to the closest valid position.
+ */
+bool RemoveInCollisionGoalsAction::snap(Goal goal, Goals output_goals_)
+{
+  SearchResult result = find_nearest_free_cell(goal.pose.position);
+
+  if (!result.found)
+  {
+    RCLCPP_WARN(
+        node_->get_logger(), "Failed to snap goal (%.2f, %.2f, %.2f) to a free cell",
+        goal.pose.position.x, goal.pose.position.y, goal.pose.position.z
+    );
+    return false;
+  }
+
+  if (result.search_radius > 0)
+  {
+    Point original_pos = goal.pose.position;
+    
+    // orientTowards() uses worldspace, so x and y are doubles. Hence here we convert the goal x,y from grid to worldspace (unsigned int -> double)
+    double wx = 0;
+    double wy = 0;
+    global_costmap_->mapToWorld(goal.pose.position.x, goal.pose.position.y, wx, wy);
+    goal.pose.position.x = static_cast<double>(wx);
+    goal.pose.position.y = static_cast<double>(wy);
+
+    // Construct toward point for the origional goal
+    Point toward_point{utils::nav2::offsetPose(goal.pose, goals_offset_).position};
+
+    // reorient to corresponding toward point
+    utils::nav2::orientTowards(goal.pose, toward_point);
+
+    RCLCPP_INFO(
+      node_->get_logger(), "Snapped goal (%.2f, %.2f, %.2f) to (%.2f, %.2f, %.2f)",
+      original_pos.x, original_pos.y, original_pos.z,
+      goal.pose.position.x, goal.pose.position.y, goal.pose.position.z
+    );
+    RCLCPP_INFO(
+      node_->get_logger(), "Original orientation: %d° Snapped orientation: %d°",
+      static_cast<int>(std::round(utils::nav2::degrees(tf2::getYaw(input_goals_[input_goals_.size()-1].pose.orientation)))),
+      static_cast<int>(std::round(utils::nav2::degrees(tf2::getYaw(goal.pose.orientation))))
+    );
+
+    output_goals_.push_back(goal);
+    return true;
+  }
+}
+
+/**
+ * @brief Find the nearest free cell using a simple spiral search. For every loop, the search
+ * starts from the bottom left corner and goes clockwise.
+ * 
+ * @param origin The origin point to search around
+ */
+SearchResult RemoveInCollisionGoalsAction::find_nearest_free_cell(const Point &origin)
+{
+  // Convert from world to grid 
+  unsigned int mx = 0;
+  unsigned int my = 0;
+
+  if (!global_costmap_->worldToMap(origin.x, origin.y, mx, my))
+  {
+    return {{0,0}, false, 0}; // Error SearchResult case, the function calling this will just check the "found" vla
+  }
+
+  GridCell global_cell;
+  global_cell.x = static_cast<int>(mx);
+  global_cell.y = static_cast<int>(my);
+  
+  // search for the nearest free cell in a spiral pattern
+  std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+  int max_radius = std::ceil(max_snap_radius_ / global_costmap_->getResolution());
+  for (int r = 0; r < max_radius; ++r)
+  {
+      int x = global_cell.x - r;
+      int y = global_cell.y - r;
+      if (is_area_free({x, y}))
+      {
+          return {{x, y}, true, r};
+      }
+
+      for (int i = 0; i < 4; ++i)
+      {
+          for (int _ = 0; _ < 2 * r; ++_)
+          {
+              x += directions[i][0];
+              y += directions[i][1];
+              if (is_area_free({x, y}))
+              {
+                  return {{x, y}, true, r};
+              }
+          }
+      }
+  }
+
+  return {global_cell, false, max_radius};
 }
 
 }   // namespace nova_behavior_tree
