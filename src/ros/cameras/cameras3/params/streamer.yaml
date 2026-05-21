@@ -346,7 +346,7 @@ camera_streamer:
           auto_behind: snail
 
       es:
-        good_preset:
+        best:
           mast_forward: default
           mast_backward: snail
           mast_arm_stow: default
@@ -356,7 +356,7 @@ camera_streamer:
           arm_end_finger: snail
           arm_end_side: default
           arm_wrist: default
-        default_preset:
+        drive:
           mast_forward: default
           mast_backward: snail
           mast_arm_stow: snail
@@ -366,7 +366,7 @@ camera_streamer:
           arm_end_finger: snail
           arm_end_side: snail
           arm_wrist: snail
-        default_preset:
+        payload:
           mast_forward: snail
           mast_backward: snail
           mast_arm_stow: snail
