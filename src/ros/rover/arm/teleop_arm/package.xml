@@ -15,6 +15,7 @@
   <exec_depend>teleop_modular_node</exec_depend>
   <exec_depend>joint_space_control_mode</exec_depend>
   <exec_depend>teleop_modular_twist</exec_depend>
+  <exec_depend>empty_control_mode</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
