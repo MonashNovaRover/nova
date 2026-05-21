@@ -99,7 +99,6 @@ class BLCMDStatusMonitor(Node):
         self.output_period = 1 / int(self.declare_parameter("output_max_frequency", 1).value) # in logs per second
         self.publish_log_period = 1 / int(self.declare_parameter("publish_log_max_frequency", 10).value) # in logs per second
         self.publish_status_period = 1 / int(self.declare_parameter("publish_status_frequency", 2).value) # in blcmd statuses per second
-        self.check_pivot_zero_period = self.declare_parameter("check_pivot_zero_period", 60).value # in seconds between checks
 
         # ignoring the numbers provided by the gate driver condition errors as they seem unreliable/unused atm
         self.ignore_gate_driver_condition_error_number = self.declare_parameter("ignore_gate_driver_condition_error_number", True).value
@@ -189,11 +188,6 @@ class BLCMDStatusMonitor(Node):
             self.pivot_set_zero_delay_timers[pivot_id] = self.create_timer(self.pivot_set_zero_delay,
                                                                            set_pivot_zero,
                                                                            autostart=False)
-
-        # regularly query pivots for zero positions (which are verified against stored initial zero)
-        # to ensure that there is no funny business going on
-        if self.check_pivot_zero_period > 0:
-            self.check_pivot_zero_timer = self.create_timer(self.check_pivot_zero_period, self.check_all_pivot_blcmd_zeros)
 
         #open the can bus
         self.bus.open(self.get_parameter("canbus").value)

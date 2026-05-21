@@ -154,4 +154,3 @@ blcmd_status_monitor:
     output_max_frequency: 1
     publish_log_max_frequency: 10
     publish_status_frequency: 2
-    check_pivot_zero_period: 30
