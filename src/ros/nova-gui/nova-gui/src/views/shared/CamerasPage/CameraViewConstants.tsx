@@ -120,6 +120,7 @@ const urcScienceCams = [
 const driveCams = [
   CameraSerials.WHEEL_TELEMETRY,
   CameraSerials.DRIVE_TELEMETRY,
+  CameraSerials.DRIVE_CONTROL,
 ]
 
 const autoCams = [
@@ -228,7 +229,8 @@ export const urc_autonomous_views: CameraViewConfig[] = [
 
 export const urc_science_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS
+    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams.filter((driveCam) => driveCam != CameraSerials.DRIVE_CONTROL),
+      CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL,
     ],
     viewTitle: "All Cams",
   },
