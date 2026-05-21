@@ -339,6 +339,16 @@ in
           # use this as `can_viewer can0` for example to get "-c can0"
           can-viewer = "can_viewer";
           can_viewer = "~/Builds/active/bin/can_viewer -i socketcan -c";
+
+          # Drive
+          reset-flw = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 1}"'';
+          reset-blw = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 2}"'';
+          reset-brw = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 3}"'';
+          reset-frw = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 4}"'';
+          reset-flp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 5}"'';
+          reset-blp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 6}"'';
+          reset-brp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 7}"'';
+          reset-frp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 8}"'';
         }
       ];
 

@@ -614,8 +614,9 @@ void TeleopDriveJoy::blcmd_log_callback(const blcmd_interfaces::msg::BLCMDLog::S
 
   RCLCPP_DEBUG(this->get_logger(), "Processing blcmd log message from %hhu of type %hhu", blcmd_log_msg->id, blcmd_log_msg->type);
 
-  // update if log message was an error
-  if (blcmd_log_msg->type == blcmd_interfaces::msg::BLCMDLog::ERROR)
+  // update if log message was an error or gate drive fault
+  if (blcmd_log_msg->type == blcmd_interfaces::msg::BLCMDLog::ERROR
+    or blcmd_log_msg->type == blcmd_interfaces::msg::BLCMDLog::GATE_DRIVER_CONDITION)
   {
     int blcmd_id { blcmd_log_msg->id };
 
