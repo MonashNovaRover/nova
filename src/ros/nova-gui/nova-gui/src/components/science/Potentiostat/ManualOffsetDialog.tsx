@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Modal,
   ModalContent,
@@ -32,11 +32,13 @@ export const ManualOffsetDialog = ({
     currentOffsets?.currentOffset.toString() || "0"
   );
 
-  // Update values when currentOffsets changes
-  useEffect(() => {
+  // Track previous offsets to sync state when prop changes (React recommended pattern)
+  const [prevOffsets, setPrevOffsets] = useState(currentOffsets);
+  if (currentOffsets !== prevOffsets) {
+    setPrevOffsets(currentOffsets);
     setVoltageOffset(currentOffsets?.voltageOffset.toString() || "0");
     setCurrentOffset(currentOffsets?.currentOffset.toString() || "0");
-  }, [currentOffsets]);
+  }
 
   const handleSave = () => {
     const v = parseFloat(voltageOffset);

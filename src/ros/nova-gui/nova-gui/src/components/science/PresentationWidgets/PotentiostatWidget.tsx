@@ -48,7 +48,6 @@ const PotentiostatWidget: React.FC<PotentiostatWidgetProps> = ({site}) => {
           <PotentiostatChart
             channel1={channelData.channel1}
             channel2={channelData.channel2}
-            calibration={data.calibration}
             mode="measurement"
             height={300}
           />

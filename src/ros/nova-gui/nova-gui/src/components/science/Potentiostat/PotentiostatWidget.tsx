@@ -36,7 +36,7 @@ export const PotentiostatWidget = () => {
   const [calibratingChannel, setCalibratingChannel] = useState<1 | 2 | null>(null);
   const [calibrationReadings, setCalibrationReadings] = useState<PotentiostatReading[]>([]);
 
-  // Track previous is_receiving state to detect new readings
+  // Track previous is_receiving state to detect measurement completion
   const wasReceiving = useRef(false);
 
   // Sync with topic on mount
@@ -44,7 +44,7 @@ export const PotentiostatWidget = () => {
     bifrost.syncWithTopic();
   }, [bifrost]);
 
-  // Store incoming readings
+  // Store incoming readings and handle calibration completion
   useEffect(() => {
     if (potentiostatData.is_receiving) {
       const channelNum = (potentiostatData.channel === 0 ? 1 : 2) as 1 | 2;
@@ -60,19 +60,25 @@ export const PotentiostatWidget = () => {
         const calibratedReading = applyCalibration(rawReading, offsets);
         addReading(channelNum, calibratedReading);
       } else if (mode === "calibration") {
-        // Collect calibration readings in temporary state (not shown on chart)
+        // Collect calibration readings (not shown on chart)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCalibrationReadings((prev) => [...prev, rawReading]);
       }
 
       wasReceiving.current = true;
     } else if (wasReceiving.current) {
-      // Measurement complete
-      if (mode === "calibration" && calibratingChannel) {
-        handleCalibrationComplete(calibratingChannel);
+      // Measurement complete - handle calibration if active
+      if (mode === "calibration" && calibratingChannel && calibrationReadings.length > 0) {
+        const offsets = calculateMeanOffset(calibrationReadings);
+        if (offsets) {
+          saveCalibration(calibratingChannel, offsets);
+        }
+        setCalibrationReadings([]);
+        setCalibratingChannel(null);
       }
       wasReceiving.current = false;
     }
-  }, [potentiostatData, addReading, mode, calibratingChannel]);
+  }, [potentiostatData, addReading, mode, calibratingChannel, calibrationReadings, data.calibration, saveCalibration]);
 
   const triggerChannel = (channel: 0 | 1) => {
     if (mode === "calibration") {
@@ -89,17 +95,6 @@ export const PotentiostatWidget = () => {
     // Auto-clear channel data when starting calibration
     clearChannel(channelNum);
     triggerBifrost.callService({ option: channel });
-  };
-
-  const handleCalibrationComplete = (channelNum: 1 | 2) => {
-    if (calibrationReadings.length > 0) {
-      const offsets = calculateMeanOffset(calibrationReadings);
-      if (offsets) {
-        saveCalibration(channelNum, offsets);
-      }
-    }
-    setCalibrationReadings([]);
-    setCalibratingChannel(null);
   };
 
   const handleSetManualOffset = (channel: 1 | 2, voltage: number, current: number) => {
@@ -187,7 +182,6 @@ export const PotentiostatWidget = () => {
         <PotentiostatChart
           channel1={data.channel1}
           channel2={data.channel2}
-          calibration={data.calibration}
           mode={mode}
         />
       </CardBody>

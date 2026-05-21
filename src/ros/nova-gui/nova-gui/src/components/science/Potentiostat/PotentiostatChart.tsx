@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import ReactECharts from "echarts-for-react";
-import { PotentiostatReading, type CalibrationState } from "./potentiostatStorage.ts";
+import { PotentiostatReading } from "./potentiostatStorage.ts";
 
 const CHART_COLORS = {
   channel1: "#F770AD", // pink
@@ -12,7 +12,6 @@ type WidgetMode = "measurement" | "calibration";
 export interface PotentiostatChartProps {
   channel1: PotentiostatReading[];
   channel2: PotentiostatReading[];
-  calibration: CalibrationState;
   mode: WidgetMode;
   height?: number;
 }
@@ -20,7 +19,6 @@ export interface PotentiostatChartProps {
 export const PotentiostatChart = ({
   channel1,
   channel2,
-  calibration,
   mode,
   height = 300,
 }: PotentiostatChartProps) => {
@@ -32,7 +30,7 @@ export const PotentiostatChart = ({
     const fontSize = 16;
 
     // Build series array
-    const series: any[] = [
+    const series: object[] = [
       {
         name: "Channel 1",
         type: "scatter",
@@ -99,7 +97,7 @@ export const PotentiostatChart = ({
       },
       series,
     };
-  }, [channel1, channel2, calibration, mode]);
+  }, [channel1, channel2, mode]);
 
   return (
     <div className="w-full" style={{ height }}>
