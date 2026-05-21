@@ -487,6 +487,9 @@ class BLCMDStatusMonitor(Node):
                     # reset for next sequence
                     self.gate_driver_registers = []
 
+                    # attempt to reset blcmd automatically
+                    self.auto_blcmd_reset(blcmd + 1)
+
                 # received message containing id of faulted register
                 else:
                     self.gate_driver_registers.append(data)
