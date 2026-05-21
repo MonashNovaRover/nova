@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { useCartographerActions } from "../../../../redux/actions/useCartographerActions.ts";
 import { useCartographerTracking } from "../hooks/useCartographerTracking.tsx";
-import { getLineGeoJSONSource } from "../utils/geojson.ts";
+import { getLineGeoJSONSource, getSearchRadiusGeoJSONData } from "../utils/geojson.ts";
 import { MAP_BOUNDS, MapTile } from "../config.tsx";
 
 export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile, enableDroneTracking?: boolean }) => {
@@ -16,7 +16,7 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile,
   const mapRef = useRef<maptilersdk.Map | null>(null);
   
   const { updateMousePosition, handleMapClickEvent } = useCartographerActions();
-
+  
   useEffect(()=>{
     if (mapRef.current || !mapContainer.current) return;
     const newMap = new maptilersdk.Map({
@@ -30,6 +30,13 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile,
         newMap.addSource("droneTrace", getLineGeoJSONSource([]));
       }
       newMap.addSource("measureLine", getLineGeoJSONSource([]));
+      newMap.addSource("search-radius", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [],
+        },
+      });
 
       newMap.addLayer({
         id: "rover-trace",
@@ -80,6 +87,25 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile,
         filter: ["in", "$type", "LineString"],
       });
 
+      newMap.addLayer({
+        id: "search-radius-fill",
+        type: "fill",
+        source: "search-radius",
+        paint: {
+          "fill-color": "#3b82f6",
+          "fill-opacity": 0.2,
+        },
+      });
+      newMap.addLayer({
+        id: "search-radius-outline",
+        type: "line",
+        source: "search-radius",
+        paint: {
+          "line-color": "#3b82f6",
+          "line-width": 2,
+        },
+      });
+
       // Add Event Listeners
       newMap.on("mousemove", (event) => {
         updateMousePosition({
@@ -101,9 +127,16 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile,
     (state: RootState) => state.uiState.baseStationIP
   );
 
+  const points = useSelector(
+    (state: RootState) => state.cartographerState.points
+  );
+
+  const showSearchZones = useSelector(
+    (state: RootState) => state.cartographerState.showSearchZones
+  );
+
   useCartographerMarkers(mapRef, enableDroneTracking);
   useCartographerTracking(mapRef, enableDroneTracking);
-
 
   useEffect(()=> {
     if (!mapRef.current) return;
@@ -128,7 +161,18 @@ export const MapTilerMap = (props: { overlay: React.ReactNode, mapTile: MapTile,
     })
     mapRef.current.setMaxBounds(MAP_BOUNDS[mapTile])
   }, [baseStationIp, mapRef, mapTile]);
-  
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    const source = mapRef.current.getSource(
+      "search-radius"
+    ) as maptilersdk.GeoJSONSource;
+
+    if (!source) return;
+
+    source.setData(getSearchRadiusGeoJSONData(points, showSearchZones));
+  }, [points, showSearchZones]);
 
   return (
     <div className="w-full h-full" ref={mapContainer}>
