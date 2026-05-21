@@ -291,7 +291,7 @@ cache_left:
         position_publisher: "/science/cache_left/position"
     hardware:
       actuation:
-        can_id: 0x0F3
+        can_id: 0x0E3
 
 cache_right:
   ros__parameters:
@@ -309,7 +309,7 @@ cache_right:
         position_publisher: "/science/cache_right/position"
     hardware:
       actuation:
-        can_id: 0x0F2
+        can_id: 0x0E2
 
 bme_sensor:
   ros__parameters:

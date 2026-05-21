@@ -39,7 +39,7 @@ const CachePanel: React.FC<CacheConfig> = ({ label, positionService, twitchServi
             <Tabs key="tabs" color="primary" size="md" fullWidth selectedKey={selected.toString()} onSelectionChange={setPosition}>
               <Tab key="0" title="0°" />
               <Tab key="90" title="90°" />
-              <Tab key="180" title="180°" />
+              <Tab key="150" title="150°" />
             </Tabs>
           </div>
           <div className="flex flex-row justify-between gap-3">
