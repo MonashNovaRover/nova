@@ -76,6 +76,10 @@ export const useCartographerActions = () => {
     dispatch({ type: CartographerAction.HANDLE_FOCUS_VEHICLE.type });
   };
 
+  const toggleShowSearchZones = () => {
+    dispatch({ type: CartographerAction.TOGGLE_SHOW_SEARCH_ZONES.type});
+  }
+
   return {
     setPoints,
     addPoint,
@@ -92,5 +96,6 @@ export const useCartographerActions = () => {
     toggleDroneTracking,
     toggleShowDroneTracking,
     handleFocusVehicle,
+    toggleShowSearchZones,
   };
 };
