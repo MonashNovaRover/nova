@@ -4,6 +4,7 @@
     ./ci
     ./desktop
     ./mocking
+    ./monitoring
     ./networking
     ./peripherals
     ./services

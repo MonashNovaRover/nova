@@ -13,6 +13,7 @@ in
   config = lib.mkIf cfg.enable {
     nova = {
       macros.enable = true;
+      monitoring.enable = true;
     };
 
     xdg.userDirs = {
@@ -67,7 +68,6 @@ in
       };
 
       tmux.enable = true;
-      btop.enable = true;
     };
 
     home = {
