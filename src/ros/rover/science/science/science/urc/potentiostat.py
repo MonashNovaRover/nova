@@ -10,20 +10,22 @@ SERVICES:
     - service: /science/potentiostat/trigger [TriggerOption]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CAN PROTOCOL:
-  TX: 0x01A#XX (XX = channel 0 or 1)
-  RX: 0x41A#VV VV VV VV CC CC CC CC
-      - VVVVVVVV: voltage in 10µV units (int32, little-endian)
+  TX Ch1: 0x01A# (no data, just trigger)
+  TX Ch2: 0x01B# (no data, just trigger)
+  RX Ch1: 0x41A#CC CC CC CC VV VV VV VV
+  RX Ch2: 0x41B#CC CC CC CC VV VV VV VV
       - CCCCCCCC: current in µA (int32, little-endian)
-  STOP: 0x41A#00 00 00 00 00 00 00 00 (8-byte all zeros when done)
+      - VVVVVVVV: voltage in mV (int32, little-endian)
+  STOP: All zeros (8-byte) indicates last message
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 UNIT CONVERSION:
-  CAN 10µV → Published V (×0.00001)
   CAN µA → Published mA (÷1000)
+  CAN mV → Published V (÷1000)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
 CREATION:       09/05/2026
-EDITED:         10/05/2026
+EDITED:         22/05/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
@@ -43,11 +45,17 @@ class PotentiostatNode(Node):
         can_bus = self.declare_parameter("can_bus", "can1",
             ParameterDescriptor(description="CAN interface name")).value
 
-        self.can_tx_id = self.declare_parameter("can_tx_id", 0x01A, # 01A and 01b are two channels
-            ParameterDescriptor(description="CAN ID for sending trigger messages")).value
+        self.can_trigger_id_ch1 = self.declare_parameter("can_trigger_id_ch1", 0x01A,
+            ParameterDescriptor(description="CAN ID for triggering channel 1")).value
 
-        self.can_rx_id = self.declare_parameter("can_rx_id", 0x41A, # 41A and 41B are two channels
-            ParameterDescriptor(description="CAN ID for receiving voltage/current data")).value
+        self.can_trigger_id_ch2 = self.declare_parameter("can_trigger_id_ch2", 0x01B,
+            ParameterDescriptor(description="CAN ID for triggering channel 2")).value
+
+        self.can_data_id_ch1 = self.declare_parameter("can_data_id_ch1", 0x41A,
+            ParameterDescriptor(description="CAN ID for receiving channel 1 data")).value
+
+        self.can_data_id_ch2 = self.declare_parameter("can_data_id_ch2", 0x41B,
+            ParameterDescriptor(description="CAN ID for receiving channel 2 data")).value
 
         can_spin_rate = self.declare_parameter("can_spin_rate", 20.0,
             ParameterDescriptor(description="CAN bus polling rate in Hz")).value
@@ -59,7 +67,8 @@ class PotentiostatNode(Node):
         # CAN bus setup
         self.bus = jcan.Bus()
         self.bus.open(can_bus)
-        self.bus.add_callback(self.can_rx_id, self._on_can_receive)
+        self.bus.add_callback(self.can_data_id_ch1, lambda f: self._on_can_receive(f, channel=0))
+        self.bus.add_callback(self.can_data_id_ch2, lambda f: self._on_can_receive(f, channel=1))
         self.create_timer(1.0 / can_spin_rate, self.bus.spin)
 
         # ROS interfaces
@@ -75,59 +84,64 @@ class PotentiostatNode(Node):
         )
 
         self.get_logger().info(
-            f"Potentiostat node initialized (TX: 0x{self.can_tx_id:03X}, RX: 0x{self.can_rx_id:03X}, rate: {can_spin_rate}Hz)"
+            f"Potentiostat node initialized (Trigger: 0x{self.can_trigger_id_ch1:03X}/0x{self.can_trigger_id_ch2:03X}, "
+            f"Data: 0x{self.can_data_id_ch1:03X}/0x{self.can_data_id_ch2:03X}, rate: {can_spin_rate}Hz)"
         )
 
     def _trigger_callback(self, request, response):
-        """Service callback - send trigger CAN message"""
-        option = request.option
-        if option not in [0, 1]:
+        """Service callback - send trigger CAN message to channel-specific ID"""
+        channel = request.option
+        if channel not in [0, 1]:
             response.success = False
-            response.message = f"Invalid option {option}, must be 0 or 1"
+            response.message = f"Invalid channel {channel}, must be 0 or 1"
             return response
 
-        frame = jcan.Frame(self.can_tx_id, [option])
+        # Select trigger ID based on channel (no data needed, just the trigger)
+        trigger_id = self.can_trigger_id_ch1 if channel == 0 else self.can_trigger_id_ch2
+        frame = jcan.Frame(trigger_id, [])
         self.bus.send(frame)
         self.is_receiving = True
-        self.active_channel = option
-        self.get_logger().info(f"Triggered potentiostat on channel {option}")
+        self.active_channel = channel
+        self.get_logger().info(f"Triggered potentiostat channel {channel} (CAN ID: 0x{trigger_id:03X})")
 
         response.success = True
-        response.message = f"Triggered channel {option}"
+        response.message = f"Triggered channel {channel}"
         return response
 
-    def _on_can_receive(self, frame: jcan.Frame):
+    def _on_can_receive(self, frame: jcan.Frame, channel: int):
         """CAN callback - parse and publish data"""
         data = frame.data
 
         # Check for stop signal (8-byte all zeros)
         if len(data) == 8 and all(b == 0x00 for b in data):
             self.is_receiving = False
-            self.get_logger().info("Potentiostat measurement complete")
+            self.get_logger().info(f"Potentiostat channel {channel} measurement complete")
             # Publish final message with is_receiving=False
             msg = PotentiostatData()
             msg.header.stamp = self.get_clock().now().to_msg()
-            msg.channel = self.active_channel
+            msg.channel = channel
             msg.voltage = 0.0
             msg.current = 0.0
             msg.is_receiving = False
             self.data_publisher.publish(msg)
             return
 
-        # Parse voltage (bytes 0-3, 10µV) and current (bytes 4-7, µA)
-        voltage_10uv = int.from_bytes(data[0:4], 'little', signed=True)
-        current_ua = int.from_bytes(data[4:8], 'little', signed=True)
+        # Parse current (bytes 0-3, µA) and voltage (bytes 4-7, mV)
+        current_ua = int.from_bytes(data[0:4], 'little', signed=True)
+        voltage_mv = int.from_bytes(data[4:8], 'little', signed=True)
 
-        self.get_logger().info(f"current: {data[4:8]} -> {current_ua} µA, voltage: {data[0:4]} -> {voltage_10uv} (10µV)\n {data}")
+        # Convert: µA → mA, mV → V
+        current_ma = current_ua / 1000.0
+        voltage_v = voltage_mv / 1000.0
 
-        # Convert: 10µV → V, µA → mA
-        voltage_v = voltage_10uv * 0.00001  # 10µV to V
-        current_ma = current_ua / 1000.0     # µA to mA
+        self.get_logger().debug(
+            f"Ch{channel} - current: {current_ua} µA ({current_ma} mA), voltage: {voltage_mv} mV ({voltage_v} V)"
+        )
 
         # Publish
         msg = PotentiostatData()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.channel = self.active_channel
+        msg.channel = channel
         msg.voltage = voltage_v
         msg.current = current_ma
         msg.is_receiving = True

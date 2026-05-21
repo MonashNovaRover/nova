@@ -226,7 +226,6 @@ in
           launch-teleop-science = "~/Builds/master/bin/ros2 launch teleop_science teleop.launch.py";
           launch-science-arc = "~/Builds/master/bin/ros2 launch science_bringup arc.launch.py";
           launch-science-urc = "~/Builds/master/bin/ros2 launch science_bringup urc.launch.py";
-          launch-theta-orin = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
 
           # Cameras
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
@@ -310,6 +309,8 @@ in
 
           # Science
           predict-shell = "nom-shell ~/nova/src/other/ilmenite_ml"; # please come up with a more descriptive and less generic alias
+          run-spec = "~/Builds/master/bin/ros2 run science urc_uv_vis_spec.py";
+          run-theta = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
 
           # ros2_control
           controllers-list = "~/Builds/master/bin/ros2 control list_controllers";

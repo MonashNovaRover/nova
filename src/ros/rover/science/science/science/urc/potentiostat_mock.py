@@ -12,23 +12,25 @@ Simulates potentiostat hardware by:
   4. Sending stop signal when complete
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CAN PROTOCOL:
-  RX: 0x01A#XX (trigger, XX = channel 0 or 1)
-  TX: 0x41A#VV VV VV VV CC CC CC CC (voltage, current)
-      - VVVVVVVV: voltage in 10µV units (int32, little-endian)
+  RX Ch1: 0x01A# (no data, just trigger)
+  RX Ch2: 0x01B# (no data, just trigger)
+  TX Ch1: 0x41A#CC CC CC CC VV VV VV VV
+  TX Ch2: 0x41B#CC CC CC CC VV VV VV VV
       - CCCCCCCC: current in µA (int32, little-endian)
-  STOP: 0x41A#00 00 00 00 00 00 00 00 (8-byte all zeros when done)
+      - VVVVVVVV: voltage in mV (int32, little-endian)
+  STOP: All zeros (8-byte) indicates last message
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PARAMETERS:
   can_bus: CAN interface name (default: "can1")
-  can_tx_id: CAN ID for sending data (default: 0x41A)
-  can_rx_id: CAN ID for receiving trigger (default: 0x01A)
-  csv_file: Path to CSV file with voltage,current columns
+  can_trigger_id_ch1/ch2: CAN IDs for receiving triggers
+  can_data_id_ch1/ch2: CAN IDs for sending data
+  csv_file: Path to CSV file with current,voltage columns
   send_rate: Rate to send data in Hz (default: 10.0)
   can_spin_rate: CAN bus polling rate in Hz (default: 20.0)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-CSV FORMAT (values in 10µV and µA, matching CAN protocol):
-  voltage,current
-  100000,50000  (= 1.0V, 50mA)
+CSV FORMAT (values in µA and mV, matching CAN protocol):
+  current,voltage
+  50000,1000  (= 50mA, 1.0V)
   ...
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
@@ -54,14 +56,24 @@ class PotentiostatMockNode(Node):
             ParameterDescriptor(description="CAN interface name")
         ).value
 
-        self.can_tx_id = self.declare_parameter(
-            "can_tx_id", 0x41A,
-            ParameterDescriptor(description="CAN ID for sending voltage/current data")
+        self.can_trigger_id_ch1 = self.declare_parameter(
+            "can_trigger_id_ch1", 0x01A,
+            ParameterDescriptor(description="CAN ID for receiving channel 1 trigger")
         ).value
 
-        self.can_rx_id = self.declare_parameter(
-            "can_rx_id", 0x01A,
-            ParameterDescriptor(description="CAN ID for receiving trigger messages")
+        self.can_trigger_id_ch2 = self.declare_parameter(
+            "can_trigger_id_ch2", 0x01B,
+            ParameterDescriptor(description="CAN ID for receiving channel 2 trigger")
+        ).value
+
+        self.can_data_id_ch1 = self.declare_parameter(
+            "can_data_id_ch1", 0x41A,
+            ParameterDescriptor(description="CAN ID for sending channel 1 data")
+        ).value
+
+        self.can_data_id_ch2 = self.declare_parameter(
+            "can_data_id_ch2", 0x41B,
+            ParameterDescriptor(description="CAN ID for sending channel 2 data")
         ).value
 
         csv_file = self.declare_parameter(
@@ -91,7 +103,8 @@ class PotentiostatMockNode(Node):
         # CAN bus setup
         self.bus = jcan.Bus()
         self.bus.open(can_bus)
-        self.bus.add_callback(self.can_rx_id, self._on_trigger_receive)
+        self.bus.add_callback(self.can_trigger_id_ch1, lambda f: self._on_trigger_receive(channel=0))
+        self.bus.add_callback(self.can_trigger_id_ch2, lambda f: self._on_trigger_receive(channel=1))
         self.create_timer(1.0 / can_spin_rate, self.bus.spin)
 
         # Data send timer (starts disabled)
@@ -100,19 +113,20 @@ class PotentiostatMockNode(Node):
         self.send_timer.cancel()
 
         self.get_logger().info(
-            f"Potentiostat mock initialized (TX: 0x{self.can_tx_id:03X}, RX: 0x{self.can_rx_id:03X}, "
+            f"Potentiostat mock initialized (Trigger: 0x{self.can_trigger_id_ch1:03X}/0x{self.can_trigger_id_ch2:03X}, "
+            f"Data: 0x{self.can_data_id_ch1:03X}/0x{self.can_data_id_ch2:03X}, "
             f"rate: {send_rate}Hz, {len(self.data)} data points)"
         )
 
     def _load_csv(self, filepath: str):
-        """Load voltage/current data from CSV file"""
+        """Load current/voltage data from CSV file"""
         try:
             with open(filepath, 'r') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
-                    voltage = int(row['voltage'])
                     current = int(row['current'])
-                    self.data.append((voltage, current))
+                    voltage = int(row['voltage'])
+                    self.data.append((current, voltage))
             self.get_logger().info(f"Loaded {len(self.data)} data points from {filepath}")
         except FileNotFoundError:
             self.get_logger().error(f"CSV file not found: {filepath}")
@@ -121,12 +135,8 @@ class PotentiostatMockNode(Node):
         except ValueError as e:
             self.get_logger().error(f"CSV parse error: {e}")
 
-    def _on_trigger_receive(self, frame: jcan.Frame):
-        """CAN callback - handle trigger command"""
-        if len(frame.data) < 1:
-            return
-
-        channel = frame.data[0]
+    def _on_trigger_receive(self, channel: int):
+        """CAN callback - handle trigger command (channel determined by CAN ID)"""
         self.get_logger().info(f"Received trigger for channel {channel}")
 
         # Start sending data
@@ -146,31 +156,33 @@ class PotentiostatMockNode(Node):
             self._send_stop()
             return
 
-        voltage, current = self.data[self.data_index]
-        self._send_reading(voltage, current)
+        current, voltage = self.data[self.data_index]
+        self._send_reading(current, voltage)
         self.data_index += 1
 
-    def _send_reading(self, voltage: int, current: int):
-        """Send voltage/current reading over CAN"""
-        # Pack voltage as 4 bytes (little-endian, signed, in 10µV units)
-        voltage_bytes = voltage.to_bytes(4, 'little', signed=True)
+    def _send_reading(self, current: int, voltage: int):
+        """Send current/voltage reading over CAN"""
         # Pack current as 4 bytes (little-endian, signed, in µA)
         current_bytes = current.to_bytes(4, 'little', signed=True)
+        # Pack voltage as 4 bytes (little-endian, signed, in mV)
+        voltage_bytes = voltage.to_bytes(4, 'little', signed=True)
 
-        data = list(voltage_bytes) + list(current_bytes)
-        frame = jcan.Frame(self.can_tx_id, data)
+        data = list(current_bytes) + list(voltage_bytes)
+        data_id = self.can_data_id_ch1 if self.current_channel == 0 else self.can_data_id_ch2
+        frame = jcan.Frame(data_id, data)
         self.bus.send(frame)
 
-        self.get_logger().debug(f"Sent: voltage={voltage}, current={current}")
+        self.get_logger().debug(f"Ch{self.current_channel} sent: current={current}µA, voltage={voltage}mV")
 
     def _send_stop(self):
         """Send stop signal over CAN (8-byte all zeros)"""
-        frame = jcan.Frame(self.can_tx_id, [0x00] * 8)
+        data_id = self.can_data_id_ch1 if self.current_channel == 0 else self.can_data_id_ch2
+        frame = jcan.Frame(data_id, [0x00] * 8)
         self.bus.send(frame)
 
         self.is_sending = False
         self.send_timer.cancel()
-        self.get_logger().info(f"Measurement complete, sent {self.data_index} readings")
+        self.get_logger().info(f"Ch{self.current_channel} measurement complete, sent {self.data_index} readings")
 
 
 def main(args=None):
