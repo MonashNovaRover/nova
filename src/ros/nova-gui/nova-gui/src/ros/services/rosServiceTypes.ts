@@ -21,8 +21,6 @@ import {
   IRosScienceInterfacesTakeNirProbeReadingResponse,
   IRosNovaInterfacesRgbInputRequest,
   IRosNovaInterfacesRgbInputResponse,
-  IRosScienceInterfacesCacheCommandRequest,
-  IRosScienceInterfacesCacheCommandResponse,
   IRosNovaInterfacesCartographerCommandRequest,
   IRosNovaInterfacesCartographerCommandResponse,
   IRosScienceInterfacesSetPositionRequest,
@@ -139,13 +137,21 @@ export interface RosServiceInterface {
     IRosScienceInterfacesSetNamedBoolRequest,
     IRosScienceInterfacesSetNamedBoolResponse
   >;
-  [RosService.CACHE_1]: RosServiceMessage<
-    IRosScienceInterfacesCacheCommandRequest,
-    IRosScienceInterfacesCacheCommandResponse
+  [RosService.CACHE_LEFT_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
   >;
-  [RosService.CACHE_2]: RosServiceMessage<
-    IRosScienceInterfacesCacheCommandRequest,
-    IRosScienceInterfacesCacheCommandResponse
+  [RosService.CACHE_LEFT_TWITCH]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
+  [RosService.CACHE_RIGHT_POSITION]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
+  >;
+  [RosService.CACHE_RIGHT_TWITCH]: RosServiceMessage<
+    IRosScienceInterfacesSetPositionRequest,
+    IRosScienceInterfacesSetPositionResponse
   >;
   [RosService.HEATER]: RosServiceMessage<
     IRosScienceInterfacesThermalCommandRequest,

@@ -225,7 +225,7 @@ in
           launch-teleop-ec = "~/Builds/master/bin/ros2 launch teleop_ec teleop.launch.py";
           launch-teleop-science = "~/Builds/master/bin/ros2 launch teleop_science teleop.launch.py";
           launch-science-arc = "~/Builds/master/bin/ros2 launch science_bringup arc.launch.py";
-          launch-science-urc = "~/Builds/master/bin/ros2 launch science_bringup urc_old.launch.py";
+          launch-science-urc = "~/Builds/master/bin/ros2 launch science_bringup urc.launch.py";
           launch-theta-orin = "sudo LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
 
           # Cameras
