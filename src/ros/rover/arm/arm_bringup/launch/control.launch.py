@@ -59,6 +59,7 @@ def launch_setup(context, *args, **kwargs):
     end_effector_velocity_controller_name = 'nova_end_effector_velocity_controller'
     twistmapper_controller_name = 'nova_twistmapper',
     twistmapper_velocity_controller_name = 'nova_twistmapper_velocity'
+    path_planner_controller_name = 'nova_path_planner'
 
     show_colours_additional_env = {
         # Show colors in the terminal output
@@ -107,6 +108,12 @@ def launch_setup(context, *args, **kwargs):
                     package='controller_manager',
                     executable='spawner',
                     arguments=[end_effector_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
+                    additional_env=show_colours_additional_env,
+                ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=[path_planner_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
                 IncludeLaunchDescription(
