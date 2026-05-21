@@ -281,7 +281,14 @@ cache_left:
     update_rate: 5
     controllers:
       controller:
-        cache_name: "cache_left"
+        min_angle: 0.0
+        max_angle: 180.0
+        initial_angle: 0.0
+        twitch_max: 30.0
+        hardware_name: "actuation"
+        set_position_service: "/science/cache_left/set_position"
+        twitch_service: "/science/cache_left/twitch"
+        position_publisher: "/science/cache_left/position"
     hardware:
       actuation:
         can_id: 0x0E3
@@ -292,7 +299,14 @@ cache_right:
     update_rate: 5
     controllers:
       controller:
-        cache_name: "cache_right"
+        min_angle: 0.0
+        max_angle: 180.0
+        initial_angle: 0.0
+        twitch_max: 30.0
+        hardware_name: "actuation"
+        set_position_service: "/science/cache_right/set_position"
+        twitch_service: "/science/cache_right/twitch"
+        position_publisher: "/science/cache_right/position"
     hardware:
       actuation:
         can_id: 0x0E2

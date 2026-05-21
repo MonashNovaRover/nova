@@ -13,6 +13,7 @@ import {CameraControlModalButton} from "../../components/cameras/CameraPage/Came
 import {CameraSerials} from "../shared/CamerasPage/CameraViewConstants.tsx";
 import LitmusDipperWidget from "../../components/science/LitmusDipperWidget/LitmusDipperWidget.tsx";
 import LedWidget from "../../components/science/LEDWidget/LEDWidget.tsx";
+import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
@@ -27,6 +28,7 @@ const URCScienceView: React.FC = () => {
         <HydroprobeWidget/>
         <BMESensor/>
         <LitmusDipperWidget/>
+        <CacheControlWidget/>
         <HeaterWidget/>
       </div>
 
