@@ -5,12 +5,16 @@ import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 
 export interface SiteSelectWidgetProps {
   pickerClassName?: string,
+  // how many sites to display in the picker, default 4, should be between 1 and 4.
+  numSites?: number,
 }
+
+const siteColours = ["text-primary", "text-warning", "text-sky-300", "text-violet-300"]
 
 const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = (
   {
-    pickerClassName,
-  }) => {
+    pickerClassName, numSites
+  }: SiteSelectWidgetProps) => {
 
   const [currentSite, setCurrentSite] = useGenericStore<Site>("currentSite");
 
@@ -21,10 +25,12 @@ const SiteSelectWidget: React.FC<SiteSelectWidgetProps> = (
       onIndexChange={setCurrentSite}
       selectedIndex={currentSite}
     >
-      <div className="text-rose-300">Site 1</div>
-      <div className="text-amber-200">Site 2</div>
-      <div className="text-sky-300">Site 3</div>
-      <div className="text-violet-300">Site 4</div>
+      {siteColours.filter((_, i) => i < (numSites ? numSites : 4))
+        .map((colour, index) => (
+          <div className={colour}>Site {" " + (index + 1)}</div>
+        ))
+
+      }
     </SegmentedPicker>
   );
 };

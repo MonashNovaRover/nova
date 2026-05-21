@@ -2,7 +2,7 @@
  * UV Vis Spectrometer component
  * Author: Bailey Chessum
  */
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
   Button,
   Card,
@@ -25,6 +25,7 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {UVVisSpecStartStopButtons} from "./UVVisSpecStartStopButtons.tsx";
 import {useCarouselPosition} from "../CarouselWidget/CarouselPositionContext.tsx";
 import {getCuvetteName} from "../CarouselWidget/cuvetteName.ts";
+import {shouldApplyBlank} from "./chemicalConfig.ts";
 
 /**
  * Scale factor derived from max RGB luminance: sqrt(3 * 255^2) / 100 = 4.4167295593
@@ -69,6 +70,15 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const [showBlank, setShowBlank] = useState(true);
   const saveBlankLuminance = () => {setBlankLuminance(luminance)};
 
+  // Auto-apply/remove blank when cuvette changes
+  const prevSuggestedName = useRef<string | undefined>(undefined);
+  if (prevSuggestedName.current !== suggestedName) {
+    prevSuggestedName.current = suggestedName;
+    if (suggestedName) {
+      setShowBlank(shouldApplyBlank(suggestedName));
+    }
+  }
+
   const blankLuminanceIsValid = luminance.length === blankLuminance.length;
   const absorbanceData = blankLuminanceIsValid
     ? zip(luminance, blankLuminance)
@@ -79,16 +89,16 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const displayData = (absorbanceData && showBlank) ? absorbanceData : luminance;
   const isShowingAbsorbance = absorbanceData !== null && showBlank;
 
-  const [startWavelength, startWavelengthString, setStartWavelength] = useNumberField("UVVisSpec-startWavelength", 436);
-  const [startColumn, startColumnString, setStartColumn] = useNumberField("UVVisSpec-startCol", 0.486);
+  const [peak1Wavelength, peak1WavelengthString, setPeak1Wavelength] = useNumberField("UVVisSpec-peak1Wavelength", 436);
+  const [peak1X, peak1XString, setPeak1X] = useNumberField("UVVisSpec-peak1X", 0.486);
 
-  const [endWavelength, endWavelengthString, setEndWavelength] = useNumberField("UVVisSpec-endWavelength", 604);
-  const [endColumn, endColumnString, setEndColumn] = useNumberField("UVVisSpec-endColumn", 0.643);
+  const [peak2Wavelength, peak2WavelengthString, setPeak2Wavelength] = useNumberField("UVVisSpec-peak2Wavelength", 604);
+  const [peak2X, peak2XString, setPeak2X] = useNumberField("UVVisSpec-peak2X", 0.643);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
 
-  const gradient = (endWavelength - startWavelength) / (endColumn - startColumn);
-  const viewportStartWavelength = startWavelength - gradient * startColumn;
+  const gradient = (peak2Wavelength - peak1Wavelength) / (peak2X - peak1X);
+  const viewportStartWavelength = peak1Wavelength - gradient * peak1X;
   const viewportEndWavelength = viewportStartWavelength + gradient;
 
   // Function that converts col values from 0 to 1 into a wavelength using calibration data
@@ -151,10 +161,10 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
 
   const settings = (
     <div className="grid grid-cols-4 gap-3 mb-2">
-      <Input value={startColumnString} onValueChange={setStartColumn} label={"Start Column"}/>
-      <Input value={endColumnString} onValueChange={setEndColumn} label={"End Column"}/>
-      <Input value={startWavelengthString} onValueChange={setStartWavelength} label={"Start Wavelength"}/>
-      <Input value={endWavelengthString} onValueChange={setEndWavelength} label={"End Wavelength"}/>
+      <Input value={peak1XString} onValueChange={setPeak1X} label={"Peak 1 X"}/>
+      <Input value={peak1WavelengthString} onValueChange={setPeak1Wavelength} label={"Peak 1 Wavelength"}/>
+      <Input value={peak2XString} onValueChange={setPeak2X} label={"Peak 2 X"}/>
+      <Input value={peak2WavelengthString} onValueChange={setPeak2Wavelength} label={"Peak 2 Wavelength"}/>
     </div>
   )
 

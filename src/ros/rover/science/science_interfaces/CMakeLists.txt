@@ -5,12 +5,8 @@ project(science_interfaces)
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# e.g.
-# find_package(std_msgs REQUIRED)
-
-#find_package(<dependency> REQUIRED)
+# Dependencies for message types
+find_package(std_msgs REQUIRED)
 
 # Include all interfaces
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -30,6 +26,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RamanState.msg"
   "msg/SpectrometerData.msg"
   "msg/UVVisSpecData.msg"
+  "msg/PotentiostatData.msg"
 
   # Service definitions
   "srv/CacheCommand.srv"
@@ -48,13 +45,12 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetNamedPositions.srv"
   "srv/SetPosition.srv"
   "srv/TakeNIRProbeReading.srv"
-  
+  "srv/TriggerOption.srv"
+
   # Action definitions
   "action/Stepper.action"
 
-  # add any msg dependencies here
-  # e.g. DEPENDENCIES std_msgs geometry_msgs
-  DEPENDENCIES
+  DEPENDENCIES std_msgs
 )
 
 ament_package()

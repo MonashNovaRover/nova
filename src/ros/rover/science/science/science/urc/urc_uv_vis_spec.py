@@ -50,15 +50,15 @@ class UVVisSpecPublisher(Node):
 
         # declare parameters
         # The row to use when sampling the image, from 0 to 1
-        self.__row = self.declare_parameter("row", 0.55)
+        self.__row = self.declare_parameter("row", 0.45)
         # Specifies the size of the range of pixels to vertically average to get a reading
-        self.__range = self.declare_parameter("range", 0.05)
+        self.__range = self.declare_parameter("range", 0.1)
         # The period at which the camera is sampled
         self.declare_parameter("period", 0.05)
 
         # Defines the range of columns to use
-        self.__col_start = self.declare_parameter("col_start", 0.05)
-        self.__col_end = self.declare_parameter("col_end", 0.95)
+        self.__col_start = self.declare_parameter("col_start", 0.425)
+        self.__col_end = self.declare_parameter("col_end", 0.7)
 
         # Try get the camera
         self.__timer = None
