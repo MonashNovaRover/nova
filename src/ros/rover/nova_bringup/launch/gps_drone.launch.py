@@ -21,7 +21,7 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         Node(
-            package='gps_drone',
+            package='dgnss',
             executable='gps_drone.py',
             name='gps_drone',
             output='screen',

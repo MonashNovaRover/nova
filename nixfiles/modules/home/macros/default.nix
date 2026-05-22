@@ -191,7 +191,7 @@ in
           arm = "${nova}/src/ros/rover/arm";
           autonomous = "${nova}/src/ros/rover/auto";
           auto = autonomous;
-          chassis = "${nova}/src/ros/rover/chassis";
+          core = "${nova}/src/ros/rover/core";
           science = "${nova}/src/ros/rover/science";
           camerasdir = "${nova}/src/ros/cameras";
           gui = "${nova}/src/ros/nova-gui/nova-gui";
