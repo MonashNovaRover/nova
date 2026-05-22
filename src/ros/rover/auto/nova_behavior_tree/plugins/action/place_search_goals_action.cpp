@@ -14,9 +14,9 @@
 
 /**
  * @brief Places search goals for AR Tags and Objects related to the URC mission
- * within the search radius.
+ * within the search radius in a spiral pattern.
  * 
- * @authors Terry Tian
+ * @authors Terry Tian, Harry Mills
  */
 
 #include <string>
@@ -78,7 +78,7 @@ namespace nova_behavior_tree
     tf2::Vector3 dir = tf2::Vector3(std::cos(yaw), std::sin(yaw), 0);
     // i = loops * corners
     // loops = radius // search_spacing
-    for (int i = 1; i < (search_radius_ /search_spacing_)*search_corners_; ++i)
+    for (int i = search_corners_/2; i < (0.5 + (search_radius_ /search_spacing_))*search_corners_; ++i)
     {
       // rotate the direction vector by (360 / search_corners) degrees
       double angle = utils::nav2::radians((360 / search_corners_) * (i % search_corners_));
@@ -93,7 +93,7 @@ namespace nova_behavior_tree
       tf2::toMsg(new_goal_pos, new_goal.pose.position);
       // set the new goal's orientation
       tf2::Quaternion q;
-      q.setRPY(0, 0, angle + 4.72);
+      q.setRPY(0, 0, yaw + angle + 1.571);
       new_goal.pose.orientation = tf2::toMsg(q);
       
       input_goals_.push_back(new_goal);
