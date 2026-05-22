@@ -128,10 +128,9 @@ class GPSRover(Node):
                 self.pose.latitude = float(msg_parsed.lat)
                 self.pose.longitude = float(msg_parsed.lon)
                 self.pose.altitude = float(msg_parsed.alt)
-                if msg_parsed.quality == 1:
-                    self.pose.status.status = NavSatStatus.STATUS_FIX
-                    self.fix_type = 'GPS fix'
-                elif msg_parsed.quality == 4:
+                self.pose.status.status = NavSatStatus.STATUS_FIX
+                self.fix_type = 'GPS fix'
+                if msg_parsed.quality == 4:
                     self.pose.status.status = NavSatStatus.STATUS_GBAS_FIX
                     self.fix_type = 'RTK fixed'
                 elif msg_parsed.quality == 5:
