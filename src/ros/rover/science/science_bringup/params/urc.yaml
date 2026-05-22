@@ -175,7 +175,7 @@ carousel_inner:
         function_id: 0x02
       hall_sensor:
         can_id: 0x4E4
-        can_data_position: 2
+        can_data_position: 0
 
 carousel_outer:
   ros__parameters:
@@ -204,7 +204,7 @@ carousel_outer:
         function_id: 0x02
       hall_sensor:
         can_id: 0x4E4
-        can_data_position: 3
+        can_data_position: 1
 
 litmus_dipper:
   ros__parameters:
