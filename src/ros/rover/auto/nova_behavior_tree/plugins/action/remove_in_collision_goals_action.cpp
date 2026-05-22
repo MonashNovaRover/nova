@@ -179,7 +179,7 @@ bool RemoveInCollisionGoalsAction::remove_goals()
 
   // Snap the last goal if the flag is set
   if (snap_last_) {
-    Goal goal = input_goals_[input_goals.size() - 1];
+    Goal goal = input_goals_[input_goals_.size() - 1];
 
     if (!is_goal_in_collision(goal))
     {
@@ -187,7 +187,7 @@ bool RemoveInCollisionGoalsAction::remove_goals()
     }
     else 
     {
-      RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals last goal is in collision, snapping to nearest available cell";
+      RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals last goal is in collision, snapping to nearest available cell");
       snap(input_goals_[input_goals_.size() - 1], output_goals_);
     }
     
@@ -302,10 +302,10 @@ bool RemoveInCollisionGoalsAction::snap(Goal goal, Goals output_goals_)
       static_cast<int>(std::round(utils::nav2::degrees(tf2::getYaw(input_goals_[input_goals_.size()-1].pose.orientation)))),
       static_cast<int>(std::round(utils::nav2::degrees(tf2::getYaw(goal.pose.orientation))))
     );
-
-    output_goals_.push_back(goal);
-    return true;
   }
+
+  output_goals_.push_back(goal);
+  return true;
 }
 
 /**
@@ -356,6 +356,116 @@ SearchResult RemoveInCollisionGoalsAction::find_nearest_free_cell(const Point &o
   }
 
   return {global_cell, false, max_radius};
+}
+
+/**
+ * @brief Check if the area around the center cell is free
+ * To actually check the area of a circle instead of a square, we mark a circle border as 'visited'
+ * using the midpoint circle algorithm https://www.youtube.com/watch?v=hpiILbMkF9w&ab_channel=NoBSCode
+ * so we can then run BFS from the center cell to check if the area is free.
+ * 
+ * The midpoint circle algorithm is very hard to understand by just looking at the code, so either
+ * watch the video or just accept that it works.
+ * 
+ * Note: the variant of the algorithm in the video starts drawing from (0, -r) because that is
+ * the top of the circle in screen space. I have modified it to start from (0, r), as we are
+ * not in screen space.
+ * 
+ * @param center The center cell of the area to check in the global occupancy grid
+ */
+bool RemoveInCollisionGoalsAction::is_area_free(const GridCell &center)
+{
+
+    if (!node_->get_parameter_or("robot_radius", footprint_radius_, 0.85))
+      {
+        RCLCPP_ERROR(node_->get_logger(), "SnapInCollisionGoals Failed to get local footprint, using default value of 0.85m");
+      }
+  
+    // avoid extra computation if center cell is not free
+    if (!is_cell_free(center))
+    {
+        return false;
+    }
+    int radius = std::ceil(footprint_radius_ / global_costmap_->getResolution());
+
+    int side = 2*radius + 1;
+    std::vector<bool> visited(side * side, false);
+    auto mark_visited = [&](int x, int y)
+    {
+        int index = (y + radius) * side + (x + radius);
+        visited[index] = true;
+    };
+    auto is_visited = [&](int x, int y) -> bool
+    {
+        int index = (y + radius) * side + (x + radius);
+        return visited[index];
+    };
+    auto rel_to_abs = [&](int x, int y) -> GridCell
+    {
+        return {center.x + x, center.y + y};
+    };
+    
+    // mark circle boundary as visited
+    // midpoint circle algorithm
+    std::array<int, 2> quadrants[4] = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
+    int x = 0, y = radius, p = -radius;
+    while (x < y)
+    {
+        if (p > 0)
+        {
+            y -= 1;
+            p += 2*(x-y) + 1;
+        }
+        else
+        {
+            p += 2*x + 1;
+        }
+
+        for (const auto &q : quadrants)
+        {
+            int dx = q[0] * x, dy = q[1] * y;
+
+            if (!is_cell_free(rel_to_abs(dx, dy)) || !is_cell_free(rel_to_abs(dy, dx)))
+            {
+                return false;
+            }
+
+            mark_visited(dx, dy);
+            mark_visited(dy, dx);
+        }
+    }
+
+    // BFS from center
+    std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    std::queue<GridCell> q;
+    mark_visited(0, 0);
+    q.push({0, 0});
+    while (!q.empty())
+    {
+        GridCell curr = q.front();
+        q.pop();
+
+        for (const auto &d : directions)
+        {
+            int nx = curr.x + d[0], ny = curr.y + d[1];
+            if (nx < -radius || nx > radius || ny < -radius || ny > radius)
+            {
+                continue;
+            }
+
+            if (!is_visited(nx, ny))
+            {
+                if (!is_cell_free(rel_to_abs(nx, ny)))
+                {
+                    return false;
+                }
+                mark_visited(nx, ny);
+                q.push({nx, ny});
+            }
+        }
+    }
+
+    return true;
 }
 
 }   // namespace nova_behavior_tree
