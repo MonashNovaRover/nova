@@ -72,10 +72,9 @@ namespace nova_behavior_tree
   {
     Goal centre_goal = input_goals_.back();
 
-    input_goals_.push_back(place_goal(centre_goal, 0, search_spacing_/2));
+    place_goal(centre_goal, 0, search_spacing_/2);
 
-    RCLCPP_INFO(node_->get_logger(), "Commencing placing search goals with R: %f | S: %2.2f | C: %d", search_radius_, search_spacing_, search_corners_);
-
+    RCLCPP_INFO(node_->get_logger(), "Placing search goals in a %.2fm radius with %2.2fm between spirals and %d goals per loop", search_radius_, search_spacing_, search_corners_);
 
     double loops = search_radius_ / search_spacing_;
     double points = static_cast<int>((0.5 + loops) * search_corners_);
@@ -85,15 +84,20 @@ namespace nova_behavior_tree
       double angle = ((2*pi) / search_corners_) * (i % search_corners_) - pi/2;
       double dist = (static_cast<double>(i) / search_corners_) * search_spacing_;
 
-      input_goals_.push_back(place_goal(centre_goal, angle, dist));
+      place_goal(centre_goal, angle, dist);
     }
+
+    // ATTENTION - THIS LINE BELOW IS A BODGE FIX
+    place_goal(centre_goal, 0, search_radius_ + 2*search_spacing_);
+    // This is added because if the rover passes the final goal in the search path when
+    // it's approaching the centre it will end the run. A goal is added out of the search radius to prevent this.
 
     RCLCPP_INFO(node_->get_logger(), "Placed search goals in a %f m radius", search_radius_);
 
     setOutput("output_goals", input_goals_);
   }
 
-  geometry_msgs::msg::PoseStamped PlaceSearchGoalsAction::place_goal(const geometry_msgs::msg::PoseStamped& centre_goal, double angle, double dist)
+  void PlaceSearchGoalsAction::place_goal(const Goal& centre_goal, double angle, double dist)
   {
     //get centre goal properties
     tf2::Vector3 centre;
@@ -106,7 +110,7 @@ namespace nova_behavior_tree
     tf2::Vector3 new_goal_pos = centre + (rotated_dir * dist);
 
     //create goal
-    geometry_msgs::msg::PoseStamped new_goal;
+    Goal new_goal;
     new_goal.header.frame_id = centre_goal.header.frame_id;
     new_goal.header.stamp = node_->get_clock()->now();
     tf2::toMsg(new_goal_pos, new_goal.pose.position);
@@ -116,8 +120,8 @@ namespace nova_behavior_tree
 
     q.setRPY(0, 0, yaw + angle + pi/2);
     new_goal.pose.orientation = tf2::toMsg(q);
-    
-    return new_goal;
+    input_goals_.push_back(new_goal);
+
   }
     
 }  // namespace nova_behavior_tree

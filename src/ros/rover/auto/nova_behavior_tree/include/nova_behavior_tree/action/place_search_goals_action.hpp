@@ -61,7 +61,7 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
     void halt() override {}
     BT::NodeStatus tick() override;
     void place_search_path();
-    geometry_msgs::msg::PoseStamped place_goal(
+    void place_goal(
       const geometry_msgs::msg::PoseStamped& centre_goal,
       double angle,
       double dist);
