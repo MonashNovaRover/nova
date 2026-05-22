@@ -2,8 +2,8 @@
 '''
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Purpose: Reads RTCM3 error correction data from 
-base (ublox) GPS and publishes to rover (skytraq) 
-GPS.
+base (UM960) module and publishes to rover (UM982)
+GNSS module.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NODE: gps_base
 TOPICS:
@@ -11,33 +11,25 @@ TOPICS:
  - publisher: /gps_base/fix_custom  [GPSData]
  - publisher: /gps_base/rtcm        [UInt8MultiArray]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PACKAGE: 	electronics
-AUTHOR(S):	Shelby N, Will Middlewick, Victor 
-            Bartlinski
+PACKAGE: 	dgnss
+AUTHOR(S):	Shelby N, Will Middlewick, Victor
+            Bartlinski, Terry Tian
 CREATED:	25/02/2023
-EDITED:		30/04/2025
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Better document the message protocols being 
-   sent in config_*_rtk functions. 
- - Implement fix_type. 
- - Abstract serial protocol parsing to a function 
-   for each protocol; only UBX messages under the 
-   'ublox' module condition. 
+EDITED:		22/05/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-from serial import Serial
-from pynmeagps import NMEAReader
-from pyrtcm import RTCMReader, RTCMMessage
-from pyubx2 import UBXMessage, val2sphp
-import re
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import UInt8MultiArray
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from nova_interfaces.msg import GPSData
 from rclpy.qos import QoSPresetProfiles
-
+from serial import Serial
+from pyunigps import (
+    UNIReader,
+    NMEA_PROTOCOL,
+    RTCM3_PROTOCOL,
+)
 
 class GPSBase(Node):
     def __init__ (self):
@@ -64,14 +56,9 @@ class GPSBase(Node):
         ### Serial ###
         self.ser = Serial()
         self.config_port(self.port_name, self.baudrate)
-        self.reader_nmea = NMEAReader(
-            self.ser, 
-            validate=0x03,  # validate both checksum and message id
-            nmeaonly=True,  # Raise an error on receiving a badly formatted message
-        )
-        self.reader_rtcm = RTCMReader(
+        self.reader = UNIReader(
             self.ser,
-            parsed=False,
+            protfilter=NMEA_PROTOCOL | RTCM3_PROTOCOL,
         )
 
         ### ROS2 ###
@@ -97,26 +84,35 @@ class GPSBase(Node):
 
     def config_port(self, port_name : str, baudrate : int) -> None:
         self.ser.baudrate = baudrate
-        if port_name == '':
-            port_name = '/dev/ttyACM0'
         self.ser.port = port_name
         self.ser.open()
 
-    def parse_nmea(self) -> None:
-        self.pose.header.stamp = self.get_clock().now().to_msg()
+    def parse_message(self) -> None:
+        """Read a single message from the unified reader and dispatch to appropriate handler."""
         try:
-            msg_raw, msg_parsed = self.reader_nmea.read()
+            msg_raw, msg_parsed = self.reader.read()
         except Exception as e:
-            self.get_logger().warn(f'❌ Failed to read NMEA message: {e}', throttle_duration_sec=2)
+            self.get_logger().warn(f'❌ Failed to read message: {e}', throttle_duration_sec=2)
             return
+
+        if msg_parsed is None:
+            return
+
+        # Determine message type and dispatch
+        msg_type = type(msg_parsed).__name__
+
+        if msg_type == 'NMEAMessage':
+            self._handle_nmea(msg_raw, msg_parsed)
+        elif msg_type == 'RTCMMessage':
+            self._handle_rtcm(msg_raw, msg_parsed)
+
+    def _handle_nmea(self, msg_raw: str, msg_parsed) -> None:
+        """Handle NMEA messages."""
+        self.pose.header.stamp = self.get_clock().now().to_msg()
 
         self.get_logger().debug(f'✅ NMEA message received!', throttle_duration_sec=2)
         self.get_logger().debug(f'\t   raw NMEA message: {msg_raw}', throttle_duration_sec=2)
         self.get_logger().debug(f'\tparsed NMEA message: {msg_parsed}', throttle_duration_sec=2)
-
-        if msg_parsed is None:
-            self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!', throttle_duration_sec=2)
-            return
 
         if msg_parsed.msgID == 'GGA':
             if msg_parsed.quality > 0:
@@ -130,6 +126,7 @@ class GPSBase(Node):
                 self.pose.status.status = NavSatStatus.STATUS_NO_FIX
                 self.fix_type = 'No fix'
                 self.get_logger().warn(f'❌ GPS (GGA) data is not available!', throttle_duration_sec=2)
+                return
 
             ### ROS2 ###
             self.pose_custom.header = self.pose.header
@@ -147,15 +144,10 @@ class GPSBase(Node):
                 \tfix type: {self.fix_type}
             '''
             self.get_logger().info(msg_log, throttle_duration_sec=1)
-            
 
-    def parse_rtcm(self) -> None:
+    def _handle_rtcm(self, msg_raw: bytes, msg_parsed) -> None:
+        """Handle RTCM messages."""
         self.pose.header.stamp = self.get_clock().now().to_msg()
-        try:
-            msg_raw, _ = self.reader_rtcm.read()
-        except Exception as e:
-            self.get_logger().warn(f'❌ Failed to read RTCM3 message: {e}', throttle_duration_sec=1)
-            return
 
         self.get_logger().info(f'✅ RTCM3 message received!', throttle_duration_sec=1)
         self.get_logger().info(f'\t   raw RTCM3 message: {msg_raw}', throttle_duration_sec=1)
@@ -167,8 +159,7 @@ class GPSBase(Node):
         self.get_logger().info(f'✅ Published RTCM3 message!', throttle_duration_sec=1)
 
     def loop(self) -> None:
-        self.parse_nmea()
-        self.parse_rtcm()
+        self.parse_message()
         self.pub_pose.publish(self.pose)
         self.pub_pose_custom.publish(self.pose_custom)
 

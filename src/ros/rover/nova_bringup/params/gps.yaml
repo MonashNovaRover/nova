@@ -9,7 +9,7 @@ gps_base:
 gps_rover:
   ros__parameters:
     baudrate: 115200
-    # SkyTraq
+    # UM982
     port_name: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
     publisher_rate: 20
 
