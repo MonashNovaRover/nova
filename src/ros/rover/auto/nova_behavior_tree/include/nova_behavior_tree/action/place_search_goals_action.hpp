@@ -16,7 +16,7 @@
  * @brief Places search goals for AR Tags and Objects related to the URC mission
  * once the rover is within the search radius.
  * 
- * @authors Terry Tian
+ * @authors Terry Tian, Harry Mills
  */
 
 #ifndef NOVA_BEHAVIOR_TREE__PLUGINS__ACTION__PLACE_SEARCH_GOALS_ACTION_HPP_
