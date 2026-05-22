@@ -10,7 +10,7 @@
           <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
           
           <RunOnce>
-            <PlaceSearchGoals search_radius="{search_radius}" search_corners="3" input_goals="{goals}" output_goals="{goals}"/>
+            <PlaceSearchGoals search_radius="{search_radius}" search_corners="10" search_spacing="2" input_goals="{goals}" output_goals="{goals}"/>
           </RunOnce>
 
           <RateController hz="1.0">

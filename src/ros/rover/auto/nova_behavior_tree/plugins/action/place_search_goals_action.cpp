@@ -14,9 +14,9 @@
 
 /**
  * @brief Places search goals for AR Tags and Objects related to the URC mission
- * within the search radius.
+ * within the search radius in a spiral pattern.
  * 
- * @authors Terry Tian
+ * @authors Terry Tian, Harry Mills
  */
 
 #include <string>
@@ -47,7 +47,7 @@ namespace nova_behavior_tree
       node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
       getInput("search_radius", search_radius_);
       getInput("search_corners", search_corners_);
-      getInput("edge_offset", edge_offset_);
+      getInput("search_spacing", search_spacing_);
       
       initialized_ = true;
   }
@@ -72,25 +72,34 @@ namespace nova_behavior_tree
     tf2::fromMsg(centre_goal.pose.position, centre);
 
     double yaw = tf2::getYaw(centre_goal.pose.orientation);
+
+    RCLCPP_INFO(node_->get_logger(), "Commencing placing search goals with R: %f | S: %2.2f | C: %d", search_radius_, search_spacing_, search_corners_);
+
     tf2::Vector3 dir = tf2::Vector3(std::cos(yaw), std::sin(yaw), 0);
-    for (int i = 0; i < search_corners_; ++i)
+    // i = loops * corners
+    // loops = radius // search_spacing
+    for (int i = search_corners_/2; i < (0.5 + (search_radius_ /search_spacing_))*search_corners_; ++i)
     {
       // rotate the direction vector by (360 / search_corners) degrees
-      double angle = utils::nav2::radians((360 / search_corners_) * i);
+      double angle = utils::nav2::radians((360 / search_corners_) * (i % search_corners_));
       tf2::Vector3 rotated_dir = dir.rotate(tf2::Vector3(0, 0, 1), angle);
 
       // calculate the new goal's position
-      tf2::Vector3 new_goal_pos = centre + (rotated_dir * (search_radius_ - edge_offset_));
+      double dist = (float(i) / search_corners_) * search_spacing_;
+      tf2::Vector3 new_goal_pos = centre + (rotated_dir * dist);
       geometry_msgs::msg::PoseStamped new_goal;
       new_goal.header.frame_id = centre_goal.header.frame_id;
       new_goal.header.stamp = node_->get_clock()->now();
       tf2::toMsg(new_goal_pos, new_goal.pose.position);
       // set the new goal's orientation
       tf2::Quaternion q;
-      q.setRPY(0, 0, angle);
+      q.setRPY(0, 0, yaw + angle + 1.571);
       new_goal.pose.orientation = tf2::toMsg(q);
-
+      
       input_goals_.push_back(new_goal);
+      
+      RCLCPP_INFO(node_->get_logger(), "Placed search goal %d. %.2f rads %.2f m", i, angle, dist);
+
     }
 
     RCLCPP_INFO(node_->get_logger(), "Placed search goals in a %f m radius", search_radius_);

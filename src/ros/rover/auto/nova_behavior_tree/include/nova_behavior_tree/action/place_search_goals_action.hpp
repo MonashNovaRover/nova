@@ -16,7 +16,7 @@
  * @brief Places search goals for AR Tags and Objects related to the URC mission
  * once the rover is within the search radius.
  * 
- * @authors Terry Tian
+ * @authors Terry Tian, Harry Mills
  */
 
 #ifndef NOVA_BEHAVIOR_TREE__PLUGINS__ACTION__PLACE_SEARCH_GOALS_ACTION_HPP_
@@ -50,8 +50,8 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
     {
       return {
         BT::InputPort<double>("search_radius", 10.0, "Search radius in m"),
-        BT::InputPort<int>("search_corners", 3, "Search corners (e.g. 3 for triangle, 4 for square)"),
-        BT::InputPort<double>("edge_offset", 2.5, "Offset to place goals from the edge of the search radius"),
+        BT::InputPort<int>("search_corners", 8, "Search corners per loop (e.g. 3 for triangle, 4 for square)"),
+        BT::InputPort<double>("search_spacing", 2.5, "Spacing to place goals from the edge of the search radius"),
         BT::InputPort<Goals>("input_goals", "Goals vector to add search goals into"),
         BT::OutputPort<Goals>("output_goals", "Goals with new search goals added"),
       };
@@ -65,7 +65,7 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
     rclcpp::Node::SharedPtr node_;
     double search_radius_;
     int search_corners_;
-    double edge_offset_;
+    double search_spacing_;
     Goals input_goals_;
     bool initialized_ = false;
 };
