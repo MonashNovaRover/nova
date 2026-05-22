@@ -119,7 +119,7 @@ public:
         BT::InputPort<std::string>("robot_base_frame", "base_link", "Robot base frame"),
 
         // SnapInCollisionGoals stuff
-        BT::InputPort<std::string>("snap_last", true, "If the last goals should never be removed and instead snapped"),
+        BT::InputPort<bool>("snap_last", true, "If the last goals should never be removed and instead snapped"),
         BT::InputPort<double>("max_snap_radius", 5.0, "Maximum radius (m) to snap goals to"),
         BT::InputPort<double>("goals_offset", 1.5, "Approximate distance of offset when calculating toward point"),
 
@@ -135,8 +135,10 @@ private:
   bool is_goal_in_collision(const PoseStamped & goal);
   bool remove_goals();
   bool have_costmaps();
-  bool is_cell_free(const GridCell &global_cell);
   bool snap(Goal goal, Goals output_goals_);
+  bool is_cell_free(const GridCell &global_cell);
+  bool is_area_free(const GridCell &center);
+  SearchResult find_nearest_free_cell(const Point &origin);
 
 
   rclcpp::Node::SharedPtr node_;
@@ -155,6 +157,8 @@ private:
   bool snap_last_;
   double max_snap_radius_;
   double goals_offset_;
+  double footprint_radius_;
+
 
   bool initialized_ = false;
   bool set_up_ = false;
