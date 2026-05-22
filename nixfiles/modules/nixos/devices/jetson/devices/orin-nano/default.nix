@@ -1,7 +1,49 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.devices.jetson.orin-nano;
+  # The ch341 kernel module is not included in the default kernel configuration for the Orin Nano,
+  # but is required for some USB serial devices. We build it as an out-of-tree module.
+  kernel = config.boot.kernelPackages.kernel;
+  ch341Module = pkgs.stdenv.mkDerivation {
+    pname = "ch341-kernel-module";
+    inherit (kernel) src version postPatch;
+
+    nativeBuildInputs = kernel.moduleBuildDependencies or [];
+
+    kernelVersion = kernel.modDirVersion;
+
+    buildPhase = ''
+      runHook preBuild
+
+      mkdir -p ch341-out-of-tree
+      cp drivers/usb/serial/ch341.c ch341-out-of-tree/
+      cd ch341-out-of-tree
+
+      printf '%s\n' 'obj-m += ch341.o' > Makefile
+
+      make -C ${kernel.dev}/lib/modules/${kernel.modDirVersion}/build \
+        M=$(pwd) \
+        modules
+
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+
+      install -D ch341.ko \
+        $out/lib/modules/${kernel.modDirVersion}/extra/ch341.ko
+
+      runHook postInstall
+    '';
+
+    meta = {
+      description = "CH341/CH340 USB serial kernel module";
+      license = lib.licenses.gpl2Only;
+      platforms = lib.platforms.linux;
+    };
+  };
 in
 {
   imports = [
@@ -12,6 +54,10 @@ in
 
   config = lib.mkIf cfg.enable {
     devices.jetson.enable = true;
+    
+    boot.extraModulePackages = [ ch341Module ];
+    boot.kernelModules = [ "ch341" ];
+    
     hardware.nvidia-jetpack = {
       enable = true;
       som = "orin-nano";
