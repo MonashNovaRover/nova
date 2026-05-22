@@ -71,9 +71,9 @@ auger_left:
       drill:
         can_id: 0x0C2
         max_effort: 0.9
-        reversed: false
+        reversed: true
       hall_sensor:
-        can_id: 0x4E4
+        can_id: 0x4F4
         can_data_position: 0
 
 auger_right:
@@ -93,9 +93,9 @@ auger_right:
       drill:
         can_id: 0x0C1
         max_effort: 0.9
-        reversed: false
+        reversed: true
       hall_sensor:
-        can_id: 0x4E4
+        can_id: 0x4F4
         can_data_position: 1
 
 cbeam:
@@ -120,28 +120,32 @@ pumps:
     update_rate: 10
     controllers:
       controller:
-        max_effort: 0.75
+        max_effort: 1.0
         publish_rate: 5
     hardware:
       cache_to_shot_pump:
         can_id: 0x042
+        max_effort: 0.75
         packed_data_length: 2
         max_effort_can: 0x7FFF
         reversed: true
       shot_to_inner_pump:
         can_id: 0x0E6
-        packed_data_length: 2
-        max_effort_can: 0x7FFF
+        max_effort: 1.0
+        packed_data_length: 1
+        max_effort_can: 0x7F
         reversed: true
       shot_to_outer_pump:
         can_id: 0x0E7
-        packed_data_length: 2
-        max_effort_can: 0x7FFF
+        max_effort: 1.0
+        packed_data_length: 1
+        max_effort_can: 0x7F
         reversed: true
       shot_to_electrochem_pump:
         can_id: 0x0F6
-        packed_data_length: 2
-        max_effort_can: 0x7FFF
+        max_effort: 1.0
+        packed_data_length: 1
+        max_effort_can: 0x7F
         reversed: true
 
 carousel_inner:
@@ -171,7 +175,7 @@ carousel_inner:
         function_id: 0x02
       hall_sensor:
         can_id: 0x4E4
-        can_data_position: 2
+        can_data_position: 0
 
 carousel_outer:
   ros__parameters:
@@ -200,7 +204,7 @@ carousel_outer:
         function_id: 0x02
       hall_sensor:
         can_id: 0x4E4
-        can_data_position: 3
+        can_data_position: 1
 
 litmus_dipper:
   ros__parameters:
@@ -251,15 +255,11 @@ spec_leds:
         on_command: 0x01
         off_command: 0x00
       vis_spec_camera:
-        can_id: 0x0FC
+        can_id: 0x0EC
         on_command: 0x01
         off_command: 0x00
       vis_spec_nadh:
         can_id: 0x0EE
-        on_command: 0x01
-        off_command: 0x00
-      litmus_led:
-        can_id: 0x0EC
         on_command: 0x01
         off_command: 0x00
 
@@ -291,8 +291,8 @@ cache_left:
     controllers:
       controller:
         min_angle: 0.0
-        max_angle: 180.0
-        initial_angle: 0.0
+        max_angle: 152.47   # max cache closed angle, determined by physical testing
+        initial_angle: 152.47
         twitch_max: 30.0
         hardware_name: "actuation"
         set_position_service: "/science/cache_left/set_position"
