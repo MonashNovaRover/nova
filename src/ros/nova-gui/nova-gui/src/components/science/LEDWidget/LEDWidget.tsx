@@ -11,9 +11,8 @@ interface LED {
 const LED_CONFIG: LED[] = [
   { name: "vis_spec_central_led", displayName: "Spec Central" },
   { name: "vis_spec_nile_red", displayName: "Spec Nile Red" },
-  { name: "vis_spec_camera", displayName: "Spec Camera" },
-  { name: "vis_spec_nadh", displayName: "Spec NADH" },
-  { name: "litmus_led", displayName: "Litmus LED" },
+  { name: "vis_spec_camera", displayName: "Spec Roof" },
+  { name: "vis_spec_nadh", displayName: "Spec UV" },
 ]
 
 const LEDWidget = () => {
@@ -47,7 +46,7 @@ const LEDWidget = () => {
         <CardHeader>
           Vis Spec LEDs
         </CardHeader>
-        <CardBody className="grid grid-cols-5 justify-between">
+        <CardBody className="grid grid-cols-4 justify-between">
           {LED_CONFIG.map((led: LED) => (
             <div key={led.name} className="flex flex-col gap-2 items-center">
               <span className="text-sm">{led.displayName}</span>

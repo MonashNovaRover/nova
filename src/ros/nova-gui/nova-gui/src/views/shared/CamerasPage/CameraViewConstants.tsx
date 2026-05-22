@@ -54,8 +54,10 @@ export enum CameraSerials {
 
   URC_SCIENCE_UV_VIS = "science_spectroscope",
   URC_SCIENCE_CUVETTE = "science_cuvettes",
-  URC_SCIENCE_PAYLOAD_FRONT = "science_payload_front",
-  URC_SCIENCE_PAYLOAD_DOWN = "science_payload_down",
+  URC_SCIENCE_CACHE_LEFT = "science_cache_left",
+  URC_SCIENCE_CACHE_RIGHT = "science_cache_right",
+  URC_SCIENCE_BOOM = "science_boom",
+  URC_SCIENCE_LITMUS = "science_litmus",
   URC_ACTIVATED_NODES = "urc_activated_nodes",
   URC_SCIENCE_AUGER_DEPTH_SENSORS = "science_auger_depth_sensors",
 
@@ -111,10 +113,19 @@ const arcScienceCams = [
 ];
 
 const urcScienceCams = [
-  CameraSerials.URC_SCIENCE_CUVETTE,
-  CameraSerials.SCIENCE_MICROSCOPE,
-  CameraSerials.URC_SCIENCE_UV_VIS,
-  CameraSerials.SCIENCE_GIMBAL,
+  [
+    CameraSerials.SCIENCE_GIMBAL,
+    CameraSerials.URC_SCIENCE_CACHE_LEFT,
+    CameraSerials.URC_SCIENCE_CACHE_RIGHT,
+    CameraSerials.URC_SCIENCE_BOOM,
+    CameraSerials.SCIENCE_MICROSCOPE,
+  ],
+  [
+    CameraSerials.SCIENCE_GIMBAL,
+    CameraSerials.URC_SCIENCE_CUVETTE,
+    CameraSerials.URC_SCIENCE_UV_VIS,
+    CameraSerials.URC_SCIENCE_LITMUS,
+  ],
 ]
 
 const driveCams = [
@@ -229,18 +240,16 @@ export const urc_autonomous_views: CameraViewConfig[] = [
 
 export const urc_science_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...mastCams, ...urcScienceCams, ...driveCams.filter((driveCam) => driveCam != CameraSerials.DRIVE_CONTROL),
-      CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL,
-    ],
+    cameraSerials: [...mastCams, ...urcScienceCams[0], ...urcScienceCams[1], ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL],
     viewTitle: "All Cams",
   },
   {
-    cameraSerials:  mastCams,
-    viewTitle: "Mast Cams",
+    cameraSerials: [...mastCams, ...urcScienceCams[0], ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL],
+    viewTitle: "Site Analysis"
   },
   {
-    cameraSerials: urcScienceCams,
-    viewTitle: "Science Cams"
+    cameraSerials: [...mastCams, ...urcScienceCams[1], ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.DRIVE_CONTROL],
+    viewTitle: "Vis Spec",
   }
 ]
 
@@ -249,7 +258,7 @@ export const arcCameraSetup = {
   [ARCCompModes.ARC_EXCAVATION_AND_CONSTRUCTION]: excavation_and_construction_views,
   [ARCCompModes.ARC_SPACE_RESOURCES]: space_resources_views,
   [ARCCompModes.ARC_AUTONOMOUS]: autonomous_views,
- 
+
 };
 
 export const urcCameraSetup = {
