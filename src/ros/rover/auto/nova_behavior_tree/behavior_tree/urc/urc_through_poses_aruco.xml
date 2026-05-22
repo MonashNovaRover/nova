@@ -8,7 +8,7 @@
         <ForceSuccess>
           <Sequence>
             <RunOnce>
-              <PlaceSearchGoals search_radius="{search_radius}" search_corners="3" input_goals="{goals}" output_goals="{goals}"/>
+              <PlaceSearchGoals search_radius="{search_radius}" search_corners="8" search_spacing="7" input_goals="{goals}" output_goals="{goals}"/>
             </RunOnce>
             <ARTagDetected detections_topic="/aruco_detections" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
             <GetGoal index="0" input_goals="{detected_goals}" output_goal="{detected_goal}"/>
