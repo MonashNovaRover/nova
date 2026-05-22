@@ -49,12 +49,12 @@ camera_streamer:
         meta: Arm - Wrist 
       arm_end_periscope:
         meta: Arm - Periscope
-        rossink: true
-        ros_topic: arm/periscope
       arm_end_top:
         meta: Arm - Top
       arm_end_finger:
         meta: Arm - Finger
+        rossink: true
+        ros_topic: arm/periscope
       arm_end_side:
         meta: Arm - Side
 
