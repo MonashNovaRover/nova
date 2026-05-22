@@ -73,7 +73,7 @@ auger_left:
         max_effort: 0.9
         reversed: true
       hall_sensor:
-        can_id: 0x4E4
+        can_id: 0x4F4
         can_data_position: 0
 
 auger_right:
@@ -95,7 +95,7 @@ auger_right:
         max_effort: 0.9
         reversed: true
       hall_sensor:
-        can_id: 0x4E4
+        can_id: 0x4F4
         can_data_position: 1
 
 cbeam:
