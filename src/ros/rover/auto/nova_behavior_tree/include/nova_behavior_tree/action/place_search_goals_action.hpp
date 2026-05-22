@@ -60,8 +60,12 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
   private:
     void halt() override {}
     BT::NodeStatus tick() override;
-    void place_search_goals();
-  
+    void place_search_path();
+    geometry_msgs::msg::PoseStamped place_goal(
+      const geometry_msgs::msg::PoseStamped& centre_goal,
+      double angle,
+      double dist);
+
     rclcpp::Node::SharedPtr node_;
     double search_radius_;
     int search_corners_;
