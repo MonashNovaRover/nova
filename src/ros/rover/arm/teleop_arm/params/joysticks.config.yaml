@@ -61,7 +61,6 @@ thrustmaster_left:
         # End effector mode
         la_prismatic:
           from: "l_ax_thumb_y"
-          invert: true
         
         # Task space
         linear:
