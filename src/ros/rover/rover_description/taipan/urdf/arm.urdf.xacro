@@ -55,8 +55,8 @@
   <!-- Periscope camera frame for auto-typing -->
   <link name="image_frame"/>
   <joint name="camera_ee_periscope" type="fixed">
-    <origin xyz="0.0097 -0.037 -0.055" rpy="-3.14159 0 0.2618"/>
-    <parent link="ee_base"/>
+    <origin xyz="-0.063 0 0.017" rpy="3.14159 0 -1.5707"/>
+    <parent link="linear_actuator"/>
     <child link="image_frame"/>
   </joint>
 
