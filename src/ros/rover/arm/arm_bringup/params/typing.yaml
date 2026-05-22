@@ -22,7 +22,7 @@ keyboard_localiser:
     aligned_keyboard_position: [1.0,0.0,0.6]
     aligned_keyboard_quaternion: [ -0.5, 0.5, -0.5, 0.5 ]
     key_quaternion: [0.0, 0.0, 0.0, 1.0]
-    key_offset: 10.0
+    key_offset: 2.0
 
     # calibrated camera intrinsics
     hfov: 61.3727248
@@ -33,7 +33,7 @@ keyboard_localiser:
     # ArUco marker params
     aruco_topic: /aruco_detections
     marker_ids: [1, 4, 3, 2]  # top-left, top-right, bottom-right, bottom-left
-    marker_offset: 10.0
+    marker_offset: 13.333333 # mm
 
     # (auto) keyboard pose analysis initalisation
     camera_frame: image_frame
