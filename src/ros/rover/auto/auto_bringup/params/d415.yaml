@@ -11,4 +11,4 @@ d415:
     publish_tf: true
     
     # run rs_enumerate_devices for available configurations
-    rgb_camera.color_profile: 720x480x15
+    rgb_camera.color_profile: 960x540x15
