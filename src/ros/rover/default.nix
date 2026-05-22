@@ -10,7 +10,7 @@
     # diff drive, pivot drive, strafe, 
   } // import ./arm { inherit pkgs; }
     // import ./auto { inherit pkgs; }
-    // import ./chassis { inherit pkgs; }
+    // import ./core { inherit pkgs; }
     // import ./drive { inherit pkgs; }
     // import ./hardware_interfaces { inherit pkgs; }
     // import ./nova_generic { inherit pkgs; }

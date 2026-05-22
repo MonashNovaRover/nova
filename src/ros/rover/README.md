@@ -17,7 +17,7 @@
 |--------|-------------|
 | [`arm`](./arm) | Robotic arm control code. |
 | [`auto`](./auto) | Autonomous stack. |
-| [`chassis`](./chassis) | Code for systems in the chassis, including LEDs, GPS etc. |
+| [`core`](./core) | Code for systems in the core chassis, including LEDs, GPS etc. |
 | [`docs`](./docs) |  |
 | [`drive`](./drive) | Drive control code. |
 | [`excavation_construction`](./excavation_construction) | Code related to the ARC Excavation and Construction payload. |

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(electronics)
+project(dgnss)
 
 # === Environment ===
 
@@ -50,24 +50,12 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Add all Python executables to this list
 install(PROGRAMS
-  electronics/magnetometer.py
-  electronics/rfid_client_terminal.py
-  electronics/rfid_service.py
-  electronics/gimbal_service.py
-  electronics/radio_monitor.py
-  electronics/battery_state.py
-  electronics/tests/test_EMC.py
-  electronics/tests/test_radio.py
-  electronics/tests/test_wheels.py
-  electronics/wheel_publisher.py
-  electronics/LED_transmitter.py
-  electronics/led_strip.py
-  electronics/dgps/gps_base.py
-  electronics/dgps/gps_data_collector.py
-  electronics/dgps/gps_data_plotter.py
-  electronics/dgps/gps_rover.py
-  electronics/dgps/gps_test_localisation.py
-  electronics/dgps/gps_drone.py
+  dgnss/gps_base.py
+  dgnss/gps_data_collector.py
+  dgnss/gps_data_plotter.py
+  dgnss/gps_rover.py
+  dgnss/gps_test_localisation.py
+  dgnss/gps_drone.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
