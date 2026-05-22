@@ -119,7 +119,7 @@ public:
         BT::InputPort<std::string>("robot_base_frame", "base_link", "Robot base frame"),
 
         // SnapInCollisionGoals stuff
-        BT::InputPort<bool>("snap_last", true, "If the last goals should never be removed and instead snapped"),
+        BT::InputPort<bool>("snap_last", "If the last goals should never be removed and instead snapped"),
         BT::InputPort<double>("max_snap_radius", 5.0, "Maximum radius (m) to snap goals to"),
         BT::InputPort<double>("goals_offset", 1.5, "Approximate distance of offset when calculating toward point"),
 
