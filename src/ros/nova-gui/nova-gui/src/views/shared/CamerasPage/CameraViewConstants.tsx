@@ -131,6 +131,7 @@ const urcScienceCams = [
 const driveCams = [
   CameraSerials.WHEEL_TELEMETRY,
   CameraSerials.DRIVE_TELEMETRY,
+  CameraSerials.DRIVE_CONTROL,
 ]
 
 const autoCams = [
@@ -239,15 +240,15 @@ export const urc_autonomous_views: CameraViewConfig[] = [
 
 export const urc_science_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...mastCams, ...urcScienceCams[0], ...urcScienceCams[1], ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS],
+    cameraSerials: [...mastCams, ...urcScienceCams[0], ...urcScienceCams[1], ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL],
     viewTitle: "All Cams",
   },
   {
-    cameraSerials: [...mastCams, ...urcScienceCams[0], ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS],
+    cameraSerials: [...mastCams, ...urcScienceCams[0], ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL],
     viewTitle: "Site Analysis"
   },
   {
-    cameraSerials: [...mastCams, ...urcScienceCams[1], ...driveCams, CameraSerials.URC_ACTIVATED_NODES],
+    cameraSerials: [...mastCams, ...urcScienceCams[1], ...driveCams, CameraSerials.URC_ACTIVATED_NODES, CameraSerials.DRIVE_CONTROL],
     viewTitle: "Vis Spec",
   }
 ]

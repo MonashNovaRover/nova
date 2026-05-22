@@ -1,22 +1,17 @@
 gps_base:
   ros__parameters:
-    acc_limit: 100
     baudrate: 115200
-    gps_module: ublox
-    height: 9936.48
-    lat: -37.9098296
-    lon: 145.1340534
-    min_dur: 90
-    port_name: /dev/ttyACM0
+    # UM960
+    port_name: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
     port_type: USB
     svin: true
 
 gps_rover:
   ros__parameters:
     baudrate: 115200
-    port_name: /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
-    gps_module: skytraq
-    publisher_rate: 30
+    # SkyTraq
+    port_name: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+    publisher_rate: 20
 
 magnetometer:
   ros__parameters:
