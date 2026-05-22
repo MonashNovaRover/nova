@@ -54,7 +54,7 @@ camera_streamer:
       arm_end_finger:
         meta: Arm - Finger
         rossink: true
-        ros_topic: arm/periscope
+        ros_topic: arm/finger
       arm_end_side:
         meta: Arm - Side
 
