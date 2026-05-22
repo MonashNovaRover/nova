@@ -69,7 +69,7 @@ class TypingSequencer(Node):
 
         # path planner arguments
         self.debug_target_tf = self.declare_parameter('debug_target', False).get_parameter_value().bool_value
-        self.pp_speed = self.declare_parameter('speed', 0.5).get_parameter_value().double_value
+        self.pp_speed = self.declare_parameter('speed', 0.01).get_parameter_value().double_value
 
         # Listen to /tf
         self.tf_buffer = Buffer()
