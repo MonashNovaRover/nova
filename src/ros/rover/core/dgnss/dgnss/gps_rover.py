@@ -44,12 +44,12 @@ class GPSRover(Node):
         ).value
         self.port_name = self.declare_parameter(
             name='port_name',
-            # SkyTraq
-            value='/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0', 
+            # UM982
+            value='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0', 
         ).value
         self.publisher_rate = self.declare_parameter(
             name='publisher_rate', 
-            value=30, 
+            value=20, 
         ).value
         self.fix_type = None
 
@@ -72,7 +72,7 @@ class GPSRover(Node):
         self.sub_heading = self.create_subscription(
             Float64, 
             'mag/heading', 
-            self.sub_heading_callback, 
+            self.sub_magnetometer_callback, 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
         self.pub_pose = self.create_publisher(
@@ -107,7 +107,7 @@ class GPSRover(Node):
         msg_binary = bytes(msg.data)
         self.ser.write(msg_binary)
 
-    def sub_heading_callback(self, msg : Float64):
+    def sub_magnetometer_callback(self, msg : Float64):
         self.pose_custom.heading = msg.data
 
     def parse_nmea(self) -> None:
@@ -159,6 +159,7 @@ class GPSRover(Node):
             \tlat: {self.pose.latitude:8.3f}
             \tlon: {self.pose.longitude:8.3f}
             \talt: {self.pose.altitude:8.3f}
+            \theading: {self.pose_custom.heading:8.3f}
             \tfix type: {self.fix_type}
             {'-'*30}
         '''

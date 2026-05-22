@@ -18,12 +18,20 @@ EDITED:     30/04/2025
 '''
 from launch import LaunchDescription
 from launch.actions import OpaqueFunction, DeclareLaunchArgument
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from os.path import expanduser
 
 def launch_setup(context, *args, **kwargs):
-    gps_params = LaunchConfiguration('gps_params')
+    local = LaunchConfiguration('local')
+    
+    nova_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/home/nova/nova/src/ros/rover/nova_bringup']),
+        FindPackageShare('nova_bringup')
+    )
+
+    gps_params = PathJoinSubstitution([nova_bringup_dir, 'params', 'gps.yaml'])
 
     return [
         Node(
@@ -33,24 +41,22 @@ def launch_setup(context, *args, **kwargs):
             name='gps_rover',
             parameters=[gps_params],
         ),
-        Node(
-            package='electronics',
-            namespace='',
-            executable='magnetometer.py',
-            name='magnetometer',
-            parameters=[gps_params],
-        ),
+        # Node(
+        #     package='electronics',
+        #     namespace='',
+        #     executable='magnetometer.py',
+        #     name='magnetometer',
+        #     parameters=[gps_params],
+        # ),
     ]
 
 def generate_launch_description():
-    nova_bringup_dir = FindPackageShare('nova_bringup')
-
     declared_arguments = [
         DeclareLaunchArgument(
-            name='gps_params', 
-            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'gps.yaml']), 
-            description='Absolute filepath to GPS parameters',
-        ),     
+            name='local',
+            default_value='False',
+            description='Whether to use the local teleop_drive_joy source directory instead of the nix store for param files.',
+        ),
     ]
 
     return LaunchDescription(
