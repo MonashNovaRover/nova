@@ -12,7 +12,7 @@
     <Action ID="PlaceSearchGoals">
       <input_port name="search_radius">Search radius in m</input_port>
       <input_port name="search_corners">Search corners (e.g. 3 for triangle, 4 for square)</input_port>
-      <input_port name="edge_offset">Offset to place goals from the edge of the search radius</input_port>
+      <input_port name="search_spacing">The spacing between each loop</input_port>
       <input_port name="input_goals">Goals vector to add search goals into</input_port>
       <output_port name="output_goals">Goals with new search goals added</output_port>
     </Action>
