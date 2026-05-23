@@ -34,6 +34,8 @@ from pyunigps import (
     UNIReader,
     NMEA_PROTOCOL,
 )
+import threading
+import time
 
 class GPSRover(Node):
     def __init__(self):
@@ -91,26 +93,56 @@ class GPSRover(Node):
         self.pose_custom = GPSData()
         self.pose.header.frame_id = 'gps'
         self.timer = self.create_timer(1/self.publisher_rate, self.loop)
+        
+        ### Threading ###
+        self.fix_lock = threading.Lock()
+        self.serial_lock = threading.Lock()
+        self.running = True
+        self.reader_thread = threading.Thread(target=self.reader_loop, daemon=True)
+        self.reader_thread.start()
 
         self.get_logger().debug(f'Node configured!')
 
     def config_port(self, port_name : str, baudrate : int):
         self.ser.baudrate = baudrate
         self.ser.port = port_name
+        self.ser.timeout = 3.0
         self.ser.open()
 
         self.get_logger().debug(f'Serial port configured!')
 
     def sub_rtcm_callback(self, msg : UInt8MultiArray):
         msg_binary = bytes(msg.data)
-        self.ser.write(msg_binary)
+        
+        try:
+            with self.serial_lock:
+                self.ser.write(msg_binary)
+        except Exception as e:
+            self.get_logger().warn(f'❌ Failed to write RTCM to serial port: {e}')
 
     def sub_magnetometer_callback(self, msg : Float64):
         self.pose_custom.heading = msg.data
 
+    def reader_loop(self):
+        while self.running and rclpy.ok():
+            if self.ser.in_waiting == 0:
+                time.sleep(0.005)  # Avoid busy waiting
+                continue
+
+            try:
+                with self.serial_lock:
+                    _, msg_parsed = self.reader.read()
+
+                if msg_parsed is not None:
+                    with self.fix_lock:
+                        self.process_nmea(msg_parsed)
+            
+            except Exception as e:
+                self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
+                time.sleep(0.01)  # Avoid busy waiting
+
     def parse_nmea(self) -> None:
         self.get_logger().debug(f'Parsing NMEA message...')
-        self.pose.header.stamp = self.get_clock().now().to_msg()
         try:
             for _, msg_parsed in self.reader:
                 self.process_nmea(msg_parsed)
@@ -152,9 +184,9 @@ class GPSRover(Node):
         msg_log = f'''
             {'-'*30}
             🛰️ NMEA Data:
-            \tlat: {self.pose.latitude:8.3f}
-            \tlon: {self.pose.longitude:8.3f}
-            \talt: {self.pose.altitude:8.3f}
+            \tlat: {self.pose.latitude:8.7f}
+            \tlon: {self.pose.longitude:8.7f}
+            \talt: {self.pose.altitude:8.7f}
             \theading: {self.pose_custom.heading:8.3f}
             \tfix type: {self.fix_type}
             {'-'*30}
@@ -170,9 +202,17 @@ class GPSRover(Node):
         self.pose_custom.altitude = self.pose.altitude
 
     def loop(self) -> None:
-        self.parse_nmea()
-        self.pub_pose.publish(self.pose)
-        self.pub_pose_custom.publish(self.pose_custom)
+        with self.fix_lock:
+            self.pose.header.stamp = self.get_clock().now().to_msg()
+            self.pub_pose.publish(self.pose)
+            self.pub_pose_custom.publish(self.pose_custom)
+
+    def destroy_node(self):
+        self.running = False
+        if hasattr(self, 'reader_thread'):
+            self.reader_thread.join(timeout=1.0)
+        self.ser.close()
+        super().destroy_node()
 
 
 def main (args = None):
