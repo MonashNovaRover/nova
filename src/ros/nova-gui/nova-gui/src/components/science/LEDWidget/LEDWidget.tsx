@@ -1,7 +1,10 @@
 import { Card, CardBody, CardHeader, Switch} from "@nextui-org/react";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
+import { RosTopic } from "../../../ros/topics/rosTopic.ts";
+import { RootState } from "../../../redux/RootState.ts";
 
 interface LED {
   displayName: string
@@ -16,27 +19,29 @@ const LED_CONFIG: LED[] = [
 ]
 
 const LEDWidget = () => {
-    const bifrost = useBifrost({ service: RosService.LEDS});
-    const [ledStates, setLedStates] = useState<Record<string, boolean>>({});
+    const bifrostService = useBifrost({ service: RosService.LEDS });
+    const bifrostTopic = useBifrost({ topic: RosTopic.LED_STATUS });
+
+    // Subscribe to LED status topic
+    const ledStatus = useSelector((state: RootState) => state.ledStatusStore);
+
+    useEffect(() => {
+      bifrostTopic.syncWithTopic();
+    }, [bifrostTopic]);
+
+    // Convert arrays to lookup object for easy access
+    const ledStates: Record<string, boolean> = {};
+    ledStatus.names.forEach((name, i) => {
+      ledStates[name] = ledStatus.values[i];
+    });
 
     const handleLedChange = (led_name: string, value: boolean) => {
-        const requestPayload = {
-            name: led_name,
-            value: value,
-        };
-
-        bifrost.callService(
-            requestPayload,
+        bifrostService.callService(
+            { name: led_name, value: value },
             {
                 responseToast: true,
                 successToastMessage: `LED ${led_name} request successful`,
                 errorToastMessage: `Failed to set ${led_name}`,
-                // update if successful
-                handleResponse: (response) => {
-                  if (response && 'success' in response && response.success) {
-                    setLedStates(prev => ({ ...prev, [led_name]: value }));
-                  }
-                }
             }
         );
     };

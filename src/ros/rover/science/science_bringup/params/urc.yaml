@@ -160,8 +160,8 @@ carousel_inner:
       carousel:
         zero_cmd_can_id: 0x0EB
         zero_cmd_can_msg: [0x01]
-        zero_rec_can_id: 0xFFD
-        zero_rec_can_msg: [0x10]
+        zero_rec_can_id: 0x4E9
+        zero_rec_can_msg: [0x01]
         zero_service: "/science/carousel_inner/trigger_zero"
         zero_increment_service: "/science/carousel_inner/increment_zero"
       servo:
@@ -189,8 +189,8 @@ carousel_outer:
       carousel:
         zero_cmd_can_id: 0x0EB
         zero_cmd_can_msg: [0x02]
-        zero_rec_can_id: 0xFFE
-        zero_rec_can_msg: [0x10]
+        zero_rec_can_id: 0x4E9
+        zero_rec_can_msg: [0x02]
         zero_service: "/science/carousel_outer/trigger_zero"
         zero_increment_service: "/science/carousel_outer/increment_zero"
       servo:

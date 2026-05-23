@@ -311,6 +311,13 @@ export const reduxStores = {
       is_receiving: false,
     }
   ),
+  ledStatusStore: createBifrostStore(
+    { topic: RosTopic.LED_STATUS },
+    {
+      names: [],
+      values: [],
+    }
+  ),
 
   // Regular Stores
   uiState: uiSlice.reducer,
