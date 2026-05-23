@@ -114,7 +114,7 @@ class CarouselController(Controller):
     def publish_if_changed(self):
         """ Publish feedback message only if values have changed """
         msg = CarouselFeedback()
-        msg.position = float(self.position_state.value)
+        msg.position = float(self.target_position)
         msg.load = float(self.load_state.value)
         msg.current = float(self.current_state.value)
         msg.zeroing = bool(self.zeroing_state.value)

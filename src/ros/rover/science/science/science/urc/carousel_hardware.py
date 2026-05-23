@@ -114,6 +114,11 @@ class CarouselHardware(HardwareInterface):
 
         # Check if the received message matches the expected zeroing complete message
         if list(frame.data) == zero_rec_can_msg:
+            # Capture current position as new zero offset
+            if self.actual_pos_state:
+                self.zero_offset = self.actual_pos_state.value
+                self.logger.info(f"{self.name} zero offset set to {self.zero_offset}")
+
             self.zeroing_in_progress = False
             self.logger.info(f"{self.name} zeroing complete")
 
