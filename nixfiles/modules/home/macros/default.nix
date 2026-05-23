@@ -296,7 +296,8 @@ in
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
 
           # GPS
-          launch-gps = "~/Builds/active/bin/ros2 launch nova_bringup gps_rover.launch.py gps_params:=/home/nova/nova/src/ros/rover/nova_bringup/params/gps.yaml";
+          launch-gps-rover = "~/Builds/active/bin/ros2 launch nova_bringup gps_rover.launch.py";
+          launch-gps-base = "~/Builds/active/bin/ros2 launch nova_bringup gps_base.launch.py";
           mast = "ssh -C nova@10.0.0.150";
 
           # Master build binaries

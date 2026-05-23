@@ -6,19 +6,20 @@
   pythonOlder,
   setuptools,
   pynmeagps,
+  pyrtcm,
 }:
 
 buildPythonPackage {
-  pname = "pyrtcm";
-  version = "1.1.12";
+  pname = "pyunigps";
+  version = "1.0.0";
   pyproject = true;
 
   disabled = pythonOlder "3.9";
 
   src = fetchurl {
-    url = "https://github.com/semuconsulting/pyrtcm/archive/refs/tags/v1.1.12.tar.gz";
-    name = "v1.1.12.tar.gz";
-    sha256 = "sha256-E5Z1NWRZ2OKt9CcAKFLL9OyDwZGs2nENXC8ccrfQrOY=";
+    url = "https://github.com/semuconsulting/pyunigps/archive/refs/tags/v1.0.0.tar.gz";
+    name = "v1.0.0.tar.gz";
+    sha256 = "sha256-kcmiDfV7FvMqxgjixKeqCHJov7AOVoQhDdsQvTa7biw=";
   };
 
   build-system = [ setuptools ];
@@ -30,7 +31,8 @@ buildPythonPackage {
 
   propagatedBuildInputs = [
     pynmeagps
+    pyrtcm
   ];
 
-  pythonImportsCheck = [ "pyrtcm" ];
+  pythonImportsCheck = [ "pyunigps" ];
 }

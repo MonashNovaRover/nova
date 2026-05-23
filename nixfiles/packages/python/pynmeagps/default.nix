@@ -1,22 +1,22 @@
 { buildPythonPackage, 
-  fetchgit, 
+  fetchurl,
   pytestCheckHook, 
   pytest-cov-stub, 
   pythonOlder, 
   setuptools, 
 }:
 
-buildPythonPackage rec {
+buildPythonPackage {
   pname = "pynmeagps";
-  version = "1.0.49";
+  version = "1.1.4";
   pyproject = true;
 
   disabled = pythonOlder "3.9";
 
-  src = fetchgit {
-    url = "https://github.com/MonashNovaRover/pynmeagps";
-    rev = "227293afe8d376c7af55dde1ae76fc279c4e838d";
-    hash = "sha256-ytyFXGDs45BSc4liLjCZsbYrvYIA1OEtMbeVhzM5wik=";
+  src = fetchurl {
+    url = "https://github.com/semuconsulting/pynmeagps/archive/refs/tags/v1.1.4.tar.gz";
+    name = "v1.1.4.tar.gz";
+    sha256 = "sha256-xqRsWxal4FV6isiMDd9SoFfQU1pklUu9bU3ip6+mbNk=";
   };
 
   build-system = [ setuptools ];

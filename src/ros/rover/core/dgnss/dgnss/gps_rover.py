@@ -23,14 +23,17 @@ TODO:
    'skytraq' module condition. 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-from serial import Serial
-from pynmeagps import NMEAReader
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 from std_msgs.msg import UInt8MultiArray, Float64
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from nova_interfaces.msg import GPSData
+from serial import Serial
+from pyunigps import (
+    UNIReader,
+    NMEA_PROTOCOL,
+)
 
 class GPSRover(Node):
     def __init__(self):
@@ -56,10 +59,9 @@ class GPSRover(Node):
         ### Serial ###
         self.ser = Serial()
         self.config_port(self.port_name, self.baudrate)
-        self.reader_nmea = NMEAReader(
+        self.reader = UNIReader(
             self.ser, 
-            validate=0x03,  # validate both checksum and message id
-            nmeaonly=True,  # Raise an error on receiving a badly formatted message
+            protfilter=NMEA_PROTOCOL,
         )
 
         ### ROS2 ###
@@ -93,11 +95,7 @@ class GPSRover(Node):
         self.get_logger().debug(f'Node configured!')
 
     def config_port(self, port_name : str, baudrate : int):
-        self.get_logger().debug(f'Configuring serial port...')
-
         self.ser.baudrate = baudrate
-        if port_name == '':
-           port_name = '/dev/ttyUSB0'
         self.ser.port = port_name
         self.ser.open()
 
@@ -114,29 +112,27 @@ class GPSRover(Node):
         self.get_logger().debug(f'Parsing NMEA message...')
         self.pose.header.stamp = self.get_clock().now().to_msg()
         try:
-            msg_raw, msg_parsed = self.reader_nmea.read()
+            for _, msg_parsed in self.reader:
+                self.process_nmea(msg_parsed)
         except Exception as e:
             self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
             return
 
+    def process_nmea(self, msg_parsed: str):
         if msg_parsed is None:
             self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!')
             return
 
-        self.get_logger().debug(f'✅ NMEA message received!')
-        self.get_logger().debug(f'\t   raw NMEA message: {msg_raw}')
-        self.get_logger().debug(f'\tparsed NMEA message: {msg_parsed}')
-
         if msg_parsed.msgID == 'GGA':
+            self.get_logger().info(f'NMEA GGA message quality: {msg_parsed.quality}', throttle_duration_sec=1)
             if msg_parsed.quality > 0:
                 # Valid fix
                 self.pose.latitude = float(msg_parsed.lat)
                 self.pose.longitude = float(msg_parsed.lon)
                 self.pose.altitude = float(msg_parsed.alt)
-                if msg_parsed.quality == 1:
-                    self.pose.status.status = NavSatStatus.STATUS_FIX
-                    self.fix_type = 'GPS fix'
-                elif msg_parsed.quality == 4:
+                self.pose.status.status = NavSatStatus.STATUS_FIX
+                self.fix_type = 'GPS fix'
+                if msg_parsed.quality == 4:
                     self.pose.status.status = NavSatStatus.STATUS_GBAS_FIX
                     self.fix_type = 'RTK fixed'
                 elif msg_parsed.quality == 5:
@@ -145,12 +141,12 @@ class GPSRover(Node):
             else:
                 self.pose.status.status = NavSatStatus.STATUS_NO_FIX
                 self.fix_type = 'No fix'
-                self.get_logger().warn(f'❌ GNSS (GGA) data is not available!', throttle_duration_sec=2)
+                self.get_logger().warn(f'❌ GNSS (GGA) data is not available!', throttle_duration_sec=1)
         elif msg_parsed.msgID == 'THS':
             if msg_parsed.mi != 'V':
                 self.pose_custom.heading = float(msg_parsed.headt)
             else:
-                self.get_logger().warn(f'❌ GNSS (THS) heading data is invalid!', throttle_duration_sec=2)
+                self.get_logger().warn(f'❌ GNSS (THS) heading data is invalid!', throttle_duration_sec=1)
 
         ### LOG ###
         msg_log = f'''
@@ -178,10 +174,15 @@ class GPSRover(Node):
         self.pub_pose.publish(self.pose)
         self.pub_pose_custom.publish(self.pose_custom)
 
+    def __exit__(self, exc_type, exc, tb):
+        self.ser.close()
+        self.get_logger().debug(f'Serial port closed!')
+
+
 def main (args = None):
     rclpy.init(args = args)
-    node = GPSRover()
-    rclpy.spin(node)
+    with GPSRover() as node:
+        rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
 
