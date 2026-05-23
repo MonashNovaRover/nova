@@ -7,7 +7,7 @@
         <RateController hz="1.0">
           <Sequence name="ComputeAndSmoothPathThroughPoses">
             <ReactiveSequence>
-                <RemoveInCollisionGoals input_goals="{goals}" snap_last="true" ignore_global_costmap = "true" output_goals="{goals}"/>
+                <RemoveInCollisionGoals input_goals="{goals}" snap_last="false" output_goals="{goals}"/>
               <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
               <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="NavFn"/>
             </ReactiveSequence>
