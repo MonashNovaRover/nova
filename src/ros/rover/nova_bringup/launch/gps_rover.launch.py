@@ -18,20 +18,11 @@ EDITED:     30/04/2025
 '''
 from launch import LaunchDescription
 from launch.actions import OpaqueFunction, DeclareLaunchArgument
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, IfElseSubstitution
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
-from os.path import expanduser
 
 def launch_setup(context, *args, **kwargs):
-    local = LaunchConfiguration('local')
-    
-    nova_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/home/nova/nova/src/ros/rover/nova_bringup']),
-        FindPackageShare('nova_bringup')
-    )
-
-    gps_params = PathJoinSubstitution([nova_bringup_dir, 'params', 'gps.yaml'])
+    port_name = LaunchConfiguration('port')
 
     return [
         Node(
@@ -39,7 +30,7 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             executable='gps_rover.py',
             name='gps_rover',
-            parameters=[gps_params],
+            parameters=[{'port_name': port_name}],
         ),
         # Node(
         #     package='electronics',
@@ -53,8 +44,8 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
-            name='local',
-            default_value='False',
+            name='port',
+            default_value='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0',
             description='Whether to use the local teleop_drive_joy source directory instead of the nix store for param files.',
         ),
     ]

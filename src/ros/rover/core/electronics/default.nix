@@ -10,7 +10,6 @@
 , std-msgs
 , std-srvs
 , nova-interfaces
-, ublox-ubx-msgs
 , sensor-msgs
 }:
 
@@ -28,16 +27,12 @@ buildRosPackage {
   buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs std-msgs std-srvs nova-interfaces ];
   propagatedBuildInputs = with pythonPackages; [ 
     nova-coms-utils 
-    pynmeagps 
-    pyrtcm 
-    pyubx2
     smbus2 
     wmm-calculator
     pandas 
     folium 
     pymavlink
   ] ++ [ 
-    ublox-ubx-msgs
     sensor-msgs
     fabric
     nova-interfaces

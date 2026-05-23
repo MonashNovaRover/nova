@@ -8,7 +8,7 @@
   linuxpy = callPackage ./linuxpy { };
   pynmeagps = callPackage ./pynmeagps { };
   pyrtcm = callPackage ./pyrtcm { };
-  pyubx2 = callPackage ./pyubx2 { };
+  pyunigps = callPackage ./pyunigps { };
   minimalmodbus = callPackage ./minimalmodbus { };
   geomaglib = callPackage ./geomaglib { };
   wmm-calculator = callPackage ./wmm-calculator { };
