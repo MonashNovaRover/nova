@@ -70,12 +70,11 @@ void RemoveInCollisionGoalsAction::initialize()
   getInput("max_snap_radius", max_snap_radius_);
   getInput("goals_offset", goals_offset_);
 
+  // We need a way of getting the size of the local costmap here
 
   // Subscribe to local and global costmaps via Nav2 costmap transport.
   local_costmap_sub_ = std::make_unique<nav2_costmap_2d::CostmapSubscriber>(
     node_, "/local_costmap/costmap_raw");
-  global_costmap_sub_ = std::make_unique<nav2_costmap_2d::CostmapSubscriber>(
-    node_, "/global_costmap/costmap_raw");
 
   RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals initialized.");
   initialized_ = true;
@@ -109,7 +108,7 @@ inline BT::NodeStatus RemoveInCollisionGoalsAction::tick()
   {
       RCLCPP_WARN_THROTTLE(
         node_->get_logger(), *node_->get_clock(), 2000,
-        "RemoveInCollisionGoals waiting for local/global costmaps.");
+        "RemoveInCollisionGoals waiting for local costmap.");
       return BT::NodeStatus::RUNNING;
   }
 
@@ -133,20 +132,16 @@ bool RemoveInCollisionGoalsAction::have_costmaps()
   // the same executor thread cadence as Nav2 servers, so process pending
   // subscription callbacks before checking costmap availability.
   rclcpp::spin_some(node_);
-
   try
   {
     local_costmap_ = local_costmap_sub_->getCostmap();
-    global_costmap_ = global_costmap_sub_->getCostmap();
   }
   catch (const std::runtime_error &)
   {
     local_costmap_.reset();
-    global_costmap_.reset();
     return false;
   }
-
-  return static_cast<bool>(local_costmap_) && static_cast<bool>(global_costmap_);
+  return static_cast<bool>(local_costmap_);
 }
 
 bool RemoveInCollisionGoalsAction::remove_goals()
@@ -161,12 +156,14 @@ bool RemoveInCollisionGoalsAction::remove_goals()
   }
   
   Goals output_goals_;
+  size_t remove_goals_end_index = input_goals_.size();
+  if (snap_last_) remove_goals_end_index = remove_goals_end_index - 1; // ignore last in this case
 
   // Remove all in collision, and snap last if we need 
-  for (size_t i=0; i < input_goals_.size() -1 ; i++)
+  for (size_t i=0; i < remove_goals_end_index ; i++)
   {
     Goal goal = input_goals_[i];
-    
+
     if (!is_goal_in_collision(goal))
     {
       output_goals_.push_back(goal);
@@ -192,7 +189,7 @@ bool RemoveInCollisionGoalsAction::remove_goals()
     }
     
   }
-
+  
   // If all goals have been removed, add the rovers current position as final goal
   if (output_goals_.size() == 0)
   {
@@ -206,18 +203,60 @@ bool RemoveInCollisionGoalsAction::remove_goals()
 
 bool RemoveInCollisionGoalsAction::is_goal_in_collision(const PoseStamped & goal)
 {
-    unsigned int mx = 0;
-    unsigned int my = 0;
 
-    if (!global_costmap_->worldToMap(goal.pose.position.x, goal.pose.position.y, mx, my))
-    {
-      return false;
-    }
+  // If goal is outside bounds of local costmap, assume not in collision
+  double wx = 0.0;
+  double wy = 0.0;
+  local_costmap_->mapToWorld(goal.pose.position.x, goal.pose.position.y, wx, wy);
 
-    GridCell global_cell;
-    global_cell.x = static_cast<int>(mx);
-    global_cell.y = static_cast<int>(my);
-    return !is_cell_free(global_cell);
+  // Transform goal coords from map -> odom frame
+  tf_->transform(goal, goal_in_odom_, "odom");
+
+  // Convert from worldspace to gridspace
+  unsigned int mx, my;
+  if (!local_costmap_->worldToMap(goal_in_odom_.pose.position.x, goal_in_odom_.pose.position.y, mx, my))
+  {
+    // Point falls outside of the grid, assume not in collision
+    return false;
+  }
+
+  // Check costmap value at this point
+  GridCell grid_cell;
+  grid_cell.x = static_cast<int>(mx);
+  grid_cell.y = static_cast<int>(my);
+  return !is_cell_free(grid_cell);
+
+  // // If we are ignoring global, just do this simple check
+  // if (ignore_global_costmap_)
+  // {
+  //   unsigned int local_x = 0;
+  //   unsigned int local_y = 0;
+  //   if (!local_costmap_->worldToMap(goal.pose.position.x, goal.pose.position.y, local_x, local_y)) {
+  //     return false;
+  //   }
+
+  //   GridCell local_cell;
+  //   local_cell.x = static_cast<int>(local_x);
+  //   local_cell.y = static_cast<int>(local_y);
+  //   return !is_cell_free(local_cell);
+  // } 
+  
+  // // Otherwise check both maps
+  // else
+  // {
+  //   unsigned int mx = 0;
+  //   unsigned int my = 0;
+
+  //   if (!global_costmap_->worldToMap(goal.pose.position.x, goal.pose.position.y, mx, my))
+  //   {
+  //     return false;
+  //   }
+
+  //   GridCell global_cell;
+  //   global_cell.x = static_cast<int>(mx);
+  //   global_cell.y = static_cast<int>(my);
+  //   return !is_cell_free(global_cell);
+  // }
 }
 
 /** Methods from SnapInCollisionGoals */
@@ -225,38 +264,53 @@ bool RemoveInCollisionGoalsAction::is_goal_in_collision(const PoseStamped & goal
 /**
  * @brief Check if a cell is free in both the local and global occupancy grids
  * 
- * @param global_cell A cell with reference to the global occupancy grid
+ * @param grid_cell A cell with reference to the costmap grid
  */
-bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
+bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &grid_cell)
 {
-    if (global_cell.x < 0 || global_cell.y < 0) {
-      return true;
-    }
+    const unsigned char local_cost = local_costmap_->getCost(grid_cell.x, grid_cell.y);
+    return local_cost < cost_threshold_;
 
-    const auto global_x = static_cast<unsigned int>(global_cell.x);
-    const auto global_y = static_cast<unsigned int>(global_cell.y);
-    if (global_x >= global_costmap_->getSizeInCellsX() || global_y >= global_costmap_->getSizeInCellsY()) {
-      return true;
-    }
+//     const unsigned char local_cost = local_costmap_->getCost(grid_cell.x, grid_cell.y);
+//     return !(local_cost < cost_threshold_);
 
-    const unsigned char global_cost = global_costmap_->getCost(global_x, global_y);
 
-    double wx = 0.0;
-    double wy = 0.0;
-    global_costmap_->mapToWorld(global_x, global_y, wx, wy);
+//     // If we are using local costmap only
+//     if (ignore_global_costmap_)
+//     {
+//       const unsigned char local_cost = local_costmap_->getCost(grid_cell.x, grid_cell.y);
+//       return !(local_cost < cost_threshold_);
+//     } 
+    
+//     // Otherwise check both
+//     else
+//     {
+//       const auto global_x = static_cast<unsigned int>(grid_cell.x);
+//       const auto global_y = static_cast<unsigned int>(grid_cell.y);
+      
+//       if (global_x >= global_costmap_->getSizeInCellsX() || global_y >= global_costmap_->getSizeInCellsY()) {
+//         return true;
+//       }
 
-    unsigned int local_x = 0;
-    unsigned int local_y = 0;
-    if (!local_costmap_->worldToMap(wx, wy, local_x, local_y)) {
-      return global_cost < cost_threshold_;
-    }
+//       const unsigned char global_cost = global_costmap_->getCost(global_x, global_y);
 
-    const unsigned char local_cost = local_costmap_->getCost(local_x, local_y);
-    RCLCPP_DEBUG(
-      node_->get_logger(),
-      "Cost at goal cell - global: %u local: %u", global_cost, local_cost);
+//       double wx = 0.0;
+//       double wy = 0.0;
+//       global_costmap_->mapToWorld(global_x, global_y, wx, wy);
 
-    return global_cost < cost_threshold_ && local_cost < cost_threshold_;
+//       unsigned int local_x = 0;
+//       unsigned int local_y = 0;
+//       if (!local_costmap_->worldToMap(wx, wy, local_x, local_y)) {
+//         return global_cost < cost_threshold_;
+//       }
+
+//       const unsigned char local_cost = local_costmap_->getCost(local_x, local_y);
+//       RCLCPP_DEBUG(
+//         node_->get_logger(),
+//         "Cost at goal cell - global: %u local: %u", global_cost, local_cost);
+
+//       return global_cost < cost_threshold_ && local_cost < cost_threshold_;
+//     }
 }
 
 /**
@@ -279,10 +333,9 @@ bool RemoveInCollisionGoalsAction::snap(Goal goal, Goals output_goals_)
   {
     Point original_pos = goal.pose.position;
     
-    // orientTowards() uses worldspace, so x and y are doubles. Hence here we convert the goal x,y from grid to worldspace (unsigned int -> double)
     double wx = 0;
     double wy = 0;
-    global_costmap_->mapToWorld(goal.pose.position.x, goal.pose.position.y, wx, wy);
+    local_costmap_->mapToWorld(goal.pose.position.x, goal.pose.position.y, wx, wy);
     goal.pose.position.x = static_cast<double>(wx);
     goal.pose.position.y = static_cast<double>(wy);
 
@@ -304,6 +357,7 @@ bool RemoveInCollisionGoalsAction::snap(Goal goal, Goals output_goals_)
     );
   }
 
+  RCLCPP_INFO(node_->get_logger(), "Pushing back");
   output_goals_.push_back(goal);
   return true;
 }
@@ -316,26 +370,28 @@ bool RemoveInCollisionGoalsAction::snap(Goal goal, Goals output_goals_)
  */
 SearchResult RemoveInCollisionGoalsAction::find_nearest_free_cell(const Point &origin)
 {
-  // Convert from world to grid 
+  // Convert from worldspace to gridspace
   unsigned int mx = 0;
   unsigned int my = 0;
 
-  if (!global_costmap_->worldToMap(origin.x, origin.y, mx, my))
+  if (!local_costmap_->worldToMap(origin.x, origin.y, mx, my))
   {
-    return {{0,0}, false, 0}; // Error SearchResult case, the function calling this will just check the "found" vla
+    RCLCPP_INFO(node_->get_logger(), "Goal out of bounds");
+    return {{0,0}, false, 0};
   }
 
-  GridCell global_cell;
-  global_cell.x = static_cast<int>(mx);
-  global_cell.y = static_cast<int>(my);
+  GridCell local_cell;
+  local_cell.x = static_cast<int>(mx);
+  local_cell.y = static_cast<int>(my);
   
   // search for the nearest free cell in a spiral pattern
   std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-  int max_radius = std::ceil(max_snap_radius_ / global_costmap_->getResolution());
+  int max_radius = std::ceil(max_snap_radius_ / local_costmap_->getResolution());
+
   for (int r = 0; r < max_radius; ++r)
   {
-      int x = global_cell.x - r;
-      int y = global_cell.y - r;
+      int x = local_cell.x - r;
+      int y = local_cell.y - r;
       if (is_area_free({x, y}))
       {
           return {{x, y}, true, r};
@@ -349,13 +405,14 @@ SearchResult RemoveInCollisionGoalsAction::find_nearest_free_cell(const Point &o
               y += directions[i][1];
               if (is_area_free({x, y}))
               {
+                  RCLCPP_INFO(node_->get_logger(), "Found nearest free cell");
                   return {{x, y}, true, r};
               }
           }
       }
   }
-
-  return {global_cell, false, max_radius};
+  RCLCPP_INFO(node_->get_logger(), "Unable to find cell");
+  return {local_cell, false, max_radius};
 }
 
 /**
@@ -376,96 +433,98 @@ SearchResult RemoveInCollisionGoalsAction::find_nearest_free_cell(const Point &o
 bool RemoveInCollisionGoalsAction::is_area_free(const GridCell &center)
 {
 
-    if (!node_->get_parameter_or("robot_radius", footprint_radius_, 0.85))
-      {
-        RCLCPP_ERROR(node_->get_logger(), "SnapInCollisionGoals Failed to get local footprint, using default value of 0.85m");
-      }
+  // Get robot radius
+  !node_->get_parameter_or("robot_radius", footprint_radius_, 0.85);
+  // if (!node_->get_parameter_or("robot_radius", footprint_radius_, 0.85))
+  // {
+  //   RCLCPP_ERROR(node_->get_logger(), "SnapInCollisionGoals Failed to get local footprint, using default value of 0.85m");
+  // }
+
+  // avoid extra computation if center cell is not free
+  if (!is_cell_free(center))
+  {
+      return false;
+  }
   
-    // avoid extra computation if center cell is not free
-    if (!is_cell_free(center))
-    {
-        return false;
-    }
-    int radius = std::ceil(footprint_radius_ / global_costmap_->getResolution());
+  int radius = std::ceil(footprint_radius_ / local_costmap_->getResolution());
+  int side = 2*radius + 1;
+  std::vector<bool> visited(side * side, false);
+  auto mark_visited = [&](int x, int y)
+  {
+      int index = (y + radius) * side + (x + radius);
+      visited[index] = true;
+  };
+  auto is_visited = [&](int x, int y) -> bool
+  {
+      int index = (y + radius) * side + (x + radius);
+      return visited[index];
+  };
+  auto rel_to_abs = [&](int x, int y) -> GridCell
+  {
+      return {center.x + x, center.y + y};
+  };
+  
+  // mark circle boundary as visited
+  // midpoint circle algorithm
+  std::array<int, 2> quadrants[4] = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
+  int x = 0, y = radius, p = -radius;
+  while (x < y)
+  {
+      if (p > 0)
+      {
+          y -= 1;
+          p += 2*(x-y) + 1;
+      }
+      else
+      {
+          p += 2*x + 1;
+      }
 
-    int side = 2*radius + 1;
-    std::vector<bool> visited(side * side, false);
-    auto mark_visited = [&](int x, int y)
-    {
-        int index = (y + radius) * side + (x + radius);
-        visited[index] = true;
-    };
-    auto is_visited = [&](int x, int y) -> bool
-    {
-        int index = (y + radius) * side + (x + radius);
-        return visited[index];
-    };
-    auto rel_to_abs = [&](int x, int y) -> GridCell
-    {
-        return {center.x + x, center.y + y};
-    };
-    
-    // mark circle boundary as visited
-    // midpoint circle algorithm
-    std::array<int, 2> quadrants[4] = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
-    int x = 0, y = radius, p = -radius;
-    while (x < y)
-    {
-        if (p > 0)
-        {
-            y -= 1;
-            p += 2*(x-y) + 1;
-        }
-        else
-        {
-            p += 2*x + 1;
-        }
+      for (const auto &q : quadrants)
+      {
+          int dx = q[0] * x, dy = q[1] * y;
 
-        for (const auto &q : quadrants)
-        {
-            int dx = q[0] * x, dy = q[1] * y;
+          if (!is_cell_free(rel_to_abs(dx, dy)) || !is_cell_free(rel_to_abs(dy, dx)))
+          {
+              return false;
+          }
 
-            if (!is_cell_free(rel_to_abs(dx, dy)) || !is_cell_free(rel_to_abs(dy, dx)))
-            {
-                return false;
-            }
+          mark_visited(dx, dy);
+          mark_visited(dy, dx);
+      }
+  }
 
-            mark_visited(dx, dy);
-            mark_visited(dy, dx);
-        }
-    }
+  // BFS from center
+  std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+  std::queue<GridCell> q;
+  mark_visited(0, 0);
+  q.push({0, 0});
+  while (!q.empty())
+  {
+      GridCell curr = q.front();
+      q.pop();
 
-    // BFS from center
-    std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-    std::queue<GridCell> q;
-    mark_visited(0, 0);
-    q.push({0, 0});
-    while (!q.empty())
-    {
-        GridCell curr = q.front();
-        q.pop();
+      for (const auto &d : directions)
+      {
+          int nx = curr.x + d[0], ny = curr.y + d[1];
+          if (nx < -radius || nx > radius || ny < -radius || ny > radius)
+          {
+              continue;
+          }
 
-        for (const auto &d : directions)
-        {
-            int nx = curr.x + d[0], ny = curr.y + d[1];
-            if (nx < -radius || nx > radius || ny < -radius || ny > radius)
-            {
-                continue;
-            }
+          if (!is_visited(nx, ny))
+          {
+              if (!is_cell_free(rel_to_abs(nx, ny)))
+              {
+                  return false;
+              }
+              mark_visited(nx, ny);
+              q.push({nx, ny});
+          }
+      }
+  }
 
-            if (!is_visited(nx, ny))
-            {
-                if (!is_cell_free(rel_to_abs(nx, ny)))
-                {
-                    return false;
-                }
-                mark_visited(nx, ny);
-                q.push({nx, ny});
-            }
-        }
-    }
-
-    return true;
+  return true;
 }
 
 }   // namespace nova_behavior_tree
