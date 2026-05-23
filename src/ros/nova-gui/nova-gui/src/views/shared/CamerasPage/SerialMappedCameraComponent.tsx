@@ -12,8 +12,6 @@ import WheelTelemetryCameraComponent
 import SiteSelectCameraComponent from "../../../components/cameras/CameraComponent/special/SiteSelectCameraComponent.tsx";
 import DepthSensor
   from "../../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
-import MicroscopeScaleOverlayedCameraComponent
-  from "../../../components/cameras/CameraComponent/special/MicroscopeScaleOverlayedCameraComponent.tsx";
 import PowerCycleCameraComponent
   from "../../../components/cameras/CameraComponent/special/PowerCycleCameraComponent.tsx";
 import DriveControlCameraComponent
