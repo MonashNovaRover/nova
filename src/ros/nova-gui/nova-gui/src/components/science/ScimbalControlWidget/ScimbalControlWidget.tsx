@@ -10,9 +10,12 @@ import {
   PopoverTrigger,
 } from "@nextui-org/react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal } from "react-feather";
+import toast from "react-hot-toast";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
+
+const SCIMBAL_TOAST_ID = "scimbal-control";
 
 /**
  * Scimbal Camera Control Widget
@@ -31,12 +34,28 @@ const ScimbalControlWidget: React.FC = () => {
 
   // Tilt (up/down): angles[0], Pan (left/right): angles[1]
   const incrementTilt = useCallback(
-    (delta: number) => bifrost.callService({ angles: [delta, 0] }),
+    (delta: number) =>
+      bifrost.callService(
+        { angles: [delta, 0] },
+        {
+          responseToast: false,
+          handleResponse: () =>
+            toast.success(`Scimbal Cam moved ${delta > 0 ? "+" : ""}${delta}° tilt`, { id: SCIMBAL_TOAST_ID }),
+        }
+      ),
     [bifrost]
   );
 
   const incrementPan = useCallback(
-    (delta: number) => bifrost.callService({ angles: [0, delta] }),
+    (delta: number) =>
+      bifrost.callService(
+        { angles: [0, delta] },
+        {
+          responseToast: false,
+          handleResponse: () =>
+            toast.success(`Scimbal Cam moved ${delta > 0 ? "+" : ""}${delta}° pan`, { id: SCIMBAL_TOAST_ID }),
+        }
+      ),
     [bifrost]
   );
 
