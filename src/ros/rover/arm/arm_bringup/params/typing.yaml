@@ -21,7 +21,7 @@ keyboard_localiser:
     aligned_keyboard_position: [1.0,0.0,0.6]
     aligned_keyboard_quaternion: [ -0.5, 0.5, -0.5, 0.5 ]
     key_quaternion: [0.0, 0.0, 0.0, 1.0]
-    key_offset: 2.0
+    key_offset: 10.0
 
     # calibrated camera intrinsics
     hfov: 61.3727248
@@ -52,10 +52,14 @@ typing_sequencer:
     pollrate: 10.0
 
     # path planner movement
-    speed: 0.01 # m/s
+    speed: 0.04 # m/s
     debug_target: True
 
 pokey:
   ros__parameters:
-    poke_speed: 0.1
-    poke_amount: 1
+    poke_speed: 100
+    poke_amount: 50
+    hardware:
+      end_effector:
+        can_id: 0x0C1
+        reversed: true
