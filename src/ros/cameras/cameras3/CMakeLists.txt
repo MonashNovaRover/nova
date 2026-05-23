@@ -40,7 +40,6 @@ ament_target_dependencies(camera_directory_service ${THIS_PACKAGE_INCLUDE_DEPEND
 
 add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camera_globals.cpp
   # Properties
-  src/properties/capsfilter.cpp
   src/properties/common.cpp
   src/properties/cpufilters.cpp
   src/properties/glfilters.cpp
@@ -50,6 +49,7 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
   src/pipelines/h264passthrough.cpp
   src/pipelines/v4lfallback.cpp
   src/pipelines/vpXsoftware.cpp
+  src/pipelines/vpXsoftwareGL.cpp
 )
 target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES} ${GST_GL_LIBRARIES} ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
