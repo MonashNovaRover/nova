@@ -36,7 +36,7 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.SITE_SELECT]: SiteSelectCameraComponent,
   [CameraSerials.URC_ACTIVATED_NODES]: ActivatedNodesCameraComponent(URCActivatedNodeConfig),
   [CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS]: DepthSensor,
-  [CameraSerials.SCIENCE_MICROSCOPE]: MicroscopeScaleOverlayedCameraComponent,
+  // [CameraSerials.SCIENCE_MICROSCOPE]: MicroscopeScaleOverlayedCameraComponent,
   [CameraSerials.SCIENCE_POWER_CYCLE]: PowerCycleCameraComponent,
   [CameraSerials.ARC_ACTIVATED_NODES]: ActivatedNodesCameraComponent(ARCActivatedNodeConfig),
   [CameraSerials.SCIENCE_COMBINED]: ScienceCombinedCameraComponent,
