@@ -65,11 +65,11 @@ auger_left:
         topic_name: "/science/auger_left/hall_effect"
     hardware:
       actuation:
-        can_id: 0x0D2
+        can_id: 0x0D1
         max_effort: 1.0
         reversed: false
       drill:
-        can_id: 0x0C2
+        can_id: 0x0C1
         max_effort: 0.9
         reversed: true
       hall_sensor:
@@ -87,11 +87,11 @@ auger_right:
         topic_name: "/science/auger_right/hall_effect"
     hardware:
       actuation:
-        can_id: 0x0D1
+        can_id: 0x0D2
         max_effort: 1.0
         reversed: false
       drill:
-        can_id: 0x0C1
+        can_id: 0x0C2
         max_effort: 0.9
         reversed: true
       hall_sensor:
@@ -160,8 +160,8 @@ carousel_inner:
       carousel:
         zero_cmd_can_id: 0x0EB
         zero_cmd_can_msg: [0x01]
-        zero_rec_can_id: 0x4E9
-        zero_rec_can_msg: [0x01]
+        zero_rec_can_id: 0xFFD
+        zero_rec_can_msg: [0x10]
         zero_service: "/science/carousel_inner/trigger_zero"
         zero_increment_service: "/science/carousel_inner/increment_zero"
       servo:
@@ -189,8 +189,8 @@ carousel_outer:
       carousel:
         zero_cmd_can_id: 0x0EB
         zero_cmd_can_msg: [0x02]
-        zero_rec_can_id: 0x4E9
-        zero_rec_can_msg: [0x02]
+        zero_rec_can_id: 0xFFE
+        zero_rec_can_msg: [0x10]
         zero_service: "/science/carousel_outer/trigger_zero"
         zero_increment_service: "/science/carousel_outer/increment_zero"
       servo:
