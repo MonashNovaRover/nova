@@ -174,17 +174,16 @@ class GPSRover(Node):
         self.pub_pose.publish(self.pose)
         self.pub_pose_custom.publish(self.pose_custom)
 
-    def __exit__(self, exc_type, exc, tb):
-        self.ser.close()
-        self.get_logger().debug(f'Serial port closed!')
-
 
 def main (args = None):
     rclpy.init(args = args)
-    with GPSRover() as node:
+    try:
+        node = GPSRover()
         rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    finally:
+        node.ser.close()
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
