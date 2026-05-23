@@ -49,6 +49,19 @@ struct GridCell
   int x, y;
 };
 
+struct SearchResult
+{
+  GridCell cell;
+  bool found;
+  int search_radius;
+};
+
+struct TowardPoint
+{
+  Point point; // The point to which the original goal was pointed towards
+  PoseStamped goal; // The original goal
+};
+
 /**
  * @brief A nav2_behavior_tree::BtServiceNode class that removes goals that are in collision in on the global costmap, but only if the rover is within a specified distance.
  * @note It will re-initialize when halted.
@@ -104,9 +117,17 @@ public:
         BT::InputPort<Goals>("input_goals", "Original goals to remove if in collision"),
         BT::InputPort<std::string>("global_frame", "map", "Global reference frame"),
         BT::InputPort<std::string>("robot_base_frame", "base_link", "Robot base frame"),
-        // 254 = lethal, 253 = inscribed
-        BT::InputPort<double>("cost_threshold", 253.0, "Cost threshold for considering a goal in collision"),
+
+        // SnapInCollisionGoals stuff
+        BT::InputPort<bool>("snap_last", "If the last goal should never be removed and instead snapped"),
+        BT::InputPort<double>("max_snap_radius", 5.0, "Maximum radius (m) to snap goals to"),
+        BT::InputPort<double>("goals_offset", 1.5, "Approximate distance of offset when calculating toward point"),
+
+        // RemoveInCollisionGoals ports
+        // 255 = unknown, 254 = lethal, 253 = inscribed
+        BT::InputPort<double>("cost_threshold", 253.0, "Cost threshold for considering a goal in collision (exclusive)"),
         BT::OutputPort<Goals>("output_goals", "Goals with all in collision goals removed"),
+
       };
   }
 
@@ -115,7 +136,10 @@ private:
   bool is_goal_in_collision(const PoseStamped & goal);
   bool remove_goals();
   bool have_costmaps();
+  bool snap(Goal goal, Goals output_goals_);
   bool is_cell_free(const GridCell &global_cell);
+  bool is_area_free(const GridCell &center);
+  SearchResult find_nearest_free_cell(const Point &origin);
 
   rclcpp::Node::SharedPtr node_;
   std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> local_costmap_sub_;
@@ -124,13 +148,20 @@ private:
   std::shared_ptr<nav2_costmap_2d::Costmap2D> global_costmap_;
 
   std::string global_frame_, robot_base_frame_;
+  geometry_msgs::msg::PoseStamped goal_in_odom_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
+  Goals input_goals_;
   double transform_tolerance_;
   double cost_threshold_;
-  Goals input_goals_;
+
+  bool snap_last_;
+  double max_snap_radius_;
+  double goals_offset_;
+  double footprint_radius_;
 
   bool initialized_ = false;
   bool set_up_ = false;
+
 };
 
 }  // namespace nova_behavior_tree
