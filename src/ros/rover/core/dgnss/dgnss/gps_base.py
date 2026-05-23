@@ -90,14 +90,13 @@ class GPSBase(Node):
     def parse_message(self) -> None:
         """Read a single message from the unified reader and dispatch to appropriate handler."""
         try:
-            msg_raw, msg_parsed = self.reader.read()
+            for msg_raw, msg_parsed in self.reader:
+                self.process_message(msg_raw, msg_parsed)
         except Exception as e:
             self.get_logger().warn(f'❌ Failed to read message: {e}', throttle_duration_sec=2)
             return
 
-        if msg_parsed is None:
-            return
-
+    def process_message(self, msg_raw, msg_parsed) -> None:
         # Determine message type and dispatch
         msg_type = type(msg_parsed).__name__
 
@@ -108,6 +107,10 @@ class GPSBase(Node):
 
     def _handle_nmea(self, msg_raw: str, msg_parsed) -> None:
         """Handle NMEA messages."""
+        if msg_parsed is None:
+            self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!')
+            return
+
         self.pose.header.stamp = self.get_clock().now().to_msg()
 
         self.get_logger().debug(f'✅ NMEA message received!', throttle_duration_sec=2)
@@ -162,6 +165,10 @@ class GPSBase(Node):
         self.parse_message()
         self.pub_pose.publish(self.pose)
         self.pub_pose_custom.publish(self.pose_custom)
+
+    def __exit__(self, exc_type, exc, tb):
+        self.ser.close()
+        self.get_logger().debug(f'Serial port closed!')
 
         
 def main (args = None):
