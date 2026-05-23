@@ -169,13 +169,10 @@ class GPSBase(Node):
         
 def main (args = None):
     rclpy.init(args = args)
-    try:
-        node = GPSBase()
-        rclpy.spin(node)
-    finally:
-        node.ser.close()
-        node.destroy_node()
-        rclpy.shutdown()
+    node = GPSBase()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
     
 if __name__ == '__main__':
     main()
