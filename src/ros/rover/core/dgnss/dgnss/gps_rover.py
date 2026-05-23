@@ -59,7 +59,7 @@ class GPSRover(Node):
         ### Serial ###
         self.ser = Serial()
         self.config_port(self.port_name, self.baudrate)
-        self.reader_nmea = UNIReader(
+        self.reader = UNIReader(
             self.ser, 
             protfilter=NMEA_PROTOCOL,
         )
@@ -112,11 +112,13 @@ class GPSRover(Node):
         self.get_logger().debug(f'Parsing NMEA message...')
         self.pose.header.stamp = self.get_clock().now().to_msg()
         try:
-            _, msg_parsed = self.reader_nmea.read()
+            for _, msg_parsed in self.reader:
+                self.process_nmea(msg_parsed)
         except Exception as e:
             self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
             return
 
+    def process_nmea(self, msg_parsed: str):
         if msg_parsed is None:
             self.get_logger().warn(f'❌ Failed to read NMEA message: \'msg_parsed\' cannot be None!')
             return
@@ -172,10 +174,15 @@ class GPSRover(Node):
         self.pub_pose.publish(self.pose)
         self.pub_pose_custom.publish(self.pose_custom)
 
+    def __exit__(self, exc_type, exc, tb):
+        self.ser.close()
+        self.get_logger().debug(f'Serial port closed!')
+
+
 def main (args = None):
     rclpy.init(args = args)
-    node = GPSRover()
-    rclpy.spin(node)
+    with GPSRover() as node:
+        rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
 
