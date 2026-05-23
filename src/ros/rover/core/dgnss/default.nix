@@ -10,7 +10,6 @@
 , std-msgs
 , std-srvs
 , nova-interfaces
-, ublox-ubx-msgs
 , sensor-msgs
 }:
 
@@ -27,16 +26,13 @@ buildRosPackage {
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs std-msgs std-srvs nova-interfaces ];
   propagatedBuildInputs = with pythonPackages; [ 
-    pynmeagps 
-    pyrtcm 
-    pyubx2
+    pyunigps
     smbus2
     wmm-calculator
     pandas 
     folium 
     pymavlink
   ] ++ [ 
-    ublox-ubx-msgs
     sensor-msgs
     fabric
     nova-interfaces
