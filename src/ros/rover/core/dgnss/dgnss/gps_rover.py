@@ -177,13 +177,10 @@ class GPSRover(Node):
 
 def main (args = None):
     rclpy.init(args = args)
-    try:
-        node = GPSRover()
-        rclpy.spin(node)
-    finally:
-        node.ser.close()
-        node.destroy_node()
-        rclpy.shutdown()
+    node = GPSRover()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
