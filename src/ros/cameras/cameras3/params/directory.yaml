@@ -86,8 +86,10 @@ camera_directory:
           payload_4_1: science_gimbal_cam
           payload_4_3: science_cuvettes
           payload_4_4: science_boom
-          payload2_1: science_litmus
-          payload2_2: science_spectroscope
+          mast:
+            '2.1:1.0': science_litmus
+            '2.2:1.0': science_spectroscope
+            '2.3:1.0': science_cuvettes
 
         example:
           payload_2: science_kiln
