@@ -22,7 +22,7 @@ import {max, zip} from "lodash";
 import useDownload from "../../../hooks/useDownload.ts";
 import RamanLocalStorageSaveButton from "../RamanSpec/RamanLocalStorageSaveButton.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
-import {UVVisSpecStartStopButtons} from "./UVVisSpecStartStopButtons.tsx";
+//import {UVVisSpecStartStopButtons} from "./UVVisSpecStartStopButtons.tsx";
 import {useCarouselPosition} from "../CarouselWidget/CarouselPositionContext.tsx";
 import {getCuvetteName} from "../CarouselWidget/cuvetteName.ts";
 import {shouldApplyBlank} from "./chemicalConfig.ts";
