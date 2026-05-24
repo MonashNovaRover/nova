@@ -149,13 +149,14 @@ if __name__ == "__main__":
         .with_hardware("bme_multisensor", MultiSensorHardware,
                         can_id = 0x4F5,
                         interpret_data_list = [
-                            lambda x: float(x[0]) + (float(x[1]) / 100.0),
-                            lambda x: float(x[2]) + (float(x[3]) / 100.0),
-                            lambda x: float(x[4])
+                            lambda x: float(int.from_bytes(data[0:2]) / 100.0),
+                            lambda x: float(int.from_bytes(data[2:5]) / 1000.0),
+                            lambda x: 0.0,
+
                         ],
                         hardware_names = sensor_names,
                         hardware_units = sensor_units,
-                        initial_values = [0.0, 0.0, 0.0]) \
+                        initial_values = [0.0, 0.0]) \
         .with_hardware("bme_trigger", TriggerHardware,
                         can_id=0x0FE,
                         can_message=[]) \

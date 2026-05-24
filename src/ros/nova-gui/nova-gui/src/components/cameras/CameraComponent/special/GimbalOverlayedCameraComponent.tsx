@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from "react";
+import toast from "react-hot-toast";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
@@ -6,6 +7,8 @@ import { BaseCameraComponentProps } from "../CameraComponent.tsx";
 import { Input, Tooltip, Switch } from "@nextui-org/react";
 import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
 import { useToolRotatorKeyboard } from "../../../science/ToolRotatorWidget/useToolRotator.ts";
+
+const SCIMBAL_TOAST_ID = "scimbal-control";
 
 export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> = (props) => {
   // Default step size for incrementing angles
@@ -18,16 +21,30 @@ export const GimbalOverlayedCameraComponent: React.FC<BaseCameraComponentProps> 
   }, [step]);
 
   const serviceBifrost = useBifrost({ service: RosService.SCIMBAL_COMMAND });
-  const incrementTilt = useCallback((step: number) => serviceBifrost.callServiceToRedux({
-    angles: [step, 0]
-  }, {
-    responseToast: false
-  }), [serviceBifrost]);
-  const incrementPan = useCallback((step: number) => serviceBifrost.callServiceToRedux({
-    angles: [0, step],
-  }, {
-    responseToast: false
-  }), [serviceBifrost]);
+  const incrementTilt = useCallback(
+    (delta: number) =>
+      serviceBifrost.callServiceToRedux(
+        { angles: [delta, 0] },
+        {
+          responseToast: false,
+          handleResponse: () =>
+            toast.success(`Scimbal Cam moved ${delta > 0 ? "+" : ""}${delta}° tilt`, { id: SCIMBAL_TOAST_ID }),
+        }
+      ),
+    [serviceBifrost]
+  );
+  const incrementPan = useCallback(
+    (delta: number) =>
+      serviceBifrost.callServiceToRedux(
+        { angles: [0, delta] },
+        {
+          responseToast: false,
+          handleResponse: () =>
+            toast.success(`Scimbal Cam moved ${delta > 0 ? "+" : ""}${delta}° pan`, { id: SCIMBAL_TOAST_ID }),
+        }
+      ),
+    [serviceBifrost]
+  );
 
 
 

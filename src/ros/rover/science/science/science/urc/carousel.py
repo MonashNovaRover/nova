@@ -15,9 +15,8 @@ COMMAND INTERFACES:
   - carousel/position         (in degrees)
 STATE INTERFACES:
   - carousel/position         (in degrees)
-  - <name>/sensor_load        (load feedback)
-  - <name>/sensor_current     (current feedback)
   - <name>/zeroing            (zeroing in progress)
+  - <name>/is_moving          (carousel is moving)
   - hall_sensor/state         (hall effect sensor state)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
@@ -44,9 +43,8 @@ class CarouselController(Controller):
 
     # State interfaces
     position_state: Interface
-    load_state: Interface
-    current_state: Interface
     zeroing_state: Interface
+    is_moving_state: Interface
     hall_state: Interface
 
     def __init__(self, contexts: Contexts, hardware_name: str = "carousel"):
@@ -61,6 +59,7 @@ class CarouselController(Controller):
         # Set up params
         self.target_position = self.declare_parameter("initial_position", 0.0, "Initial position in degrees").value
         self.hardware_name = self.declare_parameter("hardware_name", hardware_name, "Name of the carousel hardware").value
+        self.zero_target_on_zeroing = self.declare_parameter("zero_target_on_zeroing", True, "Set target position to 0 when zeroing").value
 
         # Track last published message for change detection
         self.last_feedback: Optional[CarouselFeedback] = None
@@ -92,9 +91,8 @@ class CarouselController(Controller):
         # Save references to interfaces
         self.position_cmd = command_interfaces["carousel/position"]
         self.position_state = state_interfaces["carousel/position"]
-        self.load_state = state_interfaces[f"{self.hardware_name}/sensor_load"]
-        self.current_state = state_interfaces[f"{self.hardware_name}/sensor_current"]
         self.zeroing_state = state_interfaces[f"{self.hardware_name}/zeroing"]
+        self.is_moving_state = state_interfaces[f"{self.hardware_name}/is_moving"]
         self.hall_state = state_interfaces["hall_sensor/state"]
 
         return True
@@ -108,17 +106,20 @@ class CarouselController(Controller):
         # Set target position
         self.position_cmd.value = self.target_position
 
-        # Publish feedback if changed
+        if self.zero_target_on_zeroing and self.zeroing_state.value and self.target_position != 0:
+            self.target_position = 0
+            self.logger.info(f"{self.node.get_name()} is zeroing, set target position to 0°")
+
+    # Publish feedback if changed
         self.publish_if_changed()
 
     def publish_if_changed(self):
         """ Publish feedback message only if values have changed """
         msg = CarouselFeedback()
-        msg.position = float(self.position_state.value)
-        msg.load = float(self.load_state.value)
-        msg.current = float(self.current_state.value)
+        msg.position = float(self.target_position)
         msg.zeroing = bool(self.zeroing_state.value)
         msg.hall_effect_triggered = bool(self.hall_state.value)
+        msg.is_moving = bool(self.is_moving_state.value)
 
         # Check if message has changed
         if self.last_feedback is None or not self._feedback_equal(msg, self.last_feedback):
@@ -129,10 +130,9 @@ class CarouselController(Controller):
         """ Compare two feedback messages for equality """
         return (
             a.position == b.position and
-            a.load == b.load and
-            a.current == b.current and
             a.zeroing == b.zeroing and
-            a.hall_effect_triggered == b.hall_effect_triggered
+            a.hall_effect_triggered == b.hall_effect_triggered and
+            a.is_moving == b.is_moving
         )
 
     def set_position_callback(self, request: SetPosition.Request, response: SetPosition.Response):

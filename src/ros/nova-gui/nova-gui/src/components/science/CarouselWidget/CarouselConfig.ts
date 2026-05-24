@@ -116,8 +116,8 @@ export interface IndicatorDot {
 // Positions are cuvette numbers (1-indexed) as if 24 is at the top
 // targetCuvette specifies which cuvette to rotate to when clicked
 export const OUTER_INDICATOR_DOTS: IndicatorDot[] = [
-  { cuvette: 6,  color: Color.ORANGE, radius: 4, targetCuvette: 19 },
-  { cuvette: 13, color: Color.GRAY,   radius: 4, targetCuvette: 19 },
+  { cuvette: 6,  color: Color.ORANGE, radius: 4, targetCuvette: 1 },
+  { cuvette: 13, color: Color.GRAY,   radius: 4, targetCuvette: 1 },
 ];
 export const OUTER_INDICATOR_DOT_DISTANCE = 152;
 
@@ -125,8 +125,8 @@ export const OUTER_INDICATOR_DOT_DISTANCE = 152;
 // Positions are cuvette numbers (1-indexed) for 15-segment inner wheel
 // targetCuvette specifies which cuvette to rotate to when clicked
 export const INNER_INDICATOR_DOTS: IndicatorDot[] = [
-  { cuvette: 11, color: Color.GRAY,   radius: 4, targetCuvette: 8 },
-  { cuvette: 5, color: Color.ORANGE, radius: 4, targetCuvette: 8 },
+  { cuvette: 11, color: Color.GRAY,   radius: 4, targetCuvette: 13},
+  { cuvette: 5, color: Color.ORANGE, radius: 4, targetCuvette: 13 },
 ];
 export const INNER_INDICATOR_DOT_DISTANCE = 37;
 

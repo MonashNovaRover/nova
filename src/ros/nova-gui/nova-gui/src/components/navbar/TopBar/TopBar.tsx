@@ -16,6 +16,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 import { BifrostConnectionStatus } from "../../../redux/models/bifrost/BifrostTypes.ts";
+import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { Link, useLocation } from "react-router-dom";
 import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton.tsx";
@@ -44,6 +46,7 @@ const prettyViewNames = new Map<string, string>([
 
 export const NovaTopBar: React.FC = () => {
   const uiActions = useUIActions();
+  const bifrostActions = useBifrost({ topic: RosTopic.NULL_TOPIC });
 
   const uiState = useSelector((state: RootState) => state.uiState);
 
@@ -106,10 +109,16 @@ export const NovaTopBar: React.FC = () => {
                 {bifrostStatus.toString()}
               </Button>
             </DropdownTrigger>
-            <DropdownMenu aria-label="ROS Connection">
-              <DropdownItem key={"shut-down"}>Shut Down</DropdownItem>
-              <DropdownItem key={"restart"}>Restart</DropdownItem>
-              <DropdownItem key={"disconnect"}>Disconnect</DropdownItem>
+            <DropdownMenu
+              aria-label="ROS Connection"
+              onAction={(key) => {
+                if (key === "reconnect") {
+                  bifrostActions.updateBifrostConnection(BifrostConnectionStatus.DISCONNECTED);
+                }
+              }}
+            >
+              <DropdownItem key="reconnect">Reconnect</DropdownItem>
+              <DropdownItem key="disconnect">Disconnect</DropdownItem>
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>

@@ -89,11 +89,11 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
   const displayData = (absorbanceData && showBlank) ? absorbanceData : luminance;
   const isShowingAbsorbance = absorbanceData !== null && showBlank;
 
-  const [peak1Wavelength, peak1WavelengthString, setPeak1Wavelength] = useNumberField("UVVisSpec-peak1Wavelength", 436);
-  const [peak1X, peak1XString, setPeak1X] = useNumberField("UVVisSpec-peak1X", 0.486);
+  const [peak1Wavelength, peak1WavelengthString, setPeak1Wavelength] = useNumberField("UVVisSpec-peak1Wavelength", 545);
+  const [peak1X, peak1XString, setPeak1X] = useNumberField("UVVisSpec-peak1X", 0.523);
 
-  const [peak2Wavelength, peak2WavelengthString, setPeak2Wavelength] = useNumberField("UVVisSpec-peak2Wavelength", 604);
-  const [peak2X, peak2XString, setPeak2X] = useNumberField("UVVisSpec-peak2X", 0.643);
+  const [peak2Wavelength, peak2WavelengthString, setPeak2Wavelength] = useNumberField("UVVisSpec-peak2Wavelength", 611);
+  const [peak2X, peak2XString, setPeak2X] = useNumberField("UVVisSpec-peak2X", 0.720);
 
   const [mousePoint, setMousePoint] = useState<[number, number]>([0, 0]);
 
