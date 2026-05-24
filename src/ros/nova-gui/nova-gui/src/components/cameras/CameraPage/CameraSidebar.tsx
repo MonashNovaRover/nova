@@ -9,9 +9,10 @@ import { useSelector } from "react-redux";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { RootState } from "../../../redux/RootState.ts";
-import {ProfileOption, SerialPreset} from "../../../views/shared/CamerasPage/CameraProfileConstants.ts";
+import {ProfileOption} from "../../../views/shared/CamerasPage/CameraProfileConstants.ts";
 import {CameraProfileSelector} from "./CameraProfileSelector.tsx";
 import {SerialPresetControls} from "./SerialPresetControls.tsx";
+import { SerialPreset } from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 
 interface CameraSidebarProps {
   refreshAvailabilities: () => void;

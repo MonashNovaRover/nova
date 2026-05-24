@@ -153,6 +153,13 @@ const urcScienceSerialPresets: SerialPreset[] = [
     ],
   },
   {
+    displayName: "Analysis Cams",
+    serials: [
+      CameraSerials.SCIENCE_MICROSCOPE,
+      CameraSerials.SCIENCE_GIMBAL,
+    ],
+  },
+  {
     displayName: "Internal Cams",
     serials: [
       CameraSerials.URC_SCIENCE_CUVETTE,

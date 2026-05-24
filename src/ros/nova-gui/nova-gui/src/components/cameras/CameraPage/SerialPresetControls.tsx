@@ -1,6 +1,6 @@
 import {Button} from "@nextui-org/react";
 import {Pause, Play, Square} from "react-feather";
-import {SerialPreset} from "../../../views/shared/CamerasPage/CameraProfileConstants.ts";
+import {SerialPreset} from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 
 interface SerialPresetControlsProps {
   presets: SerialPreset[];
