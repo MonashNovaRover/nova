@@ -11,7 +11,8 @@ import { RootState } from "../../../redux/RootState.ts";
 import {Database, MoreHorizontal, Square, Zap} from "react-feather";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import PumpsModal from "./PumpsModal.tsx";
-import {Radioactive, RecordCircle, RecordCircleFill} from "react-bootstrap-icons";
+import {RecordCircle, RecordCircleFill} from "react-bootstrap-icons";
+import { usePumpMlTiming } from "./usePumpMlTiming.ts";
 
 export interface PumpsWidgetProps extends CardProps {}
 
@@ -54,22 +55,10 @@ export const PUMPS: PumpData[] = [
     rightIcon: <RecordCircleFill className="w-20" size={24}/>,
   },
   {
-    display: "→ Electrochem (Prime)",
-    value: "shot_to_electrochem_pump/prime",
-    leftIcon: <Database className="w-20"/>,
-    rightIcon: <Zap className="w-20"/>,
-  },
-  {
-    display: "→ Electrochem",
+    display: "→ Potentiostat",
     value: "shot_to_electrochem_pump",
     leftIcon: <Database className="w-20"/>,
     rightIcon: <Zap/>,
-  },
-  {
-    display: "→ Sulphuric Acid",
-    value: "fill_sulphuric_acid",
-    leftIcon: <Radioactive className="w-20" size={24}/>,
-    rightIcon: <RecordCircleFill className="w-20" size={24}/>,
   },
 ];
 
@@ -86,9 +75,20 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
 
   const pumpStatus = useSelector((state: RootState) => state.pumpsStatusStore);
 
+  // ML-based timing for non-prime ring pumps
+  const mlTiming = usePumpMlTiming(selectedPump.value);
+
   useEffect(() => {
     bifrostStatus.syncWithTopic();
   }, [bifrostStatus]);
+
+  // Auto-fill duration for non-prime ring pumps when carousel position changes
+  useEffect(() => {
+    if (mlTiming.usesMlTiming && mlTiming.calculatedDuration !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDuration(mlTiming.calculatedDuration.toFixed(2));
+    }
+  }, [mlTiming.calculatedDuration, mlTiming.usesMlTiming]);
 
   // Prefill duration when pump selection changes
   const onSelectedPumpChange = useCallback((keys: SharedSelection) => {

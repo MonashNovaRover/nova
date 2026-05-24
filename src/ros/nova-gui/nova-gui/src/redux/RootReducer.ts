@@ -432,14 +432,14 @@ export const reduxStores = {
   toolRotatorTwitchStep: createGenericStore("toolRotatorTwitchStep", 5.0),
   toolRotatorKeyboardControl: createGenericStore("toolRotatorKeyboardControl", false),
   pumpDefaultDurations: createGenericStore("pumpDefaultDurations", {
-    fill_shots: 10,
-    fill_cuvettes_prime: 10,
-    fill_cuvettes: 10,
-    flush_shots: 10,
-    flush_cuvettes: 10,
-    flush_all: 10,
-    empty_shots: 10,
-    empty_cuvettes: 10,
+    // Default durations for each pump (seconds)
+    cache_to_shot_pump: 80,
+    "shot_to_inner_pump/prime": 10,
+    "shot_to_outer_pump/prime": 13,
+    shot_to_electrochem_pump: 10,
+    // Time per ml values for ring pumps (used in ml-based timing calculation)
+    timePerMlInner: 1.9,
+    timePerMlOuter: 1.9,
   }),
   litmusDipperDefaultDuration: createGenericStore("litmusDipperDefaultDuration", 2),
   litmusDipperTwitchStep: createGenericStore("litmusDipperTwitchStep", 5.0),
