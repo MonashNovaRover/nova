@@ -7,6 +7,7 @@
 , rclpy
 , geometry-msgs
 , nav-msgs
+, sensor-msgs
 , trajectory-msgs
 , nova-science-interfaces
 , nova-input-interfaces
@@ -28,7 +29,7 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
 
-  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs ];
+  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs sensor-msgs];
 
   propagatedBuildInputs = with pythonPackages; [
     jcan
@@ -38,6 +39,7 @@ buildRosPackage {
     opencv4
     pyserial
     python3Packages.minimalmodbus
+    python3Packages.numpy
   ] ++
   [
     nova-python-control

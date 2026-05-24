@@ -10,7 +10,7 @@ and publishes it for use by other nodes.
 The node also provides services to start and stop the camera feed.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 PACKAGE:     science
-AUTHOR(S):   Josh Leivenzon, Bailey Chessum, Felicity Matthews
+AUTHOR(S):   Josh Leivenzon, Bailey Chessum, Felicity Matthews, Anthony Lew
 CREATION:    25/05/2024
 EDITED:      24/05/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -19,15 +19,18 @@ import typing
 
 import camera_msgs.msg
 import rclpy
-from camera_msgs.msg import Camera, Cameras
+from sensor_msgs.msg import Image
 from rclpy import qos
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 import cv2
 import math
+import numpy as np
 from typing import List
 from science_interfaces.msg import UVVisSpecData
 from std_srvs.srv import Trigger
 
+IMAGE_TOPIC = '/science/spectroscope'
 
 def rgb_to_luminance(rgb: [int, int, int]) -> float: # type: ignore
     """ Converts a 3 colour channel pixel value to a single luminance value. The max value for an RBG array element
@@ -59,142 +62,34 @@ class UVVisSpecPublisher(Node):
         # Specifies the size of the range of pixels to vertically average to get a reading
         self.__range = self.declare_parameter("range", 0.1)
         # The period at which the camera is sampled
-        self.declare_parameter("period", 0.05)
+        timer_period = self.declare_parameter("period", 0.05).get_parameter_value().double_value
 
         # Defines the range of columns to use
         self.__col_start = self.declare_parameter("col_start", 0.425)
         self.__col_end = self.declare_parameter("col_end", 0.7)
 
-        # Try get the camera
-        self.__timer = None
-        self.camera = None
-        self.__is_running = False
-        self.__camera_node = None  # Will be set when camera is discovered
+        self.image = None
+        self.__timer = self.create_timer(timer_period, self.__get_image)
+        self.image_sub = self.create_subscription(Image, IMAGE_TOPIC, self.__image_callback, qos_profile=qos_profile_sensor_data)
 
-        self.get_logger().info("Waiting for camera directory service...")
-        self.__camera_list_subscription = self.create_subscription(
-            camera_msgs.msg.Cameras,
-            "camera_directory/cameras",
-            self.__begin,
-            qos.QoSProfile(
-                history=qos.HistoryPolicy.KEEP_LAST,
-                depth=1,
-                reliability=qos.ReliabilityPolicy.RELIABLE,
-                durability=qos.DurabilityPolicy.TRANSIENT_LOCAL,
-            ),
-        )
+    def __image_callback(self, msg: Image):
+        self.image = msg
 
-        # Create stop/start services
-        self.stop_service = self.create_service(Trigger, "/science/uv_vis_spec/stop", self.__stop_callback)
-        self.start_service = self.create_service(Trigger, "/science/uv_vis_spec/start", self.__start_callback)
-
-    def __begin(self, cameras: Cameras):
-        """Callback when camera directory is received. Finds and initializes the spectroscope camera."""
-        # Don't restart if camera is already running or was intentionally stopped
-        if self.camera or (self.__camera_node and not self.__is_running):
-            return
-
-        camera_node = next((typing.cast(Camera, camera).node for camera in cameras.cameras if
-                            typing.cast(Camera, camera).serial == "science_spectroscope"), None)
-        if camera_node:
-            self.get_logger().info(f"uv_vis camera found at {camera_node}.")
-        else:
-            self.get_logger().warn("No uv_vis camera was found. UV Vis Spec. not running.")
-            return
-
-        # Store the camera_node for later use by start service
-        self.__camera_node = camera_node
-
-        # Open camera and start capture using helper method
-        if self.__start_camera_capture():
-            self.get_logger().info("Beginning UV Vis Spec.")
-            self.__is_running = True
-        else:
-            self.get_logger().error("Failed to start UV Vis Spec camera")
-
-    def __start_camera_capture(self) -> bool:
-        """
-        Opens the camera and starts the capture timer.
-        Assumes self.__camera_node has been set.
-        Returns True if successful, False otherwise.
-        """
-        if not self.__camera_node:
-            self.get_logger().error("No camera node available")
-            return False
-
+    def __msg_to_mat(self, logger, img, encoding) -> np.ndarray:
+        """Converts Image msg to cv2 frame"""
+        mat = None
         try:
-            # Open camera (same logic from __begin)
-            self.camera = cv2.VideoCapture(int(self.__camera_node.removeprefix("/dev/video")))
-            self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-            # Start the timer for frame capture
-            self.__timer = self.create_timer(
-                float(self.get_parameter("period").value),
-                self.__get_image
-            )
-
-            return True
+            mat = np.frombuffer(img.data, dtype=np.uint8).reshape(img.height, img.width, -1)
         except Exception as e:
-            self.get_logger().error(f"Failed to start camera: {e}")
-            return False
-
-    def __stop_callback(self, request: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
-        """Service callback to stop the camera feed and release the camera."""
-        if not self.__is_running:
-            self.get_logger().warn("Stop service called but camera is already stopped")
-            response.success = False
-            response.message = "UV Vis Spec camera is already stopped"
-            return response
-
-        # Stop the timer
-        if self.__timer:
-            self.__timer.cancel()
-            self.__timer = None
-
-        # Release the camera
-        if self.camera:
-            self.camera.release()
-            self.camera = None
-
-        self.__is_running = False
-        self.get_logger().info("UV Vis Spec camera stopped and released")
-
-        response.success = True
-        response.message = "Camera stopped successfully"
-        return response
-
-    def __start_callback(self, request: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
-        """Service callback to restart the camera feed."""
-        if self.__is_running:
-            self.get_logger().warn("Start service called but camera is already running")
-            response.success = False
-            response.message = "UV Vis Spec camera is already running"
-            return response
-
-        # Reuse the camera opening logic
-        if self.__start_camera_capture():
-            self.__is_running = True
-            self.get_logger().info("UV Vis Spec camera restarted")
-            response.success = True
-            response.message = "Camera started successfully"
-        else:
-            self.get_logger().error("Start service failed to open camera")
-            response.success = False
-            response.message = "Failed to open camera"
-
-        return response
+            logger.error(str(e))
+        return mat
 
     def __get_image(self):
         """Capture a frame from the camera, extract luminance data, and publish it."""
-        # Safety check: only proceed if camera is running
-        if not self.__is_running or not self.camera:
-            return
-
-        self.camera.grab()
-        success, video_frame = self.camera.read()
+        video_frame = self.__msg_to_mat(self.get_logger(), self.image, 'bgr8')
 
         # Ensure the video was successfully retrieved
-        if not success or len(video_frame) == 0:
+        if video_frame is None or len(video_frame) == 0:
             self.get_logger().warn("UV Vis Spec failed to get frame from camera.")
             return
 
@@ -238,10 +133,6 @@ class UVVisSpecPublisher(Node):
 
         # Publish to the topic
         self.publisher.publish(msg)
-
-    def __del__(self):
-        """Destructor to release the camera when the node is destroyed."""
-        self.camera.release()
 
 
 # The main code that executes when starting
