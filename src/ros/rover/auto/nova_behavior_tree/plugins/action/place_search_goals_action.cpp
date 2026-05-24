@@ -81,7 +81,7 @@ namespace nova_behavior_tree
 
     for (int i = search_corners_/2; i < points; ++i)
     {
-      double angle = ((2*pi) / search_corners_) * (i % search_corners_) - pi/2;
+      double angle = ((2*pi) / search_corners_) * (i % search_corners_) - (3 * pi/4);
       double dist = (static_cast<double>(i) / search_corners_) * search_spacing_;
 
       place_goal(centre_goal, angle, dist);
