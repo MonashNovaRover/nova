@@ -94,25 +94,36 @@ export const ML_BASED_PUMPS = ["shot_to_inner_pump", "shot_to_outer_pump"];
 
 /**
  * Pump position offsets from the "top" cuvette position.
- * The pump physically dispenses to the cuvette at this offset.
+ * Each ring has two pump outlets at different positions.
  * Based on indicator dot positions in CarouselConfig.ts:
- * - Inner pump at cuvette position 5 (1-indexed) → offset 4 (0-indexed)
- * - Outer pump at cuvette position 6 (1-indexed) → offset 5 (0-indexed)
+ * - Inner pump outlets at offsets 5 and 6
+ * - Outer pump outlets at offsets 6 and 7
  */
-export const INNER_PUMP_OFFSET = 5;  // Pump at position 5
-export const OUTER_PUMP_OFFSET = 6;  // Pump at position 6
+export const INNER_PUMP_OFFSETS = [5, 11];
+export const OUTER_PUMP_OFFSETS = [6, 13];
 export const INNER_RING_SIZE = 15;
 export const OUTER_RING_SIZE = 24;
 
 /**
- * Calculate which cuvette is at the pump position given the current top cuvette
+ * Calculate which cuvette is at the first pump position given the current top cuvette
  */
 export function getInnerPumpCuvette(topCuvette: number): number {
-  return (topCuvette + INNER_PUMP_OFFSET) % INNER_RING_SIZE;
+  return (topCuvette + INNER_PUMP_OFFSETS[0]) % INNER_RING_SIZE;
 }
 
 export function getOuterPumpCuvette(topCuvette: number): number {
-  return (topCuvette + OUTER_PUMP_OFFSET) % OUTER_RING_SIZE;
+  return (topCuvette + OUTER_PUMP_OFFSETS[0]) % OUTER_RING_SIZE;
+}
+
+/**
+ * Calculate which cuvettes are at both pump positions given the current top cuvette
+ */
+export function getInnerPumpCuvettes(topCuvette: number): number[] {
+  return INNER_PUMP_OFFSETS.map(offset => (topCuvette + offset) % INNER_RING_SIZE);
+}
+
+export function getOuterPumpCuvettes(topCuvette: number): number[] {
+  return OUTER_PUMP_OFFSETS.map(offset => (topCuvette + offset) % OUTER_RING_SIZE);
 }
 
 /**

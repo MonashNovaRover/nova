@@ -18,11 +18,18 @@ export interface WheelConfig {
   onClick: (index: number) => void;
 }
 
+export interface PumpedCuvettes {
+  inner: number[];
+  outer: number[];
+}
+
 export interface CarouselDialProps {
   outer?: WheelConfig;
   inner?: WheelConfig;
   /** @deprecated Use outer.current instead */
   cuvette?: number;
+  /** Cuvettes that have been pumped into (will be displayed darker) */
+  pumpedCuvettes?: PumpedCuvettes;
 }
 
 // Constants
@@ -91,15 +98,42 @@ function getTextPosition(index: number, totalSegments: number, radius: number) {
   };
 }
 
+/**
+ * Darken a hex color by a given factor
+ * @param hex Hex color string (supports #RRGGBB and #RRGGBBAA formats)
+ * @param factor Factor to darken by (0-1, where 0.6 means 60% of original brightness)
+ */
+function darkenColor(hex: string, factor: number = 0.6): string {
+  // Parse hex (handles both #RRGGBB and #RRGGBBAA formats)
+  const hasAlpha = hex.length > 7;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const alpha = hasAlpha ? hex.slice(7) : '';
+
+  // Darken by multiplying by factor
+  const dr = Math.round(r * factor);
+  const dg = Math.round(g * factor);
+  const db = Math.round(b * factor);
+
+  return `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}${alpha}`;
+}
+
 function getSegmentColor(
   index: number,
   wheelId: 'inner' | 'outer',
-  isHovered: boolean
+  isHovered: boolean,
+  pumpedCuvettes?: PumpedCuvettes
 ): string {
   if (isHovered) return COLORS.hover;
 
   const colorArray = wheelId === 'outer' ? OUTER_CUVETTE_COLORS : INNER_CUVETTE_COLORS;
-  return colorArray[index] ?? COLORS.hover;
+  const baseColor = colorArray[index] ?? COLORS.hover;
+
+  // Check if this cuvette has been pumped
+  const isPumped = pumpedCuvettes?.[wheelId]?.includes(index);
+
+  return isPumped ? darkenColor(baseColor) : baseColor;
 }
 
 // Create arc path for a group border (inset from outer edge)
@@ -156,6 +190,7 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
   outer,
   inner,
   cuvette,
+  pumpedCuvettes,
 }) => {
   const [hoveredSegment, setHoveredSegment] = useState<{ wheel: 'inner' | 'outer'; index: number } | null>(null);
 
@@ -212,7 +247,7 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
 
     return Array.from({ length: count }).map((_, i) => {
       const isHovered = hoveredSegment?.wheel === wheelId && hoveredSegment?.index === i;
-      const fillColor = getSegmentColor(i, wheelId, isHovered);
+      const fillColor = getSegmentColor(i, wheelId, isHovered, pumpedCuvettes);
 
       const path = createWedgePath(i, count, outerR, innerR);
       const textPos = getTextPosition(i, count, textRadius);

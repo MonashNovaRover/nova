@@ -2,7 +2,7 @@ import {
   Button, Card, CardBody, CardHeader, CardProps, Input, Progress, Select, SelectItem,
   SharedSelection, useDisclosure
 } from "@nextui-org/react";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
@@ -13,6 +13,9 @@ import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import PumpsModal from "./PumpsModal.tsx";
 import {RecordCircle, RecordCircleFill} from "react-bootstrap-icons";
 import { usePumpMlTiming } from "./usePumpMlTiming.ts";
+import { useCarouselPosition } from "../CarouselWidget/CarouselPositionContext.tsx";
+import { getInnerPumpCuvettes, getOuterPumpCuvettes } from "./pumpChemicalConfig.ts";
+import { PumpedCuvettes } from "../CarouselWidget/CarouselDial.tsx";
 
 export interface PumpsWidgetProps extends CardProps {}
 
@@ -77,6 +80,47 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
 
   // ML-based timing for non-prime ring pumps
   const mlTiming = usePumpMlTiming(selectedPump.value);
+
+  // Track pumped cuvettes
+  const carouselPosition = useCarouselPosition();
+  const [pumpedCuvettes, setPumpedCuvettes] = useGenericStore<PumpedCuvettes>("pumpedCuvettes");
+  const prevRunningRef = useRef(pumpStatus.running);
+  const lastPumpedRingRef = useRef<"inner" | "outer" | undefined>(undefined);
+
+  // Store the ring when pump starts running
+  useEffect(() => {
+    if (pumpStatus.running && !prevRunningRef.current) {
+      // Pump just started - remember which ring we're pumping to
+      lastPumpedRingRef.current = mlTiming.ring;
+    }
+  }, [pumpStatus.running, mlTiming.ring]);
+
+  // Detect pump completion and mark cuvettes as pumped (both pump outlets)
+  useEffect(() => {
+    // Detect pump completion (was running, now stopped)
+    if (prevRunningRef.current && !pumpStatus.running) {
+      const ringThatWasPumped = lastPumpedRingRef.current;
+      // Only track for ml-based ring pumps (inner/outer non-prime)
+      if (ringThatWasPumped && carouselPosition) {
+        const positions = ringThatWasPumped === "inner"
+          ? getInnerPumpCuvettes(carouselPosition.innerCuvette)
+          : getOuterPumpCuvettes(carouselPosition.outerCuvette);
+
+        // Add positions to pumped set if not already there
+        const currentSet = pumpedCuvettes[ringThatWasPumped];
+        const newPositions = positions.filter(pos => !currentSet.includes(pos));
+
+        if (newPositions.length > 0) {
+          setPumpedCuvettes({
+            ...pumpedCuvettes,
+            [ringThatWasPumped]: [...currentSet, ...newPositions]
+          });
+        }
+      }
+      lastPumpedRingRef.current = undefined;
+    }
+    prevRunningRef.current = pumpStatus.running;
+  }, [pumpStatus.running, carouselPosition, pumpedCuvettes, setPumpedCuvettes]);
 
   useEffect(() => {
     bifrostStatus.syncWithTopic();

@@ -1,8 +1,8 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {Button, Card, CardBody, CardHeader, CardProps, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger
 } from "@nextui-org/react";
-import {Check, MoreHorizontal} from "react-feather";
-import CarouselDial from "./CarouselDial.tsx";
+import {Check, MoreHorizontal, Trash2} from "react-feather";
+import CarouselDial, {PumpedCuvettes} from "./CarouselDial.tsx";
 import CarouselControls from "./CarouselControls.tsx";
 import {
   useCarouselFeedback,
@@ -12,6 +12,7 @@ import {
 } from "./useCarouselBifrost.ts";
 import {CarouselHallEffects} from "./CarouselHallEffects.tsx";
 import {useCarouselPosition} from "./CarouselPositionContext.tsx";
+import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 export enum RING {
   INNER = 0,
@@ -57,6 +58,15 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
   const [useManualPosition, setUseManualPosition] = useState(true);
   const [manualPositions, setManualPositions] = useState<CuvettePositions>([0, 0]); // Current Degrees
   const [ignoreZeroingStatus, setIgnoreZeroingStatus] = useState(true);
+
+  // Track which cuvettes have been pumped into
+  const [pumpedCuvettes, setPumpedCuvettes] = useGenericStore<PumpedCuvettes>("pumpedCuvettes");
+
+  const clearPumpedStatus = () => {
+    setPumpedCuvettes({ inner: [], outer: [] });
+  };
+
+  const hasPumpedCuvettes = pumpedCuvettes.inner.length > 0 || pumpedCuvettes.outer.length > 0;
 
   // Context for sharing position with other components (e.g., UVVisSpec for graph naming)
   const carouselContext = useCarouselPosition();
@@ -106,33 +116,44 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
       {/*  {isZeroing && <Spinner size="sm" color="warning" />}*/}
       {/*  {isZeroing && <span className="text-warning text-sm">Zeroing...</span>}*/}
       {/*</div>*/}
-      <Dropdown className="m-0">
-        <DropdownTrigger>
-          <Button
-            variant="light"
-            isIconOnly
-            className="m-0"
-          >
-            <MoreHorizontal />
-          </Button>
-        </DropdownTrigger>
-        <DropdownMenu aria-label="Carousel Options">
-          <DropdownItem
-            key="manual"
-            startContent={useManualPosition ? <Check /> : <></>}
-            onPress={() => setUseManualPosition(!useManualPosition)}
-          >
-            Use Manual Position
-          </DropdownItem>
-          <DropdownItem
-            key="ignoreZeroing"
-            startContent={ignoreZeroingStatus ? <Check /> : <></>}
-            onPress={() => setIgnoreZeroingStatus(!ignoreZeroingStatus)}
-          >
-            Ignore Zeroing Status
-          </DropdownItem>
-        </DropdownMenu>
-      </Dropdown>
+      <div className="flex flex-row items-center gap-1">
+        <Button
+          size="sm"
+          variant="light"
+          onPress={clearPumpedStatus}
+          isDisabled={!hasPumpedCuvettes}
+          startContent={<Trash2 size={16} />}
+        >
+          Clear Filled
+        </Button>
+        <Dropdown className="m-0">
+          <DropdownTrigger>
+            <Button
+              variant="light"
+              isIconOnly
+              className="m-0"
+            >
+              <MoreHorizontal />
+            </Button>
+          </DropdownTrigger>
+          <DropdownMenu aria-label="Carousel Options">
+            <DropdownItem
+              key="manual"
+              startContent={useManualPosition ? <Check /> : <></>}
+              onPress={() => setUseManualPosition(!useManualPosition)}
+            >
+              Use Manual Position
+            </DropdownItem>
+            <DropdownItem
+              key="ignoreZeroing"
+              startContent={ignoreZeroingStatus ? <Check /> : <></>}
+              onPress={() => setIgnoreZeroingStatus(!ignoreZeroingStatus)}
+            >
+              Ignore Zeroing Status
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
+      </div>
     </CardHeader>
     <CardBody className="flex flex-col gap-3">
       <div className="grid grid-cols-2 w-full gap-3">
@@ -163,6 +184,7 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
         <CarouselDial
           inner={{current: currentCuvettes[RING.INNER], onClick: onCuvetteClick(RING.INNER)}}
           outer={{current: currentCuvettes[RING.OUTER], onClick: onCuvetteClick(RING.OUTER)}}
+          pumpedCuvettes={pumpedCuvettes}
         />
         <CarouselControls
           moveXCuvettes={moveXCuvettes(RING.OUTER)}

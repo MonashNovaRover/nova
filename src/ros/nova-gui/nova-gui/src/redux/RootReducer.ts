@@ -445,6 +445,10 @@ export const reduxStores = {
   litmusDipperTwitchStep: createGenericStore("litmusDipperTwitchStep", 5.0),
   cacheLeftTwitchStep: createGenericStore("cacheLeftTwitchStep", 5.0),
   cacheRightTwitchStep: createGenericStore("cacheRightTwitchStep", 5.0),
+  pumpedCuvettes: createGenericStore("pumpedCuvettes", {
+    inner: [] as number[],  // Array of 0-indexed cuvette positions that have been pumped
+    outer: [] as number[],  // Array of 0-indexed cuvette positions that have been pumped
+  }),
 };
 
 // all store reducers
