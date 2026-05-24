@@ -51,6 +51,7 @@ export enum RosTopic {
   CAROUSEL_OUTER_FEEDBACK = "/science/carousel_outer/feedback",
   LITMUS_DIPPER_STATUS = "/science/litmus_dipper/status",
   POTENTIOSTAT_DATA = "/science/potentiostat/data",
+  LED_STATUS = "/science/leds/status",
 
   // Mapping Related Topics
   ROVER_LOCATION = "/gps_rover/fix_custom",

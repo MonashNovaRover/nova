@@ -65,11 +65,11 @@ auger_left:
         topic_name: "/science/auger_left/hall_effect"
     hardware:
       actuation:
-        can_id: 0x0D2
+        can_id: 0x0D1
         max_effort: 1.0
         reversed: false
       drill:
-        can_id: 0x0C2
+        can_id: 0x0C1
         max_effort: 0.9
         reversed: true
       hall_sensor:
@@ -87,11 +87,11 @@ auger_right:
         topic_name: "/science/auger_right/hall_effect"
     hardware:
       actuation:
-        can_id: 0x0D1
+        can_id: 0x0D2
         max_effort: 1.0
         reversed: false
       drill:
-        can_id: 0x0C1
+        can_id: 0x0C2
         max_effort: 0.9
         reversed: true
       hall_sensor:
@@ -156,12 +156,15 @@ carousel_inner:
       controller:
         initial_position: 0.0
         hardware_name: "carousel"
+        zero_target_on_zeroing: false
     hardware:
       carousel:
         zero_cmd_can_id: 0x0EB
         zero_cmd_can_msg: [0x01]
-        zero_rec_can_id: 0xFFD
-        zero_rec_can_msg: [0x10]
+        zero_rec_can_id: 0x4E9
+        zero_rec_done_byte: 0x01
+        is_moving_can_id: 0x4E7
+        is_moving_id_byte: 0x01
         zero_service: "/science/carousel_inner/trigger_zero"
         zero_increment_service: "/science/carousel_inner/increment_zero"
       servo:
@@ -170,9 +173,6 @@ carousel_inner:
       carousel_position_sensor:
         can_id: 0xFFB
         function_id: 0x01
-      carousel_load_current_sensor:
-        can_id: 0xFFA
-        function_id: 0x02
       hall_sensor:
         can_id: 0x4E4
         can_data_position: 0
@@ -185,12 +185,15 @@ carousel_outer:
       controller:
         initial_position: 0.0
         hardware_name: "carousel"
+        zero_target_on_zeroing: false
     hardware:
       carousel:
         zero_cmd_can_id: 0x0EB
         zero_cmd_can_msg: [0x02]
-        zero_rec_can_id: 0xFFE
-        zero_rec_can_msg: [0x10]
+        zero_rec_can_id: 0x4E9
+        zero_rec_done_byte: 0x02
+        is_moving_can_id: 0x4E7
+        is_moving_id_byte: 0x02
         zero_service: "/science/carousel_outer/trigger_zero"
         zero_increment_service: "/science/carousel_outer/increment_zero"
       servo:
@@ -199,9 +202,6 @@ carousel_outer:
       carousel_position_sensor:
         can_id: 0xFFD
         function_id: 0x01
-      carousel_load_current_sensor:
-        can_id: 0xFFF
-        function_id: 0x02
       hall_sensor:
         can_id: 0x4E4
         can_data_position: 1
@@ -213,10 +213,10 @@ litmus_dipper:
     controllers:
       controller:
         hardware_name: "dipper"
-        min_angle: 0.0
+        min_angle: 30.0
         max_angle: 65.0
-        initial_angle: 0.0
-        raised_pos: 0.0
+        initial_angle: 30.0
+        raised_pos: 30.0
         lowered_pos: 65.0
         twitch_service: "/science/litmus_dipper/twitch"
     hardware:

@@ -43,7 +43,7 @@ const CarouselControls: React.FC<CarouselDialProps> = ({moveXCuvettes, calibrate
 
   const cuvetteControls = (
     <div className="flex flex-row justify-center gap-3 place-self-center items-center">
-      <Button isIconOnly isDisabled={disabled} size="lg"
+      <Button isIconOnly isDisabled={disabled} size="lg" color="primary"
               onPressStart={() => moveXCuvettes(-1 * reverseNum)}><ChevronLeft/></Button>
       {circleIcon}
       <Button isIconOnly isDisabled={disabled} size="lg"

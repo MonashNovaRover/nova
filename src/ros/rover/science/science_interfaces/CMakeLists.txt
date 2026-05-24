@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EffortStatus.msg"
   "msg/ThermalData.msg"
   "msg/MicroscopeServoInfo.msg"
+  "msg/NamedBools.msg"
   "msg/NamedPositions.msg"
   "msg/NIRProbeData.msg"
   "msg/PumpStatus.msg"

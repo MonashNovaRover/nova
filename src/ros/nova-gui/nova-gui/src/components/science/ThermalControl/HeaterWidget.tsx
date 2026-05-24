@@ -38,7 +38,7 @@ const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
   return <Card {...props}>
     <CardHeader className="pb-0">Temperature Sensors</CardHeader>
     <CardBody>
-      <SensorDataDisplay values={tempReadings.temp} labels={["Heater", "Dirt"]} suffixes={["°C", "°C"]}/>
+      <SensorDataDisplay values={tempReadings.temp.slice(0,1)} labels={["Heater"]} suffixes={["°C"]}/>
     </CardBody>
     <div className="mx-3 my-1">
       <Divider/>
