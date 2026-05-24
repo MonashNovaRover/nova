@@ -124,6 +124,7 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
   std::unordered_map<std::string, std::unique_ptr<Pipeline>> pipelines;
+  std::set<std::string> camera_set;
   const std::unordered_set<std::string> profiles = {"default", "super", "still", "snail", "emergency"};
 
   // Initialize gstreamer opengl
@@ -199,6 +200,14 @@ class CameraStreamer : public rclcpp::Node
 
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
   {
+    std::set<std::string> new_camera_set;
+    for (camera_msgs::msg::Camera camera : msg.cameras) {
+      // add camera serial to camera set
+      new_camera_set.insert(camera.serial);
+    }
+    if (new_camera_set == camera_set) return;
+    camera_set = new_camera_set;
+    
     for (camera_msgs::msg::Camera camera : msg.cameras) {
       // skip camera if blacklisted
       std::vector<std::string> blacklist;
@@ -207,6 +216,7 @@ class CameraStreamer : public rclcpp::Node
         RCLCPP_INFO(this->get_logger(), "%sCamera %s%s%s is blacklisted, skipping...%s", C_QUIET, C_FAIL, camera.serial.c_str(), C_QUIET, C_RESET);
         continue;
       }
+      
       // Make the pipeline if it doesn't exist
       if (this->pipelines.find(camera.serial) == pipelines.end()) {
         std::unique_ptr<Pipeline> pipeline = std::make_unique<Pipeline>();
