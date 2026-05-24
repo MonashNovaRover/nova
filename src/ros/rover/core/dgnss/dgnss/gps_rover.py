@@ -27,7 +27,8 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 from std_msgs.msg import UInt8MultiArray, Float64
-from sensor_msgs.msg import NavSatFix, NavSatStatus
+from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu
+from geometry_msgs.msg import Quaternion
 from nova_interfaces.msg import GPSData
 from serial import Serial
 from pyunigps import (
@@ -36,6 +37,7 @@ from pyunigps import (
 )
 import threading
 import time
+import math
 
 class GPSRover(Node):
     def __init__(self):
@@ -73,12 +75,6 @@ class GPSRover(Node):
             self.sub_rtcm_callback,
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
-        self.sub_heading = self.create_subscription(
-            Float64, 
-            'mag/heading', 
-            self.sub_magnetometer_callback, 
-            QoSPresetProfiles.SENSOR_DATA.value, 
-        )
         self.pub_pose = self.create_publisher(
             NavSatFix, 
             '/gps_rover/fix', 
@@ -89,8 +85,19 @@ class GPSRover(Node):
             '/gps_rover/fix_custom', 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
+        self.pub_heading_imu = self.create_publisher(
+            Imu, 
+            '/gps_rover/heading_imu', 
+            QoSPresetProfiles.SENSOR_DATA.value, 
+        )
         self.pose = NavSatFix()
         self.pose_custom = GPSData()
+        self.heading_imu = Imu()
+        self.heading_imu.angular_velocity_covariance[0] = -1.0
+        self.heading_imu.linear_acceleration_covariance[0] = -1.0
+        self.heading_imu.orientation_covariance = [0.0, 0.0, 0.0,
+                                                  0.0, 0.0, 0.0,
+                                                  0.0, 0.0, 0.05]
         self.pose.header.frame_id = 'gps'
         self.timer = self.create_timer(1/self.publisher_rate, self.loop)
         self.valid_gps_heading = False
@@ -200,11 +207,22 @@ class GPSRover(Node):
         self.pose_custom.longitude = self.pose.longitude
         self.pose_custom.altitude = self.pose.altitude
 
+        # Populate heading IMU message
+        self.heading_imu.header = self.pose.header
+        half_yaw = math.radians(self.pose_custom.heading) / 2.0
+        self.heading_imu.orientation = Quaternion(
+            x=0.0,
+            y=0.0,
+            z=math.sin(half_yaw),
+            w=math.cos(half_yaw),
+        )
+
     def loop(self) -> None:
         with self.fix_lock:
             self.pose.header.stamp = self.get_clock().now().to_msg()
             self.pub_pose.publish(self.pose)
             self.pub_pose_custom.publish(self.pose_custom)
+            self.pub_heading_imu.publish(self.heading_imu)
 
     def destroy_node(self):
         self.running = False
