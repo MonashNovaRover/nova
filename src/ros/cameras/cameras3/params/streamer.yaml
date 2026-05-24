@@ -1,5 +1,9 @@
 camera_streamer:
   ros__parameters:  
+    blacklist:
+      # These serials will not be used by the streamer node
+      - science_spectroscope
+      
     serial_pipelines:
       # Development cameras
       anthony-cam:
