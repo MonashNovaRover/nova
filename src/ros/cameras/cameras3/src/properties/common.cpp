@@ -9,12 +9,13 @@
 #include "properties/common.hpp"
 #include "pipelines/pipelines.hpp"
 
-bool link_elements(rclcpp::Node* streamer_node, GstElement* first_element, GstElement* second_element, const std::string serial) {
+bool link_elements(rclcpp::Node* streamer_node, GstElement*& first_element, GstElement* second_element, const std::string serial) {
   if (second_element != nullptr) {
     if (!gst_element_link(first_element, second_element)) {
       RCLCPP_ERROR(streamer_node->get_logger(), "Could not link %s to %s for %s", gst_object_get_name(GST_OBJECT(first_element)), gst_object_get_name(GST_OBJECT(second_element)), serial.c_str());
       return false;
     }
+    first_element = second_element;
     return true;
   }
   return false;
