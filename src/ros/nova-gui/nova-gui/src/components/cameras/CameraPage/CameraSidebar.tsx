@@ -9,8 +9,9 @@ import { useSelector } from "react-redux";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { RootState } from "../../../redux/RootState.ts";
-import {ProfileOption} from "../../../views/shared/CamerasPage/CameraProfileConstants.ts";
+import {ProfileOption, SerialPreset} from "../../../views/shared/CamerasPage/CameraProfileConstants.ts";
 import {CameraProfileSelector} from "./CameraProfileSelector.tsx";
+import {SerialPresetControls} from "./SerialPresetControls.tsx";
 
 interface CameraSidebarProps {
   refreshAvailabilities: () => void;
@@ -19,16 +20,19 @@ interface CameraSidebarProps {
   gridSize: number
   setGridSize: (_: number) => void
   presets: ProfileOption[]
+  serialPresets?: SerialPreset[]
 }
 
 export const CameraSidebar = (
-  {refreshAvailabilities, showSidebar, setShowSidebar, gridSize, setGridSize, presets}
+  {refreshAvailabilities, showSidebar, setShowSidebar, gridSize, setGridSize, presets, serialPresets}
   : CameraSidebarProps) => {
   const expandedSidebarWidth = "27vw";
   const sidebarWidth = showSidebar ? expandedSidebarWidth : "0px";
 
   const nodes = useRosNodes();
   const camerasRunning = useMemo(() => nodes.includes("/camera_streamer"), [nodes]);
+
+  console.log(serialPresets)
 
   const booleanChip = useMemo(() => <BooleanChip
     boolean={camerasRunning}
@@ -101,7 +105,18 @@ export const CameraSidebar = (
 
           </CardBody>
 
-          <CardFooter className="flex flex-row gap-3 items-center">
+          {serialPresets && serialPresets.length > 0 && (
+            <div className="px-3 py-3 border-t border-divider">
+              <SerialPresetControls
+                presets={serialPresets}
+                startStreaming={startStreaming}
+                pauseStreaming={pauseStreaming}
+                stopStreaming={stopStreaming}
+              />
+            </div>
+          )}
+
+          <CardFooter className="flex flex-row gap-3 items-center border-t border-divider">
             <span className="shrink-0">Grid Size:</span>
             <Input
               className="flex-1 min-w-0"

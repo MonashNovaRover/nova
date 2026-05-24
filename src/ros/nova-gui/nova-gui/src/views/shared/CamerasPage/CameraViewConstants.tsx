@@ -1,9 +1,16 @@
 import {ProfileOption} from "./CameraProfileConstants.ts";
 
+export interface SerialPreset {
+  displayName: string;    // User-facing name (e.g., "Site Analysis Cams")
+  serials: string[];      // Array of camera serials
+}
+
+
 export interface CameraViewConfig {
   viewTitle: string;
   cameraSerials: string[];
   cameraPrests?: ProfileOption[];
+  serialPresets?: SerialPreset[];
 }
 
 export enum ARCCompModes {
@@ -128,6 +135,32 @@ const urcScienceCams = [
   ],
 ]
 
+const urcScienceSerialPresets: SerialPreset[] = [
+  {
+    displayName: "Mast Cams",
+    serials: [
+      CameraSerials.MAST_FORWARD,
+      CameraSerials.MAST_BACKWARD,
+      CameraSerials.MAST_ARM_STOW,
+    ],
+  },
+  {
+    displayName: "Payload Cams",
+    serials: [
+      CameraSerials.URC_SCIENCE_BOOM,
+      CameraSerials.URC_SCIENCE_CACHE_LEFT,
+      CameraSerials.URC_SCIENCE_CACHE_RIGHT,
+    ],
+  },
+  {
+    displayName: "Internal Cams",
+    serials: [
+      CameraSerials.URC_SCIENCE_CUVETTE,
+      CameraSerials.URC_SCIENCE_LITMUS,
+    ],
+  },
+]
+
 const driveCams = [
   CameraSerials.WHEEL_TELEMETRY,
   CameraSerials.DRIVE_TELEMETRY,
@@ -242,14 +275,17 @@ export const urc_science_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams.slice(1, 4), ...urcScienceCams[0], ...urcScienceCams[1],  ...driveCams.slice(0, 2), CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL],
     viewTitle: "All Cams",
+    serialPresets: urcScienceSerialPresets,
   },
   {
     cameraSerials: [CameraSerials.MAST_FORWARD, CameraSerials.MAST_ARM_STOW, ...urcScienceCams[0], CameraSerials.URC_SCIENCE_LITMUS, ...driveCams.slice(0, 2), CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL],
-    viewTitle: "Site Analysis"
+    viewTitle: "Site Analysis",
+    serialPresets: urcScienceSerialPresets,
   },
   {
     cameraSerials: [...mastCams.slice(3, 4), CameraSerials.URC_SCIENCE_CACHE_LEFT, CameraSerials.URC_SCIENCE_CACHE_RIGHT, ...urcScienceCams[1],  ...driveCams.slice(0, 2), CameraSerials.URC_ACTIVATED_NODES, CameraSerials.DRIVE_CONTROL],
     viewTitle: "Vis Spec",
+    serialPresets: urcScienceSerialPresets,
   }
 ]
 
