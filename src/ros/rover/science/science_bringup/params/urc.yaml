@@ -213,10 +213,10 @@ litmus_dipper:
     controllers:
       controller:
         hardware_name: "dipper"
-        min_angle: 0.0
+        min_angle: 30.0
         max_angle: 65.0
-        initial_angle: 0.0
-        raised_pos: 0.0
+        initial_angle: 30.0
+        raised_pos: 30.0
         lowered_pos: 65.0
         twitch_service: "/science/litmus_dipper/twitch"
     hardware:
