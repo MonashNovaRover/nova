@@ -36,5 +36,10 @@ in
     # Switching between igpu and nvidia gpu
     services.switcherooControl.enable = lib.mkDefault true;
     services.xserver.videoDrivers = lib.mkDefault [ "nvidia" ];
+
+    # Tell OpenGL to use the nvidia driver by default
+    environment.sessionVariables = {
+      __GLX_VENDOR_LIBRARY_NAME = lib.mkDefault "nvidia";
+    };
   };
 }
