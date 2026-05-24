@@ -194,7 +194,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
 
   const VideoComponent = props.cameraVideoComponent;
   const cameraVideo = VideoComponent
-    ? <VideoComponent videoRef={videoRef} filters={filters} />
+    ? VideoComponent({videoRef, filters})
     : <CameraVideo videoRef={videoRef} filters={filters} />;
   return (
     <Card className={` aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
