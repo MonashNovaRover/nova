@@ -260,6 +260,17 @@ def launch_setup(context, *args, **kwargs):
             remappings=[("in/compressed",  f"{img_topic}/compressed"), 
                         ("out", img_topic)],
         ),
+        Node(
+            package='imu_transformer',
+            executable='imu_transformer_node',
+            name='livox_imu_transformer',
+            parameters=[{'target_frame': 'base_link'}],
+            remappings=[
+                ('imu_in/data', '/livox/imu'),
+                ('imu_out/data', '/livox/imu_oriented')
+            ],
+            output='screen',
+        ),
         GroupAction(
             condition=IfCondition(fastlivo2),
             actions=[
