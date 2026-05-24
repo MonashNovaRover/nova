@@ -2,6 +2,7 @@
 , config
 , nova-gui
 , pkgs
+, yarn
 }:
 
 # This shell is designed for use in development and it is assumed the developer will run the gui using yarn
@@ -39,7 +40,7 @@ mkShell {
   preBuild = ''
     echo "Entering GUI shell..."
   '';
-  buildInputs = [ gui ];
+  buildInputs = [ yarn gui ];
 
   shellHook = ''
     if ! diff -rq $(cat ${gui}/node_modules) \${builtins.toString ../../../nova-gui/node_modules} ${diff_ignore} >/dev/null; then
@@ -52,7 +53,9 @@ mkShell {
 
     echo "Linking Typescript Definitions... "
     ln -sf $(cat ${gui}/ROS_TS_DEFINITIONS) ${builtins.toString ../../../nova-gui/src/ros/rosTypes.ts}
+    
+    cd ${toString ../../../nova-gui}
 
-    echo -e "Done! Run \e[40m\e[1;93mgui-run\e[0m to run the GUI, or to change to nova-gui's directory run \e[40m\e[1;93mgui\e[0m"
+    echo -e "Done! Run \e[40m\e[1;93mgui-run\e[0m to run the GUI and don't forget to run \e[40m\e[1;93mgui-rosbridge\e[0m"
   '';
 }
