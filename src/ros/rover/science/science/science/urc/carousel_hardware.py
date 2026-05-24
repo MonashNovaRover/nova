@@ -119,7 +119,7 @@ class CarouselHardware(HardwareInterface):
 
         # Check if this message is for this carousel (byte[0] matches our ID)
         if len(frame.data) >= 2 and frame.data[0] == is_moving_id_byte:
-            self.is_moving = bool(frame.data[1])
+            self.is_moving = bool(frame.data[5])
 
     def _trigger_zero_callback(self, request, response):
         """ Service callback to trigger zeroing by sending CAN message """

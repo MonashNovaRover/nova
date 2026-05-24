@@ -163,7 +163,7 @@ carousel_inner:
         zero_cmd_can_msg: [0x01]
         zero_rec_can_id: 0x4E9
         zero_rec_done_byte: 0x01
-        is_moving_can_id: 0x4E8
+        is_moving_can_id: 0x4E7
         is_moving_id_byte: 0x01
         zero_service: "/science/carousel_inner/trigger_zero"
         zero_increment_service: "/science/carousel_inner/increment_zero"
@@ -192,7 +192,7 @@ carousel_outer:
         zero_cmd_can_msg: [0x02]
         zero_rec_can_id: 0x4E9
         zero_rec_done_byte: 0x02
-        is_moving_can_id: 0x4E8
+        is_moving_can_id: 0x4E7
         is_moving_id_byte: 0x02
         zero_service: "/science/carousel_outer/trigger_zero"
         zero_increment_service: "/science/carousel_outer/increment_zero"
