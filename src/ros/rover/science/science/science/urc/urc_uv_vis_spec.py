@@ -3,11 +3,16 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Monash Nova Rover Team
-This file contains the ROS2 publisher code for the actuator limit switch.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PACKAGE:     electronics
-AUTHOR(S):   Bailey Chessum
-CREATION:    2/05/2024
-EDITED:      2/05/2024
+
+This file contains the ROS2 node for the UV Vis Spectrometer, 
+which captures images from a camera, extracts luminance data, 
+and publishes it for use by other nodes. 
+The node also provides services to start and stop the camera feed.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+PACKAGE:     science
+AUTHOR(S):   Josh Leivenzon, Bailey Chessum, Felicity Matthews
+CREATION:    25/05/2024
+EDITED:      24/05/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import typing

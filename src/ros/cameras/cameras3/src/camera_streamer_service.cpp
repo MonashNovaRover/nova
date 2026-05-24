@@ -200,6 +200,13 @@ class CameraStreamer : public rclcpp::Node
   private: void topic_callback(const camera_msgs::msg::Cameras msg)
   {
     for (camera_msgs::msg::Camera camera : msg.cameras) {
+      // skip camera if blacklisted
+      std::vector<std::string> blacklist;
+      this->get_parameter("blacklist", blacklist);
+      if (std::find(blacklist.begin(), blacklist.end(), camera.serial) != blacklist.end()) {
+        RCLCPP_INFO(this->get_logger(), "%sCamera %s%s%s is blacklisted, skipping...%s", C_QUIET, C_FAIL, camera.serial.c_str(), C_QUIET, C_RESET);
+        continue;
+      }
       // Make the pipeline if it doesn't exist
       if (this->pipelines.find(camera.serial) == pipelines.end()) {
         std::unique_ptr<Pipeline> pipeline = std::make_unique<Pipeline>();
