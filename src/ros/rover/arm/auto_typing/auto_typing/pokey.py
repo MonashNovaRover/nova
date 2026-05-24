@@ -40,8 +40,7 @@ class EndEffectorController(Controller):
         super().__init__(contexts)
         self.logger.info("Ready to poke!")
 
-        self.poke_speed = self.declare_parameter("poke_speed", 1, "The speed at which the end effector moves")
-        self.poke_amount = self.declare_parameter("poke_amount", 1, "How long to poke for")
+        self.duration = self.declare_parameter("duration", 1.0, "How long to poke for, in seconds")
 
         self._action_server = ActionServer(
             self.node,
@@ -55,17 +54,17 @@ class EndEffectorController(Controller):
     def on_update(self, now, period):
         if self.ee_timer > 0:
             self.ee_timer -= period
-            self.ee_cmd.value = self.callback_ee_value
-        else:
-            if self.task_done and not self.task_done.done():
-                self.task_done.set_result(True)
-            self.ee_cmd.value = 0
+            if self.ee_timer <= 0:
+                self.callback_ee_value = 0
+                if self.task_done and not self.task_done.done():
+                    self.task_done.set_result(True)
+        self.ee_cmd.value = self.callback_ee_value
 
     async def execute_callback(self, goal_handle):
         end_poke = goal_handle.request.poke
 
         forward = end_poke > 0.5
-        self.ee_timer = self.poke_amount.value
+        self.ee_timer = self.duration.value
 
         self.logger.info(f"Executing end effector goal... poking to {end_poke}")
 
@@ -82,19 +81,16 @@ class EndEffectorController(Controller):
         return result
 
     def poke(self, forward: bool):
-        if forward:
-            self.callback_ee_value = self.poke_speed.value
-        else:
-            self.callback_ee_value = -1 * self.poke_speed.value
+        self.callback_ee_value = 1 if forward else -1
 
 
 def main():
     rclpy.init()
     node = Node("pokey")
 
-    PythonControl(node, update_rate=10, can_bus="can1") \
+    PythonControl(node, update_rate=100, can_bus="can1") \
         .with_controller("controller", EndEffectorController) \
-        .with_hardware("end_effector", QCMDHardware, can_id=EE_CAN_ID) \
+        .with_hardware("end_effector", QCMDHardware, can_id=EE_CAN_ID, send_single_zero=False) \
         .with_jcan() \
         .spin()
 
