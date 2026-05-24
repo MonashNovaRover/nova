@@ -286,11 +286,11 @@ export const reduxStores = {
   ),
   carouselInnerFeedback: createBifrostStore(
     { topic: RosTopic.CAROUSEL_INNER_FEEDBACK },
-    { position: 0, current: 0, load: 0, zeroing: false, hall_effect_triggered: false }
+    { position: 0, zeroing: false, hall_effect_triggered: false, is_moving: false }
   ),
   carouselOuterFeedback: createBifrostStore(
     { topic: RosTopic.CAROUSEL_OUTER_FEEDBACK },
-    { position: 0, current: 0, load: 0, zeroing: false, hall_effect_triggered: false }
+    { position: 0, zeroing: false, hall_effect_triggered: false, is_moving: false }
   ),
   litmusDipperStatusStore: createBifrostStore(
     { topic: RosTopic.LITMUS_DIPPER_STATUS },

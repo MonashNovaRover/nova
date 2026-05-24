@@ -3,7 +3,7 @@
 Hardware interface for a carousel ring
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This hardware interface manages a carousel ring servo
-with position control, zeroing capability, multi-sensor
+with position control, zeroing capability, position sensor
 feedback, and zero offset adjustment.
 
 Composes PositionalServoHardware for servo control and
@@ -14,9 +14,8 @@ COMMAND INTERFACES:
 STATE INTERFACES:
   - carousel/position    [actual position in degrees with zero offset applied]
   - <name>/sensor_position   [position feedback from hardware sensor]
-  - <name>/sensor_load       [load feedback from hardware]
-  - <name>/sensor_current    [current feedback from hardware]
   - <name>/zeroing           [boolean, True while zeroing is active]
+  - <name>/is_moving         [boolean, True while carousel is moving]
 SERVICES:
   - science/<name>/trigger_zero    [Trigger service to initiate hardware zeroing]
   - science/<name>/increment_zero  [IncrementZero service to adjust or reset software zero offset]
@@ -43,12 +42,15 @@ class CarouselHardware(HardwareInterface):
     actual_pos_state: Interface
     forward_pos_state: Interface
     zeroing_in_progress_state: Interface
+    is_moving_state: Interface
 
     def __init__(self, contexts: Contexts,
                  zero_cmd_can_id: int=0x000,
                  zero_cmd_can_msg: list[int]=[0x00],
-                 zero_rec_can_id: int=0x000,
-                 zero_rec_can_msg: list[int]=[0x00],
+                 zero_rec_can_id: int=0x4E9,
+                 zero_rec_done_byte: int=0x01,
+                 is_moving_can_id: int=0x4E8,
+                 is_moving_id_byte: int=0x01,
                  zero_service: str="science/carousel/trigger_zero",
                  zero_increment_service: str="science/carousel/increment_zero"):
         """ Constructor, deferred until the control manager has been spun.
@@ -64,12 +66,15 @@ class CarouselHardware(HardwareInterface):
         # Initialize zero offset
         self.zero_offset = 0.0
         self.zeroing_in_progress = False
+        self.is_moving = False
 
         # Declare Parameters
         self.declare_parameter("zero_cmd_can_id", zero_cmd_can_id, "CAN ID of the zero command")
         self.declare_parameter("zero_cmd_can_msg", zero_cmd_can_msg, "CAN message to send should be a valid length and of the form 0x0000 (multiple of two hex digits)")
-        self.declare_parameter("zero_rec_can_id", zero_rec_can_id, "CAN ID of the zero command")
-        self.declare_parameter("zero_rec_can_msg", zero_rec_can_msg, "CAN message to send should be a valid length and of the form 0x0000 (multiple of two hex digits)")
+        self.declare_parameter("zero_rec_can_id", zero_rec_can_id, "CAN ID for zeroing completion message")
+        self.declare_parameter("zero_rec_done_byte", zero_rec_done_byte, "Byte value indicating zeroing complete for this carousel")
+        self.declare_parameter("is_moving_can_id", is_moving_can_id, "CAN ID for is_moving status messages")
+        self.declare_parameter("is_moving_id_byte", is_moving_id_byte, "ID byte to identify this carousel in is_moving messages")
         trigger_service_name = self.declare_parameter("zero_service", zero_service, "Service that triggers the hardware to zero").value
         increment_service_name = self.declare_parameter("zero_increment_service", zero_increment_service, "Service to increment the software zero offset").value
 
@@ -94,26 +99,12 @@ class CarouselHardware(HardwareInterface):
         position_sensor_constructor.name = f"{self.name}_position_sensor"
         self.position_sensor = position_sensor_constructor.construct(contexts, self.node)
 
-        # Load and current feedback sensor
-        load_current_sensor_constructor = MultiSensorHardware(
-            function_id=0x02,
-            interpret_data_list=[
-                lambda data: int.from_bytes(data[0:2], byteorder='big', signed=True),  # Load
-                lambda data: int.from_bytes(data[2:4], byteorder='big', signed=True)   # Current
-            ],
-            hardware_names=[f"{self.name}", f"{self.name}"],
-            hardware_units=["sensor_load", "sensor_current"],
-            initial_values=[0, 0]
-        )
-        load_current_sensor_constructor.name = f"{self.name}_load_current_sensor"
-        self.load_current_sensor = load_current_sensor_constructor.construct(contexts, self.node)
-
     def _zero_complete_can_callback(self, frame: jcan.Frame):
         """ CAN callback for zeroing completion message """
-        zero_rec_can_msg = self.get_parameter("zero_rec_can_msg").value
+        zero_rec_done_byte = self.get_parameter("zero_rec_done_byte").value
 
-        # Check if the received message matches the expected zeroing complete message
-        if list(frame.data) == zero_rec_can_msg:
+        # Check if the received message matches the expected zeroing complete byte
+        if len(frame.data) >= 1 and frame.data[0] == zero_rec_done_byte:
             # Capture current position as new zero offset
             if self.actual_pos_state:
                 self.zero_offset = self.actual_pos_state.value
@@ -121,6 +112,14 @@ class CarouselHardware(HardwareInterface):
 
             self.zeroing_in_progress = False
             self.logger.info(f"{self.name} zeroing complete")
+
+    def _is_moving_can_callback(self, frame: jcan.Frame):
+        """ CAN callback for is_moving status message """
+        is_moving_id_byte = self.get_parameter("is_moving_id_byte").value
+
+        # Check if this message is for this carousel (byte[0] matches our ID)
+        if len(frame.data) >= 2 and frame.data[0] == is_moving_id_byte:
+            self.is_moving = bool(frame.data[1])
 
     def _trigger_zero_callback(self, request, response):
         """ Service callback to trigger zeroing by sending CAN message """
@@ -180,6 +179,7 @@ class CarouselHardware(HardwareInterface):
         self.actual_pos_state = state_interfaces[f"{self.name}/sensor_position"]
         self.forward_pos_state = state_interfaces["carousel/position"]
         self.zeroing_in_progress_state = state_interfaces[f"{self.name}/zeroing"]
+        self.is_moving_state = state_interfaces[f"{self.name}/is_moving"]
 
         # Now configure composed hardware interfaces (they'll find their interfaces already populated)
         result = self.servo.on_configure(command_interfaces, state_interfaces)
@@ -190,13 +190,13 @@ class CarouselHardware(HardwareInterface):
         if result is False:
             return False
 
-        result = self.load_current_sensor.on_configure(command_interfaces, state_interfaces)
-        if result is False:
-            return False
-
         # Register CAN callback for zeroing completion
         zero_rec_can_id = self.get_parameter("zero_rec_can_id").value
         self.bus.add_callback(zero_rec_can_id, self._zero_complete_can_callback)
+
+        # Register CAN callback for is_moving status
+        is_moving_can_id = self.get_parameter("is_moving_can_id").value
+        self.bus.add_callback(is_moving_can_id, self._is_moving_can_callback)
 
         return True
 
@@ -208,7 +208,6 @@ class CarouselHardware(HardwareInterface):
         # Call composed hardware interface read
         self.servo.on_read(now, period)
         self.position_sensor.on_read(now, period)
-        self.load_current_sensor.on_read(now, period)
 
         # Update carousel position state from servo with inverse zero offset applied
         if self.actual_pos_state:
@@ -218,6 +217,10 @@ class CarouselHardware(HardwareInterface):
         # Update zeroing in progress state
         if self.zeroing_in_progress_state:
             self.zeroing_in_progress_state.value = self.zeroing_in_progress
+
+        # Update is_moving state
+        if self.is_moving_state:
+            self.is_moving_state.value = self.is_moving
 
     def on_write(self, now: float, period: float):
         """ Called to write to hardware using values stored in command interfaces.

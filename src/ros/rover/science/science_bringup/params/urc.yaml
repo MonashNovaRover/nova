@@ -156,12 +156,15 @@ carousel_inner:
       controller:
         initial_position: 0.0
         hardware_name: "carousel"
+        zero_target_on_zeroing: false
     hardware:
       carousel:
         zero_cmd_can_id: 0x0EB
         zero_cmd_can_msg: [0x01]
-        zero_rec_can_id: 0xFFD
-        zero_rec_can_msg: [0x10]
+        zero_rec_can_id: 0x4E9
+        zero_rec_done_byte: 0x01
+        is_moving_can_id: 0x4E8
+        is_moving_id_byte: 0x01
         zero_service: "/science/carousel_inner/trigger_zero"
         zero_increment_service: "/science/carousel_inner/increment_zero"
       servo:
@@ -170,9 +173,6 @@ carousel_inner:
       carousel_position_sensor:
         can_id: 0xFFB
         function_id: 0x01
-      carousel_load_current_sensor:
-        can_id: 0xFFA
-        function_id: 0x02
       hall_sensor:
         can_id: 0x4E4
         can_data_position: 0
@@ -185,12 +185,15 @@ carousel_outer:
       controller:
         initial_position: 0.0
         hardware_name: "carousel"
+        zero_target_on_zeroing: false
     hardware:
       carousel:
         zero_cmd_can_id: 0x0EB
         zero_cmd_can_msg: [0x02]
-        zero_rec_can_id: 0xFFE
-        zero_rec_can_msg: [0x10]
+        zero_rec_can_id: 0x4E9
+        zero_rec_done_byte: 0x02
+        is_moving_can_id: 0x4E8
+        is_moving_id_byte: 0x02
         zero_service: "/science/carousel_outer/trigger_zero"
         zero_increment_service: "/science/carousel_outer/increment_zero"
       servo:
@@ -199,9 +202,6 @@ carousel_outer:
       carousel_position_sensor:
         can_id: 0xFFD
         function_id: 0x01
-      carousel_load_current_sensor:
-        can_id: 0xFFF
-        function_id: 0x02
       hall_sensor:
         can_id: 0x4E4
         can_data_position: 1
