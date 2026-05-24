@@ -38,7 +38,7 @@ controller_server:
       max_angular_accel: 0.5236
       simulate_ahead_time: 1.0
       rotate_to_goal_heading: false
-      rotate_to_heading_once: true
+      rotate_to_heading_once: false
       closed_loop: false
       
       # MPPI params
