@@ -194,6 +194,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
 
   const VideoComponent = props.cameraVideoComponent;
   const cameraVideo = VideoComponent
+    // eslint-disable-next-line react-hooks/refs
     ? VideoComponent({videoRef, filters})
     : <CameraVideo videoRef={videoRef} filters={filters} />;
   return (

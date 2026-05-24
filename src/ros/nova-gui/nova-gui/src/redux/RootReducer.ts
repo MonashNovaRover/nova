@@ -286,11 +286,11 @@ export const reduxStores = {
   ),
   carouselInnerFeedback: createBifrostStore(
     { topic: RosTopic.CAROUSEL_INNER_FEEDBACK },
-    { position: 0, current: 0, load: 0, zeroing: false, hall_effect_triggered: false }
+    { position: 0, zeroing: false, hall_effect_triggered: false, is_moving: false }
   ),
   carouselOuterFeedback: createBifrostStore(
     { topic: RosTopic.CAROUSEL_OUTER_FEEDBACK },
-    { position: 0, current: 0, load: 0, zeroing: false, hall_effect_triggered: false }
+    { position: 0, zeroing: false, hall_effect_triggered: false, is_moving: false }
   ),
   litmusDipperStatusStore: createBifrostStore(
     { topic: RosTopic.LITMUS_DIPPER_STATUS },
@@ -309,6 +309,13 @@ export const reduxStores = {
       voltage: 0,
       current: 0,
       is_receiving: false,
+    }
+  ),
+  ledStatusStore: createBifrostStore(
+    { topic: RosTopic.LED_STATUS },
+    {
+      names: [],
+      values: [],
     }
   ),
 
@@ -425,19 +432,23 @@ export const reduxStores = {
   toolRotatorTwitchStep: createGenericStore("toolRotatorTwitchStep", 5.0),
   toolRotatorKeyboardControl: createGenericStore("toolRotatorKeyboardControl", false),
   pumpDefaultDurations: createGenericStore("pumpDefaultDurations", {
-    fill_shots: 10,
-    fill_cuvettes_prime: 10,
-    fill_cuvettes: 10,
-    flush_shots: 10,
-    flush_cuvettes: 10,
-    flush_all: 10,
-    empty_shots: 10,
-    empty_cuvettes: 10,
+    // Default durations for each pump (seconds)
+    cache_to_shot_pump: 80,
+    "shot_to_inner_pump/prime": 10,
+    "shot_to_outer_pump/prime": 13,
+    shot_to_electrochem_pump: 10,
+    // Time per ml values for ring pumps (used in ml-based timing calculation)
+    timePerMlInner: 1.9,
+    timePerMlOuter: 1.9,
   }),
   litmusDipperDefaultDuration: createGenericStore("litmusDipperDefaultDuration", 2),
   litmusDipperTwitchStep: createGenericStore("litmusDipperTwitchStep", 5.0),
   cacheLeftTwitchStep: createGenericStore("cacheLeftTwitchStep", 5.0),
   cacheRightTwitchStep: createGenericStore("cacheRightTwitchStep", 5.0),
+  pumpedCuvettes: createGenericStore("pumpedCuvettes", {
+    inner: [] as number[],  // Array of 0-indexed cuvette positions that have been pumped
+    outer: [] as number[],  // Array of 0-indexed cuvette positions that have been pumped
+  }),
 };
 
 // all store reducers
