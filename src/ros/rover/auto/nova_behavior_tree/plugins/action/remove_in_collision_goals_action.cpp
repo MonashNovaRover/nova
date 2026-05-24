@@ -225,38 +225,6 @@ bool RemoveInCollisionGoalsAction::is_goal_in_collision(Goal goal)
   grid_cell.x = static_cast<unsigned int>(mx);
   grid_cell.y = static_cast<unsigned int>(my);
   return !is_cell_free(grid_cell);
-
-  // // If we are ignoring global, just do this simple check
-  // if (ignore_global_costmap_)
-  // {
-  //   unsigned int local_x = 0;
-  //   unsigned int local_y = 0;
-  //   if (!local_costmap_->worldToMap(goal.pose.position.x, goal.pose.position.y, local_x, local_y)) {
-  //     return false;
-  //   }
-
-  //   GridCell local_cell;
-  //   local_cell.x = static_cast<int>(local_x);
-  //   local_cell.y = static_cast<int>(local_y);
-  //   return !is_cell_free(local_cell);
-  // } 
-  
-  // // Otherwise check both maps
-  // else
-  // {
-  //   unsigned int mx = 0;
-  //   unsigned int my = 0;
-
-  //   if (!global_costmap_->worldToMap(goal.pose.position.x, goal.pose.position.y, mx, my))
-  //   {
-  //     return false;
-  //   }
-
-  //   GridCell global_cell;
-  //   global_cell.x = static_cast<int>(mx);
-  //   global_cell.y = static_cast<int>(my);
-  //   return !is_cell_free(global_cell);
-  // }
 }
 
 /** Methods from SnapInCollisionGoals */
@@ -270,47 +238,6 @@ bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &grid_cell)
 {
     const unsigned char local_cost = local_costmap_->getCost(grid_cell.x, grid_cell.y);
     return local_cost < cost_threshold_;
-
-//     const unsigned char local_cost = local_costmap_->getCost(grid_cell.x, grid_cell.y);
-//     return !(local_cost < cost_threshold_);
-
-
-//     // If we are using local costmap only
-//     if (ignore_global_costmap_)
-//     {
-//       const unsigned char local_cost = local_costmap_->getCost(grid_cell.x, grid_cell.y);
-//       return !(local_cost < cost_threshold_);
-//     } 
-    
-//     // Otherwise check both
-//     else
-//     {
-//       const auto global_x = static_cast<unsigned int>(grid_cell.x);
-//       const auto global_y = static_cast<unsigned int>(grid_cell.y);
-      
-//       if (global_x >= global_costmap_->getSizeInCellsX() || global_y >= global_costmap_->getSizeInCellsY()) {
-//         return true;
-//       }
-
-//       const unsigned char global_cost = global_costmap_->getCost(global_x, global_y);
-
-//       double wx = 0.0;
-//       double wy = 0.0;
-//       global_costmap_->mapToWorld(global_x, global_y, wx, wy);
-
-//       unsigned int local_x = 0;
-//       unsigned int local_y = 0;
-//       if (!local_costmap_->worldToMap(wx, wy, local_x, local_y)) {
-//         return global_cost < cost_threshold_;
-//       }
-
-//       const unsigned char local_cost = local_costmap_->getCost(local_x, local_y);
-//       RCLCPP_DEBUG(
-//         node_->get_logger(),
-//         "Cost at goal cell - global: %u local: %u", global_cost, local_cost);
-
-//       return global_cost < cost_threshold_ && local_cost < cost_threshold_;
-//     }
 }
 
 /**
@@ -318,13 +245,11 @@ bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &grid_cell)
  */
 bool RemoveInCollisionGoalsAction::snap(Goal goal, Goals & output_goals_)
 {
-  RCLCPP_INFO(node_->get_logger(), "Finding nearest free cell");
   SearchResult result = find_nearest_free_cell(goal);
   Point original_pos = goal.pose.position;
 
   if (!result.found)
   {
-  RCLCPP_INFO(node_->get_logger(), "Finding nearest free cell");
     RCLCPP_WARN(
         node_->get_logger(), "Failed to snap goal (%.2f, %.2f, %.2f) to a free cell",
         goal.pose.position.x, goal.pose.position.y, goal.pose.position.z
@@ -389,7 +314,6 @@ SearchResult RemoveInCollisionGoalsAction::find_nearest_free_cell(Goal goal)
   tf_->transform(goal, goal_in_odom_, "odom", tf2::TimePointZero, "map");
   Point origin = goal_in_odom_.pose.position;
 
-  RCLCPP_INFO(node_->get_logger(), "Converting world to gridspace");
   // Convert from worldspace to gridspace
   unsigned int mx, my;
   if (!local_costmap_->worldToMap(origin.x, origin.y, mx, my))
@@ -403,7 +327,6 @@ SearchResult RemoveInCollisionGoalsAction::find_nearest_free_cell(Goal goal)
   local_cell.x = static_cast<unsigned int>(mx);
   local_cell.y = static_cast<unsigned int>(my);
   
-  RCLCPP_INFO(node_->get_logger(), "Searching for nearest free cell");
   // Search for the nearest free cell in a spiral pattern
   std::array<int, 2> directions[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
   int max_radius = std::ceil(max_snap_radius_ / local_costmap_->getResolution());
@@ -430,7 +353,6 @@ SearchResult RemoveInCollisionGoalsAction::find_nearest_free_cell(Goal goal)
         }
     }
   }
-  RCLCPP_INFO(node_->get_logger(), "Unable to find a free cell");
   return {local_cell, false, max_radius};
 }
 
@@ -454,10 +376,6 @@ bool RemoveInCollisionGoalsAction::is_area_free(const GridCell &center)
 
   // Get robot radius
   !node_->get_parameter_or("robot_radius", footprint_radius_, 0.85);
-  // if (!node_->get_parameter_or("robot_radius", footprint_radius_, 0.85))
-  // {
-  //   RCLCPP_ERROR(node_->get_logger(), "SnapInCollisionGoals Failed to get local footprint, using default value of 0.85m");
-  // }
 
   // avoid extra computation if center cell is not free
   if (!is_cell_free(center))
