@@ -133,13 +133,13 @@ public:
 
 private:
 
-  bool is_goal_in_collision(const PoseStamped & goal);
+  bool is_goal_in_collision(Goal goal);
   bool remove_goals();
   bool have_costmaps();
-  bool snap(Goal goal, Goals output_goals_);
+  bool snap(Goal goal, Goals &output_goals_);
   bool is_cell_free(const GridCell &global_cell);
   bool is_area_free(const GridCell &center);
-  SearchResult find_nearest_free_cell(const Point &origin);
+  SearchResult find_nearest_free_cell(Goal goal);
 
   rclcpp::Node::SharedPtr node_;
   std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> local_costmap_sub_;
@@ -148,7 +148,7 @@ private:
   std::shared_ptr<nav2_costmap_2d::Costmap2D> global_costmap_;
 
   std::string global_frame_, robot_base_frame_;
-  geometry_msgs::msg::PoseStamped goal_in_odom_;
+  geometry_msgs::msg::PoseStamped goal_in_odom_, goal_in_map_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   Goals input_goals_;
   double transform_tolerance_;
