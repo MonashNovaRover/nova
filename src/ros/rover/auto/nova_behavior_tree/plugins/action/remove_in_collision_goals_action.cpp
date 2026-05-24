@@ -210,7 +210,7 @@ bool RemoveInCollisionGoalsAction::is_goal_in_collision(const PoseStamped & goal
   local_costmap_->mapToWorld(goal.pose.position.x, goal.pose.position.y, wx, wy);
 
   // Transform goal coords from map -> odom frame
-  tf_->transform(goal, goal_in_odom_, "odom",tf2::TimePointZero);
+  tf_->transform(goal, goal_in_odom_, "odom", tf2::TimePointZero, "map");
 
   // Convert from worldspace to gridspace
   unsigned int mx, my;
