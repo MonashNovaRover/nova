@@ -61,7 +61,7 @@ controller_server:
       time_steps: 40
       model_dt: 0.1
       batch_size: 2000
-      vx_std: 0.3   # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
+      vx_std: 0.2   # higher sampled velocities are likely to give higher speed trajectories (capped at vx_max)
       vy_std: 0.2   # only used in Omni motion model
       wz_std: 0.6   # similar to vx_std, higher values allow trajectories with higher rotation
       vx_max: 0.3   # max linear velocity, ~3.6 km/h
@@ -92,7 +92,7 @@ controller_server:
       GoalCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 5.0
+        cost_weight: 15.0
         threshold_to_consider: 1.2 # prediction horizon
       GoalAngleCritic:
         enabled: true
@@ -105,7 +105,7 @@ controller_server:
       CostCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 5.3
+        cost_weight: 4.0 
         critical_cost: 300.0
         consider_footprint: true
         collision_cost: 1000000.0
@@ -114,11 +114,11 @@ controller_server:
       PathAlignCritic:
         enabled: true
         cost_power: 1
-        cost_weight: 14.0
+        cost_weight: 15.0  
         max_path_occupancy_ratio: 0.05
         trajectory_point_step: 4
         threshold_to_consider: 0.5
-        offset_from_furthest: 8 # prediction horizon / path_resolution / 3.0
+        offset_from_furthest: 6 # prediction horizon / path_resolution / 3.0
         use_path_orientations: false
       PathFollowCritic:
         enabled: true
@@ -130,19 +130,19 @@ controller_server:
         enabled: true
         cost_power: 1
         cost_weight: 2.0
-        offset_from_furthest: 4 # ~PathAlignCritic.offset_from_furthest / 2.0 (not thoroughly tuned)
+        offset_from_furthest: 4
         threshold_to_consider: 0.5
         max_angle_to_furthest: 1.0
-        mode: 0
+        mode: 2         
       PreferForwardCritic:
         enabled: false
         cost_power: 1
         cost_weight: 5.0
         threshold_to_consider: 0.5
       VelocityDeadbandCritic:
-        enabled: true
+        enabled: false     
         cost_power: 1
-        cost_weight: 35.0
+        cost_weight: 5.0
         deadband_velocities: [0.05, 0.05, 0.05]
       TwirlingCritic:
         enabled: false
