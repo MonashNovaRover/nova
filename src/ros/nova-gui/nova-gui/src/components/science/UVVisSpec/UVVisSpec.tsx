@@ -232,7 +232,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
         <div className="font-mono px-3 opacity-75">
           ({mousePoint[0].toFixed(3)}, {mousePoint[1].toFixed(3)}) -{'>'} {colToWavelength(mousePoint[0]).toFixed(2)} nm 
         </div>
-        <UVVisSpecStartStopButtons/>
+        {/*<UVVisSpecStartStopButtons/>*/}
         {settingsDropdown}
       </CardHeader>
       <CardBody className="flex flex-col gap-3">

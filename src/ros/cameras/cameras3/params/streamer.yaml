@@ -2,7 +2,7 @@ camera_streamer:
   ros__parameters:  
     blacklist:
       # These serials will not be used by the streamer node
-      - science_spectroscope
+      - anthony-cam
       
     serial_pipelines:
       # Development cameras
@@ -45,8 +45,9 @@ camera_streamer:
         meta: Science - Shotglass
       science_rock_flipper:
         meta: Science - Rock flipper
-      #science_spectroscope:
-      #  autostart: false
+      science_spectroscope:
+        rossink: true
+        ros_topic: science/spectroscope
 
       # Arm
       arm_wrist:
