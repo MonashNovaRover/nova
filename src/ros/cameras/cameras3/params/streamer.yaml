@@ -61,119 +61,117 @@ camera_streamer:
     profiles:
       unknown:
         default:
-          pipeline_type: vp9software
-          use_gl: true
+          pipeline_type: vp8software
           width: 1920
           height: 1080
           downscale: 3
           framerate: 30
+          cpu_usage: 0
           bitrate: 512
-          denoise: true
         super:
           pipeline_type: vp9software
           width: 1280
           height: 720
           framerate: 30
+          downrate: 3
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 1024
           threads: 6
-          gop: 5
-          encoder_denoise: 0
+          gop: 3
+          noise: 0
         still:
           pipeline_type: vp9software
-          use_gl: true
-          width: 1280
-          height: 720
-          framerate: 30
-          downrate: 2
-          cpu_usage: 2
-          jpegdec_method: float
-          bitrate: 512
-          gop: 10
-          denoise: true
-          sharpen: true        
-        snail:  
-          pipeline_type: vp8software
-          use_gl: true
           width: 1920
           height: 1080
-          downscale: 4
+          downscale: 2
+          framerate: 30
+          downrate: 3
+          cpu_usage: 5
+          jpegdec_method: float
+          bitrate: 256
+          gop: 5
+          noise: 1
+        snail:
+          pipeline_type: vp8software
+          width: 640
+          height: 480
+          downscale: 2
           framerate: 30
           downrate: 2
+          cpu_usage: 0
           bitrate: 128
           denoise: true
+          noise: 6
         emergency:
           pipeline_type: vp9software
-          use_gl: true
-          width: 1280
-          height: 720
-          downscale: 8
+          width: 640
+          height: 480
+          downscale: 5
           framerate: 30
           downrate: 4
           cpu_usage: 8
           bitrate: 32
-          denoise: 10
           greyscale: true
           denoise: true
+          noise: 6
 
       openaicam_openaicam_2505121128:
         default:
-          pipeline_type: vp9software
-          use_gl: true
+          pipeline_type: vp8software
           width: 1920
           height: 1080
           downscale: 3
           framerate: 30
+          cpu_usage: 0
           bitrate: 512
-          denoise: true
         super:
           pipeline_type: vp9software
           width: 1280
           height: 720
           framerate: 30
+          downrate: 3
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 1024
           threads: 6
-          gop: 5
-          encoder_denoise: 0
+          gop: 3
+          noise: 0
         still:
           pipeline_type: vp9software
-          use_gl: true
-          width: 1280
-          height: 720
+          width: 1920
+          height: 1080
+          downscale: 2
           framerate: 30
-          downrate: 2
-          cpu_usage: 2
+          downrate: 3
+          cpu_usage: 5
           jpegdec_method: float
-          bitrate: 512
-          gop: 10
-          denoise: true
-          sharpen: true        
-        snail:  
+          bitrate: 256
+          gop: 5
+          noise: 1
+        snail:
           pipeline_type: vp8software
-          use_gl: true
           width: 1920
           height: 1080
           downscale: 4
           framerate: 30
           downrate: 2
+          cpu_usage: 0
           bitrate: 128
           denoise: true
+          noise: 6
         emergency:
           pipeline_type: vp9software
-          use_gl: true
-          width: 1280
-          height: 720
-          downscale: 8
+          width: 1920
+          height: 1080
+          downscale: 12
           framerate: 30
           downrate: 4
           cpu_usage: 8
           bitrate: 32
-          gop: 10
           greyscale: true
           denoise: true
+          noise: 6
 
       webcamvendor_SK_series1_20220325JWGD2093:
         default:
@@ -188,17 +186,16 @@ camera_streamer:
           framerate: 30
         still:
           pipeline_type: vp9software
-          use_gl: true
           mime: image/jpeg
           width: 1280
           height: 960
           downscale: 2
           framerate: 30
-          downrate: 2
-          cpu_usage: 2
-          bitrate: 512
-          gop: 10
-          denoise: true
+          downrate: 3
+          cpu_usage: 5
+          jpegdec_method: float
+          bitrate: 256
+          gop: 5
         snail:
           pipeline_type: h264passthrough
           width: 320
@@ -206,7 +203,6 @@ camera_streamer:
           framerate: 30
         emergency:
           pipeline_type: vp9software
-          use_gl: true
           width: 1280
           height: 960
           downscale: 10
@@ -214,57 +210,56 @@ camera_streamer:
           downrate: 8
           cpu_usage: 10
           bitrate: 32
-          gop: 10
           greyscale: true
-          denoise: true
 
       HZ_USB_Camera_20220301104:
         default:
-          pipeline_type: vp9software
-          use_gl: true
+          pipeline_type: vp8software
+          mime: image/jpeg
           width: 1024
           height: 768
           downscale: 2
           framerate: 30
+          cpu_usage: 0
           bitrate: 512
-          denoise: true
         super:
           pipeline_type: vp9software
+          mime: image/jpeg
           width: 1024
           height: 768
           framerate: 30
+          downrate: 3
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 1024
           threads: 6
-          gop: 5
-          encoder_denoise: 0
+          gop: 3
+          noise: 0
         still:
           pipeline_type: vp9software
-          use_gl: true
+          mime: image/jpeg
           width:  1024
           height: 768
+          downscale: 2
           framerate: 30
-          downrate: 2
-          cpu_usage: 2
+          downrate: 3
+          cpu_usage: 5
           jpegdec_method: float
-          bitrate: 512
-          gop: 10
-          denoise: true
-          sharpen: true
+          bitrate: 256
+          gop: 5
+          noise: 1
         snail: 
           pipeline_type: vp8software
-          use_gl: true
           width: 640
           height: 480
           downscale: 2
           framerate: 30
           downrate: 2
+          cpu_usage: 0
           bitrate: 128
           denoise: true
         emergency:
           pipeline_type: vp9software
-          use_gl: true
           width: 640
           height: 480
           downscale: 5
@@ -272,65 +267,61 @@ camera_streamer:
           downrate: 4
           cpu_usage: 8
           bitrate: 32
-          gop: 10
           greyscale: true
-          denoise: true
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         default:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 800
-          height: 600
+          pipeline_type: vp8software
+          width: 1280
+          height: 720
           downscale: 2
           framerate: 30
+          cpu_usage: 0
           bitrate: 512
-          denoise: true
         super:
           pipeline_type: vp9software
+          mime: image/jpeg
           width: 800
           height: 600
           framerate: 30
+          downrate: 3
           cpu_usage: 5
           jpegdec_method: float
-          bitrate: 1024
+          bitrate: 2048
           threads: 6
-          gop: 5
-          encoder_denoise: 0
+          gop: 3
+          noise: 0
         still:
           pipeline_type: vp9software
-          use_gl: true
-          width: 800
-          height: 600
-          framerate: 30
-          downrate: 2
-          cpu_usage: 2
+          mime: image/jpeg
+          width: 1280
+          height: 720
+          downscale: 2
+          framerate: 10
+          cpu_usage: 5
           jpegdec_method: float
-          bitrate: 512
-          gop: 10
-          denoise: true
-          sharpen: true
+          bitrate: 256
+          gop: 5
+          noise: 1
         snail:
           pipeline_type: vp8software
-          use_gl: true
-          width: 800
-          height: 600
+          width: 1280
+          height: 720
           downscale: 3
           framerate: 30
           downrate: 2
+          cpu_usage: 0
           bitrate: 128
           denoise: true
         emergency:
           pipeline_type: vp9software
-          use_gl: true
-          width: 800
-          height: 600
-          downscale: 7
+          width: 1280
+          height: 720
+          downscale: 8
           framerate: 30
           downrate: 4
           cpu_usage: 8
           bitrate: 32
-          gop: 10
           greyscale: true
           denoise: true
 
