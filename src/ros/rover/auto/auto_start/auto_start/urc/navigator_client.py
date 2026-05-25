@@ -34,6 +34,8 @@ class NavigatorClient():
         self.started = self.urc_started and self.nav2_started
 
     def start(self, type, poses, search_radius):
+        self.status = None
+
         match type:
 
             case CartographerCommand.Request.GNSS:
