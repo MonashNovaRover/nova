@@ -54,5 +54,6 @@ buildRosPackage rec {
     sensor-msgs-py
     pythonPackages.geographiclib
     pythonPackages.rerun-sdk
+    pythonPackages.rich
   ];
 }
