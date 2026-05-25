@@ -54,9 +54,6 @@ class HeadingToImuOnce(Node):
         self.has_published = False
 
     def publish_once(self):
-        if self.has_published:
-            return
-
         yaw_rad = math.radians(self.heading)
 
         msg = Imu()
@@ -85,17 +82,12 @@ class HeadingToImuOnce(Node):
             f'yaw={yaw_rad:.3f} rad, topic={self.publisher.topic_name}'
         )
 
-        self.has_published = True
-
-        # Shut down shortly after publishing.
-        self.destroy_timer(self.timer)
-        rclpy.shutdown()
-
 
 def main(args=None):
     rclpy.init(args=args)
     node = HeadingToImuOnce()
     rclpy.spin(node)
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':
