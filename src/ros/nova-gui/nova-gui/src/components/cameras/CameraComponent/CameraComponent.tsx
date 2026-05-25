@@ -22,6 +22,7 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import { CameraProfileEvents, emitCameraFiltersReadyEvent } from "../../../utils/cameraProfileEvents.ts";
 import { CameraProfilesState } from "../../../redux/models/CameraProfilesState.ts";
+import html2canvas from "html2canvas";
 
 const ASPECT_RATIO = 4 / 3;
 
@@ -61,6 +62,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const { cameraSerial, autostart: allCamerasStarted, getScreenshotName, onStreamingStateChange } = props;
   const cameraName = humanizeString(cameraSerial);
   const cardRef = useRef<HTMLDivElement>(null);
+  const screenshotRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const {
@@ -139,32 +141,33 @@ export const CameraComponent = (props: CameraComponentProps) => {
     );
 
   const takeScreenshot = useCallback(async () => {
-    if (videoRef.current && window) {
-      const video = videoRef.current;
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const context = canvas.getContext("2d");
-      if (context) {
-        context.drawImage(video, 0, 0);
-        const blob = await new Promise<Blob | null>((resolve) => {
-          canvas.toBlob((blob) => resolve(blob));
-        });
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          
-          const timestamp = Date.now();
-          const filename = getScreenshotName
-            ? getScreenshotName(cameraName, timestamp)
-            : `site${(currentSite+1).toString()}-${cameraSerial}-${timestamp}.png`;
-          
-          link.download = filename;
-          link.click();
-        }
+    try {
+      const element = screenshotRef.current;
+
+      const canvas = await html2canvas(element as HTMLElement, {
+        backgroundColor: null,
+        useCORS: true,
+        logging: false,
+      });
+
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob((b) => resolve(b))
+      );
+      if (!blob) {
+        toast("Unable to Take a Screenshot");
+        return;
       }
-    } else {
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const timestamp = Date.now();
+      const filename = getScreenshotName
+        ? getScreenshotName(cameraName, timestamp)
+        : `site${(currentSite + 1).toString()}-${cameraSerial}-${timestamp}.png`;
+      link.href = url;
+      link.download = filename;
+      link.click();
+    } catch (err) {
       toast("Unable to Take a Screenshot");
     }
   }, [videoRef, cameraSerial, currentSite, cameraName, getScreenshotName]);
@@ -199,7 +202,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     : <CameraVideo videoRef={videoRef} filters={filters} />;
   return (
     <Card className={` aspect-[${ASPECT_RATIO}] `} ref={cardRef}>
-      {cameraVideo}
+      <div ref={screenshotRef}>{cameraVideo}</div>
 
       {/* Overlay */}
       <div className="absolute top-0 right-0 w-full h-full flex flex-col justify-center items-center">
