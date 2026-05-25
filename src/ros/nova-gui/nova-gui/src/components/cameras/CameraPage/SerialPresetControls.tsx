@@ -1,4 +1,4 @@
-import {Button} from "@nextui-org/react";
+import {Button, Tooltip} from "@nextui-org/react";
 import {Pause, Play, Square} from "react-feather";
 import {SerialPreset} from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 
@@ -20,11 +20,17 @@ export const SerialPresetControls = ({
       <span>Camera Set Controls</span>
       {presets.map((preset) => (
         <div key={preset.displayName} className="flex flex-row items-center justify-between">
-          <span className="text-sm text-default-500">{preset.displayName}</span>
+          <Tooltip
+            className="dark text-foreground"
+            content={preset.serials.join(", ")}
+            closeDelay={100}
+          >
+            <span className="text-sm text-default-500">{preset.displayName}</span>
+          </Tooltip>
           <div className="flex flex-row gap-2">
             <Button
               color="primary"
-              size="md"
+              size="sm"
               startContent={<Play size={16}/>}
               onPress={() => startStreaming(preset.serials, false)}
             >
@@ -32,7 +38,7 @@ export const SerialPresetControls = ({
             </Button>
             <Button
               color="warning"
-              size="md"
+              size="sm"
               startContent={<Pause size={16}/>}
               onPress={() => pauseStreaming(preset.serials, false)}
             >
@@ -40,7 +46,7 @@ export const SerialPresetControls = ({
             </Button>
             <Button
               color="danger"
-              size="md"
+              size="sm"
               startContent={<Square size={16}/>}
               onPress={() => stopStreaming(preset.serials, false)}
             >
