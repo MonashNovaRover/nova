@@ -93,6 +93,7 @@ class GPSRover(Node):
         self.pose_custom = GPSData()
         self.pose.header.frame_id = 'gps'
         self.timer = self.create_timer(1/self.publisher_rate, self.loop)
+        self.valid_gps_heading = False
         
         ### Threading ###
         self.fix_lock = threading.Lock()
@@ -121,7 +122,9 @@ class GPSRover(Node):
             self.get_logger().warn(f'❌ Failed to write RTCM to serial port: {e}')
 
     def sub_magnetometer_callback(self, msg : Float64):
-        self.pose_custom.heading = msg.data
+        if not self.valid_gps_heading:
+            # use mag heading as backup
+            self.pose_custom.heading = msg.data
 
     def reader_loop(self):
         while self.running and rclpy.ok():
@@ -171,8 +174,10 @@ class GPSRover(Node):
         elif msg_parsed.msgID == 'THS':
             if msg_parsed.mi != 'V':
                 self.pose_custom.heading = float(msg_parsed.headt)
+                self.valid_gps_heading = True
             else:
                 self.get_logger().warn(f'❌ GNSS (THS) heading data is invalid!', throttle_duration_sec=1)
+                self.valid_gps_heading = False
 
         ### LOG ###
         msg_log = f'''
