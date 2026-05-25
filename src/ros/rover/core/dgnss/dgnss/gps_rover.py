@@ -139,16 +139,10 @@ class GPSRover(Node):
             
             except Exception as e:
                 self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
-                time.sleep(0.01)  # Avoid busy waiting
-
-    def parse_nmea(self) -> None:
-        self.get_logger().debug(f'Parsing NMEA message...')
-        try:
-            for _, msg_parsed in self.reader:
-                self.process_nmea(msg_parsed)
-        except Exception as e:
-            self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
-            return
+                self.get_logger().info(f'Reopening serial port...')
+                self.ser.close()
+                self.ser.open()
+                time.sleep(0.01)
 
     def process_nmea(self, msg_parsed: str):
         if msg_parsed is None:
