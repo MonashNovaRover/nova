@@ -1,7 +1,7 @@
 # base_frame: old arm = arm_link, new arm = arm_kinematics_origin
 # handled in launch file
 
-periscope_camera_info_publisher:
+camera_info_publisher:
   ros__parameters:
     publish_rate: 10.0
     camera_info_topic: /arm/camera_info
@@ -21,7 +21,7 @@ keyboard_localiser:
     aligned_keyboard_position: [1.0,0.0,0.6]
     aligned_keyboard_quaternion: [ -0.5, 0.5, -0.5, 0.5 ]
     key_quaternion: [0.0, 0.0, 0.0, 1.0]
-    key_offset: 10.0
+    key_offset: 7.5
 
     # calibrated camera intrinsics
     hfov: 61.3727248
@@ -52,14 +52,12 @@ typing_sequencer:
     pollrate: 10.0
 
     # path planner movement
-    speed: 0.04 # m/s
+    speed: 0.05 # m/s
     debug_target: True
 
 pokey:
   ros__parameters:
-    poke_speed: 100
-    poke_amount: 50
+    duration: 20
     hardware:
       end_effector:
         can_id: 0x0C1
-        reversed: true
