@@ -33,8 +33,6 @@ export const CameraSidebar = (
   const nodes = useRosNodes();
   const camerasRunning = useMemo(() => nodes.includes("/camera_streamer"), [nodes]);
 
-  console.log(serialPresets)
-
   const booleanChip = useMemo(() => <BooleanChip
     boolean={camerasRunning}
     variant="dot"
