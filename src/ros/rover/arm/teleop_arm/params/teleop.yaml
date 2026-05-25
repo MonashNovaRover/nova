@@ -105,11 +105,13 @@ teleop_arm:
           - "auto_typing_mode"
         deactivate:
           - "joint_space_mode"
+          - "end_effector_mode"
       exit_auto_typing:
         on: "exit_typing/down"
         type: switch_control_mode
         activate:
           - "joint_space_mode"
+          - "end_effector_mode"
         deactivate:
           - "auto_typing_mode"
 
