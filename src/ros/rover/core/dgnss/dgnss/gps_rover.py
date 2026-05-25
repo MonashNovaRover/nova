@@ -75,6 +75,12 @@ class GPSRover(Node):
             self.sub_rtcm_callback,
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
+        self.sub_heading = self.create_subscription(
+            Float64, 
+            'mag/heading', 
+            self.sub_magnetometer_callback, 
+            QoSPresetProfiles.SENSOR_DATA.value, 
+        )
         self.pub_pose = self.create_publisher(
             NavSatFix, 
             '/gps_rover/fix', 
