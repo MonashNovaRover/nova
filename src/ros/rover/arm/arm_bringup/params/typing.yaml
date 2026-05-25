@@ -8,7 +8,7 @@ camera_info_publisher:
     image_topic: /arm/finger
     frame_id: image_frame
     hfov: 61.3727248
-    distortion_matrix: [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]
+    distortion_matrix: [0.1748, -0.9582, -0.001254, -0.000797, 0.6523]
 
 keyboard_localiser:
   ros__parameters:
@@ -21,13 +21,13 @@ keyboard_localiser:
     aligned_keyboard_position: [1.0,0.0,0.6]
     aligned_keyboard_quaternion: [ -0.5, 0.5, -0.5, 0.5 ]
     key_quaternion: [0.0, 0.0, 0.0, 1.0]
-    key_offset: 7.5
+    key_offset: 8.0
 
     # calibrated camera intrinsics
     hfov: 61.3727248
     image_width: 1280 #1280
     image_height: 720 #720
-    distortion_matrix: [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]
+    distortion_matrix: [0.1748, -0.9582, -0.001254, -0.000797, 0.6523]
 
     # ArUco marker params
     aruco_topic: /aruco_detections
@@ -57,7 +57,7 @@ typing_sequencer:
 
 pokey:
   ros__parameters:
-    duration: 20
+    duration: 5
     hardware:
       end_effector:
         can_id: 0x0C1
