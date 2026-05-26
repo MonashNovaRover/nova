@@ -18,7 +18,10 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
   const bifrost = useBifrost({ topic: RosTopic.HYDRAPROBE_DATA });
   const temperature = useSelector((state: RootState) => state.hydraprobeData.temperature);
   const moisture = useSelector((state: RootState) => state.hydraprobeData.moisture);
-  const sensorData = useMemo(() => [temperature, moisture], [temperature, moisture])
+  const conductivity = useSelector((state: RootState) => state.hydraprobeData.conductivity);
+  const dielectric = useSelector((state: RootState) => state.hydraprobeData.dielectric);
+  const sensorData = useMemo(() => [temperature, moisture, conductivity, dielectric],
+    [temperature, moisture, conductivity, dielectric])
 
   const [siteSensorData, setSiteSensorData, addSensorData] = useSiteSensorData()
 
@@ -31,12 +34,14 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
     addSensorData([
       {name: "Temperature", data: temperature},
       {name: "Moisture", data: moisture},
+      {name: "Conductivity", data: conductivity},
+      {name: "Salinity", data: dielectric},
     ] as SensorData[])
     toast.success("Hydraprobe data saved")
   }
 
   const deleteData = () => {
-    const hydraprobeDataNames = ["Temperature", "Moisture"];
+    const hydraprobeDataNames = ["Temperature", "Moisture", "Conductivity", "Salinity"];
     const filteredData = siteSensorData.filter((entry) => !hydraprobeDataNames.includes(entry.name));
     setSiteSensorData(filteredData);
     toast.success("Hydraprobe data deleted");
@@ -46,8 +51,8 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
     <CardBody className="gap-4">
       <SensorDataDisplay
         values={sensorData}
-        labels={["Temperature", "Moisture"]}
-        suffixes={["°C", "%"]}
+        labels={["Temperature", "Moisture", "Conductivity", "Salinity"]}
+        suffixes={["°C", "%", "µS/cm", "ppt"]}
       />
     </CardBody>
   );

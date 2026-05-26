@@ -18,9 +18,9 @@ const BMESensor: React.FC<IBMESensorProps> = (
 ) => {
   const bifrost = useBifrost({ topic: RosTopic.BME_SENSOR, service: RosService.BME_TRIGGER });
   const temperature = useSelector((state: RootState) => state.bmeSensorStore.temperature);
-  const humidity = useSelector((state: RootState) => state.bmeSensorStore.humidity);
+  // const humidity = useSelector((state: RootState) => state.bmeSensorStore.humidity);
   const pressure = useSelector((state: RootState) => state.bmeSensorStore.pressure);
-  const sensorData = useMemo(() => [temperature, humidity, pressure], [temperature, humidity, pressure])
+  const sensorData = useMemo(() => [temperature, pressure], [temperature, pressure])
 
   // rover GPS data
   const roverLocation = useSelector((state: RootState) => state.roverLocationStore);
@@ -34,7 +34,6 @@ const BMESensor: React.FC<IBMESensorProps> = (
   const saveData = () => {
     const bmeData: SensorData[] = [
       {name: "BME Temperature", data: temperature},
-      {name: "BME Humidity", data: humidity},
       {name: "BME Pressure", data: pressure},
     ];
 
@@ -49,7 +48,7 @@ const BMESensor: React.FC<IBMESensorProps> = (
   }
 
   const deleteData = () => {
-    const bmeDataNames = ["BME Temperature", "BME Humidity", "BME Pressure", "Latitude", "Longitude", "Altitude"];
+    const bmeDataNames = ["BME Temperature", "BME Pressure", "Latitude", "Longitude", "Altitude"];
     const filteredData = siteSensorData.filter((entry) => !bmeDataNames.includes(entry.name));
     setSiteSensorData(filteredData);
     toast.success("BME sensor and GPS data deleted");
@@ -59,12 +58,12 @@ const BMESensor: React.FC<IBMESensorProps> = (
     <CardBody className="flex flex-col gap-3">
       <SensorDataDisplay
         values={sensorData}
-        labels={["Temperature", "Humidity", "Pressure"]}
-        suffixes={["°C", "%", "hPa"]}
+        labels={["Temperature", "Pressure"]}
+        suffixes={["°C", "hPa"]}
       />
-      <Button onPressStart={() => bifrost.callService({})}>
-        Take Reading
-      </Button>
+      {/*<Button onPressStart={() => bifrost.callService({})}>*/}
+      {/*  Take Reading*/}
+      {/*</Button>*/}
     </CardBody>
   );
 

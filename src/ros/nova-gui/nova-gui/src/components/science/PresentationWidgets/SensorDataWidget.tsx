@@ -11,8 +11,8 @@ interface SensorDataWidgetProps {
 
 // HARDCODED SENSOR NAMES FOR URC 2026 COMPETITION PRESENTATION
 // Group sensors by type:
-// - Site Information: BME sensor (Temperature, Humidity, Pressure) + GPS (Latitude, Longitude, Altitude)
-// - Soil Information: Hydraprobe (Temperature, Moisture)
+// - Site Information: BME sensor (Temperature, Pressure) + GPS (Latitude, Longitude, Altitude)
+// - Soil Information: Hydraprobe (Temperature, Moisture, Conductivity, Salinity)
 const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
   const [siteData, _] = useGenericStore<SiteDataState>("siteData");
 
@@ -54,14 +54,10 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Temperature (BME)</span>
                   <span className="text-lg font-semibold">{getSensorValue("BME Temperature")}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-small text-default-500">Humidity (BME)</span>
-                  <span className="text-lg font-semibold">{getSensorValue("BME Humidity")}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Pressure (BME)</span>
@@ -77,7 +73,7 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
             {/* Soil Information Section (Hydraprobe) - Nested Card with Green Accent */}
             <div className="rounded-lg border-2 border-success/30 bg-success/5 p-3">
               <h3 className="text-medium font-semibold mb-3 text-success">Soil Information</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Temperature</span>
                   <span className="text-lg font-semibold">{getSensorValue("Temperature")}</span>
@@ -85,6 +81,14 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Moisture</span>
                   <span className="text-lg font-semibold">{getSensorValue("Moisture")}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-small text-default-500">Conductivity</span>
+                  <span className="text-lg font-semibold">{getSensorValue("Conductivity")}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-small text-default-500">Salinity</span>
+                  <span className="text-lg font-semibold">{getSensorValue("Salinity")}</span>
                 </div>
               </div>
             </div>
