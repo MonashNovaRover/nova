@@ -14,7 +14,7 @@ TOPICS:
 PACKAGE: 	electronics
 AUTHOR(S):	Shelby N, Victor Bartlinski
 CREATED:	25/02/2023
-EDITED:		30/04/2025
+EDITED:		26/05/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TODO:
  - Check if buffer clearing is necessary
@@ -38,6 +38,52 @@ from pyubx2 import UBXReader
 import threading
 import time
 import struct
+from smbus2 import SMBus, i2c_msg
+import time
+
+class UbloxI2C:
+    def __init__(self, bus_num=4, addr=0x42):
+        self.bus_num = bus_num
+        self.addr = addr
+        self.bus = None
+
+    def open(self):
+        self.bus = SMBus(self.bus_num)
+
+    def read(self, length):
+        if not self.bus:
+            return b''
+            
+        data = bytearray()
+        while len(data) < length:
+            try:
+                # Read "Number of Bytes Available" registers (0xFD High, 0xFE Low)
+                high = self.bus.read_byte_data(self.addr, 0xFD)
+                low = self.bus.read_byte_data(self.addr, 0xFE)
+                avail = (high << 8) | low
+
+                if avail > 0:
+                    to_read = min(length - len(data), avail, 32)
+                    
+                    # Target the 0xFF Data Stream Register
+                    write_reg = i2c_msg.write(self.addr, [0xFF])
+                    self.bus.i2c_rdwr(write_reg)
+                    
+                    # Read the bytes
+                    read_msg = i2c_msg.read(self.addr, to_read)
+                    self.bus.i2c_rdwr(read_msg)
+                    
+                    data.extend(list(read_msg))
+                else:
+                    time.sleep(0.01) 
+            except OSError:
+                time.sleep(0.01)
+                
+        return bytes(data)
+
+    def close(self):
+        if self.bus:
+            self.bus.close()
 
 class GPSRover(Node):
     def __init__(self):
@@ -122,13 +168,25 @@ class GPSRover(Node):
         self.get_logger().debug(f'Node configured!')
         self.ubx_reader = UBXReader(self.ser)
 
-    def config_port(self, port_name : str, baudrate : int):
-        self.ser.baudrate = baudrate
-        self.ser.port = port_name
-        self.ser.timeout = 3.0
-        self.ser.open()
-
-        self.get_logger().debug(f'Serial port configured!')
+    def config_port(self, port_name, baudrate):
+        if "i2c" in port_name:
+            # Route to our custom I2C wrapper
+            bus_num = int(port_name.split('-')[-1])
+            self.get_logger().info(f"Opening I2C Bus: {bus_num}")
+            self.ser = UbloxI2C(bus_num=bus_num, addr=0x42)
+            self.ser.open()
+        else:
+            # Route to standard PySerial for UART ports (like ttyTHS1)
+            import serial
+            self.get_logger().info(f"Opening Serial Port: {port_name}")
+            
+            # Note: serial.Serial opens the port automatically when instantiated
+            # but we can set it up to mimic your existing logic
+            self.ser = serial.Serial()
+            self.ser.port = port_name
+            self.ser.baudrate = baudrate
+            self.ser.timeout = 1
+            self.ser.open()
 
     def sub_rtcm_callback(self, msg : UInt8MultiArray):
         msg_binary = bytes(msg.data)
