@@ -62,7 +62,7 @@ in
             echo "usage: publish_heading_imu <heading_degrees>"
             return 2
           fi
-          mros2 run nova_utils publish_heading_imu.py --ros-args --p heading_degrees:=$heading
+          ~/Builds/active/bin/ros2 run nova_utils publish_heading_imu.py --ros-args --p heading_degrees:=$heading
         }
 
         # Set active build path
