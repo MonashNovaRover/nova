@@ -211,6 +211,8 @@ in
           N2 = "ssh -C -Y nova@10.0.2.12";
           N3 = "ssh -C -Y nova@10.0.2.13";
 
+          radio-status = "~/Builds/active/bin/ros2 run nova_utils radio_status.py";
+
 
           # Nano v Vim
           set_vim = "export EDITOR=vim";
