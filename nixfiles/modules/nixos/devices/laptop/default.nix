@@ -38,6 +38,9 @@ in
       substituters.nova.password = lib.mkDefault (builtins.readFile /home/nova/nova/nixfiles/secrets/hydra-password.txt);
     };
 
+    # Turn off wifi powersaving (needed for drone)
+    networking.networkmanager.wifi.powersave = false;
+
     nixpkgs = {
       # Allow non-free drivers
       config.allowUnfree = lib.mkDefault true;
