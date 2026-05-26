@@ -29,13 +29,13 @@ class HeadingToImuOnce(Node):
     def __init__(self):
         super().__init__('heading_to_imu_once')
 
-        self.declare_parameter('heading', 0.0)
+        self.declare_parameter('heading', 0)
         self.declare_parameter('topic', '/gps_rover/heading_imu')
 
         self.heading = (
             self.get_parameter('heading')
             .get_parameter_value()
-            .double_value
+            .integer_value
         )
 
         topic = (
@@ -78,7 +78,7 @@ class HeadingToImuOnce(Node):
         self.publisher.publish(msg)
 
         self.get_logger().info(
-            f'Published IMU orientation once: heading={self.heading:.3f} deg, '
+            f'Published IMU orientation once: heading={self.heading} deg, '
             f'yaw={yaw_rad:.3f} rad, topic={self.publisher.topic_name}'
         )
 
