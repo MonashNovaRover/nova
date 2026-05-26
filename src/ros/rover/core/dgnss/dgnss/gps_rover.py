@@ -48,20 +48,32 @@ class UbloxI2C:
         self.bus = None
 
     def open(self):
+        from smbus2 import SMBus
         self.bus = SMBus(self.bus_num)
 
+    @property
+    def in_waiting(self):
+        """Mimics PySerial's in_waiting by checking u-blox registers 0xFD and 0xFE."""
+        if not self.bus:
+            return 0
+        try:
+            high = self.bus.read_byte_data(self.addr, 0xFD)
+            low = self.bus.read_byte_data(self.addr, 0xFE)
+            return (high << 8) | low
+        except OSError:
+            # I2C bus collision or device busy
+            return 0
+
     def read(self, length):
+        from smbus2 import i2c_msg
+        import time
         if not self.bus:
             return b''
             
         data = bytearray()
         while len(data) < length:
             try:
-                # Read "Number of Bytes Available" registers (0xFD High, 0xFE Low)
-                high = self.bus.read_byte_data(self.addr, 0xFD)
-                low = self.bus.read_byte_data(self.addr, 0xFE)
-                avail = (high << 8) | low
-
+                avail = self.in_waiting
                 if avail > 0:
                     to_read = min(length - len(data), avail, 32)
                     
@@ -80,6 +92,21 @@ class UbloxI2C:
                 time.sleep(0.01)
                 
         return bytes(data)
+
+    def readline(self):
+        """Mimics PySerial's readline() for NMEA string parsing."""
+        line = bytearray()
+        while True:
+            # Only read if there is data, otherwise we might block too long
+            if self.in_waiting > 0:
+                char = self.read(1)
+                line.extend(char)
+                if char == b'\n':
+                    break
+            else:
+                # If buffer is empty and we haven't hit a newline, break to avoid hanging
+                break
+        return bytes(line)
 
     def close(self):
         if self.bus:
