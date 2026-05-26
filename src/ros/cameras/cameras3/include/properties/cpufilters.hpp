@@ -1,31 +1,23 @@
 #ifndef CPUFILTERS_HEADER
 #define CPUFILTERS_HEADER
 
+#include <string>
 #include <gst/gst.h>
 
 int crop43(const int width, const int height);
 
 void set_queue(GstElement* queue);
 
-template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
+template<typename properties> void set_crop43(GstElement* cropper, const properties& props) {
   const int crop_width = crop43(props->width, props->height);
-  g_object_set(element,
-    "left", crop_width,
-    "right", crop_width,
+  g_object_set(cropper,
+    "left", (int) ((float) crop_width/ (float) props->downscale),
+    "right", (int) ((float) crop_width/ (float) props->downscale),
   NULL);
 };
 
-template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props, const int crop_width) {
-  g_object_set(element,
-    "left", crop_width,
-    "right", crop_width,
-  NULL);
-};
-
-void set_no_cpu_crop43(GstElement* element);
-
-template<typename properties> void set_convertscale(GstElement* element, const properties& props) {
-  g_object_set(element,
+template<typename properties> void set_convertscale(GstElement* convert, const properties& props) {
+  g_object_set(convert,
     "chroma-resampler", (
       props->chroma_resampler == "nearest" ? 0 :
       props->chroma_resampler == "linear" ? 1 :
