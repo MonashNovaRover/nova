@@ -19,7 +19,7 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_util/node_utils.hpp"
 
-#include "nova_behavior_tree/goals_empty_condition.hpp"
+#include "nova_behavior_tree/condition/goals_empty_condition.hpp"
 
 namespace nova_behavior_tree
 {
