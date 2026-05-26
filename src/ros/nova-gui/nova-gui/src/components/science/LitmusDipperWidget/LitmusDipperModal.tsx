@@ -3,6 +3,7 @@ import {
 } from "@nextui-org/react";
 import React, { useState } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
+import { LitmusDipperConfig } from "./LitmusDipperWidget";
 
 export interface LitmusDipperModalProps {
   isOpen: boolean;
@@ -10,18 +11,22 @@ export interface LitmusDipperModalProps {
 }
 
 const LitmusDipperModal: React.FC<LitmusDipperModalProps> = ({ isOpen, onOpenChange }) => {
-  const [defaultDuration, setDefaultDuration] = useGenericStore<number>("litmusDipperDefaultDuration");
-  const [twitchStep, setTwitchStep] = useGenericStore<number>("litmusDipperTwitchStep");
+  const [config, setConfig] = useGenericStore<LitmusDipperConfig>("litmusDipperConfig");
 
-  const [editingDuration, setEditingDuration] = useState<string>(defaultDuration?.toString() ?? "2");
-  const [editingTwitchStep, setEditingTwitchStep] = useState<string>(twitchStep?.toString() ?? "5");
+  const [editingDuration, setEditingDuration] = useState<string>(config?.defaultDuration?.toString() ?? "2");
+  const [editingTwitchStep, setEditingTwitchStep] = useState<string>(config?.twitchStep?.toString() ?? "5");
+  const [editingWaitDuration, setEditingWaitDuration] = useState<string>(config?.waitDuration?.toString() ?? "30");
 
   const save = () => {
-    const val = Number(editingDuration);
-    setDefaultDuration(isNaN(val) || val <= 0 ? 2 : val);
-
+    const durationVal = Number(editingDuration);
     const stepVal = Number(editingTwitchStep);
-    setTwitchStep(isNaN(stepVal) || stepVal <= 0 ? 5 : stepVal);
+    const waitVal = Number(editingWaitDuration);
+
+    setConfig({
+      defaultDuration: isNaN(durationVal) || durationVal <= 0 ? 2 : durationVal,
+      twitchStep: isNaN(stepVal) || stepVal <= 0 ? 5 : stepVal,
+      waitDuration: isNaN(waitVal) || waitVal <= 0 ? 30 : waitVal,
+    });
   };
 
   return (
@@ -57,14 +62,26 @@ const LitmusDipperModal: React.FC<LitmusDipperModalProps> = ({ isOpen, onOpenCha
                   </div>
                 }
               />
+              <Input
+                label="Wait Duration"
+                type="number"
+                value={editingWaitDuration}
+                onValueChange={setEditingWaitDuration}
+                endContent={
+                  <div className="pointer-events-none flex items-center">
+                    <span className="text-default-400 text-small">s</span>
+                  </div>
+                }
+              />
             </ModalBody>
             <ModalFooter>
               <Button
                 color="danger"
                 variant="light"
                 onPress={() => {
-                  setEditingDuration(defaultDuration?.toString() ?? "2");
-                  setEditingTwitchStep(twitchStep?.toString() ?? "5");
+                  setEditingDuration(config?.defaultDuration?.toString() ?? "2");
+                  setEditingTwitchStep(config?.twitchStep?.toString() ?? "5");
+                  setEditingWaitDuration(config?.waitDuration?.toString() ?? "30");
                   onClose();
                 }}
               >

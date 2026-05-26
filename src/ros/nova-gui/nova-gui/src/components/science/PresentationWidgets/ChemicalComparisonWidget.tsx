@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from "react";
+import React, {useMemo} from "react";
 import {Card, CardHeader, CardBody, Button} from "@nextui-org/react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import {ApexDataset} from "../SpectraDisplay/DataChart.tsx";
@@ -14,16 +14,19 @@ interface ChemicalComparisonWidgetProps {
   columnLabel: string;
   onSwap?: () => void;
   currentMapping?: string;
+  selectedIndex: number;
+  onIndexChange: (index: number) => void;
 }
 
 const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
   spectrometer,
   columnLabel,
   onSwap,
-  currentMapping
+  currentMapping,
+  selectedIndex,
+  onIndexChange
 }) => {
   const [allSpectra, _] = useLocalStorage<ApexDataset>("uv-vis-spec-saved-data", []);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const selectedChemical: Chemical = CHEMICALS[selectedIndex];
 
   // Filter spectra by spectrometer and chemical
@@ -113,7 +116,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
         </div>
         <SegmentedPicker
           selectedIndex={selectedIndex}
-          onIndexChange={setSelectedIndex}
+          onIndexChange={onIndexChange}
           className="mt-2 w-full"
           size="sm"
           fullWidth

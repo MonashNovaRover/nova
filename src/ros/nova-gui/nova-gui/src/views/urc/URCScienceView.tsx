@@ -1,4 +1,5 @@
-import React, {useState} from "react";
+import React from "react";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import HydroprobeWidget from "../../components/science/SensorWidgets/HydroprobeWidget.tsx";
 import PumpsWidget from "../../components/science/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/science/SensorWidgets/BMESensor.tsx";
@@ -21,7 +22,7 @@ import DepthSensor from "../../components/cameras/CameraComponent/special/DepthS
 const DepthSensorNoSiteSelect = DepthSensor(false);
 
 const URCScienceView: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState(0)
+  const [selectedTab, setSelectedTab] = useGenericStore<number>("urcScienceViewTab")
 
   const siteAnalysisView = (
     <div className="grid grid-flow-col auto-cols-fr gap-3 p-3 overflow-auto flex-1 min-h-0">

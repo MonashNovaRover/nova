@@ -441,14 +441,18 @@ export const reduxStores = {
     timePerMlInner: 1.9,
     timePerMlOuter: 1.9,
   }),
-  litmusDipperDefaultDuration: createGenericStore("litmusDipperDefaultDuration", 2),
-  litmusDipperTwitchStep: createGenericStore("litmusDipperTwitchStep", 5.0),
+  litmusDipperConfig: createGenericStore("litmusDipperConfig", {
+    defaultDuration: 2,
+    twitchStep: 5.0,
+    waitDuration: 30,
+  }),
   cacheLeftTwitchStep: createGenericStore("cacheLeftTwitchStep", 5.0),
   cacheRightTwitchStep: createGenericStore("cacheRightTwitchStep", 5.0),
   pumpedCuvettes: createGenericStore("pumpedCuvettes", {
     inner: [] as number[],  // Array of 0-indexed cuvette positions that have been pumped
     outer: [] as number[],  // Array of 0-indexed cuvette positions that have been pumped
   }),
+  urcScienceViewTab: createGenericStore("urcScienceViewTab", 0),
 };
 
 // all store reducers

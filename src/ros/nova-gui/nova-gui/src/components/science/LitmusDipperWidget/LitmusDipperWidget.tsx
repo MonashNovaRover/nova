@@ -14,6 +14,12 @@ import LitmusDipperModal from "./LitmusDipperModal.tsx";
 
 export interface LitmusDipperWidgetProps extends CardProps { }
 
+export interface LitmusDipperConfig {
+  defaultDuration: number;
+  twitchStep: number;
+  waitDuration: number;
+}
+
 /**
  * Litmus dipper widget (repurposed from PumpsWidget.tsx)
  * @param props
@@ -22,10 +28,18 @@ export interface LitmusDipperWidgetProps extends CardProps { }
 const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-  const [defaultDuration] = useGenericStore<number>("litmusDipperDefaultDuration");
-  const [twitchStep, setTwitchStep] = useGenericStore<number>("litmusDipperTwitchStep");
+  const [config, setConfig] = useGenericStore<LitmusDipperConfig>("litmusDipperConfig");
+  const defaultDuration = config?.defaultDuration ?? 2;
+  const twitchStep = config?.twitchStep ?? 5;
+  const waitDuration = config?.waitDuration ?? 30;
+
   const [twitchInput, setTwitchInput] = useState(twitchStep?.toString());
   const [duration, setDuration] = useState<string>(defaultDuration?.toString());
+
+  const [waitingForReady, setWaitingForReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [waitTimeElapsed, setWaitTimeElapsed] = useState(0);
+  const [wasRunning, setWasRunning] = useState(false);
 
   const bifrostDip = useBifrost({ service: RosService.LITMUS_DIPPER_DIP });
   const bifrostStop = useBifrost({ service: RosService.LITMUS_DIPPER_STOP });
@@ -38,7 +52,35 @@ const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
     bifrostStatus.syncWithTopic();
   }, [bifrostStatus]);
 
+  useEffect(() => {
+    if (wasRunning && !dipperStatus.running) {
+      setWaitingForReady(true);
+      setWaitTimeElapsed(0);
+      setIsReady(false);
+    }
+    setWasRunning(dipperStatus.running);
+  }, [dipperStatus.running, wasRunning]);
+
+  useEffect(() => {
+    if (!waitingForReady) return;
+
+    const interval = setInterval(() => {
+      setWaitTimeElapsed((prev) => {
+        if (prev >= waitDuration) {
+          setWaitingForReady(false);
+          setIsReady(true);
+          return waitDuration;
+        }
+        return prev + 0.1;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [waitingForReady, waitDuration]);
+
   const runDip = () => {
+    setIsReady(false);
+    setWaitingForReady(false);
     const durationNum = Number(duration);
     bifrostDip.callService({
       pump: "litmus_dipper",
@@ -66,13 +108,25 @@ const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
       <Progress
         className="flex-1"
         disableAnimation
-        color="secondary"
+        color={waitingForReady || isReady ? "success" : "secondary"}
         aria-label="Dip Progress"
-        value={dipperStatus.running ? dipperStatus.time_elapsed : 0}
-        maxValue={dipperStatus.running && dipperStatus.time_target > 0 ? dipperStatus.time_target : 1}
+        value={
+          isReady ? 100 :
+          waitingForReady ? waitTimeElapsed :
+          dipperStatus.running ? dipperStatus.time_elapsed : 0
+        }
+        maxValue={
+          isReady ? 100 :
+          waitingForReady ? waitDuration :
+          dipperStatus.running && dipperStatus.time_target > 0 ? dipperStatus.time_target : 1
+        }
       />
-      <span className="  whitespace-nowrap w-24 text-center">
-        {dipperStatus.running
+      <span className="whitespace-nowrap w-24 text-center">
+        {isReady
+          ? "Ready!"
+          : waitingForReady
+          ? `${waitTimeElapsed.toFixed(1)} / ${waitDuration}s`
+          : dipperStatus.running
           ? `${dipperStatus.time_elapsed.toFixed(1)} / ${dipperStatus.time_target.toFixed(1)}s`
           : `0 / ${Number(duration)}s`}
       </span>
@@ -80,7 +134,7 @@ const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
   );
 
   return (
-    <Card {...props}>
+    <Card {...props} className={`${props.className ?? ""} ${isReady ? "border-2 border-success" : ""}`}>
       <CardHeader className="pb-0 flex flex-row justify-between items-center">
         <div className="flex-1">Litmus Dipper</div>
         <div className="flex-1 text-center text-sm text-default-500">
@@ -114,7 +168,11 @@ const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
               label="Twitch Step"
               type="number"
               value={twitchInput}
-              onValueChange={(v) => { setTwitchInput(v); const n = parseFloat(v); if (!isNaN(n) && n > 0) setTwitchStep(n) }}
+              onValueChange={(v) => {
+                setTwitchInput(v);
+                const n = parseFloat(v);
+                if (!isNaN(n) && n > 0) setConfig({ ...config, twitchStep: n });
+              }}
               endContent={
                 <div className="pointer-events-none flex items-center">
                   <span className="text-default-400 text-small">°</span>

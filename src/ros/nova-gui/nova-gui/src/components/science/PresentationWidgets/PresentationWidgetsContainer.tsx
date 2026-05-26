@@ -9,6 +9,9 @@ const PresentationWidgetsContainer: React.FC = () => {
   // false = default (Left: SL, Right: SR), true = swapped (Left: SR, Right: SL)
   const [isSwapped, setIsSwapped] = useState(false);
 
+  // Shared chemical selection state for both comparison widgets
+  const [selectedChemicalIndex, setSelectedChemicalIndex] = useState(0);
+
   const leftSpectrometer: Spectrometer = isSwapped ? "SR" : "SL";
   const rightSpectrometer: Spectrometer = isSwapped ? "SL" : "SR";
 
@@ -33,6 +36,8 @@ const PresentationWidgetsContainer: React.FC = () => {
           columnLabel={`Site 1 (${leftSpectrometer})`}
           onSwap={handleSwap}
           currentMapping={`Site 1: ${leftSpectrometer}`}
+          selectedIndex={selectedChemicalIndex}
+          onIndexChange={setSelectedChemicalIndex}
         />
       </div>
 
@@ -51,6 +56,8 @@ const PresentationWidgetsContainer: React.FC = () => {
           columnLabel={`Site 2 (${rightSpectrometer})`}
           onSwap={handleSwap}
           currentMapping={`Site 2: ${rightSpectrometer}`}
+          selectedIndex={selectedChemicalIndex}
+          onIndexChange={setSelectedChemicalIndex}
         />
       </div>
     </div>
