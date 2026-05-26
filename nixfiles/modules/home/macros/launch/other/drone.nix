@@ -43,7 +43,7 @@ let
       {
         name = "Drone GPS publisher";
         platform = base;
-        cmd = "sleep 5 && ~/Builds/master/bin/ros2 run electronics gps_drone.py";
+        cmd = "sleep 5 && ~/Builds/master/bin/ros2 run dgnss gps_drone.py";
       }
     ];
 
