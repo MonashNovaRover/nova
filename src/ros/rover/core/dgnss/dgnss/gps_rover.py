@@ -34,6 +34,7 @@ from pyunigps import (
     UNIReader,
     NMEA_PROTOCOL,
 )
+from pyubx2 import UBXReader
 import threading
 import time
 import struct
@@ -119,6 +120,7 @@ class GPSRover(Node):
         self.reader_thread.start()
 
         self.get_logger().debug(f'Node configured!')
+        self.ubx_reader = UBXReader(self.ser)
 
     def config_port(self, port_name : str, baudrate : int):
         self.ser.baudrate = baudrate
@@ -238,68 +240,59 @@ class GPSRover(Node):
                 except Exception as new_e:
                     self.get_logger().warn(f'❌ Failed to re-open serial port: {new_e}', throttle_duration_sec=1)
                 time.sleep(0.01)
-
+    
     def read_ubx(self):
-        ser = self.ser
-        char1 = ser.read(1)
-        num_sv = 0
-        if char1 == b'\xb5':
-            char2 = ser.read(1)
-            if char2 == b'\x62':
-                header = ser.read(4)
-                if len(header) < 4: return
-
-                msg_class, msg_id, length = struct.unpack("<BBH", header)
-                payload = ser.read(length)
-                ser.read(2) # Consume checksum
-
-                # NAV-PVT Message (Class 0x01, ID 0x07)
-                if msg_class == 0x01 and msg_id == 0x07 and length >= 92:
-                    # iTOW(0), year(4), month(6), day(7), hour(8), min(9), sec(10), valid(11), tAcc(12), fNano(16), fixType(20)
-                    # Lon is at offset 24, Lat at offset 28 (both 4 bytes, signed i32)
-                    lon_raw, lat_raw = struct.unpack("<ii", payload[24:32])
-                    fix_id = payload[20] # 0=No fix, 3=3D fix
-
-                    lon = lon_raw / 1e7
-                    lat = lat_raw / 1e7
-
-
-                    num_sv = payload[23] # Number of satellites used in Nav Solution
-
-                    self.pose.latitude = float(lat)
-                    self.pose.longitude = float(lon)
-
+        try:
+            # UBXReader does all the heavy lifting of finding headers and validating checksums
+            (raw_data, parsed_data) = self.ubx_reader.read()
+            
+            if parsed_data is not None:
+                # We only care about NAV-PVT for this node
+                if parsed_data.identity == 'NAV-PVT':
+                    
+                    # pyubx2 automatically scales lat/lon (degrees) and height (mm)
+                    self.pose.latitude = float(parsed_data.lat)
+                    self.pose.longitude = float(parsed_data.lon)
+                    self.pose.altitude = float(parsed_data.hMSL) / 1000.0       # mm to m
+                    self.pose_custom.heading = float(parsed_data.headMot) / 1e5 # deg * 1e-5 to deg
+                    
+                    num_sv = parsed_data.numSV
+                    fix_id = parsed_data.fixType # 0=No fix, 2=2D, 3=3D, 4=GNSS+DR
+                    
                     fix_options = {0:"No Fix", 2:"2D Fix", 3:"3D Fix", 4:"GNSS+Dead Reckoning"}
                     self.fix_type = fix_options.get(fix_id, "Unknown")
 
-                    if fix_id in fix_options:
+                    if fix_id in [2, 3, 4]:
                         self.pose.status.status = NavSatStatus.STATUS_FIX
                     else:
                         self.pose.status.status = NavSatStatus.STATUS_NO_FIX
                         self.fix_type = "No fix"
-                        self.get_logger().warn(f'❌ UBX GNSS data is not available!', throttle_duration_sec=1)
+                        self.get_logger().warn(f'❌ UBX GNSS fix not available!', throttle_duration_sec=1)
 
-        ### LOG ###
-        msg_log = f'''
-            {'-'*30}
-            🛰️ UBX Data:
-            \tlat: {self.pose.latitude:8.7f}
-            \tlon: {self.pose.longitude:8.7f}
-            \talt: {self.pose.altitude:8.7f}
-            \theading: {self.pose_custom.heading:8.3f}
-            \tfix type: {self.fix_type}
-            \tsatellite number: {num_sv}
-            {'-'*30}
-        '''
-        self.get_logger().info(msg_log, throttle_duration_sec=1)
-        self.get_logger().debug(f'UBX message parsed!')
+                    ### LOG ###
+                    msg_log = f'''
+                        {'-'*30}
+                        🛰️ UBX Data:
+                        \tlat: {self.pose.latitude:8.7f}
+                        \tlon: {self.pose.longitude:8.7f}
+                        \talt: {self.pose.altitude:8.7f}
+                        \theading: {self.pose_custom.heading:8.3f}
+                        \tfix type: {self.fix_type}
+                        \tsatellite number: {num_sv}
+                        {'-'*30}
+                    '''
+                    self.get_logger().info(msg_log, throttle_duration_sec=1)
+                    
+                    # Copy data to custom message
+                    self.pose_custom.header = self.pose.header
+                    self.pose_custom.status = self.pose.status
+                    self.pose_custom.latitude = self.pose.latitude
+                    self.pose_custom.longitude = self.pose.longitude
+                    self.pose_custom.altitude = self.pose.altitude
 
-        # Copy data to custom message
-        self.pose_custom.header = self.pose.header
-        self.pose_custom.status = self.pose.status
-        self.pose_custom.latitude = self.pose.latitude
-        self.pose_custom.longitude = self.pose.longitude
-        self.pose_custom.altitude = self.pose.altitude
+        except Exception as e:
+            # Catch stream errors, checksum failures, or I2C bus collisions
+            self.get_logger().debug(f"UBX Read Error: {e}")
 
     def loop(self) -> None:
         with self.fix_lock:
