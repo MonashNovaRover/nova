@@ -9,6 +9,7 @@ import {
   CardBody,
   CardHeader,
   Input,
+  Switch,
 } from "@nextui-org/react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
@@ -44,6 +45,8 @@ export function luminanceToPercent(luminance: number): number {
 
 export interface UVVisSpecProps {
   onSave?: (points: number[][], name: string) => void,
+  overwriteDuplicates?: boolean,
+  onOverwriteToggle?: (value: boolean) => void,
 }
 
 const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
@@ -165,6 +168,15 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
       <Input value={peak1WavelengthString} onValueChange={setPeak1Wavelength} label={"Peak 1 Wavelength"}/>
       <Input value={peak2XString} onValueChange={setPeak2X} label={"Peak 2 X"}/>
       <Input value={peak2WavelengthString} onValueChange={setPeak2Wavelength} label={"Peak 2 Wavelength"}/>
+      {props.onOverwriteToggle !== undefined && (
+        <Switch
+          size="sm"
+          isSelected={props.overwriteDuplicates}
+          onValueChange={props.onOverwriteToggle}
+        >
+          Overwrite duplicates
+        </Switch>
+      )}
     </div>
   )
 
