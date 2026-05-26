@@ -335,13 +335,14 @@ class GPSRover(Node):
             
             if parsed_data is not None:
                 # We only care about NAV-PVT for this node
+                self.get_logger().info(f'New ubx message of type: {parsed_data.identity}')
                 if parsed_data.identity == 'NAV-PVT':
                     
                     # pyubx2 automatically scales lat/lon (degrees) and height (mm)
                     self.pose.latitude = float(parsed_data.lat)
                     self.pose.longitude = float(parsed_data.lon)
                     self.pose.altitude = float(parsed_data.hMSL) / 1000.0       # mm to m
-                    self.pose_custom.heading = float(parsed_data.headMot) / 1e5 # deg * 1e-5 to deg
+                    self.pose_custom.heading = float(parsed_data.headMot)
                     
                     num_sv = parsed_data.numSV
                     fix_id = parsed_data.fixType # 0=No fix, 2=2D, 3=3D, 4=GNSS+DR
