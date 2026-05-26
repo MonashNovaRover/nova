@@ -144,23 +144,26 @@ class GPSRover(Node):
 
     def nmea_loop(self):
         while self.running and rclpy.ok():
-            if self.ser.in_waiting == 0:
-                time.sleep(0.005)  # Avoid busy waiting
-                continue
-
             try:
+                if self.ser.in_waiting == 0:
+                    time.sleep(0.005)  # Avoid busy waiting
+                    continue
+
                 with self.serial_lock:
                     _, msg_parsed = self.reader.read()
 
                 if msg_parsed is not None:
                     with self.fix_lock:
                         self.process_nmea(msg_parsed)
-            
+
             except Exception as e:
-                self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
-                self.get_logger().info(f'Reopening serial port...')
-                self.ser.close()
-                self.ser.open()
+                self.get_logger().warn(f'❌ Failed to read NMEA message: {e}', throttle_duration_sec=1)
+                self.get_logger().info(f'Reopening serial port...', throttle_duration_sec=1)
+                try:
+                    self.ser.close()
+                    self.ser.open()
+                except Exception as new_e:
+                    self.get_logger().warn(f'❌ Failed to re-open serial port: {new_e}', throttle_duration_sec=1)
                 time.sleep(0.01)
 
     def process_nmea(self, msg_parsed: str):
@@ -218,24 +221,28 @@ class GPSRover(Node):
 
     def ubx_loop(self):
         while self.running and rclpy.ok():
-            if self.ser.in_waiting == 0:
-                time.sleep(0.005)  # Avoid busy waiting
-                continue
-
             try:
-                with self.serial_lock:
+                if self.ser.in_waiting == 0:
+                    time.sleep(0.005)  # Avoid busy waiting
+                    continue
+
+                with self.serial_lock, self.fix_lock:
                     self.read_ubx()
 
             except Exception as e:
-                self.get_logger().warn(f'❌ Failed to read UBX message: {e}')
-                self.get_logger().info(f'Reopening serial port...')
-                self.ser.close()
-                self.ser.open()
+                self.get_logger().warn(f'❌ Failed to read UBX message: {e}', throttle_duration_sec=1)
+                self.get_logger().info(f'Reopening serial port...', throttle_duration_sec=1)
+                try:
+                    self.ser.close()
+                    self.ser.open()
+                except Exception as new_e:
+                    self.get_logger().warn(f'❌ Failed to re-open serial port: {new_e}', throttle_duration_sec=1)
                 time.sleep(0.01)
 
     def read_ubx(self):
         ser = self.ser
         char1 = ser.read(1)
+        num_sv = 0
         if char1 == b'\xb5':
             char2 = ser.read(1)
             if char2 == b'\x62':
@@ -281,6 +288,7 @@ class GPSRover(Node):
             \talt: {self.pose.altitude:8.7f}
             \theading: {self.pose_custom.heading:8.3f}
             \tfix type: {self.fix_type}
+            \tsatellite number: {num_sv}
             {'-'*30}
         '''
         self.get_logger().info(msg_log, throttle_duration_sec=1)
