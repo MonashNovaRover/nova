@@ -27,6 +27,9 @@ keyboard_localiser:
     handeye_marker_id: 1
     handeye_marker_yaw_offset: 90.0  # degrees, rotation from marker frame to keyboard frame about Z
 
+    # When enabled, camera intrinsics come from camera_info_topic instead of manual hfov/distortion params
+    camera_info_topic: /d415/color/camera_info
+
     # calibrated camera intrinsics
     hfov: 61.3727248
     image_width: 1280 #1280

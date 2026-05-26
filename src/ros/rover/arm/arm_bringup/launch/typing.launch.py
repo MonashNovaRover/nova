@@ -16,15 +16,15 @@ CREATION:	25/05/2025
 from launch import LaunchDescription
 from launch.conditions import IfCondition
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, AndSubstitution, NotSubstitution
 
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
     auto_mode = LaunchConfiguration('auto_mode')
+    use_realsense = LaunchConfiguration('use_realsense')
     params = LaunchConfiguration('typing_params')
     aruco_params = LaunchConfiguration('aruco_params')
 
@@ -32,7 +32,19 @@ def launch_setup(context, *args, **kwargs):
     if old_arm.lower() in ["true", "t", "1"]:
         base_frame = "arm_link"
 
-    return [
+    cam_name = LaunchConfiguration('cam_name').perform(context)
+    rs = use_realsense.perform(context).lower() in ["true", "t", "1"]
+
+    # When using RealSense: override aruco tracker to use realsense color stream
+    # aruco_opencv handles distortion internally via camera_info when image_is_rectified=false
+    aruco_overrides = [
+        {
+            "cam_base_topic": f"/{cam_name}/color/image_raw",
+            "image_is_rectified": False,
+        }
+    ] if rs else []
+
+    return [n for n in [
         Node(
             package='auto_typing',
             executable='keyboard_localiser.py',
@@ -49,21 +61,43 @@ def launch_setup(context, *args, **kwargs):
             executable='pokey.py',
             parameters=[params]
         ),
+        # Lifecam: needs camera_info_publisher (no driver-provided intrinsics)
         GroupAction(
-            condition=IfCondition(auto_mode),
+            condition=IfCondition(AndSubstitution(auto_mode, NotSubstitution(use_realsense))),
             actions=[
                 Node(
                     package='auto_typing',
                     executable='camera_info_publisher.py',
                     parameters=[params],
                 ),
+            ]
+        ),
+        GroupAction(
+            condition=IfCondition(use_realsense),
+            actions=[
+                Node(
+                    package='tf2_ros',
+                    executable='static_transform_publisher',
+                    arguments=[
+                        '0','0','0',
+                        '0','0','0',
+                        'image_frame',
+                        'd415_link'
+                    ]
+                )
+            ]
+        ),
+        GroupAction(
+            condition=IfCondition(auto_mode),
+            actions=[
                 Node(
                     package='aruco_opencv',
                     executable='aruco_tracker_autostart',
-                    arguments=['--ros-args', '--params-file', aruco_params],
+                    parameters=[aruco_params] + aruco_overrides
                 ),
             ]
         ),
+    ]
     ]
 
 
@@ -90,6 +124,16 @@ def generate_launch_description():
             name='auto_mode',
             default_value='True',
             description='Publish fixed keyboard transform (as specified in yaml) if false, known as manual mode',
+        ),
+        DeclareLaunchArgument(
+            name='use_realsense',
+            default_value='False',
+            description='Use RealSense D415 (skip camera_info_publisher, point aruco_tracker at RealSense infra stream)',
+        ),
+        DeclareLaunchArgument(
+            name='cam_name',
+            default_value='d415',
+            description='RealSense camera name (used for topic prefix when use_realsense is True).',
         ),
     ]
 

@@ -3,7 +3,7 @@
     aruco:
       cornerRefinementMethod: 1
       minMarkerPerimeterRate: 0.1
-    cam_base_topic: /arm/finger
+    cam_base_topic: /d415/color/image_raw
     image_is_rectified: false
     marker_dict: 4X4_50
     marker_size: 0.02 # marker_size refers to the sidelength of the marker (in m), which for URC 2026, will be 20 mm.

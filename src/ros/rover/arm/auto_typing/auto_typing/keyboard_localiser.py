@@ -30,6 +30,7 @@ from geometry_msgs.msg import TransformStamped
 from arm_interfaces.srv import KeyPosition
 from arm_interfaces.msg import KeyboardPoints
 from aruco_opencv_msgs.msg import ArucoDetection
+from sensor_msgs.msg import CameraInfo
 
 import rclpy
 from rclpy.node import Node
@@ -113,11 +114,14 @@ class KeyboardLocaliser(Node):
         self.aligned_keyboard_quaternion = self.declare_parameter('aligned_keyboard_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
         self.key_quaternion = self.declare_parameter('key_quaternion', DEFAULT_QUATERNION).get_parameter_value().double_array_value
 
-        # calibrated camera intrinsics
+        # Camera intrinsics — from RealSense CameraInfo when use_depth, otherwise from manual params
+        self.camera_matrix = None
+        self.dist_coeffs = None
+        self.camera_resolution = None
         hfov = self.declare_parameter('hfov', 61.3727248).get_parameter_value().double_value
         width = self.declare_parameter('image_width', 1280).get_parameter_value().integer_value
         height = self.declare_parameter('image_height', 720).get_parameter_value().integer_value
-        focal_length = width / 2 / math.tan(math.radians(hfov)/2) # for defaults = 1078.467509; 
+        focal_length = width / 2 / math.tan(math.radians(hfov)/2) # for defaults = 1078.467509;
         image_center = (width//2, height//2)
         self.camera_matrix = np.array([
             [focal_length, 0, image_center[0]],
@@ -126,7 +130,7 @@ class KeyboardLocaliser(Node):
         ], dtype=np.float32)
         dist_arr = self.declare_parameter('distortion_matrix', [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]).get_parameter_value().double_array_value
         self.dist_coeffs = np.array(dist_arr)
-        self.camera_resolution = width, height
+        self.camera_resolution = (width, height)
 
         # keyboard pose analysis initalisation
         self.camera_frame = self.declare_parameter('camera_frame', 'image_frame').get_parameter_value().string_value
@@ -223,8 +227,8 @@ class KeyboardLocaliser(Node):
         if transform is not None:
             self.transform_broadcaster.sendTransform(transform)
         if self.use_handeye:
-            # Prefer full keyboard frame (4 markers), fall back to single marker
-            handeye_transform = transform if transform is not None else self.estimate_pose_single_marker()
+            # Always use single marker for hand-eye — allows getting close with varied angles
+            handeye_transform = self.estimate_pose_single_marker()
             if handeye_transform is not None:
                 self.collect_handeye_sample(handeye_transform)
 
@@ -377,7 +381,18 @@ class KeyboardLocaliser(Node):
         """Store latest ArUco detections"""
         self.aruco_detection = detection
         self.publish_analysis_tf()
-    
+
+    def camera_info_callback(self, msg: CameraInfo) -> None:
+        """Update camera intrinsics from RealSense CameraInfo."""
+        k = msg.k  # 3x3 row-major
+        self.camera_matrix = np.array([
+            [k[0], k[1], k[2]],
+            [k[3], k[4], k[5]],
+            [k[6], k[7], k[8]]
+        ], dtype=np.float32)
+        self.dist_coeffs = np.array(msg.d, dtype=np.float64)
+        self.camera_resolution = (msg.width, msg.height)
+
     def get_aruco_corners(self) -> None | np.ndarray:
         """
         Return marker centre positions as [x,y,z] in order
@@ -389,13 +404,8 @@ class KeyboardLocaliser(Node):
         ordered_points = []
         for marker_id in self.marker_ids:
             marker = marker_lookup[marker_id]
-            ordered_points.append(
-                [
-                    marker.pose.position.x,
-                    marker.pose.position.y,
-                    marker.pose.position.z
-                ]
-            )
+            x, y, z = marker.pose.position.x, marker.pose.position.y, marker.pose.position.z
+            ordered_points.append([x, y, z])
 
         return np.array(ordered_points, dtype=np.float32)
     
@@ -444,6 +454,8 @@ class KeyboardLocaliser(Node):
         return R.astype(np.float32), t.reshape(3, 1).astype(np.float32)
         
     def get_corners(self, detected_pts) -> None:
+        if self.camera_matrix is None:
+            return
         fx = self.camera_matrix[0, 0]
         fy = self.camera_matrix[1, 1]
         cx = self.camera_matrix[0, 2]
@@ -483,11 +495,8 @@ class KeyboardLocaliser(Node):
         # T_cam_marker from the ArUco detector
         q = marker.pose.orientation
         R_cam_marker = R.from_quat([q.x, q.y, q.z, q.w]).as_matrix()
-        t_cam_marker = np.array([
-            [marker.pose.position.x],
-            [marker.pose.position.y],
-            [marker.pose.position.z]
-        ], dtype=np.float64)
+        mx, my, mz = marker.pose.position.x, marker.pose.position.y, marker.pose.position.z
+        t_cam_marker = np.array([[mx], [my], [mz]], dtype=np.float64)
 
         # Marker's known position on the keyboard (in keyboard frame, meters)
         t_keyboard_marker = self.keyboard_points_m[idx].reshape(3, 1).astype(np.float64)
