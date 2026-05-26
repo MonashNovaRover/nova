@@ -57,6 +57,7 @@ install(PROGRAMS
   scripts/service_listener.py
   scripts/topic_waiter.py
   scripts/node_waiter.py
+  scripts/radio_status.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
