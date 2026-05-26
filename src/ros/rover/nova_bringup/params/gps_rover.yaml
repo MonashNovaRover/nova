@@ -6,7 +6,7 @@
 /gps_rover:
   ros__parameters:
     baudrate: 115200
-    port_name: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+    port_name: /dev/i2c-4
     publisher_rate: 20
     protocol: nmea
 
