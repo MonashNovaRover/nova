@@ -168,9 +168,9 @@ export const CameraComponent = (props: CameraComponentProps) => {
       link.download = filename;
       link.click();
     } catch (err) {
-      toast("Unable to Take a Screenshot");
+      toast(`Unable to Take a Screenshot: ${err}`);
     }
-  }, [videoRef, cameraSerial, currentSite, cameraName, getScreenshotName]);
+  }, [cameraSerial, currentSite, cameraName, getScreenshotName]);
 
   useEffect(() => {
     const handleMouseEnter = () => {
