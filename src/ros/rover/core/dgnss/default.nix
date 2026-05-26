@@ -32,6 +32,7 @@ buildRosPackage {
     pandas 
     folium 
     pymavlink
+    pyubx2
   ] ++ [ 
     sensor-msgs
     fabric
