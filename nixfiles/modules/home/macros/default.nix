@@ -298,6 +298,7 @@ in
           # GPS
           launch-gps-rover = "~/Builds/active/bin/ros2 launch nova_bringup gps_rover.launch.py";
           launch-gps-base = "~/Builds/active/bin/ros2 launch nova_bringup gps_base.launch.py";
+          launch-magnetometer = "~/Builds/active/bin/ros2 run electronics magnetometer.py";
           mast = "ssh -C nova@10.0.0.150";
 
           # Master build binaries
