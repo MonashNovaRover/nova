@@ -6,33 +6,37 @@
         
         <ObjectDetected detections_topic="/yolo/object_detections" min_detections="2" buffer_time="5.0" cluster_radius="0.3" detections="{detected_goals}"/>
         
-        <PipelineSequence name="NavigateWithReplanning">
-          <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
-          
-          <RunOnce>
-            <PlaceSearchGoals search_radius="{search_radius}" search_corners="10" search_spacing="2" input_goals="{goals}" output_goals="{goals}"/>
-          </RunOnce>
-
-          <RateController hz="1.0">
-            <Sequence name="ComputeAndSmoothPathThroughPoses">
-              <ReactiveSequence>
-                <RemoveInCollisionGoals input_goals="{goals}" snap_last="true" output_goals="{goals}"/>
-                <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
-                <GetGoal index="0" input_goals="{goals}" output_goal="{goal}"/>
-                <ComputePathToPose goal="{goal}" path="{path}" planner_id="NavFn"/>
-              </ReactiveSequence>
-              <SmoothPath unsmoothed_path="{path}" smoothed_path="{smoothed_path}" smoother_id="savitzky_golay_smoother"/>
-            </Sequence>
-          </RateController>
-          
-          <RecoveryNode number_of_retries="1" name="FollowPath">
-            <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
-            <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
-          </RecoveryNode>
-
+        <ReactiveFallback name="ExitOnGoalsEmpty">
           <GoalsEmpty goals="{goals}"/>
-        
-        </PipelineSequence>
+          
+          <PipelineSequence name="NavigateWithReplanning">
+            <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
+            
+            <RunOnce>
+              <PlaceSearchGoals search_radius="{search_radius}" search_corners="10" search_spacing="2" input_goals="{goals}" output_goals="{goals}"/>
+            </RunOnce>
+
+            <RateController hz="1.0">
+              <Sequence name="ComputeAndSmoothPathThroughPoses">
+                <ReactiveSequence>
+                  <RemoveInCollisionGoals input_goals="{goals}" snap_last="true" output_goals="{goals}"/>
+                  <GetGoal index="0" input_goals="{goals}" output_goal="{goal}"/>
+                  <RemovePassedGoal input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
+                  <ComputePathToPose goal="{goal}" path="{path}" planner_id="NavFn"/>
+                </ReactiveSequence>
+                <SmoothPath unsmoothed_path="{path}" smoothed_path="{smoothed_path}" smoother_id="savitzky_golay_smoother"/>
+              </Sequence>
+            </RateController>
+            
+            <RecoveryNode number_of_retries="1" name="FollowPath">
+              <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+              <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+            </RecoveryNode>
+
+            <GoalsEmpty goals="{goals}"/>
+          
+          </PipelineSequence>
+        </ReactiveFallback>
       
       </ReactiveFallback>
 

@@ -28,8 +28,10 @@ bt_navigator:
     plugin_lib_names:
       - nova_blackboard_publisher_bt_node
       - nova_remove_in_collision_goals_action_bt_node
+      - nova_remove_passed_goal_action_bt_node
       - nova_ar_tag_detected_condition_bt_node
       - nova_get_goal_action_bt_node
+      - nova_pop_goal_action_bt_node
       - nova_set_detection_goal_action_bt_node
       - nova_get_current_pose_action_bt_node
       - nova_place_search_goals_action_bt_node

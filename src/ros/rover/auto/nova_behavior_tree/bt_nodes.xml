@@ -22,6 +22,12 @@
       <input_port name="input_goals">Goals vector to extract goal from</input_port>
       <output_port name="output_goal">Extracted goal</output_port>
     </Action>
+    
+    <Action ID="PopGoal">
+      <input_port name="index">Index of the goal to pop (negative indexing is supported)</input_port>
+      <input_port name="input_goals">Goals vector to pop goal from</input_port>
+      <output_port name="output_goals">Goals vector after popping the goal</output_port>
+    </Action>
 
     <Action ID="GetCurrentPose">
       <input_port  name="global_frame">Global frame</input_port>
@@ -60,7 +66,19 @@
       <input_port name="robot_base_frame">Robot base frame</input_port>
       <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
     </Action>
-
+<!-- BT::InputPort<Goals>("input_goals", "Original goals to remove next goal from"),
+        BT::OutputPort<Goals>("output_goals", "Goals with passed goal removed"),
+        BT::InputPort<double>("radius", 0.5, "radius to goal for it to be considered for removal"),
+        BT::InputPort<std::string>("global_frame", "Global frame"),
+        BT::InputPort<std::string>("robot_base_frame", "Robot base frame"), -->
+    <Action ID="RemovePassedGoal">
+      <input_port name="input_goals">Original goals to remove next goal from</input_port>
+      <output_port name="output_goals">Goals with passed goal removed</output_port>
+      <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
+    </Action>
+    
     <Action ID="RemovePassedURCGoals">
       <input_port name="input_goals">Original goals to remove viapoints from</input_port>
       <input_port name="position_tolerance">Max distance to goal for it to be removed</input_port>

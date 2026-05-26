@@ -68,11 +68,17 @@ list(APPEND plugin_libs nova_place_search_goals_action_bt_node)
 add_library(nova_get_goal_action_bt_node SHARED plugins/action/get_goal_action.cpp)
 list(APPEND plugin_libs nova_get_goal_action_bt_node)
 
+add_library(nova_pop_goal_action_bt_node SHARED plugins/action/pop_goal_action.cpp)
+list(APPEND plugin_libs nova_pop_goal_action_bt_node)
+
 add_library(nova_get_current_pose_action_bt_node SHARED plugins/action/get_current_pose_action.cpp)
 list(APPEND plugin_libs nova_get_current_pose_action_bt_node)
 
 add_library(nova_led_service_bt_node SHARED plugins/action/led_service.cpp)
 list(APPEND plugin_libs nova_led_service_bt_node)
+
+add_library(nova_remove_passed_goal_action_bt_node SHARED plugins/action/remove_passed_goal_action.cpp)
+list(APPEND plugin_libs nova_remove_passed_goal_action_bt_node)
 
 add_library(nova_remove_passed_urc_goals_action_bt_node SHARED plugins/action/remove_passed_urc_goals_action.cpp)
 list(APPEND plugin_libs nova_remove_passed_urc_goals_action_bt_node)
