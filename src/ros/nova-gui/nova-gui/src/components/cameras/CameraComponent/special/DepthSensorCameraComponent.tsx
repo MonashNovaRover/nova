@@ -12,7 +12,7 @@ import SiteSelectWidget from "../../../science/SiteSelectWidget/SiteSelectWidget
 // Which is just a repurposed BMESensor.tsx (Thanks Someone)
 // Which is just a repurposed HydroprobeWidget.tsx (Thanks Kabi)
 
-const DepthSensor: React.FC<BaseCameraComponentProps> = (
+const DepthSensor = (includeSiteSelector: boolean): React.FC<BaseCameraComponentProps> => (
     _: BaseCameraComponentProps
 ) => {
     // Accessing the Store using useSelector hook
@@ -58,8 +58,8 @@ const DepthSensor: React.FC<BaseCameraComponentProps> = (
 
     return (
       <div>
-        <SiteSelectWidget/>
-        <Card className="flex flex-col justify-around gap-3 py-3 my-3">
+        {includeSiteSelector && <SiteSelectWidget/>}
+        <Card className={`flex flex-col justify-around gap-3 py-3 ${includeSiteSelector ? "my-3" : ""}`}>
           {DepthSensorCardBody}
           <div className="flex flex-row justify-center">
             <CardHeader className="w-auto text-h1 p-0 text-center">Auger Depth Sensors: Drilled more than 10cm?</CardHeader>

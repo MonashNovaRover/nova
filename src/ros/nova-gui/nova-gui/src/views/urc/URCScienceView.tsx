@@ -16,6 +16,9 @@ import LedWidget from "../../components/science/LEDWidget/LEDWidget.tsx";
 import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
 import {PotentiostatWidget} from "../../components/science/Potentiostat/PotentiostatWidget.tsx";
 import ScimbalControlWidget from "../../components/science/ScimbalControlWidget/ScimbalControlWidget.tsx";
+import DepthSensor from "../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
+
+const DepthSensorNoSiteSelect = DepthSensor(false);
 
 const URCScienceView: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(0)
@@ -30,13 +33,19 @@ const URCScienceView: React.FC = () => {
         <HydroprobeWidget/>
         <BMESensor/>
         <CacheControlWidget/>
+        <DepthSensorNoSiteSelect cameraSerial={CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS}/>
         <HeaterWidget/>
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
         <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
         <CameraControlModalButton/>
-        <ScimbalControlWidget/>
+        <div className="grid grid-cols-3 gap-3">
+          <ScimbalControlWidget/>
+          <div className="col-span-2">
+            <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_GIMBAL}/>
+          </div>
+        </div>
         <PotentiostatWidget/>
       </div>
     </div>

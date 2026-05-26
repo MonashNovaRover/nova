@@ -415,7 +415,7 @@ export const reduxStores = {
   nirProbeCalibrationData: createGenericStore("nirProbeCalibrationData", DEFAULT_NIR_PROBE_CALIBRATION_DATA),
   counter: createGenericStore("counter", 0),
   scimbalStepSize: createGenericStore("scimbalStepSize", "1"),
-  targetTemp: createGenericStore("targetTemp", 150),
+  targetTemp: createGenericStore("targetTemp", 60),
   waterPumpEffort: createGenericStore("waterPumpEffort", 0),
   diaphragmPumpEffort: createGenericStore("diaphragmPumpEffort", 0),
   theta360CompassHeading: createGenericStore("theta360CompassHeading",180),
