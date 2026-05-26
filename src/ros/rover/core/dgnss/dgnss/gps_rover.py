@@ -53,59 +53,61 @@ class UbloxI2C:
 
     @property
     def in_waiting(self):
-        """Mimics PySerial's in_waiting by checking u-blox registers 0xFD and 0xFE."""
-        if not self.bus:
-            return 0
+        from smbus2 import i2c_msg
+        if not self.bus: return 0
         try:
-            high = self.bus.read_byte_data(self.addr, 0xFD)
-            low = self.bus.read_byte_data(self.addr, 0xFE)
-            return (high << 8) | low
-        except OSError:
-            # I2C bus collision or device busy
+            # u-blox requires a Repeated Start (write then immediately read)
+            write_reg = i2c_msg.write(self.addr, [0xFD])
+            read_val = i2c_msg.read(self.addr, 2)
+            self.bus.i2c_rdwr(write_reg, read_val)
+            res = list(read_val)
+            return (res[0] << 8) | res[1]
+        except Exception:
             return 0
 
     def read(self, length):
         from smbus2 import i2c_msg
         import time
-        if not self.bus:
-            return b''
-            
+        if not self.bus: return b''
+        
         data = bytearray()
         while len(data) < length:
             try:
                 avail = self.in_waiting
                 if avail > 0:
+                    # u-blox max I2C burst is usually 32 bytes
                     to_read = min(length - len(data), avail, 32)
-                    
-                    # Target the 0xFF Data Stream Register
                     write_reg = i2c_msg.write(self.addr, [0xFF])
-                    self.bus.i2c_rdwr(write_reg)
+                    read_val = i2c_msg.read(self.addr, to_read)
+                    self.bus.i2c_rdwr(write_reg, read_val)
                     
-                    # Read the bytes
-                    read_msg = i2c_msg.read(self.addr, to_read)
-                    self.bus.i2c_rdwr(read_msg)
-                    
-                    data.extend(list(read_msg))
+                    # Some u-blox firmware sends 0xFF if empty despite in_waiting
+                    raw = list(read_val)
+                    if raw and raw[0] == 0xFF:
+                        break
+                    data.extend(raw)
                 else:
-                    time.sleep(0.01) 
-            except OSError:
-                time.sleep(0.01)
-                
+                    break # Don't block indefinitely
+            except Exception:
+                break
         return bytes(data)
 
-    def readline(self):
-        """Mimics PySerial's readline() for NMEA string parsing."""
+    def readline(self, timeout=0.1):
+        import time
         line = bytearray()
-        while True:
-            # Only read if there is data, otherwise we might block too long
-            if self.in_waiting > 0:
+        end_time = time.time() + timeout
+        
+        while time.time() < end_time:
+            avail = self.in_waiting
+            if avail > 0:
                 char = self.read(1)
-                line.extend(char)
-                if char == b'\n':
-                    break
+                if char and char != b'\xff': # Ignore I2C empty bus padding
+                    line.extend(char)
+                    if char == b'\n':
+                        break
             else:
-                # If buffer is empty and we haven't hit a newline, break to avoid hanging
-                break
+                time.sleep(0.01)
+                
         return bytes(line)
 
     def close(self):
