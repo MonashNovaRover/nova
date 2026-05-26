@@ -17,12 +17,16 @@ EDITED:     30/04/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import OpaqueFunction, DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
+from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+from os.path import expanduser
 
 def launch_setup(context, *args, **kwargs):
-    port_name = LaunchConfiguration('port')
+    params = LaunchConfiguration('params')
 
     return [
         Node(
@@ -30,7 +34,18 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             executable='gps_rover.py',
             name='gps_rover',
-            parameters=[{'port_name': port_name}],
+            parameters=[params],
+        ),
+        Node(
+            package='dgnss',
+            namespace='',
+            executable='gps_rover.py',
+            name='drone_gps_rover',
+            parameters=[params],
+            remappings=[
+                ('/gps_rover/fix', '/gps_rover/drone/fix'),
+                ('/gps_rover/fix_custom', '/gps_rover/drone/fix_custom'),
+            ],
         ),
         # Node(
         #     package='electronics',
@@ -42,12 +57,29 @@ def launch_setup(context, *args, **kwargs):
     ]
 
 def generate_launch_description():
+    local = LaunchConfiguration("local")
+
+    nova_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
+        FindPackageShare('nova_bringup')
+    )
+
     declared_arguments = [
         DeclareLaunchArgument(
-            name='port',
-            default_value='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0',
-            description='Whether to use the local teleop_drive_joy source directory instead of the nix store for param files.',
+            name='local',
+            default_value='False',
+            description='Whether to use the local source directory instead of the nix store for param files.',
         ),
+        DeclareLaunchArgument(
+            name='params',
+            default_value=PathJoinSubstitution([nova_bringup_dir, 'params', 'gps_rover.yaml']),
+            description='Path to gps rover parameter file',
+        ),
+        DeclareLaunchArgument(
+            name='log_level',
+            default_value='info',
+            description='Log level of launched nodes and launch files'
+        )
     ]
 
     return LaunchDescription(
