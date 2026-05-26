@@ -27,6 +27,7 @@ export const CameraView = (props: CameraViewProps) => {
           gridSize={gridSize}
           setGridSize={setGridSize}
           presets={props.views[0].cameraPrests ? props.views[0].cameraPrests : defaultCameraProfilePresets}
+          serialPresets={props.views[0].serialPresets}
         />
         <div className="grow">
           <CamerasPage
