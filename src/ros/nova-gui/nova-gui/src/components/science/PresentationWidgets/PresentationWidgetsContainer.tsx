@@ -24,7 +24,7 @@ const PresentationWidgetsContainer: React.FC = () => {
     let min = Infinity, max = -Infinity;
     for (const spec of chemicalSpectra) {
       for (const point of spec.data) {
-        const y = point.y ?? point[1];
+        const y = point[1];
         if (y < min) min = y;
         if (y > max) max = y;
       }
