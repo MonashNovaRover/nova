@@ -49,10 +49,8 @@ const OUTER_OFFSET = -OUTER_STEP / 2;
 const INNER_OFFSET = -INNER_STEP / 2;
 
 // Duration scaling constants for animations
-const OUTER_DURATION_PER_DEGREE = 0.033;  // seconds per degree for outer wheel
-const INNER_DURATION_PER_DEGREE = 0.033;  // seconds per degree for inner wheel
-const MIN_DURATION = 0.15;                // minimum animation duration
-const MAX_DURATION = 3;                   // maximum animation duration
+const OUTER_DURATION_PER_CUVETTE = 0.5;  // seconds per cuvette for outer wheel
+const INNER_DURATION_PER_CUVETTE = 0.5;  // seconds per cuvette for inner wheel
 
 const CENTER = 156;
 
@@ -228,9 +226,8 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
       if (delta > OUTER_SEGMENTS / 2) delta -= OUTER_SEGMENTS;
       if (delta < -OUTER_SEGMENTS / 2) delta += OUTER_SEGMENTS;
 
-      // Duration scales with angular distance, clamped to min/max
-      const degrees = Math.abs(delta) * OUTER_STEP;
-      const duration = Math.min(MAX_DURATION, Math.max(MIN_DURATION, degrees * OUTER_DURATION_PER_DEGREE));
+      // Duration scales with number of cuvettes traveled
+      const duration = Math.abs(delta) * OUTER_DURATION_PER_CUVETTE;
       setOuterDuration(duration);
 
       setOuterRotation(rot => rot - delta * OUTER_STEP);
@@ -247,9 +244,8 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
       if (delta > INNER_SEGMENTS / 2) delta -= INNER_SEGMENTS;
       if (delta < -INNER_SEGMENTS / 2) delta += INNER_SEGMENTS;
 
-      // Duration scales with angular distance, clamped to min/max
-      const degrees = Math.abs(delta) * INNER_STEP;
-      const duration = Math.min(MAX_DURATION, Math.max(MIN_DURATION, degrees * INNER_DURATION_PER_DEGREE));
+      // Duration scales with number of cuvettes traveled
+      const duration = Math.abs(delta) * INNER_DURATION_PER_CUVETTE;
       setInnerDuration(duration);
 
       setInnerRotation(rot => rot - delta * INNER_STEP);
