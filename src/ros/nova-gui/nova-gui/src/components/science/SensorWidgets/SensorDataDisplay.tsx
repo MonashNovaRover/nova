@@ -25,7 +25,7 @@ const SensorDataDisplay: React.FC<NTCDataWidgetProps> = ({values, labels, suffix
           return (
             <div key={label} className="text-center">
               <OverlayedProgress key={`progress-${label}`} aria-label={label} size="lg" label={label} value={value}>
-                {value} {suffix}
+                {value.toFixed(2)} {suffix}
               </OverlayedProgress>
             </div>
           );
