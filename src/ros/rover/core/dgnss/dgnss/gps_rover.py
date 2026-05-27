@@ -56,6 +56,10 @@ class GPSRover(Node):
             name='publisher_rate', 
             value=20, 
         ).value
+        self.publish_fix_custom = self.declare_parameter(
+            name='publish_fix_custom',
+            value=True,
+        ).value
         self.fix_type = None
 
         ### Serial ###
@@ -204,7 +208,8 @@ class GPSRover(Node):
         with self.fix_lock:
             self.pose.header.stamp = self.get_clock().now().to_msg()
             self.pub_pose.publish(self.pose)
-            self.pub_pose_custom.publish(self.pose_custom)
+            if self.publish_fix_custom:
+                self.pub_pose_custom.publish(self.pose_custom)
 
     def destroy_node(self):
         self.running = False
