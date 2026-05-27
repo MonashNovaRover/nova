@@ -127,8 +127,8 @@ class PotentiostatNode(Node):
             return
 
         # Parse current (bytes 0-3, µA) and voltage (bytes 4-7, mV)
-        current_ua = int.from_bytes(data[0:4], 'little', signed=True)
-        voltage_mv = int.from_bytes(data[4:8], 'little', signed=True)
+        current_ua = int.from_bytes(data[0:4], 'big', signed=True)
+        voltage_mv = int.from_bytes(data[4:8], 'big', signed=True)
 
         # Convert: µA → mA, mV → V
         current_ma = current_ua / 1000.0
