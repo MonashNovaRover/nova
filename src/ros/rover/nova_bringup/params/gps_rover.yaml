@@ -1,0 +1,18 @@
+# ==========================================================
+# Monash Nova Rover
+# GPS Rover – Default Parameter File
+# ==========================================================
+
+/gps_rover:
+  ros__parameters:
+    baudrate: 115200
+    port_name: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+    publisher_rate: 20
+    protocol: nmea
+
+/drone_gps_rover:
+  ros__parameters:
+    baudrate: 230400
+    port_name: /dev/ttyTHS1
+    publisher_rate: 20
+    protocol: ubx
