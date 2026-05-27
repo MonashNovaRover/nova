@@ -42,19 +42,27 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 import cv2
 
+# Minimum number of observation pairs needed for hand-eye calibration
+MIN_HANDEYE_SAMPLES = 5
+# Minimum angular difference (radians) between observations to count as distinct
+# ~15 degrees — OpenCV needs large rotations for hand-eye to converge
+MIN_ROTATION_DELTA = 0.26
+# Maximum number of observation pairs to keep in the rolling buffer
+MAX_HANDEYE_SAMPLES = 20
+
 # Expected keyboard size:
-KEYBOARD = (123, 354, 37) # (L, W, H) in mm 
+KEYBOARD = (123, 354, 37) # (L, W, H) in mm
 # where L is length (column of keys direction [qaz]), W is width (row of keys direction [qwertyuiop]), H is height (From base to key)
-# Hard coded key coordinates in mm (relative to center of keyboard; looking down at keyboard with cable facing up) 
-# left = -x, right = +x, up = -y, down = +y 
-# "key": (x, y) 
-KEY_MAP = { 
-    "!": (-142.5, 100), "@": (-142.5, -100), "#": (142.5, -100), "$": (142.5, 100.0),"&": (0, 0), "esc": (-164, -50), "f1": (-126, -50), "f2": (-107, -50), "f3": (-88, -50), "f4": (-69, -50), "f5": (-40, -50), "f6": (-21, -50), "f7": (-2, -50), "f8": (17, -50), "f9": (46, -50), "f10": (65, -50), "f11": (84, -50), "f12": (103, -50), "prtsc": (126, -50), "scrlk": (145, -50), "pause": (164, -50),
+# Hard coded key coordinates in mm (relative to center of keyboard; looking down at keyboard with cable facing up)
+# left = -x, right = +x, up = -y, down = +y
+# "key": (x, y)
+KEY_MAP = {
+    "!": (-200, 82.5), "@": (-200, -82.5), "#": (200, -82.5), "$": (200, 82.5),"&": (0, 0), "esc": (-164, -50), "f1": (-126, -50), "f2": (-107, -50), "f3": (-88, -50), "f4": (-69, -50), "f5": (-40, -50), "f6": (-21, -50), "f7": (-2, -50), "f8": (17, -50), "f9": (46, -50), "f10": (65, -50), "f11": (84, -50), "f12": (103, -50), "prtsc": (126, -50), "scrlk": (145, -50), "pause": (164, -50),
     "`": (-164, -28), "1": (-145, -28), "2": (-126, -28), "3": (-107, -28), "4": (-88, -28), "5": (-69, -28), "6": (-50, -28), "7": (-31, -28), "8": (-12, -28), "9": (7, -28), "0": (26, -28), "-": (45, -28), "=": (64, -28), "backspace": (93, -28), "ins": (126, -28), "home": (145, -28), "pgup": (164, -28),
     "tab": (-159, -9), "q": (-135, -9), "w": (-116, -9), "e": (-97, -9), "r": (-78, -9), "t": (-59, -9), "y": (-40, -9), "u": (-21, -9), "i": (-2, -9), "o": (17, -9), "p": (36, -9), "[": (55, -9), "]": (74, -9), "\\": (97, -9), "del": (126, -9), "end": (145, -9), "pgdn": (164, -9),
     "capslk": (-157, 10), "a": (-130, 10), "s": (-111, 10), "d": (-92, 10), "f": (-73, 10), "g": (-54, 10), "h": (-35, 10), "j": (-16, 10), "k": (3, 10), "l": (22, 10), ";": (41, 10), "'": (60, 10), "enter": (91, 10),
     "lshift": (-152, 29), "z": (-121, 29), "x": (-102, 29), "c": (-83, 29), "v": (-64, 29), "b": (-45, 29), "n": (-26, 29), "m": (-7, 29), ",": (12, 29), ".": (31, 29), "/": (50, 29), "rshift": (86, 29), "uarrow": (145, 29),
-    "lctrl": (-161, 48), "win": (-138, 48), "lalt": (-114, 48), "space": (-44, 48), "ralt": (29, 48), "fn": (53, 48), "menu": (76, 48), "rctrl": (101, 48), "larrow": (126, 48), "darrow": (145, 48), "rarrow": (164, 48) 
+    "lctrl": (-161, 48), "win": (-138, 48), "lalt": (-114, 48), "space": (-44, 48), "ralt": (29, 48), "fn": (53, 48), "menu": (76, 48), "rctrl": (101, 48), "larrow": (126, 48), "darrow": (145, 48), "rarrow": (164, 48)
 }
 
 SINGLE_KEY = (13, 15) # unused but is the the size of an individual key
@@ -141,8 +149,28 @@ class KeyboardLocaliser(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         self.transform_broadcaster = TransformBroadcaster(self)
+
         timer_period = self.declare_parameter('tf_publish_rate', 1.0).get_parameter_value().double_value
         self.create_timer(timer_period, self.publish_aligned_tf)
+
+        # Hand-eye calibration
+        self.use_handeye = self.declare_parameter('use_handeye', True).get_parameter_value().bool_value
+        self.ee_frame = self.declare_parameter('ee_frame', 'image_frame').get_parameter_value().string_value
+        self.handeye_marker_id = self.declare_parameter('handeye_marker_id', 1).get_parameter_value().integer_value
+        # Rotation offset (degrees around Z) from marker frame to keyboard frame
+        marker_yaw_offset = self.declare_parameter('handeye_marker_yaw_offset', 0.0).get_parameter_value().double_value
+        self.R_marker_to_keyboard = R.from_euler('z', marker_yaw_offset, degrees=True).as_matrix()
+        self.handeye_buffer = []  # list of (R_base_ee, t_base_ee, R_cam_target, t_cam_target)
+        self.last_ee_rotation = None
+        self.handeye_calibrated = False
+        self.calibrated_quat = None  # latest calibrated rotation as [x, y, z, w]
+        # Cache URDF's initial guess for image_frame (so we don't read back our own published value)
+        self.R_ee2cam_urdf = None
+        self.t_ee2cam_urdf = None
+        if self.use_handeye:
+            self.create_timer(1.0, self.cache_urdf_transform)
+            # Publish calibrated transform at 10Hz to override robot_state_publisher's static TF
+            self.create_timer(0.1, self.publish_calibrated_camera_tf)
 
         self.get_logger().info(f"Running this node in {"auto" if self.node_is_auto else "manual"} mode with service: {KEY_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
 
@@ -187,13 +215,163 @@ class KeyboardLocaliser(Node):
         self.transform_broadcaster.sendTransform(tfs)
 
     def publish_analysis_tf(self) -> None:
-        '''Publish the transform of the keyboard through the solvePnP method'''
+        '''Publish the transform of the keyboard through the solvePnP method,
+        and collect hand-eye calibration samples.'''
         if not self.node_is_auto:
             return
         transform = self.estimate_pose()
-        if transform is None:
-            return None
-        self.transform_broadcaster.sendTransform(transform)
+        if transform is not None:
+            self.transform_broadcaster.sendTransform(transform)
+        if self.use_handeye:
+            # Use a single designated marker for hand-eye calibration
+            handeye_transform = self.estimate_pose_single_marker()
+            if handeye_transform is not None:
+                self.collect_handeye_sample(handeye_transform)
+
+    def collect_handeye_sample(self, T_cam_keyboard: TransformStamped) -> None:
+        '''Collect a (T_base_ee, T_cam_keyboard) pair for hand-eye calibration
+        if the arm has moved sufficiently since the last sample.'''
+        try:
+            ee_tf = self.tf_buffer.lookup_transform(
+                self.base_frame, self.ee_frame, rclpy.time.Time()
+            )
+        except Exception:
+            return
+
+        # Extract rotation and translation for the EE pose
+        q_ee = ee_tf.transform.rotation
+        R_base_ee = R.from_quat([q_ee.x, q_ee.y, q_ee.z, q_ee.w]).as_matrix()
+        t_base_ee = np.array([
+            [ee_tf.transform.translation.x],
+            [ee_tf.transform.translation.y],
+            [ee_tf.transform.translation.z]
+        ], dtype=np.float64)
+
+        # Check if arm has moved enough since last sample
+        if self.last_ee_rotation is not None:
+            angle_diff = np.arccos(np.clip(
+                (np.trace(self.last_ee_rotation.T @ R_base_ee) - 1) / 2,
+                -1.0, 1.0
+            ))
+            if angle_diff < MIN_ROTATION_DELTA:
+                return
+            self.get_logger().info(f"Arm rotated {np.degrees(angle_diff):.1f}° since last sample")
+
+        self.last_ee_rotation = R_base_ee.copy()
+
+        # Extract rotation and translation for the camera-to-keyboard transform
+        q_cam = T_cam_keyboard.transform.rotation
+        R_cam_target = R.from_quat([q_cam.x, q_cam.y, q_cam.z, q_cam.w]).as_matrix()
+        t_cam_target = np.array([
+            [T_cam_keyboard.transform.translation.x],
+            [T_cam_keyboard.transform.translation.y],
+            [T_cam_keyboard.transform.translation.z]
+        ], dtype=np.float64)
+
+        # Add to rolling buffer
+        self.handeye_buffer.append((R_base_ee, t_base_ee, R_cam_target, t_cam_target))
+        if len(self.handeye_buffer) > MAX_HANDEYE_SAMPLES:
+            self.handeye_buffer.pop(0)
+
+        self.get_logger().info(f"Hand-eye sample collected ({len(self.handeye_buffer)}/{MIN_HANDEYE_SAMPLES})")
+
+        # Solve when we have enough samples
+        if len(self.handeye_buffer) >= MIN_HANDEYE_SAMPLES:
+            self.solve_handeye()
+
+    def cache_urdf_transform(self) -> None:
+        '''Cache the URDF's initial image_frame transform once available, then stop.'''
+        if self.R_ee2cam_urdf is not None:
+            return
+        try:
+            guessed_tf = self.tf_buffer.lookup_transform(
+                self.ee_frame, self.camera_frame, rclpy.time.Time()
+            )
+        except Exception:
+            return
+
+        q_g = guessed_tf.transform.rotation
+        self.R_ee2cam_urdf = R.from_quat([q_g.x, q_g.y, q_g.z, q_g.w]).as_matrix()
+        self.t_ee2cam_urdf = np.array([
+            [guessed_tf.transform.translation.x],
+            [guessed_tf.transform.translation.y],
+            [guessed_tf.transform.translation.z]
+        ], dtype=np.float64)
+        self.get_logger().info(
+            f"Cached URDF image_frame transform: "
+            f"xyz=({self.t_ee2cam_urdf[0][0]:.4f}, {self.t_ee2cam_urdf[1][0]:.4f}, {self.t_ee2cam_urdf[2][0]:.4f})"
+        )
+
+    def solve_handeye(self) -> None:
+        '''Solve the hand-eye calibration AX=XB problem and publish the
+        calibrated camera frame directly as ee_frame -> image_frame.
+
+        Uses URDF xyz (translation) and calibrated rpy (rotation).
+        Called every time a new sample is added, so it continuously
+        improves as more observations are collected.'''
+        if self.R_ee2cam_urdf is None:
+            return
+
+        R_gripper2base = [s[0] for s in self.handeye_buffer]
+        t_gripper2base = [s[1] for s in self.handeye_buffer]
+        R_target2cam = [s[2] for s in self.handeye_buffer]
+        t_target2cam = [s[3] for s in self.handeye_buffer]
+
+        try:
+            # calibrateHandEye outputs T_cam2gripper (camera to EE)
+            R_cam2ee, t_cam2ee = cv2.calibrateHandEye(
+                R_gripper2base, t_gripper2base,
+                R_target2cam, t_target2cam,
+                method=cv2.CALIB_HAND_EYE_TSAI
+            )
+        except cv2.error as e:
+            self.get_logger().warn(f"Hand-eye calibration failed: {e}")
+            return
+
+        # Validate result — if calibration failed, OpenCV returns near-identity
+        angle = np.arccos(np.clip((np.trace(R_cam2ee) - 1) / 2, -1.0, 1.0))
+        if angle < 0.01:  # near-identity means calibration didn't converge
+            self.get_logger().warn(
+                f"Hand-eye calibration returned identity ({len(self.handeye_buffer)} samples) "
+                f"— need more distinct arm rotations"
+            )
+            return
+
+        # Invert to get T_ee2cam_actual (EE to camera)
+        R_ee2cam_actual = R_cam2ee.T
+
+        # Store calibrated rotation for continuous publishing
+        self.calibrated_quat = R.from_matrix(R_ee2cam_actual).as_quat()  # [x, y, z, w]
+        self.handeye_calibrated = True
+
+        urdf_rpy = R.from_matrix(self.R_ee2cam_urdf).as_euler('xyz', degrees=True)
+        calibrated_rpy = R.from_matrix(R_ee2cam_actual).as_euler('xyz', degrees=True)
+        self.get_logger().info(
+            f"Hand-eye calibration updated ({len(self.handeye_buffer)} samples):\n"
+            f"  URDF image_frame:       rpy=[{urdf_rpy[0]:.2f}, {urdf_rpy[1]:.2f}, {urdf_rpy[2]:.2f}]\n"
+            f"  Calibrated image_frame: rpy=[{calibrated_rpy[0]:.2f}, {calibrated_rpy[1]:.2f}, {calibrated_rpy[2]:.2f}]\n"
+            f"  Delta:                  rpy=[{calibrated_rpy[0]-urdf_rpy[0]:.2f}, {calibrated_rpy[1]-urdf_rpy[1]:.2f}, {calibrated_rpy[2]-urdf_rpy[2]:.2f}]"
+        )
+
+    def publish_calibrated_camera_tf(self) -> None:
+        '''Continuously publish calibrated camera transform at high rate
+        to override robot_state_publisher's static TF.'''
+        if not self.handeye_calibrated or self.t_ee2cam_urdf is None:
+            return
+
+        tfs = TransformStamped()
+        tfs.header.stamp = self.get_clock().now().to_msg()
+        tfs.header.frame_id = self.ee_frame
+        tfs.child_frame_id = self.camera_frame
+        tfs.transform.translation.x = float(self.t_ee2cam_urdf[0][0])
+        tfs.transform.translation.y = float(self.t_ee2cam_urdf[1][0])
+        tfs.transform.translation.z = float(self.t_ee2cam_urdf[2][0])
+        tfs.transform.rotation.x = self.calibrated_quat[0]
+        tfs.transform.rotation.y = self.calibrated_quat[1]
+        tfs.transform.rotation.z = self.calibrated_quat[2]
+        tfs.transform.rotation.w = self.calibrated_quat[3]
+
+        self.transform_broadcaster.sendTransform(tfs)
 
     def aruco_callback(self, detection: ArucoDetection) -> None:
         """Store latest ArUco detections"""
@@ -203,7 +381,7 @@ class KeyboardLocaliser(Node):
     def get_aruco_corners(self) -> None | np.ndarray:
         """
         Return marker centre positions as [x,y,z] in order
-        """        
+        """
         marker_lookup = {marker.marker_id: marker for marker in self.aruco_detection.markers}
         if any(marker_id not in marker_lookup for marker_id in self.marker_ids):
             return None
@@ -271,17 +449,72 @@ class KeyboardLocaliser(Node):
         cx = self.camera_matrix[0, 2]
         cy = self.camera_matrix[1, 2]
 
+        width, height = self.camera_resolution
         image_points = []
         for pt in detected_pts:
             u = fx * pt[0] / pt[2] + cx
             v = fy * pt[1] / pt[2] + cy
-            image_points.append([u, v])
+            # Rotate 180° to match GUI camera stream orientation
+            image_points.append([width - u, height - v])
 
         kb_msg = KeyboardPoints()
         kb_msg.points = [int(i) for point in image_points for i in point]
         kb_msg.width, kb_msg.height = self.camera_resolution
         self.point_pub.publish(kb_msg)
         
+    def estimate_pose_single_marker(self) -> None | TransformStamped:
+        """Estimate keyboard pose from a single ArUco marker (handeye_marker_id).
+        Uses the marker's pose + its known offset on the keyboard to
+        compute T_cam_keyboard. Only used for hand-eye calibration sampling."""
+        if self.aruco_detection is None:
+            return None
+
+        marker_lookup = {m.marker_id: m for m in self.aruco_detection.markers}
+
+        if self.handeye_marker_id not in marker_lookup:
+            return None
+
+        # Get the marker and its index in marker_ids for the known position lookup
+        marker = marker_lookup[self.handeye_marker_id]
+        try:
+            idx = self.marker_ids.index(self.handeye_marker_id)
+        except ValueError:
+            self.get_logger().warn(f"handeye_marker_id {self.handeye_marker_id} not in marker_ids")
+            return None
+
+        # T_cam_marker from the ArUco detector
+        q = marker.pose.orientation
+        R_cam_marker = R.from_quat([q.x, q.y, q.z, q.w]).as_matrix()
+        t_cam_marker = np.array([
+            [marker.pose.position.x],
+            [marker.pose.position.y],
+            [marker.pose.position.z]
+        ], dtype=np.float64)
+
+        # Marker's known position on the keyboard (in keyboard frame, meters)
+        t_keyboard_marker = self.keyboard_points_m[idx].reshape(3, 1).astype(np.float64)
+
+        # T_cam_keyboard = T_cam_marker * T_marker_keyboard
+        # Apply yaw offset to account for marker orientation on keyboard
+        R_cam_keyboard = R_cam_marker @ self.R_marker_to_keyboard
+        t_cam_keyboard = t_cam_marker - R_cam_keyboard @ t_keyboard_marker
+
+        quat = R.from_matrix(R_cam_keyboard).as_quat()
+
+        t = TransformStamped()
+        t.header.stamp = self.get_clock().now().to_msg()
+        t.header.frame_id = self.camera_frame
+        t.child_frame_id = self.keyboard_frame
+        t.transform.translation.x = float(t_cam_keyboard[0][0])
+        t.transform.translation.y = float(t_cam_keyboard[1][0])
+        t.transform.translation.z = float(t_cam_keyboard[2][0])
+        t.transform.rotation.x = quat[0]
+        t.transform.rotation.y = quat[1]
+        t.transform.rotation.z = quat[2]
+        t.transform.rotation.w = quat[3]
+
+        return t
+
     def estimate_pose(self) -> None | TransformStamped:
         """Estimate pose of keyboard and return its transform"""
         # Get the marker poses in order
