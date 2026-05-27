@@ -13,6 +13,6 @@
 /drone_gps_rover:
   ros__parameters:
     baudrate: 230400
-    port_name: /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
+    port_name: /dev/ttyTHS1
     publisher_rate: 20
     protocol: ubx
