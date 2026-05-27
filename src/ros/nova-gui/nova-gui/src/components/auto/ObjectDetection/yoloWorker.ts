@@ -65,7 +65,7 @@ let session: ort.InferenceSession | null = null;
 let inputName: string | null = null;
 let expectedBatch: number | null = null;
 let inputSize = 512;
-let scoreThreshold = 0.7;
+let scoreThreshold = 0.55;
 let outputFormat: YOLOOutputFormat = "xyxy";
 
 // Reuse offscreen canvases to avoid allocations per frame.
