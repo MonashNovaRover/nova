@@ -34,6 +34,7 @@ def launch_setup(context, *args, **kwargs):
 
     cam_name = LaunchConfiguration('cam_name').perform(context)
     rs = use_realsense.perform(context).lower() in ["true", "t", "1"]
+    use_depth = LaunchConfiguration('use_depth')
 
     # When using RealSense: override aruco tracker to use realsense color stream
     # aruco_opencv handles distortion internally via camera_info when image_is_rectified=false
@@ -48,7 +49,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='auto_typing',
             executable='keyboard_localiser.py',
-            parameters=[params, {"base_frame": base_frame}, {"using_auto": auto_mode}]
+            parameters=[params, {"base_frame": base_frame}, {"using_auto": auto_mode}, {"use_depth": use_depth}]
         ),
         Node(
             package='auto_typing',
@@ -134,6 +135,11 @@ def generate_launch_description():
             name='cam_name',
             default_value='d415',
             description='RealSense camera name (used for topic prefix when use_realsense is True).',
+        ),
+        DeclareLaunchArgument(
+            name='use_depth',
+            default_value='False',
+            description='Use RealSense aligned depth to refine marker positions (requires align_depth.enable in RealSense config).',
         ),
     ]
 

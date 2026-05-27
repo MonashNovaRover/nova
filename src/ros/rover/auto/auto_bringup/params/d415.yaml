@@ -3,13 +3,14 @@ d415:
     camera_name: d415
     camera_namespace: ""
     enable_color: true
-    enable_depth: false
+    enable_depth: true
     enable_infra: false
-    enable_infra1: true
+    enable_infra1: false
     enable_infra2: false
     depth_module.emitter_enabled: 0
+    align_depth.enable: true
     publish_tf: true
 
     # run rs_enumerate_devices for available configurations
     rgb_camera.color_profile: 1280x720x15
-    depth_module.infra_profile: 1280x720x30
+    depth_module.depth_profile: 640x480x15

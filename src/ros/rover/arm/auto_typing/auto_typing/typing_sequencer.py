@@ -123,17 +123,32 @@ class TypingSequencer(Node):
         return R.from_matrix(rmat).as_quat()
 
     def pose_calc(self, key_to_base, ee_frame, actuator_frame, stamp) -> Pose | None:
-        """ Given the following frames, calculates the pose to feed into the 
+        """ Given the following frames, calculates the pose to feed into the
             path planner to move actuator of end effector offset from the key """
         act_to_ee = self.get_transform_from_frame(actuator_frame, ee_frame, stamp)
         if act_to_ee is None:
             return None
-        ate_pose = Pose() 
+        ate_pose = Pose()
         ate_pose.position = act_to_ee.transform.translation
         ate_pose.orientation = act_to_ee.transform.rotation
         ee_to_key = tf2_geometry_msgs.do_transform_pose(ate_pose, key_to_base)
 
         target_quaternion = self.compute_target_quaternion(key_to_base.transform.rotation)
+
+        # Ensure target quaternion is on the same hemisphere as current EE orientation
+        # to prevent the path planner from taking the long way around (~180° j4 flip)
+        ee_tf = self.get_transform_from_frame(self.base_frame, ee_frame, stamp)
+        if ee_tf is not None:
+            q_ee = ee_tf.transform.rotation
+            current_quat = np.array([q_ee.x, q_ee.y, q_ee.z, q_ee.w])
+            if np.dot(current_quat, target_quaternion) < 0:
+                target_quaternion = -target_quaternion
+
+        # Apply the computed target orientation to the pose
+        ee_to_key.orientation.x = target_quaternion[0]
+        ee_to_key.orientation.y = target_quaternion[1]
+        ee_to_key.orientation.z = target_quaternion[2]
+        ee_to_key.orientation.w = target_quaternion[3]
 
         if self.debug_target_tf:
             tfs = TransformStamped()

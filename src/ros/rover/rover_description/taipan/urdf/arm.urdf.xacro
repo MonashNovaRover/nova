@@ -47,15 +47,23 @@
   <!-- Linear actuator tip frame for auto-typing -->
   <link name="actuator"/>
   <joint name="actuator_tip_joint" type="fixed">
-    <origin xyz="0 0.0104 -0.016" rpy="3.1415926 0 -3.1415926"/>
+    <origin xyz="0 0.0104 -0.016" rpy="0 3.1415926 1.5707963"/>
     <parent link="linear_actuator"/>
     <child link="actuator"/>
+  </joint>
+
+  <!-- Linear actuator tip frame for auto-typing -->
+  <link name="old_actuator"/>
+  <joint name="a" type="fixed">
+    <origin xyz="0 0.0104 -0.016" rpy="0 3.1415926 0"/>
+    <parent link="linear_actuator"/>
+    <child link="old_actuator"/>
   </joint>
 
   <!-- Periscope camera frame for auto-typing -->
   <link name="image_frame"/>
   <joint name="camera_ee_finger" type="fixed">
-    <origin xyz="-0.063 0 0.017" rpy="3.1415926 0 -1.5707963"/>
+    <origin xyz="0 0 0" rpy="1.5707963 3.1415926 0"/>
     <parent link="linear_actuator"/>
     <child link="image_frame"/>
   </joint>

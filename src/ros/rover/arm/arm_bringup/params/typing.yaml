@@ -43,6 +43,8 @@ keyboard_localiser:
 
     # (auto) keyboard pose analysis initalisation
     camera_frame: image_frame
+    use_depth: false
+    depth_topic: /d415/aligned_depth_to_color/image_raw
 
     # tf2 initalisation
     tf_publish_rate: 1.0 # per second
@@ -59,7 +61,7 @@ typing_sequencer:
     pollrate: 10.0
 
     # path planner movement
-    speed: 0.05 # m/s
+    speed: 0.01 # m/s
     debug_target: True
 
 pokey:

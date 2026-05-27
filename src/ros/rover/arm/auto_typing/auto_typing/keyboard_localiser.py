@@ -30,7 +30,7 @@ from geometry_msgs.msg import TransformStamped
 from arm_interfaces.srv import KeyPosition
 from arm_interfaces.msg import KeyboardPoints
 from aruco_opencv_msgs.msg import ArucoDetection
-from sensor_msgs.msg import CameraInfo
+from sensor_msgs.msg import CameraInfo, Image
 
 import rclpy
 from rclpy.node import Node
@@ -175,6 +175,16 @@ class KeyboardLocaliser(Node):
             self.create_timer(1.0, self.cache_urdf_transform)
             # Publish calibrated transform at 10Hz to override robot_state_publisher's static TF
             self.create_timer(0.1, self.publish_calibrated_camera_tf)
+
+        # Depth-based marker refinement
+        self.use_depth = self.declare_parameter('use_depth', False).get_parameter_value().bool_value
+        self.depth_image = None
+        if self.use_depth:
+            depth_topic = self.declare_parameter('depth_topic', '/d415/aligned_depth_to_color/image_raw').get_parameter_value().string_value
+            camera_info_topic = self.declare_parameter('camera_info_topic', '/d415/color/camera_info').get_parameter_value().string_value
+            self.create_subscription(Image, depth_topic, self.depth_callback, qos_profile=qos_profile_sensor_data)
+            self.create_subscription(CameraInfo, camera_info_topic, self.camera_info_callback, 10)
+            self.get_logger().info(f"Depth refinement enabled: {depth_topic}")
 
         self.get_logger().info(f"Running this node in {"auto" if self.node_is_auto else "manual"} mode with service: {KEY_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
 
@@ -393,10 +403,45 @@ class KeyboardLocaliser(Node):
         self.dist_coeffs = np.array(msg.d, dtype=np.float64)
         self.camera_resolution = (msg.width, msg.height)
 
+    def depth_callback(self, msg: Image) -> None:
+        """Store latest aligned depth image."""
+        # RealSense depth is 16UC1 in millimetres
+        self.depth_image = np.frombuffer(msg.data, dtype=np.uint16).reshape(msg.height, msg.width)
+
+    def refine_with_depth(self, x: float, y: float, z: float) -> tuple[float, float, float]:
+        """Replace solvePnP depth with actual depth sensor reading.
+        Projects the aruco 3D point to a pixel, reads depth, and back-projects."""
+        if self.depth_image is None or self.camera_matrix is None:
+            return x, y, z
+        fx = self.camera_matrix[0, 0]
+        fy = self.camera_matrix[1, 1]
+        cx = self.camera_matrix[0, 2]
+        cy = self.camera_matrix[1, 2]
+
+        # Project 3D point to pixel
+        u = int(fx * x / z + cx)
+        v = int(fy * y / z + cy)
+        h, w = self.depth_image.shape
+        if not (0 <= u < w and 0 <= v < h):
+            return x, y, z
+
+        # Sample depth in a small window for robustness
+        r = 3
+        patch = self.depth_image[max(0,v-r):min(h,v+r+1), max(0,u-r):min(w,u+r+1)]
+        valid = patch[patch > 0]
+        if len(valid) == 0:
+            return x, y, z
+        depth_z = float(np.median(valid)) / 1000.0  # mm to metres
+
+        # Back-project with real depth
+        x_new = (u - cx) * depth_z / fx
+        y_new = (v - cy) * depth_z / fy
+        return x_new, y_new, depth_z
+
     def get_aruco_corners(self) -> None | np.ndarray:
         """
         Return marker centre positions as [x,y,z] in order
-        """        
+        """
         marker_lookup = {marker.marker_id: marker for marker in self.aruco_detection.markers}
         if any(marker_id not in marker_lookup for marker_id in self.marker_ids):
             return None
@@ -405,6 +450,8 @@ class KeyboardLocaliser(Node):
         for marker_id in self.marker_ids:
             marker = marker_lookup[marker_id]
             x, y, z = marker.pose.position.x, marker.pose.position.y, marker.pose.position.z
+            if self.use_depth:
+                x, y, z = self.refine_with_depth(x, y, z)
             ordered_points.append([x, y, z])
 
         return np.array(ordered_points, dtype=np.float32)
@@ -496,6 +543,8 @@ class KeyboardLocaliser(Node):
         q = marker.pose.orientation
         R_cam_marker = R.from_quat([q.x, q.y, q.z, q.w]).as_matrix()
         mx, my, mz = marker.pose.position.x, marker.pose.position.y, marker.pose.position.z
+        if self.use_depth:
+            mx, my, mz = self.refine_with_depth(mx, my, mz)
         t_cam_marker = np.array([[mx], [my], [mz]], dtype=np.float64)
 
         # Marker's known position on the keyboard (in keyboard frame, meters)
