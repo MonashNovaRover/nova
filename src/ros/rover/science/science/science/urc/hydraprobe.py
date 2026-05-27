@@ -99,8 +99,8 @@ if __name__ == "__main__":
                        interpret_data_list=[
                            lambda x: float(int.from_bytes(x[0:2], 'big') / 100.0),  # temperature
                            lambda x: float(int.from_bytes(x[2:4], 'big') / 100.0),  # water content
-                           lambda x: float(int.from_bytes(x[4:6], 'big') / 100.0),  # conductivity
-                           lambda x: float(int.from_bytes(x[6:8], 'big') / 100.0),  # salinity
+                           lambda x: float(int.from_bytes(x[4:6], 'big')),  # conductivity
+                           lambda x: float(int.from_bytes(x[6:8], 'big')),  # salinity
                        ],
                        hardware_names=["temperature", "humidity", "conductivity", "salinity"],
                        hardware_units=["celsius", "percent", "uS/cm", "ppt"],
