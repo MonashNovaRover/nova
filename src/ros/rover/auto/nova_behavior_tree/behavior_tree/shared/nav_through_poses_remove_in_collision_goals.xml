@@ -5,7 +5,7 @@
       <ReactiveFallback name="ExitOnGoalsEmpty">
         <GoalsEmpty goals="{goals}"/>
 
-        <ForceFailure>
+        <ForceRunning>
           <PipelineSequence name="NavigateWithReplanning">
             <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
             
@@ -24,7 +24,7 @@
             <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
             
           </PipelineSequence>
-        </ForceFailure>
+        </ForceRunning>
       </ReactiveFallback>
 
       <ReactiveFallback name="RecoveryFallback">

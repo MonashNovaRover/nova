@@ -109,6 +109,14 @@ list(APPEND plugin_libs nova_object_detected_condition_bt_node)
 add_library(nova_goals_empty_condition_bt_node SHARED plugins/condition/goals_empty_condition.cpp)
 list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
 
+add_library(nova_are_poses_near_condition_bt_node SHARED plugins/condition/are_poses_near_condition.cpp)
+list(APPEND plugin_libs nova_are_poses_near_condition_bt_node)
+
+# ========================================= DECORATOR NODES ========================================= #
+
+add_library(nova_force_running_decorator_bt_node SHARED plugins/decorator/force_running.cpp)
+list(APPEND plugin_libs nova_force_running_decorator_bt_node)
+
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})
   target_compile_definitions(${bt_plugin} PRIVATE BT_PLUGIN_EXPORT)

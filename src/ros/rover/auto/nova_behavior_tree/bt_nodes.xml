@@ -121,9 +121,17 @@
       <input_port name="goals">Waypoints</input_port>
     </Condition>
 
+    <Condition ID="ArePosesNear">
+      <input_port name="ref_pose">Reference pose</input_port>
+      <input_port name="target_pose">Target pose to compare to reference</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="tolerance">Distance tolerance in m for poses to be considered near</input_port>
+    </Condition>
+
     <!-- ############################### CONTROL NODES ################################ -->
 
     <!-- ############################### DECORATOR NODES ############################## -->
+    <Decorator ID="ForceRunning"/>
 
     <!-- ############################### SUBTREE NODES ################################ -->
     <SubTree ID="NavThroughPosesWithReplanningAndRecovery">
