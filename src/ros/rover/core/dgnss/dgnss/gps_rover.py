@@ -69,6 +69,18 @@ class GPSRover(Node):
         ).value
         self.fix_type = None
 
+        self.gps_covariance = [9.0, 0.0, 0.0,
+                               0.0, 9.0, 0.0,
+                               0.0, 0.0, 9.0]
+        
+        self.rtk_float_covariance = [1.0, 0.0, 0.0,
+                                     0.0, 1.0, 0.0,
+                                     0.0, 0.0, 1.0]
+        
+        self.rtk_fix_covariance = [0.01, 0.0, 0.0,
+                                   0.0, 0.01, 0.0,
+                                   0.0, 0.0, 0.01]
+
         ### Serial ###
         self.ser = Serial()
         self.config_port(self.port_name, self.baudrate)
@@ -198,11 +210,14 @@ class GPSRover(Node):
                 self.pose.altitude = float(msg_parsed.alt)
                 self.pose.status.status = NavSatStatus.STATUS_FIX
                 self.fix_type = 'GPS fix'
+                self.pose.position_covariance = self.gps_covariance
                 if msg_parsed.quality == 4:
                     self.pose.status.status = NavSatStatus.STATUS_GBAS_FIX
+                    self.pose.position_covariance = self.rtk_float_covariance
                     self.fix_type = 'RTK fixed'
                 elif msg_parsed.quality == 5:
                     self.pose.status.status = NavSatStatus.STATUS_GBAS_FIX
+                    self.pose.position_covariance = self.rtk_fix_covariance
                     self.fix_type = 'RTK float'
             else:
                 self.pose.status.status = NavSatStatus.STATUS_NO_FIX
