@@ -49,8 +49,8 @@ const OUTER_OFFSET = -OUTER_STEP / 2;
 const INNER_OFFSET = -INNER_STEP / 2;
 
 // Duration scaling constants for animations
-const OUTER_DURATION_PER_CUVETTE = 0.5;  // seconds per cuvette for outer wheel
-const INNER_DURATION_PER_CUVETTE = 0.5;  // seconds per cuvette for inner wheel
+const OUTER_DURATION_PER_CUVETTE = 0.3;  // seconds per cuvette for outer wheel
+const INNER_DURATION_PER_CUVETTE = 0.2;  // seconds per cuvette for inner wheel
 
 const CENTER = 156;
 
