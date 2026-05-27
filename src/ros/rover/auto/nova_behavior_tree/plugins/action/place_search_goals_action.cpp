@@ -70,6 +70,13 @@ namespace nova_behavior_tree
 
   void PlaceSearchGoalsAction::place_search_path()
   {
+    if (search_radius_ <= 0)
+    {
+      RCLCPP_WARN(node_->get_logger(), "Search radius must be positive. No search goals placed.");
+      setOutput("output_goals", input_goals_);
+      return;
+    }
+
     Goal centre_goal = input_goals_.back();
 
     RCLCPP_INFO(node_->get_logger(), "Placing search goals in a %.2fm radius with %2.2fm between spirals and %d goals per loop", search_radius_, search_spacing_, search_corners_);
