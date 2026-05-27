@@ -87,11 +87,6 @@ namespace nova_behavior_tree
       place_goal(centre_goal, angle, dist);
     }
 
-    // ATTENTION - THIS LINE BELOW IS A BODGE FIX
-    place_goal(centre_goal, 0, search_radius_ + 2*search_spacing_);
-    // This is added because if the rover passes the final goal in the search path when
-    // it's approaching the centre it will end the run. A goal is added out of the search radius to prevent this.
-
     RCLCPP_INFO(node_->get_logger(), "Placed search goals in a %f m radius", search_radius_);
 
     setOutput("output_goals", input_goals_);
