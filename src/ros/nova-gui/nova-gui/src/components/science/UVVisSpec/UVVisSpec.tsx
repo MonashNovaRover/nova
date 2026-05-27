@@ -19,7 +19,7 @@ import UVVisSpecGraph from "./UVVisSpecGraph.tsx";
 import {Eye, EyeOff, Settings} from "react-feather";
 import useNumberField from "./useNumberField.ts";
 import useGL from "../../../hooks/webgl/gl/useGL.ts";
-import {max, zip} from "lodash";
+import {zip} from "lodash";
 import useDownload from "../../../hooks/useDownload.ts";
 import RamanLocalStorageSaveButton from "../RamanSpec/RamanLocalStorageSaveButton.tsx";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
@@ -114,26 +114,23 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
 
     const savedData = displayData;
 
-    const maxValue = Math.max(luminanceToPercent(max(savedData) ?? 441.67), 10 / LUMINANCE_SCALE_FACTOR);
-
-    // [x, y] points to return - normalized to max value
+    // [x, y] points to return - raw values (not normalized)
     const points = savedData.map((val, i) => (
-      [colToWavelength((i) / (savedData.length-1)), luminanceToPercent(val) / maxValue]
+      [colToWavelength((i) / (savedData.length-1)), isShowingAbsorbance ? val : luminanceToPercent(val)]
     ))
 
     props.onSave(points, graphName);
-  }, [colToWavelength, displayData, props])
+  }, [colToWavelength, displayData, isShowingAbsorbance, props])
 
   const download = useDownload("uv-vis-spec.csv", () => {
     const savedData = displayData;
-    const maxValue = Math.max(luminanceToPercent(max(savedData) ?? 441.67), 10 / LUMINANCE_SCALE_FACTOR);
 
-    // [x, y] points to return - normalized to max value
+    // [x, y] points to return - raw values (not normalized)
     const points = savedData.map((val, i) => (
-      [colToWavelength((i) / (savedData.length-1)), luminanceToPercent(val) / maxValue]
+      [colToWavelength((i) / (savedData.length-1)), isShowingAbsorbance ? val : luminanceToPercent(val)]
     ));
 
-    const header = isShowingAbsorbance ? "wavelength,normalized_absorbance" : "wavelength,normalized_intensity";
+    const header = isShowingAbsorbance ? "wavelength,absorbance" : "wavelength,intensity_percent";
     const lines = [header];
     for (let i = 0; i < points.length; i++)
       lines.push(`${points[i][0]},${points[i][1]}`);

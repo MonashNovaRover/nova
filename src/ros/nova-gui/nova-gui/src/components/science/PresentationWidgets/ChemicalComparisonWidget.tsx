@@ -74,7 +74,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
     const measurementType = CHEMICAL_MEASUREMENT_TYPE[selectedChemical];
 
     const yAxisLabel = measurementType === MeasurementType.INTENSITY
-      ? 'Intensity (normalized)'
+      ? 'Intensity (%)'
       : 'Absorbance';
 
     return {
