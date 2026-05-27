@@ -64,7 +64,8 @@ class PlaceSearchGoalsAction : public BT::ActionNodeBase
     void place_goal(
       const geometry_msgs::msg::PoseStamped& centre_goal,
       double angle,
-      double dist);
+      double dist,
+      bool reverse = false);
 
     rclcpp::Node::SharedPtr node_;
     double search_radius_;

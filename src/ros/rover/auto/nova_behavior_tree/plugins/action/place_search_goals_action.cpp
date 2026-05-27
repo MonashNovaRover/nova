@@ -72,19 +72,25 @@ namespace nova_behavior_tree
   {
     Goal centre_goal = input_goals_.back();
 
-    place_goal(centre_goal, 0, search_spacing_/2);
-
     RCLCPP_INFO(node_->get_logger(), "Placing search goals in a %.2fm radius with %2.2fm between spirals and %d goals per loop", search_radius_, search_spacing_, search_corners_);
 
     double loops = search_radius_ / search_spacing_;
-    double points = static_cast<int>((0.5 + loops) * search_corners_);
+    int points = static_cast<int>((1 + loops) * search_corners_);
 
-    for (int i = search_corners_/2; i < points; ++i)
+    for (int i = search_corners_/4; i < points; ++i)
     {
-      double angle = ((2*pi) / search_corners_) * (i % search_corners_) - (3 * pi/4);
+      double angle = ((2*pi) / search_corners_) * (i % search_corners_);
       double dist = (static_cast<double>(i) / search_corners_) * search_spacing_;
 
       place_goal(centre_goal, angle, dist);
+    }
+
+    for (int i = points; i > search_corners_/4; --i)
+    {
+      double angle = ((2*pi) / search_corners_) * (i % search_corners_);
+      double dist = (static_cast<double>(i) / search_corners_) * search_spacing_;
+
+      place_goal(centre_goal, angle, dist, true);
     }
 
     RCLCPP_INFO(node_->get_logger(), "Placed search goals in a %f m radius", search_radius_);
@@ -92,7 +98,7 @@ namespace nova_behavior_tree
     setOutput("output_goals", input_goals_);
   }
 
-  void PlaceSearchGoalsAction::place_goal(const Goal& centre_goal, double angle, double dist)
+  void PlaceSearchGoalsAction::place_goal(const Goal& centre_goal, double angle, double dist, bool reverse)
   {
     //get centre goal properties
     tf2::Vector3 centre;
@@ -113,7 +119,12 @@ namespace nova_behavior_tree
     // set the new goal's orientation to be perpendicular from radial direction
     tf2::Quaternion q;
 
-    q.setRPY(0, 0, yaw + angle + pi/2);
+    if(reverse){
+      q.setRPY(0, 0, yaw + angle - pi/2);
+    }
+    else{
+      q.setRPY(0, 0, yaw + angle + pi/2);
+    }
     new_goal.pose.orientation = tf2::toMsg(q);
     input_goals_.push_back(new_goal);
 
