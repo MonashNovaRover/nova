@@ -61,9 +61,9 @@ const BMESensor: React.FC<IBMESensorProps> = (
         labels={["Temperature", "Pressure"]}
         suffixes={["°C", "hPa"]}
       />
-      {/*<Button onPressStart={() => bifrost.callService({})}>*/}
-      {/*  Take Reading*/}
-      {/*</Button>*/}
+      <Button onPressStart={() => bifrost.callService({})}>
+        Take Reading
+      </Button>
     </CardBody>
   );
 
