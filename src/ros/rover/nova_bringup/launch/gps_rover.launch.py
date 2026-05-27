@@ -23,6 +23,7 @@ from launch_ros.actions import Node
 
 def launch_setup(context, *args, **kwargs):
     port_name = LaunchConfiguration('port')
+    publish_fix_custom = LaunchConfiguration('publish_fix_custom')
 
     return [
         Node(
@@ -30,15 +31,8 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             executable='gps_rover.py',
             name='gps_rover',
-            parameters=[{'port_name': port_name}],
+            parameters=[{'port_name': port_name, 'publish_fix_custom': publish_fix_custom}],
         ),
-        # Node(
-        #     package='electronics',
-        #     namespace='',
-        #     executable='magnetometer.py',
-        #     name='magnetometer',
-        #     parameters=[gps_params],
-        # ),
     ]
 
 def generate_launch_description():
@@ -47,6 +41,11 @@ def generate_launch_description():
             name='port',
             default_value='/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0',
             description='Whether to use the local teleop_drive_joy source directory instead of the nix store for param files.',
+        ),
+        DeclareLaunchArgument(
+            name='publish_fix_custom',
+            default_value='True',
+            description='Whether to publish the custom GPSData message on /gps_rover/fix_custom'
         ),
     ]
 
