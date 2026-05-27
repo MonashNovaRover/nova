@@ -36,6 +36,7 @@ from pyunigps import (
 )
 import threading
 import time
+import struct
 
 class GPSRover(Node):
     def __init__(self):
@@ -56,6 +57,10 @@ class GPSRover(Node):
             name='publisher_rate', 
             value=20, 
         ).value
+        self.protocol = self.declare_parameter(
+            name='protocol',
+            value='nmea'
+        ).value
         self.publish_fix_custom = self.declare_parameter(
             name='publish_fix_custom',
             value=True,
@@ -65,18 +70,30 @@ class GPSRover(Node):
         ### Serial ###
         self.ser = Serial()
         self.config_port(self.port_name, self.baudrate)
-        self.reader = UNIReader(
-            self.ser, 
-            protfilter=NMEA_PROTOCOL,
-        )
+
+        def sub_to_rtcm():
+            self.sub_rtcm = self.create_subscription(
+                UInt8MultiArray,
+                'gps_base/rtcm',
+                self.sub_rtcm_callback,
+                QoSPresetProfiles.SENSOR_DATA.value,
+            )
+
+        if self.protocol == 'nmea':
+            self.reader = UNIReader(
+                self.ser,
+                protfilter=NMEA_PROTOCOL,
+            )
+            sub_to_rtcm()
+            self.reader_loop = self.nmea_loop
+        elif self.protocol == 'ubx':
+            self.reader_loop = self.ubx_loop
+        else:
+            raise ValueError(f'Unrecognised protocol selected: {self.protocol}')
+
+        self.fix_type = None
 
         ### ROS2 ###
-        self.sub_rtcm = self.create_subscription(
-            UInt8MultiArray, 
-            'gps_base/rtcm', 
-            self.sub_rtcm_callback,
-            QoSPresetProfiles.SENSOR_DATA.value, 
-        )
         self.sub_heading = self.create_subscription(
             Float64, 
             'mag/heading', 
@@ -130,25 +147,28 @@ class GPSRover(Node):
             # use mag heading as backup
             self.pose_custom.heading = msg.data
 
-    def reader_loop(self):
+    def nmea_loop(self):
         while self.running and rclpy.ok():
-            if self.ser.in_waiting == 0:
-                time.sleep(0.005)  # Avoid busy waiting
-                continue
-
             try:
+                if self.ser.in_waiting == 0:
+                    time.sleep(0.005)  # Avoid busy waiting
+                    continue
+
                 with self.serial_lock:
                     _, msg_parsed = self.reader.read()
 
                 if msg_parsed is not None:
                     with self.fix_lock:
                         self.process_nmea(msg_parsed)
-            
+
             except Exception as e:
-                self.get_logger().warn(f'❌ Failed to read NMEA message: {e}')
-                self.get_logger().info(f'Reopening serial port...')
-                self.ser.close()
-                self.ser.open()
+                self.get_logger().warn(f'❌ Failed to read NMEA message: {e}', throttle_duration_sec=1)
+                self.get_logger().info(f'Reopening serial port...', throttle_duration_sec=1)
+                try:
+                    self.ser.close()
+                    self.ser.open()
+                except Exception as new_e:
+                    self.get_logger().warn(f'❌ Failed to re-open serial port: {new_e}', throttle_duration_sec=1)
                 time.sleep(0.01)
 
     def process_nmea(self, msg_parsed: str):
@@ -196,6 +216,88 @@ class GPSRover(Node):
         '''
         self.get_logger().info(msg_log, throttle_duration_sec=1)
         self.get_logger().debug(f'NMEA message parsed!')
+
+        # Copy data to custom message
+        self.pose_custom.header = self.pose.header
+        self.pose_custom.status = self.pose.status
+        self.pose_custom.latitude = self.pose.latitude
+        self.pose_custom.longitude = self.pose.longitude
+        self.pose_custom.altitude = self.pose.altitude
+
+    def ubx_loop(self):
+        while self.running and rclpy.ok():
+            try:
+                if self.ser.in_waiting == 0:
+                    time.sleep(0.005)  # Avoid busy waiting
+                    continue
+
+                with self.serial_lock, self.fix_lock:
+                    self.read_ubx()
+
+            except Exception as e:
+                self.get_logger().warn(f'❌ Failed to read UBX message: {e}', throttle_duration_sec=1)
+                self.get_logger().info(f'Reopening serial port...', throttle_duration_sec=1)
+                try:
+                    self.ser.close()
+                    self.ser.open()
+                except Exception as new_e:
+                    self.get_logger().warn(f'❌ Failed to re-open serial port: {new_e}', throttle_duration_sec=1)
+                time.sleep(0.01)
+
+    def read_ubx(self):
+        ser = self.ser
+        char1 = ser.read(1)
+        num_sv = 0
+        if char1 == b'\xb5':
+            char2 = ser.read(1)
+            if char2 == b'\x62':
+                header = ser.read(4)
+                if len(header) < 4: return
+
+                msg_class, msg_id, length = struct.unpack("<BBH", header)
+                payload = ser.read(length)
+                ser.read(2) # Consume checksum
+
+                # NAV-PVT Message (Class 0x01, ID 0x07)
+                if msg_class == 0x01 and msg_id == 0x07 and length >= 92:
+                    # iTOW(0), year(4), month(6), day(7), hour(8), min(9), sec(10), valid(11), tAcc(12), fNano(16), fixType(20)
+                    # Lon is at offset 24, Lat at offset 28 (both 4 bytes, signed i32)
+                    lon_raw, lat_raw = struct.unpack("<ii", payload[24:32])
+                    fix_id = payload[20] # 0=No fix, 3=3D fix
+
+                    lon = lon_raw / 1e7
+                    lat = lat_raw / 1e7
+
+
+                    num_sv = payload[23] # Number of satellites used in Nav Solution
+
+                    self.pose.latitude = float(lat)
+                    self.pose.longitude = float(lon)
+
+                    fix_options = {0:"No Fix", 2:"2D Fix", 3:"3D Fix", 4:"GNSS+Dead Reckoning"}
+                    self.fix_type = fix_options.get(fix_id, "Unknown")
+
+                    if fix_id in fix_options:
+                        self.pose.status.status = NavSatStatus.STATUS_FIX
+                    else:
+                        self.pose.status.status = NavSatStatus.STATUS_NO_FIX
+                        self.fix_type = "No fix"
+                        self.get_logger().warn(f'❌ UBX GNSS data is not available!', throttle_duration_sec=1)
+
+        ### LOG ###
+        msg_log = f'''
+            {'-'*30}
+            🛰️ UBX Data:
+            \tlat: {self.pose.latitude:8.7f}
+            \tlon: {self.pose.longitude:8.7f}
+            \talt: {self.pose.altitude:8.7f}
+            \theading: {self.pose_custom.heading:8.3f}
+            \tfix type: {self.fix_type}
+            \tsatellite number: {num_sv}
+            {'-'*30}
+        '''
+        self.get_logger().info(msg_log, throttle_duration_sec=1)
+        self.get_logger().debug(f'UBX message parsed!')
 
         # Copy data to custom message
         self.pose_custom.header = self.pose.header
