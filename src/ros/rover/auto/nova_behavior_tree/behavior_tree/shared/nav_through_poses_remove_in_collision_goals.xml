@@ -5,25 +5,26 @@
       <ReactiveFallback name="ExitOnGoalsEmpty">
         <GoalsEmpty goals="{goals}"/>
 
-        <PipelineSequence name="NavigateWithReplanning">
-          <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
-          
-          <RateController hz="1.0">
-            <Sequence name="ComputeAndSmoothPathThroughPoses">
-              <ReactiveSequence>
-                <RemoveInCollisionGoals input_goals="{goals}" snap_last="false" output_goals="{goals}"/>
-                <GetGoal index="0" input_goals="{goals}" output_goal="{goal}"/>
-                <RemovePassedGoal input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
-                <ComputePathToPose goal="{goal}" path="{path}" planner_id="NavFn"/>
-              </ReactiveSequence>
-              <SmoothPath unsmoothed_path="{path}" smoothed_path="{smoothed_path}" smoother_id="savitzky_golay_smoother"/>
-            </Sequence>
-          </RateController>
+        <ForceFailure>
+          <PipelineSequence name="NavigateWithReplanning">
+            <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
+            
+            <RateController hz="1.0">
+              <Sequence name="ComputeAndSmoothPathThroughPoses">
+                <ReactiveSequence>
+                  <RemoveInCollisionGoals input_goals="{goals}" snap_last="false" output_goals="{goals}"/>
+                  <GetGoal index="0" input_goals="{goals}" output_goal="{goal}"/>
+                  <RemovePassedGoal input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
+                  <ComputePathToPose goal="{goal}" path="{path}" planner_id="NavFn"/>
+                </ReactiveSequence>
+                <SmoothPath unsmoothed_path="{path}" smoothed_path="{smoothed_path}" smoother_id="savitzky_golay_smoother"/>
+              </Sequence>
+            </RateController>
 
-          <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
-          <GoalsEmpty goals="{goals}"/>
-
-        </PipelineSequence>
+            <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+            
+          </PipelineSequence>
+        </ForceFailure>
       </ReactiveFallback>
 
       <ReactiveFallback name="RecoveryFallback">
