@@ -13,7 +13,7 @@ NODE: magnetometer_node
 TOPICS:
   - subscriber: /gps_rover/fix         [NavSatFix]
   - publisher: /mag/heading            [Float64]
-  - publisher: /mag/heading_imu  [Imu]
+  - publisher: /mag/heading_imu        [Imu]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	electronics
 AUTHOR(S):	Terry Tian
