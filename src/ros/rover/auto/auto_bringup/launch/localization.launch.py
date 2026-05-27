@@ -31,7 +31,7 @@ EDITED BY: Taaj Street, Kabilan Velmurugan
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, IncludeLaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, EnvironmentVariable
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, AndSubstitution, NotSubstitution, EnvironmentVariable
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
@@ -113,7 +113,7 @@ def launch_setup(context, *args, **kwargs):
                                 ('imu', 'gps_rover/heading_imu')],
                 ),
                 GroupAction(
-                    condition=IfCondition(cartographer),
+                    condition=IfCondition(AndSubstitution(cartographer, NotSubstitution(sim))),
                     actions=[
                         IncludeLaunchDescription(
                             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
