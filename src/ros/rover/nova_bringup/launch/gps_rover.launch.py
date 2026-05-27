@@ -28,7 +28,7 @@ from os.path import expanduser
 def launch_setup(context, *args, **kwargs):
     params = LaunchConfiguration('params')
     drone = LaunchConfiguration('drone')
-
+    publish_fix_custom = LaunchConfiguration('publish_fix_custom')
     gps_node_name = IfElseSubstitution(
         drone,
         'drone_gps_rover',
@@ -41,15 +41,8 @@ def launch_setup(context, *args, **kwargs):
             namespace='',
             executable='gps_rover.py',
             name=gps_node_name,
-            parameters=[params],
+            parameters=[params, {'publish_fix_custom': publish_fix_custom}],
         ),
-        # Node(
-        #     package='electronics',
-        #     namespace='',
-        #     executable='magnetometer.py',
-        #     name='magnetometer',
-        #     parameters=[gps_params],
-        # ),
     ]
 
 def generate_launch_description():
@@ -72,15 +65,20 @@ def generate_launch_description():
             description='Path to gps rover parameter file',
         ),
         DeclareLaunchArgument(
+            name='drone',
+            default_value='False',
+            description='Use drone gps instead of rover gps'
+        ),
+        DeclareLaunchArgument(
+            name='publish_fix_custom',
+            default_value='True',
+            description='Whether to publish the custom GPSData message on /gps_rover/fix_custom'
+        ),
+        DeclareLaunchArgument(
             name='log_level',
             default_value='info',
             description='Log level of launched nodes and launch files'
         ),
-        DeclareLaunchArgument(
-            name='drone',
-            default_value='False',
-            description='Use drone gps instead of rover gps'
-        )
     ]
 
     return LaunchDescription(

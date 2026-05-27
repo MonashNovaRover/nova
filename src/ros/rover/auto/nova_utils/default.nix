@@ -19,6 +19,7 @@
   tf-transformations,
   rerun,
   pythonPackages,
+  nova-interfaces,
 }:
 
 buildRosPackage rec {
@@ -54,5 +55,7 @@ buildRosPackage rec {
     sensor-msgs-py
     pythonPackages.geographiclib
     pythonPackages.rerun-sdk
+    pythonPackages.rich
+    nova-interfaces
   ];
 }

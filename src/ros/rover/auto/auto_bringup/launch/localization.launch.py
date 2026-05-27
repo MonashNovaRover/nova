@@ -28,10 +28,12 @@ EDITED BY: Taaj Street, Kabilan Velmurugan
            Terry Tian
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, EnvironmentVariable
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -40,9 +42,14 @@ from os.path import expanduser
 def launch_setup(context, *args, **kwargs):
     # package directories
     local = LaunchConfiguration('local')
+    
     auto_bringup_dir = IfElseSubstitution(local,
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
+    )
+    nova_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
+        FindPackageShare('nova_bringup')
     )
 
     comp = LaunchConfiguration('comp').perform(context).lower()
@@ -53,18 +60,18 @@ def launch_setup(context, *args, **kwargs):
     # comp defaults
     if comp == 'arch':
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'rl_arch.yaml'])
-        gps = 'False'
+        cartographer = 'False'
     elif comp == 'urc':
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'rl_urc.yaml'])
-        gps = 'True'
+        cartographer = 'True'
     else:
         raise ValueError('Invalid comp value')
     
     # comp defaults overrides
     if LaunchConfiguration('rl_params').perform(context) != '':
         rl_params = LaunchConfiguration('rl_params')
-    if LaunchConfiguration('gps').perform(context) != '':
-        gps = LaunchConfiguration('gps')
+    if LaunchConfiguration('cartographer').perform(context) != '':
+        cartographer = LaunchConfiguration('cartographer')
 
     return [
         Node(
@@ -93,18 +100,9 @@ def launch_setup(context, *args, **kwargs):
                     parameters=[rl_params, {'use_sim_time': sim}],
                     remappings=[('odometry/filtered', 'odometry/global')],
                 ),
-                Node(
-                    condition=UnlessCondition(gps),
-                    package='tf2_ros',
-                    executable='static_transform_publisher',
-                    name='static_transform_publisher',
-                    output='screen',
-                    arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom'],
-                ),
-                # Why is there more nodes for GPS?
+                # Why are there more nodes for GPS?
                 # https://docs.ros.org/en/api/robot_localization/html/integrating_gps.html
                 Node(
-                    condition=IfCondition(gps),
                     package='robot_localization',
                     executable='navsat_transform_node',
                     name='navsat_transform',
@@ -113,6 +111,27 @@ def launch_setup(context, *args, **kwargs):
                     remappings=[('odometry/filtered', 'odometry/global'),
                                 ('gps/fix', 'gps_rover/fix'),
                                 ('imu', 'gps_rover/heading_imu')],
+                ),
+                GroupAction(
+                    condition=IfCondition(cartographer),
+                    actions=[
+                        IncludeLaunchDescription(
+                            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
+                            launch_arguments={'publish_fix_custom': 'False'}.items(),
+                        ),
+                        Node(
+                            package='electronics',
+                            namespace='',
+                            executable='magnetometer.py',
+                            name='magnetometer',
+                        ),
+                        Node(
+                            package='nova_utils',
+                            namespace='',
+                            executable='ekf_to_cartographer.py',
+                            name='ekf_to_cartographer',
+                        ),
+                    ],
                 ),
             ],
         ),
@@ -143,9 +162,9 @@ def generate_launch_description():
             description='Full path to robot_localization parameters file',
         ),
         DeclareLaunchArgument(
-            name='gps',
+            name='cartographer',
             default_value='',
-            description='Fuse GPS?',
+            description='For use with cartographer?',
         ),
     ]
 

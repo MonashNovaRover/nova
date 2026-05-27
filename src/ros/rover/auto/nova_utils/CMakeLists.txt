@@ -25,6 +25,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   visualization_msgs
   std_msgs
   sensor_msgs
+  nova_interfaces
   yolo_msgs
   tf2_ros
   tf2_msgs
@@ -49,6 +50,7 @@ install(PROGRAMS
   scripts/gz_gps_fixer.py
   scripts/gz_heading_imu_fixer.py
   scripts/gz_imu_fixer.py
+  scripts/ekf_to_cartographer.py
   scripts/livox_field_republisher.py
   scripts/load_waypoint.py
   scripts/quaternion_to_euler.py
@@ -57,6 +59,7 @@ install(PROGRAMS
   scripts/service_listener.py
   scripts/topic_waiter.py
   scripts/node_waiter.py
+  scripts/radio_status.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
