@@ -157,7 +157,7 @@ export const PotentiostatWidget = () => {
             }`}
           >
             {potentiostatData.is_receiving
-              ? `Ch${potentiostatData.channel + 1} Active`
+              ? `${potentiostatData.channel === 0 ? "Left" : "Right"} Active`
               : "Idle"}
           </Chip>
           <Button
@@ -166,7 +166,7 @@ export const PotentiostatWidget = () => {
             onPress={() => triggerChannel(0)}
             isDisabled={buttonsDisabled}
           >
-            {mode === "calibration" ? "Calibrate Ch1" : "Start Channel 1"}
+            {mode === "calibration" ? "Calibrate Left" : "Start Left"}
           </Button>
           <Button
             className="col-span-3 w-full"
@@ -174,7 +174,7 @@ export const PotentiostatWidget = () => {
             onPress={() => triggerChannel(1)}
             isDisabled={buttonsDisabled}
           >
-            {mode === "calibration" ? "Calibrate Ch2" : "Start Channel 2"}
+            {mode === "calibration" ? "Calibrate Right" : "Start Right"}
           </Button>
         </div>
 

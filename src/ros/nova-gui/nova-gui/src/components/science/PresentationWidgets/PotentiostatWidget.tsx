@@ -1,4 +1,4 @@
-import React, {useMemo} from "react";
+import React from "react";
 import {Card, CardHeader, CardBody} from "@nextui-org/react";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import {usePotentiostatStorage} from "../Potentiostat/potentiostatStorage.ts";
@@ -11,18 +11,8 @@ interface PotentiostatWidgetProps {
 const PotentiostatWidget: React.FC<PotentiostatWidgetProps> = ({site}) => {
   const {data} = usePotentiostatStorage();
 
-  // Channel 1 = Site 1, Channel 2 = Site 2
-  const channelData = useMemo(() => {
-    if (site === Site.SITE_1) {
-      return {channel1: data.channel1, channel2: []};
-    } else if (site === Site.SITE_2) {
-      return {channel1: [], channel2: data.channel2};
-    }
-    return null;
-  }, [site, data.channel1, data.channel2]);
-
   // Sites 3 and 4 don't have potentiostat data
-  if (channelData === null) {
+  if (site !== Site.SITE_1 && site !== Site.SITE_2) {
     return (
       <Card className="h-full">
         <CardHeader className="text-h1 pb-0">
@@ -35,8 +25,7 @@ const PotentiostatWidget: React.FC<PotentiostatWidgetProps> = ({site}) => {
     );
   }
 
-  const relevantChannel = site === Site.SITE_1 ? data.channel1 : data.channel2;
-  const hasData = relevantChannel.length > 0;
+  const hasData = data.channel1.length > 0 || data.channel2.length > 0;
 
   return (
     <Card className="h-full">
@@ -46,8 +35,8 @@ const PotentiostatWidget: React.FC<PotentiostatWidgetProps> = ({site}) => {
       <CardBody className="h-full flex items-center justify-center">
         {hasData ? (
           <PotentiostatChart
-            channel1={channelData.channel1}
-            channel2={channelData.channel2}
+            channel1={data.channel1}
+            channel2={data.channel2}
             mode="measurement"
             height={300}
           />

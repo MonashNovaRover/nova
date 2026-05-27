@@ -65,7 +65,7 @@ export const CalibrationMenu = ({
             </DropdownItem>
           </DropdownSection>
 
-          <DropdownSection title="Channel 1 Calibration" showDivider>
+          <DropdownSection title="Left Calibration" showDivider>
             <DropdownItem
               key="ch1Status"
               textValue="Channel 1 Status"
@@ -97,7 +97,7 @@ export const CalibrationMenu = ({
             </DropdownItem>
           </DropdownSection>
 
-          <DropdownSection title="Channel 2 Calibration">
+          <DropdownSection title="Right Calibration">
             <DropdownItem
               key="ch2Status"
               textValue="Channel 2 Status"
