@@ -46,26 +46,26 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
                 <div className="flex flex-row gap-4 flex-shrink-0">
                   <div className="flex flex-row gap-1 items-baseline whitespace-nowrap">
                     <span className="text-small text-default-500">Lat:</span>
-                    <span className="text-lg font-semibold">{getSensorValue("Latitude")}</span>
+                    <span className="text-lg font-semibold">{getSensorValue("Latitude")}°</span>
                   </div>
                   <div className="flex flex-row gap-1 items-baseline whitespace-nowrap">
                     <span className="text-small text-default-500">Long:</span>
-                    <span className="text-lg font-semibold">{getSensorValue("Longitude")}</span>
+                    <span className="text-lg font-semibold">{getSensorValue("Longitude")}°</span>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Temperature (BME)</span>
-                  <span className="text-lg font-semibold">{getSensorValue("BME Temperature")}</span>
+                  <span className="text-lg font-semibold">{getSensorValue("BME Temperature")} °C</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Pressure (BME)</span>
-                  <span className="text-lg font-semibold">{getSensorValue("BME Pressure")}</span>
+                  <span className="text-lg font-semibold">{getSensorValue("BME Pressure")} kPa</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Altitude</span>
-                  <span className="text-lg font-semibold">{getSensorValue("Altitude")}</span>
+                  <span className="text-lg font-semibold">{getSensorValue("Altitude")} m</span>
                 </div>
               </div>
             </div>
@@ -76,19 +76,19 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
               <div className="grid grid-cols-4 gap-3">
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Temperature</span>
-                  <span className="text-lg font-semibold">{getSensorValue("Temperature")}</span>
+                  <span className="text-lg font-semibold">{getSensorValue("Temperature")} °C</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Moisture</span>
-                  <span className="text-lg font-semibold">{getSensorValue("Moisture")}</span>
+                  <span className="text-lg font-semibold">{getSensorValue("Moisture")} %</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Conductivity</span>
-                  <span className="text-lg font-semibold">{getSensorValue("Conductivity")}</span>
+                  <span className="text-lg font-semibold">{getSensorValue("Conductivity")} mS/cm</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-small text-default-500">Salinity</span>
-                  <span className="text-lg font-semibold">{getSensorValue("Salinity")}</span>
+                  <span className="text-lg font-semibold">{getSensorValue("Salinity")} ppt</span>
                 </div>
               </div>
             </div>
