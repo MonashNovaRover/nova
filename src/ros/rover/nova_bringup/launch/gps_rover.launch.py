@@ -27,25 +27,21 @@ from os.path import expanduser
 
 def launch_setup(context, *args, **kwargs):
     params = LaunchConfiguration('params')
+    drone = LaunchConfiguration('drone')
+
+    gps_node_name = IfElseSubstitution(
+        drone,
+        'drone_gps_rover',
+        'gps_rover'
+    )
 
     return [
         Node(
             package='dgnss',
             namespace='',
             executable='gps_rover.py',
-            name='gps_rover',
+            name=gps_node_name,
             parameters=[params],
-        ),
-        Node(
-            package='dgnss',
-            namespace='',
-            executable='gps_rover.py',
-            name='drone_gps_rover',
-            parameters=[params],
-            remappings=[
-                ('/gps_rover/fix', '/gps_rover/drone/fix'),
-                ('/gps_rover/fix_custom', '/gps_rover/drone/fix_custom'),
-            ],
         ),
         # Node(
         #     package='electronics',
@@ -79,6 +75,11 @@ def generate_launch_description():
             name='log_level',
             default_value='info',
             description='Log level of launched nodes and launch files'
+        ),
+        DeclareLaunchArgument(
+            name='drone',
+            default_value='False',
+            description='Use drone gps instead of rover gps'
         )
     ]
 
