@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from action_msgs.msg import GoalStatus
 from nav2_msgs.action import NavigateThroughPoses
 from nova_interfaces.action import URCThroughPoses
 from nova_interfaces.srv import CartographerCommand
@@ -35,6 +36,7 @@ class NavigatorClient():
 
     def start(self, type, poses, search_radius):
         self.status = None
+        self.goal_handle = None
 
         match type:
 
@@ -89,6 +91,27 @@ class NavigatorClient():
     def result(self, future):
         result = future.result()
         self.status = result.status
+        self.goal_handle = None
+
+    def cancel_current_goal(self):
+        if not self.goal_handle:
+            self.node.get_logger().warn('No active goal to cancel.')
+            return False
+
+        self.node.get_logger().info('Cancelling active navigation goal...')
+        cancel_future = self.goal_handle.cancel_goal_async()
+        cancel_future.add_done_callback(self.cancel_response)
+        return True
+
+    def cancel_response(self, future):
+        cancel_result = future.result()
+        if len(cancel_result.goals_canceling) == 0:
+            self.node.get_logger().warn('Navigation cancel request was rejected.')
+            return
+
+        self.node.get_logger().info('Navigation cancel request accepted.')
+        self.status = GoalStatus.STATUS_CANCELED
+        self.goal_handle = None
 
     def finished(self):
         return self.status is not None

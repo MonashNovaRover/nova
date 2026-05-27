@@ -266,4 +266,8 @@ export interface RosServiceInterface {
     IRosNovaInterfacesCartographerCommandRequest,
     IRosNovaInterfacesCartographerCommandResponse
   >;
+  [RosService.CANCEL_NAVIGATION]: RosServiceMessage<
+    EmptyMessage,
+    IRosStdSrvsTriggerResponse
+  >;
 }
