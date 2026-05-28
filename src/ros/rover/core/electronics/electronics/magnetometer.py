@@ -42,8 +42,10 @@ class MagnetometerNode(Node):
         super().__init__('magnetometer_node')
         self.declare_parameter('bus', 7)
         self.declare_parameter('addr', 0x1E)
+        self.declare_parameter('offset', 90)
         self.bus_num = self.get_parameter('bus').value
         self.addr = self.get_parameter('addr').value
+        self.heading_offset = self.get_parameter('offset').value
 
         self.publisher = self.create_publisher(Float64, '/mag/heading', QoSPresetProfiles.SENSOR_DATA.value)
         self.imu_publisher = self.create_publisher(Imu, '/mag/heading_imu', QoSPresetProfiles.SENSOR_DATA.value)
@@ -83,7 +85,7 @@ class MagnetometerNode(Node):
         my = s16(data[4], data[5])
 
         # magnetometer is mounted upside-down and rotated 90 degrees counter-clockwise
-        magnetic_heading = -(math.degrees(math.atan2(my, mx)) - 90) % 360.0
+        magnetic_heading = (-math.degrees(math.atan2(my, mx)) + self.heading_offset) % 360.0
         true_heading = (magnetic_heading - self.declination_deg) % 360.0
         self.get_logger().info(f'Magnetic Heading: {magnetic_heading:.2f}° ' \
                                 f'Declination: {self.declination_deg:.2f}° ' \
