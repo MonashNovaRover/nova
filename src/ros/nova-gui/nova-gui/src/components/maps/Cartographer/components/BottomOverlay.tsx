@@ -28,7 +28,7 @@ import { useCartographerActions } from "../../../../redux/actions/useCartographe
 import { MapTile } from "../config.tsx";
 import { MapPoint, Vehicle } from "../../../../redux/models/CartographerState.ts";
 import React from "react";
-import {displayMapCoordinate, DisplayMapCoordinate, useDisplayMapCoordinate} from "../utils/convertCoords.ts";
+import {displayMapCoordinate, useDisplayMapCoordinate} from "../utils/convertCoords.ts";
 import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
 
 interface BottomOverlayProps {
