@@ -254,14 +254,19 @@ class GPSRover(Node):
 
         # Populate heading IMU message
         self.heading_imu.header = self.pose.header
-        half_yaw = math.radians(self.pose_custom.heading) / 2.0
-        self.heading_imu.orientation = Quaternion(
+        self.heading_imu.orientation = self.heading_to_quaternion(self.pose_custom.heading)
+    
+    def heading_to_quaternion(self, heading_deg: float) -> Quaternion:
+        """Convert north-zero clockwise compass heading to ROS ENU yaw quaternion."""
+        yaw_rad = math.radians(90.0 - heading_deg)
+        half_yaw = yaw_rad / 2.0
+        return Quaternion(
             x=0.0,
             y=0.0,
             z=math.sin(half_yaw),
             w=math.cos(half_yaw),
         )
-    
+
     def ubx_loop(self):
         while self.running and rclpy.ok():
             try:
@@ -346,13 +351,7 @@ class GPSRover(Node):
 
         # Populate heading IMU message
         self.heading_imu.header = self.pose.header
-        half_yaw = math.radians(self.pose_custom.heading) / 2.0
-        self.heading_imu.orientation = Quaternion(
-            x=0.0,
-            y=0.0,
-            z=math.sin(half_yaw),
-            w=math.cos(half_yaw),
-        )
+        self.heading_imu.orientation = self.heading_to_quaternion(self.pose_custom.heading)
 
     def loop(self) -> None:
         with self.fix_lock:
