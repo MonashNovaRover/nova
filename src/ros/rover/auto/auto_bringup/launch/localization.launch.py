@@ -38,6 +38,7 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 from os.path import expanduser
+from math import radians
 
 def launch_setup(context, *args, **kwargs):
     # package directories
@@ -56,6 +57,25 @@ def launch_setup(context, *args, **kwargs):
 
     # comp agnostic arguments
     sim = LaunchConfiguration('sim')
+    datum = LaunchConfiguration('datum').perform(context).strip()
+
+    navsat_datum_params = []
+    if datum != '':
+        parts = datum.split()
+        if len(parts) != 3:
+            raise ValueError('datum must be provided as "lat lon heading_deg"')
+
+        try:
+            latitude = float(parts[0])
+            longitude = float(parts[1])
+            heading_deg = float(parts[2])
+        except ValueError as exc:
+            raise ValueError('datum values must be numeric: "lat lon heading_deg"') from exc
+
+        navsat_datum_params.append({
+            'wait_for_datum': True,
+            'datum': [latitude, longitude, radians(heading_deg)],
+        })
 
     # comp defaults
     if comp == 'arch':
@@ -107,7 +127,7 @@ def launch_setup(context, *args, **kwargs):
                     executable='navsat_transform_node',
                     name='navsat_transform',
                     output='screen',
-                    parameters=[rl_params, {'use_sim_time': sim}],
+                    parameters=[rl_params, {'use_sim_time': sim}] + navsat_datum_params,
                     remappings=[('odometry/filtered', 'odometry/global'),
                                 ('gps/fix', 'gps_rover/fix'),
                                 ('imu', 'gps_rover/heading_imu')],
@@ -165,6 +185,11 @@ def generate_launch_description():
             name='cartographer',
             default_value='',
             description='For use with cartographer?',
+        ),
+        DeclareLaunchArgument(
+            name='datum',
+            default_value='',
+            description='Manual navsat datum as "lat lon heading_deg" (heading in degrees).',
         ),
     ]
 
