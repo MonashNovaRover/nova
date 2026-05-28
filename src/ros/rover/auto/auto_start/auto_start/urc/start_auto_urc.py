@@ -16,6 +16,7 @@ SERVICES:
     - client: /fromLL                           [robot_localization/srv/FromLL]
     - client: /set_RGBInput                     [nova_interfaces/srv/RGBInput]
     - service: /autonomous/cartographer_command [nova_interfaces/srv/CartographerCommand]
+    - service: /autonomous/cancel_navigation    [std_srvs/srv/Trigger]
 ACTIONS: 
   - client: /urc_2025_navigator                 [URCThroughPoses]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,6 +34,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 from rclpy.executors import MultiThreadedExecutor
 from std_msgs.msg import String
+from std_srvs.srv import Trigger
 from geometry_msgs.msg import PoseStamped
 from nova_interfaces.msg import Status
 from action_msgs.msg import GoalStatus
@@ -89,6 +91,14 @@ class StartAuto(Node):
         self.state = State.WAITING_FOR_CARTOGRAPHER
         self.state_timer = self.create_timer(0.5, self.tick)
 
+        self.cancel_requested = False
+        self.cancel_navigation_service = self.create_service(
+            Trigger,
+            '/autonomous/cancel_navigation',
+            self.cancel_navigation_called,
+        )
+        self.get_logger().info('Serving /autonomous/cancel_navigation.')
+
         self.started = True
 
     def tick(self):
@@ -97,6 +107,7 @@ class StartAuto(Node):
             case State.WAITING_FOR_CARTOGRAPHER:
                 self.get_logger().info('State: WAITING_FOR_CARTOGRAPHER.')
                 if self.cartographer_client.received_goals():
+                    self.cancel_requested = False
                     self.fromll_client.lls_to_poses(self.cartographer_client.goals)
                     self.cartographer_client.reset()
                     self.state = State.CONVERTING_LLS_TO_POSES
@@ -132,9 +143,13 @@ class StartAuto(Node):
                         self.state = State.WAITING_FOR_CARTOGRAPHER
                     elif self.navigator_client.status == GoalStatus.STATUS_ABORTED:
                         self.get_logger().error(f'Navigation aborted! {self.navigator_client.status}')
-                        self.get_logger().error('Navigation aborted detected by timer callback!')
-                        self.get_logger().info('Sending waypoints to restart navigation')
-                        self.navigator_client.start(self.cartographer_client.goal_type, self.load_waypoints(), self.cartographer_client.search_radius)
+                        if self.cancel_requested:
+                            self.get_logger().warn('Skipping auto-restart because navigation was canceled by GUI.')
+                            self.state = State.WAITING_FOR_CARTOGRAPHER
+                        else:
+                            self.get_logger().error('Navigation aborted detected by timer callback!')
+                            self.get_logger().info('Sending waypoints to restart navigation')
+                            self.navigator_client.start(self.cartographer_client.goal_type, self.load_waypoints(), self.cartographer_client.search_radius)
                     else:
                         self.get_logger().error(f'Navigation ended with unknown status: {self.navigator_client.status}')
                         self.state = State.WAITING_FOR_CARTOGRAPHER
@@ -146,8 +161,30 @@ class StartAuto(Node):
 
                 if self.navigator_client.goal_handle.status == GoalStatus.STATUS_ABORTED:
                     self.get_logger().error('Navigation aborted detected by timer callback!')
+                    if self.cancel_requested:
+                        self.get_logger().warn('Skipping auto-restart because navigation was canceled by GUI.')
+                        self.state = State.WAITING_FOR_CARTOGRAPHER
+                        return
                     self.get_logger().info('Sending waypoints to restart navigation')
                     self.navigator_client.start(self.cartographer_client.goal_type, self.load_waypoints(), self.cartographer_client.search_radius)
+
+    def cancel_navigation_called(self, request, response):
+        _ = request
+        self.cancel_requested = True
+        self.cartographer_client.reset()
+        self.clear_saved_waypoints()
+
+        canceled = self.navigator_client.cancel_current_goal()
+        self.state = State.WAITING_FOR_CARTOGRAPHER
+
+        if canceled:
+            response.success = True
+            response.message = 'Navigation cancel requested.'
+        else:
+            response.success = True
+            response.message = 'No active goal. Cleared queued goals and saved waypoints.'
+
+        return response
 
     def poses_to_yaml(self, poses):
         waypoints = {}
@@ -172,6 +209,13 @@ class StartAuto(Node):
         with open(self.filepath, 'w') as f:
             yaml.dump({'waypoints': waypoints}, f, indent=2)
         self.get_logger().info(f'Saved waypoints to: {self.filepath}')
+
+    def clear_saved_waypoints(self):
+        if not os.path.exists(self.filepath):
+            return
+
+        os.remove(self.filepath)
+        self.get_logger().info(f'Cleared saved waypoints at: {self.filepath}')
 
     def load_waypoints(self):
         '''Loads waypoints from YAML file and converts them into PoseStamped messages.'''

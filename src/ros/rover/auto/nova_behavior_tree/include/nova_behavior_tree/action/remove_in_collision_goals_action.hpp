@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @brief Action node for removing nearby goals that are in collision from the costmap
+ * @brief Action node for removing nearby goals that are in collision in the local costmap
  * 
  * @authors Harry Overall
  * Last Edited: 28/4/2026
@@ -50,7 +50,7 @@ struct GridCell
 };
 
 /**
- * @brief A nav2_behavior_tree::BtServiceNode class that removes goals that are in collision in on the global costmap, but only if the rover is within a specified distance.
+ * @brief A nav2_behavior_tree::BtServiceNode class that removes goals that are in collision on the local costmap.
  * @note It will re-initialize when halted.
  * 
  * @authors Harry Overall
@@ -115,13 +115,11 @@ private:
   bool is_goal_in_collision(const PoseStamped & goal);
   bool remove_goals();
   bool have_costmaps();
-  bool is_cell_free(const GridCell &global_cell);
+  bool is_cell_free(const GridCell &cell);
 
   rclcpp::Node::SharedPtr node_;
   std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> local_costmap_sub_;
-  std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> global_costmap_sub_;
   std::shared_ptr<nav2_costmap_2d::Costmap2D> local_costmap_;
-  std::shared_ptr<nav2_costmap_2d::Costmap2D> global_costmap_;
 
   std::string global_frame_, robot_base_frame_;
   std::shared_ptr<tf2_ros::Buffer> tf_;

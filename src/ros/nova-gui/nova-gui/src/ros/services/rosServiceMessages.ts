@@ -66,4 +66,5 @@ export const rosServiceMessages = {
 
   // Autonomous Related
   [RosService.CARTOGRAPHER_COMMAND]: "nova_interfaces/srv/CartographerCommand",
+  [RosService.CANCEL_NAVIGATION]: "std_srvs/srv/Trigger",
 };

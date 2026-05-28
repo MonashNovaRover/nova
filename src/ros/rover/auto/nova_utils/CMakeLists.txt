@@ -60,6 +60,7 @@ install(PROGRAMS
   scripts/topic_waiter.py
   scripts/node_waiter.py
   scripts/radio_status.py
+  scripts/publish_heading_imu.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

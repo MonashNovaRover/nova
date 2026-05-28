@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /**
- * @brief Action node for removing nearby goals that are in collision from the costmap
+ * @brief Action node for removing nearby goals that are in collision in the local costmap
  * 
  * @authors Harry Overall
  * Last Edited: 28/4/2026
@@ -67,11 +67,9 @@ void RemoveInCollisionGoalsAction::initialize()
   // Get input params
   getInput("cost_threshold", cost_threshold_);
 
-  // Subscribe to local and global costmaps via Nav2 costmap transport.
+  // Subscribe to local costmap via Nav2 costmap transport.
   local_costmap_sub_ = std::make_unique<nav2_costmap_2d::CostmapSubscriber>(
     node_, "/local_costmap/costmap_raw");
-  global_costmap_sub_ = std::make_unique<nav2_costmap_2d::CostmapSubscriber>(
-    node_, "/global_costmap/costmap_raw");
 
   RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals initialized.");
   initialized_ = true;
@@ -105,7 +103,7 @@ inline BT::NodeStatus RemoveInCollisionGoalsAction::tick()
   {
       RCLCPP_WARN_THROTTLE(
         node_->get_logger(), *node_->get_clock(), 2000,
-        "RemoveInCollisionGoals waiting for local/global costmaps.");
+        "RemoveInCollisionGoals waiting for local costmap.");
       return BT::NodeStatus::RUNNING;
   }
 
@@ -133,16 +131,14 @@ bool RemoveInCollisionGoalsAction::have_costmaps()
   try
   {
     local_costmap_ = local_costmap_sub_->getCostmap();
-    global_costmap_ = global_costmap_sub_->getCostmap();
   }
   catch (const std::runtime_error &)
   {
     local_costmap_.reset();
-    global_costmap_.reset();
     return false;
   }
 
-  return static_cast<bool>(local_costmap_) && static_cast<bool>(global_costmap_);
+  return static_cast<bool>(local_costmap_);
 }
 
 
@@ -158,7 +154,8 @@ bool RemoveInCollisionGoalsAction::remove_goals()
   }
   
   Goals output_goals_;
-  for (size_t i=0; i < input_goals_.size(); i++)
+  // don't remove last goal
+  for (size_t i=0; i < input_goals_.size() - 1; i++)
   {
     Goal goal = input_goals_[i];
     
@@ -189,54 +186,42 @@ bool RemoveInCollisionGoalsAction::is_goal_in_collision(const PoseStamped & goal
     unsigned int mx = 0;
     unsigned int my = 0;
 
-    if (!global_costmap_->worldToMap(goal.pose.position.x, goal.pose.position.y, mx, my))
+    if (!local_costmap_->worldToMap(goal.pose.position.x, goal.pose.position.y, mx, my))
     {
       return false;
     }
 
-    GridCell global_cell;
-    global_cell.x = static_cast<int>(mx);
-    global_cell.y = static_cast<int>(my);
-    return !is_cell_free(global_cell);
+    GridCell cell;
+    cell.x = static_cast<int>(mx);
+    cell.y = static_cast<int>(my);
+    return !is_cell_free(cell);
 }
 
 /** Methods from SnapInCollisionGoals */
  
 /**
- * @brief Check if a cell is free in both the local and global occupancy grids
+ * @brief Check if a cell is free in the local occupancy grid
  * 
- * @param global_cell A cell with reference to the global occupancy grid
+ * @param cell A cell with reference to the local occupancy grid
  */
-bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &global_cell)
+bool RemoveInCollisionGoalsAction::is_cell_free(const GridCell &cell)
 {
-    if (global_cell.x < 0 || global_cell.y < 0) {
+    if (cell.x < 0 || cell.y < 0) {
       return true;
     }
 
-    const auto global_x = static_cast<unsigned int>(global_cell.x);
-    const auto global_y = static_cast<unsigned int>(global_cell.y);
-    if (global_x >= global_costmap_->getSizeInCellsX() || global_y >= global_costmap_->getSizeInCellsY()) {
+    const auto local_x = static_cast<unsigned int>(cell.x);
+    const auto local_y = static_cast<unsigned int>(cell.y);
+    if (local_x >= local_costmap_->getSizeInCellsX() || local_y >= local_costmap_->getSizeInCellsY()) {
       return true;
-    }
-
-    const unsigned char global_cost = global_costmap_->getCost(global_x, global_y);
-
-    double wx = 0.0;
-    double wy = 0.0;
-    global_costmap_->mapToWorld(global_x, global_y, wx, wy);
-
-    unsigned int local_x = 0;
-    unsigned int local_y = 0;
-    if (!local_costmap_->worldToMap(wx, wy, local_x, local_y)) {
-      return global_cost < cost_threshold_;
     }
 
     const unsigned char local_cost = local_costmap_->getCost(local_x, local_y);
     RCLCPP_DEBUG(
       node_->get_logger(),
-      "Cost at goal cell - global: %u local: %u", global_cost, local_cost);
+      "Cost at goal cell - local: %u", local_cost);
 
-    return global_cost < cost_threshold_ && local_cost < cost_threshold_;
+    return local_cost < cost_threshold_;
 }
 
 }   // namespace nova_behavior_tree

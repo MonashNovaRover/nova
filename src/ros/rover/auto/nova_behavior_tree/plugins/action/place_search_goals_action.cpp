@@ -14,14 +14,15 @@
 
 /**
  * @brief Places search goals for AR Tags and Objects related to the URC mission
- * within the search radius.
+ * within the search radius in a spiral pattern.
  * 
- * @authors Terry Tian
+ * @authors Terry Tian, Harry Mills
  */
 
 #include <string>
 #include <cmath>
 
+#include "rclcpp/rclcpp.hpp"
 #include "rclcpp/logging.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "tf2/LinearMath/Vector3.hpp"
@@ -37,17 +38,19 @@ namespace nova_behavior_tree
 
   PlaceSearchGoalsAction::PlaceSearchGoalsAction(
   const std::string & name,
-  const BT::NodeConfiguration & conf)
+  const BT::NodeConfiguration & conf)  
   : BT::ActionNodeBase(name, conf)
   {
   }
+  const double pi = std::acos(-1.0);
+
 
   void PlaceSearchGoalsAction::initialize()
   {
       node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
       getInput("search_radius", search_radius_);
       getInput("search_corners", search_corners_);
-      getInput("edge_offset", edge_offset_);
+      getInput("search_spacing", search_spacing_);
       
       initialized_ = true;
   }
@@ -60,37 +63,41 @@ namespace nova_behavior_tree
     }
       
     getInput("input_goals", input_goals_);
-    place_search_goals();
+    place_search_path();
 
     return BT::NodeStatus::SUCCESS;
   }
 
-  void PlaceSearchGoalsAction::place_search_goals()
+  void PlaceSearchGoalsAction::place_search_path()
   {
-    Goal centre_goal = input_goals_.back();
-    tf2::Vector3 centre;
-    tf2::fromMsg(centre_goal.pose.position, centre);
-
-    double yaw = tf2::getYaw(centre_goal.pose.orientation);
-    tf2::Vector3 dir = tf2::Vector3(std::cos(yaw), std::sin(yaw), 0);
-    for (int i = 0; i < search_corners_; ++i)
+    if (search_radius_ <= 0)
     {
-      // rotate the direction vector by (360 / search_corners) degrees
-      double angle = utils::nav2::radians((360 / search_corners_) * i);
-      tf2::Vector3 rotated_dir = dir.rotate(tf2::Vector3(0, 0, 1), angle);
+      RCLCPP_WARN(node_->get_logger(), "Search radius must be positive. No search goals placed.");
+      setOutput("output_goals", input_goals_);
+      return;
+    }
 
-      // calculate the new goal's position
-      tf2::Vector3 new_goal_pos = centre + (rotated_dir * (search_radius_ - edge_offset_));
-      geometry_msgs::msg::PoseStamped new_goal;
-      new_goal.header.frame_id = centre_goal.header.frame_id;
-      new_goal.header.stamp = node_->get_clock()->now();
-      tf2::toMsg(new_goal_pos, new_goal.pose.position);
-      // set the new goal's orientation
-      tf2::Quaternion q;
-      q.setRPY(0, 0, angle);
-      new_goal.pose.orientation = tf2::toMsg(q);
+    Goal centre_goal = input_goals_.back();
 
-      input_goals_.push_back(new_goal);
+    RCLCPP_INFO(node_->get_logger(), "Placing search goals in a %.2fm radius with %2.2fm between spirals and %d goals per loop", search_radius_, search_spacing_, search_corners_);
+
+    double loops = search_radius_ / search_spacing_;
+    int points = static_cast<int>((1 + loops) * search_corners_);
+
+    for (int i = search_corners_/4; i < points; ++i)
+    {
+      double angle = ((2*pi) / search_corners_) * (i % search_corners_);
+      double dist = (static_cast<double>(i) / search_corners_) * search_spacing_;
+
+      place_goal(centre_goal, angle, dist);
+    }
+
+    for (int i = points; i > search_corners_/4; --i)
+    {
+      double angle = ((2*pi) / search_corners_) * (i % search_corners_);
+      double dist = (static_cast<double>(i) / search_corners_) * search_spacing_;
+
+      place_goal(centre_goal, angle, dist, true);
     }
 
     RCLCPP_INFO(node_->get_logger(), "Placed search goals in a %f m radius", search_radius_);
@@ -98,6 +105,38 @@ namespace nova_behavior_tree
     setOutput("output_goals", input_goals_);
   }
 
+  void PlaceSearchGoalsAction::place_goal(const Goal& centre_goal, double angle, double dist, bool reverse)
+  {
+    //get centre goal properties
+    tf2::Vector3 centre;
+    tf2::fromMsg(centre_goal.pose.position, centre);
+    double yaw = tf2::getYaw(centre_goal.pose.orientation);
+    tf2::Vector3 dir = tf2::Vector3(std::cos(yaw), std::sin(yaw), 0);
+
+    // calculate the new goal's position
+    tf2::Vector3 rotated_dir = dir.rotate(tf2::Vector3(0, 0, 1), angle);
+    tf2::Vector3 new_goal_pos = centre + (rotated_dir * dist);
+
+    //create goal
+    Goal new_goal;
+    new_goal.header.frame_id = centre_goal.header.frame_id;
+    new_goal.header.stamp = node_->get_clock()->now();
+    tf2::toMsg(new_goal_pos, new_goal.pose.position);
+
+    // set the new goal's orientation to be perpendicular from radial direction
+    tf2::Quaternion q;
+
+    if(reverse){
+      q.setRPY(0, 0, yaw + angle - pi/2);
+    }
+    else{
+      q.setRPY(0, 0, yaw + angle + pi/2);
+    }
+    new_goal.pose.orientation = tf2::toMsg(q);
+    input_goals_.push_back(new_goal);
+
+  }
+    
 }  // namespace nova_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"

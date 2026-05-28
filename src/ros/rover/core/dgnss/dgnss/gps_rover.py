@@ -27,7 +27,8 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 from std_msgs.msg import UInt8MultiArray, Float64
-from sensor_msgs.msg import NavSatFix, NavSatStatus
+from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu
+from geometry_msgs.msg import Quaternion
 from nova_interfaces.msg import GPSData
 from serial import Serial
 from pyunigps import (
@@ -36,6 +37,7 @@ from pyunigps import (
 )
 import threading
 import time
+import math
 import struct
 
 class GPSRover(Node):
@@ -66,6 +68,18 @@ class GPSRover(Node):
             value=True,
         ).value
         self.fix_type = None
+
+        self.gps_covariance = [9.0, 0.0, 0.0,
+                               0.0, 9.0, 0.0,
+                               0.0, 0.0, 9.0]
+        
+        self.rtk_float_covariance = [1.0, 0.0, 0.0,
+                                     0.0, 1.0, 0.0,
+                                     0.0, 0.0, 1.0]
+        
+        self.rtk_fix_covariance = [0.01, 0.0, 0.0,
+                                   0.0, 0.01, 0.0,
+                                   0.0, 0.0, 0.01]
 
         ### Serial ###
         self.ser = Serial()
@@ -110,8 +124,19 @@ class GPSRover(Node):
             '/gps_rover/fix_custom', 
             QoSPresetProfiles.SENSOR_DATA.value, 
         )
+        self.pub_heading_imu = self.create_publisher(
+            Imu, 
+            '/gps_rover/heading_imu', 
+            QoSPresetProfiles.SENSOR_DATA.value, 
+        )
         self.pose = NavSatFix()
         self.pose_custom = GPSData()
+        self.heading_imu = Imu()
+        self.heading_imu.angular_velocity_covariance[0] = -1.0
+        self.heading_imu.linear_acceleration_covariance[0] = -1.0
+        self.heading_imu.orientation_covariance = [0.0, 0.0, 0.0,
+                                                  0.0, 0.0, 0.0,
+                                                  0.0, 0.0, 0.05]
         self.pose.header.frame_id = 'gps'
         self.timer = self.create_timer(1/self.publisher_rate, self.loop)
         self.valid_gps_heading = False
@@ -185,11 +210,14 @@ class GPSRover(Node):
                 self.pose.altitude = float(msg_parsed.alt)
                 self.pose.status.status = NavSatStatus.STATUS_FIX
                 self.fix_type = 'GPS fix'
+                self.pose.position_covariance = self.gps_covariance
                 if msg_parsed.quality == 4:
                     self.pose.status.status = NavSatStatus.STATUS_GBAS_FIX
+                    self.pose.position_covariance = self.rtk_float_covariance
                     self.fix_type = 'RTK fixed'
                 elif msg_parsed.quality == 5:
                     self.pose.status.status = NavSatStatus.STATUS_GBAS_FIX
+                    self.pose.position_covariance = self.rtk_fix_covariance
                     self.fix_type = 'RTK float'
             else:
                 self.pose.status.status = NavSatStatus.STATUS_NO_FIX
@@ -223,6 +251,21 @@ class GPSRover(Node):
         self.pose_custom.latitude = self.pose.latitude
         self.pose_custom.longitude = self.pose.longitude
         self.pose_custom.altitude = self.pose.altitude
+
+        # Populate heading IMU message
+        self.heading_imu.header = self.pose.header
+        self.heading_imu.orientation = self.heading_to_quaternion(self.pose_custom.heading)
+    
+    def heading_to_quaternion(self, heading_deg: float) -> Quaternion:
+        """Convert north-zero clockwise compass heading to true north yaw quaternion."""
+        yaw_rad = -math.radians(heading_deg)
+        half_yaw = yaw_rad / 2.0
+        return Quaternion(
+            x=0.0,
+            y=0.0,
+            z=math.sin(half_yaw),
+            w=math.cos(half_yaw),
+        )
 
     def ubx_loop(self):
         while self.running and rclpy.ok():
@@ -306,10 +349,16 @@ class GPSRover(Node):
         self.pose_custom.longitude = self.pose.longitude
         self.pose_custom.altitude = self.pose.altitude
 
+        # Populate heading IMU message
+        self.heading_imu.header = self.pose.header
+        self.heading_imu.orientation = self.heading_to_quaternion(self.pose_custom.heading)
+
     def loop(self) -> None:
         with self.fix_lock:
             self.pose.header.stamp = self.get_clock().now().to_msg()
             self.pub_pose.publish(self.pose)
+            if self.valid_gps_heading:
+                self.pub_heading_imu.publish(self.heading_imu)
             if self.publish_fix_custom:
                 self.pub_pose_custom.publish(self.pose_custom)
 
