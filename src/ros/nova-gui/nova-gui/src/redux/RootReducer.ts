@@ -428,6 +428,7 @@ export const reduxStores = {
   yoloActiveModel: createGenericStore("yoloActiveModel", DEFAULT_YOLO_MODEL_ID),
   yoloUseWebGPU: createGenericStore("yoloUseWebGPU", true),
   yoloTimingLogs: createGenericStore("yoloTimingLogs", true),
+  cartographerCoordinateFormat: createGenericStore("cartographerCoordinateFormat", 0),
   toolRotatorPresets: createGenericStore("toolRotatorPresets", {sweeper: 240.0, microscope: 0.0, nir_probe: 120.0} as PresetPositions),
   toolRotatorTwitchStep: createGenericStore("toolRotatorTwitchStep", 5.0),
   toolRotatorKeyboardControl: createGenericStore("toolRotatorKeyboardControl", false),
