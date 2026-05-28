@@ -121,6 +121,16 @@ export const YoloConfigs = {
     ],
     outputFormat: "xyxy",  // Corner coordinates format
   },
+  urcFlamingo: {
+    label: "URC Flamingo",
+    modelName: "urc-flamingo.onnx",
+    classNames: [
+      "bottle",
+      "hammer_pick",
+      "mallet",
+    ],
+    outputFormat: "xyxy",  // Corner coordinates format
+  },
 } satisfies Record<string, YoloConfigWithoutId>;
 
 export type YoloModelId = keyof typeof YoloConfigs;
