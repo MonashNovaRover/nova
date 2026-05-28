@@ -2,40 +2,48 @@
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="6" name="NavigateRecovery">
       
-      <PipelineSequence name="NavigateWithReplanning">
-        <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
+      <ReactiveFallback name="ExitOnGoalsEmpty">
+        <GoalsEmpty goals="{goals}"/>
         
-        <ForceSuccess>
-          <Sequence>
-            <RunOnce>
-              <PlaceSearchGoals search_radius="{search_radius}" search_corners="3" input_goals="{goals}" output_goals="{goals}"/>
-            </RunOnce>
-            <ARTagDetected detections_topic="/aruco_detections" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
-            <GetGoal index="0" input_goals="{detected_goals}" output_goal="{detected_goal}"/>
-            <GetCurrentPose current_pose="{current_pose}"/>
-            <SetDetectionGoal detected_goal="{detected_goal}" current_pose="{current_pose}" input_goals="{goals}" output_goals="{goals}"/>
-          </Sequence>
-        </ForceSuccess>
-        
-        <RateController hz="1.0">
-          <ReactiveSequence>
-            <Sequence name="ComputeAndSmoothPathThroughPoses">
+        <ForceRunning>
+          <PipelineSequence name="NavigateWithReplanning">
+            <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
+            
+            <ForceSuccess>
+              <Sequence>
+                <RunOnce>
+                  <Sequence>
+                    <GetGoal index="-1" input_goals="{goals}" output_goal="{search_goal}"/>
+                    <PlaceSearchGoals search_radius="{search_radius}" search_corners="8" search_spacing="7" input_goals="{goals}" output_goals="{goals}"/>
+                  </Sequence>
+                </RunOnce>
+                <GetCurrentPose current_pose="{current_pose}"/>
+                <ArePosesNear ref_pose="{current_pose}" target_pose="{search_goal}" tolerance="{search_radius}"/>
+                <ARTagDetected detections_topic="/aruco_detections" min_detections="2" buffer_time="5.0" cluster_radius="1.5" detections="{detected_goals}"/>
+                <GetGoal index="0" input_goals="{detected_goals}" output_goal="{detected_goal}"/>
+                <SetDetectionGoal detected_goal="{detected_goal}" current_pose="{current_pose}" input_goals="{goals}" output_goals="{goals}"/>
+              </Sequence>
+            </ForceSuccess>
+            
+            <RateController hz="1.0">
               <ReactiveSequence>
-                <RemoveInCollisionGoals input_goals="{goals}" output_goals="{goals}"/>
-                <RemovePassedGoals input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
-                <ComputePathThroughPoses goals="{goals}" path="{path}" planner_id="NavFn"/>
+                <Sequence name="ComputeAndSmoothPathThroughPoses">
+                  <ReactiveSequence>
+                    <RemoveInCollisionGoals input_goals="{goals}" output_goals="{goals}"/>
+                    <GetGoal index="0" input_goals="{goals}" output_goal="{goal}"/>
+                    <RemovePassedGoal input_goals="{goals}" output_goals="{goals}" radius="1.0"/>
+                    <ComputePathToPose goal="{goal}" path="{path}" planner_id="NavFn"/>
+                  </ReactiveSequence>
+                  <SmoothPath unsmoothed_path="{path}" smoothed_path="{smoothed_path}" smoother_id="savitzky_golay_smoother"/>
+                </Sequence>
               </ReactiveSequence>
-              <SmoothPath unsmoothed_path="{path}" smoothed_path="{smoothed_path}" smoother_id="savitzky_golay_smoother"/>
-            </Sequence>
-          </ReactiveSequence>
-        </RateController>
-        
-        <RecoveryNode number_of_retries="1" name="FollowPath">
-          <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
-          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
-        </RecoveryNode>
-      
-      </PipelineSequence>
+            </RateController>
+          
+            <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+
+          </PipelineSequence>
+        </ForceRunning>
+      </ReactiveFallback>
 
       <ReactiveFallback name="RecoveryFallback">
         <GoalUpdated/>

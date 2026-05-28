@@ -69,4 +69,5 @@ export enum RosService {
 
   // Autononomous Related
   CARTOGRAPHER_COMMAND = "/autonomous/cartographer_command",
+  CANCEL_NAVIGATION = "/autonomous/cancel_navigation",
 }
