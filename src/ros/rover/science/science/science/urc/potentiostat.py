@@ -68,6 +68,8 @@ class PotentiostatNode(Node):
         self.is_receiving = False
         self.active_channel = 0  # Track which channel is currently active
         self.last_publish_time = 0.0
+        self.last_voltage = None
+        self.last_current = None
 
         # CAN bus setup
         self.bus = jcan.Bus()
@@ -108,6 +110,8 @@ class PotentiostatNode(Node):
         self.bus.send(frame)
         self.is_receiving = True
         self.active_channel = channel
+        self.last_voltage = None
+        self.last_current = None
         self.get_logger().info(f"Triggered potentiostat channel {channel} (CAN ID: 0x{trigger_id:03X})")
 
         response.success = True
@@ -142,9 +146,15 @@ class PotentiostatNode(Node):
         current_ua = int.from_bytes(data[0:4], 'big', signed=True)
         voltage_mv = int.from_bytes(data[4:8], 'big', signed=True)
 
-        # Convert: µA → mA, mV → V
-        current_ma = current_ua / 1000.0
-        voltage_v = voltage_mv / 1000.0
+        # Convert: µA → mA, mV → V, rounded to 5 decimal places
+        current_ma = round(current_ua / 1000.0, 5)
+        voltage_v = round(voltage_mv / 1000.0, 5)
+
+        # Skip duplicate readings
+        if voltage_v == self.last_voltage and current_ma == self.last_current:
+            return
+        self.last_voltage = voltage_v
+        self.last_current = current_ma
 
         self.get_logger().debug(
             f"Ch{channel} - current: {current_ua} µA ({current_ma} mA), voltage: {voltage_mv} mV ({voltage_v} V)"
