@@ -240,6 +240,7 @@ in
 
           # Cameras
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
+          reolink-ctl = "~/Builds/active/bin/reolink-ctl";
 
           cameras3 = "~/Builds/active/bin/ros2 launch cameras cameras.launch.py";
           cameras2 = "~/Builds/active/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
@@ -282,7 +283,7 @@ in
           cop-mode-on = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} on";
           cop-mode-off = "${pkgs.bash}/bin/bash ${../../../scripts/cop-mode.sh} off";
 
-          # Auto 
+          # Auto
           launch-sim = "~/Builds/active/bin/ros2 launch auto_bringup sim.launch.py";
           launch-gazebo = "~/Builds/active/bin/ros2 launch auto_bringup gazebo.launch.py";
           launch-auto-drive = "~/Builds/active/bin/ros2 launch drive_bringup drive.launch.py auto:=True";
@@ -333,6 +334,10 @@ in
 
           # Ducket
           ducket = "cansend can0 0E0#FF";
+          unducket = "cansend can0 0E0#00";
+
+          # Drone
+          launch-drone = "~/Builds/active/launch/run-drone";
 
           # can
           lscan = "for bus in $(ip link show type vcan | cut -d : -f2 | grep -v -e link -e alias | tr -d ' ') $(ip link show type can | cut -d : -f2 | grep -v -e link -e alias | tr -d ' '); do echo $bus; udevadm info /sys/class/net/$bus | grep DEVPATH; done";
