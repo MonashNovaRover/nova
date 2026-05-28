@@ -169,14 +169,7 @@ bool RemoveInCollisionGoalsAction::remove_goals()
       RCLCPP_INFO(node_->get_logger(), "RemoveInCollisionGoals goal %zu is in collision removing", i);
     }
   }
-
-  // If all goals have been removed, add the rovers current position as final goal
-  if (output_goals_.size() == 0)
-  {
-    RCLCPP_INFO(node_->get_logger(), "All goals have been removed, doing scuffed solution >:D");
-    output_goals_.push_back(current_pose);
-  }
-
+  output_goals_.push_back(input_goals_.back());
   setOutput("output_goals", output_goals_);
   return true;
 }
