@@ -37,26 +37,26 @@ ekf_filter_node_odom:
     imu0_remove_gravitational_acceleration: false
 
     # Mag heading as IMU
-    imu0: /mag/heading_imu
-    imu0_config: [false, false, false,
+    imu1: /mag/heading_imu
+    imu1_config: [false, false, false,
                   false, false, true,
                   false, false, false,
                   false, false, false,
                   false, false, false]
-    imu0_differential: false
-    imu0_relative: false
-    imu0_remove_gravitational_acceleration: false
+    imu1_differential: false
+    imu1_relative: false
+    imu1_remove_gravitational_acceleration: false
 
     # Livox IMU
-    imu1: /livox/imu_oriented
-    imu1_config: [false, false, false,
+    imu2: /livox/imu_oriented
+    imu2_config: [false, false, false,
                   true,  true,  false, 
                   false, false, false,
                   true,  true,  true,
                   false, false, false]
-    imu1_differential: true
-    imu1_relative: false
-    imu1_remove_gravitational_acceleration: true
+    imu2_differential: true
+    imu2_relative: false
+    imu2_remove_gravitational_acceleration: true
     
     # Higher values for a state = filter trusts prediction less and incoming measurements more
     # Lower value = smoother estimate, but can lag or become overconfident
@@ -121,26 +121,26 @@ ekf_filter_node_map:
     imu0_remove_gravitational_acceleration: false
 
     # Mag heading as IMU
-    imu0: /mag/heading_imu
-    imu0_config: [false, false, false,
+    imu1: /mag/heading_imu
+    imu1_config: [false, false, false,
                   false, false, true,
                   false, false, false,
                   false, false, false,
                   false, false, false]
-    imu0_differential: false
-    imu0_relative: false
-    imu0_remove_gravitational_acceleration: false
+    imu1_differential: false
+    imu1_relative: false
+    imu1_remove_gravitational_acceleration: false
 
     # Livox IMU
-    imu1: /livox/imu_oriented
-    imu1_config: [false, false, false,
+    imu2: /livox/imu_oriented
+    imu2_config: [false, false, false,
                   true,  true,  false, 
                   false, false, false,
                   true,  true,  true,
                   false, false, false]
-    imu1_differential: true
-    imu1_relative: false
-    imu1_remove_gravitational_acceleration: true
+    imu2_differential: true
+    imu2_relative: false
+    imu2_remove_gravitational_acceleration: true
     
     # Higher values for a state = filter trusts prediction less and incoming measurements more
     # Lower value = smoother estimate, but can lag or become overconfident
