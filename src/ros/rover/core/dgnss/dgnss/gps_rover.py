@@ -257,8 +257,8 @@ class GPSRover(Node):
         self.heading_imu.orientation = self.heading_to_quaternion(self.pose_custom.heading)
     
     def heading_to_quaternion(self, heading_deg: float) -> Quaternion:
-        """Convert north-zero clockwise compass heading to ROS ENU yaw quaternion."""
-        yaw_rad = math.radians(90.0 - heading_deg)
+        """Convert north-zero clockwise compass heading to true north yaw quaternion."""
+        yaw_rad = -math.radians(heading_deg)
         half_yaw = yaw_rad / 2.0
         return Quaternion(
             x=0.0,
