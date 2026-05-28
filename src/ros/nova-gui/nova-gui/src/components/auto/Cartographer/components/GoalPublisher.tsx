@@ -11,8 +11,9 @@ export const GoalPublisher = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const cancelBifrost = useBifrost({ service: RosService.CANCEL_NAVIGATION });
   const autoStatus = useSelector((state: RootState) => state.autoStatus.status);
-  const canCancel = autoStatus === IRosNovaInterfacesStatusConst.TRAVERSING
-    || autoStatus === IRosNovaInterfacesStatusConst.SEARCHING;
+  const autoStatusValue = Number(autoStatus);
+  const canCancel = autoStatusValue === IRosNovaInterfacesStatusConst.TRAVERSING
+    || autoStatusValue === IRosNovaInterfacesStatusConst.SEARCHING;
 
   const onCancelNavigation = () => {
     cancelBifrost.callService({}, {
