@@ -357,7 +357,6 @@ class GPSRover(Node):
         with self.fix_lock:
             self.pose.header.stamp = self.get_clock().now().to_msg()
             self.pub_pose.publish(self.pose)
-            self.pub_pose_custom.publish(self.pose_custom)
             if self.valid_gps_heading:
                 self.pub_heading_imu.publish(self.heading_imu)
             if self.publish_fix_custom:
