@@ -8,13 +8,23 @@ export enum MeasurementType {
 }
 
 export const CHEMICALS = [
-  "Nile Red",
   "Ninhydrin",
   "Molish",
+  "Nile Red",
   "UV Fluor"
 ] as const;
 
 export type Chemical = typeof CHEMICALS[number];
+
+/**
+ * Maps each chemical to its display name for the UI
+ */
+export const CHEMICAL_DISPLAY_NAMES: Record<Chemical, string> = {
+  "Nile Red": "Nile Red",
+  "Ninhydrin": "Ninhydrin",
+  "Molish": "Molisch's",
+  "UV Fluor": "UV Fluorescence",
+};
 
 /**
  * Maps each chemical to its measurement type

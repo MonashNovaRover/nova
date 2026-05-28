@@ -55,7 +55,7 @@ export const ManualOffsetDialog = ({
       <ModalContent className="dark bg-content1">
         {(onClose) => (
           <>
-            <ModalHeader>Set Manual Offset - Channel {channel}</ModalHeader>
+            <ModalHeader>Set Manual Offset - {channel === 1 ? "Left" : "Right"}</ModalHeader>
             <ModalBody>
               <div className="flex flex-col gap-4">
                 <Input

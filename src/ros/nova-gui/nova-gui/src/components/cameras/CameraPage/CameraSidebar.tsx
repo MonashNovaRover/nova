@@ -12,7 +12,7 @@ import { RootState } from "../../../redux/RootState.ts";
 import {ProfileOption} from "../../../views/shared/CamerasPage/CameraProfileConstants.ts";
 import {CameraProfileSelector} from "./CameraProfileSelector.tsx";
 import {SerialPresetControls} from "./SerialPresetControls.tsx";
-import { SerialPreset } from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
+import { SerialPresetGroup } from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 
 interface CameraSidebarProps {
   refreshAvailabilities: () => void;
@@ -21,11 +21,11 @@ interface CameraSidebarProps {
   gridSize: number
   setGridSize: (_: number) => void
   presets: ProfileOption[]
-  serialPresets?: SerialPreset[]
+  serialPresetGroups?: SerialPresetGroup[]
 }
 
 export const CameraSidebar = (
-  {refreshAvailabilities, showSidebar, setShowSidebar, gridSize, setGridSize, presets, serialPresets}
+  {refreshAvailabilities, showSidebar, setShowSidebar, gridSize, setGridSize, presets, serialPresetGroups}
   : CameraSidebarProps) => {
   const expandedSidebarWidth = "27vw";
   const sidebarWidth = showSidebar ? expandedSidebarWidth : "0px";
@@ -104,10 +104,10 @@ export const CameraSidebar = (
 
           </CardBody>
 
-          {serialPresets && serialPresets.length > 0 && (
+          {serialPresetGroups && serialPresetGroups.length > 0 && (
             <div className="px-3 py-3 border-t border-divider">
               <SerialPresetControls
-                presets={serialPresets}
+                presetGroups={serialPresetGroups}
                 startStreaming={startStreaming}
                 pauseStreaming={pauseStreaming}
                 stopStreaming={stopStreaming}

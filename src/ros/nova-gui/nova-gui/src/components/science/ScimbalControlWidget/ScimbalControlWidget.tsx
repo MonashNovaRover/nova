@@ -117,7 +117,7 @@ const ScimbalControlWidget: React.FC = () => {
             isIconOnly
             size="lg"
             variant="flat"
-            onPress={() => incrementPan(-stepNumber)}
+            onPress={() => incrementPan(-stepNumber * 2)}
             aria-label="Tilt up"
           >
             <ChevronUp size={28} />
@@ -156,7 +156,7 @@ const ScimbalControlWidget: React.FC = () => {
             isIconOnly
             size="lg"
             variant="flat"
-            onPress={() => incrementPan(stepNumber)}
+            onPress={() => incrementPan(stepNumber * 2)}
             aria-label="Tilt down"
           >
             <ChevronDown size={28} />

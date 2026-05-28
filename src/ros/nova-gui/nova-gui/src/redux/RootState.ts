@@ -52,6 +52,7 @@ import {Site} from "./models/genericStores/CurrentSiteStore.ts";
 import {SiteDataState} from "./models/genericStores/SiteDataState.ts";
 import {NIRProbeCalibrationData} from "./models/genericStores/NIRProbeCalibrationData.ts";
 import {PresetPositions} from "../components/science/ToolRotatorWidget/ToolRotatorWidget.tsx";
+import {LitmusDipperConfig} from "../components/science/LitmusDipperWidget/LitmusDipperWidget";
 
 export interface RootState {
   // Bifrost Stores
@@ -141,8 +142,7 @@ export interface RootState {
   toolRotatorPresets: GenericStoreState<PresetPositions>
   toolRotatorTwitchStep: GenericStoreState<number>;
   pumpDefaultDurations: GenericStoreState<Record<string, number>>;
-  litmusDipperDefaultDuration: GenericStoreState<number>;
-  litmusDipperTwitchStep: GenericStoreState<number>;
+  litmusDipperConfig: GenericStoreState<LitmusDipperConfig>;
 
   batteryStore: IRosSensorMsgsBatteryState;
 

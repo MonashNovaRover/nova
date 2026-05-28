@@ -60,9 +60,16 @@ class PotentiostatNode(Node):
         can_spin_rate = self.declare_parameter("can_spin_rate", 20.0,
             ParameterDescriptor(description="CAN bus polling rate in Hz")).value
 
+        self.publish_rate = self.declare_parameter("publish_rate", 5.0,
+            ParameterDescriptor(description="Max data publish rate in Hz")).value
+        self.publish_interval = 1.0 / self.publish_rate if self.publish_rate > 0 else 0
+
         # State
         self.is_receiving = False
         self.active_channel = 0  # Track which channel is currently active
+        self.last_publish_time = 0.0
+        self.last_voltage = None
+        self.last_current = None
 
         # CAN bus setup
         self.bus = jcan.Bus()
@@ -85,7 +92,8 @@ class PotentiostatNode(Node):
 
         self.get_logger().info(
             f"Potentiostat node initialized (Trigger: 0x{self.can_trigger_id_ch1:03X}/0x{self.can_trigger_id_ch2:03X}, "
-            f"Data: 0x{self.can_data_id_ch1:03X}/0x{self.can_data_id_ch2:03X}, rate: {can_spin_rate}Hz)"
+            f"Data: 0x{self.can_data_id_ch1:03X}/0x{self.can_data_id_ch2:03X}, CAN rate: {can_spin_rate}Hz, "
+            f"publish rate: {self.publish_rate}Hz)"
         )
 
     def _trigger_callback(self, request, response):
@@ -102,6 +110,8 @@ class PotentiostatNode(Node):
         self.bus.send(frame)
         self.is_receiving = True
         self.active_channel = channel
+        self.last_voltage = None
+        self.last_current = None
         self.get_logger().info(f"Triggered potentiostat channel {channel} (CAN ID: 0x{trigger_id:03X})")
 
         response.success = True
@@ -126,13 +136,25 @@ class PotentiostatNode(Node):
             self.data_publisher.publish(msg)
             return
 
-        # Parse current (bytes 0-3, µA) and voltage (bytes 4-7, mV)
-        current_ua = int.from_bytes(data[0:4], 'little', signed=True)
-        voltage_mv = int.from_bytes(data[4:8], 'little', signed=True)
+        # Rate limiting check
+        current_time = self.get_clock().now().nanoseconds / 1e9
+        if current_time - self.last_publish_time < self.publish_interval:
+            return  # Skip this message due to rate limiting
+        self.last_publish_time = current_time
 
-        # Convert: µA → mA, mV → V
-        current_ma = current_ua / 1000.0
-        voltage_v = voltage_mv / 1000.0
+        # Parse current (bytes 0-3, µA) and voltage (bytes 4-7, mV)
+        current_ua = int.from_bytes(data[0:4], 'big', signed=True)
+        voltage_mv = int.from_bytes(data[4:8], 'big', signed=True)
+
+        # Convert: µA → mA, mV → V, rounded to 5 decimal places
+        current_ma = round(current_ua / 1000.0, 5)
+        voltage_v = round(voltage_mv / 1000.0, 5)
+
+        # Skip duplicate readings
+        if voltage_v == self.last_voltage and current_ma == self.last_current:
+            return
+        self.last_voltage = voltage_v
+        self.last_current = current_ma
 
         self.get_logger().debug(
             f"Ch{channel} - current: {current_ua} µA ({current_ma} mA), voltage: {voltage_mv} mV ({voltage_v} V)"

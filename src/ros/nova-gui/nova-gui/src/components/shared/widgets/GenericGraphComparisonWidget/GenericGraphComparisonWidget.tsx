@@ -2,10 +2,10 @@
  * A sloppy component for displaying a bunch of graphs. It's not great, but hey, it works.
  * Author: Bailey Chessum
  */
-import React, {memo, ReactNode, useCallback, useMemo} from "react";
+import React, {memo, ReactNode, useCallback, useMemo, useState} from "react";
 import {ApexDataset} from "../../../science/SpectraDisplay/DataChart.tsx";
 import {ApexOptions} from "apexcharts";
-import {Button, Card, CardBody, CardHeader, Select, SelectItem} from "@nextui-org/react";
+import {Button, Card, CardBody, CardHeader, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem} from "@nextui-org/react";
 import {Trash} from "react-feather";
 import ReactApexChart from "react-apexcharts";
 
@@ -20,6 +20,8 @@ export interface GenericGraphComparisonWidgetProps {
   options?: Partial<ApexOptions>
 
   title: ReactNode
+
+  onDeleteAll?: () => void
 }
 
 
@@ -47,6 +49,7 @@ const GenericGraphComparisonWidgetUnmemoed: React.FC<GenericGraphComparisonWidge
   const setGraphs = props.setGraphs
   const selectedCharts = props.selectedCharts;
   const setSelectedCharts = props.setSelectedCharts;
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
 
   // The data filtered to only those selected
   const selectedOutput = useMemo(() => (
@@ -114,6 +117,35 @@ const GenericGraphComparisonWidgetUnmemoed: React.FC<GenericGraphComparisonWidge
             </SelectItem>
           ))}
         </Select>
+        {props.onDeleteAll && (
+          <Button isIconOnly size="sm" color="danger" variant="light" onPress={() => setShowDeleteAllModal(true)}>
+            <Trash/>
+          </Button>
+        )}
+        <Modal
+          size="md"
+          className="dark text-foreground"
+          isOpen={showDeleteAllModal}
+          onClose={() => setShowDeleteAllModal(false)}
+        >
+          <ModalContent>
+            <ModalHeader>Delete all saved graphs?</ModalHeader>
+            <ModalBody>
+              <span>This will delete all saved graphs. This action cannot be undone.</span>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="light" onPress={() => setShowDeleteAllModal(false)}>
+                Cancel
+              </Button>
+              <Button color="danger" onPress={() => {
+                props.onDeleteAll?.();
+                setShowDeleteAllModal(false);
+              }}>
+                Delete All
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </CardHeader>
       <CardBody>
         <ReactApexChart options={options} type="line" series={selectedOutput}></ReactApexChart>

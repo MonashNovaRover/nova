@@ -10,6 +10,8 @@ const URCUVVisSpecView: React.FC = () => {
   const [output, setOutputRaw] = useLocalStorage<ApexDataset>("uv-vis-spec-saved-data", []);
   // Sets of data selected for viewing
   const [selectedCharts, setSelectedCharts] = useState<Set<string>>(new Set([]));
+  // Toggle for overwriting duplicates (default: true = overwrite)
+  const [overwriteDuplicates, setOverwriteDuplicates] = useState(true);
 
 
   const setOutput = useCallback((points: number[][], name: string) => {
@@ -29,20 +31,31 @@ const URCUVVisSpecView: React.FC = () => {
       results.push([sumx/reduction, sumy/reduction]);
     }
 
-    name = getUniqueName(name, output.map(({name}) => name));
+    let finalName = name;
 
-    // Format into an apex dataset
-    const dataset = {
-      name: name,
-      data: results
+    if (overwriteDuplicates) {
+      // Replace existing spectrum with same name
+      const dataset = { name: finalName, data: results };
+      setOutputRaw(existing => {
+        const filtered = existing.filter(spec => spec.name !== name);
+        return [...filtered, dataset];
+      });
+    } else {
+      // Use unique name logic (append (1), (2), etc.)
+      finalName = getUniqueName(name, output.map(({name}) => name));
+      const dataset = { name: finalName, data: results };
+      setOutputRaw(existing => [...existing, dataset]);
     }
 
-    setOutputRaw(existing => [...existing, dataset])
-    setSelectedCharts((existing: Set<string>) => new Set([...existing.values(), name]))
-  }, [output, setOutputRaw])
+    setSelectedCharts((existing: Set<string>) => new Set([...existing.values(), finalName]))
+  }, [output, setOutputRaw, overwriteDuplicates])
 
   return <div className="flex flex-col gap-3">
-      <UVVisSpec onSave={setOutput}/>
+      <UVVisSpec
+        onSave={setOutput}
+        overwriteDuplicates={overwriteDuplicates}
+        onOverwriteToggle={setOverwriteDuplicates}
+      />
       <div className="flex flex-col overflow-hidden">
         <GenericGraphComparisonWidget
           graphs={output}
@@ -50,6 +63,10 @@ const URCUVVisSpecView: React.FC = () => {
           selectedCharts={selectedCharts}
           setSelectedCharts={setSelectedCharts}
           title={"UV Vis Spec Saved Graphs"}
+          onDeleteAll={() => {
+            setOutputRaw([]);
+            setSelectedCharts(new Set([]));
+          }}
         >
         </GenericGraphComparisonWidget>
       </div>
