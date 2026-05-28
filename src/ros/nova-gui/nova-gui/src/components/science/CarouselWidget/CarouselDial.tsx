@@ -48,6 +48,10 @@ const INNER_STEP = 360 / INNER_SEGMENTS;
 const OUTER_OFFSET = -OUTER_STEP / 2;
 const INNER_OFFSET = -INNER_STEP / 2;
 
+// Duration scaling constants for animations
+const OUTER_DURATION_PER_CUVETTE = 0.3;  // seconds per cuvette for outer wheel
+const INNER_DURATION_PER_CUVETTE = 0.2;  // seconds per cuvette for inner wheel
+
 const CENTER = 156;
 
 // Helper functions
@@ -209,6 +213,10 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
   const prevOuterRef = useRef(outerCurrent);
   const prevInnerRef = useRef(innerCurrent);
 
+  // Dynamic duration state for animations
+  const [outerDuration, setOuterDuration] = useState(0.3);
+  const [innerDuration, setInnerDuration] = useState(0.3);
+
   // Update outer rotation with shortest path
   useEffect(() => {
     const prev = prevOuterRef.current;
@@ -217,6 +225,11 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
       // Calculate shortest path across the boundary
       if (delta > OUTER_SEGMENTS / 2) delta -= OUTER_SEGMENTS;
       if (delta < -OUTER_SEGMENTS / 2) delta += OUTER_SEGMENTS;
+
+      // Duration scales with number of cuvettes traveled
+      const duration = Math.abs(delta) * OUTER_DURATION_PER_CUVETTE;
+      setOuterDuration(duration);
+
       setOuterRotation(rot => rot - delta * OUTER_STEP);
       prevOuterRef.current = outerCurrent;
     }
@@ -230,6 +243,11 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
       // Calculate shortest path across the boundary
       if (delta > INNER_SEGMENTS / 2) delta -= INNER_SEGMENTS;
       if (delta < -INNER_SEGMENTS / 2) delta += INNER_SEGMENTS;
+
+      // Duration scales with number of cuvettes traveled
+      const duration = Math.abs(delta) * INNER_DURATION_PER_CUVETTE;
+      setInnerDuration(duration);
+
       setInnerRotation(rot => rot - delta * INNER_STEP);
       prevInnerRef.current = innerCurrent;
     }
@@ -322,7 +340,7 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
             style={{
               transform: `rotate(${outerRotation}deg)`,
               transformOrigin: 'center',
-              transition: 'transform 0.3s ease-in-out',
+              transition: `transform ${outerDuration}s ease-in-out`,
             }}
           >
             {renderSegments(OUTER_SEGMENTS, OUTER_OUTER_RADIUS, OUTER_INNER_RADIUS, outerConfig, 'outer')}
@@ -334,7 +352,7 @@ const CarouselDial: React.FC<CarouselDialProps> = ({
             style={{
               transform: `rotate(${innerRotation}deg)`,
               transformOrigin: 'center',
-              transition: 'transform 0.3s ease-in-out',
+              transition: `transform ${innerDuration}s ease-in-out`,
             }}
           >
             {renderSegments(INNER_SEGMENTS, INNER_OUTER_RADIUS, INNER_INNER_RADIUS, innerConfig, 'inner')}

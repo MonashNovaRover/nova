@@ -32,14 +32,14 @@ export const PotentiostatChart = ({
     // Build series array
     const series: object[] = [
       {
-        name: "Channel 1",
+        name: "Left",
         type: "scatter",
         data: channel1Data,
         symbolSize: 6,
         itemStyle: { color: CHART_COLORS.channel1 },
       },
       {
-        name: "Channel 2",
+        name: "Right",
         type: "scatter",
         data: channel2Data,
         symbolSize: 6,

@@ -56,7 +56,7 @@ export const PotentiostatOptionsMenu = ({
             isDisabled={channel1Count === 0}
             onPress={onClearChannel1}
           >
-            Clear Channel 1 ({channel1Count} pts)
+            Clear Left ({channel1Count} pts)
           </DropdownItem>
           <DropdownItem
             key="clearCh2"
@@ -67,7 +67,7 @@ export const PotentiostatOptionsMenu = ({
             isDisabled={channel2Count === 0}
             onPress={onClearChannel2}
           >
-            Clear Channel 2 ({channel2Count} pts)
+            Clear Right ({channel2Count} pts)
           </DropdownItem>
           <DropdownItem
             key="clearAll"

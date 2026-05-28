@@ -2,19 +2,21 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Hydraprobe moisture probe sensor controller.
-Receives humidity and temperature over CAN and publishes.
+Receives humidity, temperature, conductivity, and salinity over CAN and publishes.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TOPICS:
     - publisher: /science/hydraprobe_data [HydraprobeData]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 STATE INTERFACES:
-  - hydraprobe/humidity     [percentage]
-  - hydraprobe/temperature  [degrees C]
+  - hydraprobe/humidity      [percent]
+  - hydraprobe/temperature   [celsius]
+  - hydraprobe/conductivity  [uS/cm]
+  - hydraprobe/salinity      [ppt]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        science
 AUTHOR(S):      Felicity Matthews
 CREATION:       25/04/2026
-EDITED:         25/04/2026
+EDITED:         26/05/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 from typing import Optional
@@ -44,12 +46,16 @@ class HydraprobeController(Controller):
 
         self.last_humidity = None
         self.last_temperature = None
+        self.last_conductivity = None
+        self.last_salinity = None
 
     def on_configure(self, command_interfaces: InterfaceCollection,
                      state_interfaces: InterfaceCollection) -> Optional[bool]:
         """Configure controller by getting state interfaces and creating publisher."""
         self.humidity_state = state_interfaces["humidity/percent"]
         self.temperature_state = state_interfaces["temperature/celsius"]
+        self.conductivity_state = state_interfaces["conductivity/uS/cm"]
+        self.salinity_state = state_interfaces["salinity/ppt"]
 
         qos_profile = QoSProfile(
             history=QoSHistoryPolicy.KEEP_LAST,
@@ -64,16 +70,21 @@ class HydraprobeController(Controller):
         """Read sensor values and publish only if changed."""
         humidity = float(self.humidity_state.value)
         temperature = float(self.temperature_state.value)
+        conductivity = float(self.conductivity_state.value)
+        salinity = float(self.salinity_state.value)
 
-        if humidity != self.last_humidity or temperature != self.last_temperature:
+        if (humidity != self.last_humidity or temperature != self.last_temperature or
+                conductivity != self.last_conductivity or salinity != self.last_salinity):
             self.last_humidity = humidity
             self.last_temperature = temperature
+            self.last_conductivity = conductivity
+            self.last_salinity = salinity
 
             msg = HydraprobeData()
             msg.moisture = humidity
             msg.temperature = temperature
-            msg.conductivity = 0.0  # Not provided over CAN
-            msg.dielectric = 0.0    # Not provided over CAN
+            msg.conductivity = conductivity
+            msg.dielectric = salinity  # Reusing dielectric field for salinity
             self.publisher.publish(msg)
 
 
@@ -86,11 +97,13 @@ if __name__ == "__main__":
         .with_hardware("sensor", MultiSensorHardware,
                        can_id=0x4F6,
                        interpret_data_list=[
-                           lambda data: data[0],  # Humidity is byte 0
-                           lambda data: data[1],  # Temperature is byte 1
+                           lambda x: float(int.from_bytes(x[0:2], 'big') / 100.0),  # temperature
+                           lambda x: float(int.from_bytes(x[2:4], 'big') / 100.0),  # water content
+                           lambda x: float(int.from_bytes(x[4:6], 'big')),  # conductivity
+                           lambda x: float(int.from_bytes(x[6:8], 'big')),  # salinity
                        ],
-                       hardware_names=["humidity", "temperature"],
-                       hardware_units=["percent", "celsius"],
-                       initial_values=[0, 0]) \
+                       hardware_names=["temperature", "humidity", "conductivity", "salinity"],
+                       hardware_units=["celsius", "percent", "uS/cm", "ppt"],
+                       initial_values=[0, 0, 0, 0]) \
         .with_jcan() \
         .spin()

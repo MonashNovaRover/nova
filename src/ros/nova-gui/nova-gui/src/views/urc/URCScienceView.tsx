@@ -1,4 +1,5 @@
-import React, {useState} from "react";
+import React from "react";
+import {useGenericStore} from "../../hooks/useGenericStore.ts";
 import HydroprobeWidget from "../../components/science/SensorWidgets/HydroprobeWidget.tsx";
 import PumpsWidget from "../../components/science/PumpsWidget/PumpsWidget";
 import BMESensor from "../../components/science/SensorWidgets/BMESensor.tsx";
@@ -16,9 +17,12 @@ import LedWidget from "../../components/science/LEDWidget/LEDWidget.tsx";
 import CacheControlWidget from "../../components/science/CacheControlWidget/CacheControlWidget.tsx";
 import {PotentiostatWidget} from "../../components/science/Potentiostat/PotentiostatWidget.tsx";
 import ScimbalControlWidget from "../../components/science/ScimbalControlWidget/ScimbalControlWidget.tsx";
+import DepthSensor from "../../components/cameras/CameraComponent/special/DepthSensorCameraComponent.tsx";
+
+const DepthSensorNoSiteSelect = DepthSensor(false);
 
 const URCScienceView: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState(0)
+  const [selectedTab, setSelectedTab] = useGenericStore<number>("urcScienceViewTab")
 
   const siteAnalysisView = (
     <div className="grid grid-flow-col auto-cols-fr gap-3 p-3 overflow-auto flex-1 min-h-0">
@@ -30,13 +34,19 @@ const URCScienceView: React.FC = () => {
         <HydroprobeWidget/>
         <BMESensor/>
         <CacheControlWidget/>
+        <DepthSensorNoSiteSelect cameraSerial={CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS}/>
         <HeaterWidget/>
       </div>
 
       <div className="flex flex-col gap-3 col-span-2">
         <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_MICROSCOPE}/>
         <CameraControlModalButton/>
-        <ScimbalControlWidget/>
+        <div className="grid grid-cols-3 gap-3">
+          <ScimbalControlWidget/>
+          <div className="col-span-2">
+            <SerialMappedCameraComponent cameraSerial={CameraSerials.SCIENCE_GIMBAL}/>
+          </div>
+        </div>
         <PotentiostatWidget/>
       </div>
     </div>
@@ -64,11 +74,14 @@ const URCScienceView: React.FC = () => {
 
         <div className="flex flex-col gap-3 col-span-3">
           <PumpsWidget/>
-          <LedWidget/>
+          <div className="grid grid-cols-2 gap-3">
+            <LedWidget/>
+            <HeaterWidget/>
+          </div>
           <CacheControlWidget/>
           <LitmusDipperWidget/>
           <div className="grid grid-cols-2 gap-3">
-            <HeaterWidget/>
+            <PotentiostatWidget isCompact/>
             <SerialMappedCameraComponent cameraSerial={CameraSerials.URC_SCIENCE_UV_VIS}/>
           </div>
         </div>

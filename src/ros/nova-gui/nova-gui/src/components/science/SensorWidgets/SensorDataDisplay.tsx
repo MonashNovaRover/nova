@@ -18,14 +18,17 @@ export interface NTCDataWidgetProps {
 const SensorDataDisplay: React.FC<NTCDataWidgetProps> = ({values, labels, suffixes}) => {
   const displayList = useMemo(() => zip(values, labels, suffixes), [values, labels, suffixes])
 
+  const isOddCount = displayList.length % 2 === 1;
+
   return (
     <div className="grid grid-cols-2 gap-4">
-      {displayList.map(([value, label, suffix]) => {
+      {displayList.map(([value, label, suffix], index) => {
         if (value !== undefined && label != undefined && suffix != undefined) {
+          const isLastItem = index === displayList.length - 1;
           return (
-            <div key={label} className="text-center">
+            <div key={label} className={`text-center ${isLastItem && isOddCount ? "col-span-2" : ""}`}>
               <OverlayedProgress key={`progress-${label}`} aria-label={label} size="lg" label={label} value={value}>
-                {value} {suffix}
+                {value.toFixed(2)} {suffix}
               </OverlayedProgress>
             </div>
           );

@@ -51,7 +51,7 @@ const LEDWidget = () => {
         <CardHeader>
           Vis Spec LEDs
         </CardHeader>
-        <CardBody className="grid grid-cols-4 justify-between">
+        <CardBody className="grid grid-cols-2 justify-between">
           {LED_CONFIG.map((led: LED) => (
             <div key={led.name} className="flex flex-col gap-2 items-center">
               <span className="text-sm">{led.displayName}</span>
