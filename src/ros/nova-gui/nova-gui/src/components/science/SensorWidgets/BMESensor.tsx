@@ -23,7 +23,11 @@ const BMESensor: React.FC<IBMESensorProps> = (
   const sensorData = useMemo(() => [temperature, pressure], [temperature, pressure])
 
   // rover GPS data
+  const roverLocationBifrost = useBifrost({topic: RosTopic.ROVER_LOCATION});
   const roverLocation = useSelector((state: RootState) => state.roverLocationStore);
+  useEffect(() => {
+    roverLocationBifrost.syncWithTopic();
+  }, [roverLocationBifrost]);
 
   const [siteSensorData, setSiteSensorData, addSensorData] = useSiteSensorData()
 
