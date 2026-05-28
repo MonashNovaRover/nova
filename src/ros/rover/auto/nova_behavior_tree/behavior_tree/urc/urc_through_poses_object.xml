@@ -9,8 +9,8 @@
             <GetGoal index="-1" input_goals="{goals}" output_goal="{search_goal}"/>
           </RunOnce>
           <GetCurrentPose current_pose="{current_pose}"/>
-          <ArePosesNear ref_pose="{search_goal}" target_pose="{current_pose}" tolerance="{search_radius}"/>
-          <ObjectDetected detections_topic="/yolo/object_detections" min_detections="2" buffer_time="5.0" cluster_radius="0.3" detections="{detected_goals}"/>
+          <ArePosesNear ref_pose="{current_pose}" target_pose="{search_goal}" tolerance="{search_radius}"/>
+          <ObjectDetected detections_topic="/yolo/object_detections" min_detections="3" buffer_time="5.0" cluster_radius="0.3" detections="{detected_goals}"/>
         </Sequence>
         
         <ReactiveFallback name="ExitOnGoalsEmpty">
