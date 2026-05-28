@@ -55,6 +55,16 @@ in
           echo "Set COMP to URC and wrote to ~/.config/nova/comp"
         }
 
+        ## Publish heading IMU function for auto
+        pub_heading() {
+          local heading="$1"
+          if [ -z "$heading" ]; then
+            echo "usage: publish_heading_imu <heading_degrees>"
+            return 2
+          fi
+          ~/Builds/active/bin/ros2 run nova_utils publish_heading_imu.py --ros-args -p heading_degrees:=$heading
+        }
+
         # Set active build path
         set_active() {
           local buildPath="$1"
@@ -212,8 +222,8 @@ in
           N3 = "ssh -C -Y nova@10.0.2.13";
 
           radio-status = "~/Builds/active/bin/ros2 run nova_utils radio_status.py";
-
-
+          radio-900 = "nix-shell -p python3 --run \"python3 ~/antenna-tracking/software/test/libnetat_terminal.py\"";
+          
           # Nano v Vim
           set_vim = "export EDITOR=vim";
           set_nano = "export EDITOR=nano";
@@ -297,6 +307,7 @@ in
           start-auto-arch = "~/Builds/active/bin/ros2 run auto_start start_auto_arch.py";
           start-auto-urc = "~/Builds/active/bin/ros2 run auto_start start_auto_urc.py";
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
+          pub_heading = "pub_heading";
 
           # GPS
           launch-gps-rover = "~/Builds/active/bin/ros2 launch nova_bringup gps_rover.launch.py";

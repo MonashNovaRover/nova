@@ -68,11 +68,17 @@ list(APPEND plugin_libs nova_place_search_goals_action_bt_node)
 add_library(nova_get_goal_action_bt_node SHARED plugins/action/get_goal_action.cpp)
 list(APPEND plugin_libs nova_get_goal_action_bt_node)
 
+add_library(nova_pop_goal_action_bt_node SHARED plugins/action/pop_goal_action.cpp)
+list(APPEND plugin_libs nova_pop_goal_action_bt_node)
+
 add_library(nova_get_current_pose_action_bt_node SHARED plugins/action/get_current_pose_action.cpp)
 list(APPEND plugin_libs nova_get_current_pose_action_bt_node)
 
 add_library(nova_led_service_bt_node SHARED plugins/action/led_service.cpp)
 list(APPEND plugin_libs nova_led_service_bt_node)
+
+add_library(nova_remove_passed_goal_action_bt_node SHARED plugins/action/remove_passed_goal_action.cpp)
+list(APPEND plugin_libs nova_remove_passed_goal_action_bt_node)
 
 add_library(nova_remove_passed_urc_goals_action_bt_node SHARED plugins/action/remove_passed_urc_goals_action.cpp)
 list(APPEND plugin_libs nova_remove_passed_urc_goals_action_bt_node)
@@ -97,11 +103,19 @@ list(APPEND plugin_libs nova_get_dist_between_poses_action_bt_node)
 add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/condition/ar_tag_detected_condition.cpp)
 list(APPEND plugin_libs nova_ar_tag_detected_condition_bt_node)
 
-add_library(nova_enable_detection_condition_bt_node SHARED plugins/condition/enable_detection_condition.cpp)
-list(APPEND plugin_libs nova_enable_detection_condition_bt_node)
-
 add_library(nova_object_detected_condition_bt_node SHARED plugins/condition/object_detected_condition.cpp)
 list(APPEND plugin_libs nova_object_detected_condition_bt_node)
+
+add_library(nova_goals_empty_condition_bt_node SHARED plugins/condition/goals_empty_condition.cpp)
+list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
+
+add_library(nova_are_poses_near_condition_bt_node SHARED plugins/condition/are_poses_near_condition.cpp)
+list(APPEND plugin_libs nova_are_poses_near_condition_bt_node)
+
+# ========================================= DECORATOR NODES ========================================= #
+
+add_library(nova_force_running_decorator_bt_node SHARED plugins/decorator/force_running.cpp)
+list(APPEND plugin_libs nova_force_running_decorator_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dep_pkgs})

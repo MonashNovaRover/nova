@@ -12,7 +12,7 @@
     <Action ID="PlaceSearchGoals">
       <input_port name="search_radius">Search radius in m</input_port>
       <input_port name="search_corners">Search corners (e.g. 3 for triangle, 4 for square)</input_port>
-      <input_port name="edge_offset">Offset to place goals from the edge of the search radius</input_port>
+      <input_port name="search_spacing">The spacing between each loop</input_port>
       <input_port name="input_goals">Goals vector to add search goals into</input_port>
       <output_port name="output_goals">Goals with new search goals added</output_port>
     </Action>
@@ -21,6 +21,12 @@
       <input_port name="index">Index of the goal to extract (negative indexing is supported)</input_port>
       <input_port name="input_goals">Goals vector to extract goal from</input_port>
       <output_port name="output_goal">Extracted goal</output_port>
+    </Action>
+    
+    <Action ID="PopGoal">
+      <input_port name="index">Index of the goal to pop (negative indexing is supported)</input_port>
+      <input_port name="input_goals">Goals vector to pop goal from</input_port>
+      <output_port name="output_goals">Goals vector after popping the goal</output_port>
     </Action>
 
     <Action ID="GetCurrentPose">
@@ -43,8 +49,8 @@
 
     <Action ID="RemoveNearbyInCollisionGoals">
       <input_port name="input_goals">A vector of goals to check if in collision</input_port>
-      <input_port name="max_distance_threshold">Maximum distance (m) within which to consider goals for removal</input_port>
       <input_port name="cost_threshold">Cost threshold for considering a goal in collision</input_port>
+      <input_port name="max_distance_threshold">Maximum distance (m) within which to consider goals for removal</input_port>
       <input_port name="global_frame">Global frame</input_port>
       <input_port name="robot_base_frame">Robot base frame</input_port>
       <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
@@ -52,68 +58,26 @@
 
     <Action ID="RemoveInCollisionGoals">
       <input_port name="input_goals">A vector of goals to check if in collision</input_port>
-      <input_port name="cost_threshold">Cost threshold for considering a goal in collision</input_port>
       <input_port name="global_frame">Global frame</input_port>
       <input_port name="robot_base_frame">Robot base frame</input_port>
+      <input_port name="cost_threshold">Cost threshold for considering a goal in collision</input_port>
       <output_port name="output_goals">A vector of goals containing only those that are not in collision.</output_port>
     </Action>
 
-    <Action ID="SaveCubePoses">
-      <input_port name="cube_poses">List of cube poses</input_port>
-      <input_port name="file_path">File to save cube poses to</input_port>
+    <Action ID="RemovePassedGoal">
+      <input_port name="input_goals">Original goals to remove next goal from</input_port>
+      <output_port name="output_goals">Goals with passed goal removed</output_port>
+      <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="robot_base_frame">Robot base frame</input_port>
     </Action>
-
+    
     <Action ID="RemovePassedURCGoals">
       <input_port name="input_goals">Original goals to remove viapoints from</input_port>
       <input_port name="position_tolerance">Max distance to goal for it to be removed</input_port>
       <input_port name="orientation_tolerance">Orientation tolerance in radians</input_port>
       <output_port name="output_goals">Goals with passed viapoints removed</output_port>
       <input_port name="dist_to_goal">Distance remaining to the next goal</input_port>
-    </Action>
-
-    <Action ID="RemovePassedGoalsAndCubes">
-      <input_port name="cube_poses">List of most recent cube poses</input_port>
-      <input_port name="cube_tolerance">Radius to determine whether the current goal is the cube goal</input_port>
-      <input_port name="input_goals">Original goals to remove viapoints from</input_port>
-      <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
-      <input_port name="yaw_tolerance">Orientation tolerance in radians</input_port>
-      <input_port name="global_frame">Global frame</input_port>
-      <input_port name="robot_base_frame">Robot base frame</input_port>
-      <output_port name="output_goals">Goals with passed viapoints removed</output_port>
-      <output_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</output_port>
-      <output_port name="distance_to_goal">Distance from the rover to current goal</output_port>
-    </Action>
-
-    <Action ID="RemovePassedGoalsAndARTags">
-      <input_port name="input_goal">AR tag goal</input_port>
-      <input_port name="id">ID of detected AR tag</input_port>
-      <input_port name="tag_tolerance">Radius to determine whether the current goal is the AR tag goal</input_port>
-      <input_port name="input_goals">Original goals to remove viapoints from</input_port>
-      <input_port name="radius">Radius to goal for it to be considered for removal</input_port>
-      <input_port name="yaw_tolerance">Orientation tolerance in radians</input_port>
-      <input_port name="global_frame">Global frame</input_port>
-      <input_port name="robot_base_frame">Robot base frame</input_port>
-      <output_port name="output_goals">Goals with passed viapoints removed</output_port>
-      <output_port name="seen_ids">IDs of visited AR tags</output_port>
-    </Action>
-    
-    <Action ID="UpdateGoal">
-      <input_port name="goal_type">Type of goal being updated (for logging)</input_port>
-      <input_port name="input_goal">Goal to add as viapoint</input_port>
-      <input_port name="input_goals">Original goals to add viapoints into</input_port>
-      <input_port name="radius">Radius to next goal for it to be considered an update</input_port>
-      <output_port name="output_goals">Goals with new viapoints added/updated</output_port>
-    </Action>
-
-    <Action ID="UpdateGoals">
-      <input_port name="goal_type">Type of goal being updated (for logging)</input_port>
-      <input_port name="current_pose">The current pose of the rover</input_port>
-      <input_port name="goals">Goals to add as viapoints</input_port>
-      <input_port name="input_goals">Original goals to add viapoints into</input_port>
-      <input_port name="update_radius">Radius to next goal for it to be considered an update</input_port>
-      <input_port name="goal_radius">Radius away from actual pose to set goal</input_port>
-      <output_port name="output_goals">Goals with new viapoints added/updated</output_port>
-      <output_port name="cube_goal_entries">Cube goals with their index in the input_goals vector</output_port>
     </Action>
 
     <Action ID="SetDetectionGoal">
@@ -124,31 +88,12 @@
       <output_port name="output_goals">Updated goals</output_port>
     </Action>
 
-    <Action ID="SaveImage">
-      <input_port name="service_name">Service name</input_port>
-      <input_port name="server_timeout">Server timeout</input_port>
-    </Action>
-
     <Action ID="LED">
       <input_port name="service_name">Service name</input_port>
       <input_port name="server_timeout">Server timeout</input_port>
     </Action>
 
     <!-- ############################### CONDITION NODES ############################## -->
-    <Condition ID="EnableDetection">
-      <input_port name="current_pose"></input_port>
-      <input_port name="target_pose"></input_port>
-      <input_port name="tolerance"></input_port>
-      <output_port name="detection"></output_port>
-    </Condition>
-
-    <Condition ID="CubeDetected">
-      <input_port name="visited_ids">visited_ids[i] = true if visited, false otherwise</input_port>
-      <output_port name="current_pose">The current pose of the rover</output_port>
-      <output_port name="cube_goals">Goals of detected cubes</output_port>
-      <output_port name="cube_poses">List of most recent cube poses</output_port>
-    </Condition>
-    
     <Condition ID="ARTagDetected">
       <input_port name="detections_topic">Topic to subscribe to for detections</input_port>
       <input_port name="min_detections">Minimum number of detections within buffer time to be considered valid</input_port>
@@ -165,47 +110,21 @@
       <output_port name="detections">Detected poses</output_port>
     </Condition>
 
-    <Condition ID="GetFirstGoal">
-      <input_port name="goals">List of goals</input_port>
-      <output_port name="first_goal">First Goal</output_port>
-    </Condition>
-
-    <Condition ID="CheckDetected">
-      <input_port name="id">id as string</input_port>
-      <input_port name="detection_type">tag or object</input_port>
-    </Condition>
-
-    <Condition ID="GetFinalGoal">
-      <input_port name="goals">List of goals</input_port>
-      <output_port name="final_goal">Final Goal</output_port>
-    </Condition>
-
-    <Condition ID="QueryPosition">
-      <input_port name="id">ID of tag or object</input_port>
-      <input_port name="detection_type">'tag' or 'object'</input_port>
-      <output_port name="position">PoseStamped</output_port>
-    </Condition>
-
-    <Condition ID="ComputeSearchGoals">
-      <input_port name="search_origin">The center of the search region</input_port>
-      <input_port name="search_radius">The radius (m) to search around the center</input_port>
-      <input_port name="num_points">Num points in search circle</input_port>
-      <output_port name="search_goals">Search Goals</output_port>
-    </Condition>
-
-    <Condition ID="FirstGoalReached">
-      <input_port name="goals">Waypoints</input_port>
-      <input_port name="global_frame">Reference frame</input_port>
-      <input_port name="robot_base_frame">Robot base frame</input_port>
-    </Condition>
-
     <Condition ID="GoalsEmpty">
       <input_port name="goals">Waypoints</input_port>
+    </Condition>
+
+    <Condition ID="ArePosesNear">
+      <input_port name="ref_pose">Reference pose</input_port>
+      <input_port name="target_pose">Target pose to compare to reference</input_port>
+      <input_port name="global_frame">Global frame</input_port>
+      <input_port name="tolerance">Distance tolerance in m for poses to be considered near</input_port>
     </Condition>
 
     <!-- ############################### CONTROL NODES ################################ -->
 
     <!-- ############################### DECORATOR NODES ############################## -->
+    <Decorator ID="ForceRunning"/>
 
     <!-- ############################### SUBTREE NODES ################################ -->
     <SubTree ID="NavThroughPosesWithReplanningAndRecovery">

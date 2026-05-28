@@ -35,6 +35,28 @@ ekf_filter_node_odom:
     imu0_differential: false
     imu0_relative: false
     imu0_remove_gravitational_acceleration: false
+
+    # Mag heading as IMU
+    imu1: /mag/heading_imu
+    imu1_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    imu1_differential: false
+    imu1_relative: false
+    imu1_remove_gravitational_acceleration: false
+
+    # Livox IMU
+    imu2: /livox/imu_oriented
+    imu2_config: [false, false, false,
+                  true,  true,  false, 
+                  false, false, false,
+                  true,  true,  true,
+                  false, false, false]
+    imu2_differential: true
+    imu2_relative: false
+    imu2_remove_gravitational_acceleration: true
     
     # Higher values for a state = filter trusts prediction less and incoming measurements more
     # Lower value = smoother estimate, but can lag or become overconfident
@@ -48,7 +70,7 @@ ekf_filter_node_odom:
     initial_estimate_covariance: [1e-9, 1e-9, 1e-9,
                                   1e-9, 1e-9, 1.0,
                                   1.0,  1e-9, 1e-9,
-                                  1e-9, 1e-9, 1.0,
+                                  1.0,  1.0,  1.0,
                                   1e-9, 1e-9, 1e-9]
 
     use_control: false # Might look into enabling this / setting to true?
@@ -97,6 +119,28 @@ ekf_filter_node_map:
     imu0_differential: false
     imu0_relative: false
     imu0_remove_gravitational_acceleration: false
+
+    # Mag heading as IMU
+    imu1: /mag/heading_imu
+    imu1_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    imu1_differential: false
+    imu1_relative: false
+    imu1_remove_gravitational_acceleration: false
+
+    # Livox IMU
+    imu2: /livox/imu_oriented
+    imu2_config: [false, false, false,
+                  true,  true,  false, 
+                  false, false, false,
+                  true,  true,  true,
+                  false, false, false]
+    imu2_differential: true
+    imu2_relative: false
+    imu2_remove_gravitational_acceleration: true
     
     # Higher values for a state = filter trusts prediction less and incoming measurements more
     # Lower value = smoother estimate, but can lag or become overconfident
@@ -110,7 +154,7 @@ ekf_filter_node_map:
     initial_estimate_covariance: [1.0,  1.0,  1.0,
                                   1e-9, 1e-9, 1.0,
                                   1.0,  1e-9, 1e-9,
-                                  1e-9, 1e-9, 1.0,
+                                  1.0,  1.0,  1.0,
                                   1e-9, 1e-9, 1e-9]
 
     use_control: false # Might look into enabling this / setting to true?
