@@ -154,7 +154,8 @@ bool RemoveInCollisionGoalsAction::remove_goals()
   }
   
   Goals output_goals_;
-  for (size_t i=0; i < input_goals_.size(); i++)
+  // don't remove last goal
+  for (size_t i=0; i < input_goals_.size() - 1; i++)
   {
     Goal goal = input_goals_[i];
     
