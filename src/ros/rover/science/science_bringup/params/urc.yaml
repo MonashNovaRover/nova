@@ -237,6 +237,7 @@ potentiostat:
     can_data_id_ch1: 0x41A
     can_data_id_ch2: 0x41B
     can_spin_rate: 20.0
+    publish_rate: 5.0  # Max data publishes per second
 
 spec_leds:
   ros__parameters:

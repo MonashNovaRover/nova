@@ -60,9 +60,14 @@ class PotentiostatNode(Node):
         can_spin_rate = self.declare_parameter("can_spin_rate", 20.0,
             ParameterDescriptor(description="CAN bus polling rate in Hz")).value
 
+        self.publish_rate = self.declare_parameter("publish_rate", 5.0,
+            ParameterDescriptor(description="Max data publish rate in Hz")).value
+        self.publish_interval = 1.0 / self.publish_rate if self.publish_rate > 0 else 0
+
         # State
         self.is_receiving = False
         self.active_channel = 0  # Track which channel is currently active
+        self.last_publish_time = 0.0
 
         # CAN bus setup
         self.bus = jcan.Bus()
@@ -85,7 +90,8 @@ class PotentiostatNode(Node):
 
         self.get_logger().info(
             f"Potentiostat node initialized (Trigger: 0x{self.can_trigger_id_ch1:03X}/0x{self.can_trigger_id_ch2:03X}, "
-            f"Data: 0x{self.can_data_id_ch1:03X}/0x{self.can_data_id_ch2:03X}, rate: {can_spin_rate}Hz)"
+            f"Data: 0x{self.can_data_id_ch1:03X}/0x{self.can_data_id_ch2:03X}, CAN rate: {can_spin_rate}Hz, "
+            f"publish rate: {self.publish_rate}Hz)"
         )
 
     def _trigger_callback(self, request, response):
@@ -125,6 +131,12 @@ class PotentiostatNode(Node):
             msg.is_receiving = False
             self.data_publisher.publish(msg)
             return
+
+        # Rate limiting check
+        current_time = self.get_clock().now().nanoseconds / 1e9
+        if current_time - self.last_publish_time < self.publish_interval:
+            return  # Skip this message due to rate limiting
+        self.last_publish_time = current_time
 
         # Parse current (bytes 0-3, µA) and voltage (bytes 4-7, mV)
         current_ua = int.from_bytes(data[0:4], 'big', signed=True)

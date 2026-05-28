@@ -18,7 +18,11 @@ import { CalibrationMenu } from "./CalibrationMenu.tsx";
 
 type WidgetMode = "measurement" | "calibration";
 
-export const PotentiostatWidget = () => {
+interface PotentiostatWidgetProps {
+  isCompact?: boolean;
+}
+
+export const PotentiostatWidget = ({ isCompact = false }: PotentiostatWidgetProps) => {
   // Subscribe to potentiostat data topic
   const bifrost = useBifrost({ topic: RosTopic.POTENTIOSTAT_DATA });
   const potentiostatData = useSelector((state: RootState) => state.potentiostatStore);
@@ -134,12 +138,12 @@ export const PotentiostatWidget = () => {
           />
         </div>
       </CardHeader>
-      <CardBody className="flex flex-col gap-6">
+      <CardBody className={`flex flex-col ${isCompact ? "gap-3" : "gap-6"}`}>
         {/* Status and trigger buttons */}
-        <div className="grid grid-cols-8 gap-3 items-center place-items-center">
+        <div className={`grid grid-cols-8 ${isCompact ? "gap-2" : "gap-3"} items-center place-items-center`}>
           <Chip
             radius="md"
-            size="lg"
+            size={isCompact ? "sm" : "lg"}
             variant="dot"
             color={
               !potentiostatData.is_receiving
@@ -148,7 +152,7 @@ export const PotentiostatWidget = () => {
                   ? "primary"
                   : "secondary"
             }
-            className={`h-10 border-2 col-span-2 ${
+            className={`${isCompact ? "h-7" : "h-10"} border-2 col-span-2 ${
               !potentiostatData.is_receiving
                 ? "border-success"
                 : potentiostatData.channel === 0
@@ -163,6 +167,7 @@ export const PotentiostatWidget = () => {
           <Button
             className="col-span-3 w-full"
             color="primary"
+            size={isCompact ? "sm" : "md"}
             onPress={() => triggerChannel(0)}
             isDisabled={buttonsDisabled}
           >
@@ -171,6 +176,7 @@ export const PotentiostatWidget = () => {
           <Button
             className="col-span-3 w-full"
             color="secondary"
+            size={isCompact ? "sm" : "md"}
             onPress={() => triggerChannel(1)}
             isDisabled={buttonsDisabled}
           >
@@ -183,6 +189,7 @@ export const PotentiostatWidget = () => {
           channel1={data.channel1}
           channel2={data.channel2}
           mode={mode}
+          height={isCompact ? 200 : 300}
         />
       </CardBody>
     </Card>
