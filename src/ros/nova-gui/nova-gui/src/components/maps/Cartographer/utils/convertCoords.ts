@@ -6,20 +6,24 @@ export type DisplayMapCoordinate = {
     long: string
 }
 
-type DMS = {
+export type DD = {
+    degrees: number
+}
+
+export type DMS = {
     degrees: number
     minutes: number
     seconds: number
     direction: string
 }
 
-type DDM = {
+export type DDM = {
     degrees: number
     minutes: number
     direction: string
 }
 
-function DDtoDMS(dd: number, isLat: boolean | undefined = undefined): DMS {
+export function DDtoDMS(dd: number, isLat: boolean | undefined = undefined): DMS {
     const absDD = Math.abs(dd);
     const degrees = Math.floor(absDD);
     const minutes = Math.floor((absDD - degrees) * 60);
@@ -37,7 +41,7 @@ function DDtoDMS(dd: number, isLat: boolean | undefined = undefined): DMS {
     };
 }
 
-function DDtoDDM(dd: number, isLat: boolean | undefined = undefined): DDM {
+export function DDtoDDM(dd: number, isLat: boolean | undefined = undefined): DDM {
     const absDD = Math.abs(dd);
     const degrees = Math.floor(absDD);
     const minutes = (absDD - degrees) * 60;
@@ -53,69 +57,80 @@ function DDtoDDM(dd: number, isLat: boolean | undefined = undefined): DDM {
     };
 }
 
-function DMStoDD(dms: DMS): number {
+export function DMStoDD(dms: DMS): number {
     const dd = dms.degrees + (dms.minutes / 60) + (dms.seconds / 3600);
     const finalDD = dms.direction.toUpperCase() === 'S' || dms.direction.toUpperCase() === 'W' ? dd * -1 : dd;
     return finalDD
 }
 
-function DDMtoDD(ddm: DDM): number {
+export function DDMtoDD(ddm: DDM): number {
     const dd = ddm.degrees + (ddm.minutes / 60);
     const finalDD = ddm.direction.toUpperCase() === 'S' || ddm.direction.toUpperCase() === 'W' ? dd * -1 : dd;
     return finalDD
 }
 
-function calcMapCoordinateFromDD({lat, long}: DisplayMapCoordinate): MapCoordinate {
-    return {lat: +lat.slice(0,-1), long: +long.slice(0,-1)} as MapCoordinate
+export function calcLatFromDD(lat: string): number {
+    if (lat.slice(-1) === "°") return +lat.slice(0,-1);
+    return +lat
 }
 
-function calcMapCoordinateFromDMS({lat, long}: DisplayMapCoordinate): MapCoordinate {
-    const latArr = lat.split(" ").map((v, i, a)=>a.length-1 !== i ? +v.slice(0,1) : v)
-    const latDMS = {degrees: latArr[0], minutes: latArr[1], seconds: latArr[2], direction: latArr[3]} as DMS
-    const longArr = long.split(" ").map((v, i, a)=>a.length-1 !== i ? +v.slice(0,1) : v)
-    const longDMS = {degrees: longArr[0], minutes: longArr[1], seconds: longArr[2], direction: longArr[3]} as DMS
-    const calcLat = DMStoDD(latDMS)
-    const calcLong = DMStoDD(longDMS);
-    return {
-        lat: calcLat,
-        long: calcLong
-    }
+export function calcLongFromDD(long: string): number {
+    if (long.slice(-1) === "°") return +long.slice(0,-1);
+    return +long
 }
 
-function calcMapCoordinateFromDDM({lat, long}: DisplayMapCoordinate): MapCoordinate {
-    const latArr = lat.split(" ").map((v, i, a)=>a.length-1 !== i ? +v.slice(0,1) : v)
-    const latDMS = {degrees: latArr[0], minutes: latArr[1], direction: latArr[2]} as DDM
-    const longArr = long.split(" ").map((v, i, a)=>a.length-1 !== i ? +v.slice(0,1) : v)
-    const longDMS = {degrees: longArr[0], minutes: longArr[1], direction: longArr[2]} as DDM
-    const calcLat = DDMtoDD(latDMS)
-    const calcLong = DDMtoDD(longDMS);
-    return {
-        lat: calcLat,
-        long: calcLong
-    }
+
+export function calcLatFromDMS(lat: string): number {
+    const latArr = lat.split(" ").map((v, i, a)=>a.length-1 !== i ? (v.slice(-1) === ["°", "'", "\""][i] ? +v.slice(0,-1) : +v) : v);
+    if (latArr.length !== 4) return NaN
+    const latDMS = {degrees: latArr[0], minutes: latArr[1], seconds: latArr[2], direction: latArr[3]} as DMS;
+    return DMStoDD(latDMS);
 }
 
-function useCalcMapCoordinate(coord: DisplayMapCoordinate): MapCoordinate {
+export function calcLongFromDMS(long: string): number {
+    const longArr = long.split(" ").map((v, i, a)=>a.length-1 !== i ? (v.slice(-1) === ["°", "'", "\""][i] ? +v.slice(0,-1) : +v) : v);
+     if (longArr.length !== 4) return NaN
+    const longDMS = {degrees: longArr[0], minutes: longArr[1], seconds: longArr[2], direction: longArr[3]} as DMS;
+    return DMStoDD(longDMS);
+}
+
+
+export function calcLatFromDDM(lat: string): number {
+    const latArr = lat.split(" ").map((v, i, a)=>a.length-1 !== i ? (v.slice(-1) === ["°", "'"][i] ? +v.slice(0,-1) : +v) : v);
+     if (latArr.length !== 3) return NaN
+    const latDMS = {degrees: latArr[0], minutes: latArr[1], direction: latArr[2]} as DDM;
+    return DDMtoDD(latDMS)
+}
+
+export function calcLongFromDDM(long: string): number {
+    const longArr = long.split(" ").map((v, i, a)=>a.length-1 !== i ? (v.slice(-1) === ["°", "'"][i] ? +v.slice(0,-1) : +v) : v);
+     if (longArr.length !== 3) return NaN
+    const longDMS = {degrees: longArr[0], minutes: longArr[1], direction: longArr[2]} as DDM;
+    return DDMtoDD(longDMS)
+}
+
+
+export function useCalcMapCoordinate(coord: DisplayMapCoordinate): MapCoordinate {
     const [cartographerCoordinateFormat] = useGenericStore<number>("cartographerCoordinateFormat");
     switch (cartographerCoordinateFormat) {
         /** numbers align with coordinateFormatOptions, there should be a better way to do this from "../../../navbar/settings/CartographerSettings.tsx"*/
         case 0:
-            return calcMapCoordinateFromDD(coord);
+            return {lat: calcLatFromDD(coord.lat), long: calcLongFromDD(coord.long)};
         case 1:
-            return calcMapCoordinateFromDMS(coord);
+            return {lat: calcLatFromDMS(coord.lat), long: calcLongFromDMS(coord.long)};
         case 2:
-            return calcMapCoordinateFromDDM(coord);
+            return {lat: calcLatFromDDM(coord.lat), long: calcLongFromDDM(coord.long)};
         default:
-            return calcMapCoordinateFromDD(coord);
+            return {lat: calcLatFromDD(coord.lat), long: calcLongFromDD(coord.long)};
     };
 }
 
 
-function displayMapCoordinateAsDD({lat, long}: MapCoordinate): DisplayMapCoordinate {
+export function displayMapCoordinateAsDD({lat, long}: MapCoordinate): DisplayMapCoordinate {
     return {lat: lat.toString()+"°", long: long.toString()+"°"} as DisplayMapCoordinate
 }
 
-function displayMapCoordinateAsDMS({lat, long}: MapCoordinate): DisplayMapCoordinate {
+export function displayMapCoordinateAsDMS({lat, long}: MapCoordinate): DisplayMapCoordinate {
     const dmsLat = DDtoDMS(lat, true);
     const dmsLong = DDtoDMS(long, false);
     return {
@@ -124,7 +139,7 @@ function displayMapCoordinateAsDMS({lat, long}: MapCoordinate): DisplayMapCoordi
     }
 }
 
-function displayMapCoordinateAsDDM({lat, long}: MapCoordinate): DisplayMapCoordinate {
+export function displayMapCoordinateAsDDM({lat, long}: MapCoordinate): DisplayMapCoordinate {
     const dmsLat = DDtoDDM(lat, true);
     const dmsLong = DDtoDDM(long, false);
     return {
@@ -133,7 +148,7 @@ function displayMapCoordinateAsDDM({lat, long}: MapCoordinate): DisplayMapCoordi
     }
 }
 
-function useDisplayMapCoordinate(coord: MapCoordinate): DisplayMapCoordinate {
+export function useDisplayMapCoordinate(coord: MapCoordinate): DisplayMapCoordinate {
     const [cartographerCoordinateFormat] = useGenericStore<number>("cartographerCoordinateFormat");
     switch (cartographerCoordinateFormat) {
         /** numbers align with coordinateFormatOptions, there should be a better way to do this from "../../../navbar/settings/CartographerSettings.tsx"*/
@@ -148,4 +163,16 @@ function useDisplayMapCoordinate(coord: MapCoordinate): DisplayMapCoordinate {
     };
 }
 
-export {useDisplayMapCoordinate, useCalcMapCoordinate}
+export function displayMapCoordinate(coord: MapCoordinate, cartographerCoordinateFormat: number): DisplayMapCoordinate {
+    switch (cartographerCoordinateFormat) {
+        /** numbers align with coordinateFormatOptions, there should be a better way to do this from "../../../navbar/settings/CartographerSettings.tsx"*/
+        case 0:
+            return displayMapCoordinateAsDD(coord);
+        case 1:
+            return displayMapCoordinateAsDMS(coord);
+        case 2:
+            return displayMapCoordinateAsDDM(coord);
+        default:
+            return displayMapCoordinateAsDD(coord);
+    };
+}
