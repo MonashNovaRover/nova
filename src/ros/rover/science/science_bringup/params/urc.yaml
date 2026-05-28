@@ -45,9 +45,9 @@ nir_probe:
         data_topic: "/science/nir_probe_data"
     hardware:
       NIR_Probe_take_reading:
-        can_id: 0x0E9
+        can_id: 0x0F9
       NIR_Sensors:
-        can_id: 0x4E2
+        can_id: 0x4F2
         unit: "data"
         initial_value: [0,0]
 
@@ -237,6 +237,7 @@ potentiostat:
     can_data_id_ch1: 0x41A
     can_data_id_ch2: 0x41B
     can_spin_rate: 20.0
+    publish_rate: 5.0  # Max data publishes per second
 
 spec_leds:
   ros__parameters:

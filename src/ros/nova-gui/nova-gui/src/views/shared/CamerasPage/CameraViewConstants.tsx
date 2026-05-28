@@ -3,14 +3,20 @@ import {ProfileOption} from "./CameraProfileConstants.ts";
 export interface SerialPreset {
   displayName: string;    // User-facing name (e.g., "Site Analysis Cams")
   serials: string[];      // Array of camera serials
+  section?: string;       // Optional section heading (rendered when it changes)
 }
 
+export interface SerialPresetGroup {
+  groupName: string;
+  presets: SerialPreset[];
+  mode: "controls" | "toggle";  // controls = Start/Pause/Stop, toggle = single-activate switches
+}
 
 export interface CameraViewConfig {
   viewTitle: string;
   cameraSerials: string[];
   cameraPrests?: ProfileOption[];
-  serialPresets?: SerialPreset[];
+  serialPresetGroups?: SerialPresetGroup[];
 }
 
 export enum ARCCompModes {
@@ -135,7 +141,7 @@ const urcScienceCams = [
   ],
 ]
 
-const urcScienceSerialPresets: SerialPreset[] = [
+const urcScienceLocationPresets: SerialPreset[] = [
   {
     displayName: "Mast Cams",
     serials: [
@@ -166,6 +172,55 @@ const urcScienceSerialPresets: SerialPreset[] = [
       CameraSerials.URC_SCIENCE_LITMUS,
     ],
   },
+]
+
+const urcScienceTaskPresets: SerialPreset[] = [
+  {
+    section: "Site",
+    displayName: "Surveying",
+    serials: [
+      CameraSerials.MAST_FORWARD,
+      CameraSerials.MAST_BACKWARD,
+      CameraSerials.MAST_ARM_STOW,
+      CameraSerials.SCIENCE_GIMBAL,
+      CameraSerials.SCIENCE_MICROSCOPE,
+      CameraSerials.URC_SCIENCE_BOOM,
+    ],
+  },
+  {
+    section: "Site",
+    displayName: "Sampling",
+    serials: [
+      CameraSerials.SCIENCE_GIMBAL,
+      CameraSerials.URC_SCIENCE_CACHE_LEFT,
+      CameraSerials.URC_SCIENCE_CACHE_RIGHT,
+      CameraSerials.URC_SCIENCE_BOOM,
+    ],
+  },
+  {
+    section: "Pumping",
+    displayName: "Stage 1",
+    serials: [
+      CameraSerials.SCIENCE_GIMBAL,
+      CameraSerials.URC_SCIENCE_CACHE_LEFT,
+      CameraSerials.URC_SCIENCE_CACHE_RIGHT,
+      CameraSerials.URC_SCIENCE_BOOM,
+      CameraSerials.URC_SCIENCE_LITMUS,
+    ],
+  },
+  {
+    section: "Pumping",
+    displayName: "Stage 2",
+    serials: [
+      CameraSerials.URC_SCIENCE_CUVETTE,
+      CameraSerials.URC_SCIENCE_LITMUS,
+    ],
+  },
+]
+
+const urcSciencePresetGroups: SerialPresetGroup[] = [
+  { groupName: "Location", presets: urcScienceLocationPresets, mode: "controls" },
+  { groupName: "Task", presets: urcScienceTaskPresets, mode: "toggle" },
 ]
 
 const driveCams = [
@@ -282,17 +337,17 @@ export const urc_science_views: CameraViewConfig[] = [
   {
     cameraSerials: [...mastCams.slice(1, 4), ...urcScienceCams[0], ...urcScienceCams[1],  ...driveCams.slice(0, 2), CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL],
     viewTitle: "All Cams",
-    serialPresets: urcScienceSerialPresets,
+    serialPresetGroups: urcSciencePresetGroups,
   },
   {
     cameraSerials: [CameraSerials.MAST_FORWARD, CameraSerials.MAST_ARM_STOW, ...urcScienceCams[0], CameraSerials.URC_SCIENCE_LITMUS, ...driveCams.slice(0, 2), CameraSerials.URC_ACTIVATED_NODES, CameraSerials.URC_SCIENCE_AUGER_DEPTH_SENSORS, CameraSerials.DRIVE_CONTROL],
     viewTitle: "Site Analysis",
-    serialPresets: urcScienceSerialPresets,
+    serialPresetGroups: urcSciencePresetGroups,
   },
   {
     cameraSerials: [...mastCams.slice(3, 4), CameraSerials.URC_SCIENCE_CACHE_LEFT, CameraSerials.URC_SCIENCE_CACHE_RIGHT, ...urcScienceCams[1],  ...driveCams.slice(0, 2), CameraSerials.URC_ACTIVATED_NODES, CameraSerials.DRIVE_CONTROL],
     viewTitle: "Vis Spec",
-    serialPresets: urcScienceSerialPresets,
+    serialPresetGroups: urcSciencePresetGroups,
   }
 ]
 

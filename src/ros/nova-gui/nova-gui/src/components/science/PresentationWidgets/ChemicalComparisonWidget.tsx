@@ -1,29 +1,48 @@
-import React, {useState, useMemo} from "react";
+import React, {useMemo} from "react";
 import {Card, CardHeader, CardBody, Button} from "@nextui-org/react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import {ApexDataset} from "../SpectraDisplay/DataChart.tsx";
 import ReactApexChart from "react-apexcharts";
 import {ApexOptions} from "apexcharts";
-import {CHEMICALS, Chemical, CHEMICAL_MEASUREMENT_TYPE, MeasurementType} from "../UVVisSpec/chemicalConfig.ts";
+import {CHEMICALS, Chemical, CHEMICAL_DISPLAY_NAMES, CHEMICAL_MEASUREMENT_TYPE, MeasurementType} from "../UVVisSpec/chemicalConfig.ts";
 import SegmentedPicker from "../../shared/components/SegmentedPicker/SegmentedPicker.tsx";
 
 export type Spectrometer = "SL" | "SR";
+
+const getSeriesColor = (name: string): string => {
+  if (name.includes("neg")) return "#f31260"; // danger - red
+  if (name.includes("pos")) return "#2ac776"; // success - green
+  if (name.toLowerCase().includes("sl") || name.toLowerCase().includes("sr")) return "#3eb1cf"; // blue
+  return "#F770AD"; // primary - pink fallback
+};
+
+const getSeriesWidth = (name: string): number => {
+  if (name.includes("neg") || name.includes("pos")) return 6; // thick
+  return 2; // normal for samples
+};
 
 interface ChemicalComparisonWidgetProps {
   spectrometer: Spectrometer;
   columnLabel: string;
   onSwap?: () => void;
   currentMapping?: string;
+  selectedIndex: number;
+  onIndexChange: (index: number) => void;
+  yAxisMin: number;
+  yAxisMax: number;
 }
 
 const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
   spectrometer,
   columnLabel,
   onSwap,
-  currentMapping
+  currentMapping,
+  selectedIndex,
+  onIndexChange,
+  yAxisMin,
+  yAxisMax
 }) => {
   const [allSpectra, _] = useLocalStorage<ApexDataset>("uv-vis-spec-saved-data", []);
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const selectedChemical: Chemical = CHEMICALS[selectedIndex];
 
   // Filter spectra by spectrometer and chemical
@@ -42,15 +61,24 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
     });
   }, [allSpectra, selectedChemical, spectrometer]);
 
+  const seriesColors = useMemo(() => {
+    return filteredSpectra.map(spec => getSeriesColor(spec.name));
+  }, [filteredSpectra]);
+
+  const seriesWidths = useMemo(() => {
+    return filteredSpectra.map(spec => getSeriesWidth(spec.name));
+  }, [filteredSpectra]);
+
   // Chart options - y-axis label changes based on chemical measurement type
   const chartOptions: ApexOptions = useMemo(() => {
     const measurementType = CHEMICAL_MEASUREMENT_TYPE[selectedChemical];
 
     const yAxisLabel = measurementType === MeasurementType.INTENSITY
-      ? 'Intensity (normalized)'
+      ? 'Intensity (%)'
       : 'Absorbance';
 
     return {
+      colors: seriesColors,
       chart: {
         id: `chemical-comparison-${spectrometer}`,
         background: "transparent",
@@ -60,7 +88,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
       },
       stroke: {
         curve: 'smooth',
-        width: 2,
+        width: seriesWidths,
       },
       xaxis: {
         type: 'numeric',
@@ -68,16 +96,30 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
         title: {
           text: 'Wavelength (nm)',
           style: {
-            fontSize: '12px',
+            fontSize: '18px',
+          }
+        },
+        labels: {
+          style: {
+            fontSize: '16px',
           }
         }
       },
       yaxis: {
+        min: yAxisMin,
+        max: yAxisMax,
+        tickAmount: 5,
         show: true,
         title: {
           text: yAxisLabel,
           style: {
-            fontSize: '12px',
+            fontSize: '18px',
+          }
+        },
+        labels: {
+          formatter: (value: number) => value.toFixed(2),
+          style: {
+            fontSize: '16px',
           }
         }
       },
@@ -87,10 +129,10 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
       legend: {
         show: true,
         position: 'bottom',
-        fontSize: '10px',
+        fontSize: '18px',
       },
     };
-  }, [spectrometer, selectedChemical]);
+  }, [spectrometer, selectedChemical, yAxisMin, yAxisMax, seriesColors, seriesWidths]);
 
   return (
     <Card>
@@ -113,13 +155,13 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
         </div>
         <SegmentedPicker
           selectedIndex={selectedIndex}
-          onIndexChange={setSelectedIndex}
+          onIndexChange={onIndexChange}
           className="mt-2 w-full"
           size="sm"
           fullWidth
           color="secondary"
         >
-          {CHEMICALS.map((chemical) => chemical)}
+          {CHEMICALS.map((chemical) => CHEMICAL_DISPLAY_NAMES[chemical])}
         </SegmentedPicker>
       </CardHeader>
       <CardBody>
