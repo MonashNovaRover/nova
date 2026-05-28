@@ -28,6 +28,7 @@ import { useCartographerActions } from "../../../../redux/actions/useCartographe
 import { MapTile } from "../config.tsx";
 import { MapPoint, Vehicle } from "../../../../redux/models/CartographerState.ts";
 import React from "react";
+import {useDisplayMapCoordinate} from "../utils/convertCoords.ts";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
@@ -117,6 +118,9 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
     }
   };
 
+  const {lat: baseLat, long: baseLong} = useDisplayMapCoordinate({lat: base.latitude, long: base.longitude})
+  const {lat: vehLat, long: vehLong} = useDisplayMapCoordinate({lat: currentVehicle.location.latitude, long: currentVehicle.location.longitude})
+
   return (
     <div className="relative w-full">
       <div className="flex justify-end p-2 z-50">
@@ -149,22 +153,22 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 <div className="flex flex-row gap-3">
                 <CopyableInput
                   readOnly
-                  value={String(base.latitude)}
+                  value={baseLat}
                   placeholder={`Base Latitude`}
                   label="Base Latitude"/>
                 <CopyableInput
                   readOnly
-                  value={String(base.longitude)}
+                  value={baseLong}
                   placeholder={`Base Longitude`}
                   label="Base Longitude"/>
                 <CopyableInput
                   readOnly
-                  value={String(currentVehicle.location.latitude)}
+                  value={vehLat}
                   placeholder={`${currentVehicle.label} Latitude`}
                   label={`${currentVehicle.label} Latitude`}/>
                 <CopyableInput
                   readOnly
-                  value={String(currentVehicle.location.longitude)}
+                  value={vehLong}
                   placeholder={`${currentVehicle.label} Longitude`}
                   label={`${currentVehicle.label} Longitude`}/>
                   <CopyableInput
