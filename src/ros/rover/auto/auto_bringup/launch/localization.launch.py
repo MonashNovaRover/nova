@@ -57,6 +57,8 @@ def launch_setup(context, *args, **kwargs):
 
     # comp agnostic arguments
     sim = LaunchConfiguration('sim')
+    magnetometer = LaunchConfiguration('magnetometer')
+    urc_sensors = LaunchConfiguration('urc_sensors')
     datum = LaunchConfiguration('datum').perform(context).strip()
 
     navsat_datum_params = []
@@ -80,18 +82,14 @@ def launch_setup(context, *args, **kwargs):
     # comp defaults
     if comp == 'arch':
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'rl_arch.yaml'])
-        cartographer = 'False'
     elif comp == 'urc':
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'rl_urc.yaml'])
-        cartographer = 'True'
     else:
         raise ValueError('Invalid comp value')
     
     # comp defaults overrides
     if LaunchConfiguration('rl_params').perform(context) != '':
         rl_params = LaunchConfiguration('rl_params')
-    if LaunchConfiguration('cartographer').perform(context) != '':
-        cartographer = LaunchConfiguration('cartographer')
 
     return [
         Node(
@@ -133,13 +131,14 @@ def launch_setup(context, *args, **kwargs):
                                 ('imu', 'gps_rover/heading_imu')],
                 ),
                 GroupAction(
-                    condition=IfCondition(AndSubstitution(cartographer, NotSubstitution(sim))),
+                    condition=IfCondition(AndSubstitution(urc_sensors, NotSubstitution(sim))),
                     actions=[
                         IncludeLaunchDescription(
                             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([nova_bringup_dir, 'launch', 'gps_rover.launch.py'])),
                             launch_arguments={'publish_fix_custom': 'False'}.items(),
                         ),
                         Node(
+                            condition=IfCondition(magnetometer),
                             package='electronics',
                             namespace='',
                             executable='magnetometer.py',
@@ -182,9 +181,14 @@ def generate_launch_description():
             description='Full path to robot_localization parameters file',
         ),
         DeclareLaunchArgument(
-            name='cartographer',
-            default_value='',
-            description='For use with cartographer?',
+            name='urc_sensors',
+            default_value='False',
+            description='Launch URC sensor nodes (GPS, magnetometer)',
+        ),
+        DeclareLaunchArgument(
+            name='magnetometer',
+            default_value='False',
+            description='Launch magnetometer?',
         ),
         DeclareLaunchArgument(
             name='datum',
