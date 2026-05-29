@@ -124,8 +124,6 @@ class KeyboardLocaliser(Node):
             [0, focal_length, image_center[1]],
             [0, 0, 1]
         ], dtype=np.float32)
-        dist_arr = self.declare_parameter('distortion_matrix', [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]).get_parameter_value().double_array_value
-        self.dist_coeffs = np.array(dist_arr)
         self.camera_resolution = width, height
 
         # keyboard pose analysis initalisation
