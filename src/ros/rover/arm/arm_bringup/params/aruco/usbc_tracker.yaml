@@ -3,8 +3,8 @@
     aruco:
       cornerRefinementMethod: 1
       minMarkerPerimeterRate: 0.1
-    cam_base_topic: /arm/finger
+    cam_base_topic: /arm/periscope
     image_is_rectified: false
     marker_dict: 4X4_50
     marker_size: 0.01 # 10mm markers for USB-C task
-    output_frame: image_frame
+    output_frame: arm_end_periscope_optical
