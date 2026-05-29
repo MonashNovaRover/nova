@@ -23,14 +23,14 @@ usbc_dir = expanduser('~') + '/nova/src/ros/rover/arm/arm_bringup'
 
 def launch_setup(context, *args, **kwargs):
     localiser_params = LaunchConfiguration('localiser_params')
-    camera_params = LaunchConfiguration('camera_params')
+    camera_info_params = LaunchConfiguration('camera_info_params')
     aruco_params = LaunchConfiguration('aruco_params')
 
     return [
         Node(
             package='auto_typing',
             executable='camera_info_publisher.py',
-            parameters=[camera_params],
+            parameters=[camera_info_params],
         ),
         Node(
             package='aruco_opencv',
@@ -64,9 +64,9 @@ def generate_launch_description():
             description='Path to localiser params file',
         ),
         DeclareLaunchArgument(
-            name='camera_params',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'typing.yaml']),
-            description='Path to camera info publisher params file',
+            name='camera_info_params',
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'camera_info', 'periscope.yaml']),
+            description='Path to camera info params file',
         ),
         DeclareLaunchArgument(
             name='aruco_params',

@@ -30,6 +30,7 @@ def launch_setup(context, *args, **kwargs):
     auto_mode = LaunchConfiguration('auto_mode')
     params = LaunchConfiguration('typing_params')
     localiser_params = LaunchConfiguration('localiser_params')
+    camera_info_params = LaunchConfiguration('camera_info_params')
     aruco_params = LaunchConfiguration('aruco_params')
 
     base_frame = "arm_kinematics_origin"
@@ -59,7 +60,7 @@ def launch_setup(context, *args, **kwargs):
                 Node(
                     package='auto_typing',
                     executable='camera_info_publisher.py',
-                    parameters=[params],
+                    parameters=[camera_info_params],
                 ),
                 Node(
                     package='aruco_opencv',
@@ -94,6 +95,11 @@ def generate_launch_description():
             name='localiser_params',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'localisers.yaml']),
             description='Path to localiser params file',
+        ),
+        DeclareLaunchArgument(
+            name='camera_info_params',
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'camera_info', 'finger.yaml']),
+            description='Path to camera info params file',
         ),
         DeclareLaunchArgument(
             name='aruco_params',
