@@ -16,11 +16,14 @@ CREATION:	25/05/2025
 from launch import LaunchDescription
 from launch.conditions import IfCondition
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+
+from os.path import expanduser
+
+typing_dir = expanduser('~') + '/nova/src/ros/rover/arm/arm_bringup'
 
 def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
@@ -69,23 +72,33 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    arm_bringup_dir = FindPackageShare('arm_bringup')
+    local = LaunchConfiguration('local')
+
+    arm_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([typing_dir]),
+        FindPackageShare('arm_bringup')
+    )
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='local',
+            default_value='True',
+            description='Use local source directories instead of the nix store.',
+        ),
+        DeclareLaunchArgument(
             name='typing_params',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'typing.yaml']),
-            description='Absolute path to typing params file',
+            description='Path to typing params file',
         ),
         DeclareLaunchArgument(
             name='localiser_params',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'localisers.yaml']),
-            description='Absolute path to localiser params file',
+            description='Path to localiser params file',
         ),
         DeclareLaunchArgument(
             name='aruco_params',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'aruco', 'typing_tracker.yaml']),
-            description='Absolute path to ArUco tracker params file',
+            description='Path to ArUco tracker params file',
         ),
         DeclareLaunchArgument(
             name='old_arm',
