@@ -40,7 +40,7 @@ interface BottomOverlayProps {
 export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = [], enableDroneTracking = false}) => {
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const { points, centerOnRover, trackRover, showTrackRover, centerOnDrone, trackDrone, showTrackDrone, focusVehicle } = useSelector(
+  const { points, centerOnRover, trackRover, showTrackRover, centerOnDrone, trackDrone, showTrackDrone, focusVehicle, showSearchZones } = useSelector(
     (state: RootState) => state.cartographerState
   );
   const rover = useSelector((state: RootState) => state.roverLocationStore)
@@ -220,7 +220,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                     tooltipContent={`Toggle Show Search Zone`}
                     isIconOnly
                     variant="shadow"
-                    color={currentVehicle.centerOn ? "primary" : "default"}
+                    color={showSearchZones ? "primary" : "default"}
                     onPressStart={toggleShowSearchZones}
                   >
                     <Target className="w-5" />
