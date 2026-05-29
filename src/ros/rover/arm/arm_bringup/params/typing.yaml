@@ -23,7 +23,7 @@ keyboard_localiser:
     key_quaternion: [0.0, 0.0, 0.0, 1.0]
     key_offset: 5.0
     ee_frame: linear_actuator
-    use_handeye: true
+    use_handeye: false
     handeye_marker_id: 1
     handeye_marker_yaw_offset: 90.0  # degrees, rotation from marker frame to keyboard frame about Z
 
@@ -43,6 +43,14 @@ keyboard_localiser:
 
     # tf2 initalisation
     tf_publish_rate: 1.0 # per second
+
+usbc_localiser:
+  ros__parameters:
+    aruco_topic: /aruco_detections
+    frame_prefix: aruco_marker_
+    center_frame: usbc_frame
+    marker_ids: [4, 1, 3, 2]
+    min_markers: 2
 
 typing_sequencer:
   ros__parameters:
