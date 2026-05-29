@@ -2,12 +2,13 @@
 
 // This is the Name that comes with the MBTiles File Itself
 export enum MapTile {
+  MDRSBigBoy = "MDRS_HI_Res_Big_boi",
+  UltraScience = "science-ultra-high-res",
   DeliveryHQ = "Delivery_HQ",
   DeliveryLQ = "Delivery_LQ",
   ESAHQ = "ESA_HQ",
   ESALQ = "ESA_LQ",
   MDRS = "MDRS_Hi_Res",
-  MDRSBigBoy = "MDRS_HI_Res_Big_boi",
   Hanksville = "Hanksville",
   Monash = "MonashClayton",
   PolicePaddocks = "PolicePaddocks",
@@ -31,4 +32,5 @@ export const MAP_BOUNDS:  {  [key in MapTile]: [number, number, number, number] 
   [MapTile.Science]: [-110.799,38.393,-110.781,38.4048],
   [MapTile.JellsPark]: [145.188,-37.9042,145.209,-37.8895],
   [MapTile.BYU]: [-111.661,40.2444,-111.633,40.2622],
+  [MapTile.UltraScience]: [-110.797,38.3921,-110.786,38.4011]
 };
