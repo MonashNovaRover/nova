@@ -11,10 +11,14 @@ CREATION:	28/05/2026
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+
+from os.path import expanduser
+
+usbc_dir = expanduser('~') + '/nova/src/ros/rover/arm/arm_bringup'
 
 
 def launch_setup(context, *args, **kwargs):
@@ -42,9 +46,18 @@ def launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-    arm_bringup_dir = FindPackageShare('arm_bringup')
+    local = LaunchConfiguration('local')
+
+    arm_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([usbc_dir]), FindPackageShare('arm_bringup')
+    )
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='local',
+            default_value='True',
+            description='Use local source directories instead of the nix store.',
+        ),
         DeclareLaunchArgument(
             name='localiser_params',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'localisers.yaml']),
