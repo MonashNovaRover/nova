@@ -152,7 +152,7 @@ class KeyboardLocaliser(Node):
         self.create_timer(timer_period, self.publish_aligned_tf)
 
         # Hand-eye calibration
-        self.use_handeye = self.declare_parameter('use_handeye', True).get_parameter_value().bool_value
+        self.use_handeye = self.declare_parameter('use_handeye', False).get_parameter_value().bool_value
         self.ee_frame = self.declare_parameter('ee_frame', 'image_frame').get_parameter_value().string_value
         self.handeye_marker_id = self.declare_parameter('handeye_marker_id', 1).get_parameter_value().integer_value
         # Rotation offset (degrees around Z) from marker frame to keyboard frame
