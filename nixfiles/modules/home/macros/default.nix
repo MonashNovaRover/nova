@@ -313,6 +313,7 @@ in
 
           # Arm
           launch-typing = "~/Builds/active/bin/ros2 launch arm_bringup typing.launch.py";
+          launch-usbc = "~/Builds/active/bin/ros2 launch arm_bringup usbc.launch.py";
           launch-arm-control = "~/Builds/active/bin/ros2 launch arm_bringup control.launch.py arm:=False old_arm:=True";
           launch-path-control = "~/Builds/active/bin/ros2 launch arm_bringup path.control.launch.py";
           launch-arm-urdf = "~/Builds/active/bin/ros2 launch arm_bringup urdf.launch.py arm:=False old_arm:=True auto_camera:=False";
