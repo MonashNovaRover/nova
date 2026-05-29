@@ -10,48 +10,6 @@ camera_info_publisher:
     hfov: 61.3727248
     distortion_matrix: [0.1748, -0.9582, -0.001254, -0.000797, 0.6523]
 
-keyboard_localiser:
-  ros__parameters:
-
-    # key position initalisation params
-    keyboard_frame: keyboard_frame
-    # base_frame: arm_link
-
-    # (manual) keyboard alignment params
-    aligned_keyboard_position: [1.0,0.0,0.6]
-    aligned_keyboard_quaternion: [ -0.5, 0.5, -0.5, 0.5 ]
-    key_quaternion: [0.0, 0.0, 0.0, 1.0]
-    key_offset: 5.0
-    ee_frame: linear_actuator
-    use_handeye: false
-    handeye_marker_id: 1
-    handeye_marker_yaw_offset: 90.0  # degrees, rotation from marker frame to keyboard frame about Z
-
-    # calibrated camera intrinsics
-    hfov: 61.3727248
-    image_width: 1280 #1280
-    image_height: 720 #720
-    distortion_matrix: [0.1748, -0.9582, -0.001254, -0.000797, 0.6523]
-
-    # ArUco marker params
-    aruco_topic: /aruco_detections
-    marker_ids: [1, 4, 3, 2]  # top-left, top-right, bottom-right, bottom-left
-    marker_offset: 13.333333 # mm
-
-    # (auto) keyboard pose analysis initalisation
-    camera_frame: image_frame
-
-    # tf2 initalisation
-    tf_publish_rate: 1.0 # per second
-
-usbc_localiser:
-  ros__parameters:
-    aruco_topic: /aruco_detections
-    frame_prefix: aruco_marker_
-    center_frame: usbc_frame
-    marker_ids: [4, 1, 3, 2]
-    min_markers: 2
-
 typing_sequencer:
   ros__parameters:
     # key position initalisation params

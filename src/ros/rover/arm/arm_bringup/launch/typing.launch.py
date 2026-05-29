@@ -26,6 +26,7 @@ def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
     auto_mode = LaunchConfiguration('auto_mode')
     params = LaunchConfiguration('typing_params')
+    localiser_params = LaunchConfiguration('localiser_params')
     aruco_params = LaunchConfiguration('aruco_params')
 
     base_frame = "arm_kinematics_origin"
@@ -36,7 +37,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='auto_typing',
             executable='keyboard_localiser.py',
-            parameters=[params, {"base_frame": base_frame}, {"using_auto": auto_mode}]
+            parameters=[localiser_params, {"base_frame": base_frame}, {"using_auto": auto_mode}]
         ),
         Node(
             package='auto_typing',
@@ -74,11 +75,16 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='typing_params',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'typing.yaml']),
-            description='Absolute path to robot urdf file',
+            description='Absolute path to typing params file',
+        ),
+        DeclareLaunchArgument(
+            name='localiser_params',
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'localisers.yaml']),
+            description='Absolute path to localiser params file',
         ),
         DeclareLaunchArgument(
             name='aruco_params',
-            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'typing_aruco_tracker.yaml']),
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'aruco', 'typing_tracker.yaml']),
             description='Absolute path to ArUco tracker params file',
         ),
         DeclareLaunchArgument(
