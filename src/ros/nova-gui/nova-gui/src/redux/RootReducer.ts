@@ -111,6 +111,15 @@ export const reduxStores = {
         }) as IRosCmdInterfacesCmdFeedback
     ),
   } as IRosCmdInterfacesCmDsFeedback),
+  armTelemetryJointStateStore: createBifrostStore(
+      { topic: RosTopic.ARM_TELEMETRY_JOINT_STATES },
+      {
+          name: [],
+          position: [],
+          velocity: [],
+          effort: [],
+      }
+  ),
   rfidDataStore: createBifrostStore(
     { topic: RosTopic.RFID_DATA },
     {

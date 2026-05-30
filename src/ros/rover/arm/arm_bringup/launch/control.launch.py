@@ -148,6 +148,14 @@ def launch_setup(context, *args, **kwargs):
                     arguments=['joint_state_broadcaster_end_effector', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
+                Node(
+                    package='controller_manager',
+                    executable='spawner',
+                    arguments=['joint_state_broadcaster_arm_telemetry', "-c", "/arm/controller_manager",
+                               '--controller-ros-args', '-r /arm/joint_states:=/arm_telemetry/joint_states',
+                               '--controller-ros-args', '-r /arm/dynamic_joint_states:=/arm_telemetry/dynamic_joint_states'],
+                    additional_env=show_colours_additional_env,
+                ),
                 # IncludeLaunchDescription(
                 #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
                 #     launch_arguments={'model': model, 'gazebo': gazebo, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm, 'rviz': rviz}.items(),

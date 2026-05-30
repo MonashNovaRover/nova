@@ -25,6 +25,7 @@ import {
   ARCActivatedNodeConfig, URCActivatedNodeConfig
 } from "../../../components/shared/widgets/ActivatedNodeWidget/ActivatedNodeWidgetConfig.tsx";
 import YoloCameraComponent from "../../../components/auto/ObjectDetection/YoloCameraComponent.tsx";
+import ArmCameraComponent from "../../../components/cameras/CameraComponent/special/ArmCameraComponent.tsx";
 
 /// Defines special components to use for certain cameras
 export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentProps> } = {
@@ -44,6 +45,7 @@ export const cameraSerialToComponentMap: { [k: string]: FC<BaseCameraComponentPr
   [CameraSerials.AUTO_RIGHT]: YoloCameraComponent,
   [CameraSerials.AUTO_LEFT]: YoloCameraComponent,
   [CameraSerials.AUTO_BEHIND]: YoloCameraComponent,
+  [CameraSerials.ARM_TELEMETRY]: ArmCameraComponent,
 }
 
 /// Function that used the above map to get the component for a specified camera serial

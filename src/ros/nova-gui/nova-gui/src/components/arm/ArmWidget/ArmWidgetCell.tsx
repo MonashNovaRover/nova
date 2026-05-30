@@ -7,23 +7,37 @@ import {
   import { OverlayedProgress } from "../../shared/components/OverlayedProgress/OverlayedProgress.tsx";
   
   export interface IArmWidgetCellProps extends CardProps {
-    jointValue: number,
+    jointCurrent: number,
+    jointVelocity: number,
+    progressMaxVelocity: number,
     label: ReactNode
   }
 
     const ArmWidgetCell: React.FC<IArmWidgetCellProps> = (props: IArmWidgetCellProps) => {
-        const jointProgress = (
+        const jointCurrent = (
         <OverlayedProgress size="lg"
-                             value={props.jointValue}
+                             value={props.jointCurrent}
                              maxValue={1}
-                             aria-label="Joint Amount"
+                             aria-label="Joint Current"
                              autoColor={true}
                              disableAnimation={false}>
             <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
-            <span>JOINT</span>
-            <span>{`${(props.jointValue * 100).toFixed(0)}%`}</span>
+            <span>{`${(props.jointCurrent * 100).toFixed(0)}%`}</span>
             </div>
         </OverlayedProgress>
+        );
+
+        const jointVelocity = (
+            <OverlayedProgress size="lg"
+                               value={props.jointVelocity}
+                               maxValue={props.progressMaxVelocity}
+                               aria-label="Joint Velocity"
+                               autoColor={true}
+                               disableAnimation={false}>
+                <div className="grid grid-flow-col gap-3 auto-cols-fr text-small">
+                    <span>{`${props.jointVelocity.toFixed(2)} rad/s`}</span>
+                </div>
+            </OverlayedProgress>
         );
     
         const label = (
@@ -33,10 +47,11 @@ import {
         )
     
         return <Card shadow="sm" {...props} >
-        <CardBody className="pt-1 flex gap-1 font-semibold flex-col content-center bg-content2">
+        <CardBody className="pt-1 pl-1.5 pr-1.5 pb-1.5 flex gap-1 font-semibold flex-col content-center bg-content2">
             {label}
             <div className="flex flex-col gap-2 content-center">
-            {jointProgress}
+            {jointCurrent}
+            {jointVelocity}
             </div>
         </CardBody>
         </Card>
