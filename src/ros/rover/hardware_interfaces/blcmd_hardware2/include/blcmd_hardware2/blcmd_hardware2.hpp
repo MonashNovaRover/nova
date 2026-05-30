@@ -237,6 +237,10 @@ private:
     std::vector<PositionInterface> hw_positions_;
     std::vector<ControlInterface> hw_efforts_;
 
+    // bodges to output real j5/j6 velocities/efforts when diff_wrist = true
+    std::vector<double> hw_efforts_real_ {0, 0};
+    std::vector<double> hw_velocities_real_ {0, 0};
+
     double differential_position_actual_value1, differential_position_actual_value2;
     double differential_velocity_actual_value1, differential_velocity_actual_value2;
     double differential_effort_actual_value1, differential_effort_actual_value2;

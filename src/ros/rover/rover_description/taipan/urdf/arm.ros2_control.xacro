@@ -46,12 +46,18 @@
 				<command_interface name="position">
 					<param name="max">12.5663706144</param>
 				</command_interface>
+				<command_interface name="effort">
+					<param name="max">1</param>
+				</command_interface>
 				<state_interface name="velocity">
 					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
 					<param name="max">12.5663706144</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="effort">
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -89,12 +95,18 @@
 				<command_interface name="position">
 					<param name="max">12.5663706144</param>
 				</command_interface>
+				<command_interface name="effort">
+					<param name="max">1</param>
+				</command_interface>
 				<state_interface name="velocity">
 					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
 					<param name="max">12.5663706144</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="effort">
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -132,12 +144,18 @@
 				<command_interface name="position">
 					<param name="max">12.5663706144</param>
 				</command_interface>
+				<command_interface name="effort">
+					<param name="max">1</param>
+				</command_interface>
 				<state_interface name="velocity">
 					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
 					<param name="max">12.5663706144</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="effort">
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -173,10 +191,16 @@
 				</command_interface>
 				<command_interface name="position">
 				</command_interface>
+				<command_interface name="effort">
+					<param name="max">1</param>
+				</command_interface>
 				<state_interface name="velocity">
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="effort">
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -215,12 +239,18 @@
 				<command_interface name="position">
 					<param name="max">12.5663706144</param>
 				</command_interface>
+				<command_interface name="effort">
+					<param name="max">1</param>
+				</command_interface>
 				<state_interface name="velocity">
 					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
 					<param name="max">12.5663706144</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="effort">
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>
@@ -232,12 +262,18 @@
 				<command_interface name="position">
 					<param name="max">12.5663706144</param>
 				</command_interface>
+				<command_interface name="effort">
+					<param name="max">1</param>
+				</command_interface>
 				<state_interface name="velocity">
 					<param name="max">292.444791137</param>
 					<param name="initial_value">0.0</param>
 				</state_interface>
 				<state_interface name="position">
 					<param name="max">12.5663706144</param>
+					<param name="initial_value">0.0</param>
+				</state_interface>
+				<state_interface name="effort">
 					<param name="initial_value">0.0</param>
 				</state_interface>
 			</joint>

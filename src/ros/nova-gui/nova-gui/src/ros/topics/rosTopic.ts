@@ -19,6 +19,7 @@ export enum RosTopic {
 
   // Arm related topics
   ARM_TELEMETRY = "/cmds/cmd_feedback",
+  ARM_TELEMETRY_JOINT_STATES = "/arm_telemetry/joint_states",
   RFID_DATA = "/electronics/rfid/data",
   KEYBOARD_DATA = "/arm/keyboard/points",
   TYPE_SEQUENCE = "/arm/sequence",

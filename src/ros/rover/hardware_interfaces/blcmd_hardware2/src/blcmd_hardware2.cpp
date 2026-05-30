@@ -758,13 +758,13 @@ bool BLCMDHardware::set_control_interface(
 
         if(hw_efforts_.at(i).state.has_value()) {
              if (params_.diff_wrist && i == 0) {
-               differential_effort_actual_value1 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
+               differential_effort_actual_value1 = convert_scaled<int16_t>(&frame.data[2], hw_efforts_.at(i).max);
                 double converted_value1, converted_value2 = 0.0;
                 differential_convert_from_motors(differential_effort_actual_value1, differential_effort_actual_value2, converted_value1, converted_value2);
                 hw_efforts_.at(0).state = converted_value1;
                 hw_efforts_.at(1).state = converted_value2;
             } else if (params_.diff_wrist && i == 1) {
-               differential_effort_actual_value2 = convert_scaled<int16_t>(&frame.data[0], hw_efforts_.at(i).max);
+               differential_effort_actual_value2 = convert_scaled<int16_t>(&frame.data[2], hw_efforts_.at(i).max);
                 double converted_value1, converted_value2 = 0.0;
                 differential_convert_from_motors(differential_effort_actual_value1, differential_effort_actual_value2, converted_value1, converted_value2);
                 hw_efforts_.at(0).state = converted_value1;
