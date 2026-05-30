@@ -70,6 +70,7 @@ export interface RootState {
 
   // Arm Stores
   armTelemetryStore: IRosCmdInterfacesCmDsFeedback;
+  armTelemetryJointStateStore: IRosSensorMsgsJointState;
   rfidDataStore: IRosStdMsgsString;
   keyboardTFTrigger: IRosArmInterfacesStringTriggerResponse;
   keyboardDataStore: IRosArmInterfacesKeyboardPoints;

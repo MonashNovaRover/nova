@@ -40,6 +40,7 @@ export enum CameraSerials {
   SITE_SELECT = "site_select",
   SCIENCE_POWER_CYCLE = "power_cycle",
   SCIENCE_COMBINED = "science_combined",
+  ARM_TELEMETRY = "arm_telemetry",
 
   MAST_FISHEYE = "mast_fisheye",
   MAST_BELLY = "mast_belly",
@@ -268,7 +269,7 @@ export const urc_equipment_servicing_views: CameraViewConfig[] = [
 
 export const urc_delivery_views: CameraViewConfig[] = [
   {
-    cameraSerials: [...urcArmCams.slice(0,3), urcArmCams[7], ...urcArmCams.slice(4,6), urcArmCams[6], urcArmCams[8], ...driveCams, urcArmCams[3]],
+    cameraSerials: [...urcArmCams.slice(0,3), urcArmCams[7], ...urcArmCams.slice(4,6), urcArmCams[6], urcArmCams[8], ...driveCams.slice(0, 2), CameraSerials.ARM_TELEMETRY, urcArmCams[3], CameraSerials.DRIVE_CONTROL],
     viewTitle: "All Cams",
   },
   {
