@@ -56,6 +56,7 @@ export interface RosTopicInterfaces {
 
   // Arm Related
   [RosTopic.ARM_TELEMETRY]: IRosCmdInterfacesCmDsFeedback;
+  [RosTopic.ARM_TELEMETRY_JOINT_STATES]: IRosSensorMsgsJointState;
   [RosTopic.RFID_DATA]: IRosStdMsgsString;
   [RosTopic.KEYBOARD_DATA]: IRosArmInterfacesKeyboardPoints;
   [RosTopic.TYPE_SEQUENCE]: IRosArmInterfacesSequencerFeedback;

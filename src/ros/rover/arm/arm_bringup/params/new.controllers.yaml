@@ -29,6 +29,9 @@ arm:
       joint_state_broadcaster_end_effector:
         type: joint_state_broadcaster/JointStateBroadcaster
 
+      joint_state_broadcaster_arm_telemetry:
+        type: joint_state_broadcaster/JointStateBroadcaster
+
   nova_arm_velocity_controller:
     ros__parameters:
       topic: "/arm/joint_velocity_command"
@@ -345,4 +348,12 @@ arm:
          ["velocity"]
 
       joints: ["la_prismatic_", "lead_left_"]
+      use_local_topics: false
+
+  joint_state_broadcaster_arm_telemetry:
+    ros__parameters:
+      update_rate: 10
+      joints: ["j1", "j2", "j3", "j4", "j5", "j6"]
+      interfaces: ["velocity", "effort"]
+      publish_dynamic_joint_states: false
       use_local_topics: false

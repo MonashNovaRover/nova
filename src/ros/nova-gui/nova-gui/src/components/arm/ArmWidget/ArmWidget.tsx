@@ -3,15 +3,15 @@ import {
     CardHeader,
     CardBody,
     CardProps,
-    Image,
 } from "@nextui-org/react";
 import React, { useEffect } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../../redux/RootState.ts";
 import { useSelector } from "react-redux";
-import ARMImage from "../../../assets/arm-image.png";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import ArmWidgetCell from "./ArmWidgetCell.tsx";
+import {getJointEffort, getJointVelocity} from "../../../utils.ts";
+import {IRosSensorMsgsJointState} from "../../../ros/rosTypes.ts";
 
 export interface IArmWidgetProps extends CardProps { }
 
@@ -19,52 +19,65 @@ export interface IArmWidgetProps extends CardProps { }
  * A component that displays arm telemetry.
  */
 
+const CURRENT_FACTOR = 0.15;
+const PROGRESS_MAX_VELOCITY = 1.05;
+
+const getProcessedJointCurrent = (joint: string, jointState: IRosSensorMsgsJointState) => Math.abs(getJointEffort(joint, jointState)) / CURRENT_FACTOR;
+const getProcessedJointVelocity = (joint: string, jointState: IRosSensorMsgsJointState) => Math.abs(getJointVelocity(joint, jointState));
+
 const ArmWidget: React.FC<IArmWidgetProps> = (
     props: IArmWidgetProps
 ) => {
-    const CURRENT_FACTOR = 10
-    const bifrostArm = useBifrost({ topic: RosTopic.ARM_TELEMETRY });
 
-    const jointValues = useSelector((state: RootState) => state.armTelemetryStore.arm_motors);
-    const jointValuesCurrents = jointValues.map((j) => Math.abs(j.current/CURRENT_FACTOR));
+    const bifrostArm = useBifrost({ topic: RosTopic.ARM_TELEMETRY_JOINT_STATES });
+    const jointStates = useSelector((state: RootState) => state.armTelemetryJointStateStore);
 
     useEffect(() => {
         bifrostArm.syncWithTopic();
     }, [bifrostArm]);
 
     const armDataCardBody = (
-        <CardBody className="grid auto-cols-fr grid-flow-col gap-3">
-            <div className="flex flex-col justify-center gap-3">
+        <CardBody className="grid auto-cols-fr grid-flow-col gap-2 p-2">
+            <div className="flex flex-col justify-center gap-2">
                 <ArmWidgetCell
-                    jointValue={jointValuesCurrents[0]}
+                    jointCurrent={getProcessedJointCurrent("j1", jointStates)}
+                    jointVelocity={getProcessedJointVelocity("j1", jointStates)}
+                    progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                     label={<>J1</>}
                 />
                 <ArmWidgetCell
-                    jointValue={jointValuesCurrents[1]}
+                    jointCurrent={getProcessedJointCurrent("j4", jointStates)}
+                    jointVelocity={getProcessedJointVelocity("j4", jointStates)}
+                    progressMaxVelocity={PROGRESS_MAX_VELOCITY}
+                    label={<>J4</>}
+                />
+            </div>
+            <div className="flex flex-col justify-center gap-2">
+                <ArmWidgetCell
+                    jointCurrent={getProcessedJointCurrent("j2", jointStates)}
+                    jointVelocity={getProcessedJointVelocity("j2", jointStates)}
+                    progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                     label={<>J2</>}
                 />
                 <ArmWidgetCell
-                    jointValue={jointValuesCurrents[2]}
+                    jointCurrent={getProcessedJointCurrent("j5", jointStates)}
+                    jointVelocity={getProcessedJointVelocity("j5", jointStates)}
+                    progressMaxVelocity={PROGRESS_MAX_VELOCITY}
+                    label={<>PITCH</>}
+                />
+            </div>
+            <div className="flex flex-col justify-center gap-2">
+                <ArmWidgetCell
+                    jointCurrent={getProcessedJointCurrent("j3", jointStates)}
+                    jointVelocity={getProcessedJointVelocity("j3", jointStates)}
+                    progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                     label={<>J3</>}
                 />
-            </div>
-
-            <div className="flex justify-center">
-                <Image src={ARMImage} alt="Arm Image" width={200} height={200} />
-            </div>
-
-            <div className="flex flex-col justify-center gap-3">
                 <ArmWidgetCell
-                    jointValue={jointValuesCurrents[3]}
-                    label={<>J4</>}
-                />
-                <ArmWidgetCell
-                    jointValue={jointValuesCurrents[4]}
-                    label={<>J5</>}
-                />
-                <ArmWidgetCell
-                    jointValue={jointValuesCurrents[5]}
-                    label={<>J6</>}
+                    jointCurrent={getProcessedJointCurrent("j6", jointStates)}
+                    jointVelocity={getProcessedJointVelocity("j6", jointStates)}
+                    progressMaxVelocity={PROGRESS_MAX_VELOCITY}
+                    label={<>ROLL</>}
                 />
             </div>
         </CardBody>

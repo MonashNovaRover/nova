@@ -11,6 +11,8 @@ import { useSelector } from "react-redux";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import ArmWidgetCell from "./ArmWidgetCell.tsx";
 
+const PROGRESS_MAX_VELOCITY = 0.25;
+
 export interface IArmTypingWidgetProps extends CardProps { }
 
 /** 
@@ -35,29 +37,41 @@ const ArmTypingWidget: React.FC<IArmTypingWidgetProps> = (
             <div className="grid grid-cols-2 gap-1">
                 <div className="flex flex-col justify-center gap-1">
                     <ArmWidgetCell
-                        jointValue={jointValuesCurrents[0]}
+                        jointCurrent={jointValuesCurrents[0]}
+                        jointVelocity={0}
+                        progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                         label={<>J1</>}
                     />
                     <ArmWidgetCell
-                        jointValue={jointValuesCurrents[1]}
+                        jointCurrent={jointValuesCurrents[1]}
+                        jointVelocity={0}
+                        progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                         label={<>J2</>}
                     />
                     <ArmWidgetCell
-                        jointValue={jointValuesCurrents[2]}
+                        jointCurrent={jointValuesCurrents[2]}
+                        jointVelocity={0}
+                        progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                         label={<>J3</>}
                     />
                 </div>
                 <div className="flex flex-col justify-center gap-1">
                     <ArmWidgetCell
-                        jointValue={jointValuesCurrents[3]}
+                        jointCurrent={jointValuesCurrents[3]}
+                        jointVelocity={0}
+                        progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                         label={<>J4</>}
                     />
                     <ArmWidgetCell
-                        jointValue={jointValuesCurrents[4]}
+                        jointCurrent={jointValuesCurrents[4]}
+                        jointVelocity={0}
+                        progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                         label={<>J5</>}
                     />
                     <ArmWidgetCell
-                        jointValue={jointValuesCurrents[5]}
+                        jointCurrent={jointValuesCurrents[5]}
+                        jointVelocity={0}
+                        progressMaxVelocity={PROGRESS_MAX_VELOCITY}
                         label={<>J6</>}
                     />
                 </div>
