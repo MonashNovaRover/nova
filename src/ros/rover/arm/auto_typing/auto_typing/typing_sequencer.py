@@ -34,7 +34,6 @@ from geometry_msgs.msg import Transform, Pose
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import threading
-import tf2_geometry_msgs
 
 # from arm_interfaces.action import PathTo
 from arm_interfaces.msg import SequencerFeedback
@@ -123,28 +122,51 @@ class TypingSequencer(Node):
         return R.from_matrix(rmat).as_quat()
 
     def pose_calc(self, key_to_base, ee_frame, actuator_frame, stamp) -> Pose | None:
-        """ Given the following frames, calculates the pose to feed into the 
-            path planner to move actuator of end effector offset from the key """
+        """ Given the following frames, calculates the pose to feed into the
+            path planner to move actuator of end effector offset from the key.
+
+            The planner plans for the ee frame, so the actuator tip is placed on the
+            key and the ee pose is worked back through the fixed actuator offset. """
         act_to_ee = self.get_transform_from_frame(actuator_frame, ee_frame, stamp)
         if act_to_ee is None:
             return None
-        ate_pose = Pose() 
-        ate_pose.position = act_to_ee.transform.translation
-        ate_pose.orientation = act_to_ee.transform.rotation
-        ee_to_key = tf2_geometry_msgs.do_transform_pose(ate_pose, key_to_base)
 
+        # Orientation to hold the actuator at, derived from the keyboard normal
         target_quaternion = self.compute_target_quaternion(key_to_base.transform.rotation)
+        R_target = R.from_quat(target_quaternion).as_matrix()
+
+        # Fixed actuator -> ee offset, i.e. the ee pose in the actuator frame
+        q_ae = act_to_ee.transform.rotation
+        t_ae = act_to_ee.transform.translation
+        R_ae = R.from_quat([q_ae.x, q_ae.y, q_ae.z, q_ae.w]).as_matrix()
+        t_ae = np.array([t_ae.x, t_ae.y, t_ae.z])
+
+        # Key position in base frame, already standing off the key by key_offset
+        t_key = key_to_base.transform.translation
+        t_key = np.array([t_key.x, t_key.y, t_key.z])
+
+        # T_base_ee = T_base_actuator * T_actuator_ee, putting the tip on the key
+        R_ee = R_target @ R_ae
+        t_ee = t_key + R_target @ t_ae
+        q_ee = R.from_matrix(R_ee).as_quat()
+
+        target_pose = Pose()
+        target_pose.position.x, target_pose.position.y, target_pose.position.z = (float(v) for v in t_ee)
+        (target_pose.orientation.x, target_pose.orientation.y,
+         target_pose.orientation.z, target_pose.orientation.w) = (float(v) for v in q_ee)
 
         if self.debug_target_tf:
             tfs = TransformStamped()
             tfs.header.frame_id = self.base_frame
             tfs.child_frame_id = 'target_' + self.keyboard_frame
             tfs.header.stamp = stamp
-            tfs.transform.translation = ee_to_key.position
-            tfs.transform.rotation.x, tfs.transform.rotation.y, tfs.transform.rotation.z, tfs.transform.rotation.w = target_quaternion
+            tfs.transform.translation.x = target_pose.position.x
+            tfs.transform.translation.y = target_pose.position.y
+            tfs.transform.translation.z = target_pose.position.z
+            tfs.transform.rotation = target_pose.orientation
             self.transform_broadcaster.sendTransform(tfs)
 
-        return ee_to_key
+        return target_pose
 
     def call_path_planner(self, pose, speed):
         goal_msg = ArmPlanPath.Goal()
