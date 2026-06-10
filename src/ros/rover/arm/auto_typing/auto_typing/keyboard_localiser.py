@@ -335,8 +335,8 @@ class KeyboardLocaliser(Node):
             )
             return
 
-        # Invert to get T_ee2cam_actual (EE to camera)
-        R_ee2cam_actual = R_cam2ee.T
+        # Use the result of calibrateHandEye, which returns the camera pose in the gripper (ee) frame
+        R_ee2cam_actual = R_cam2ee
 
         # Store calibrated rotation for continuous publishing
         self.calibrated_quat = R.from_matrix(R_ee2cam_actual).as_quat()  # [x, y, z, w]

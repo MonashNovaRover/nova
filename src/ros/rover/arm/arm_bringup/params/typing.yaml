@@ -10,7 +10,7 @@ typing_sequencer:
     actuator_frame: actuator
 
     timeout: 2.0
-    pollrate: 10.0
+    poll_rate: 10.0
 
     # path planner movement
     speed: 0.05 # m/s
