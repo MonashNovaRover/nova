@@ -19,11 +19,6 @@ AUTHOR(S):  Anthony Lew, Binuda Kalugalage
 CREATION:	6/04/2024
 EDITED:     18/04/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-TODO:
- - Find an IRL alignment
- - Calibrate periscope camera
- - Test with moveable arm (Arm is joints are currently locked to facilitate testing)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 
 from geometry_msgs.msg import TransformStamped
@@ -162,12 +157,14 @@ class KeyboardLocaliser(Node):
         self.last_ee_rotation = None
         self.handeye_calibrated = False
         self.calibrated_quat = None  # latest calibrated rotation as [x, y, z, w]
-        # Cache URDF's initial guess for image_frame (so we don't read back our own published value)
+        # Separate frame, since robot_state_publisher already publishes the URDF's.
+        # Keyboard estimates use it once calibration is good.
+        self.calibrated_camera_frame = self.camera_frame + '_calibrated'
+        # The ee -> camera mount from the URDF, read once from TF
         self.R_ee2cam_urdf = None
         self.t_ee2cam_urdf = None
         if self.use_handeye:
             self.create_timer(1.0, self.cache_urdf_transform)
-            # Publish calibrated transform at 10Hz to override robot_state_publisher's static TF
             self.create_timer(0.1, self.publish_calibrated_camera_tf)
 
         self.get_logger().info(f"Running this node in {"auto" if self.node_is_auto else "manual"} mode with service: {KEY_SERVICE_NAME}. Using keyboard: {self.keyboard_frame} for transforms and base link: {self.base_frame}")
@@ -278,35 +275,32 @@ class KeyboardLocaliser(Node):
             self.solve_handeye()
 
     def cache_urdf_transform(self) -> None:
-        '''Cache the URDF's initial image_frame transform once available, then stop.'''
+        '''Cache the URDF's nominal ee -> camera mount transform once available, then stop.'''
         if self.R_ee2cam_urdf is not None:
             return
         try:
-            guessed_tf = self.tf_buffer.lookup_transform(
+            urdf_tf = self.tf_buffer.lookup_transform(
                 self.ee_frame, self.camera_frame, rclpy.time.Time()
             )
         except Exception:
             return
 
-        q_g = guessed_tf.transform.rotation
-        self.R_ee2cam_urdf = R.from_quat([q_g.x, q_g.y, q_g.z, q_g.w]).as_matrix()
+        q_u = urdf_tf.transform.rotation
+        self.R_ee2cam_urdf = R.from_quat([q_u.x, q_u.y, q_u.z, q_u.w]).as_matrix()
         self.t_ee2cam_urdf = np.array([
-            [guessed_tf.transform.translation.x],
-            [guessed_tf.transform.translation.y],
-            [guessed_tf.transform.translation.z]
+            [urdf_tf.transform.translation.x],
+            [urdf_tf.transform.translation.y],
+            [urdf_tf.transform.translation.z]
         ], dtype=np.float64)
         self.get_logger().info(
-            f"Cached URDF image_frame transform: "
+            f"Cached URDF camera mount transform: "
             f"xyz=({self.t_ee2cam_urdf[0][0]:.4f}, {self.t_ee2cam_urdf[1][0]:.4f}, {self.t_ee2cam_urdf[2][0]:.4f})"
         )
 
     def solve_handeye(self) -> None:
-        '''Solve the hand-eye calibration AX=XB problem and publish the
-        calibrated camera frame directly as ee_frame -> image_frame.
-
-        Uses URDF xyz (translation) and calibrated rpy (rotation).
-        Called every time a new sample is added, so it continuously
-        improves as more observations are collected.'''
+        '''Solve the hand-eye calibration AX=XB problem for the ee -> camera mount
+        transform, published on the parallel {camera_frame}_calibrated frame.
+        Called every time a new sample is added, so it improves as more come in.'''
         if self.R_ee2cam_urdf is None:
             return
 
@@ -344,23 +338,30 @@ class KeyboardLocaliser(Node):
 
         urdf_rpy = R.from_matrix(self.R_ee2cam_urdf).as_euler('xyz', degrees=True)
         calibrated_rpy = R.from_matrix(R_ee2cam_actual).as_euler('xyz', degrees=True)
+        # Log the calibrated translation for comparison only, the URDF xyz is what
+        # gets published. Translation needs far more rotation diversity to converge.
+        urdf_xyz = self.t_ee2cam_urdf.ravel()
+        calibrated_xyz = t_cam2ee.ravel()
         self.get_logger().info(
             f"Hand-eye calibration updated ({len(self.handeye_buffer)} samples):\n"
-            f"  URDF image_frame:       rpy=[{urdf_rpy[0]:.2f}, {urdf_rpy[1]:.2f}, {urdf_rpy[2]:.2f}]\n"
-            f"  Calibrated image_frame: rpy=[{calibrated_rpy[0]:.2f}, {calibrated_rpy[1]:.2f}, {calibrated_rpy[2]:.2f}]\n"
-            f"  Delta:                  rpy=[{calibrated_rpy[0]-urdf_rpy[0]:.2f}, {calibrated_rpy[1]-urdf_rpy[1]:.2f}, {calibrated_rpy[2]-urdf_rpy[2]:.2f}]"
+            f"  URDF camera mount:       rpy=[{urdf_rpy[0]:.2f}, {urdf_rpy[1]:.2f}, {urdf_rpy[2]:.2f}] "
+            f"xyz=[{urdf_xyz[0]:.4f}, {urdf_xyz[1]:.4f}, {urdf_xyz[2]:.4f}]\n"
+            f"  Calibrated camera mount: rpy=[{calibrated_rpy[0]:.2f}, {calibrated_rpy[1]:.2f}, {calibrated_rpy[2]:.2f}] "
+            f"xyz=[{calibrated_xyz[0]:.4f}, {calibrated_xyz[1]:.4f}, {calibrated_xyz[2]:.4f}] (xyz logged only, URDF xyz is published)\n"
+            f"  Delta:                   rpy=[{calibrated_rpy[0]-urdf_rpy[0]:.2f}, {calibrated_rpy[1]-urdf_rpy[1]:.2f}, {calibrated_rpy[2]-urdf_rpy[2]:.2f}]"
         )
 
     def publish_calibrated_camera_tf(self) -> None:
-        '''Continuously publish calibrated camera transform at high rate
-        to override robot_state_publisher's static TF.'''
+        '''Publish the calibrated camera pose on
+        ee_frame -> {camera_frame}_calibrated, using the URDF
+        translation and the calibrated rotation.'''
         if not self.handeye_calibrated or self.t_ee2cam_urdf is None:
             return
 
         tfs = TransformStamped()
         tfs.header.stamp = self.get_clock().now().to_msg()
         tfs.header.frame_id = self.ee_frame
-        tfs.child_frame_id = self.camera_frame
+        tfs.child_frame_id = self.calibrated_camera_frame
         tfs.transform.translation.x = float(self.t_ee2cam_urdf[0][0])
         tfs.transform.translation.y = float(self.t_ee2cam_urdf[1][0])
         tfs.transform.translation.z = float(self.t_ee2cam_urdf[2][0])
@@ -540,7 +541,10 @@ class KeyboardLocaliser(Node):
         ## convert quaternion and transform vector to transform message
         t = TransformStamped()
         t.header.stamp = self.get_clock().now().to_msg()
-        t.header.frame_id = self.camera_frame
+        # Parent to the calibrated camera frame once hand-eye has converged
+        t.header.frame_id = (
+            self.calibrated_camera_frame if self.handeye_calibrated else self.camera_frame
+        )
         t.child_frame_id = self.keyboard_frame
 
         t.transform.translation.x = float(tvec[0][0])
