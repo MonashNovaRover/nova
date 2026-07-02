@@ -19,7 +19,6 @@ keyboard_localiser:
     hfov: 61.3727248
     image_width: 1280 #1280
     image_height: 720 #720
-    distortion_matrix: [0.1748, -0.9582, -0.001254, -0.000797, 0.6523]
 
     # ArUco marker params
     aruco_topic: /aruco_detections
