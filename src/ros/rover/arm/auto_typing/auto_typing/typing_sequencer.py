@@ -103,14 +103,20 @@ class TypingSequencer(Node):
         return response
 
     def compute_target_quaternion(self, keyboard_rotation):
-        """Derive target wrist quaternion from actual keyboard orientation."""
+        """Derive target actuator quaternion from keyboard orientation.
+
+        The localiser's flip guard points the keyboard z-axis into the board, and the
+        actuator tip's +z is the poke direction, so the approach axis is +keyboard z.
+        That works out to the keyboard orientation itself, but it is built axis by
+        axis so the assumption stays visible if either convention changes.
+        """
 
         # First convert the keyboard quat to matrix form
         q = [keyboard_rotation.x, keyboard_rotation.y, keyboard_rotation.z, keyboard_rotation.w]
         kb_rmat = R.from_quat(q).as_matrix()
 
-        # Z orientation is the opposite of the keyboard normal
-        approach = -kb_rmat[:, 2]
+        # Z orientation is the keyboard z-axis, which points into the board
+        approach = kb_rmat[:, 2]
         # X orientation is the same as the keyboard right direction
         right = kb_rmat[:, 0]
         # Remaining Y orientation is just the cross product of the two

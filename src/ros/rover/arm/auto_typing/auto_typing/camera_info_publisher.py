@@ -36,7 +36,7 @@ class CameraInfoPublisher(Node):
         ).get_parameter_value().double_value
 
         self.dist_arr = list(self.declare_parameter(
-            'distortion_matrix', [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]
+            'distortion_matrix', [0.1748, -0.9582, -0.001254, -0.000797, 0.6523]
         ).get_parameter_value().double_array_value)
 
         publish_rate = self.declare_parameter(
