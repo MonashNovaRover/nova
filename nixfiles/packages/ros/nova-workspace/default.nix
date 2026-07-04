@@ -18,7 +18,6 @@
       nova-dgnss
       nova-electronics
       nova-science
-      nova-cameras2
       nova-blcmd-hardware
       nova-blcmd-hardware2
       nova-cmd-hardware
