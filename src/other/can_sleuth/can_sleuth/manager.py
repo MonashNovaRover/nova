@@ -15,7 +15,7 @@ from can_sleuth.devices import meta
 from can_sleuth.outputs import default_output
 
 class Manager:
-    def __init__(self, devices, outputs=None, updatePeriod=0.2, spinPeriod=0.05, includeMeta=True):
+    def __init__(self, devices, outputs=None, updatePeriod=0.2, spinPeriod=0.01, includeMeta=True):
         """Manager for our devices and outputs.
 
         :param devices: List of device.Device
