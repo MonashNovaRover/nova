@@ -170,7 +170,7 @@ let
 
     # Random things that don't fit anywhere else.
     misc = {
-      cameras2-legacy = import ../src/ros/cameras2/nix/legacy/default.nix { nixpkgs = pkgs; };
+      # cameras2-legacy = import ../src/ros/cameras2/nix/legacy/default.nix { nixpkgs = pkgs; };
     };
   };
 in
