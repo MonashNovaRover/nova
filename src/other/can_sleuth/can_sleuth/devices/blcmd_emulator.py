@@ -192,6 +192,7 @@ class BLCMDEmulator(candevice.CanDevice):
 
     def vel_cmd(self, speed):
         speed = speed / 2.4 # Jono Factor
+        speed = speed / 5 # orlando factor (not in firmware, this is compensating for an unknown thing)
         self.target_vel = self.max_vel*speed/0x8000
         self.pos_control = False
         self.vel_control = True
