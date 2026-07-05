@@ -192,8 +192,6 @@ in
           ws-build = "${nova-build} -A pkgs.ros.nova-workspace";
           ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
 
-          cameras-build = "${nova-build} -A misc.cameras2-legacy.launcher -o ~/Builds/cameras2legacy";
-
           # Directory aliases
           nova = "cd ${cfg.sourceDir}/..";
           nixfiles = "cd ${cfg.nixfileDir}";
@@ -204,6 +202,8 @@ in
           core = "${nova}/src/ros/rover/core";
           science = "${nova}/src/ros/rover/science";
           camerasdir = "${nova}/src/ros/cameras";
+          cameras = camerasdir;
+          camera = camerasdir;
           gui = "${nova}/src/ros/nova-gui/nova-gui";
           coms = "${nova}/src/other/coms_utils";
 
@@ -252,11 +252,7 @@ in
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
           reolink-ctl = "~/Builds/active/bin/reolink-ctl";
 
-          cameras3 = "~/Builds/active/bin/ros2 launch cameras cameras.launch.py";
-          cameras2 = "~/Builds/active/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
-          cameras2-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
-          cameras-orin ="echo 'DEPRECATED - Please use cameras instead for cameras operation, or cameras2-legacy for old camera stack'";
-          cameras = "${cameras3}";
+          launch-cameras = "~/Builds/active/bin/ros2 launch cameras cameras.launch.py";
           nix-enable = "sudo systemctl enable nix-daemon.service";
           nix-start = "sudo systemctl start nix-daemon.service";
 
