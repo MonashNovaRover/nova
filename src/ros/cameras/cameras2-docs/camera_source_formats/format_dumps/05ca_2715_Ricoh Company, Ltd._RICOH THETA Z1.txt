@@ -1,0 +1,11 @@
+ioctl: VIDIOC_ENUM_FMT
+	Type: Video Capture
+
+	[0]: 'H264' (H.264, compressed)
+		Size: Discrete 3840x1920
+			Interval: Discrete 0.033s (29.970 fps)
+		Size: Discrete 1920x960
+			Interval: Discrete 0.033s (29.970 fps)
+ioctl: VIDIOC_ENUM_FMT
+	Type: Video Capture
+
