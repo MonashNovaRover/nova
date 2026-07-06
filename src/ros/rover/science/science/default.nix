@@ -2,6 +2,7 @@
 , buildRosPackage
 , pythonPackages
 , ament-cmake
+, ament-cmake-pytest
 , python3Packages
 , rclcpp
 , rclpy
@@ -26,11 +27,12 @@ buildRosPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  nativeBuildInputs = [ ament-cmake ];
+  nativeBuildInputs = [ ament-cmake ament-cmake-pytest python3Packages.python ];
 
-  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs ];
+  buildInputs = [ rclcpp geometry-msgs nav-msgs trajectory-msgs ];
 
   propagatedBuildInputs = with pythonPackages; [
+    rclpy
     jcan
     nova-coms-utils
     pymodbus
@@ -38,8 +40,6 @@ buildRosPackage {
     opencv4
     pyserial
     python3Packages.minimalmodbus
-  ] ++
-  [
     nova-python-control
     nova-python-control2
     nova-input-interfaces
@@ -47,4 +47,6 @@ buildRosPackage {
     teleop-modular-python-utils
     nova-science-interfaces
   ];
+
+  doCheck = true;
 }
