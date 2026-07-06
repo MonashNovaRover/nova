@@ -156,6 +156,7 @@
       nova-locked-publisher
       ;
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
+    nova-cli = pythonPackages.nova-cli;
   }
 
   ## Extra packages to add to the workspace.

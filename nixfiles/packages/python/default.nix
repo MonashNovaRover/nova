@@ -14,4 +14,5 @@
   wmm-calculator = callPackage ./wmm-calculator { };
   pypcd4 = callPackage ./pypcd4 { };
   ros2-unbag = callPackage ./ros2-unbag { };
+  nova-cli = callPackage ../../src/other/nova_cli { };
 }

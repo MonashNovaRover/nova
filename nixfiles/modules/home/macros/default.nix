@@ -185,6 +185,7 @@ in
           set_arch = "set_arch";
           set_urc = "set_urc";
           set_active = "set_active";
+          pub_heading = "pub_heading";
 
           # Nix CLI shortcuts
           nova-build = "nom-build ${cfg.nixfileDir}";
@@ -195,17 +196,16 @@ in
           cameras-build = "${nova-build} -A misc.cameras2-legacy.launcher -o ~/Builds/cameras2legacy";
 
           # Directory aliases
-          nova = "cd ${cfg.sourceDir}/..";
           nixfiles = "cd ${cfg.nixfileDir}";
-          rover = "${nova}/src/ros/rover";
-          arm = "${nova}/src/ros/rover/arm";
-          autonomous = "${nova}/src/ros/rover/auto";
+          rover = "cd ${cfg.sourceDir}/ros/rover";
+          arm = "cd ${cfg.sourceDir}/ros/rover/arm";
+          autonomous = "cd ${cfg.sourceDir}/ros/rover/auto";
           auto = autonomous;
-          core = "${nova}/src/ros/rover/core";
-          science = "${nova}/src/ros/rover/science";
-          camerasdir = "${nova}/src/ros/cameras";
-          gui = "${nova}/src/ros/nova-gui/nova-gui";
-          coms = "${nova}/src/other/coms_utils";
+          core = "cd ${cfg.sourceDir}/ros/rover/core";
+          science = "cd ${cfg.sourceDir}/ros/rover/science";
+          camerasdir = "cd ${cfg.sourceDir}/ros/cameras";
+          gui = "cd ${cfg.sourceDir}/ros/nova-gui/nova-gui";
+          coms = "cd ${cfg.sourceDir}/other/coms_utils";
 
           # Networking 
           jetson = "ssh -C -Y nvidia@10.0.0.10";
@@ -307,7 +307,6 @@ in
           start-auto-arch = "~/Builds/active/bin/ros2 run auto_start start_auto_arch.py";
           start-auto-urc = "~/Builds/active/bin/ros2 run auto_start start_auto_urc.py";
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
-          pub_heading = "pub_heading";
 
           # GPS
           launch-gps-rover = "~/Builds/active/bin/ros2 launch nova_bringup gps_rover.launch.py";
@@ -359,6 +358,11 @@ in
           # use this as `can_viewer can0` for example to get "-c can0"
           can-viewer = "can_viewer";
           can_viewer = "~/Builds/active/bin/can_viewer -i socketcan -c";
+
+          # Nova CLI shortcuts
+          nova = "~/Builds/active/bin/nova";
+          launch = "nova launch";
+          run = "nova run";
 
           # Drive
           reset-flw = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 1}"'';
