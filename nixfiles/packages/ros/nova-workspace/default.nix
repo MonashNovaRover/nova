@@ -75,6 +75,7 @@
       ;
     inherit (pkgs.python3Packages)
       nova-can-sleuth
+      nova-cli
       ;
     nova-git-metadata = (pkgs.writeTextDir "nova-git-metadata" git-metadata);
   }
