@@ -114,6 +114,11 @@ class CameraStreamer : public rclcpp::Node
           gst_object_unref(gl_display);
           gl_display = nullptr;
       }
+
+      // Unref shared clock if created
+      if (shared_clock) {
+        gst_object_unref(shared_clock);
+      }
   }
 
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
@@ -128,10 +133,16 @@ class CameraStreamer : public rclcpp::Node
 
   // Initialize gstreamer opengl
   GstGLDisplay *gl_display = gst_gl_display_new();
+
+  // Initialize shared clock
+  GstClock *shared_clock = gst_system_clock_obtain();
   
   private: void start_pipeline(const std::unique_ptr<Pipeline>& pipeline)
   {
-    // get pipeline properties and use them to create the pipeline
+    // Check if pipeline requires gl context
+    bool requires_gl = false;
+
+    // Get pipeline properties and use them to create the pipeline
     if (pipeline->camera->pipeline_type == "v4lfallback")
     {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
@@ -142,18 +153,23 @@ class CameraStreamer : public rclcpp::Node
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 8);
-      GstContext *gl_context = gst_context_new("gst.gl.GLDisplay", TRUE);
-      gst_context_set_gl_display(gl_context, gl_display);
-      gst_element_set_context(pipeline->gst_pipeline, gl_context);
-      gst_context_unref(gl_context);
+      requires_gl = true;
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 9);
+      requires_gl = true;
+    }
+
+    // Use shared gl
+    if (requires_gl) {
       GstContext *gl_context = gst_context_new("gst.gl.GLDisplay", TRUE);
       gst_context_set_gl_display(gl_context, gl_display);
       gst_element_set_context(pipeline->gst_pipeline, gl_context);
       gst_context_unref(gl_context);
     }
+
+    // Use shared clock
+    gst_pipeline_set_clock(GST_PIPELINE(pipeline->gst_pipeline), shared_clock);
   }
 
   private: void change_profile_properties(const std::unique_ptr<Pipeline>& pipeline)

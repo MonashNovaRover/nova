@@ -13,6 +13,7 @@ void set_queue(GstElement* element) {
     "max-size-time", 0,
     "max-size-bytes", 0,
     "leaky", 2, // Drop old buffers
+    "silent", true,
   NULL);
 };
 
