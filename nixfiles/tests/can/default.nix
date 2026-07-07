@@ -11,7 +11,7 @@
 
 
       environment.systemPackages = with pkgs; [
-        jq can-utils
+        jq can-utils iproute2
       ];
     };
 

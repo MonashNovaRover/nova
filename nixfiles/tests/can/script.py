@@ -51,10 +51,26 @@ with subtest("Everyone can talk to everyone on ros? and talk to themself?"):
 
 
 with subtest("launch drive"):
-    base.succeed(f"{run_graphical('/home/nova/Builds/active/launch/run-drive rover')} >&2 &")
+    # if we run it with this, teleop and drive print to the graphical terminal which isn't visible when running the test headless
+    #base.succeed(f"{run_graphical('/home/nova/Builds/active/launch/run-drive rover')} >&2 &")
+
+    base.execute("systemd-run -E RMW_IMPLEMENTATION --uid=nova -u teleop-drive ros2 launch teleop_drive_joy teleop.launch.py")
+    rover.execute("systemd-run -E RMW_IMPLEMENTATION --uid=nova -u drive ros2 launch drive_bringup drive.launch.py")
+
+
 
     # press unlock and forwards!
-    base.succeed("sudo -iu nova ros2 topic pub -t 10 /drive/joy sensor_msgs/msg/Joy '{axes: [0.0, 1.0, 0.0, 0.0, 0.0, 0.0], buttons: [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'")
+    base.execute(asNova+"ros2 topic pub /drive/joy sensor_msgs/msg/Joy '{axes: [0.0, 1.0, 0.0, 0.0, 0.0, 0.0], buttons: [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}' > /dev/null & disown; exit")
+
+    time.sleep(5)
+
+    # check cmd vel has non-zero x
+    base.succeed(asNova+'ros2 topic echo /cmd_vel geometry_msgs/msg/TwistStamped --once --timeout 15 --field twist.linear.x | grep -v -e \'^---$\' -e \'^0.0$\'')
+    # did rover get the message?
+    rover.succeed(asNova+'ros2 topic echo /cmd_vel geometry_msgs/msg/TwistStamped --once --timeout 15 --field twist.linear.x | grep -v -e \'^---$\' -e \'^0.0$\'')
+
+    time.sleep(5)
+
 
     # should have moved
     rover.fail("jq .BLD.BLCMDEmulator.Pos.value /run/can_sleuth_state | grep +000.0")
