@@ -176,6 +176,42 @@ COMMANDS = {
 }
 ```
 
+## Development
+
+### Running the CLI Directly
+
+You can run the CLI directly from the source directory without building or installing:
+
+```bash
+# From the nova_cli directory
+cd src/other/nova_cli
+
+# Run as a module (use mpython3 alias or full path)
+mpython3 -m nova_cli launch science urc
+# Or: ~/Builds/active/bin/python3 -m nova_cli launch science urc
+```
+
+### Running Tests
+
+Run the test suite using pytest:
+
+```bash
+# From the nova_cli directory
+cd src/other/nova_cli
+
+# Run all tests
+mpython3 -m pytest
+
+# Run with verbose output
+mpython3 -m pytest -v
+
+# Run a specific test file
+mpython3 -m pytest tests/test_launch.py
+
+# Run a specific test
+mpython3 -m pytest tests/test_launch.py::test_launch_basic
+```
+
 ## Implementation Details
 
 ### Package Resolution
