@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from nova_cli.commands.base import Command
+from nova_cli.completion import complete_packages, complete_executables
 
 
 class RunCommand(Command):
@@ -18,15 +19,17 @@ class RunCommand(Command):
             description='Wrapper for ros2 run with automatic .py extension'
         )
 
-        parser.add_argument(
+        package_arg = parser.add_argument(
             'package',
             help='Package name (e.g., science, drive)'
         )
+        package_arg.completer = complete_packages
 
-        parser.add_argument(
+        node_arg = parser.add_argument(
             'node',
             help='Node/executable name (e.g., kiln). Will append .py if needed'
         )
+        node_arg.completer = complete_executables
 
         return parser
 
