@@ -28,7 +28,7 @@
 
   extraPythonPackages = ps: with ps; [ pyyaml types-pyyaml ];
 
-  testScript = { ... }@args: ''
+  testScript = { nodes, ... }@args: ''
     ${testScriptCommon args}
     camera_count = ${toString config.nodes.rover.nova.mocking.cameras.count};
   '' + builtins.readFile ./script.py;
