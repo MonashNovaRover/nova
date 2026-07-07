@@ -99,3 +99,19 @@ def complete_executables(prefix, parsed_args, **kwargs):
         return executables
     except OSError:
         return []
+
+
+def complete_scripts(prefix, parsed_args, **kwargs):
+    """Complete script names from launch directory"""
+    launch_dir = _get_build_path() / "launch"
+    if not launch_dir.exists():
+        return []
+
+    try:
+        scripts = []
+        for f in launch_dir.iterdir():
+            if f.is_file() and f.name.startswith(prefix):
+                scripts.append(f.name)
+        return sorted(scripts)
+    except OSError:
+        return []
