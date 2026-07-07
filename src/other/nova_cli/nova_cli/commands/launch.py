@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from nova_cli.commands.base import Command
+from nova_cli.completion import complete_packages_smart, complete_launch_files
 
 
 class LaunchCommand(Command):
@@ -18,17 +19,19 @@ class LaunchCommand(Command):
             description='Wrapper for ros2 launch with automatic transformations'
         )
 
-        parser.add_argument(
+        package_arg = parser.add_argument(
             'package',
             help='Package name (e.g., science, auto, arm). Will append _bringup automatically'
         )
+        package_arg.completer = complete_packages_smart
 
-        parser.add_argument(
+        launch_file_arg = parser.add_argument(
             'launch_file',
             nargs='?',
             default=None,
             help='Launch file name (e.g., urc, drive). Defaults to package name if omitted. Will append .launch.py automatically'
         )
+        launch_file_arg.completer = complete_launch_files
 
         # Note: extra args are captured in parse_known_args()
 

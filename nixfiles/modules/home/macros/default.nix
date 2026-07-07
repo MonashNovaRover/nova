@@ -162,6 +162,11 @@ in
           echo   "The files written to are sourced on shell startup."
           echo   ""
         }
+
+        # Source nova CLI completion
+        if [[ -f ~/Builds/active/share/bash-completion/completions/nova ]]; then
+          . ~/Builds/active/share/bash-completion/completions/nova
+        fi
       '';
 
       initExtra = lib.mkAfter ''
@@ -320,6 +325,7 @@ in
           mrviz = "~/Builds/active/bin/rviz2";
           mxacro = "~/Builds/active/bin/xacro ${cfg.sourceDir}/ros/rover/rover_description/banksia/urdf/rover.urdf.xacro";
           mrqt = "~/Builds/active/bin/rqt";
+          mpython3 = "~/Builds/active/bin/python3";
 
           # Arm
           launch-typing = "~/Builds/active/bin/ros2 launch arm_bringup typing.launch.py";
