@@ -14,6 +14,7 @@ EDITED BY: Orlando Chamberlain
 from . import tui
 from . import gui
 from . import terminal_out
+from . import json_out
 
 def default_output():
     return tui.TUI()
@@ -23,5 +24,6 @@ allOutputs = {
         "tui": tui.TUI,
         "gui": gui.GUI,
         "txt": terminal_out.TerminalOut,
+        "json": json_out.JsonOut,
         }
 
