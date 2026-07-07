@@ -39,6 +39,12 @@ class LaunchCommand(Command):
         """Execute launch command"""
         package = args.package
         launch_file = args.launch_file
+        extra_args = list(args.extra_args)
+
+        # If launch_file looks like a ROS2 arg, treat it as extra_args
+        if launch_file and ':=' in launch_file:
+            extra_args = [launch_file] + extra_args
+            launch_file = None
 
         # Default launch_file to package name if not provided
         if launch_file is None:
@@ -75,7 +81,7 @@ class LaunchCommand(Command):
             launch_file = f"{launch_file}.launch.py"
 
         # Build ros2 command
-        ros2_args = ['launch', resolved_package, launch_file] + args.extra_args
+        ros2_args = ['launch', resolved_package, launch_file] + extra_args
 
         # Execute the command
         return Command.run_ros2_command(args.build_path, ros2_args)
