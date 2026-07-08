@@ -2,7 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Launches ROS2 launch files with automatic package and file name
 transformations. Appends _bringup to package names and .launch.py
-to launch file names automatically.
+to launch file names automatically. Includes autocomplete.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 EXAMPLES:
   nova launch drive             # Launches drive_bringup/drive.launch.py
@@ -12,16 +12,14 @@ EXAMPLES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        nova_cli
 AUTHOR(S):      Felicity Matthews
-CREATION:       26/01/26
-EDITED:         26/07/09
+CREATION:       06/07/2026
+EDITED:         09/07/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import subprocess
 import sys
-from pathlib import Path
 
 from nova_cli.commands.base import Command
-from nova_cli.completion import complete_packages_smart, complete_launch_files
+from nova_cli import ros2_utils
 
 
 class LaunchCommand(Command):
@@ -40,7 +38,7 @@ class LaunchCommand(Command):
             'package',
             help='Package name (e.g., science, auto, arm). Will append _bringup automatically'
         )
-        package_arg.completer = complete_packages_smart
+        package_arg.completer = LaunchCommand.complete_package
 
         launch_file_arg = parser.add_argument(
             'launch_file',
@@ -48,7 +46,7 @@ class LaunchCommand(Command):
             default=None,
             help='Launch file name (e.g., urc, drive). Defaults to package name if omitted. Will append .launch.py automatically'
         )
-        launch_file_arg.completer = complete_launch_files
+        launch_file_arg.completer = LaunchCommand.complete_launch_file
 
         # Note: extra args are captured in parse_known_args()
 
@@ -80,8 +78,8 @@ class LaunchCommand(Command):
         resolved_package = LaunchCommand._resolve_package_name(args.build_path, package)
 
         # Check if package exists
-        if not LaunchCommand._package_exists(args.build_path, resolved_package):
-            available = LaunchCommand._list_bringup_packages(args.build_path)
+        if not ros2_utils.package_exists(args.build_path, resolved_package):
+            available = ros2_utils.list_packages(args.build_path)
             print(f"Error: Package '{resolved_package}' not found.", file=sys.stderr)
 
             # Suggest alternatives
@@ -104,7 +102,7 @@ class LaunchCommand(Command):
         ros2_args = ['launch', resolved_package, launch_file] + extra_args
 
         # Execute the command
-        return Command.run_ros2_command(args.build_path, ros2_args)
+        return ros2_utils.run_ros2_command(args.build_path, ros2_args)
 
     @staticmethod
     def _resolve_package_name(build_path, package):
@@ -124,45 +122,52 @@ class LaunchCommand(Command):
         # 1. Try with _bringup appended first (default behavior)
         if not package.endswith('_bringup'):
             bringup_pkg = f"{package}_bringup"
-            if LaunchCommand._package_exists(build_path, bringup_pkg):
+            if ros2_utils.package_exists(build_path, bringup_pkg):
                 return bringup_pkg
 
         # 2. If not found, try exact match
-        if LaunchCommand._package_exists(build_path, package):
+        if ros2_utils.package_exists(build_path, package):
             return package
 
         # 3. Not found - return original for error handling
         return package
 
     @staticmethod
-    def _package_exists(build_path, package_name):
-        """Check if a package exists in the build"""
-        ros2_bin = build_path / "bin" / "ros2"
-        result = subprocess.run(
-            [str(ros2_bin), 'pkg', 'list'],
-            capture_output=True,
-            text=True
-        )
+    def complete_package(prefix, parsed_args, **kwargs):
+        """Complete package names for launch command."""
+        build_path = ros2_utils.get_build_path()
+        packages = ros2_utils.list_packages(build_path)
 
-        if result.returncode != 0:
-            return False
-
-        packages = result.stdout.strip().split('\n')
-        return package_name in packages
+        results = []
+        for pkg in packages:
+            if pkg.startswith(prefix):
+                results.append(pkg)
+            # Also suggest base names for _bringup packages
+            if pkg.endswith('_bringup'):
+                base = pkg[:-8]
+                if base.startswith(prefix):
+                    results.append(base)
+        return results
 
     @staticmethod
-    def _list_bringup_packages(build_path):
-        """List all packages (prioritize *_bringup packages)"""
-        ros2_bin = build_path / "bin" / "ros2"
-        result = subprocess.run(
-            [str(ros2_bin), 'pkg', 'list'],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode != 0:
+    def complete_launch_file(prefix, parsed_args, **kwargs):
+        """Complete launch file names."""
+        if not hasattr(parsed_args, 'package') or not parsed_args.package:
             return []
 
-        packages = result.stdout.strip().split('\n')
-        # Return all packages, but _bringup packages are more relevant
-        return sorted(packages)
+        package = parsed_args.package
+        if package == "teleop":
+            subsystems = ['drive', 'arm', 'science', 'ec']
+            return [s for s in subsystems if s.startswith(prefix)]
+
+        build_path = ros2_utils.get_build_path()
+
+        # Try _bringup suffix first
+        test_pkg = package if package.endswith('_bringup') else f"{package}_bringup"
+        launch_files = ros2_utils.list_launch_files(build_path, test_pkg)
+
+        if not launch_files:
+            # Try without _bringup
+            launch_files = ros2_utils.list_launch_files(build_path, package)
+
+        return [f for f in launch_files if f.startswith(prefix)]

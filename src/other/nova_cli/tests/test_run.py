@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 from nova_cli.commands.run import RunCommand
 from nova_cli.commands.base import Command
+from nova_cli import ros2_utils
 
 
 class TestRunCLI:
@@ -53,8 +54,8 @@ class TestExecutableNotFound:
         mock_args.package = "science"
         mock_args.node = "nonexistent"
 
-        with patch.object(RunCommand, '_package_exists', return_value=True):
-            with patch.object(RunCommand, '_list_executables', return_value=['kiln', 'other']):
+        with patch.object(ros2_utils, 'package_exists', return_value=True):
+            with patch.object(ros2_utils, 'list_executables', return_value=['kiln', 'other']):
                 result = RunCommand.execute(mock_args)
                 assert result == 1
                 assert "Executable 'nonexistent' not found" in capsys.readouterr().err
@@ -67,15 +68,15 @@ class TestPackageNotFound:
         mock_args.package = "nonexistent"
         mock_args.node = "some_node"
 
-        with patch.object(RunCommand, '_package_exists', return_value=False):
-            with patch.object(RunCommand, '_list_packages', return_value=['science', 'drive']):
+        with patch.object(ros2_utils, 'package_exists', return_value=False):
+            with patch.object(ros2_utils, 'list_packages', return_value=['science', 'drive']):
                 result = RunCommand.execute(mock_args)
                 assert result == 1
                 assert "Package 'nonexistent' not found" in capsys.readouterr().err
 
 
 class TestListExecutables:
-    """Tests for _list_executables parsing."""
+    """Tests for ros2_utils.list_executables parsing."""
 
     def test_parses_ros2_output(self, mock_build_path):
         mock_result = MagicMock()
@@ -83,7 +84,7 @@ class TestListExecutables:
         mock_result.stdout = "science kiln\nscience camera\nscience sensor.py"
 
         with patch('subprocess.run', return_value=mock_result):
-            assert RunCommand._list_executables(mock_build_path, 'science') == ['kiln', 'camera', 'sensor.py']
+            assert ros2_utils.list_executables(mock_build_path, 'science') == ['kiln', 'camera', 'sensor.py']
 
     def test_handles_empty_output(self, mock_build_path):
         mock_result = MagicMock()
@@ -91,18 +92,18 @@ class TestListExecutables:
         mock_result.stdout = ""
 
         with patch('subprocess.run', return_value=mock_result):
-            assert RunCommand._list_executables(mock_build_path, 'science') == []
+            assert ros2_utils.list_executables(mock_build_path, 'science') == []
 
     def test_handles_command_failure(self, mock_build_path):
         mock_result = MagicMock()
         mock_result.returncode = 1
 
         with patch('subprocess.run', return_value=mock_result):
-            assert RunCommand._list_executables(mock_build_path, 'science') == []
+            assert ros2_utils.list_executables(mock_build_path, 'science') == []
 
 
 class TestPackageExists:
-    """Tests for _package_exists."""
+    """Tests for ros2_utils.package_exists."""
 
     def test_package_found(self, mock_build_path):
         mock_result = MagicMock()
@@ -110,7 +111,7 @@ class TestPackageExists:
         mock_result.stdout = "science\ndrive\nauto"
 
         with patch('subprocess.run', return_value=mock_result):
-            assert RunCommand._package_exists(mock_build_path, 'science') is True
+            assert ros2_utils.package_exists(mock_build_path, 'science') is True
 
     def test_package_not_found(self, mock_build_path):
         mock_result = MagicMock()
@@ -118,4 +119,4 @@ class TestPackageExists:
         mock_result.stdout = "drive\nauto"
 
         with patch('subprocess.run', return_value=mock_result):
-            assert RunCommand._package_exists(mock_build_path, 'science') is False
+            assert ros2_utils.package_exists(mock_build_path, 'science') is False

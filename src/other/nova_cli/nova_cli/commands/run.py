@@ -2,7 +2,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Runs ROS2 node executables with automatic .py extension handling.
 Validates package and executable existence with fuzzy matching
-suggestions on error.
+suggestions on error. Includes autocomplete.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 EXAMPLES:
   nova run science kiln         # Runs science/kiln.py
@@ -11,16 +11,14 @@ EXAMPLES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        nova_cli
 AUTHOR(S):      Felicity Matthews
-CREATION:       26/01/26
-EDITED:         26/07/09
+CREATION:       06/07/2026
+EDITED:         09/07/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import subprocess
 import sys
-from pathlib import Path
 
 from nova_cli.commands.base import Command
-from nova_cli.completion import complete_packages, complete_executables
+from nova_cli import ros2_utils
 
 
 class RunCommand(Command):
@@ -39,13 +37,13 @@ class RunCommand(Command):
             'package',
             help='Package name (e.g., science, drive)'
         )
-        package_arg.completer = complete_packages
+        package_arg.completer = RunCommand.complete_package
 
         node_arg = parser.add_argument(
             'node',
             help='Node/executable name (e.g., kiln). Will append .py if needed'
         )
-        node_arg.completer = complete_executables
+        node_arg.completer = RunCommand.complete_executable
 
         return parser
 
@@ -55,8 +53,8 @@ class RunCommand(Command):
         package = args.package
 
         # Check if package exists first
-        if not RunCommand._package_exists(args.build_path, package):
-            available = RunCommand._list_packages(args.build_path)
+        if not ros2_utils.package_exists(args.build_path, package):
+            available = ros2_utils.list_packages(args.build_path)
             print(f"Error: Package '{package}' not found.", file=sys.stderr)
 
             from nova_cli.utils import fuzzy_match
@@ -67,7 +65,7 @@ class RunCommand(Command):
             return 1
 
         # Get available executables for this package
-        executables = RunCommand._list_executables(args.build_path, package)
+        executables = ros2_utils.list_executables(args.build_path, package)
 
         # Try to find matching executable
         # 1. Try exact match
@@ -96,57 +94,20 @@ class RunCommand(Command):
         ros2_args = ['run', package, node] + args.extra_args
 
         # Execute the command
-        return Command.run_ros2_command(args.build_path, ros2_args)
+        return ros2_utils.run_ros2_command(args.build_path, ros2_args)
+    
+    @staticmethod
+    def complete_package(prefix, parsed_args, **kwargs):
+        """Complete package names."""
+        build_path = ros2_utils.get_build_path()
+        packages = ros2_utils.list_packages(build_path)
+        return [p for p in packages if p.startswith(prefix)]
 
     @staticmethod
-    def _package_exists(build_path, package_name):
-        """Check if a package exists"""
-        ros2_bin = build_path / "bin" / "ros2"
-        result = subprocess.run(
-            [str(ros2_bin), 'pkg', 'list'],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode != 0:
-            return False
-
-        packages = result.stdout.strip().split('\n')
-        return package_name in packages
-
-    @staticmethod
-    def _list_packages(build_path):
-        """List all packages"""
-        ros2_bin = build_path / "bin" / "ros2"
-        result = subprocess.run(
-            [str(ros2_bin), 'pkg', 'list'],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode != 0:
+    def complete_executable(prefix, parsed_args, **kwargs):
+        """Complete executable names."""
+        if not hasattr(parsed_args, 'package') or not parsed_args.package:
             return []
-
-        return result.stdout.strip().split('\n')
-
-    @staticmethod
-    def _list_executables(build_path, package_name):
-        """List executables for a package"""
-        ros2_bin = build_path / "bin" / "ros2"
-        result = subprocess.run(
-            [str(ros2_bin), 'pkg', 'executables', package_name],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode != 0:
-            return []
-
-        # Output format: "package_name executable_name"
-        executables = []
-        for line in result.stdout.strip().split('\n'):
-            if ' ' in line:
-                _, executable = line.split(' ', 1)
-                executables.append(executable)
-
-        return executables
+        build_path = ros2_utils.get_build_path()
+        executables = ros2_utils.list_executables(build_path, parsed_args.package)
+        return [e for e in executables if e.startswith(prefix)]

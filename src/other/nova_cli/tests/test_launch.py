@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from nova_cli.commands.launch import LaunchCommand
+from nova_cli import ros2_utils
 
 
 class TestLaunchCLI:
@@ -69,25 +70,25 @@ class TestResolvePackageName:
     """Tests for _resolve_package_name."""
 
     def test_appends_bringup_when_exists(self, mock_build_path):
-        with patch.object(LaunchCommand, '_package_exists') as mock_exists:
+        with patch.object(ros2_utils, 'package_exists') as mock_exists:
             mock_exists.side_effect = lambda bp, name: name == 'science_bringup'
             result = LaunchCommand._resolve_package_name(mock_build_path, 'science')
             assert result == 'science_bringup'
 
     def test_fallback_to_exact_name(self, mock_build_path):
-        with patch.object(LaunchCommand, '_package_exists') as mock_exists:
+        with patch.object(ros2_utils, 'package_exists') as mock_exists:
             mock_exists.side_effect = lambda bp, name: name == 'science'
             result = LaunchCommand._resolve_package_name(mock_build_path, 'science')
             assert result == 'science'
 
     def test_already_has_bringup_suffix(self, mock_build_path):
-        with patch.object(LaunchCommand, '_package_exists', return_value=True):
+        with patch.object(ros2_utils, 'package_exists', return_value=True):
             result = LaunchCommand._resolve_package_name(mock_build_path, 'science_bringup')
             assert result == 'science_bringup'
 
 
 class TestPackageExists:
-    """Tests for _package_exists."""
+    """Tests for ros2_utils.package_exists."""
 
     def test_package_found(self, mock_build_path):
         mock_result = MagicMock()
@@ -95,7 +96,7 @@ class TestPackageExists:
         mock_result.stdout = "science_bringup\ndrive_bringup\nauto_bringup"
 
         with patch('subprocess.run', return_value=mock_result):
-            assert LaunchCommand._package_exists(mock_build_path, 'science_bringup') is True
+            assert ros2_utils.package_exists(mock_build_path, 'science_bringup') is True
 
     def test_package_not_found(self, mock_build_path):
         mock_result = MagicMock()
@@ -103,11 +104,11 @@ class TestPackageExists:
         mock_result.stdout = "drive_bringup\nauto_bringup"
 
         with patch('subprocess.run', return_value=mock_result):
-            assert LaunchCommand._package_exists(mock_build_path, 'science_bringup') is False
+            assert ros2_utils.package_exists(mock_build_path, 'science_bringup') is False
 
     def test_ros2_command_fails(self, mock_build_path):
         mock_result = MagicMock()
         mock_result.returncode = 1
 
         with patch('subprocess.run', return_value=mock_result):
-            assert LaunchCommand._package_exists(mock_build_path, 'science_bringup') is False
+            assert ros2_utils.package_exists(mock_build_path, 'science_bringup') is False

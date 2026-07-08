@@ -10,20 +10,27 @@ EXAMPLES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        nova_cli
 AUTHOR(S):      Felicity Matthews
-CREATION:       26/01/26
-EDITED:         26/07/09
+CREATION:       06/07/2026
+EDITED:         09/07/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
-import os
 import subprocess
 import sys
 
 from nova_cli.commands.base import Command
-from nova_cli.completion import complete_scripts
+from nova_cli import ros2_utils
 
 
 class StartCommand(Command):
     """Implements 'nova start' command to run terminal launch scripts"""
+
+    @staticmethod
+    def complete_script(prefix, parsed_args, **kwargs):
+        """Complete script names from launch directory."""
+        build_path = ros2_utils.get_build_path()
+        launch_dir = build_path / "launch"
+        scripts = ros2_utils.list_scripts(launch_dir)
+        return [s for s in scripts if s.startswith(prefix)]
 
     @staticmethod
     def add_parser(subparsers):
@@ -37,7 +44,7 @@ class StartCommand(Command):
             'script',
             help='Script name (e.g., run-gui, run-drive, run-auto)'
         )
-        script_arg.completer = complete_scripts
+        script_arg.completer = StartCommand.complete_script
 
         return parser
 
@@ -52,7 +59,7 @@ class StartCommand(Command):
         script_path = launch_dir / args.script
 
         if not script_path.exists() or not script_path.is_file():
-            available = StartCommand._list_scripts(launch_dir)
+            available = ros2_utils.list_scripts(launch_dir)
             print(f"Error: Script '{args.script}' not found.", file=sys.stderr)
 
             if available:
@@ -72,15 +79,3 @@ class StartCommand(Command):
 
         result = subprocess.run(cmd)
         return result.returncode
-
-    @staticmethod
-    def _list_scripts(launch_dir):
-        """List available scripts"""
-        if not launch_dir.exists():
-            return []
-
-        scripts = []
-        for f in launch_dir.iterdir():
-            if f.is_file() and os.access(f, os.X_OK):
-                scripts.append(f.name)
-        return sorted(scripts)
