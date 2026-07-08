@@ -6,7 +6,6 @@ from types import SimpleNamespace
 
 from nova_cli.commands.launch import LaunchCommand
 from nova_cli.commands.run import RunCommand
-from nova_cli.commands.base import Command
 
 
 # Predictable build path prefix for assertions
@@ -48,6 +47,7 @@ def nova_cli():
         assert cmd == ["/builds/active/bin/ros2", "launch", "cameras", "cameras.launch.py"]
     """
     from nova_cli.main import extract_global_flags, create_parser
+    from nova_cli import ros2_utils
 
     # Default packages that "exist" - covers most test cases
     DEFAULT_PACKAGES = [
@@ -113,15 +113,14 @@ def nova_cli():
         def mock_list_packages(bp):
             return pkg_list
 
-        with patch.object(Command, 'run_ros2_command', side_effect=capture_ros2_cmd):
-            with patch.object(LaunchCommand, '_package_exists', side_effect=mock_pkg_exists):
-                with patch.object(RunCommand, '_package_exists', side_effect=mock_pkg_exists):
-                    with patch.object(RunCommand, '_list_executables', side_effect=mock_list_executables):
-                        with patch.object(RunCommand, '_list_packages', side_effect=mock_list_packages):
-                            if args.command == 'launch':
-                                LaunchCommand.execute(args)
-                            elif args.command == 'run':
-                                RunCommand.execute(args)
+        with patch.object(ros2_utils, 'run_ros2_command', side_effect=capture_ros2_cmd):
+            with patch.object(ros2_utils, 'package_exists', side_effect=mock_pkg_exists):
+                with patch.object(ros2_utils, 'list_executables', side_effect=mock_list_executables):
+                    with patch.object(ros2_utils, 'list_packages', side_effect=mock_list_packages):
+                        if args.command == 'launch':
+                            LaunchCommand.execute(args)
+                        elif args.command == 'run':
+                            RunCommand.execute(args)
 
         return captured_cmd
 
