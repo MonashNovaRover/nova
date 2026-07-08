@@ -1,4 +1,21 @@
-"""Launch command implementation"""
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Launches ROS2 launch files with automatic package and file name
+transformations. Appends _bringup to package names and .launch.py
+to launch file names automatically.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EXAMPLES:
+  nova launch drive             # Launches drive_bringup/drive.launch.py
+  nova launch arm control       # Launches arm_bringup/control.launch.py
+  nova launch teleop drive      # Launches teleop_drive/teleop.launch.py
+  nova launch science sim:=true # Pass ROS2 arguments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        nova_cli
+AUTHOR(S):      Felicity Matthews
+CREATION:       26/01/26
+EDITED:         26/07/09
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import subprocess
 import sys
 from pathlib import Path
