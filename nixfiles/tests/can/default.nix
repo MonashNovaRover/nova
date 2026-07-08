@@ -5,6 +5,8 @@
 
   nodes = {
     rover = { config, pkgs, lib, ... }: {
+      virtualisation.cores = lib.mkForce 4; # ros2control is big
+
       nova.mocking.can = {
         enable = true;
       };
