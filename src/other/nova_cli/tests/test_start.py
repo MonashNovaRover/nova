@@ -94,56 +94,26 @@ class TestStartCommand:
             assert cmd[1] == "nova@10.0.0.2"
             assert cmd[2] == "nova@10.0.0.3"
 
-    def test_list_scripts(self, mock_launch_dir):
-        """Test _list_scripts returns executable scripts"""
-        launch_dir = mock_launch_dir / "launch"
-        scripts = StartCommand._list_scripts(launch_dir)
-
-        assert "run-gui" in scripts
-        assert "run-drive" in scripts
-        assert "run-auto" in scripts
-        assert "run-science" in scripts
-
-    def test_list_scripts_empty_dir(self, tmp_path):
-        """Test _list_scripts with empty directory"""
-        launch_dir = tmp_path / "launch"
-        launch_dir.mkdir()
-
-        scripts = StartCommand._list_scripts(launch_dir)
-        assert scripts == []
-
-    def test_list_scripts_nonexistent_dir(self, tmp_path):
-        """Test _list_scripts with nonexistent directory"""
-        launch_dir = tmp_path / "nonexistent"
-        scripts = StartCommand._list_scripts(launch_dir)
-        assert scripts == []
-
 
 class TestCompleteScripts:
-    """Tests for complete_scripts function"""
+    """Tests for StartCommand.complete_script"""
 
     def test_complete_scripts(self, mock_launch_dir):
         """Test script completion"""
-        from nova_cli.completion import complete_scripts
-
-        with patch('nova_cli.completion._get_build_path', return_value=mock_launch_dir):
-            scripts = complete_scripts("run-", None)
+        with patch('nova_cli.ros2_utils.get_build_path', return_value=mock_launch_dir):
+            scripts = StartCommand.complete_script("run-", None)
             assert "run-gui" in scripts
             assert "run-drive" in scripts
 
     def test_complete_scripts_prefix_filter(self, mock_launch_dir):
         """Test script completion filters by prefix"""
-        from nova_cli.completion import complete_scripts
-
-        with patch('nova_cli.completion._get_build_path', return_value=mock_launch_dir):
-            scripts = complete_scripts("run-g", None)
+        with patch('nova_cli.ros2_utils.get_build_path', return_value=mock_launch_dir):
+            scripts = StartCommand.complete_script("run-g", None)
             assert "run-gui" in scripts
             assert "run-drive" not in scripts
 
     def test_complete_scripts_no_launch_dir(self, tmp_path):
         """Test completion when launch dir doesn't exist"""
-        from nova_cli.completion import complete_scripts
-
-        with patch('nova_cli.completion._get_build_path', return_value=tmp_path):
-            scripts = complete_scripts("", None)
+        with patch('nova_cli.ros2_utils.get_build_path', return_value=tmp_path):
+            scripts = StartCommand.complete_script("", None)
             assert scripts == []
