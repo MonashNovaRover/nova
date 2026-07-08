@@ -1,4 +1,14 @@
-"""CAN sleuth command - trace/emulate CAN devices"""
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Passthrough command to can_sleuth for CAN bus tracing and device
+emulation. All arguments are forwarded directly to can_sleuth.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        nova_cli
+AUTHOR(S):      Felicity Matthews
+CREATION:       26/01/26
+EDITED:         26/07/09
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import subprocess
 import sys
 

@@ -1,4 +1,15 @@
-"""Base command class"""
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Abstract base class for nova CLI commands. Provides common interface
+for parser registration and command execution, plus shared utilities
+for running ros2 commands.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        nova_cli
+AUTHOR(S):      Felicity Matthews
+CREATION:       26/01/26
+EDITED:         26/07/09
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import subprocess
 import sys
 from abc import ABC, abstractmethod

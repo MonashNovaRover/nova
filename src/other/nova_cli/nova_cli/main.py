@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Nova CLI - Main entry point"""
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Main entry point for the nova CLI. Handles argument parsing, global
+flag extraction (allowing flags like -b anywhere), build path
+validation, and command dispatch.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        nova_cli
+AUTHOR(S):      Felicity Matthews
+CREATION:       26/01/26
+EDITED:         26/07/09
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import argparse
 import sys
 import os

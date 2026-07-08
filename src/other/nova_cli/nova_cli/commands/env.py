@@ -1,4 +1,22 @@
-"""Environment configuration command implementation"""
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Manages Nova environment variables and build configuration. Supports
+setting/getting env vars like COMP, RMW_IMPLEMENTATION, ROS_DOMAIN_ID,
+and switching the active build symlink.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EXAMPLES:
+  nova env status               # Show all env var values
+  nova env set comp URC         # Set competition mode
+  nova env set rmw cyclone      # Set RMW (with shortcut)
+  nova env set build master     # Switch active build
+  nova env get domain           # Get ROS domain ID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        nova_cli
+AUTHOR(S):      Felicity Matthews
+CREATION:       26/01/26
+EDITED:         26/07/09
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path

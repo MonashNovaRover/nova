@@ -1,4 +1,15 @@
-"""Bash completion support for nova CLI"""
+"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Bash completion support for nova CLI. Provides completers for
+packages, launch files, executables, and scripts using filesystem
+lookups against the active build.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PACKAGE:        nova_cli
+AUTHOR(S):      Felicity Matthews
+CREATION:       26/01/26
+EDITED:         26/07/09
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"""
 from pathlib import Path
 
 
