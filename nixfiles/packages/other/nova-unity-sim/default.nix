@@ -2,14 +2,24 @@
   stdenv,
   makeWrapper,
   steam-run-free,
-  }:
+  fetchurl,
+  breakpointHook,
+}:
 
-stdenv.mkDerivation {
+# https://nixos.wiki/wiki/Packaging/Binaries
+stdenv.mkDerivation rec {
   name = "nova-unity-sim";
+  version = "1.0";
 
-  src = ./src;
+  src = fetchurl {
+    url = "https://github.com/MonashNovaRover/unity-build/releases/download/v${version}/unity_build.tar.xz";
+    hash = "sha256-IclEgjr3/yWnB6FO+N80baUq/dK11iLKyMz6H2eM9pc=";
+  };
 
+  nativeBuildInputs = [ breakpointHook ];
   buildInputs = [ steam-run-free makeWrapper ];
+
+  sourceRoot = ".";
 
   installPhase = ''
     mkdir -p $out/bin
@@ -21,7 +31,7 @@ stdenv.mkDerivation {
     cp unity_build/libdecor-cairo.so $out/share/
     cp unity_build/UnityPlayer.so $out/share/
 
-    makeWrapper ${steam-run-free}/bin/steam-run $out/bin/nova-unity-sim \
+    makeWrapper ${steam-run-free}/bin/steam-run $out/bin/${name} \
       --add-flags $out/share/build.x86_64
   '';
 
