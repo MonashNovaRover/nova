@@ -45,8 +45,8 @@ class TestLaunchCLI:
         cmd = nova_cli(["launch", "science", "urc", "--build", "auto"])
         assert cmd == ["/builds/auto/bin/ros2", "launch", "science_bringup", "urc.launch.py"]
 
-    def test_build_flag_at_start(self, nova_cli):
-        cmd = nova_cli(["-b", "arm", "launch", "science", "urc"])
+    def test_build_flag_after_command(self, nova_cli):
+        cmd = nova_cli(["launch", "-b", "arm", "science", "urc"])
         assert cmd == ["/builds/arm/bin/ros2", "launch", "science_bringup", "urc.launch.py"]
 
     def test_build_flag_with_extra_args(self, nova_cli):

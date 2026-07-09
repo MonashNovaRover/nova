@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
 from nova_cli.commands.base import Command
-from nova_cli.utils import BUILDS_DIR
+from nova_cli.build_utils import BUILDS_DIR
 
 
 CONFIG_DIR = Path.home() / ".config" / "nova"
