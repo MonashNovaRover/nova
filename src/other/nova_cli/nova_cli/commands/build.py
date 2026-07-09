@@ -1,6 +1,6 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Builds the Nova workspace to a named output directory. Wraps ws-build
+Builds the Nova workspace to a named output directory. Wraps nom-build
 with automatic output path handling.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 EXAMPLES:
@@ -23,14 +23,14 @@ from nova_cli.build_utils import list_available_builds
 
 
 class BuildCommand(Command):
-    """Implements 'nova build' command as wrapper for ws-build"""
+    """Implements 'nova build' command as wrapper for nom-build"""
 
     @staticmethod
     def add_parser(subparsers):
         parser = subparsers.add_parser(
             'build',
             help='Build the workspace to ~/Builds/<name>',
-            description='Wrapper for ws-build -o ~/Builds/<buildname>',
+            description='Wrapper for nom-build -o ~/Builds/<buildname>',
             add_help=False,  # Let ws-build handle --help
         )
 
@@ -47,7 +47,12 @@ class BuildCommand(Command):
         builds_dir = Path.home() / "Builds"
         output_path = builds_dir / args.buildname
 
-        cmd = ['ws-build', '-o', str(output_path)] + args.extra_args
+        nixfiles_path = Path.home() / "nova" / "nixfiles"
+        cmd = [
+            'nom-build', str(nixfiles_path),
+            '-A', 'pkgs.ros.nova-workspace',
+            '-o', str(output_path)
+        ] + args.extra_args
 
         print(f"Running: {' '.join(cmd)}", file=sys.stderr)
 
@@ -55,7 +60,7 @@ class BuildCommand(Command):
             result = subprocess.run(cmd)
             return result.returncode
         except FileNotFoundError:
-            print("Error: ws-build not found in PATH", file=sys.stderr)
+            print("Error: nom-build not found in PATH", file=sys.stderr)
             return 1
 
     @staticmethod

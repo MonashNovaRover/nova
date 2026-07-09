@@ -13,6 +13,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/MonashNovaRover/nova",
     packages=find_packages(),
+    package_data={
+        'nova_cli': ['memes/*.txt'],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
