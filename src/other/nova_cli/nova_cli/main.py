@@ -40,20 +40,15 @@ def create_parser():
     """Create the main argument parser"""
     parser = argparse.ArgumentParser(
         prog='nova',
-        description='CLI for Nova Rover ROS2 development and operations.',
+        description="Monash Nova Rover's very own CLI that does all of the every day commands that you need.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
   nova launch science urc           Launch science_bringup/urc.launch.py
-  nova launch teleop drive          Launch teleop_drive_bringup/teleop.launch.py
   nova run science kiln             Run science/kiln.py node
-  nova start run-gui                Run ~/Builds/active/launch/run-gui script
+  nova start gui                    Run ~/Builds/active/launch/run-gui script
   nova build master                 Build workspace to ~/Builds/master
   nova env set build master         Switch active build to master
-  nova env status                   Show current environment configuration
-
-Use -b <build> on launch/run/start to use a specific build:
-  nova launch science -b master     Use ~/Builds/master instead of active
         '''
     )
 
