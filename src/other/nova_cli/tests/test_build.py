@@ -16,46 +16,30 @@ from pathlib import Path
 from nova_cli.commands.build import BuildCommand
 
 
-@pytest.fixture
-def mock_home():
-    """Patch Path.home() to return predictable path."""
-    with patch.object(Path, 'home', return_value=Path('/home/test')):
-        yield
+class TestBuildCLI:
+    """Full CLI tests for nova build command."""
 
+    def test_basic_build(self, nova_cli):
+        cmd = nova_cli(["build", "master"])
+        assert cmd == ["ws-build", "-o", "/home/test/Builds/master"]
 
-@pytest.fixture
-def mock_args():
-    def _make(buildname, extra=[]):
-        return SimpleNamespace(buildname=buildname, extra_args=extra)
-    return _make
+    def test_build_auto(self, nova_cli):
+        cmd = nova_cli(["build", "auto"])
+        assert cmd == ["ws-build", "-o", "/home/test/Builds/auto"]
+
+    def test_build_with_extra_args(self, nova_cli):
+        cmd = nova_cli(["build", "test", "--packages-select", "science"])
+        assert cmd == ["ws-build", "-o", "/home/test/Builds/test", "--packages-select", "science"]
 
 
 class TestBuildCommand:
-    """Test nova build command generates correct ws-build commands."""
+    """Unit tests for BuildCommand error handling."""
 
-    def test_basic_build(self, mock_home, mock_args):
-        with patch('subprocess.run') as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
-            BuildCommand.execute(mock_args('master'))
-            cmd = mock_run.call_args[0][0]
-            assert cmd == ['ws-build', '-o', '/home/test/Builds/master']
+    def test_ws_build_not_found(self, capsys):
+        args = SimpleNamespace(buildname='master', extra_args=[])
 
-    def test_build_auto(self, mock_home, mock_args):
-        with patch('subprocess.run') as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
-            BuildCommand.execute(mock_args('auto'))
-            cmd = mock_run.call_args[0][0]
-            assert cmd == ['ws-build', '-o', '/home/test/Builds/auto']
-
-    def test_build_with_extra_args(self, mock_home, mock_args):
-        with patch('subprocess.run') as mock_run:
-            mock_run.return_value = MagicMock(returncode=0)
-            BuildCommand.execute(mock_args('test', ['--packages-select', 'science']))
-            cmd = mock_run.call_args[0][0]
-            assert cmd == ['ws-build', '-o', '/home/test/Builds/test', '--packages-select', 'science']
-
-    def test_ws_build_not_found(self, mock_home, mock_args, capsys):
-        with patch('subprocess.run', side_effect=FileNotFoundError):
-            result = BuildCommand.execute(mock_args('master'))
-            assert result == 1
-            assert 'ws-build not found' in capsys.readouterr().err
+        with patch.object(Path, 'home', return_value=Path('/home/test')):
+            with patch('subprocess.run', side_effect=FileNotFoundError):
+                result = BuildCommand.execute(args)
+                assert result == 1
+                assert 'ws-build not found' in capsys.readouterr().err
