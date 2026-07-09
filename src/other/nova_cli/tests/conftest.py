@@ -46,8 +46,9 @@ def nova_cli():
         cmd = nova_cli(["launch", "cameras"], packages=["cameras"])
         assert cmd == ["/builds/active/bin/ros2", "launch", "cameras", "cameras.launch.py"]
     """
-    from nova_cli.main import extract_global_flags, create_parser
+    from nova_cli.main import create_parser
     from nova_cli import ros2_utils
+    from nova_cli import build_utils
 
     # Default packages that "exist" - covers most test cases
     DEFAULT_PACKAGES = [
@@ -78,21 +79,10 @@ def nova_cli():
         pkg_list = packages if packages is not None else DEFAULT_PACKAGES
         exec_list = executables if executables is not None else DEFAULT_EXECUTABLES
 
-        # Extract global flags (like -b)
-        global_flags, filtered_argv = extract_global_flags(cli_args)
-
-        # Parse the filtered args
+        # Parse the args (no more global flag extraction)
         parser = create_parser()
-        args, extra_args = parser.parse_known_args(filtered_argv)
+        args, extra_args = parser.parse_known_args(cli_args)
 
-        # Apply global flags
-        for key, value in global_flags.items():
-            setattr(args, key, value)
-
-        # Use predictable build path
-        build_name = args.build
-        build_path = Path(f"{BUILD_ROOT}/{build_name}")
-        args.build_path = build_path
         args.extra_args = extra_args
 
         # Capture the command
@@ -113,14 +103,19 @@ def nova_cli():
         def mock_list_packages(bp):
             return pkg_list
 
+        def mock_validate_build_path(build_name):
+            # Return a predictable build path for any build name
+            return Path(f"{BUILD_ROOT}/{build_name}")
+
         with patch.object(ros2_utils, 'run_ros2_command', side_effect=capture_ros2_cmd):
             with patch.object(ros2_utils, 'package_exists', side_effect=mock_pkg_exists):
                 with patch.object(ros2_utils, 'list_executables', side_effect=mock_list_executables):
                     with patch.object(ros2_utils, 'list_packages', side_effect=mock_list_packages):
-                        if args.command == 'launch':
-                            LaunchCommand.execute(args)
-                        elif args.command == 'run':
-                            RunCommand.execute(args)
+                        with patch.object(build_utils, 'validate_build_path', side_effect=mock_validate_build_path):
+                            if args.command == 'launch':
+                                LaunchCommand.execute(args)
+                            elif args.command == 'run':
+                                RunCommand.execute(args)
 
         return captured_cmd
 

@@ -18,6 +18,7 @@ EDITED:         09/07/2026
 import sys
 
 from nova_cli.commands.base import Command
+from nova_cli.build_utils import add_build_argument, validate_build_arg
 from nova_cli import ros2_utils
 
 
@@ -32,6 +33,8 @@ class RunCommand(Command):
             help='Run a ROS2 node',
             description='Wrapper for ros2 run with automatic .py extension'
         )
+
+        add_build_argument(parser)
 
         package_arg = parser.add_argument(
             'package',
@@ -49,6 +52,9 @@ class RunCommand(Command):
 
     @staticmethod
     def execute(args):
+        if (err := validate_build_arg(args)) is not None:
+            return err
+
         """Execute run command"""
         package = args.package
 

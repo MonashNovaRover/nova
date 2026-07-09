@@ -10,6 +10,7 @@ EDITED:         09/07/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
+from nova_cli.commands.build import BuildCommand
 from nova_cli.commands.env import EnvCommand
 from nova_cli.commands.launch import LaunchCommand
 from nova_cli.commands.run import RunCommand
@@ -18,6 +19,7 @@ from nova_cli.commands.start import StartCommand
 
 # Command registry - add new commands here
 COMMANDS = {
+    'build': BuildCommand,
     'env': EnvCommand,
     'launch': LaunchCommand,
     'run': RunCommand,

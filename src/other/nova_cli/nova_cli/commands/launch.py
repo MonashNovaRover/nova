@@ -19,6 +19,7 @@ EDITED:         09/07/2026
 import sys
 
 from nova_cli.commands.base import Command
+from nova_cli.build_utils import add_build_argument, validate_build_arg
 from nova_cli import ros2_utils
 
 
@@ -33,6 +34,8 @@ class LaunchCommand(Command):
             help='Launch a ROS2 launch file',
             description='Wrapper for ros2 launch with automatic transformations'
         )
+
+        add_build_argument(parser)
 
         package_arg = parser.add_argument(
             'package',
@@ -54,6 +57,9 @@ class LaunchCommand(Command):
 
     @staticmethod
     def execute(args):
+        if (err := validate_build_arg(args)) is not None:
+            return err
+
         """Execute launch command"""
         package = args.package
         launch_file = args.launch_file
