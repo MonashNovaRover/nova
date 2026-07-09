@@ -1,6 +1,8 @@
 # Nova CLI
 
-ROS2 wrapper CLI tool for Nova Rover that simplifies common operations and replaces ~40-50 shell aliases.
+A unified command-line interface that makes common operations accessible to everyone on the team.
+
+This tool has been cooking in my head for a while: replace our growing collection of ~40-50 hardcoded shell aliases with something that's easy to use, easy to extend, and accessible to both software and non-software members. The goal is to create a tool that people reach for often and feel comfortable contributing to whenever there's a workflow that could be simplified.
 
 ## Features
 

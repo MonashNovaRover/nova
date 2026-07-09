@@ -30,7 +30,7 @@ class BuildCommand(Command):
         parser = subparsers.add_parser(
             'build',
             help='Build the workspace to ~/Builds/<name>',
-            description='Wrapper for nom-build -o ~/Builds/<buildname>',
+            description='Wrapper for ws-build -o ~/Builds/<buildname>',
             add_help=False,  # Let ws-build handle --help
         )
 
