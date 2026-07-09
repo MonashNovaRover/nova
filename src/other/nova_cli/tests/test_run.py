@@ -38,8 +38,8 @@ class TestRunCLI:
         cmd = nova_cli(["run", "science", "controller", "--build", "auto"])
         assert cmd == ["/builds/auto/bin/ros2", "run", "science", "controller"]
 
-    def test_build_flag_at_start(self, nova_cli):
-        cmd = nova_cli(["-b", "arm", "run", "science", "controller"])
+    def test_build_flag_after_command(self, nova_cli):
+        cmd = nova_cli(["run", "-b", "arm", "science", "controller"])
         assert cmd == ["/builds/arm/bin/ros2", "run", "science", "controller"]
 
     def test_build_flag_with_extra_args(self, nova_cli):

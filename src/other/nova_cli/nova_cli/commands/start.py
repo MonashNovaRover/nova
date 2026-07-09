@@ -18,6 +18,7 @@ import subprocess
 import sys
 
 from nova_cli.commands.base import Command
+from nova_cli.build_utils import add_build_argument, validate_build_arg
 from nova_cli import ros2_utils
 
 
@@ -40,6 +41,8 @@ class StartCommand(Command):
             description='Execute launch scripts from ~/Builds/<build>/launch/'
         )
 
+        add_build_argument(parser)
+
         script_arg = parser.add_argument(
             'script',
             help='Script name (e.g., run-gui, run-drive, run-auto)'
@@ -50,6 +53,9 @@ class StartCommand(Command):
 
     @staticmethod
     def execute(args):
+        if (err := validate_build_arg(args)) is not None:
+            return err
+
         launch_dir = args.build_path / "launch"
 
         if not launch_dir.exists():
