@@ -11,7 +11,9 @@ EDITED:         09/07/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import argparse
+import random
 import sys
+from pathlib import Path
 
 # IMPORTANT: Import before argparse setup for completion to work
 try:
@@ -22,6 +24,16 @@ except ImportError:
 
 from nova_cli.commands import COMMANDS
 from nova_cli import __version__
+
+
+def print_random_meme():
+    """Print a random meme from the memes directory."""
+    memes_dir = Path(__file__).parent / "memes"
+    if memes_dir.exists():
+        meme_files = list(memes_dir.glob("*.txt"))
+        if meme_files:
+            meme = random.choice(meme_files).read_text()
+            print(meme)
 
 
 def create_parser():
@@ -60,6 +72,10 @@ Use -b <build> on launch/run/start to use a specific build:
 
 def main():
     """Main entry point"""
+    # Print meme only for top-level help (nova -h), not subcommand help (nova launch -h)
+    if (len(sys.argv) == 2 and sys.argv[1] in ('-h', '--help')) or len(sys.argv) == 1:
+        print_random_meme()
+
     parser = create_parser()
 
     # Enable bash completion if available
