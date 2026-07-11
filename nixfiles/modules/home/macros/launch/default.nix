@@ -222,18 +222,4 @@ in
       export PATH="$NIX_BUILD_TOP/launch:$PATH"
     '';
   };
-
-  # git metadata derivation
-  nova-git-metadata = pkgs.stdenv.mkDerivation {
-    pname = "nova-git-metadata";
-    version = "1.0";
-    # this is relative to where this file is but it points at the root dir of the repo for git e.g /home/nova/nova
-    # it slows the build down significantly but we need to check the diff of every file
-    src = ../../../../../.;
-    buildInputs = [pkgs.git];
-    buildPhase = ''
-      mkdir -p $out
-      bash ${../../../../scripts/generate-git-metadata.sh} > $out/nova-git-metadata
-    '';
-  };
 }

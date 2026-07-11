@@ -1,5 +1,6 @@
 { lib
 , pkgs
+, git-metadata
 , buildROSWorkspace
 , buildEnv
 , rviz2
@@ -74,7 +75,6 @@
 , nova-joint-space-control-mode ? throw "nova-joint-space-control-mode is need, but not available!"
 , nova-teleop-arm ? throw "nova-teleop-arm is need, but not available!"
 , nova-launch-scripts
-, nova-git-metadata
 , nova-legacy-input-mode ? throw "nova-joint-space-control-mode is need, but not available!"
 , nova-teleop-science ? throw "nova-teleop-science is needed, but not available!"
 , nova-science-interfaces ? throw "nova-science-interfaces is needed, but not available!"
@@ -145,7 +145,6 @@
       nova-joint-space-control-mode
       nova-teleop-arm
       nova-launch-scripts
-      nova-git-metadata
       nova-legacy-input-mode
       nova-teleop-science
       nova-science-interfaces
@@ -155,6 +154,7 @@
       nova-camera-msgs
       nova-locked-publisher
       ;
+    nova-git-metadata = (pkgs.writeTextDir "nova-git-metadata" git-metadata);
     nova-can-sleuth = pythonPackages.nova-can-sleuth;
   }
 
