@@ -3,6 +3,8 @@
   # The locations of checked-out Nova Rover repositories.
   # Each repository in this list should have a default.nix module file.
 , repos ? import ./external/default-paths.nix
+  # result of scripts/generate-git-metadata.sh.
+, git-metadata ? "No metadata provided.\n"
 }:
 
 let
@@ -118,7 +120,11 @@ let
       })
       (self: super: {
         rosPackages = super.rosPackages.appendDistroOverlay
-          (rosSelf: rosSuper: import ./packages/ros { inherit (rosSelf) callPackage; pkgs = rosSelf;})
+        (rosSelf: rosSuper: import ./packages/ros {
+          inherit (rosSelf) callPackage;
+          pkgs = rosSelf;
+          inherit git-metadata;
+        })
           super.rosPackages;
       })
 

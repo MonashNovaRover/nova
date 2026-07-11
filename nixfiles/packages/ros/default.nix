@@ -1,4 +1,4 @@
-{ callPackage, pkgs }:
+{ callPackage, pkgs, git-metadata }:
 {
   audio-msgs = callPackage ./audio-msgs { };
   depthai = callPackage ./depthai { };
@@ -15,8 +15,11 @@
   iridescence = callPackage ./iridescence { };
   livox-ros-driver2 = callPackage ./livox-ros-driver2 { };
   livox-sdk2 = callPackage ./livox-sdk2 { };
-  nova-workspace = callPackage ./nova-workspace { };
+  nova-workspace = callPackage ./nova-workspace {
+    inherit git-metadata;
+  };
   nova-workspace-mast = callPackage ./nova-workspace {
+    inherit git-metadata;
     graphical = false;
     novaPackages = {
       nova-electronics = pkgs.nova-electronics;
