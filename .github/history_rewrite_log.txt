@@ -1,0 +1,10 @@
+2e9cba9868e2f3ac4ebf970ddde9f17cf42ec22d to e4cd285f608e808462e39dced0e5a64d5aa338e6 nova monorepo history rewrite by Anthony Lew
+Added history of the following repos:
+nixfiles: f765b82a18d5717e2b8d94f937ff7f7cc20d57d5
+rover: 97187154d1981f818da251dfef87989f9c888a71
+nova-gui: 51b4ca70ec41cfed3671e9bb1952b89dbf842520
+cameras2: 0bdb5b8dbcc363a056610ab69ae33922d2402a2d
+Note that these commits may not be the latest commit on these branches despite archival due to late archival. 
+The commits after were merged in later by Bailey and thus are present but their history may not be present.
+
+Also removed 2 silly commits by an electrical STR.
