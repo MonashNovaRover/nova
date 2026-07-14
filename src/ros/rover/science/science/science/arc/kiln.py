@@ -30,7 +30,7 @@ from rclpy.node import Node
 
 
 def main(node: Node) -> ControllerManager:
-        PythonControl(node, update_rate=5, can_bus="can1") \
+        return PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", ThermalController,
                          temp_sensors = ["kiln_sensor", "condenser_sensor"],
                          heaters = ["left_heater", "right_heater"],

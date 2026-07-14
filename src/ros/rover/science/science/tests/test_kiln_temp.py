@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import time
 import jcan
+import jcan.testing
 import pytest
 import rclpy
 from science_interfaces.srv import ThermalCommand
@@ -17,7 +19,7 @@ RIGHT_HEATER_CAN_ID = 0x0D2
 
 # Main function for setting up the ROS node
 @pytest.mark.manual
-def test_kiln_temp(setup_tester, setup_sut):
+def test_kiln_temp(logger, setup_tester, setup_sut):
     setup_sut("kiln", kiln_node)
     tester = setup_tester(
         services=[{'service': SERVICE, 'srv_type': ThermalCommand}], 
@@ -36,7 +38,10 @@ def test_kiln_temp(setup_tester, setup_sut):
 
     assert response.success
 
+    time.sleep(0.2)
+
     # Monitor mock JCAN can bus to determine correct CAN data is sent
     sent_frames = jcan.testing.get_sent_frames(CAN_BUS)
     sent_ids = {frame.id for frame in sent_frames}
+    logger.info(sent_frames)
     assert LEFT_HEATER_CAN_ID in sent_ids or RIGHT_HEATER_CAN_ID in sent_ids

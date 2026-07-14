@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import json
+import logging
 import threading
 from typing import TypedDict
 from collections.abc import Callable
 
 import jcan
+import jcan.testing
 import pytest
 import rclpy
 from rclpy.executors import SingleThreadedExecutor
@@ -50,9 +51,8 @@ class ClientNode(Node):
                 )
 
     # Sends the request
-    def send_request(self, service: str, payload: dict = None):
-        req = self.node_services[service].srv_type.Request()
-        req.command = json.dumps(payload)
+    def send_request(self, service: str, payload: dict = {}):
+        req = self.node_services[service].srv_type.Request(**payload)
         return self.node_services[service].call_async(req)
 
     def publish(self, topic: str, msg):
@@ -60,6 +60,11 @@ class ClientNode(Node):
             self.node_topics[topic].publish(msg)
         else:
             raise ValueError(f"Topic '{topic}' not found in the node's subscriptions.")
+
+
+@pytest.fixture(scope="session")
+def logger():
+    return logging.getLogger(__name__)
 
 
 @pytest.fixture()

@@ -19,6 +19,7 @@ endif()
 # Find and include all dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
+find_package(ament_cmake_pytest REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 
@@ -79,15 +80,5 @@ install(PROGRAMS
         science/time_of_flight.py
         DESTINATION lib/${PROJECT_NAME}
 )
-
-
-if(BUILD_TESTING)
-
-  # Run a specific Python test file
-  ament_add_pytest_test(test_kiln_temp tests/test_kiln_temp.py)
-
-  # Scan an entire directory for files matching test_*.py
-  # ament_add_pytest_test(test_suite test/)
-endif()
 
 ament_package()

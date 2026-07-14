@@ -64,7 +64,7 @@ buildRosPackage {
 
   checkPhase = ''
     runHook preCheck
-    ${pythonPackages.pytest}/bin/pytest tests/test_kiln_temp.py
+    ${pythonPackages.pytest}/bin/pytest ../tests
     runHook postCheck
   '';
 }
