@@ -25,12 +25,20 @@ class ServiceList(TypedDict):
     srv_type: any
 
 
-# Create client node to send requests and listen to topics
-class ClientNode(Node):
+class TesterNode(Node):
+    """Lightweight ROS 2 tester node used by pytest fixtures.
+
+    The helper can create service clients and topic subscriptions for a test,
+    wait for services to appear, and send asynchronous service requests.
+    """
+
     def __init__(
-        self, services: list[ServiceList] | None = None, topics: list[TopicList] = None
+        self,
+        node_name: str,
+        services: list[ServiceList] | None = None,
+        topics: list[TopicList] = None,
     ):
-        super().__init__("test_node")
+        super().__init__(node_name)
 
         if services:
             self.node_services = {}
@@ -50,8 +58,8 @@ class ClientNode(Node):
                     topic["msg_type"], topic["topic"], topic["callback"], 10
                 )
 
-    # Sends the request
     def send_request(self, service: str, payload: dict = {}):
+        """Build and send an async service request for a named service."""
         req = self.node_services[service].srv_type.Request(**payload)
         return self.node_services[service].call_async(req)
 
@@ -70,28 +78,36 @@ def logger():
 @pytest.fixture()
 def setup_tester():
     """
-    Fixture factory to setup a tester node.
-    """
-    created_clients = []
+    Fixture factory that creates and tracks client nodes for each test.
 
-    def _make_client(
-        services: list[ServiceList] = None, topics: list[TopicList] = None
+    rclpy is initialized once for the test, then each created client node is
+    destroyed before rclpy is shut down at the end of the fixture.
+    """
+    created_testers = []
+
+    def _make_tester(
+        node_name: str,
+        services: list[ServiceList] = None,
+        topics: list[TopicList] = None,
     ):
-        client = ClientNode(services=services, topics=topics)
-        created_clients.append(client)
-        return client
+        tester = TesterNode(node_name, services=services, topics=topics)
+        created_testers.append(tester)
+        return tester
 
     rclpy.init()
-    yield _make_client
-    for client in created_clients:
-        client.destroy_node()
+    yield _make_tester
+    for tester in created_testers:
+        tester.destroy_node()
     rclpy.shutdown()
 
 
 @pytest.fixture()
 def sut_executor():
     """
-    Creates an executor for a SUT node
+    Run a SingleThreadedExecutor in a background thread for the SUT node.
+
+    The executor is spun separately so the node under test can process timers,
+    services, and subscriptions while the test thread sends requests.
     """
     executor = SingleThreadedExecutor()
     stop = threading.Event()
@@ -111,7 +127,11 @@ def sut_executor():
 @pytest.fixture()
 def setup_sut(sut_executor):
     """
-    Fixture factory to create a SUT (System Under Test) node
+    Fixture factory that constructs a (System Under Test) node.
+
+    The provided spawner is expected to return a ControllerManager configured
+    for the node, then `spin(auto_run_rclpy=False)` wires up the timers and
+    services without blocking the test process.
     """
     nodes = []
 

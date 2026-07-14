@@ -24,7 +24,9 @@ RIGHT_HEATER_CAN_ID = 0x0D2
 def test_kiln_temp(logger, setup_tester, setup_sut):
     setup_sut("kiln", kiln_node)
     tester = setup_tester(
-        services=[{"service": SERVICE, "srv_type": ThermalCommand}], topics=None
+        "kiln_tester",
+        services=[{"service": SERVICE, "srv_type": ThermalCommand}],
+        topics=None,
     )
 
     # Observe the same (mocked) virtual CAN network kiln.py's node sends on, so we
