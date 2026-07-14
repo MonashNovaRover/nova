@@ -22,17 +22,15 @@ EDITED:         23/04/2026
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 import rclpy
-from rclpy.node import Node
 from python_control2 import PythonControl
+from python_control2.controller_manager import ControllerManager
 from python_control2.controllers import ThermalController
-from python_control2.hardware_interfaces import QCMDHardware, GenericSensorHardware
+from python_control2.hardware_interfaces import GenericSensorHardware, QCMDHardware
+from rclpy.node import Node
 
 
-if __name__ == "__main__":
-    rclpy.init()
-
-    node = Node("kiln")
-    PythonControl(node, update_rate=5, can_bus="can1") \
+def main(node: Node) -> ControllerManager:
+        PythonControl(node, update_rate=5, can_bus="can1") \
         .with_controller("controller", ThermalController,
                          temp_sensors = ["kiln_sensor", "condenser_sensor"],
                          heaters = ["left_heater", "right_heater"],
@@ -47,5 +45,10 @@ if __name__ == "__main__":
                                                     ((data[2] << 8) | data[3]) - 273.15],
                        initial_value=[0.0, 0.0],
                        unit = "temperature") \
-        .with_jcan() \
-        .spin()
+        .with_jcan()
+
+
+if __name__ == "__main__":
+    rclpy.init()
+    node = Node("kiln")
+    main(node).spin()

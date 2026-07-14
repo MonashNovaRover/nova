@@ -49,4 +49,22 @@ buildRosPackage {
   ];
 
   doCheck = true;
+
+  preCheck = ''
+    MOCK_JCAN=$(ls -d ${pythonPackages.mock-jcan}/lib/python*/site-packages 2>/dev/null | head -n 1)
+    echo "Injecting mock jcan package into PYTHONPATH for testing..."
+    
+    if [ -n "$MOCK_JCAN" ]; then
+      export PYTHONPATH="$MOCK_JCAN:$PYTHONPATH"
+    else
+      echo "Error: Could not locate site-packages for mock-jcan."
+      exit 1
+    fi
+  '';
+
+  checkPhase = ''
+    runHook preCheck
+    ${pythonPackages.pytest}/bin/pytest tests/test_kiln_temp.py
+    runHook postCheck
+  '';
 }

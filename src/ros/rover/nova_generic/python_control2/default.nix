@@ -4,6 +4,7 @@
 , rclpy
 , pythonPackages
 , teleop-modular-python-utils
+, nova-interfaces
 }:
 
 buildRosPackage {
@@ -20,6 +21,7 @@ buildRosPackage {
     rclpy
     pythonPackages.jcan
     teleop-modular-python-utils
+    nova-interfaces
   ];
 
 }
