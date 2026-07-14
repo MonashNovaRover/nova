@@ -1,10 +1,25 @@
 #!/usr/bin/env python3
 
+import os
+import sys
+from pathlib import Path
+
+# Make `import jcan` resolve to the pure-python mock (src/other/mock/JCAN) instead of
+# the real (compiled) jcan_python library, so tests can run without real/virtual CAN
+# hardware. This must happen before anything that transitively imports `jcan` (e.g.
+# python_control2 hardware interfaces, used by nodes like kiln.py) gets imported.
+_MOCK_JCAN_DIR = Path("../../../../../../other/mock/JCAN")
+sys.path.insert(0, str(_MOCK_JCAN_DIR))
+os.environ["PYTHONPATH"] = os.pathsep.join(
+    [str(_MOCK_JCAN_DIR), os.environ.get("PYTHONPATH", "")]
+)
+
 import rclpy
 import json
 import pytest
 
 from rclpy.node import Node
+import jcan.testing
 
 from typing import TypedDict
 
@@ -56,3 +71,13 @@ def setup_client_node(services: list[ServiceList]=None, topics: list[TopicList]=
     yield client
     client.destroy_node()
     rclpy.shutdown()
+
+
+@pytest.fixture(autouse=True)
+def _reset_mock_jcan():
+    """
+    Ensures virtual CAN networks from the mock jcan library (src/other/mock/JCAN)
+    don't leak state (e.g. sent frames, open buses) from one test into the next.
+    """
+    yield
+    jcan.testing.reset_all_networks()
