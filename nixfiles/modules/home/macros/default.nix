@@ -189,7 +189,7 @@ in
           # Nix CLI shortcuts
           nova-build = "nom-build ${cfg.nixfileDir}";
           nova-shell = "nom-shell ${cfg.nixfileDir}";
-          ws-build = "${nova-build} -A pkgs.ros.nova-workspace --argstr git-metadata \"$(${../../../scripts/generate-git-metadata.sh})\"";
+          ws-build = "${nova-build} -A pkgs.ros.nova-workspace --argstr git-metadata \"$(cd ${cfg.sourceDir}/.. && ${../../../scripts/generate-git-metadata.sh})\"";
           ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
 
           cameras-build = "${nova-build} -A misc.cameras2-legacy.launcher -o ~/Builds/cameras2legacy";
