@@ -2,16 +2,16 @@
 
 import logging
 import threading
-from typing import TypedDict
 from collections.abc import Callable
+from typing import TypedDict
 
 import jcan
 import jcan.testing
 import pytest
 import rclpy
+from python_control2.controller_manager import ControllerManager
 from rclpy.executors import SingleThreadedExecutor
 from rclpy.node import Node
-from python_control2.controller_manager import ControllerManager
 
 
 class TopicList(TypedDict):
@@ -96,7 +96,10 @@ def sut_executor():
     executor = SingleThreadedExecutor()
     stop = threading.Event()
     thread = threading.Thread(
-        target=lambda: [executor.spin_once(timeout_sec=0.05) for _ in iter(lambda: not stop.is_set(), False)],
+        target=lambda: [
+            executor.spin_once(timeout_sec=0.05)
+            for _ in iter(lambda: not stop.is_set(), False)
+        ],
         daemon=True,
     )
     thread.start()
@@ -108,13 +111,17 @@ def sut_executor():
 @pytest.fixture()
 def setup_sut(sut_executor):
     """
-    Fixture factory to create a SUT (System Under Test) node 
+    Fixture factory to create a SUT (System Under Test) node
     """
     nodes = []
 
-    def _make_sut_node(node_name:str, node_spawner: Callable[[Node],ControllerManager]):
+    def _make_sut_node(
+        node_name: str, node_spawner: Callable[[Node], ControllerManager]
+    ):
         node = Node(node_name)
-        node_spawner(node).spin(auto_run_rclpy=False)  # sets up timers/services, doesn't block
+        node_spawner(node).spin(
+            auto_run_rclpy=False
+        )  # sets up timers/services, doesn't block
         sut_executor.add_node(node)
         nodes.append(node)
         return node
@@ -122,7 +129,6 @@ def setup_sut(sut_executor):
     yield _make_sut_node
     for node in nodes:
         node.destroy_node()
-
 
 
 @pytest.fixture(autouse=True)

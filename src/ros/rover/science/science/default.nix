@@ -51,6 +51,7 @@ buildRosPackage {
   doCheck = true;
 
   preCheck = ''
+    export ROS_LOG_DIR="$TMPDIR/.ros/log"
     MOCK_JCAN=$(ls -d ${pythonPackages.mock-jcan}/lib/python*/site-packages 2>/dev/null | head -n 1)
     echo "Injecting mock jcan package into PYTHONPATH for testing..."
     
@@ -64,7 +65,7 @@ buildRosPackage {
 
   checkPhase = ''
     runHook preCheck
-    ${pythonPackages.pytest}/bin/pytest ../tests
+    ${pythonPackages.pytest}/bin/pytest ../science/pytest
     runHook postCheck
   '';
 }
