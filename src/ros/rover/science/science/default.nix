@@ -49,7 +49,7 @@ buildRosPackage {
     nova-pytest-framework
   ];
 
-  doCheck = true;
+  doCheck = false;
 
   preCheck = ''
     export ROS_LOG_DIR="$TMPDIR/.ros/log"

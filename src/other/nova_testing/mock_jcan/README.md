@@ -35,16 +35,28 @@ to inject incoming frames for it to receive.
 
 ## Usage
 
-Make sure this package is importable as `jcan` in place of the real one, e.g.
-install it into your test virtual environment:
+Make sure this package is importable as `jcan` in place of the real one.
+To add to your nix package add the following to the preCheck phase:
 
-```sh
-pip install -e src/other/mock/JCAN
+```nix
+preCheck = ''
+    MOCK_JCAN=$(ls -d ${pythonPackages.mock-jcan}/lib/python*/site-packages 2>/dev/null | head -n 1)
+    echo "Injecting mock jcan package into PYTHONPATH for testing..."
+    
+    if [ -n "$MOCK_JCAN" ]; then
+      export PYTHONPATH="$MOCK_JCAN:$PYTHONPATH"
+    else
+      echo "Error: Could not locate site-packages for mock-jcan."
+      exit 1
+    fi
+''
 ```
 
-(Do not install this alongside the real `jcan` package - they both provide the
-`jcan` module, so only one should be installed at a time in a given
+Ensure `doCheck = true`, then you may run any python test using mock_jcan instead of jcan. As of writing this has been done with pytest, see the nova_pytest_framework package for details.
+
+(Do not install this alongside the real `jcan` package - they both provide the `jcan` module, so only one should be installed at a time in a given
 environment.)
+
 
 ### Example: asserting a CAN frame was sent
 
@@ -69,6 +81,7 @@ def test_heater_turns_on(setup_client_node):
 
 Add an autouse fixture (e.g. in `conftest.py`) so that virtual CAN networks
 from one test don't leak into the next:
+> Note: This autouse fixture already exists in nova_pytest_framework!
 
 ```python
 import pytest
