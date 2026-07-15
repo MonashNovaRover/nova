@@ -46,6 +46,7 @@ buildRosPackage {
     nova-camera-msgs
     teleop-modular-python-utils
     nova-science-interfaces
+    nova-pytest-framework
   ];
 
   doCheck = true;
