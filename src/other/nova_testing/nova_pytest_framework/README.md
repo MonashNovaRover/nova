@@ -13,6 +13,8 @@ The package is included in the Nix build via `default.nix`.
 To run a pytest on nix build, add the following to your default.nix:
 
 ```nix
+  propagatedBuildInputs = [... pythonPackages.nova-pytest-framework];
+
   doCheck = true;
 
   preCheck = ''
@@ -43,24 +45,6 @@ For local development outside of Nix:
 pip install -e .
 ```
 
-## IDE
-To get type hints working in vscode do the following:
-Add assuming your workspace is ~/nova, add the following to your .vscode/settings.json file:
-```json
-    "python.analysis.extraPaths": [
-        "src/other/nova_testing/nova_pytest_framework"
-    ]
-```
-Then make sure the conftest.py in the same folder as your tests reimports the module:
-```py
-from nova_pytest_framework.plugin import (
-    logger,
-    reset_mock_jcan,
-    setup_sut,
-    setup_tester,
-    sut_executor,
-)
-```
 
 ## Fixtures
 

@@ -27,7 +27,7 @@ buildRosPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  nativeBuildInputs = [ ament-cmake ament-cmake-pytest python3Packages.python ];
+  nativeBuildInputs = [ ament-cmake ];
 
   buildInputs = [ rclcpp geometry-msgs nav-msgs trajectory-msgs ];
 
@@ -49,7 +49,7 @@ buildRosPackage {
     nova-pytest-framework
   ];
 
-  doCheck = false;
+  doCheck = true;
 
   preCheck = ''
     export ROS_LOG_DIR="$TMPDIR/.ros/log"
