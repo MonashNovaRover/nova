@@ -23,6 +23,9 @@ const ICE_SERVERS = [
   },
 ];
 
+const HEARTBEAT_INTERVAL = 1000; // ms
+const MAX_LATENCY = 120; // ms
+
 /**
  * Custom hook for managing camera streaming.
  *
@@ -94,6 +97,29 @@ export const useCameraStream = (
     sendJsonMessage({ type: "endSession", sessionId });
   }, [cameraSerial, isWsOpen, peerId, sendJsonMessage, sessionId, videoRef]);
 
+  const resetSession = useCallback(() => {
+    if (streamingState !== StreamingState.STREAMING) return;
+
+    if (!isWsOpen) return;
+    if (!peerId) {
+      toast.error(`${cameraSerial} unable to reset`);
+      return;
+    }
+    setStreamingState(StreamingState.LOADING);
+
+    if (rtcRef.current) {
+      rtcRef.current.close();
+    }
+    rtcRef.current = undefined; // Reset the RTC connection
+
+    if (videoRef.current) videoRef.current.srcObject = null;
+
+    sendJsonMessage({ type: "endSession", sessionId });
+
+    // Start a new session
+    sendJsonMessage({ type: "startSession", peerId });
+  }, [streamingState, cameraSerial, isWsOpen, peerId, sendJsonMessage, sessionId, videoRef]);
+
   useEffect(() => {
     if (autoStart && isWsOpen && isCameraOnline) {
       sendSessionStartMessage();
@@ -136,7 +162,7 @@ export const useCameraStream = (
   const handlePeerMessage = useCallback(
     async (rtcPeerConnection: RTCPeerConnection, message: PeerMessage) => {
       if (message.sdp) {
-        rtcPeerConnection.setRemoteDescription(message.sdp);
+        await rtcPeerConnection.setRemoteDescription(message.sdp);
         const answer = await rtcPeerConnection.createAnswer();
         await rtcPeerConnection.setLocalDescription(answer);
         if (!rtcPeerConnection.localDescription || !sessionId) return;
@@ -206,10 +232,29 @@ export const useCameraStream = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastJsonMessage]);
 
+  // Magic sauce that resets desynced cameras 
+  useEffect(() => {
+    const interval = setInterval(async () => {
+
+      const video = videoRef.current;
+      if (!video) return;
+
+      video.requestVideoFrameCallback((now, metadata) => {
+        const display_delay = now - metadata.receiveTime;
+        console.log(display_delay);
+        if (display_delay > MAX_LATENCY) resetSession();
+      });
+
+    }, HEARTBEAT_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [resetSession]);
+
   return {
     streamingState,
     sendSessionStartMessage,
     isCameraOnline,
     closeSession,
+    resetSession,
   };
 };

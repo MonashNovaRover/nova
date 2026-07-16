@@ -8,63 +8,53 @@
 
 static int num_cores = std::thread::hardware_concurrency();
 
-template <typename properties> void set_vp8enc(GstElement* element, const properties& props) {
-  const int num_cores = std::thread::hardware_concurrency();
+template <typename properties> static void set_vpXenc(GstElement* element, const properties& props) {
   g_object_set(element,
-    "deadline", props->deadline, // 1 for lowest latency
-    "cpu-used", (
-      props->cpu_used == 0 ? -16:
-      props->cpu_used == 1 ? -12:
-      props->cpu_used == 2 ? -8:
-      props->cpu_used == 3 ? -5:
-      props->cpu_used == 4 ? -2:
-      props->cpu_used == 5 ? 0:
-      props->cpu_used == 6 ? 2:
-      props->cpu_used == 7 ? 5:
-      props->cpu_used == 8 ? 8:
-      props->cpu_used == 9 ? 12:
-      props->cpu_used == 10 ? 16:
-      0 ), // Fastest -16, 16 Slowest
-    "end-usage", 1, // constant bitrate
-    "threads", std::clamp(props->threads, 1, num_cores), // 1 is best for cpu and compression ratio
-    "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
-    "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
     "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP
+    "cpu-used", (
+      props->cpu_used == 10 ? 0:
+      props->cpu_used == 9 ? 2:
+      props->cpu_used == 8 ? 4:
+      props->cpu_used == 7 ? 6:
+      props->cpu_used == 6 ? 7:
+      props->cpu_used == 5 ? 8:
+      props->cpu_used == 4 ? 9:
+      props->cpu_used == 3 ? 10:
+      props->cpu_used == 2 ? 12:
+      props->cpu_used == 1 ? 14:
+      props->cpu_used == 0 ? 16:
+    0 ), // Fastest 0, 16 Slowest
+    "deadline", props->deadline, // 1 for lowest latency
+    "dropframe-threshold", 99, // Drop frames as a last resort if bitrate not met
+    "end-usage", 1, // constant bitrate
+    "error-resilient", 1, // Whole frame
+    "horizontal-scaling-mode", 3, // 50% scaling when resizing
+    "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
     "lag-in-frames", (props->deadline != 1) ? (int) ((float)props->deadline/(float)props->framerate) : 0, // Do not lookahead unless if deadline set
     "noise-sensitivity", std::clamp(props->encoder_denoise, 0, 6), // higher is more blurry
-    "error-resilient", 1,
+    "overshoot", 0, // Do not tolerate overshooting the target bitrate
+    "resize-allowed", true,
+    "resize-down-threshold", 10,
+    "resize-up-threshold", 90,
+    "static-threshold", std::clamp(100, 1, 100), // Higher to stop updating screen if too little moves
+    "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
+    "threads", std::clamp(1<<props->threads, 1, num_cores), // 1 thread is most efficient. Log2
     "tuning", 1, // Tune for ssim, better for low bitrate/ blur
+    "vertical-scaling-mode", 3, // 50% scaling when resizing
     NULL);
+}
+
+template <typename properties> void set_vp8enc(GstElement* element, const properties& props) {
+  set_vpXenc(element, props);
 }
 
 
 template <typename properties> void set_vp9enc(GstElement* element, const properties& props) {
+  set_vpXenc(element, props);
   g_object_set(element,
-    "deadline", props->deadline, // 1 for lowest latency
-    "cpu-used", (
-      props->cpu_used == 0 ? -16:
-      props->cpu_used == 1 ? -12:
-      props->cpu_used == 2 ? -8:
-      props->cpu_used == 3 ? -5:
-      props->cpu_used == 4 ? -2:
-      props->cpu_used == 5 ? 0:
-      props->cpu_used == 6 ? 2:
-      props->cpu_used == 7 ? 5:
-      props->cpu_used == 8 ? 8:
-      props->cpu_used == 9 ? 12:
-      props->cpu_used == 10 ? 16:
-      0 ), // Fastest -16, 16 Slowest
-    "end-usage", 1, // constant bitrate
-    "threads", std::clamp(props->threads, 1, num_cores), // 1 is best for cpu and compression ratio
-    "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
-    "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
-    "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP
-    "lag-in-frames", (props->deadline != 1) ? (int) ((float)props->deadline/(float)props->framerate) : 0, // Do not lookahead unless if deadline set
-    "noise-sensitivity", std::clamp(props->encoder_denoise, 0, 6), // higher is more blurry
-    "error-resilient", 1,
-    "tuning", 1, // Tune for ssim, better for low bitrate/ blur
     "aq-mode", 3, // cyclic refresh aq mode, low latency low bitrate
-    NULL);
+    "tile-columns", std::clamp(props->threads, 0, 6), // 0-6 for 1-64 columns
+  NULL);
 }
 
 #endif
