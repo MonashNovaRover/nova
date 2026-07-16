@@ -188,6 +188,8 @@ class CameraStreamer : public rclcpp::Node
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
       set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
     }
+
+    gst_bin_recalculate_latency(GST_BIN(pipeline->gst_pipeline));
   }
 
   private: void get_pipeline_type(const std::unique_ptr<Pipeline>& pipeline)
@@ -257,7 +259,13 @@ class CameraStreamer : public rclcpp::Node
             std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
             if (this->pipelines[serial]->gst_pipeline != nullptr) {
             // gstreamer play pipeline if paused
-              RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET); 
+              RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
+
+              // Turn on usb camera source
+              GstElement *source_v4l = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_v4l");
+              gst_element_set_state(source_v4l, GST_STATE_PLAYING);
+              gst_object_unref(source_v4l);
+
               GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
               g_object_set(source_valve, "drop", false, NULL);
               gst_object_unref(source_valve);
@@ -299,10 +307,17 @@ class CameraStreamer : public rclcpp::Node
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
 
+            // Close source valve
             GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
             g_object_set(source_valve, "drop", true, NULL);
             gst_object_unref(source_valve);
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
+
+
+            // Turn off usb camera source
+            GstElement *source_v4l = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_v4l");
+            gst_element_set_state(source_v4l, GST_STATE_READY);
+            gst_object_unref(source_v4l);
 
 
             RCLCPP_INFO(this->get_logger(), "%sPausing %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
