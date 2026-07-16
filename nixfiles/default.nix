@@ -175,7 +175,7 @@ let
       inherit nixpkgs;
       nova-monorepo = ./..;
       home-manager = null;
-    }).docs;
+    });
   };
 in
 result
