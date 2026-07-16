@@ -17,10 +17,11 @@ let
 
   # We are building documentation, not native code.
   # The architecture doesn't matter. Use native system packages for speed.
-  pkgs = import <nixpkgs> { };
+  pkgs = import nixpkgs { };
   nova = lib.novaFor builtins.currentSystem;
 
-  mkOptions = module: builtins.removeAttrs (pkgs.lib.evalModules {
+  mkOptions = { module, specialArgs ? { } }: builtins.removeAttrs (pkgs.lib.evalModules {
+    inherit specialArgs;
     modules = [
       { _module.check = false; }
       module
@@ -62,7 +63,18 @@ let
     { pname
     , topic
     , options
-    }: pkgs.stdenvNoCC.mkDerivation {
+    , introMarkdown ? null
+    }:
+    let
+      hasIntro = introMarkdown != null;
+      introFile = if hasIntro then pkgs.writeText "intro.md" introMarkdown else null;
+      nav = if hasIntro then [
+        { "Overview" = "intro.md"; }
+        { "Options" = "index.md"; }
+      ] else [
+        { "Options" = "index.md"; }
+      ];
+    in pkgs.stdenvNoCC.mkDerivation {
       name = pname;
       nativeBuildInputs = with pkgs; [
         python3Packages.mkdocs
@@ -85,6 +97,10 @@ let
             "--replace" ''\<name>'' ''&lt;name&gt;''
           ];
         }} docs/index.md
+
+        ${pkgs.lib.optionalString hasIntro ''
+        ln -s ${introFile} docs/intro.md
+        ''}
         
         mkdir -p docs/assets
         ln -s ${nova.pkgs.nova-icons}/share/icons/hicolor/16x16/apps/nova-logo-white-and-orange.png docs/assets/favicon.png
@@ -93,9 +109,7 @@ let
         jq < '${pkgs.writeText "mkdocs.yaml" (builtins.toJSON {
           site_name = "${topic} Manual";
 
-          nav = [
-            { "Options" = "index.md"; }
-          ];
+          inherit nav;
 
           theme = {
             name = "material";
@@ -149,12 +163,25 @@ let
       '';
     };
 
-  allHMOptions = mkOptions (nixfiles + "/modules/home");
+  allHMOptions = mkOptions { module = (nixfiles + "/modules/home"); };
   novaHMOptions = allHMOptions;
 
-  allOSOptions = mkOptions (nixfiles + "/modules/nixos");
+  allOSOptions = mkOptions {
+    module = (nixfiles + "/modules/nixos");
+    specialArgs = { jetpack-nixos = null; };
+  };
   novaOSOptions = allOSOptions //
     { home-manager = { inherit (allOSOptions.home-manager) nova; }; };
+  novaOSIntro = ''
+# Overview
+
+This manual is generated from the local NixOS module tree.
+
+Jetson support depends on the external `jetpack-nixos` source. To keep this
+documentation build offline and restricted-mode safe, that external module is
+not imported here, so Jetson-specific upstream options are omitted from the
+generated option list.
+'';
 in
 {
   home-manager = mkDocumentationSite {
@@ -166,5 +193,6 @@ in
     pname = "nova-nixos-docs";
     topic = "Nova Rover NixOS";
     options = novaOSOptions;
+    introMarkdown = novaOSIntro;
   };
 }
