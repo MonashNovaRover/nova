@@ -26,7 +26,6 @@
   nova-rover-description,
   nova-gazebo,
   nova-bt-navigators,
-  nova-cameras2,
   rviz-imu-plugin,
   rviz-satellite,
   imu-transformer,
@@ -88,7 +87,6 @@ buildRosPackage rec {
       nova-rover-description
       nova-gazebo
       nova-bt-navigators
-      nova-cameras2
       rviz-imu-plugin
       rviz-satellite
       nova-pivot-drive-controller
