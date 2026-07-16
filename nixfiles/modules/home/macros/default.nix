@@ -197,6 +197,9 @@ in
           nova-shell = "nom-shell ${cfg.nixfileDir}";
           ws-build = "${nova-build} -A pkgs.ros.nova-workspace --argstr git-metadata \"$(cd ${cfg.sourceDir}/.. && ${../../../scripts/generate-git-metadata.sh})\"";
           ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
+          docs-build = "${nova-build} -A docs";
+           
+
 
           # Directory aliases
           nixfiles = "cd ${cfg.nixfileDir}";

@@ -69,7 +69,7 @@ let
     {
       docs = mkJobset {
         description = "Nova Rover documentation";
-        nixexprpath = "nixfiles/ci/jobsets/docs.nix";
+        nixexprpath = "nixfiles/docs/default.nix";
         inputs = { home-manager = homeManagerInput; };
       };
       isos = mkJobset {
