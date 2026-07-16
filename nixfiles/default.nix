@@ -4,7 +4,7 @@
   # Each repository in this list should have a default.nix module file.
 , repos ? import ./external/default-paths.nix
   # result of scripts/generate-git-metadata.sh.
-, git-metadata ? builtins.warn "No git metadata was provided" "No metadata provided.\n"
+, git-metadata ? pkgs.lib.warn "No git metadata was provided" "No metadata provided.\n"
 }:
 
 let
