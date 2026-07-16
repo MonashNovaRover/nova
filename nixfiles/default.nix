@@ -170,7 +170,7 @@ let
       # cameras2-legacy = import ../src/ros/cameras2/nix/legacy/default.nix { nixpkgs = pkgs; };
     };
 
-    docs = (import ./docs/default.nix {
+    docs = (import ./doc/mkdocs/default.nix {
       supportedSystems = [ builtins.currentSystem ];
       inherit nixpkgs;
       nova-monorepo = ./..;

@@ -5,7 +5,7 @@
 , ...
 }:
 
-import ../../docs/default.nix {
+import ../../docs/mkdocs/default.nix {
   inherit
     supportedSystems
     nixpkgs
