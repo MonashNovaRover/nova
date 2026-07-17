@@ -1,11 +1,8 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, GroupAction, TimerAction, ExecuteProcess, RegisterEventHandler
-from launch.substitutions import  PathJoinSubstitution, LaunchConfiguration
-from launch.conditions import IfCondition, UnlessCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
-from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
 
@@ -37,7 +34,12 @@ def generate_launch_description():
                 output='screen'
             ),
             ExecuteProcess(
-                cmd=['nova-unity-sim', '-screen-fullscreen', '0', ['scene=', LaunchConfiguration("world")], ['robot=', LaunchConfiguration("rover")]],
+                cmd=[
+                    'nova-unity-sim', 
+                    '-screen-fullscreen', '0', 
+                    '-window-mode', 'windowed', 
+                    ['scene=', LaunchConfiguration("world")], 
+                    ['robot=', LaunchConfiguration("rover")]],
                 output='screen',
                 condition=IfCondition(LaunchConfiguration("start_sim"))
             )

@@ -55,7 +55,7 @@ def launch_setup(context, *args, **kwargs):
     gz_params = LaunchConfiguration('gz_params')
     gz_qos_params = LaunchConfiguration('gz_qos_params')
     log_level = LaunchConfiguration('log_level')
-    model = LaunchConfiguration('model')
+    urdf_path = LaunchConfiguration('urdf_path')
     namespace = LaunchConfiguration('namespace')
     pose = {'x': LaunchConfiguration('x').perform(context),
             'y': LaunchConfiguration('y').perform(context),
@@ -95,7 +95,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-            launch_arguments={'local': local, 'model': model, 'sim': 'true', 'robot_name': robot_name, 'rviz': rviz, 'rviz_params': rviz_params}.items(),
+            launch_arguments={'local': local, 'urdf_path': urdf_path, 'sim': 'true', 'robot_name': robot_name, 'rviz': rviz, 'rviz_params': rviz_params}.items(),
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([ros_gz_sim_dir, 'launch', 'gz_sim.launch.py'])),
@@ -190,7 +190,7 @@ def generate_launch_description():
             description='What level of logging output should be displayed',
         ),
         DeclareLaunchArgument(
-            name='model',
+            name='urdf_path',
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),

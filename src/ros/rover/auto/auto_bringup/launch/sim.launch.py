@@ -86,7 +86,7 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'unity.launch.py'])),
             launch_arguments={
                 'local': local,
                 'comp': comp,
@@ -143,23 +143,6 @@ def launch_setup(context, *args, **kwargs):
                 'fastlivo2_params': fastlivo2_params,
                 'sim': 'True',
             }.items(),
-        ),
-        IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(
-                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
-            ),
-            launch_arguments={
-                "bus" : "vcan0",
-                "bitrate" : "250000",
-                "log_name" : "auto",
-            }.items()
-        ),
-        Node(
-            package='electronics', 
-            executable='led_strip.py', 
-            output='screen', 
-            emulate_tty=True,
-            ros_arguments=['--log-level', log_level],
         ),
     ]
 
@@ -232,7 +215,7 @@ def generate_launch_description():
             default_value='True',
             description='Flag to launch rviz',
         ),
-        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
+        DeclareLaunchArgument(
             name='rviz_params',
             default_value='everything',
             description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',

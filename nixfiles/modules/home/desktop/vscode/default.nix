@@ -6,6 +6,7 @@ in
 {
   imports = [
     ./cpp.nix
+    ./cs.nix
     ./editor.nix
     ./nix.nix
     ./python.nix
