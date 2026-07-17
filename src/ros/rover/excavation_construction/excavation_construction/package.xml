@@ -10,7 +10,6 @@
   <depend>rclpy</depend>
   <depend>inputs_interfaces</depend>
   <depend>python_control</depend>
-  <depend>python_control_old</depend>
   <depend>python_control2</depend>
 
   <test_depend>ament_copyright</test_depend>
