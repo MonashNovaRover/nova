@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm" # See documentation for possible values (yarn = npm)
-    directory: "/src/ros/nova-gui/nova-gui" # Location of package manifests
+    directory: "/src/nova-gui/nova-gui" # Location of package manifests
     schedule:
       interval: "yearly"
       day: "monday"
