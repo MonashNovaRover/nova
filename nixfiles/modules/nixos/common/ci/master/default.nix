@@ -105,6 +105,7 @@ in
           <githubstatus>
             jobs = nova:workspaces(?:-pr-.*-\d+)?:(?!.*-inputs).*
             useShortContext = 1
+            excludeBuildFromContext = 1
             inputs = nova-monorepo
             ${builtins.concatStringsSep "\n" (map
               (repo: "inputs = ${repo}")
