@@ -15,7 +15,7 @@
   ## implicitly included.
 , novaPackages ? {
     inherit (pkgs.ros)
-      nova-dgnss
+      #nova-dgnss
       nova-electronics
       nova-science
       nova-blcmd-hardware
