@@ -1,8 +1,11 @@
-from collections.abc import Callable
+import threading
+from collections.abc import Callable, Generator
 from enum import Enum
-from typing import NotRequired, TypedDict
+from typing import NotRequired, Protocol, TypedDict
 
+import pytest
 import rclpy
+from rclpy.executors import SingleThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, qos_profile_default, qos_profile_services_default
 from rclpy.task import Future
@@ -42,7 +45,6 @@ class TesterNode(Node):
     The helper can create service clients and topic subscriptions for a test,
     wait for services to appear, and send asynchronous service requests.
     """
-
     def __init__(
         self,
         node_name: str,
@@ -129,6 +131,23 @@ class TesterNode(Node):
     #       Right now node must be spun manually for listening to topic
 
 
+class Ros2TesterFactory(Protocol):
+    def __call__(
+        self,
+        node_name: str,
+        services: list[ServiceElement] | None = None,
+        topics: list[TopicElement] | None = None,
+    ) -> TesterNode: ...
+
+
+class Ros2SutFactory(Protocol):
+    def __call__(
+        self,
+        node_name: str,
+        node_spawner: Callable[[Node], Node],
+    ) -> Node: ...
+
+
 def spin_node_on_timer(node: Node, seconds: int):
     """
     Spins node for x seconds.
@@ -138,3 +157,88 @@ def spin_node_on_timer(node: Node, seconds: int):
     future = Future()
     node.create_timer(seconds, lambda: future.set_result(True))
     rclpy.spin_until_future_complete(node, future)
+
+
+@pytest.fixture(scope="session")
+def initalise_ros2():
+    """
+    Fixture to initalise ros2 for the session, 
+    shared for all fixtures which use ros2
+    """
+    rclpy.init()
+    yield
+    rclpy.shutdown()
+
+
+@pytest.fixture()
+def setup_ros2_tester(initalise_ros2) -> Generator[Ros2TesterFactory, None, None]:
+    """
+    Fixture factory that creates and tracks client nodes for each test.
+
+    rclpy is initialized once for the test, then each created client node is
+    destroyed before rclpy is shut down at the end of the fixture.
+    """
+    created_testers: list[TesterNode] = []
+
+    def _make_tester(
+        node_name: str,
+        services: list[ServiceElement] | None = None,
+        topics: list[TopicElement] | None = None,
+    ) -> TesterNode:
+        tester = TesterNode(node_name, services=services, topics=topics)
+        created_testers.append(tester)
+        return tester
+
+    yield _make_tester
+    for tester in created_testers:
+        tester.destroy_node()
+
+
+@pytest.fixture()
+def ros2_sut_executor(initalise_ros2):
+    """
+    Run a SingleThreadedExecutor in a background thread for the SUT node.
+
+    The executor is spun separately so the node under test can process timers,
+    services, and subscriptions while the test thread sends requests.
+    """
+    executor = SingleThreadedExecutor()
+    stop = threading.Event()
+    thread = threading.Thread(
+        target=lambda: [
+            executor.spin_once(timeout_sec=0.05)
+            for _ in iter(lambda: not stop.is_set(), False)
+        ],
+        daemon=True,
+    )
+    thread.start()
+    yield executor
+    stop.set()
+    thread.join(timeout=2.0)
+
+
+@pytest.fixture()
+def setup_ros2_sut(
+    ros2_sut_executor: SingleThreadedExecutor,
+) -> Generator[Ros2SutFactory, None, None]:
+    """
+    Fixture factory that constructs a (System Under Test) node.
+
+    The provided spawner is expected to return a ControllerManager configured
+    for the node, then `spin(auto_run_rclpy=False)` wires up the timers and
+    services without blocking the test process.
+    """
+    nodes: list[Node] = []
+
+    def _make_sut_node(node_name: str, node_spawner: Callable[[Node], Node]) -> Node:
+        node = Node(node_name)
+        node_spawner(node).spin(
+            auto_run_rclpy=False
+        )  # sets up timers/services, doesn't block
+        ros2_sut_executor.add_node(node)
+        nodes.append(node)
+        return node
+
+    yield _make_sut_node
+    for node in nodes:
+        node.destroy_node()

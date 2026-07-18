@@ -3,6 +3,7 @@ import time
 import jcan
 import jcan.testing
 import rclpy
+import pytest
 from nova_pytest_framework.ros2_helpers import ServiceInteraction, TopicInteraction, spin_node_on_timer
 from science_interfaces.msg import ThermalData
 from science_interfaces.srv import ThermalCommand
@@ -17,15 +18,16 @@ RIGHT_HEATER_CAN_ID = 0x0D2
 THERMAL_COMMAND_SERVICE = "/science/thermal_command"
 THERMAL_DATA_TOPIC = "/science/thermal_data"
 
-def test_kiln_temp(logger, setup_ros2_tester, setup_ros2_sut):
-    """
-    Basic test for service call of kiln with check for existance of can messages on correct IDs + ros topic messages
-    """
-    setup_ros2_sut("kiln", kiln_node)
+@pytest.fixture()
+def setup_common(setup_can, setup_ros2_sut, setup_ros2_tester):
+    """ Setup common factories and functions for use during tests"""
+    bus = setup_can(CAN_BUS)
+
+    sut = setup_ros2_sut("kiln", kiln_node)
+
     thermal_data = []
     def handle_thermal_data(msg: ThermalData):
         thermal_data.append(msg)
-
 
     tester = setup_ros2_tester(
         "kiln_tester",
@@ -46,12 +48,22 @@ def test_kiln_temp(logger, setup_ros2_tester, setup_ros2_sut):
         ],
     )
 
-    # Observe the same (mocked) virtual CAN network kiln.py's node sends on, so we
-    # can check it actually commanded the heaters over CAN.
-    bus = jcan.Bus()
-    bus.open(CAN_BUS)
+    yield bus, sut, tester, thermal_data
 
-    request = {"state": True, "target": 100}
+
+def test_kiln_temp(logger, setup_common):
+    """
+    Basic test for service call of kiln with check for existance of can messages on correct IDs + ros topic messages
+    Procedure is the following:
+    - Tester sends ThermalCommand containing {"state": true; "target": 100}
+    - Kiln node should reply with a positive service response
+    - Then CAN bus should have a message for each heater
+    - Then after a pause there should be thermal data on the ros topic
+    """
+    _, _, tester, thermal_data = setup_common
+    
+
+    request = {"state": True, "target": 200}
     future = tester.send_request(THERMAL_COMMAND_SERVICE, request)
     rclpy.spin_until_future_complete(tester, future)
     response = future.result()
@@ -60,11 +72,11 @@ def test_kiln_temp(logger, setup_ros2_tester, setup_ros2_sut):
 
     time.sleep(0.2)
 
-    # Monitor mock JCAN can bus to determine that CAN data was sent
+    # Monitor can bus to determine that CAN data was sent
     sent_frames = jcan.testing.get_sent_frames(CAN_BUS)
     sent_ids = {frame.id for frame in sent_frames}
     logger.info(sent_frames)
-    assert LEFT_HEATER_CAN_ID in sent_ids or RIGHT_HEATER_CAN_ID in sent_ids
+    assert LEFT_HEATER_CAN_ID in sent_ids and RIGHT_HEATER_CAN_ID in sent_ids
 
     # Allow one second to collect ros topic messages
     spin_node_on_timer(tester, 1)
