@@ -3,8 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="nova-pytest-framework",
     version="0.0.0",
-    description="Shared pytest fixtures for Nova ROS 2 integration tests. "
-                "Provides TesterNode, SUT executor, and mock JCAN reset helpers.",
+    description="Shared pytest fixtures for Nova integration tests.",
     packages=find_packages(include=["nova_pytest_framework", "nova_pytest_framework.*"]),
     package_data={"nova_pytest_framework": ["py.typed"]},
     python_requires=">=3.8",
@@ -13,7 +12,7 @@ setup(
     ],
     entry_points={
         "pytest11": [
-            "nova_pytest_framework = nova_pytest_framework.plugin",
+            "nova_pytest_framework = nova_pytest_framework",
         ],
     },
     zip_safe=True,

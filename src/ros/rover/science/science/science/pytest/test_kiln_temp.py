@@ -3,7 +3,7 @@ import time
 import jcan
 import jcan.testing
 import rclpy
-from nova_pytest_framework.plugin import ServiceInteraction, TopicInteraction, spin_node_on_timer
+from nova_pytest_framework.ros2_helpers import ServiceInteraction, TopicInteraction, spin_node_on_timer
 from science_interfaces.msg import ThermalData
 from science_interfaces.srv import ThermalCommand
 
@@ -17,17 +17,17 @@ RIGHT_HEATER_CAN_ID = 0x0D2
 THERMAL_COMMAND_SERVICE = "/science/thermal_command"
 THERMAL_DATA_TOPIC = "/science/thermal_data"
 
-def test_kiln_temp(logger, setup_tester, setup_sut):
+def test_kiln_temp(logger, setup_ros2_tester, setup_ros2_sut):
     """
     Basic test for service call of kiln with check for existance of can messages on correct IDs + ros topic messages
     """
-    setup_sut("kiln", kiln_node)
+    setup_ros2_sut("kiln", kiln_node)
     thermal_data = []
     def handle_thermal_data(msg: ThermalData):
         thermal_data.append(msg)
 
 
-    tester = setup_tester(
+    tester = setup_ros2_tester(
         "kiln_tester",
         services=[
             {

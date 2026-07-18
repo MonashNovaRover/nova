@@ -23,13 +23,12 @@ EDITED:         23/04/2026
 """
 import rclpy
 from python_control2 import PythonControl
-from python_control2.controller_manager import ControllerManager
 from python_control2.controllers import ThermalController
 from python_control2.hardware_interfaces import GenericSensorHardware, QCMDHardware
 from rclpy.node import Node
 
 
-def main(node: Node) -> ControllerManager:
+def main(node: Node):
         return PythonControl(node, update_rate=5, can_bus='can1') \
         .with_controller("controller", ThermalController,
                          temp_sensors = ["kiln_sensor", "condenser_sensor"],
