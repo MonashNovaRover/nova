@@ -13,8 +13,11 @@ buildPythonPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  propagatedBuildInputs = [
+  buildInputs = [
     mock-jcan
+  ];
+
+  propagatedBuildInputs = [
     pytest
   ];
 }
