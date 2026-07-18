@@ -45,6 +45,7 @@ class TesterNode(Node):
     The helper can create service clients and topic subscriptions for a test,
     wait for services to appear, and send asynchronous service requests.
     """
+
     def __init__(
         self,
         node_name: str,
@@ -162,7 +163,7 @@ def spin_node_on_timer(node: Node, seconds: int):
 @pytest.fixture(scope="session")
 def initalise_ros2():
     """
-    Fixture to initalise ros2 for the session, 
+    Fixture to initalise ros2 for the session,
     shared for all fixtures which use ros2
     """
     rclpy.init()

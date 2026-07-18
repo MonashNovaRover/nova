@@ -2,9 +2,13 @@ import time
 
 import jcan
 import jcan.testing
-import rclpy
 import pytest
-from nova_pytest_framework.ros2_helpers import ServiceInteraction, TopicInteraction, spin_node_on_timer
+import rclpy
+from nova_pytest_framework.ros2_helpers import (
+    ServiceInteraction,
+    TopicInteraction,
+    spin_node_on_timer,
+)
 from science_interfaces.msg import ThermalData
 from science_interfaces.srv import ThermalCommand
 
@@ -12,20 +16,22 @@ from ..arc.kiln import main as kiln_node
 
 # CAN bus name and heater CAN ID's as configured in arc/kiln.py's `with_jcan()` /
 # `with_hardware(...)` calls - kept in sync with that file.
-CAN_BUS = 'can1'
+CAN_BUS = "can1"
 LEFT_HEATER_CAN_ID = 0x0C1
 RIGHT_HEATER_CAN_ID = 0x0D2
 THERMAL_COMMAND_SERVICE = "/science/thermal_command"
 THERMAL_DATA_TOPIC = "/science/thermal_data"
 
+
 @pytest.fixture()
 def setup_common(setup_can, setup_ros2_sut, setup_ros2_tester):
-    """ Setup common factories and functions for use during tests"""
+    """Setup common factories and functions for use during tests"""
     bus = setup_can(CAN_BUS)
 
     sut = setup_ros2_sut("kiln", kiln_node)
 
     thermal_data = []
+
     def handle_thermal_data(msg: ThermalData):
         thermal_data.append(msg)
 
@@ -61,7 +67,6 @@ def test_kiln_temp(logger, setup_common):
     - Then after a pause there should be thermal data on the ros topic
     """
     _, _, tester, thermal_data = setup_common
-    
 
     request = {"state": True, "target": 200}
     future = tester.send_request(THERMAL_COMMAND_SERVICE, request)
@@ -84,5 +89,3 @@ def test_kiln_temp(logger, setup_common):
     # Check that there is thermal data on ros topic
     logger.info(thermal_data)
     assert len(thermal_data) > 1
-
-
