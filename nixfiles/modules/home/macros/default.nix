@@ -195,16 +195,15 @@ in
           # Directory aliases
           nova = "cd ${cfg.sourceDir}/..";
           nixfiles = "cd ${cfg.nixfileDir}";
-          rover = "${nova}/src/ros/rover";
-          arm = "${nova}/src/ros/rover/arm";
-          autonomous = "${nova}/src/ros/rover/auto";
+          arm = "${nova}/src/ros/arm";
+          autonomous = "${nova}/src/ros/auto";
           auto = autonomous;
-          core = "${nova}/src/ros/rover/core";
-          science = "${nova}/src/ros/rover/science";
+          core = "${nova}/src/ros/core";
+          science = "${nova}/src/ros/science";
           camerasdir = "${nova}/src/ros/cameras";
           cameras = camerasdir;
           camera = camerasdir;
-          gui = "${nova}/src/ros/nova-gui/nova-gui";
+          gui = "${nova}/src/nova-gui/nova-gui";
           coms = "${nova}/src/other/coms_utils";
 
           # Networking 
@@ -267,10 +266,10 @@ in
 
           gui-dev-shell = "nova-shell -A pkgs.ros.nova-gui-dev-shell";
           gui-shell = "nova-shell -A pkgs.ros.nova-gui";
-          gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
+          gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/nova-gui/nova-gui/src/ros/rosTypes.ts";
           gui-rosbridge = "~/Builds/active/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
-          gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
-          gui-yarn = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui";
+          gui-run = "yarn --cwd ~/nova/src/nova-gui/nova-gui dev";
+          gui-yarn = "yarn --cwd ~/nova/src/nova-gui/nova-gui";
 
           # Tile server
           tileserver = "~/Builds/active/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/maps";
