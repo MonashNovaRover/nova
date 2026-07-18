@@ -11,6 +11,7 @@ from .ros2_helpers import (  # noqa: F401
     ros2_sut_executor,
     setup_ros2_sut,
     setup_ros2_tester,
+    setup_python_control2_sut,
 )
 
 

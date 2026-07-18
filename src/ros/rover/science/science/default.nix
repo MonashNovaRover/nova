@@ -53,7 +53,7 @@ buildRosPackage {
 
   checkPhase = ''
     runHook preCheck
-    ${pythonPackages.pytest}/bin/pytest ../science/pytest
+    ${pythonPackages.pytest}/bin/pytest ../science/tests
     runHook postCheck
   '';
 }

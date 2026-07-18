@@ -24,11 +24,11 @@ THERMAL_DATA_TOPIC = "/science/thermal_data"
 
 
 @pytest.fixture()
-def setup_common(setup_can, setup_ros2_sut, setup_ros2_tester):
+def setup_common(setup_can, setup_python_control2_sut, setup_ros2_tester):
     """Setup common factories and functions for use during tests"""
     bus = setup_can(CAN_BUS)
 
-    sut = setup_ros2_sut("kiln", kiln_node)
+    sut = setup_python_control2_sut(kiln_node, "kiln")
 
     thermal_data = []
 

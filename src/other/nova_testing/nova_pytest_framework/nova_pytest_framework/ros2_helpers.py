@@ -146,6 +146,8 @@ class Ros2SutFactory(Protocol):
         self,
         node_name: str,
         node_spawner: Callable[[Node], Node],
+        *node_args: object,
+        **node_kwargs: object,
     ) -> Node: ...
 
 
@@ -231,15 +233,37 @@ def setup_ros2_sut(
     """
     nodes: list[Node] = []
 
-    def _make_sut_node(node_name: str, node_spawner: Callable[[Node], Node]) -> Node:
-        node = Node(node_name)
-        node_spawner(node).spin(
+    def _make_sut_node(
+        node_spawner: Callable[[Node], Node],
+        *node_args: object,
+        **node_kwargs: object,
+    ) -> Node:
+        node_spawner(*node_args, **node_kwargs).spin(
             auto_run_rclpy=False
         )  # sets up timers/services, doesn't block
         ros2_sut_executor.add_node(node)
         nodes.append(node)
         return node
 
+    yield _make_sut_node
+    for node in nodes:
+        node.destroy_node()
+
+
+@pytest.fixture()
+def setup_python_control2_sut(
+    ros2_sut_executor: SingleThreadedExecutor,
+) -> Generator[Ros2SutFactory, None, None]:
+    nodes: list[Node] = []
+    def _make_sut_node(node_spawner: Callable[[Node], Node], *node_args: object, **node_kwargs: object) -> Node:
+        node = Node(*node_args, **node_kwargs)
+        node_spawner(node).spin(
+            auto_run_rclpy=False
+        )  # sets up timers/services, doesn't block
+        ros2_sut_executor.add_node(node)
+        nodes.append(node)
+        return node
+    
     yield _make_sut_node
     for node in nodes:
         node.destroy_node()
