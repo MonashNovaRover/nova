@@ -35,22 +35,12 @@ to inject incoming frames for it to receive.
 
 ## Usage
 
-Make sure this package is importable as `jcan` in place of the real one.
-To add to your nix package add the following to the preCheck phase:
+Make sure this package is available as a build-time input for any package that
+needs to import `jcan` during `checkPhase`.
 
-```nix
-preCheck = ''
-    MOCK_JCAN=$(ls -d ${pythonPackages.mock-jcan}/lib/python*/site-packages 2>/dev/null | head -n 1)
-    echo "Injecting mock jcan package into PYTHONPATH for testing..."
-    
-    if [ -n "$MOCK_JCAN" ]; then
-      export PYTHONPATH="$MOCK_JCAN:$PYTHONPATH"
-    else
-      echo "Error: Could not locate site-packages for mock-jcan."
-      exit 1
-    fi
-''
-```
+Add `pythonPackages.mock-jcan` to `buildInputs` or `nativeBuildInputs`; the
+package installs a setup hook that adds its `site-packages` directory to
+`PYTHONPATH` automatically for dependent builds.
 
 Ensure `doCheck = true`, then you may run any python test using mock_jcan instead of jcan. As of writing this has been done with pytest, see the nova_pytest_framework package for details.
 

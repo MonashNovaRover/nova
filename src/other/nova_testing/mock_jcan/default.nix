@@ -10,4 +10,6 @@ buildPythonPackage {
     path = ./.;
     filter = lib.novaSourceFilter [ ] path;
   };
+
+  setupHook = ./setup-hook.sh;
 }

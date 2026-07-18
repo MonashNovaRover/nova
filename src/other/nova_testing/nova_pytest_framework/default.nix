@@ -1,5 +1,6 @@
 { lib
 , buildPythonPackage
+#, rclpy
 , mock-jcan
 , pytest
 }:
@@ -13,11 +14,17 @@ buildPythonPackage {
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  buildInputs = [
+  propagatedNativeBuildInputs = [
     mock-jcan
   ];
 
   propagatedBuildInputs = [
     pytest
   ];
+
+  BuildInputs = [
+    # rclpy
+  ];
+
+  setupHook = ./setup-hook.sh;
 }

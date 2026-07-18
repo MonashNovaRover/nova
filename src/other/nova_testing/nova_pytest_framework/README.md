@@ -15,26 +15,21 @@ To run a pytest on nix build, add the following to your default.nix:
 ```nix
   propagatedBuildInputs = [... pythonPackages.nova-pytest-framework];
 
-  doCheck = true;
-
-  preCheck = ''
-    export ROS_LOG_DIR="$TMPDIR/.ros/log"
-  '';
+  doCheck = true; # ensure tests get run
 
   checkPhase = ''
     runHook preCheck
-    ${pythonPackages.pytest}/bin/pytest ../science/pytest
+    ${pythonPackages.pytest}/bin/pytest ../science/tests
     runHook postCheck
   '';
 ```
 
 > Note: You will also need to add mock_jcan if using jcan fixtures, see mock_jcan on how to modify your default.nix to enable mock_jcan in checkPhase
 
-To run pytest in a nix-shell run `checkPhase` as a command once in the shell and then run pytest as normal e.g:
+You can run the tests as normal in a nix-shell e.g:
 
 ```sh
 nova-shell -A pkgs.ros.nova-science
-checkPhase            # will enable any mock packages and fixup ros logging
 pytest src/ros/rover/science/science/pytest   # run science pytests
 ```
 

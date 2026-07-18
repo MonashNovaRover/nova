@@ -10,10 +10,11 @@
  - CheckPhase tests:
    - https://nixos.org/manual/nixpkgs/stable/#ssec-check-phase
    - These tests can be used to run unit tests that are included with the package
+   - See src/ros/rover/science/science/science/tests for example of the nova pytest framework in use which runs in checkPhase
 
 
 # What is in this directory?
-There are currently two tests implemented in this directory both of which have been untouched since 2024...
+There are currently two tests implemented in this directory
 Both tests must be run manually.
 
 ### `./cameras-webrtc`
@@ -21,5 +22,4 @@ This tested cameras2 with a demo GUI that used to be included with gstreamer-rs 
 Unknown if this will work with cameras3. This test should be updated to work with cameras3
 
 ### `./networking`
-A simple networking test to check the networking setup from 2024.
-The setup is not what we have now and this test needs to be updated.
+A simple networking test to check the PRP setup
