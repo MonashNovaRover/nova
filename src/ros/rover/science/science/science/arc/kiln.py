@@ -28,19 +28,15 @@ from python_control2.controllers import ThermalController
 from python_control2.hardware_interfaces import GenericSensorHardware, QCMDHardware
 from rclpy.node import Node
 
-command_service = "/science/thermal_command"
-data_topic = "/science/thermal_data"
-can_bus = 'can1'
-
 
 def main(node: Node) -> ControllerManager:
-        return PythonControl(node, update_rate=5, can_bus=can_bus) \
+        return PythonControl(node, update_rate=5, can_bus='can1') \
         .with_controller("controller", ThermalController,
                          temp_sensors = ["kiln_sensor", "condenser_sensor"],
                          heaters = ["left_heater", "right_heater"],
                          calculate_reference_temp = lambda l: l[0], # use kiln_sensor temperature as the current/reference temp
-                         command_service = command_service,
-                         data_topic = data_topic) \
+                         command_service = "/science/thermal_command",
+                         data_topic = "/science/thermal_data") \
         .with_hardware("left_heater", QCMDHardware, can_id = 0x0C1) \
         .with_hardware("right_heater", QCMDHardware, can_id = 0x0D2) \
         .with_hardware("temp_sensors", GenericSensorHardware,

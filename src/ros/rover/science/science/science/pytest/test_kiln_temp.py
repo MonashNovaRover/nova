@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import time
 
 import jcan
@@ -9,14 +7,15 @@ from nova_pytest_framework.plugin import ServiceInteraction, TopicInteraction, s
 from science_interfaces.msg import ThermalData
 from science_interfaces.srv import ThermalCommand
 
-from ..arc.kiln import can_bus, command_service, data_topic
 from ..arc.kiln import main as kiln_node
 
 # CAN bus name and heater CAN ID's as configured in arc/kiln.py's `with_jcan()` /
 # `with_hardware(...)` calls - kept in sync with that file.
+CAN_BUS = 'can1'
 LEFT_HEATER_CAN_ID = 0x0C1
 RIGHT_HEATER_CAN_ID = 0x0D2
-
+THERMAL_COMMAND_SERVICE = "/science/thermal_command"
+THERMAL_DATA_TOPIC = "/science/thermal_data"
 
 def test_kiln_temp(logger, setup_tester, setup_sut):
     """
@@ -32,14 +31,14 @@ def test_kiln_temp(logger, setup_tester, setup_sut):
         "kiln_tester",
         services=[
             {
-                "service": command_service,
+                "service": THERMAL_COMMAND_SERVICE,
                 "srv_type": ThermalCommand,
                 "interaction": ServiceInteraction.CLIENT,
             }
         ],
         topics=[
             {
-                "topic": data_topic,
+                "topic": THERMAL_DATA_TOPIC,
                 "msg_type": ThermalData,
                 "interaction": TopicInteraction.SUBSCRIBER,
                 "callback": handle_thermal_data,
@@ -50,10 +49,10 @@ def test_kiln_temp(logger, setup_tester, setup_sut):
     # Observe the same (mocked) virtual CAN network kiln.py's node sends on, so we
     # can check it actually commanded the heaters over CAN.
     bus = jcan.Bus()
-    bus.open(can_bus)
+    bus.open(CAN_BUS)
 
     request = {"state": True, "target": 100}
-    future = tester.send_request(command_service, request)
+    future = tester.send_request(THERMAL_COMMAND_SERVICE, request)
     rclpy.spin_until_future_complete(tester, future)
     response = future.result()
 
@@ -62,7 +61,7 @@ def test_kiln_temp(logger, setup_tester, setup_sut):
     time.sleep(0.2)
 
     # Monitor mock JCAN can bus to determine that CAN data was sent
-    sent_frames = jcan.testing.get_sent_frames(can_bus)
+    sent_frames = jcan.testing.get_sent_frames(CAN_BUS)
     sent_ids = {frame.id for frame in sent_frames}
     logger.info(sent_frames)
     assert LEFT_HEATER_CAN_ID in sent_ids or RIGHT_HEATER_CAN_ID in sent_ids
