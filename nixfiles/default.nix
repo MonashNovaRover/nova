@@ -1,8 +1,4 @@
 { pkgs ? import <nixpkgs> { }
-
-  # The locations of checked-out Nova Rover repositories.
-  # Each repository in this list should have a default.nix module file.
-, repos ? import ./external/default-paths.nix
   # result of scripts/generate-git-metadata.sh.
 , git-metadata ? pkgs.lib.warn "No git metadata was provided" "No metadata provided.\n"
 }:
@@ -69,7 +65,8 @@ let
   inherit (pkgs.lib.evalModules {
     modules = [
       (import ./external/out-of-tree.nix)
-    ] ++ map import repos;
+      (import ../src)
+    ];
   }) config options;
 
   # Extend Nixpkgs with custom packages.
@@ -148,7 +145,7 @@ let
   };
 
   result = {
-    inherit repos config options;
+    inherit config options;
 
     # Inputs required for the evaluation of expressions in this repository.
     # It is useful to keep track of these, because Nix has no built-in way to do
