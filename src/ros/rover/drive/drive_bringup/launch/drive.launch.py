@@ -32,11 +32,11 @@ def launch_setup(context, *args, **kwargs):
     local = LaunchConfiguration('local')
     
     nova_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/nova_bringup']),
         FindPackageShare('nova_bringup')
     )
     auto_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
     )
 
@@ -54,6 +54,7 @@ def launch_setup(context, *args, **kwargs):
     urdf_path = LaunchConfiguration('urdf_path')
     urdf = LaunchConfiguration('urdf')
     active_controller = LaunchConfiguration('active_controller')
+    canbus = IfElseSubstitution(sim, 'vcan0', 'can0')
 
     def spawner_args(controller: str) -> list[str]:
         arguments = [controller]
@@ -65,7 +66,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='controller_manager',
             executable='ros2_control_node',
-            parameters=[params, {"use_sim_time": sim}],
+            parameters=[params, {'use_sim_time': sim}],
             remappings=[('/controller_manager/robot_description', '/robot_description')],
             ros_arguments=['--log-level', log_level],
         ),
@@ -124,12 +125,12 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(
-                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+                PathJoinSubstitution([nova_bringup_dir, 'launch', 'can.launch.py'])
             ),
             launch_arguments={
-                "bus" : "can0",
-                "bitrate" : "250000",
-                "log_name" : "drive",
+                'bus' : canbus,
+                'bitrate' : '250000',
+                'log_name' : 'drive',
             }.items()
         ),
         Node(
@@ -154,11 +155,11 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     local = LaunchConfiguration('local')
     drive_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/drive/drive_bringup']),
         FindPackageShare('drive_bringup')
     )
     rover_description_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/rover_description']),
         FindPackageShare('rover_description')
     )
 

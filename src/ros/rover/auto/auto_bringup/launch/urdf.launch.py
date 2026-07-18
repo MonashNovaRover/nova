@@ -46,6 +46,7 @@ def launch_setup(context, *args, **kwargs):
     robot_description = ParameterValue(Command([
         'xacro ', 
         urdf_path, ' ',
+        'sim:=', sim.perform(context), ' ',
         'robot_name:=', robot_name, ' ',
         'auto_mount:=', 'true']), 
     value_type=str)
