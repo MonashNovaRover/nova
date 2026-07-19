@@ -20,7 +20,7 @@ template<typename properties> void set_srcfilter(GstElement* element, const prop
 }
 
 template<typename properties> void set_scalefilter(GstElement* element, const properties& props) {
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height)*2 : 0;
+  const int crop_width = (props->crop43) ? crop43(props->width, props->height, props->zoom)*2 : 0;
   const std::string mime = "video/x-raw";
   GstCaps *caps = gst_caps_new_simple(
     mime.c_str(),

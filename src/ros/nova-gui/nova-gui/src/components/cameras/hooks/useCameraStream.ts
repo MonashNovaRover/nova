@@ -240,7 +240,7 @@ export const useCameraStream = (
       if (!video) return;
 
       video.requestVideoFrameCallback((now, metadata) => {
-        const display_delay = now - metadata.receiveTime;
+        const display_delay = now - (metadata.receiveTime ?? now);
         if (display_delay > MAX_LATENCY) resetSession();
       });
 
