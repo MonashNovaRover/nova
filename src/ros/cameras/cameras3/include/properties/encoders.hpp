@@ -32,7 +32,7 @@ template <typename properties> static void set_vpXenc(GstElement* element, const
     "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
     "lag-in-frames", (props->deadline != 1) ? (int) ((float)props->deadline/(float)props->framerate) : 0, // Do not lookahead unless if deadline set
     "noise-sensitivity", std::clamp(props->encoder_denoise, 0, 6), // higher is more blurry
-    "overshoot", 0, // Do not tolerate overshooting the target bitrate
+    "overshoot", 20, // Do not tolerate overshooting much over the target bitrate
     "resize-allowed", true,
     "resize-down-threshold", 10,
     "resize-up-threshold", 90,
