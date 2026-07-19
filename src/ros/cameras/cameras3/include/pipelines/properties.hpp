@@ -89,7 +89,6 @@ struct webRTCProperties
 
 struct decodeProperties
 {
-
   std::string decoder;
   std::string jpegdec_method;
 };
@@ -99,6 +98,8 @@ struct cpuFiltersProperties
   std::string chroma_resampler;
   std::string dither;
   std::string method;
+
+  float zoom;
 
   bool greyscale;
   bool crop43;

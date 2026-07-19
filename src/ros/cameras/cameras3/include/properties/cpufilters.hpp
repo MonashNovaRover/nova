@@ -3,15 +3,19 @@
 
 #include <gst/gst.h>
 
-int crop43(const int width, const int height);
+int crop43(const int width, const int height, const float zoom);
 
 void set_queue(GstElement* queue);
 
 template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
-  const int crop_width = crop43(props->width, props->height);
+  const int crop_width = props->crop43 ? crop43(props->width, props->height, props->zoom) : 0;
+  const int zoom_width = (props->width - (int)((float)props->width/props->zoom)) / 2;
+  const int zoom_height = (props->height - (int)((float)props->height/props->zoom)) / 2;
   g_object_set(element,
-    "left", crop_width,
-    "right", crop_width,
+    "bottom", zoom_height,
+    "left", crop_width + zoom_width,
+    "right", crop_width + zoom_width,
+    "top", zoom_height,
   NULL);
 };
 
@@ -21,8 +25,6 @@ template<typename properties> void set_cpu_crop43(GstElement* element, const pro
     "right", crop_width,
   NULL);
 };
-
-void set_no_cpu_crop43(GstElement* element);
 
 template<typename properties> void set_convertscale(GstElement* element, const properties& props) {
   g_object_set(element,

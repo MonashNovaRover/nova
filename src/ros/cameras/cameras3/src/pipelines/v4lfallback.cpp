@@ -100,8 +100,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
   set_v4lsource(source_v4l, props);
   set_srcfilter(source_filter, props);
 
-  if (props->crop43) set_cpu_crop43(cpu_crop, props);
-  else set_no_cpu_crop43(cpu_crop);
+  set_cpu_crop43(cpu_crop, props);
   set_convertscale(cpu_convertscale, props);
   set_scalefilter(cpu_filter, props);
 
@@ -197,6 +196,7 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   props->downrate = set_property(streamer_node, camera, "downrate", 1);
 
   // cropper
+  props->zoom = set_property(streamer_node, camera, "zoom", 1.0f);
   props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
   // clock
@@ -214,18 +214,14 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
 
   // 2. Finalize props
-
-  // Disable crop43 if it is already 4:3
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  if (crop_width == 0) props->crop43 = false;
+  const int crop_width = props->crop43 ? crop43(props->width, props->height, props->zoom): 0;
   display_resolution(streamer_node, props, camera, crop_width);
 
   return props;
 }
 
 void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props) {
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  if (crop_width == 0) props->crop43 = false;
+  const int crop_width = (props->crop43) ? crop43(props->width, props->height, props->zoom) : 0;
 
   // 1. Initialize constants
   GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
@@ -247,8 +243,7 @@ void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cpu_crop) {
-    if (props->crop43) set_cpu_crop43(cpu_crop, props);
-    else set_no_cpu_crop43(cpu_crop);
+    set_cpu_crop43(cpu_crop, props);
     gst_object_unref(cpu_crop);
   }
 

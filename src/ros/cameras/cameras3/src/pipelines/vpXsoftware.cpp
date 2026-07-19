@@ -27,10 +27,6 @@
 
 GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX)
 {
-  // 0. Initialize constants
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  if (crop_width == 0) props->crop43 = false;
-
   // 1. Create the elements
   std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
@@ -188,8 +184,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
 
   set_queue(cpu_queue);
   g_object_set(cpu_valve, "drop", props->use_gl, NULL);
-  if (props->crop43) set_cpu_crop43(cpu_crop, props);
-  else set_no_cpu_crop43(cpu_crop);
+  set_cpu_crop43(cpu_crop, props);
   if (props->greyscale) set_cpu_grey_filter(cpu_grey_filter);
   else set_no_cpu_grey_filter(cpu_grey_filter);
   set_convertscale(cpu_grey_convert, props);
@@ -360,6 +355,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->downrate = set_property(streamer_node, camera, "downrate", 1);
 
   // cropper
+  props->zoom = set_property(streamer_node, camera, "zoom", 1.0f);
   props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
   // encode
@@ -380,11 +376,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
 
   // 2. Finalize props
- 
-  // Disable crop43 if it is already 4:3
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  //if (crop_width == 0) props->crop43 = false;
-
+  const int crop_width = props->crop43 ? crop43(props->width, props->height, props->zoom): 0;
   display_resolution(streamer_node, props, camera, crop_width);
 
   return props;
@@ -454,18 +446,15 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cpu_crop) {
-    if (props->crop43) {
-      if (vpX == 8) {
-        gst_structure_get_int(source_str, "width", &props->width);
-        gst_structure_get_int(source_str, "height", &props->height);
-      }
-      set_cpu_crop43(cpu_crop, props);
-      if (vpX == 8) {
-        gst_structure_get_int(encode_str, "width", &props->width);
-        gst_structure_get_int(encode_str, "height", &props->height);
-      }
+    if (vpX == 8) {
+      gst_structure_get_int(source_str, "width", &props->width);
+      gst_structure_get_int(source_str, "height", &props->height);
     }
-    else set_no_cpu_crop43(cpu_crop);
+    set_cpu_crop43(cpu_crop, props);
+    if (vpX == 8) {
+      gst_structure_get_int(encode_str, "width", &props->width);
+      gst_structure_get_int(encode_str, "height", &props->height);
+    }
     gst_object_unref(cpu_crop);
   }
   if (cpu_grey_filter) {
