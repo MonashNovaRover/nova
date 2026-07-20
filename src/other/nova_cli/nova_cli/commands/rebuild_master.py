@@ -48,7 +48,6 @@ class RebuildMasterCommand(Command):
         nova_dir = Path.home() / "nova"
         builds_dir = Path.home() / "Builds"
         output_path = builds_dir / "master"
-        nixfiles_path = nova_dir / "nixfiles"
 
         # Step 1: Validate nova directory exists
         if not nova_dir.exists():
@@ -104,10 +103,9 @@ class RebuildMasterCommand(Command):
         # Step 5: Build master
         print("Building master...", file=sys.stderr)
         cmd = [
-            'nom-build', str(nixfiles_path),
-            '-A', 'pkgs.ros.nova-workspace',
-            '-o', str(output_path)
-        ] + args.extra_args
+            'bash', '-ic', # use bash to get the alias
+            f'ws-build -o {output_path} {" ".join(args.extra_args)}'
+        ]
 
         print(f"Running: {' '.join(cmd)}", file=sys.stderr)
 

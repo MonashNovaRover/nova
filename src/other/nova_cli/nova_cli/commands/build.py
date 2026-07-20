@@ -47,12 +47,10 @@ class BuildCommand(Command):
         builds_dir = Path.home() / "Builds"
         output_path = builds_dir / args.buildname
 
-        nixfiles_path = Path.home() / "nova" / "nixfiles"
         cmd = [
-            'nom-build', str(nixfiles_path),
-            '-A', 'pkgs.ros.nova-workspace',
-            '-o', str(output_path)
-        ] + args.extra_args
+            'bash', '-ic', # use bash to get the alias
+            f'ws-build -o {output_path} {" ".join(args.extra_args)}'
+        ]
 
         print(f"Running: {' '.join(cmd)}", file=sys.stderr)
 
