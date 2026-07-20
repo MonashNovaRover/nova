@@ -22,26 +22,22 @@ class TestBuildCLI:
     def test_basic_build(self, nova_cli):
         cmd = nova_cli(["build", "master"])
         assert cmd == [
-            "nom-build", "/home/test/nova/nixfiles",
-            "-A", "pkgs.ros.nova-workspace",
-            "-o", "/home/test/Builds/master"
+            "bash", "-ic",
+            "ws-build -o /home/test/Builds/master"
         ]
 
     def test_build_auto(self, nova_cli):
         cmd = nova_cli(["build", "auto"])
         assert cmd == [
-            "nom-build", "/home/test/nova/nixfiles",
-            "-A", "pkgs.ros.nova-workspace",
-            "-o", "/home/test/Builds/auto"
+            "bash", "-ic",
+            "ws-build -o /home/test/Builds/auto"
         ]
 
     def test_build_with_extra_args(self, nova_cli):
         cmd = nova_cli(["build", "test", "--packages-select", "science"])
         assert cmd == [
-            "nom-build", "/home/test/nova/nixfiles",
-            "-A", "pkgs.ros.nova-workspace",
-            "-o", "/home/test/Builds/test",
-            "--packages-select", "science"
+            "bash", "-ic",
+            "ws-build -o /home/test/Builds/test --packages-select science"
         ]
 
 

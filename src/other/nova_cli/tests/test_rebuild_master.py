@@ -152,7 +152,7 @@ class TestRebuildMasterCommand:
         with patch('subprocess.run') as mock_run, \
              patch('pathlib.Path.exists', return_value=True):
             def run_side_effect(cmd, **kwargs):
-                if 'nom-build' in cmd:
+                if 'bash' in cmd:
                     raise FileNotFoundError()
                 if 'status' in cmd:
                     return MagicMock(returncode=0, stdout='')
@@ -171,7 +171,7 @@ class TestRebuildMasterCommand:
         with patch('subprocess.run') as mock_run, \
              patch('pathlib.Path.exists', return_value=True):
             def run_side_effect(cmd, **kwargs):
-                if 'nom-build' in cmd:
+                if 'bash' in cmd:
                     return MagicMock(returncode=5)
                 if 'status' in cmd:
                     return MagicMock(returncode=0, stdout='')
@@ -203,10 +203,10 @@ class TestRebuildMasterCommand:
             assert result == 0
             # Verify extra args passed to nom-build
             build_call = [call for call in mock_run.call_args_list
-                         if 'nom-build' in str(call)]
+                         if 'ws-build' in str(call)]
             assert len(build_call) == 1
-            assert '--packages-select' in build_call[0].args[0]
-            assert 'science' in build_call[0].args[0]
+            assert '--packages-select' in build_call[0].args[0][2]
+            assert 'science' in build_call[0].args[0][2]
 
     def test_nova_directory_missing(self, mock_home, mock_args, capsys):
         """Test error when ~/nova directory doesn't exist."""

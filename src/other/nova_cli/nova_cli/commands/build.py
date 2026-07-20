@@ -49,7 +49,12 @@ class BuildCommand(Command):
 
         cmd = [
             'bash', '-ic', # use bash to get the alias
-            f'ws-build -o {output_path} {" ".join(args.extra_args)}'
+            " ".join([
+                'ws-build',
+                '-o',
+                str(output_path)
+                ] + args.extra_args
+            )
         ]
 
         print(f"Running: {' '.join(cmd)}", file=sys.stderr)
