@@ -141,19 +141,24 @@ class LaunchCommand(Command):
     @staticmethod
     def complete_package(prefix, parsed_args, **kwargs):
         """Complete package names for launch command."""
-        build_path = ros2_utils.get_build_path()
-        packages = ros2_utils.list_packages(build_path)
+        try:
+            build_path = ros2_utils.get_build_path()
+            packages = ros2_utils.list_packages(build_path)
 
-        results = []
-        for pkg in packages:
-            if pkg.startswith(prefix):
-                results.append(pkg)
-            # Also suggest base names for _bringup packages
-            if pkg.endswith('_bringup'):
-                base = pkg[:-8]
-                if base.startswith(prefix):
-                    results.append(base)
-        return results
+            results = []
+            for pkg in packages:
+                if pkg.startswith(prefix):
+                    results.append(pkg)
+                # Also suggest base names for _bringup packages
+                if pkg.endswith('_bringup'):
+                    base = pkg[:-8]
+                    if base.startswith(prefix):
+                        results.append(base)
+
+            return results
+        except Exception:
+            # Silently fail if package discovery fails
+            return []
 
     @staticmethod
     def complete_launch_file(prefix, parsed_args, **kwargs):

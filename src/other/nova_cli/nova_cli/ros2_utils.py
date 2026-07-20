@@ -1,7 +1,7 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Shared utilities for ROS2 package and executable discovery.
-Uses ros2 commands for accurate package information.
+Uses filesystem access for reliable operation during autocomplete.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        nova_cli
 AUTHOR(S):      Felicity Matthews
@@ -21,16 +21,21 @@ def get_build_path():
 
 
 def list_packages(build_path: Path) -> list[str]:
-    """List all ROS2 packages using ros2 pkg list."""
-    ros2_bin = build_path / "bin" / "ros2"
-    result = subprocess.run(
-        [str(ros2_bin), 'pkg', 'list'],
-        capture_output=True,
-        text=True
-    )
-    if result.returncode != 0:
+    """List all ROS2 packages by reading from the filesystem.
+
+    Reads directly from build_path/share/ instead of calling 'ros2 pkg list'
+    to avoid environment setup issues during autocomplete.
+    """
+    share_dir = build_path / "share"
+    if not share_dir.exists():
         return []
-    return result.stdout.strip().split('\n')
+
+    packages = []
+    for item in share_dir.iterdir():
+        if item.is_dir():
+            packages.append(item.name)
+
+    return sorted(packages)
 
 
 def package_exists(build_path: Path, package_name: str) -> bool:
@@ -39,21 +44,21 @@ def package_exists(build_path: Path, package_name: str) -> bool:
 
 
 def list_executables(build_path: Path, package: str) -> list[str]:
-    """List executables for a package using ros2 pkg executables."""
-    ros2_bin = build_path / "bin" / "ros2"
-    result = subprocess.run(
-        [str(ros2_bin), 'pkg', 'executables', package],
-        capture_output=True,
-        text=True
-    )
-    if result.returncode != 0:
+    """List executables for a package by reading from the filesystem.
+
+    Reads directly from build_path/lib/{package}/ instead of calling 'ros2 pkg executables'
+    to avoid environment setup issues during autocomplete.
+    """
+    lib_dir = build_path / "lib" / package
+    if not lib_dir.exists():
         return []
+
     executables = []
-    for line in result.stdout.strip().split('\n'):
-        if ' ' in line:
-            _, exe = line.split(' ', 1)
-            executables.append(exe)
-    return executables
+    for item in lib_dir.iterdir():
+        if item.is_file() and os.access(item, os.X_OK):
+            executables.append(item.name)
+
+    return sorted(executables)
 
 
 def list_launch_files(build_path: Path, package: str) -> list[str]:
