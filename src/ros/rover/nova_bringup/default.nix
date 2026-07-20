@@ -24,6 +24,7 @@ buildRosPackage {
   propagatedBuildInputs = [ launch launch-ros joint-state-publisher  foxglove-bridge foxglove-msgs];
 
   postPatch = ''
+  exit 1
     sed -i launch/can.launch.py \
       -e 's@"candump"@"${can-utils}/bin/candump"@g'
   '';
