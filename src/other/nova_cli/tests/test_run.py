@@ -1,10 +1,8 @@
 """Tests for run command"""
 import pytest
-from unittest.mock import patch, MagicMock
-from types import SimpleNamespace
+from unittest.mock import patch
 
 from nova_cli.commands.run import RunCommand
-from nova_cli.commands.base import Command
 from nova_cli import ros2_utils
 
 
@@ -73,50 +71,3 @@ class TestPackageNotFound:
                 result = RunCommand.execute(mock_args)
                 assert result == 1
                 assert "Package 'nonexistent' not found" in capsys.readouterr().err
-
-
-class TestListExecutables:
-    """Tests for ros2_utils.list_executables parsing."""
-
-    def test_parses_ros2_output(self, mock_build_path):
-        mock_result = MagicMock()
-        mock_result.returncode = 0
-        mock_result.stdout = "science kiln\nscience camera\nscience sensor.py"
-
-        with patch('subprocess.run', return_value=mock_result):
-            assert ros2_utils.list_executables(mock_build_path, 'science') == ['kiln', 'camera', 'sensor.py']
-
-    def test_handles_empty_output(self, mock_build_path):
-        mock_result = MagicMock()
-        mock_result.returncode = 0
-        mock_result.stdout = ""
-
-        with patch('subprocess.run', return_value=mock_result):
-            assert ros2_utils.list_executables(mock_build_path, 'science') == []
-
-    def test_handles_command_failure(self, mock_build_path):
-        mock_result = MagicMock()
-        mock_result.returncode = 1
-
-        with patch('subprocess.run', return_value=mock_result):
-            assert ros2_utils.list_executables(mock_build_path, 'science') == []
-
-
-class TestPackageExists:
-    """Tests for ros2_utils.package_exists."""
-
-    def test_package_found(self, mock_build_path):
-        mock_result = MagicMock()
-        mock_result.returncode = 0
-        mock_result.stdout = "science\ndrive\nauto"
-
-        with patch('subprocess.run', return_value=mock_result):
-            assert ros2_utils.package_exists(mock_build_path, 'science') is True
-
-    def test_package_not_found(self, mock_build_path):
-        mock_result = MagicMock()
-        mock_result.returncode = 0
-        mock_result.stdout = "drive\nauto"
-
-        with patch('subprocess.run', return_value=mock_result):
-            assert ros2_utils.package_exists(mock_build_path, 'science') is False

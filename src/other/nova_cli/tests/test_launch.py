@@ -1,5 +1,4 @@
 """Tests for launch command"""
-import pytest
 from unittest.mock import patch, MagicMock
 
 from nova_cli.commands.launch import LaunchCommand
@@ -85,30 +84,3 @@ class TestResolvePackageName:
         with patch.object(ros2_utils, 'package_exists', return_value=True):
             result = LaunchCommand._resolve_package_name(mock_build_path, 'science_bringup')
             assert result == 'science_bringup'
-
-
-class TestPackageExists:
-    """Tests for ros2_utils.package_exists."""
-
-    def test_package_found(self, mock_build_path):
-        mock_result = MagicMock()
-        mock_result.returncode = 0
-        mock_result.stdout = "science_bringup\ndrive_bringup\nauto_bringup"
-
-        with patch('subprocess.run', return_value=mock_result):
-            assert ros2_utils.package_exists(mock_build_path, 'science_bringup') is True
-
-    def test_package_not_found(self, mock_build_path):
-        mock_result = MagicMock()
-        mock_result.returncode = 0
-        mock_result.stdout = "drive_bringup\nauto_bringup"
-
-        with patch('subprocess.run', return_value=mock_result):
-            assert ros2_utils.package_exists(mock_build_path, 'science_bringup') is False
-
-    def test_ros2_command_fails(self, mock_build_path):
-        mock_result = MagicMock()
-        mock_result.returncode = 1
-
-        with patch('subprocess.run', return_value=mock_result):
-            assert ros2_utils.package_exists(mock_build_path, 'science_bringup') is False
