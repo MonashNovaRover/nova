@@ -1,6 +1,6 @@
-{ lib,
-  buildRosPackage,
-  ament-cmake,
+{ lib
+, buildRosPackage
+, ament-cmake
 }:
 
 buildRosPackage {
