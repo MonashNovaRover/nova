@@ -9,11 +9,11 @@
 # https://nixos.wiki/wiki/Packaging/Binaries
 stdenv.mkDerivation rec {
   name = "nova-unity-sim";
-  version = "2.0";
+  version = "1.0.0";
   build = "build";
 
   src = fetchurl {
-    url = "https://github.com/MonashNovaRover/unity-build/releases/download/v${version}/${build}.tar.xz";
+    url = "https://github.com/MonashNovaRover/unity-sim/releases/download/${version}/${build}.tar.xz";
     hash = "sha256-Kv7CSyNJQKMuEATjBTDXIpn/u9sjAvPVJOlm7/SETN8=";
   };
 
