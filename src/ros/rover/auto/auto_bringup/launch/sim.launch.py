@@ -34,11 +34,6 @@ def launch_setup(context, *args, **kwargs):
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
     )
-    nova_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
-        FindPackageShare('nova_bringup')
-    )
-    nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
     comp = LaunchConfiguration('comp').perform(context).lower()
     
@@ -64,13 +59,13 @@ def launch_setup(context, *args, **kwargs):
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'nav2'])
         localization = 'False'
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'rl_arch.yaml'])
-        world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
+        world = 'ARCh2026'
         gps = 'False'
     elif comp == 'urc':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'nav2'])
         localization = 'True'
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'rl_urc.yaml'])
-        world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf'])
+        world = 'ARCh2026'
         gps = 'True'
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
@@ -94,7 +89,7 @@ def launch_setup(context, *args, **kwargs):
                 'controller_params': controller_params,
                 'model': model,
                 'namespace': namespace,
-                'world': 'ARCh2026',
+                'world': world,
                 'release': release,
                 'rviz': rviz,
                 'rviz_params': rviz_params,

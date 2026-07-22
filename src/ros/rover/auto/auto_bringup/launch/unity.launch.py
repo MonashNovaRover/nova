@@ -36,13 +36,9 @@ def launch_setup(context, *args, **kwargs):
 
     # comp agnostic arguments
     log_level = LaunchConfiguration('log_level')
-    model = LaunchConfiguration('model')
-    robot_name = LaunchConfiguration('robot_name')
     release = LaunchConfiguration('release')
     robot_type = LaunchConfiguration('robot_type')
     world = LaunchConfiguration('world')
-    rviz = LaunchConfiguration('rviz')
-    rviz_params = LaunchConfiguration('rviz_params')
 
     # comp defaults
     if comp == 'arch':
@@ -60,12 +56,13 @@ def launch_setup(context, *args, **kwargs):
         # Start ROS2 Controllers
         IncludeLaunchDescription(
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([drive_bringup_dir, 'launch', 'drive.launch.py'])),
-            launch_arguments={'local': local, 'auto': 'True', 'sim': 'True'}.items(),
+            launch_arguments={'local': local, 'log_level': log_level, 'auto': 'True', 'sim': 'True'}.items(),
         ),
         # Connect to Unity
         Node(
             package='ros_tcp_endpoint',
             executable='default_server_endpoint',
+            arguments=['--ros-args', '--log-level', log_level],
         ),
         Node(
             package='image_transport',
@@ -78,6 +75,7 @@ def launch_setup(context, *args, **kwargs):
                 ('in/compressed', '/d415/color/image_raw/compressed'),
                 ('out', '/d415/color/image_raw'),
             ],
+            arguments=['--ros-args', '--log-level', log_level],
         ),
         # Run unity-sim
         ExecuteProcess(
@@ -94,11 +92,6 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     local = LaunchConfiguration('local')
-
-    rover_description_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
-        FindPackageShare('rover_description')
-    )
 
     declared_arguments = [
         DeclareLaunchArgument(
@@ -118,39 +111,19 @@ def generate_launch_description():
             description='What level of logging output should be displayed',
         ),
         DeclareLaunchArgument(
-            name='model',
-            default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
-            description='Absolute path to robot urdf file',
-        ),
-        DeclareLaunchArgument(
             name='release',
             default_value='True',
             description='Use released build of Unity?',
-        ),
-        DeclareLaunchArgument(
-            name='robot_name',
-            default_value='Banksia',
-            description='name of the robot',
         ),
         DeclareLaunchArgument(
             name='robot_type',
             default_value='auto',
             description='type of the robot, e.g. default, auto, arm',
         ),
-        DeclareLaunchArgument(
-            name='rviz',
-            default_value='False',
-            description='Whether to launch RViz',
-        ),
-        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
-            name='rviz_params',
-            default_value='everything',
-            description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
-        ),
         # arguments with comp defaults
         DeclareLaunchArgument(
             name='world',
-            default_value='ARC2025',
+            default_value='',
             description='Full path to world model file to load',
         ),
     ]
