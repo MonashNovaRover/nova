@@ -93,7 +93,7 @@ def launch_setup(context, *args, **kwargs):
                 'controller_params': controller_params,
                 'model': model,
                 'namespace': namespace,
-                'world': world,
+                'world': 'ARCh2026',
                 'rviz': rviz,
                 'rviz_params': rviz_params,
             }.items(),

@@ -49,9 +49,9 @@ def launch_setup(context, *args, **kwargs):
 
     # comp defaults
     if comp == 'arch':
-        world = 'ARC2025'
+        world = 'ARCh2026'
     elif comp == 'urc':
-        world = 'ARC2025'
+        world = 'ARCh2026'
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
 
@@ -83,15 +83,15 @@ def launch_setup(context, *args, **kwargs):
             ],
         ),
         # Run unity-sim
-        # ExecuteProcess(
-        #     cmd=[
-        #         'nova-unity-sim', 
-        #         '-screen-fullscreen', '0', 
-        #         '-window-mode', 'windowed', 
-        #         ['scene=', world], 
-        #         ['robot=', robot_type]],
-        #     output='screen',
-        # ),
+        ExecuteProcess(
+            cmd=[
+                'nova-unity-sim', 
+                '-screen-fullscreen', '0', 
+                '-window-mode', 'windowed', 
+                ['scene=', world], 
+                ['robot=', robot_type]],
+            output='screen',
+        ),
     ]
 
 def generate_launch_description():
