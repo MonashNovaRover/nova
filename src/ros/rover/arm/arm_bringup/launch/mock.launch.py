@@ -47,12 +47,12 @@ def launch_setup(context, *args, **kwargs):
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'control.launch.py'])),
-            launch_arguments={'controllers': controllers, 'model': model, 'sim': 'False', 'robot_name': robot_name, 'arm': arm, 'old_arm': old_arm, 'use_mock_hardware': 'True'}.items(),
+            launch_arguments={'controllers': controllers, 'model': model, 'gazebo': 'False', 'robot_name': robot_name, 'arm': arm, 'old_arm': old_arm, 'use_mock_hardware': 'True'}.items(),
         ),
         # I think this is already handled by control.launch.py
         # IncludeLaunchDescription(
         #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-        #     launch_arguments={'model': model, 'sim': 'false', 'robot_name': robot_name, 'arm': arm, 'use_mock_hardware': 'True'}.items(),
+        #     launch_arguments={'model': model, 'gazebo': 'false', 'robot_name': robot_name, 'arm': arm, 'use_mock_hardware': 'True'}.items(),
         # ),
     ]
 
@@ -70,7 +70,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='launch_robot_description',
             default_value='True',
-            description='Should sim launch its own robot description, or is one already running?',
+            description='Should gazebo launch its own robot description, or is one already running?',
         ),
         DeclareLaunchArgument(
             name='model',

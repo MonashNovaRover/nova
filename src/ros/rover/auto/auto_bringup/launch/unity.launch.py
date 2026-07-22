@@ -27,10 +27,6 @@ def launch_setup(context, *args, **kwargs):
     # package directories
     local = LaunchConfiguration('local')
 
-    auto_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
-        FindPackageShare('auto_bringup')
-    )
     drive_bringup_dir = IfElseSubstitution(local,
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
         FindPackageShare('drive_bringup')
@@ -42,6 +38,7 @@ def launch_setup(context, *args, **kwargs):
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     robot_name = LaunchConfiguration('robot_name')
+    release = LaunchConfiguration('release')
     robot_type = LaunchConfiguration('robot_type')
     world = LaunchConfiguration('world')
     rviz = LaunchConfiguration('rviz')
@@ -84,6 +81,7 @@ def launch_setup(context, *args, **kwargs):
         ),
         # Run unity-sim
         ExecuteProcess(
+            condition=IfCondition(release),
             cmd=[
                 'nova-unity-sim', 
                 '-screen-fullscreen', '0', 
@@ -123,6 +121,11 @@ def generate_launch_description():
             name='model',
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
+        ),
+        DeclareLaunchArgument(
+            name='release',
+            default_value='True',
+            description='Use released build of Unity?',
         ),
         DeclareLaunchArgument(
             name='robot_name',

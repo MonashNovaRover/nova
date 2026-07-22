@@ -11,7 +11,7 @@ from launch_ros.actions import Node
 
 # Generate the launch file with all inputs
 def generate_launch_description():
-    sim = False
+    gazebo = False
     model = 'rover7'
     return LaunchDescription([
         Node(

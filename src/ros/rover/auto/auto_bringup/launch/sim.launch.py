@@ -51,6 +51,7 @@ def launch_setup(context, *args, **kwargs):
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     navigation = LaunchConfiguration('navigation')
+    release = LaunchConfiguration('release')
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
     use_respawn = LaunchConfiguration('use_respawn')
@@ -94,6 +95,7 @@ def launch_setup(context, *args, **kwargs):
                 'model': model,
                 'namespace': namespace,
                 'world': 'ARCh2026',
+                'release': release,
                 'rviz': rviz,
                 'rviz_params': rviz_params,
             }.items(),
@@ -245,6 +247,11 @@ def generate_launch_description():
             name='localization',
             default_value='',
             description='Run robot_localization?',
+        ),
+        DeclareLaunchArgument(
+            name='release',
+            default_value='True',
+            description='Use released build of Unity?',
         ),
         DeclareLaunchArgument(
             name='rl_params',

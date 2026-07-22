@@ -32,7 +32,7 @@ def launch_setup(context, *args, **kwargs):
 
     angle = LaunchConfiguration('angle')
     controllers = LaunchConfiguration('controllers')
-    sim = LaunchConfiguration('sim')
+    gazebo = LaunchConfiguration('gazebo')
     log_level = LaunchConfiguration('log_level')
     model = LaunchConfiguration('model')
     arm = LaunchConfiguration('arm').perform(context)
@@ -57,11 +57,11 @@ def launch_setup(context, *args, **kwargs):
             package='robot_state_publisher',
             executable='robot_state_publisher',
             parameters=[{'robot_description':
-                             ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', sim, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
+                             ParameterValue(Command(['xacro ', model, ' ', 'gazebo:=', gazebo, ' ', 'robot_name:=', robot_name, ' ', 'arm:=', arm, ' ', 'old_arm:=', old_arm, ' ', 'use_mock_hardware:=', use_mock_hardware, ' ', 'auto_camera:=false']), value_type=str)
                          }]
         ),
         GroupAction(
-            condition=UnlessCondition(sim),
+            condition=UnlessCondition(gazebo),
             actions=[
                 Node(
                     package='controller_manager',
@@ -76,7 +76,7 @@ def launch_setup(context, *args, **kwargs):
                 )
                 # IncludeLaunchDescription(
                 #     PythonLaunchDescriptionSource(PathJoinSubstitution([arm_bringup_dir, 'launch', 'urdf.launch.py'])),
-                #     launch_arguments={'model': model, 'sim': sim, 'angle': angle, 'use_local_mesh': use_local_mesh, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
+                #     launch_arguments={'model': model, 'gazebo': gazebo, 'angle': angle, 'use_local_mesh': use_local_mesh, 'use_mock_hardware': use_mock_hardware, 'arm': arm, 'old_arm': old_arm}.items(),
                 # )
             ],
         ),
@@ -99,9 +99,9 @@ def generate_launch_description():
             description='Absolute path to controller params file',
         ),
         DeclareLaunchArgument(
-            name='sim',
+            name='gazebo',
             default_value='False',
-            description='Use simulation (/clock) clock if True',
+            description='Use simulation (Gazebo) clock if True',
         ),
         DeclareLaunchArgument(
             name='log_level',
