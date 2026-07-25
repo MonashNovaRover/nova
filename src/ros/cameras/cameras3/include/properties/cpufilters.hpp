@@ -34,7 +34,7 @@ template<typename properties> void set_convertscale(GstElement* element, const p
       props->chroma_resampler == "cubic" ? 2 :
       props->chroma_resampler == "sinc" ? 3 : 
       props->chroma_resampler == "lanczos" ? 4 :
-      1),
+      2),
     "dither", (
       props->dither == "none" ? 0 :
       props->dither == "verterr" ? 1 :
@@ -53,7 +53,7 @@ template<typename properties> void set_convertscale(GstElement* element, const p
       props->method == "spline" ? 7 :
       props->method == "catrom" ? 8 : 
       props->method == "mitchell" ? 9 :
-      1),
+      9),
   NULL);
 };
 
