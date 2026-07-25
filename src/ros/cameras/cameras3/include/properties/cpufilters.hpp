@@ -12,8 +12,8 @@ template<typename properties> void set_cpu_crop43(GstElement* element, const pro
   const int crop_width = props->crop43 ? crop43(props->width, props->height, props->zoom) : 0;
   const int zoom_width = (props->width - (int)((float)props->width/props->zoom)) / 2;
   const int zoom_height = (props->height - (int)((float)props->height/props->zoom)) / 2;
-  const int zoom_longitude_bias = std::clamp(props->zoom_longitude, -1.0f, 1.0f) * zoom_width;
-  const int zoom_latitude_bias = std::clamp(props->zoom_latitude, -1.0f, 1.0f) * zoom_height;
+  const int zoom_longitude_bias = (int) std::clamp(props->zoom_longitude, -1.0, 1.0) * zoom_width;
+  const int zoom_latitude_bias = (int) std::clamp(props->zoom_latitude, -1.0, 1.0) * zoom_height;
   g_object_set(element,
     "bottom", zoom_height - zoom_latitude_bias,
     "left", crop_width + zoom_width - zoom_longitude_bias,
