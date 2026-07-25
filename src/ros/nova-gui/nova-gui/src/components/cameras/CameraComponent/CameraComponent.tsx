@@ -195,6 +195,34 @@ export const CameraComponent = (props: CameraComponentProps) => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (!isHovered) return;
+
+      // Ctrl + mouse wheel
+      if (e.ctrlKey) {
+        e.preventDefault();
+        // Direction
+        if (e.deltaY < 0) console.log("Zoom in");
+        else console.log("Zoom out");
+
+        const rect = cardRef.current?.getBoundingClientRect();
+        if (rect) {
+          const x = ((e.clientX - rect.left)/rect.width - 0.5)*2;
+          const y = ((e.clientY - rect.top)/rect.height - 0.5)*2;
+
+          console.log("Within card:", x, y);
+        }
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+    };
+  }, [isHovered]);
+
   const VideoComponent = props.cameraVideoComponent;
   const cameraVideo = VideoComponent
     // eslint-disable-next-line react-hooks/refs
