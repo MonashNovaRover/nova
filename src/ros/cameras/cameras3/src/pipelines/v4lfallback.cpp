@@ -201,6 +201,9 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
 
   // cropper
   props->zoom = set_property(streamer_node, camera, "zoom", 1.0f);
+  props->zoom_longitude = set_property(streamer_node, camera, "zoom_longitude", 0.0f);
+  props->zoom_latitude = set_property(streamer_node, camera, "zoom_latitude", 0.0f);
+
   props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
   // clock

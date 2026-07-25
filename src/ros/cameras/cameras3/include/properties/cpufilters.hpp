@@ -11,11 +11,13 @@ template<typename properties> void set_cpu_crop43(GstElement* element, const pro
   const int crop_width = props->crop43 ? crop43(props->width, props->height, props->zoom) : 0;
   const int zoom_width = (props->width - (int)((float)props->width/props->zoom)) / 2;
   const int zoom_height = (props->height - (int)((float)props->height/props->zoom)) / 2;
+  const int zoom_longitude_bias = props->zoom_longitude * zoom_width;
+  const int zoom_latitude_bias = props->zoom_latitude * zoom_height;
   g_object_set(element,
-    "bottom", zoom_height,
-    "left", crop_width + zoom_width,
-    "right", crop_width + zoom_width,
-    "top", zoom_height,
+    "bottom", zoom_height - zoom_latitude_bias,
+    "left", crop_width + zoom_width - zoom_longitude_bias,
+    "right", crop_width + zoom_width + zoom_longitude_bias,
+    "top", zoom_height + zoom_latitude_bias,
   NULL);
 };
 
