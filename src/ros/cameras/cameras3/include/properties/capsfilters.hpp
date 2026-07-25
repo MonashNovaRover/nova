@@ -12,8 +12,6 @@ template<typename properties> void set_srcfilter(GstElement* element, const prop
     "width", G_TYPE_INT, props->width,
     "height", G_TYPE_INT, props->height,
     "framerate", GST_TYPE_FRACTION, props->framerate, props->framerate_denominator * props->downrate,
-    "brightness", G_TYPE_INT, std::clamp(props->brightness, 0, 255),
-    "contrast", G_TYPE_INT,  std::clamp(props->contrast, 0, 255),
   NULL);
   g_object_set(element, "caps", caps, NULL);
   gst_caps_unref(caps);
@@ -42,10 +40,5 @@ template<typename properties> void set_rosfilter(GstElement* element, const prop
   g_object_set(element, "caps", caps, NULL);
   gst_caps_unref(caps);
 }
-
-
-void set_cpu_grey_filter(GstElement* element);
-
-void set_no_cpu_grey_filter(GstElement* element); 
 
 #endif

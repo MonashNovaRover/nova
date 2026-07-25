@@ -5,6 +5,14 @@
 #include <gst/gst.h>
 
 template<typename properties> void set_v4lsource(GstElement* element, const properties& props) {
+  GstStructure *str = gst_structure_new(
+    "controls",
+    "brightness", G_TYPE_INT, props->brightness,
+    "contrast", G_TYPE_INT, props->contrast,
+    "saturation", G_TYPE_INT, props->saturation,
+    "gain", G_TYPE_INT, props->gain,
+    "sharpness", G_TYPE_INT, props->sharpness,
+  NULL);
   g_object_set(element,
     "device", props->device.c_str(),
     "io-mode", (
@@ -14,7 +22,9 @@ template<typename properties> void set_v4lsource(GstElement* element, const prop
       props->io_mode == "dmabuf" ? 4 :
       props->io_mode == "dmabuf-import" ? 5 :
       0),
+      "extra-controls", str,
   NULL);
+  gst_structure_free(str);
 }
 
 #endif

@@ -4,9 +4,6 @@
 #include <string>
 #include <gst/gst.h>
 
-void set_glgreyscale(GstElement* glgreyscale);
-
-void set_no_glgreyscale(GstElement* glgreyscale);
 
 void set_no_glshader(GstElement* glshader);
 
@@ -33,7 +30,6 @@ uniform float sharpen_radius;   // Default 0.2
 uniform float sharpen_strength; // Default 4.0
 
 uniform int do_undistort;
-uniform int do_greyscale;
 uniform int do_denoise;
 uniform int do_sharpen;
 
@@ -119,11 +115,6 @@ void main() {
     result += edge * sharpen_strength;
   }
 
-  if (do_greyscale == 1) {
-    float grey = dot(result, vec3(0.299, 0.587, 0.114));
-    result = vec3(grey);
-  }
-
   gl_FragColor = vec4(result, 1.0);
 })";
   const std::string uniforms = "uniforms";
@@ -141,7 +132,6 @@ void main() {
     "sharpen_radius", G_TYPE_FLOAT, props->sharpen_radius,
     "sharpen_strength", G_TYPE_FLOAT, props->sharpen_strength,
     "do_undistort", G_TYPE_INT, (int) props->undistort,
-    "do_greyscale", G_TYPE_INT, (int) props->greyscale,
     "do_denoise", G_TYPE_INT, (int) props->denoise,
     "do_sharpen", G_TYPE_INT, (int) props->sharpen,
   NULL);

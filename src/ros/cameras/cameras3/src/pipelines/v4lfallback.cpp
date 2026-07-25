@@ -168,14 +168,18 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
 
+  props->brightness = set_property(streamer_node, camera, "brightness", 0);
+  props->contrast = set_property(streamer_node, camera, "contrast", 50);
+  props->saturation = set_property(streamer_node, camera, "saturation", 64);
+  props->gain = set_property(streamer_node, camera, "gain", 0);
+  props->sharpness = set_property(streamer_node, camera, "sharpness", 50);
+
   // filter
   default_string = "I420";
   props->format = set_property(streamer_node, camera, "format", default_string);
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera, "mime", default_string);
 
-  props->brightness = set_property(streamer_node, camera, "brightness", 0);
-  props->contrast = set_property(streamer_node, camera, "contrast", 0);
   props->framerate = set_property(streamer_node, camera, "framerate", 30);
   props->framerate_denominator = set_property(streamer_node, camera, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera, "height", 720);

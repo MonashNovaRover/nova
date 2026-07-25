@@ -34,6 +34,10 @@ struct capsProperties
 
   int brightness;
   int contrast;
+  int saturation;
+  int gain;
+  int sharpness;
+
   int downrate;
   int downscale;
   int height;
@@ -101,7 +105,6 @@ struct cpuFiltersProperties
 
   float zoom;
 
-  bool greyscale;
   bool crop43;
 };
 
