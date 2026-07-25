@@ -19,6 +19,7 @@
 
 #include <camera_msgs/srv/camera_operation.hpp>
 #include <camera_msgs/srv/camera_profile_selection.hpp>
+#include <camera_msgs/srv/camera_zoom_selection.hpp>
 #include <camera_msgs/srv/get_camera_stream_stats.hpp>
 #include <camera_msgs/srv/get_ip_list.hpp>
 #include <camera_msgs/msg/camera.hpp>
@@ -54,32 +55,37 @@ class CameraStreamer : public rclcpp::Node
     )
   {
     start_service_ = this->create_service<camera_msgs::srv::CameraOperation>(
-      SERVICE_START, 
+      SERVICE_START,
       std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::START)
     );
     stop_service_ = this->create_service<camera_msgs::srv::CameraOperation>(
-      SERVICE_STOP, 
+      SERVICE_STOP,
       std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::STOP)
     );
     pause_service_ = this->create_service<camera_msgs::srv::CameraOperation>(
-      SERVICE_PAUSE, 
+      SERVICE_PAUSE,
       std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::PAUSE)
     );
     profile_service_ = this->create_service<camera_msgs::srv::CameraProfileSelection>(
-      SERVICE_PROFILE, 
+      SERVICE_PROFILE,
       std::bind(&CameraStreamer::profile_callback,
         this, _1, _2)
     );
+    zoom_service_ = this->create_service<camera_msgs::srv::CameraZoomSelection>(
+      SERVICE_ZOOM,
+      std::bind(&CameraStreamer::zoom_callback,
+        this, _1, _2)
+    );
     stats_service_ = this->create_service<camera_msgs::srv::GetCameraStreamStats>(
-      SERVICE_STATS, 
+      SERVICE_STATS,
       std::bind(&CameraStreamer::stats_callback, 
         this, _1, _2)
     );
     ips_service_ = this->create_service<camera_msgs::srv::GetIPList>(
-      SERVICE_IPS, 
+      SERVICE_IPS,
       std::bind(&CameraStreamer::ips_callback, 
         this, _1, _2)
     );
@@ -125,6 +131,7 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr stop_service_;
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr pause_service_;
   rclcpp::Service<camera_msgs::srv::CameraProfileSelection>::SharedPtr profile_service_;
+  rclcpp::Service<camera_msgs::srv::CameraZoomSelection>::SharedPtr zoom_service_;
   rclcpp::Service<camera_msgs::srv::GetCameraStreamStats>::SharedPtr stats_service_;
   rclcpp::Service<camera_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
@@ -155,8 +162,11 @@ class CameraStreamer : public rclcpp::Node
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 8);
       requires_gl = true;
     } else if (pipeline->camera->pipeline_type == "vp9software") {
-      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);      
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 9);
+      pipeline->zoom = props->zoom;
+      pipeline->zoom_longitude = props->zoom_longitude;
+      pipeline->zoom_latitude = props->zoom_latitude;
       requires_gl = true;
     }
 
@@ -187,6 +197,9 @@ class CameraStreamer : public rclcpp::Node
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
       set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      props->zoom = pipeline->zoom;
+      props->zoom_longitude = pipeline->zoom_longitude;
+      props->zoom_latitude = pipeline->zoom_latitude;
     }
 
     gst_bin_recalculate_latency(GST_BIN(pipeline->gst_pipeline));
@@ -370,6 +383,35 @@ class CameraStreamer : public rclcpp::Node
         RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
       }
     }
+  }
+
+  private: void zoom_callback(
+    const std::shared_ptr<camera_msgs::srv::CameraZoomSelection::Request> request,
+    std::shared_ptr<camera_msgs::srv::CameraZoomSelection::Response> response)  
+  {
+    response->success = true;
+    std::string serial = request->serial;
+    auto it = this->pipelines.find(serial);
+    if (it == pipelines.end() || !it->second->gst_pipeline || !it->second) {
+      response->success = false;
+      return;
+    }
+    
+    std::unique_ptr<Pipeline>& pipeline = it->second;
+
+    if (pipeline->camera->pipeline_type != "vp9software") {
+      response->success = false;
+      return;
+    }
+ 
+    std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
+    pipeline->zoom = props->zoom = request->zoom;
+    pipeline->zoom_longitude = props->zoom_longitude = request->zoom_longitude;
+    pipeline->zoom_latitude = props->zoom_latitude = request->zoom_latitude;
+    set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+
+    RCLCPP_INFO(this->get_logger(), "%sApplied %s%f%sx zoom at: (%s%f %f%s) to %s%s%s", C_QUIET, C_TITLE, request->zoom, C_QUIET, C_MODE, request->zoom_longitude, request->zoom_latitude, C_QUIET, C_MODE, request->serial, C_RESET);
+
   }
 
   private: void stats_callback(

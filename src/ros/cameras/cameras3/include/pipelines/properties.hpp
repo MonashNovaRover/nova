@@ -97,15 +97,18 @@ struct decodeProperties
   std::string jpegdec_method;
 };
 
+struct zoomProperties
+{
+  double zoom;
+  double zoom_longitude;
+  double zoom_latitude;
+};
+
 struct cpuFiltersProperties
 {
   std::string chroma_resampler;
   std::string dither;
   std::string method;
-
-  float zoom;
-  float zoom_longitude;
-  float zoom_latitude;
 
   bool crop43;
 };
@@ -128,6 +131,10 @@ struct Pipeline
 {
   GstElement* gst_pipeline;
   std::unique_ptr<camera_msgs::msg::Camera> camera;
+
+  double zoom;
+  double zoom_longitude;
+  double zoom_latitude;
 };
 
 #endif
