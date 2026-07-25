@@ -346,6 +346,9 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
 
   // cropper
   props->zoom = set_property(streamer_node, camera, "zoom", 1.0f);
+  props->zoom_longitude = set_property(streamer_node, camera, "zoom_longitude", 0.0f);
+  props->zoom_latitude = set_property(streamer_node, camera, "zoom_latitude", 0.0f);
+
   props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
   // encode

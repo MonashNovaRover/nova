@@ -104,6 +104,8 @@ struct cpuFiltersProperties
   std::string method;
 
   float zoom;
+  float zoom_longitude;
+  float zoom_latitude;
 
   bool crop43;
 };
