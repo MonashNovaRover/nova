@@ -33,6 +33,8 @@ import {
   IRosScienceInterfacesRunPumpResponse,
   IRosCameraMsgsCameraProfileSelectionRequest,
   IRosCameraMsgsCameraProfileSelectionResponse,
+  IRosCameraMsgsCameraZoomSelectionRequest,
+  IRosCameraMsgsCameraZoomSelectionResponse,
   IRosScienceInterfacesSetNamedPositionsRequest,
   IRosScienceInterfacesSetNamedPositionsResponse,
   IRosScienceInterfacesIncrementZeroRequest,
@@ -90,6 +92,10 @@ export interface RosServiceInterface {
   [RosService.PRESET_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraProfileSelectionRequest,
     IRosCameraMsgsCameraProfileSelectionResponse
+  >;
+  [RosService.ZOOM_CAM]: RosServiceMessage<
+    IRosCameraMsgsCameraZoomSelectionRequest,
+    IRosCameraMsgsCameraZoomSelectionResponse
   >;
   [RosService.GET_IP_LIST]: RosServiceMessage<
     EmptyMessage,

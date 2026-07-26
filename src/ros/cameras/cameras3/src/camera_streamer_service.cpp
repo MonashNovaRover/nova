@@ -405,12 +405,12 @@ class CameraStreamer : public rclcpp::Node
     }
  
     std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
-    pipeline->zoom = props->zoom = request->zoom;
-    pipeline->zoom_longitude = props->zoom_longitude = request->zoom_longitude;
-    pipeline->zoom_latitude = props->zoom_latitude = request->zoom_latitude;
+    pipeline->zoom = props->zoom = std::clamp(pipeline->zoom + request->zoom, 1.0, 64.0);
+    pipeline->zoom_longitude = props->zoom_longitude = (pipeline->zoom == 1.0) ? 0.0 : std::clamp(pipeline->zoom_longitude + request->zoom_longitude, -1.0, 1.0);
+    pipeline->zoom_latitude = props->zoom_latitude = (pipeline->zoom == 1.0) ? 0.0 : std::clamp(pipeline->zoom_latitude + request->zoom_latitude, -1.0, 1.0);
     set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
 
-    RCLCPP_INFO(this->get_logger(), "%sApplied %s%f%sx zoom at: (%s%f %f%s) to %s%s%s", C_QUIET, C_TITLE, request->zoom, C_QUIET, C_MODE, request->zoom_longitude, request->zoom_latitude, C_QUIET, C_MODE, request->serial, C_RESET);
+    RCLCPP_INFO(this->get_logger(), "%sApplied %s%.2f%sx zoom at: (%s%.2f %.2f%s) to %s%s%s", C_QUIET, C_TITLE, pipeline->zoom, C_QUIET, C_MODE, pipeline->zoom_longitude, pipeline->zoom_latitude, C_QUIET, C_MODE, serial.c_str(), C_RESET);
 
   }
 

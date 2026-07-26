@@ -16,8 +16,8 @@ template<typename properties> void set_cpu_crop43(GstElement* element, const pro
   const int zoom_latitude_bias = (int) std::clamp(props->zoom_latitude, -1.0, 1.0) * zoom_height;
   g_object_set(element,
     "bottom", zoom_height - zoom_latitude_bias,
-    "left", crop_width + zoom_width - zoom_longitude_bias,
-    "right", crop_width + zoom_width + zoom_longitude_bias,
+    "left", crop_width + zoom_width + zoom_longitude_bias,
+    "right", crop_width + zoom_width - zoom_longitude_bias,
     "top", zoom_height + zoom_latitude_bias,
   NULL);
 };
