@@ -209,15 +209,17 @@ export const CameraComponent = (props: CameraComponentProps) => {
         const rect = cardRef.current?.getBoundingClientRect();
         if (rect) {
           const magnitude = -e.deltaY/120;
-          const x = ((e.clientX - rect.left)/rect.width - 0.5)*2 / magnitude;
-          const y = ((e.clientY - rect.top)/rect.height - 0.5)*2 / magnitude;
+          const x = ((e.clientX - rect.left)/rect.width - 0.5)*2;
+          const y = ((e.clientY - rect.top)/rect.height - 0.5)*2;
 
-          //console.log("Within card:", x, y, magnitude);
+          console.log("Within card:", x, y, magnitude);
           bifrost.callService({
             serial: cameraSerial,
             zoom: magnitude,
             zoom_longitude: x,
             zoom_latitude: y,
+          }, {
+            responseToast: false,
           })
         }
       }
