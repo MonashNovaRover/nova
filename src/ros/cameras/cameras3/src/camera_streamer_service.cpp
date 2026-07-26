@@ -405,12 +405,30 @@ class CameraStreamer : public rclcpp::Node
     }
  
     std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
-    pipeline->zoom = props->zoom = std::clamp(pipeline->zoom + request->zoom, 1.0, 64.0);
-    pipeline->zoom_longitude = props->zoom_longitude = (pipeline->zoom == 1.0) ? 0.0 : std::clamp(pipeline->zoom_longitude + request->zoom_longitude, -1.0, 1.0);
-    pipeline->zoom_latitude = props->zoom_latitude = (pipeline->zoom == 1.0) ? 0.0 : std::clamp(pipeline->zoom_latitude + request->zoom_latitude, -1.0, 1.0);
+
+    const double newZoom = std::clamp(pipeline->zoom + request->zoom, 1.0, 64.0);
+
+    // World coordinates currently under the cursor
+    const double worldX = pipeline->zoom_longitude + request->zoom_longitude / pipeline->zoom;
+    const double worldY = pipeline->zoom_latitude + request->zoom_latitude / pipeline->zoom;
+
+    // Compute new centre so the same world point stays under the cursor
+    double centreX = worldX - request->zoom_longitude / newZoom;
+    double centreY = worldY - request->zoom_latitude / newZoom;
+
+    // Clamp so the viewport never leaves the image
+    const double limit = 1.0 - 1.0 / newZoom;
+    centreX = std::clamp(centreX, -limit, limit);
+    centreY = std::clamp(centreY, -limit, limit);
+
+    pipeline->zoom = props->zoom = newZoom;
+    pipeline->zoom_longitude = props->zoom_longitude = (newZoom == 1.0) ? 0.0 : centreX;
+    pipeline->zoom_latitude = props->zoom_latitude = (newZoom == 1.0) ? 0.0 : centreY;
+
     set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
 
     RCLCPP_INFO(this->get_logger(), "%sApplied %s%.2f%sx zoom at: (%s%.2f %.2f%s) to %s%s%s", C_QUIET, C_TITLE, pipeline->zoom, C_QUIET, C_MODE, pipeline->zoom_longitude, pipeline->zoom_latitude, C_QUIET, C_MODE, serial.c_str(), C_RESET);
+
 
   }
 
