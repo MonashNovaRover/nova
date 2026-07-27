@@ -43,7 +43,7 @@
       nova-gimbal-cam
       nova-interfaces
       nova-bringup
-      nova-auto-bringup
+      #nova-auto-bringup
       nova-arm-bringup
       nova-drive-bringup
       nova-rover-description
