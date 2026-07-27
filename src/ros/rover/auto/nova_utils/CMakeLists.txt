@@ -35,12 +35,6 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-add_executable(transform_republisher src/transform_republisher.cpp)
-ament_target_dependencies(transform_republisher ${THIS_PACKAGE_INCLUDE_DEPENDS})
-target_include_directories(transform_republisher PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
-  $<INSTALL_INTERFACE:include>)
-
 # Python executables
 install(PROGRAMS
   scripts/calculate_covariances.py
@@ -66,6 +60,12 @@ install(PROGRAMS
 )
 
 # C++ executables
+add_executable(transform_republisher src/transform_republisher.cpp)
+ament_target_dependencies(transform_republisher ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_include_directories(transform_republisher PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+  $<INSTALL_INTERFACE:include>)
+
 install(TARGETS
   transform_republisher
   DESTINATION lib/${PROJECT_NAME}

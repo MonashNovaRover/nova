@@ -12,17 +12,15 @@ def launch_setup(context, *args, **kwargs):
     # package directories
     local = LaunchConfiguration('local')
 
-    auto_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/auto/auto_bringup']),
-        FindPackageShare('auto_bringup')
-    )
+    local_auto_bringup_dir = PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/auto/auto_bringup'])
+    auto_bringup_dir = IfElseSubstitution(local, local_auto_bringup_dir, FindPackageShare('auto_bringup'))
 
     sim = LaunchConfiguration('sim').perform(context)
     rviz_params = LaunchConfiguration('rviz_params').perform(context)
     model = LaunchConfiguration('model').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     
-    rviz_params = PathJoinSubstitution([auto_bringup_dir, 'rviz', rviz_params + '.rviz'])
+    rviz_params = PathJoinSubstitution([local_auto_bringup_dir, 'rviz', rviz_params + '.rviz'])
     if not exists(rviz_params.perform(context)):
         raise ValueError(f"RViz config file {rviz_params.perform(context)} does not exist")
 

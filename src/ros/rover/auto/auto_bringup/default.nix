@@ -47,13 +47,15 @@
   pcl-ros,
   direct-visual-lidar-calibration,
   nova-auto-start,
+  ros-tcp-endpoint,
+  nova-unity-sim,
 }:
 
 buildRosPackage rec {
   name = "auto-bringup";
   buildType = "ament_cmake";
 
-  src = builtins.path rec {
+  src = builtins.path {
     name = "auto-bringup-source";
     path = ./.;
   };
@@ -64,6 +66,7 @@ buildRosPackage rec {
     launch-ros
   ];
 
+  isx86 = (lib.systems.elaborate builtins.currentSystem).isx86_64;
   passthru.workspacePackages = {
     inherit
       xacro
@@ -106,8 +109,9 @@ buildRosPackage rec {
       demo-nodes-cpp
       pcl-ros
       direct-visual-lidar-calibration
-      nova-auto-start;
-  };
+      nova-auto-start
+      ros-tcp-endpoint;
+  } // lib.optionalAttrs isx86 { inherit nova-unity-sim; };
 
   # After installing params and resources folders in nix store's auto_bringup,
   # we need to generate absolute filepaths for files in that auto_bringup, to

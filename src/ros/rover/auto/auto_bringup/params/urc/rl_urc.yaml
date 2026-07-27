@@ -13,7 +13,11 @@ ekf_filter_node_odom:
     world_frame: odom # Defaults to the value of odom_frame if unspecified
 
     # Order of sensor configs:
-    # [x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az]
+    # [x,     y,      z, 
+    #  roll,  pitch,  yaw, 
+    #  vx,    vy,     vz, 
+    #  vroll, vpitch, vyaw, 
+    #  ax,    ay,     az]
 
     # Wheel Odom
     odom0: /pivot_drive_controller/odom
