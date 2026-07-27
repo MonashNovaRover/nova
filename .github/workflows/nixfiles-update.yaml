@@ -1,5 +1,6 @@
 name: Update Pinned Revisions
 on:
+  push:
   workflow_dispatch:
   schedule:
     - cron: '0 12 * * SAT'
