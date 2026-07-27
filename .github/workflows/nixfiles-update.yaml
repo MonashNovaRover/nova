@@ -31,6 +31,8 @@ jobs:
       - name: Determine latest SHA
         id: latest
         run: |
+          echo '' | jq -r 'sort_by\(.number\) | map\(select\(\(.state == "open"\) and \(.title | startswith\("rosdistro sync"\)\)\)\) | first | .head.sha'
+          echo '' | jq -r 'sort_by(.number) | map(select((.state == "open") and (.title | startswith("rosdistro sync")))) | first | .head.sha'
           echo '${{ steps.get_pulls.outputs.data }}' | jq -r 'sort_by(.number) | map(select((.state == "open") and (.title | startswith("rosdistro sync")))) | first | .head.sha'
           LATEST_SHA="$(jq -r 'sort_by(.number) | map(select((.state == "open") and (.title | startswith("rosdistro sync")))) | first | .head.sha' <(echo '${{ steps.get_pulls.outputs.data }}'))"
           if [ "$LATEST_SHA" == "null" ]; then
