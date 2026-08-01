@@ -97,6 +97,7 @@
       livox-ros-driver2
       rmw-cyclonedds-cpp
       rqt-controller-manager
+      unitree-lidar-ros2
       ;
     inherit (pkgs)
       mbtileserver
