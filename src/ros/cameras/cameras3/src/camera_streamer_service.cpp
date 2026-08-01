@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <any>
 #include <thread>
+#include <cmath>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
@@ -406,24 +407,31 @@ class CameraStreamer : public rclcpp::Node
  
     std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
 
-    const double newZoom = std::clamp(pipeline->zoom + request->zoom, 1.0, 64.0);
+    
+    double new_zoom;
 
+    if (request->zoom > 0) {
+      new_zoom = std::clamp(std::pow(pipeline->zoom + request->zoom, 1.25), 1.0, 64.0);
+    } else {
+      new_zoom = std::clamp(std::pow(pipeline->zoom + request->zoom, 0.75), 1.0, 64.0);
+    }
+    
     // World coordinates currently under the cursor
     const double worldX = pipeline->zoom_longitude + request->zoom_longitude / pipeline->zoom;
     const double worldY = pipeline->zoom_latitude + request->zoom_latitude / pipeline->zoom;
 
     // Compute new centre so the same world point stays under the cursor
-    double centreX = worldX - request->zoom_longitude / newZoom;
-    double centreY = worldY - request->zoom_latitude / newZoom;
+    double centreX = worldX - request->zoom_longitude / new_zoom;
+    double centreY = worldY - request->zoom_latitude / new_zoom;
 
     // Clamp so the viewport never leaves the image
-    const double limit = 1.0 - 1.0 / newZoom;
+    const double limit = 1.0 - 1.0 / new_zoom;
     centreX = std::clamp(centreX, -limit, limit);
     centreY = std::clamp(centreY, -limit, limit);
 
-    pipeline->zoom = props->zoom = newZoom;
-    pipeline->zoom_longitude = props->zoom_longitude = (newZoom == 1.0) ? 0.0 : centreX;
-    pipeline->zoom_latitude = props->zoom_latitude = (newZoom == 1.0) ? 0.0 : centreY;
+    pipeline->zoom = props->zoom = new_zoom;
+    pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
+    pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
 
     set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
 

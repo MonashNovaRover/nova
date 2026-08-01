@@ -293,7 +293,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->sharpness = set_property(streamer_node, camera, "sharpness", 50);
 
   // filter
-  props->format = "I420";
+  props->format = (vpX == 9) ? "I420_LE" : "I420";
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera, "mime", default_string);
 

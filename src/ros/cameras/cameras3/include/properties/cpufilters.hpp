@@ -8,44 +8,30 @@ int crop43(const int width, const int height, const float zoom);
 
 void set_queue(GstElement* queue);
 
-//  template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
-//    const int crop_width = props->crop43 ? crop43(props->width, props->height, props->zoom) : 0;
-//    const int zoom_width = (int)((props->width - (double)props->width/props->zoom) / 2);
-//    const int zoom_height = (int)((props->height - (double)props->height/props->zoom) / 2);
-//    const int zoom_longitude_bias = (int) (std::clamp(props->zoom_longitude, -1.0, 1.0) * zoom_width);
-//    const int zoom_latitude_bias = (int) (std::clamp(props->zoom_latitude, -1.0, 1.0) * zoom_height);
-//    g_object_set(element,
-//      "left", crop_width + zoom_width + zoom_longitude_bias,
-//      "right", crop_width + zoom_width - zoom_longitude_bias,
-//      "top", zoom_height + zoom_latitude_bias,
-//      "bottom", zoom_height - zoom_latitude_bias,
-//    NULL);
-//  };
+template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
+  // Find the max dimensions if unzoomed
+  const double max_width = props->crop43 ? props->width - crop43(props->width, props->height, props->zoom) : props->width;
+  const double max_height = props->height;
 
-  template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
-    // Find the max dimensions if unzoomed
-    const double max_width = props->crop43 ? props->width - crop43(props->width, props->height, props->zoom) : props->width;
-    const double max_height = props->height;
+  // Find the size of the zoom window
+  const double zoom_width = max_width/props->zoom;
+  const double zoom_height = max_height/props->zoom;
 
-    // Find the size of the zoom window
-    const double zoom_width = max_width/props->zoom;
-    const double zoom_height = max_height/props->zoom;
+  // Find the centre of the zoom window
+  const double zoom_longitude_bias = std::clamp(props->zoom_longitude, -1.0, 1.0);
+  const double zoom_latitude_bias = std::clamp(props->zoom_latitude, -1.0, 1.0);
 
-    // Find the centre of the zoom window
-    const double zoom_longitude_bias = std::clamp(props->zoom_longitude, -1.0, 1.0);
-    const double zoom_latitude_bias = std::clamp(props->zoom_latitude, -1.0, 1.0);
+  const double center_x = max_width / 2 + zoom_longitude_bias * (max_width - zoom_width) / 2;
 
-    const double center_x = max_width / 2 + zoom_longitude_bias * (max_width - zoom_width) / 2;
+  const double center_y = max_height / 2 + zoom_latitude_bias * (max_height - zoom_height) / 2;
 
-    const double center_y = max_height / 2 + zoom_latitude_bias * (max_height - zoom_height) / 2;
-
-    g_object_set(element,
-      "left", (int) (center_x - zoom_width/2),
-      "right", (int) (max_width - center_x - zoom_width/2),
-      "top", (int) (center_y - zoom_height/2),
-      "bottom", (int) (max_height - center_y - zoom_height/2),
-    NULL);
-  };
+  g_object_set(element,
+    "left", (int) (center_x - zoom_width/2),
+    "right", (int) (max_width - center_x - zoom_width/2),
+    "top", (int) (center_y - zoom_height/2),
+    "bottom", (int) (max_height - center_y - zoom_height/2),
+  NULL);
+};
 
 template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props, const int crop_width) {
   g_object_set(element,
