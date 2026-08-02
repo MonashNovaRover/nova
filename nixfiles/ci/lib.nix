@@ -1,7 +1,6 @@
 { supportedSystems
 , nixpkgs
 , nova-monorepo
-, repoNames ? null #? builtins.foldl' (repos: category: repos ++ builtins.attrNames category) [ ] (builtins.attrValues (import ./nova-repos.nix))
 , ...
 }@args:
 
@@ -22,12 +21,7 @@ in rec {
     };
   };
 
-  # repos = map (repo: args.${repo}) repoNames;
-  repos = if repoNames == null
-    then import ../external/default-paths.nix
-    else map (repo: args.${repo}) repoNames;
-
-  mkNova = pkgs: import nixfiles { inherit pkgs repos; };
+  mkNova = pkgs: import nixfiles { inherit pkgs; };
   novaFor = system: mkNova (releaseLib.pkgsFor system);
   novaForAllSystems = f: releaseLib.forAllSystems (system: f (novaFor system));
 }
