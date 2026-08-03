@@ -2,7 +2,7 @@
 
 let
   cfg = config.devices.jetson;
-  jetpack-nixos-module = (import (builtins.toPath "${<jetpack-nixos>}/modules/default.nix") (import ( builtins.toPath "${jetpack-nixos}/overlay.nix")));
+  jetpack-nixos-module = (import (builtins.toPath "${<jetpack-nixos>}/modules/default.nix") (import ( builtins.toPath "${<jetpack-nixos>}/overlay.nix")));
   hasJetpackChannel = (builtins.tryEval <jetpack-nixos>).success;
 in
 {
