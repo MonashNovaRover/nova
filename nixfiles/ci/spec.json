@@ -18,7 +18,7 @@
         },
         "nova-monorepo": {
             "type": "git",
-            "value": "git@github.com:MonashNovaRover/nova.git feat/try-fix-hydra-jobs",
+            "value": "git@github.com:MonashNovaRover/nova.git 6394635c813ace3ba97088cb13ec13fe674a22f0",
             "emailresponsible": false
         },
         "nova-pr-json": {
