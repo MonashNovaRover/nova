@@ -18,7 +18,7 @@
         },
         "nova-monorepo": {
             "type": "git",
-            "value": "git@github.com:MonashNovaRover/nova.git 43c3914a138c111fe45335d1f92901c30c9e0226",
+            "value": "git@github.com:MonashNovaRover/nova.git 3b886fe92250e0bd5f8dc3c6d56f5d5b365c17c5",
             "emailresponsible": false
         },
         "nova-pr-json": {
