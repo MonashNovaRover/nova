@@ -6,7 +6,7 @@ let
     # At this point, pkgs.fetchFromGitHub is not real.
     # Should use nixfiles/revisions.json
     url = "https://github.com/anduril/jetpack-nixos/archive/4d857d6da48c420da39964b6fb7ba23a958abad3.tar.gz";
-    sha256 = ""; # TODO
+    sha256 = "0a8vymdkzdnsmpp3iy95x9y7zczmzr0mzpazz9xm67ki84y2sb1m"; # TODO
   };
   jetpack-nixos-module = (import (builtins.toPath "${jetpack-nixos}/modules/default.nix") (import ( builtins.toPath "${jetpack-nixos}/overlay.nix")));
   hasJetpackChannel = (builtins.tryEval jetpack-nixos).success;

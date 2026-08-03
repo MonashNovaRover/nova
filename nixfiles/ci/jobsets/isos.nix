@@ -86,7 +86,6 @@ let
               networking.networkmanager.enable = lib.mkIf config.networking.wireless.enable (lib.mkForce false);
 
               nova = {
-                inherit (ciLib) repos;
                 substituters.nova.password = builtins.readFile ../../secrets/hydra-password.txt;
                 desktop.enable = graphical;
                 workspace = {
