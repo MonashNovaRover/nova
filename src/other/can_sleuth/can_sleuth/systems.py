@@ -16,7 +16,7 @@ import os
 
 from can_sleuth.devices import blcmd
 from can_sleuth.devices import blcmd_emulator
-from can_sleuth.devices import sensor_emulator
+from can_sleuth.devices import sensor_emulator, toggle_hardware_emulator
 
 from can_sleuth.devices import led as LED #gotta rename some things
 from can_sleuth.devices import battery
@@ -101,7 +101,20 @@ def science25_26(interface="can1", emulate=False):
 
     return [currentSensor]
 
+def test_payload(interface = "can1", emulate = False):
+    """
+        A fake payload with fake devices to test control code without physical hardware. 
+    """
+    assert_vcan(interface)
+    devices = []
+
+    #toggleable LED device 
+    led1 = toggle_hardware_emulator.ToggleHardwareEmulator("LED 1", 0x001, interface)
+    devices.append(led1)
+
     
+
+    return devices
 
 # List of everything for help message:
 allSystems = {
@@ -110,6 +123,7 @@ allSystems = {
         "drive25_26": drive25_26,
         "taipan_spherical": taipan_spherical,
         "science25_26": science25_26,
-        "led": led
+        "led": led,
+        "test_payload": test_payload
         }
 
