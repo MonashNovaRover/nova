@@ -38,7 +38,7 @@ let
   } // args // {
     inputs = {
       nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-unstable"; };
-      nova-monorepo = mkNovaInput { repo = "nova"; branch = "feat/try-fix-hydra-jobs";};
+      nova-monorepo = mkNovaInput { repo = "nova"; };
       supportedSystems = {
         type = "nix";
         value = "[ \"${builtins.concatStringsSep "\" \"" supportedSystems}\" ]";
