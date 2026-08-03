@@ -5,8 +5,8 @@ let
   jetpack-nixos = if (builtins.tryEval <jetpack-nixos>).success then <jetpack-nixos> else builtins.fetchTarball {
     # At this point, pkgs.fetchFromGitHub is not real.
     # Should use nixfiles/revisions.json
-    url = "https://github.com/anduril/jetpack-nixos/archive/79a0ba1d5df6bfef19b425169fcb8478ecf2686f.tar.gz";
-    sha256 = "1wywzmx452f594gsvbj4207m3fm993mkg0jscidjdj36alalf82a";
+    url = "https://github.com/anduril/jetpack-nixos/archive/4d857d6da48c420da39964b6fb7ba23a958abad3.tar.gz";
+    sha256 = ""; # TODO
   };
   jetpack-nixos-module = (import (builtins.toPath "${jetpack-nixos}/modules/default.nix") (import ( builtins.toPath "${jetpack-nixos}/overlay.nix")));
   hasJetpackChannel = (builtins.tryEval jetpack-nixos).success;
