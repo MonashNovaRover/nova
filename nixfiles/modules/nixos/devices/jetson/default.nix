@@ -2,7 +2,6 @@
 
 let
   cfg = config.devices.jetson;
-  hasJetpackChannel = true;
   jetpack-nixos = if (builtins.tryEval <jetpack-nixos>).success then <jetpack-nixos> else builtins.fetchTarball {
     # At this point, pkgs.fetchFromGitHub is not real.
     # Should use nixfiles/revisions.json
@@ -10,10 +9,11 @@ let
     sha256 = "1wywzmx452f594gsvbj4207m3fm993mkg0jscidjdj36alalf82a";
   };
   jetpack-nixos-module = (import (builtins.toPath "${jetpack-nixos}/modules/default.nix") (import ( builtins.toPath "${jetpack-nixos}/overlay.nix")));
+  hasJetpackChannel = (builtins.tryEval jetpack-nixos).success;
 in
 {
   imports = [
-    jetpack-nixos-module
+    (lib.optionalAttrs hasJetpackChannel jetpack-nixos-module)
     ./boot
     ./devkit
     ./peripherals
