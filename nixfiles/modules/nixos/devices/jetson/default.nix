@@ -3,7 +3,9 @@
 let
   cfg = config.devices.jetson;
   hasJetpackChannel = true;
-  jetpack-nixos = builtins.fetchTarball {
+  jetpack-nixos = if (builtins.tryEval <jetpack-nixos>).success then <jetpack-nixos> else builtins.fetchTarball {
+    # At this point, pkgs.fetchFromGitHub is not real.
+    # Should use nixfiles/revisions.json
     url = "https://github.com/anduril/jetpack-nixos/archive/79a0ba1d5df6bfef19b425169fcb8478ecf2686f.tar.gz";
     sha256 = "1wywzmx452f594gsvbj4207m3fm993mkg0jscidjdj36alalf82a";
   };

@@ -14,5 +14,9 @@
   "teleop-modular": {
     "rev": "0ccb9e3aa3d8258b59e9ccc31a8bb68d4980f296",
     "hash": "sha256-Qtre2HN+am2BwgBqX45n4DvwsBvO2InCyiR7rB5TbEc="
+  },
+  "jetpack-nixos": {
+    "rev": "79a0ba1d5df6bfef19b425169fcb8478ecf2686f",
+    "hash": ""
   }
 }
