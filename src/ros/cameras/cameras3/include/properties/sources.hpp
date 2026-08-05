@@ -27,4 +27,22 @@ template<typename properties> void set_v4lsource(GstElement* element, const prop
   gst_structure_free(str);
 }
 
+template<typename properties> void set_rtspsource(GstElement* element, const properties& props) {
+  g_object_set(element,
+    "location", props->device.c_str(),
+    "buffer-mode", 4, // synced
+    "do-retransmission", false, // No retransmission, keep latency low
+    "drop-on-latency", true, // Keeps latency below set ms
+    "latency", props->latency,
+    "ntp-sync", true, // Sync to computer
+    "ntp-time-source", 1, // unix, works best on linux devices
+    "onvif-mode", true, // enable onvif mode
+    "protocols", (
+      props->rtsp_protocol == "udp" ? 1 :
+      props->rtsp_protocol == "udp_mcast" ? 2 :
+      props->rtsp_protocol == "tcp" ? 4:
+      4), // default tcp, which seems to be the most compatible right now
+  NULL);
+}
+
 #endif
