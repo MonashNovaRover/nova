@@ -8,13 +8,42 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-var HOSTNAME = '10.0.1.100',
-	PORT = 80,
-	USERNAME = 'admin',
-  PASSWORD = fs.readFileSync(
-    path.join(os.homedir(), 'nova', 'nixfiles', 'secrets', 'reolink-password.txt'), 'utf8'
-  ).trim(),
-	STOP_DELAY_MS = 200
+const { parseArgs } = require('node:util');
+
+const options = {
+  port: { 
+    type: 'string', 
+    short: 'o', 
+    default: '6688' 
+  },
+  username: {
+    type: 'string',
+    short: 'u',
+    default: 'user'
+  },
+  password: {
+    type: 'string',
+    short: 'p',
+    default: "1234"
+  },
+  ip: {
+    type: 'string',
+    short: 'i',
+    default: "192.168.0.246"
+  }
+};
+
+const { values } = parseArgs({ options });
+
+const PORT = parseInt(values.port, 10);
+
+const HOSTNAME = values.ip,
+	USERNAME = values.username,
+  //PASSWORD = fs.readFileSync(
+  //  path.join(os.homedir(), 'nova', 'nixfiles', 'secrets', 'reolink-password.txt'), 'utf8'
+  //).trim(),
+  PASSWORD = values.password,
+	STOP_DELAY_MS = 50
 
 var Cam = require('onvif').Cam;
 var keypress = require('keypress');
@@ -50,6 +79,20 @@ new Cam({
   var up = { ...velocity, y: 1};
   var down = { ...velocity, y: -1};
 
+  cam_obj.getVideoEncoderConfigurations((err, configs) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    configs.forEach(config => {
+      console.log("Name:", config.name);
+      console.log("Encoding:", config.encoding);
+      console.log("Bitrate Limit (kbps):", config.rateControl.bitrateLimit);
+      console.log("Frame Rate:", config.rateControl.frameRateLimit);
+    });
+  });
+
   // TODO DRY
   autoSequence = [
     {vel: left, time: 600},
@@ -72,7 +115,6 @@ new Cam({
     {vel: left, time: 600},
     {vel: left, time: 600},
     {vel: left, time: 600},
-    {vel: up, time: 800},
     {vel: right, time: 600},
     {vel: right, time: 600},
     {vel: right, time: 600},
@@ -92,8 +134,7 @@ new Cam({
     {vel: right, time: 600},
     {vel: right, time: 600},
     {vel: right, time: 600},
-    {vel: right, time: 600},
-    {vel: down, time: 1000}
+    {vel: right, time: 600}
   ];
 
   var stop_timer;
@@ -224,10 +265,10 @@ new Cam({
 	function move(new_velocity) {
     // check if we need to update the currently running move command
     if (
-      (new_velocity.X == velocity.X) 
-      && (new_velocity.Y == velocity.Y) 
+      (new_velocity.x == velocity.x) 
+      && (new_velocity.y == velocity.y) 
       // for some reason zoom works better if we send the command repeatedly.
-      && !new_velocity.Zoom //(new_velocity.Zoom == velocity.Zoom) 
+      && !new_velocity.zoom //(new_velocity.Zoom == velocity.Zoom) 
     ) {
       // reschedule timeout
       schedule_stop();
@@ -268,9 +309,9 @@ new Cam({
           //console.log('stop command sent');
 				}
 			});
-    velocity.Y = 0;
-    velocity.X=0;
-    velocity.Zoom=0;
+    velocity.x = 0;
+    velocity.y = 0;
+    velocity.zoom = 0;
 	}
 
 });
