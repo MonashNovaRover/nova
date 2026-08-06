@@ -10534,6 +10534,11 @@ thenify-all@^1.0.0:
   dependencies:
     any-promise "^1.0.0"
 
+three@^0.185.1:
+  version "0.185.1"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.185.1.tgz#63e9e241a17b101e211965121a017b4b4d8054ae"
+  integrity sha512-5aojFCXKwnjBRZvUnt3WFfEcvUJgkN5LlijRFN95hMy8WVkG4I0QNcJE+OuWvuJ0bOdStrbfXn0pkd6/QyiAlg==
+
 through2@^2.0.1:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.5.tgz#01c1e39eb31d07cb7d03a96a70823260b23132cd"
@@ -10847,6 +10852,11 @@ update-browserslist-db@^1.2.0:
   dependencies:
     escalade "^3.2.0"
     picocolors "^1.1.1"
+
+urdf-loader@^0.13.1:
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/urdf-loader/-/urdf-loader-0.13.1.tgz#1d92f968700b8263517c56822fc916312fe85011"
+  integrity sha512-bHHoh0Yxrgrw91dPAmVnzKleA8HiVMeHy6xYqOVRw3LuZ2hDOwUiQVCbrzPZckO5S30F1Yym8zLCINN0HfcM3w==
 
 uri-js@^4.2.2:
   version "4.4.1"

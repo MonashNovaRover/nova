@@ -274,6 +274,11 @@ export const testNavigationData: NavigationInterface = {
       title: "Joy",
       route: "/test/joy",
       icon: <Activity />
+    },
+    {
+      title: "URDF",
+      route: "/test/urdf",
+      icon: <Circle />
     }
   ]
 }

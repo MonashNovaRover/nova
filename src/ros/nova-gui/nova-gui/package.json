@@ -55,9 +55,11 @@
     "roslib": "^2.0.1",
     "rvfc-polyfill": "^1.0.8",
     "tailwind-variants": "3.2.2",
+    "three": "^0.185.1",
     "tileserver-gl-light": "^5.5.0",
     "tileserver-gl-styles": "^2.0.0",
     "typescript-eslint": "^8.54.0",
+    "urdf-loader": "^0.13.1",
     "uuid": "^13.0.0",
     "vite-plugin-glsl": "^1.5.5",
     "yarn": "^1.22.21"
