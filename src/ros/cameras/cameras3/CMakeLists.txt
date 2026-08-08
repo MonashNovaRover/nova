@@ -47,6 +47,7 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
 
   # Pipelines
   src/pipelines/h264passthrough.cpp
+  src/pipelines/rtsppassthrough.cpp
   src/pipelines/v4lfallback.cpp
   src/pipelines/vpXsoftware.cpp
 )

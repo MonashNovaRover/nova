@@ -23,18 +23,18 @@
  * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-h264
  */
 
-GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<h264passthroughPipelineProperties>& props)
+GstElement* rtsppassthrough_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<rtsppassthroughPipelineProperties>& props)
 {
   // 1. Create the elements
   std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
-  GstElement* source_v4l = gst_element_factory_make("v4l2src", "source_v4l");
+  GstElement* source_rtsp = gst_element_factory_make("rtspsrc", "source_rtsp");
   GstElement* source_valve = gst_element_factory_make("valve", "source_valve");
   GstElement* source_filter = gst_element_factory_make("capsfilter", "source_filter");
 
   if (
     !gst_pipeline ||
-    !source_v4l ||
+    !source_rtsp ||
     !source_valve ||
     !source_filter
   ) {
@@ -43,14 +43,9 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
   }
 
   section = "h264";
-  GstElement* h264_payload = (props->payload_quirk) ? gst_element_factory_make("rtph264pay", "h264_payload") : nullptr;
-  GstElement* h264_depayload = (props->payload_quirk) ? gst_element_factory_make("rtph264depay", "h264_depayload") : nullptr;
   GstElement* h264_parse = gst_element_factory_make("h264parse", "h264_parse");
 
-  if ((props->payload_quirk && (
-    !h264_payload ||
-    !h264_depayload
-  )) || !h264_parse) {
+  if (!h264_parse) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
@@ -67,28 +62,24 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
 
   // 2. Add elements to pipeline
   gst_bin_add_many(GST_BIN(gst_pipeline),
-    source_v4l,
+    source_rtsp,
     source_valve,
     source_filter,
     h264_parse,
     webrtc_sink,
   NULL);
-  if (props->payload_quirk) gst_bin_add_many(GST_BIN(gst_pipeline), h264_payload, h264_depayload, NULL);
 
   // 3. Set element properties
-  set_v4lsource(source_v4l, props);
+  set_rtspsource(source_rtsp, props);
   set_srcfilter(source_filter, props);
 
-  if (props->payload_quirk) {
-    set_h264payload(h264_payload);
-  }
   set_h264parse(h264_parse, -1);
 
   set_webrtcsink(webrtc_sink, props);
 
   // 4. Link elements
   
-  GstElement* next_element = source_v4l;
+  GstElement* next_element = source_rtsp;
  
   link_elements(streamer_node, next_element, source_valve, props->serial);
   if (!link_elements(streamer_node, next_element, source_filter, props->serial)) {
@@ -96,8 +87,6 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
     return nullptr;
   }
 
-  link_elements(streamer_node, next_element, h264_payload, props->serial);
-  link_elements(streamer_node, next_element, h264_depayload, props->serial);
   link_elements(streamer_node, next_element, h264_parse, props->serial);
 
   link_elements(streamer_node, next_element, webrtc_sink, props->serial);
@@ -112,10 +101,10 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
  * Retrieve ros2 parameters for h264passthrough pipeline or sets defaults
 */
 
-std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_properties(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera)
+std::unique_ptr<rtsppassthroughPipelineProperties> get_rtsppassthrough_pipeline_properties(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera)
 {
   // 0. Initialize constants
-  std::unique_ptr<h264passthroughPipelineProperties> props = std::make_unique<h264passthroughPipelineProperties>();
+  std::unique_ptr<rtsppassthroughPipelineProperties> props = std::make_unique<rtsppassthroughPipelineProperties>();
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
@@ -124,16 +113,19 @@ std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_
   std::string default_string;
 
   // source
-  props->device = set_property(streamer_node, camera, "device", camera->node);
+  default_string = "rtsp://user:1234@192.168.0.246:8554/profile0";
+  props->url = set_property(streamer_node, camera, "url", default_string);
+  default_string = "tcp";
+  props->rtsp_protocol = set_property(streamer_node, camera, "rtsp_protocol", default_string);
 
-  default_string = "mmap";
-  props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
+  props->latency = set_property(streamer_node, camera, "latency", 200);
 
-  props->brightness = set_property(streamer_node, camera, "brightness", 0);
-  props->contrast = set_property(streamer_node, camera, "contrast", 50);
-  props->saturation = set_property(streamer_node, camera, "saturation", 64);
-  props->gain = set_property(streamer_node, camera, "gain", 0);
-  props->sharpness = set_property(streamer_node, camera, "sharpness", 50);
+
+  // scale
+  props->downscale = 1; // Do not change scale
+
+  // rate
+  props->downrate = 1; // Do not change framerate
 
   // filter
   props->mime = "video/x-h264";
@@ -142,9 +134,6 @@ std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_
   props->framerate_denominator = set_property(streamer_node, camera, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera, "height", 720);
   props->width = set_property(streamer_node, camera, "width", 1280);
-
-  // payloader
-  props->payload_quirk = set_property(streamer_node, camera, "payload_quirk", false);
 
   // webrtc
   default_string = "gcc";
@@ -162,7 +151,7 @@ std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_
   return props;
 }
 
-void set_h264passthrough_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<h264passthroughPipelineProperties>& props) {
+void set_rtsppassthrough_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<rtsppassthroughPipelineProperties>& props) {
 
   // 1. Initialize constants
   GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");

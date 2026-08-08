@@ -158,6 +158,9 @@ class CameraStreamer : public rclcpp::Node
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
+    } else if (pipeline->camera->pipeline_type == "rtsppassthrough") {
+      std::unique_ptr<rtsppassthroughPipelineProperties> props = get_rtsppassthrough_pipeline_properties(this, pipeline->camera);
+      pipeline->gst_pipeline = rtsppassthrough_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 8);
@@ -192,6 +195,9 @@ class CameraStreamer : public rclcpp::Node
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       set_h264passthrough_pipeline_properties(pipeline->gst_pipeline, props);
+    } else if (pipeline->camera->pipeline_type == "rtsppassthrough") {
+      std::unique_ptr<rtsppassthroughPipelineProperties> props = get_rtsppassthrough_pipeline_properties(this, pipeline->camera);
+      set_rtsppassthrough_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
