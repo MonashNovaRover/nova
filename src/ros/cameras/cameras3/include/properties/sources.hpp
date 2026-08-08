@@ -29,7 +29,7 @@ template<typename properties> void set_v4lsource(GstElement* element, const prop
 
 template<typename properties> void set_rtspsource(GstElement* element, const properties& props) {
   g_object_set(element,
-    "location", props->device.c_str(),
+    "location", props->url.c_str(),
     "buffer-mode", 4, // synced
     "do-retransmission", false, // No retransmission, keep latency low
     "drop-on-latency", true, // Keeps latency below set ms
@@ -42,6 +42,7 @@ template<typename properties> void set_rtspsource(GstElement* element, const pro
       props->rtsp_protocol == "udp_mcast" ? 2 :
       props->rtsp_protocol == "tcp" ? 4:
       4), // default tcp, which seems to be the most compatible right now
+    "tcp-timestamp", (props->rtsp_protocol == "tcp"),
   NULL);
 }
 

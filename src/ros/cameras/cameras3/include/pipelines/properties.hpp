@@ -24,6 +24,12 @@ struct v4lProperties
   std::string device;
   std::string io_mode;
 
+  int brightness;
+  int contrast;
+  int saturation;
+  int gain;
+  int sharpness;
+
   bool strict_devname;
 };
 
@@ -31,12 +37,6 @@ struct capsProperties
 {
   std::string format;
   std::string mime;
-
-  int brightness;
-  int contrast;
-  int saturation;
-  int gain;
-  int sharpness;
 
   int downrate;
   int downscale;
@@ -126,6 +126,13 @@ struct rossinkProperties
   bool rossink;
 };
 
+struct rtspProperties
+{
+  std::string url;
+  std::string rtsp_protocol;
+  
+  int latency;
+};
 
 struct Pipeline
 {
