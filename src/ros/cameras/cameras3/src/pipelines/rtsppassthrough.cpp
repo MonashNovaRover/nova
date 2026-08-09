@@ -42,6 +42,14 @@ GstElement* rtsppassthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
     return nullptr;
   }
 
+  section = "rtsp";
+  GstElement* rtsp_depay = gst_element_factory_make("rtph264depay", "rtsp_depay");
+
+  if (!rtsp_depay) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
   section = "h264";
   GstElement* h264_parse = gst_element_factory_make("h264parse", "h264_parse");
 
@@ -65,6 +73,7 @@ GstElement* rtsppassthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
     source_rtsp,
     source_valve,
     source_filter,
+    rtsp_depay,
     h264_parse,
     webrtc_sink,
   NULL);
@@ -86,6 +95,8 @@ GstElement* rtsppassthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
+
+  link_elements(streamer_node, next_element, rtsp_depay, props->serial);
 
   link_elements(streamer_node, next_element, h264_parse, props->serial);
 
@@ -119,7 +130,6 @@ std::unique_ptr<rtsppassthroughPipelineProperties> get_rtsppassthrough_pipeline_
   props->rtsp_protocol = set_property(streamer_node, camera, "rtsp_protocol", default_string);
 
   props->latency = set_property(streamer_node, camera, "latency", 200);
-
 
   // scale
   props->downscale = 1; // Do not change scale
