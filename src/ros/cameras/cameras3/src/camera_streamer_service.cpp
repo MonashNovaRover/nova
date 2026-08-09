@@ -141,6 +141,9 @@ class CameraStreamer : public rclcpp::Node
     {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
+    } else if (pipeline->camera->pipeline_type == "h264software") {
+      std::unique_ptr<h264softwarePipelineProperties> props = get_h264software_pipeline_properties(this, pipeline->camera);
+      pipeline->gst_pipeline = h264software_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
@@ -168,6 +171,9 @@ class CameraStreamer : public rclcpp::Node
     if (pipeline->camera->pipeline_type == "v4lfallback") {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       set_v4lfallback_pipeline_properties(pipeline->gst_pipeline, props);
+    } else if (pipeline->camera->pipeline_type == "h264software") {
+      std::unique_ptr<h264softwarePipelineProperties> props = get_h264software_pipeline_properties(this, pipeline->camera);
+      set_h264software_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       set_h264passthrough_pipeline_properties(pipeline->gst_pipeline, props);

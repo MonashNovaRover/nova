@@ -51,9 +51,6 @@ struct h264PassthroughProperties
 
 struct softwareEncProperties
 {
-  std::string end_usage;
-  std::string usage_profile;
-
   int cpu_used;
   int deadline;
   int gop;

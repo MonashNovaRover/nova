@@ -8,6 +8,11 @@
 
 #include "pipelines/properties.hpp"
 
+struct h264softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, zoomProperties {};
+GstElement* h264software_pipeline(rclcpp::Node* log_node, const std::unique_ptr<h264softwarePipelineProperties>& props);
+std::unique_ptr<h264softwarePipelineProperties> get_h264software_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
+void set_h264software_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<h264softwarePipelineProperties>& props);
+
 struct h264passthroughPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, h264PassthroughProperties {};
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, const std::unique_ptr<h264passthroughPipelineProperties>& props);
 std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
