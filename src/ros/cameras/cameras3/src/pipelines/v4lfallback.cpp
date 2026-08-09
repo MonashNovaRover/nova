@@ -228,7 +228,6 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
 }
 
 void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props) {
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height, props->zoom) : 0;
 
   // 1. Initialize constants
   GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");

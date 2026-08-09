@@ -8,6 +8,26 @@
 
 static int num_cores = std::thread::hardware_concurrency();
 
+template <typename properties> static void set_h264enc(GstElement* element, const properties& props) {
+  g_object_set(element,
+    "b-adapt", false, // Do not add b frames
+    "bframes", 0, // Never have b frames
+    "bitrate", std::clamp(props->bitrate, 1, 4096),
+    "ip-factor", 1.7, // Less priority on I frames
+    "key-int-max", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
+    "noise-reduction", std::clamp(props->encoder_denoise * 1000, 0, 100000), // higher is more blurry
+    "pass", 0, // cbr
+    "psy-tune", 5, // ssim, better for humans
+    "qos", true,
+    "rc-lookahead", std::clamp(props->deadline, 0, 250), // how far to delay frames for quality
+    "sliced-threads", false, // Never enable, keep cpu usage lower
+    "speed-preset", std::clamp(props->cpu_used, 1, 10), // Fastest 1, 10 Slowest
+    "threads", std::clamp(1<<props->threads, 1, num_cores), // Always single thread for scalability
+    "tune", 4, // Zero latency decode
+    "vbv-buf-capacity", std::clamp((props->gop+1)*1000, 2000, 10000),
+  NULL);
+}
+
 template <typename properties> static void set_vpXenc(GstElement* element, const properties& props) {
   g_object_set(element,
     "buffer-optimal-size", props->gop*1000,        // Buffer size for GOP

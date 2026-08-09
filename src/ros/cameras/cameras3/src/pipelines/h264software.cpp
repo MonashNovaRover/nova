@@ -19,13 +19,14 @@
 #include "cameras/colors.hpp"
 
 /*
- * V4l camera (any) decoded then encoded into vpXenc
- * Enforces alignment from vpX v4l camera and feeds directly to webrtc 
- * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-vpX
+ * V4l camera (any) decoded then encoded into h264enc
+ * Enforces alignment from h264 v4l camera and feeds directly to webrtc 
+ * gst-launch-1.0 v4l2src device={props->node} ! {props->mime},width={props->width},height={props->height},framerate={props->framerate}/1,alignment={props->alignment},stream-format={props->stream_format},format={props->format}! webrtcsink meta='meta, serial=(string){props->serial}' video-caps=video/x-h264
  */
 
-GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<vpXsoftwarePipelineProperties>& props, const int vpX)
+GstElement* h264software_pipeline(rclcpp::Node* streamer_node, const std::unique_ptr<h264softwarePipelineProperties>& props)
 {
+  
   // 1. Create the elements
   std::string section = "source";
   GstElement* gst_pipeline = gst_pipeline_new(props->serial.c_str());
@@ -82,12 +83,12 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     return nullptr;
   }
 
-  section = (std::string) "encode " + (std::string) "vp" + std::to_string(vpX);
+  section = "encode h264";
   GstElement* encode_filter = gst_element_factory_make("capsfilter", "encode_filter");
   GstElement* encode_tee = gst_element_factory_make("tee", "encode_tee");
   GstElement* encode_queue = gst_element_factory_make("queue", "encode_queue");
   GstElement* encode_valve = gst_element_factory_make("valve", "encode_valve");
-  GstElement* encode_encoder = (vpX == 9) ? gst_element_factory_make("vp9enc", "encode_encoder") : gst_element_factory_make("vp8enc", "encode_encoder");
+  GstElement* encode_encoder = gst_element_factory_make("x264enc", "encode_encoder");
 
   if (
     !encode_filter ||
@@ -152,7 +153,7 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
 
   set_scalefilter(encode_filter, props);
   set_queue(encode_queue);
-  (vpX == 9) ? set_vp9enc(encode_encoder, props) : set_vp8enc(encode_encoder, props);
+  set_h264enc(encode_encoder, props);
 
   set_webrtcsink(webrtc_sink, props);
 
@@ -206,13 +207,13 @@ GstElement* vpXsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
 
 
 /*
- * Retrieve ros2 parameters for vpXsoftware pipeline or sets defaults
+ * Retrieve ros2 parameters for h264software pipeline or sets defaults
 */
 
-std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properties(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const int vpX)
+std::unique_ptr<h264softwarePipelineProperties> get_h264software_pipeline_properties(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera)
 {
   // 0. Initialize constants
-  std::unique_ptr<vpXsoftwarePipelineProperties> props = std::make_unique<vpXsoftwarePipelineProperties>();
+  std::unique_ptr<h264softwarePipelineProperties> props = std::make_unique<h264softwarePipelineProperties>();
   props->serial = camera->serial;
   props->node = camera->node;
   props->original_serial = camera->original_serial;
@@ -233,7 +234,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->sharpness = set_property(streamer_node, camera, "sharpness", -1);
 
   // filter
-  props->format = (vpX == 9) ? "I420_10LE" : "I420";
+  props->format = "I420";
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera, "mime", default_string);
 
@@ -280,14 +281,14 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   // encode
   props->cpu_used = set_property(streamer_node, camera, "cpu_used", 0);
   props->deadline = set_property(streamer_node, camera, "deadline", 1);
-  props->gop = set_property(streamer_node, camera, "gop", 3);
+  props->gop = set_property(streamer_node, camera, "gop", 2);
   props->encoder_denoise = set_property(streamer_node, camera, "encoder_denoise", 6);
   props->threads = set_property(streamer_node, camera, "threads", 1);
 
   // webrtc
   default_string = "gcc";
   props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
-  props->video_caps = (vpX == 9) ? "video/x-vp9" : "video/x-vp8";
+  props->video_caps = "video/x-h264";
 
   props->bitrate = set_property(streamer_node, camera, "bitrate", 1024);
 
@@ -301,7 +302,7 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   return props;
 }
 
-void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<vpXsoftwarePipelineProperties>& props) {
+void set_h264software_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<h264softwarePipelineProperties>& props) {
 
   // 1. Initialize constants
   GstElement* source_v4l = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_v4l");
@@ -316,7 +317,6 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstPad* encode_source_pad = gst_element_get_static_pad(encode_filter, "src");
   GstCaps* encode_caps = gst_pad_get_current_caps(encode_source_pad);
   GstElement* encode_encoder = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_encoder");
-  GstElementFactory* encode_factory = gst_element_get_factory(encode_encoder);
 
   GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
   GstElement* source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
@@ -328,7 +328,6 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   
   // 2. Set properties for elements
   g_object_set(source_valve, "drop", true, NULL);
-  const int vpX = ((std::string) gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(encode_factory)) == "vp9enc") ? 9 : 8;
 
   const GstStructure* encode_str = gst_caps_get_structure(encode_caps, 0);
   const GstStructure* source_str = gst_caps_get_structure(source_caps, 0);
@@ -339,21 +338,15 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   // Do not change width or height if using vp8
-  if (vpX == 8) {
-    gst_structure_get_int(encode_str, "width", &props->width);
-    gst_structure_get_int(encode_str, "height", &props->height);
-  }
+  gst_structure_get_int(encode_str, "width", &props->width);
+  gst_structure_get_int(encode_str, "height", &props->height);
 
   if (source_filter) {
-    if (vpX == 8) {
-      gst_structure_get_int(source_str, "width", &props->width);
-      gst_structure_get_int(source_str, "height", &props->height);
-    }
+    gst_structure_get_int(source_str, "width", &props->width);
+    gst_structure_get_int(source_str, "height", &props->height);
     set_srcfilter(source_filter, props);
-    if (vpX == 8) {
-      gst_structure_get_int(encode_str, "width", &props->width);
-      gst_structure_get_int(encode_str, "height", &props->height);
-    }
+    gst_structure_get_int(encode_str, "width", &props->width);
+    gst_structure_get_int(encode_str, "height", &props->height);
     gst_object_unref(source_filter);
   }
   if (source_decode) {
@@ -362,24 +355,19 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cpu_crop) {
-    if (vpX == 8) {
-      gst_structure_get_int(source_str, "width", &props->width);
-      gst_structure_get_int(source_str, "height", &props->height);
-    }
+    gst_structure_get_int(source_str, "width", &props->width);
+    gst_structure_get_int(source_str, "height", &props->height);
     set_cpu_crop43(cpu_crop, props);
-    if (vpX == 8) {
-      gst_structure_get_int(encode_str, "width", &props->width);
-      gst_structure_get_int(encode_str, "height", &props->height);
-    }
+    gst_structure_get_int(encode_str, "width", &props->width);
+    gst_structure_get_int(encode_str, "height", &props->height);
     gst_object_unref(cpu_crop);
   }
 
   if (encode_filter) { 
-    if (vpX == 9) set_scalefilter(encode_filter, props);
     gst_object_unref(encode_filter);
   }
   if (encode_encoder) {
-    (vpX == 9) ? set_vp9enc(encode_encoder, props) : set_vp8enc(encode_encoder, props);
+    set_h264enc(encode_encoder, props);
     gst_object_unref(encode_encoder);
   }
 
