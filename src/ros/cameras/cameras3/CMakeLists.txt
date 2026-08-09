@@ -42,7 +42,6 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
   # Properties
   src/properties/common.cpp
   src/properties/cpufilters.cpp
-  src/properties/glfilters.cpp
   src/properties/h264.cpp
 
   # Pipelines

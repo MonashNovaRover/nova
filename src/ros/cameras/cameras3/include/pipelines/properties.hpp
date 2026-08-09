@@ -15,8 +15,6 @@ struct Properties
   std::string serial;
   std::string node;
   std::string original_serial;
-
-  bool use_gl;
 };
 
 struct v4lProperties
@@ -49,23 +47,6 @@ struct capsProperties
 struct h264PassthroughProperties
 {
   bool payload_quirk;
-};
-
-struct glProperties
-{
-  float denoise_factor;
-  float denoise_sigma;
-  float denoise_threshold;
-  int denoise_radius;
-  float sharpen_radius;
-  float sharpen_strength;
-  float undistort_k1;
-  float undistort_k2;
-  float undistort_scale;
-
-  bool denoise;
-  bool sharpen;
-  bool undistort;
 };
 
 struct softwareEncProperties

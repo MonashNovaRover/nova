@@ -22,7 +22,7 @@ template<typename properties> void set_v4lsource(GstElement* element, const prop
       props->io_mode == "dmabuf" ? 4 :
       props->io_mode == "dmabuf-import" ? 5 :
       0),
-      "extra-controls", str,
+      "extra-controls", (props->gain != -1) ? str : NULL,
   NULL);
   gst_structure_free(str);
 }
