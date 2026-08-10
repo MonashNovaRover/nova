@@ -24,6 +24,7 @@ let
               (pkgs.lib.optionalString (builtins.readFileType declaration == "directory") "/default.nix");
             url = "https://github.com/MonashNovaRover/nova/blob/master/${name}";
             # TODO: Is there a way to generate URLs with a fixed Git revision?
+            # Orlando thinks there might be a way: https://github.com/MonashNovaRover/nova/pull/1167#discussion_r3615129415
           }
         else declaration
       )
