@@ -8,10 +8,10 @@
 
 #include "pipelines/properties.hpp"
 
-struct h264softwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, zoomProperties {};
-GstElement* h264software_pipeline(rclcpp::Node* log_node, const std::unique_ptr<h264softwarePipelineProperties>& props);
-std::unique_ptr<h264softwarePipelineProperties> get_h264software_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
-void set_h264software_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<h264softwarePipelineProperties>& props);
+struct h26XsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, zoomProperties {};
+GstElement* h26Xsoftware_pipeline(rclcpp::Node* log_node, const std::unique_ptr<h26XsoftwarePipelineProperties>& props, const int h26X);
+std::unique_ptr<h26XsoftwarePipelineProperties> get_h26Xsoftware_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const int h26X);
+void set_h26Xsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<h26XsoftwarePipelineProperties>& props);
 
 struct h264passthroughPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, h264PassthroughProperties {};
 GstElement* h264passthrough_pipeline(rclcpp::Node* log_node, const std::unique_ptr<h264passthroughPipelineProperties>& props);

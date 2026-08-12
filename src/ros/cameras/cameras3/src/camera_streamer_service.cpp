@@ -142,8 +142,14 @@ class CameraStreamer : public rclcpp::Node
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "h264software") {
-      std::unique_ptr<h264softwarePipelineProperties> props = get_h264software_pipeline_properties(this, pipeline->camera);
-      pipeline->gst_pipeline = h264software_pipeline(this, props);
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 4);
+      pipeline->gst_pipeline = h26Xsoftware_pipeline(this, props, 4);
+    } else if (pipeline->camera->pipeline_type == "h265software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 5);
+      pipeline->gst_pipeline = h26Xsoftware_pipeline(this, props, 5);
+      pipeline->zoom = props->zoom;
+      pipeline->zoom_longitude = props->zoom_longitude;
+      pipeline->zoom_latitude = props->zoom_latitude;
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
@@ -172,8 +178,14 @@ class CameraStreamer : public rclcpp::Node
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       set_v4lfallback_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "h264software") {
-      std::unique_ptr<h264softwarePipelineProperties> props = get_h264software_pipeline_properties(this, pipeline->camera);
-      set_h264software_pipeline_properties(pipeline->gst_pipeline, props);
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 4);
+      set_h26Xsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    } else if (pipeline->camera->pipeline_type == "h265software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 5);
+      set_h26Xsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      pipeline->zoom = props->zoom;
+      pipeline->zoom_longitude = props->zoom_longitude;
+      pipeline->zoom_latitude = props->zoom_latitude;
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       set_h264passthrough_pipeline_properties(pipeline->gst_pipeline, props);
@@ -388,14 +400,14 @@ class CameraStreamer : public rclcpp::Node
     
     std::unique_ptr<Pipeline>& pipeline = it->second;
 
-    if (pipeline->camera->pipeline_type != "vp9software") {
+    if (
+        (pipeline->camera->pipeline_type != "vp9software") ||
+        (pipeline->camera->pipeline_type != "h265software")
+        ) {
       response->success = false;
       return;
     }
- 
-    std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
 
-    
     double new_zoom;
 
     if (request->zoom > 0) {
@@ -417,14 +429,23 @@ class CameraStreamer : public rclcpp::Node
     centreX = std::clamp(centreX, -limit, limit);
     centreY = std::clamp(centreY, -limit, limit);
 
-    pipeline->zoom = props->zoom = new_zoom;
-    pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
-    pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
+    if (pipeline->camera->pipeline_type == "vp9software") {
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
+      pipeline->zoom = props->zoom = new_zoom;
+      pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
+      pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
+      set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    }
 
-    set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    if (pipeline->camera->pipeline_type == "h265software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 5);
+      pipeline->zoom = props->zoom = new_zoom;
+      pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
+      pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
+      set_h26Xsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    }
 
     RCLCPP_INFO(this->get_logger(), "%sApplied %s%.2f%sx zoom at: (%s%.2f %.2f%s) to %s%s%s", C_QUIET, C_TITLE, pipeline->zoom, C_QUIET, C_MODE, pipeline->zoom_longitude, pipeline->zoom_latitude, C_QUIET, C_MODE, serial.c_str(), C_RESET);
-
 
   }
 
