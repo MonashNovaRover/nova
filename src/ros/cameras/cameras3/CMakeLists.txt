@@ -42,10 +42,10 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
   # Properties
   src/properties/common.cpp
   src/properties/cpufilters.cpp
-  src/properties/h264.cpp
+  src/properties/h26X.cpp
 
   # Pipelines
-  src/pipelines/h264software.cpp
+  src/pipelines/h26Xsoftware.cpp
   src/pipelines/h264passthrough.cpp
   src/pipelines/rtsppassthrough.cpp
   src/pipelines/v4lfallback.cpp

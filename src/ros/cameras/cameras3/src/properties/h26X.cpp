@@ -1,6 +1,6 @@
 #include <string>
 #include <gst/gst.h>
-#include "properties/h264.hpp"
+#include "properties/h26X.hpp"
 
 void set_h264payload(GstElement* element) {
   // Apply patch for gc2093
@@ -11,6 +11,12 @@ void set_h264payload(GstElement* element) {
 }
 
 void set_h264parse(GstElement* element, const int interval) {
+    g_object_set(element,
+        "config-interval", interval,
+        NULL);
+}
+
+void set_h265parse(GstElement* element, const int interval) {
     g_object_set(element,
         "config-interval", interval,
         NULL);
