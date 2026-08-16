@@ -1,11 +1,12 @@
-{ config, lib, pkgs, jetpack-nixos ? builtins.fetchTarball {
-    url = "https://github.com/anduril/jetpack-nixos/archive/79a0ba1d5df6bfef19b425169fcb8478ecf2686f.tar.gz";
-    sha256 = "1wywzmx452f594gsvbj4207m3fm993mkg0jscidjdj36alalf82a";
-  }, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   cfg = config.devices.jetson;
   hasJetpackChannel = true;
+  jetpack-nixos = builtins.fetchTarball {
+    url = "https://github.com/anduril/jetpack-nixos/archive/79a0ba1d5df6bfef19b425169fcb8478ecf2686f.tar.gz";
+    sha256 = "1wywzmx452f594gsvbj4207m3fm993mkg0jscidjdj36alalf82a";
+  };
   jetpack-nixos-module = (import (builtins.toPath "${jetpack-nixos}/modules/default.nix") (import ( builtins.toPath "${jetpack-nixos}/overlay.nix")));
 in
 {
