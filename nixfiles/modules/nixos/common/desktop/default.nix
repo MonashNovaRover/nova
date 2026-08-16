@@ -21,7 +21,6 @@ in
     services = {
       displayManager.gdm = {
         enable = true;
-        wayland = cfg.wayland.enable;
       };
       desktopManager.gnome.enable = true;
       xserver.excludePackages = with pkgs; [
