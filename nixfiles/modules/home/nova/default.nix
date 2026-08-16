@@ -111,7 +111,7 @@ in
         # Shell utilities
         pciutils
         pcl
-        cloudcompare
+        # cloudcompare
         usbutils
         gpsd
         can-utils
