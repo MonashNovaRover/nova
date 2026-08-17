@@ -153,7 +153,7 @@ in
         hostName = "${cfg.hydra.subdomain}.${cfg.domain}";
         extraConfig = ''
           basicauth {
-            nova $2a$14$4EcarI150GjEOzkmgmTS2eynl4P5XBNcr9n3tDV8P2igqgLyrFtky
+            nova ${builtins.readFile ../../../../../secrets/hydra-hashed-password.txt}
           }
 
           reverse_proxy :${toString config.services.hydra.port}
