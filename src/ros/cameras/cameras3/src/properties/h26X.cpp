@@ -11,13 +11,15 @@ void set_h264payload(GstElement* element) {
 }
 
 void set_h264parse(GstElement* element, const int interval) {
-    g_object_set(element,
-        "config-interval", interval,
-        NULL);
+  g_object_set(element,
+    "config-interval", interval,
+    //"disable-passthrough", true,
+  NULL);
 }
 
 void set_h265parse(GstElement* element, const int interval) {
-    g_object_set(element,
-        "config-interval", interval,
-        NULL);
+  g_object_set(element,
+    "config-interval", interval,
+    //"disable-passthrough", true,
+  NULL);
 }

@@ -90,13 +90,12 @@ GstElement* h26Xsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique
   GstElement* encode_queue = gst_element_factory_make("queue", "encode_queue");
   GstElement* encode_valve = gst_element_factory_make("valve", "encode_valve");
   GstElement* encode_encoder = (h26X == 5) ? gst_element_factory_make("x265enc", "encode_encoder") : gst_element_factory_make("x264enc", "encode_encoder");
-  GstElement* encode_parse = (h26X == 5) ? gst_element_factory_make("h265parse", "encode_parse") : gst_element_factory_make("h264parse", "encode_parse");
+
   if (
     !encode_filter ||
     !encode_tee ||
     !encode_valve ||
-    !encode_encoder ||
-    !encode_parse
+    !encode_encoder
     ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
@@ -131,7 +130,6 @@ GstElement* h26Xsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique
     encode_queue,
     encode_valve,
     encode_encoder,
-    encode_parse,
 
     webrtc_sink,
   NULL);
@@ -157,8 +155,6 @@ GstElement* h26Xsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique
   set_scalefilter(encode_filter, props);
   set_queue(encode_queue);
   (h26X == 5) ? set_h265enc(encode_encoder, props) : set_h264enc(encode_encoder, props);
-  (h26X == 5) ? set_h265parse(encode_parse, -1) : set_h264parse(encode_parse, -1);
-
 
   set_webrtcsink(webrtc_sink, props);
 
@@ -202,7 +198,6 @@ GstElement* h26Xsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique
   link_elements(streamer_node, next_element, encode_queue, props->serial);
   link_elements(streamer_node, next_element, encode_valve, props->serial);
   link_elements(streamer_node, next_element, encode_encoder, props->serial);
-  link_elements(streamer_node, next_element, encode_parse, props->serial);
 
   link_elements(streamer_node, next_element, webrtc_sink, props->serial);
 
@@ -294,7 +289,7 @@ std::unique_ptr<h26XsoftwarePipelineProperties> get_h26Xsoftware_pipeline_proper
   // webrtc
   default_string = "gcc";
   props->congestion_control = set_property(streamer_node, camera, "congestion_control", default_string);
-  props->video_caps = (h26X == 5) ? "video/x-h265,stream-format=byte-stream,alignment=au" : "video/x-h264";
+  props->video_caps = (h26X == 5) ? "video/x-h265" : "video/x-h264";
   props->bitrate = set_property(streamer_node, camera, "bitrate", 1024);
 
   props->do_fec = set_property(streamer_node, camera, "do_fec", false);
@@ -323,8 +318,6 @@ void set_h26Xsoftware_pipeline_properties(GstElement* gst_pipeline, const std::u
   GstCaps* encode_caps = gst_pad_get_current_caps(encode_source_pad);
   GstElement* encode_encoder = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_encoder");
   GstElementFactory* encode_factory = gst_element_get_factory(encode_encoder);
-  GstElement* encode_parse = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_parse");
-
 
   GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
   GstElement* source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
@@ -389,10 +382,7 @@ void set_h26Xsoftware_pipeline_properties(GstElement* gst_pipeline, const std::u
     (h26X == 5) ? set_h265enc(encode_encoder, props) : set_h264enc(encode_encoder, props);
     gst_object_unref(encode_encoder);
   }
-  if (encode_parse) {
-    (h26X == 5) ? set_h265parse(encode_parse, -1) : set_h264parse(encode_parse, -1);
-    gst_object_unref(encode_parse);
-  }
+
   // 3. Swap input now, avoids race condition
   g_object_set(source_valve, "drop", false, NULL);
 

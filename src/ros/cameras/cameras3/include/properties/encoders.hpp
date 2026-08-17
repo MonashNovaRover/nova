@@ -21,23 +21,26 @@ template <typename properties> static void set_h26Xenc(GstElement* element, cons
 template <typename properties> static void set_h264enc(GstElement* element, const properties& props) {
   set_h26Xenc(element, props);
   g_object_set(element,
+    "analyse", 2, // i8x8
     "b-adapt", false, // Do not add b frames
     "bframes", 0, // Never have b frames
+    "dct8x8", true,
     "ip-factor", 1.7, // Less priority on I frames
     "noise-reduction", std::clamp(props->encoder_denoise * 1000, 0, 100000), // higher is more blurry
+    "option-string", "aq-mode=2:aq-strength=1.0:deblock=-3,-3",
     "pass", 0, // cbr
     "psy-tune", 5, // ssim, better for humans
     "rc-lookahead", std::clamp(props->deadline, 0, 250), // how far to delay frames for quality
     "sliced-threads", false, // Never enable, keep cpu usage lower
     "threads", std::clamp(1<<props->threads, 1, num_cores), // Always single thread for scalability
-    "vbv-buf-capacity", std::clamp((props->gop+1)*1000, 2000, 10000),
+    "vbv-buf-capacity", std::clamp(props->bitrate*3, 2000, 10000),
   NULL);
 }
 
 template <typename properties> static void set_h265enc(GstElement* element, const properties& props) {
   set_h26Xenc(element, props);
   g_object_set(element,
-    "option-string", "frame-threads=1:pools=none",
+    "option-string", "frame-threads=1:pools=none:repeat-headers=1",
   NULL);
 }
 
@@ -67,15 +70,17 @@ template <typename properties> static void set_vpXenc(GstElement* element, const
     "lag-in-frames", (props->deadline != 1) ? (int) ((float)props->deadline/(float)props->framerate) : 0, // Do not lookahead unless if deadline set
     "noise-sensitivity", std::clamp(props->encoder_denoise, 0, 6), // higher is more blurry
     "overshoot", 20, // Do not tolerate overshooting much over the target bitrate
+    "qos", true,
     "resize-allowed", true,
     "resize-down-threshold", 10,
     "resize-up-threshold", 90,
     "static-threshold", std::clamp(100, 1, 100), // Higher to stop updating screen if too little moves
     "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
+    "temporal-scalability-number-layers", 4, // Will downgrade fps 3 times to keep bitrate
     "threads", std::clamp(1<<props->threads, 1, num_cores), // 1 thread is most efficient. Log2
     "tuning", 1, // Tune for ssim, better for low bitrate/ blur
     "vertical-scaling-mode", 3, // 50% scaling when resizing
-    NULL);
+  NULL);
 }
 
 template <typename properties> void set_vp8enc(GstElement* element, const properties& props) {
