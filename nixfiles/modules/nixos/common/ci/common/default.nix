@@ -13,8 +13,16 @@ in
       max-free = lib.mkDefault (32 * 1024 * 1024 * 1024);
       keep-outputs = lib.mkDefault true;
 
-      substituters = [ "https://cuda-maintainers.cachix.org" ];
-      trusted-public-keys = [ "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E=" ];
+      substituters = [
+        "https://ros.cachix.org"
+        "https://cache.nixos-cuda.org"
+        "https://cache.flox.dev"
+      ];
+      trusted-public-keys = [
+        "ros.cachix.org-1:dSyZxI8geDCJrwgvCOHDoAfOm5sV1wCPjBkKL+38Rvo="
+        "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
+        "flox-cache-public-1:7F4OyH7ZCnFhcze3fJdfyXYLQw/aV7GEed86nQ7IsOs="
+      ];
     };
 
     nova.substituters.ros.enable = true;
