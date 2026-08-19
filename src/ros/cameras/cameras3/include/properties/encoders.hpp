@@ -62,7 +62,7 @@ template <typename properties> static void set_vpXenc(GstElement* element, const
       props->cpu_used == 0 ? 16:
     0 ), // Fastest 0, 16 Slowest
     "deadline", props->deadline, // 1 for lowest latency
-    "dropframe-threshold", 99, // Drop frames as a last resort if bitrate not met
+    "dropframe-threshold", 30, // Drop frames as a last resort if bitrate not met
     "end-usage", 1, // constant bitrate
     "error-resilient", 1, // Whole frame
     "horizontal-scaling-mode", 3, // 50% scaling when resizing
