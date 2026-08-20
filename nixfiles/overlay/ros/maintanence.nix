@@ -38,15 +38,18 @@ self: super:
           );
 
           fastrtps = rosSuper.fastrtps.overrideAttrs (
-            {
-            ...
-            }:
-            {
+            old: {
               src = self.fetchurl {
                 url = "https://github.com/ros2-gbp/fastrtps-release/archive/release/jazzy/fastrtps/2.14.1-1.tar.gz";
                 name = "2.14.4-1.tar.gz";
                 hash = "sha256-3E1qecQ22aoYCmOvNOWmtjqm4Q4nwn43wFsczKnoDhM=";
               };
+              # GCC 15 no longer implicitly includes <cstdint> via other headers.
+              # This fixes: error: 'uint8_t' was not declared in this scope
+              postPatch = (old.postPatch or "") + ''
+                sed -i '24a#include <cstdint>' \
+                  src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterCompoundCondition.hpp
+              '';
             }
           );
 
