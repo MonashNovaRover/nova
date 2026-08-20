@@ -70,9 +70,8 @@ buildPythonPackage rec {
       # https://discourse.nixos.org/t/how-to-give-opencv-dependency-to-python-package/16949
       sed -i 's/opencv-python/opencv/g' requirements.txt 2>/dev/null || true
       # imagededup's Cython extensions are incompatible with Python 3.14
-      # (_PyLong_AsByteArray signature changed). Disable C extension compilation
-      # by overriding ext_modules in the setup() call.
-      sed -i 's/ext_modules=ext_modules/ext_modules=[]/' setup.py
+      # (_PyLong_AsByteArray signature changed). Remove it from dependencies entirely.
+      sed -i '/imagededup/d' requirements.txt 2>/dev/null || true
       # xhtml2pdf causes pyhanko errors https://github.com/NixOS/nixpkgs/issues/355162
       sed -i '/xhtml2pdf/d' requirements.txt 2>/dev/null || true
     '';
