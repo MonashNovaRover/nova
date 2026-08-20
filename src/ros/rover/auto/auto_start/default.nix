@@ -52,7 +52,7 @@ buildRosPackage rec {
     cv-bridge
     sensor-msgs
     sensor-msgs-py
-    pythonPackages.geographiclib
-    pythonPackages.rerun-sdk
+    python3Packages.geographiclib
+    python3Packages.rerun-sdk
   ];
 }
