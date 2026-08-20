@@ -38,6 +38,16 @@
           "/nix/store/**": "allow"
         }
       }
+    },
+    "git-commit": {
+      "description": "Commits changes to git",
+      "mode": "subagent",
+      "temperature": 0,
+      "prompt": "/git-commit",
+      "permission": {
+        "edit": "deny",
+        "read": "allow"
+      }
     }
   },
   "mcp": {
