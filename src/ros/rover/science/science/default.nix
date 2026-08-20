@@ -31,7 +31,7 @@ buildRosPackage {
   buildInputs = [ rclcpp geometry-msgs nav-msgs trajectory-msgs ];
 
   propagatedBuildInputs = lib.optional (python3Packages ? nova-coms-utils) python3Packages.nova-coms-utils
-    ++ with python3Packages; [
+    ++ (with python3Packages; [
     rclpy
     jcan
     pymodbus
@@ -46,7 +46,7 @@ buildRosPackage {
     teleop-modular-python-utils
     nova-science-interfaces
     nova-pytest-framework
-  ];
+  ]);
 
   doCheck = true;
 
