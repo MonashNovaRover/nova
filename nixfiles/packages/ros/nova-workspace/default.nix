@@ -31,7 +31,6 @@
         nova-teleop-drive-joy
         nova-teleop-arm-joy
         nova-gui
-        nova-drive
         nova-drive-interfaces
         nova-blcmd-interfaces
         nova-blcmd-utils
@@ -81,6 +80,7 @@
     optionalPkgs = lib.filterAttrs (name: _: pkgs.ros ? ${name}) {
       nova-arm = pkgs.ros.nova-arm;
       nova-cmd-utils = pkgs.ros.nova-cmd-utils;
+      nova-drive = pkgs.ros.nova-drive;
     };
   in basePkgs // optionalPkgs
 
