@@ -35,6 +35,7 @@
 
 let
   pytorch = torch;
+  albumentations = albumentationsx;
   data-gradients = callPackage ./data-gradients.nix { };
   # onnx-simplifier = callPackage ./onnx-simplifier.nix { };
 in
