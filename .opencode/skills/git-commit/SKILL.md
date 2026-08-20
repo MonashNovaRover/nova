@@ -10,7 +10,7 @@ source: https://github.com/github/awesome-copilot/blob/main/skills/git-commit/SK
 
 ## Overview
 
-Create standardized, semantic git commits using the Conventional Commits specification. Analyze the actual diff to determine appropriate type, scope, and message.
+Create and push standardized, semantic git commits using the Conventional Commits specification. Analyze the actual diff to determine appropriate type, scope, and message.
 
 ## Conventional Commit Format
 
@@ -80,6 +80,12 @@ git commit -m "$(cat <<'EOF'
 <optional footer>
 EOF
 )"
+```
+
+### 5. Push Commit
+
+```bash
+git push
 ```
 
 ## Best Practices
