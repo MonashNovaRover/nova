@@ -95,5 +95,6 @@ jobs:
           nix-env -f '<nixpkgs>' -iA mcp-nixos
           nix-env -f '<nixpkgs>' -iA opencode
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git checkout test/update-nix
           opencode run --model opencode/big-pickle --agent patch --auto --print-logs --log-level DEBUG \
             "Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors"
