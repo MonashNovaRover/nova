@@ -77,7 +77,7 @@ jobs:
     permissions:
       id-token: write
       contents: write
-    needs: [ update-revisions ]
+    # needs: [ update-revisions ]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -87,13 +87,15 @@ jobs:
       - name: install
         run: |
           nix-env -f '<nixpkgs>' -iA mcp-nixos
-      - uses: anomalyco/opencode/github@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          model: opencode/big-pickle
-          agent: patch
-          share: false
-          use_github_token: true
-          prompt: |
-            Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors.
+          nix-env -f '<nixpkgs>' -iA opencode
+          opencode run --model opencode/big-pickle --agent patch Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors
+      # - uses: anomalyco/opencode/github@latest
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     model: opencode/big-pickle
+      #     agent: patch
+      #     share: false
+      #     use_github_token: true
+      #     prompt: |
+      #       Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors.
