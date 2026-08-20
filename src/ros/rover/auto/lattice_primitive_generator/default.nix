@@ -1,6 +1,6 @@
 { lib
 , buildRosPackage
-, pythonPackages
+, python3Packages
 , ament-cmake
 }:
 
@@ -17,9 +17,9 @@ buildRosPackage {
   nativeBuildInputs = [ ament-cmake ];
 
   propagatedBuildInputs = [
-    pythonPackages.numpy
-    pythonPackages.matplotlib
-    pythonPackages.rtree
+    python3Packages.numpy
+    python3Packages.matplotlib
+    python3Packages.rtree
   ];
 
 }
