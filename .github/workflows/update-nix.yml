@@ -1,0 +1,70 @@
+name: update-nix
+on: push
+  # workflow_dispatch:
+  # schedule:
+  #   - cron: '0 12 * * SAT'
+jobs:
+  # update-nixpkgs:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     sha: ${{ steps.fetch.outputs.sha }}
+  #     hash: ${{ steps.fetch.outputs.hash }}
+  #   steps:
+  #     - name: fetch
+  #       id: fetch
+  #       run: |
+  #         curl -L https://raw.githubusercontent.com/lopsided98/nix-ros-overlay/refs/heads/develop/flake.lock -o flake.lock
+  #         echo "sha=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)" >> "$GITHUB_OUTPUT"
+  #         echo "hash=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)" >> "$GITHUB_OUTPUT"
+  
+  # update-nix-ros-overlay:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     sha: ${{ steps.fetch.outputs.sha }}
+  #     hash: ${{ steps.fetch.outputs.hash }}
+  #   steps:
+  #     - uses: DeterminateSystems/nix-installer-action@main
+  #     - uses: DeterminateSystems/magic-nix-cache-action@main
+  #     - name: fetch
+  #       id: fetch
+  #       run: |
+  #         # Normally you'd use `gh api /repos/lopsided98/nix-ros-overlay/commits/develop --jq '.sha'`, but I couldn't get it work ~ Victor
+  #         echo "sha=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')" >> "$GITHUB_OUTPUT"
+  #         nix-env -f '<nixpkgs>' -iA nurl
+  #         echo "hash=$(nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash)" >> "$GITHUB_OUTPUT"
+      
+  update-revisions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/pass-job-outputs
+    # needs: [ update-nixpkgs, update-nix-ros-overlay ]
+    steps:
+      - uses: actions/checkout@v6
+      - name: update
+        # env:
+        #   NIXPKGS_SHA: ${{ needs.update-nixpkgs.outputs.sha }}
+        #   NIXPKGS_HASH: ${{ needs.update-nixpkgs.outputs.hash }}
+        #   NIX_ROS_OVERLAY_SHA: ${{ needs.update-nix-ros-overlay.outputs.sha }}
+        #   NIX_ROS_OVERLAY_HASH: ${{ needs.update-nix-ros-overlay.outputs.hash }}
+        run: |
+          # jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' revisions.json > tmp.json && mv tmp.json revisions.json
+          # jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' revisions.json > tmp.json && mv tmp.json revisions.json
+          # jq '."nix-ros-overlay".rev=$ENV.NIX_ROS_OVERLAY_SHA' revisions.json > tmp.json && mv tmp.json revisions.json
+          # jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' revisions.json > tmp.json && mv tmp.json revisions.json
+          echo $GITHUB_TOKEN
+          echo $GITHUB_WORKSPACE
+      - name: open-pr
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ github.token }}
+          commit-message: Update Nix packages
+          branch: feat/update-nix
+          title: Update Nix packages
+          base: main
+          body: |-
+            This PR updates nix-ros-overlay and nixpkgs to the latest revisions.
+
+            This is an automated pull request, and may need manual intervention to update patches or overrides.
+            Wait for CI to build workspace packages before merging, to check for errors and avoid disrupting development.
