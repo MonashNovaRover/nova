@@ -49,7 +49,9 @@ buildPythonPackage rec {
     pillow
     platformdirs
     pygments
+    scikit-learn
     torch
+    pywavelets
     rapidfuzz
     scipy
     seaborn
