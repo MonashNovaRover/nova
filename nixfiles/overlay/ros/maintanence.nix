@@ -45,10 +45,14 @@ self: super:
                 hash = "sha256-3E1qecQ22aoYCmOvNOWmtjqm4Q4nwn43wFsczKnoDhM=";
               };
               # GCC 15 no longer implicitly includes <cstdint> via other headers.
-              # This fixes: error: 'uint8_t' was not declared in this scope
+              # This fixes: error: 'uint8_t'/'uint64_t' was not declared in this scope
               postPatch = (old.postPatch or "") + ''
-                sed -i '24a#include <cstdint>' \
-                  src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterCompoundCondition.hpp
+                for f in \
+                  src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterCompoundCondition.hpp \
+                  src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterValue.hpp \
+                  src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterPredicate.hpp; do
+                  sed -i '/^#include/a #include <cstdint>' "$f"
+                done
               '';
             }
           );
