@@ -10,5 +10,7 @@ with pkgs;
   nova-blcmd-interfaces = callPackage ./old/blcmds/blcmd_interfaces { };
   nova-blcmd-utils = callPackage ./old/blcmds/blcmd_utils { };
   nova-cmd-interfaces = callPackage ./old/cmds/cmd_interfaces { };
+}
+// pkgs.lib.optionalAttrs (builtins.pathExists ../../../other/libcanmd/default.nix) {
   nova-cmd-utils = callPackage ./old/cmds/cmd_utils { };
 }
