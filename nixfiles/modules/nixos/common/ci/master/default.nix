@@ -74,9 +74,9 @@ in
           localhost ${builtins.concatStringsSep "," ([ builtins.currentSystem ] ++ config.nix.settings.extra-platforms or [ ])} - ${toString cfg.hydra.localMaxJobs} ${toString cfg.hydra.localSpeedFactor} ${builtins.concatStringsSep "," [ "nixos-test" "big-parallel" ]}
         ''));
       logo = pkgs.nova.nova-icons + /share/icons/hicolor/512x512/apps/nova-logo-white-and-orange.png;
-      maxServers = 2; # Max number of hydra web workers
-      maxSpareServers = 2; # Max idle workers
-      minSpareServers = 1; # Min idle workers
+      #maxServers = 2; # Max number of hydra web workers
+      #maxSpareServers = 2; # Max idle workers
+      #minSpareServers = 1; # Min idle workers
       extraConfig = ''
         binary_cache_secret_key_file = ${cfg.cacheSecretKey}
         binary_cache_public_uri = ${config.services.hydra.hydraURL}
