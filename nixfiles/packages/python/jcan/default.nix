@@ -13,6 +13,8 @@ buildPythonPackage rec {
   version = "0.2.4";
   format = "setuptools";
 
+  pyproject = true;
+
   doCheck = false;
 
   src = fetchFromGitHub {

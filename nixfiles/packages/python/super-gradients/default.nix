@@ -44,6 +44,8 @@ buildPythonPackage rec {
   format = "setuptools";
   version = "8.0.146";
 
+  pyproject = true;
+
   src = fetchFromGitHub {
     owner = "Deci-AI";
     repo = pname;
@@ -72,7 +74,7 @@ buildPythonPackage rec {
     pip-tools
     psutil
     pygments
-    pytorch
+    torch
     rapidfuzz
     scipy
     setuptools

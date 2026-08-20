@@ -13,6 +13,8 @@ buildPythonPackage rec {
   format = "setuptools";
   version = "1.5.1";
 
+  pyproject = true;
+
   src = fetchFromGitHub {
     owner = "raimon49";
     repo = pname;

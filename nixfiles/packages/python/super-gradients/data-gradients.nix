@@ -11,24 +11,22 @@
 , pillow
 , platformdirs
 , pygments
-  , torch
-  , rapidfuzz
-  , scipy
-  , seaborn
-  , tensorboard
-  , tqdm
-  , torchvision
-  , werkzeug
-  , wheel
+, torch
+, rapidfuzz
+, scipy
+, seaborn
+, tensorboard
+, tqdm
+, torchvision
+, werkzeug
+, wheel
 }:
 
-let
-  pytorch = torch;
-in
 buildPythonPackage rec {
   pname = "data-gradients";
-  format = "setuptools";
   version = "0.3.2";
+
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "Deci-AI";
@@ -51,7 +49,7 @@ buildPythonPackage rec {
     pillow
     platformdirs
     pygments
-    pytorch
+    torch
     rapidfuzz
     scipy
     seaborn
