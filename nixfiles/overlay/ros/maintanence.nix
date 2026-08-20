@@ -57,7 +57,11 @@ self: super:
                 # asio::io_service was renamed to asio::io_context in newer asio.
                 find src/cpp -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | \
                   xargs sed -i 's/asio::io_service/asio::io_context/g'
-                sed -i 's/asio::io_service/asio::io_context/g' CMakeLists.txt
+
+                # asio::ip::address::from_string() was removed in asio >= 1.28.
+                # Replace with the free function asio::ip::make_address().
+                find src/cpp -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | \
+                  xargs sed -i 's/asio::ip::address::from_string/asio::ip::make_address/g'
               '';
             }
           );
