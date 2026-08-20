@@ -32,7 +32,7 @@
         },
         "bash": {
           "*": "deny",
-          "nix-build ~/nova/src/../nixfiles -A pkgs.ros.nova-workspace -o ~/Builds/test": "allow"
+          "nix-build ~/nova/nixfiles -A pkgs.ros.nova-workspace": "allow"
         },
         "external_directory": {
           "/nix/store/**": "allow"
