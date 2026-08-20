@@ -10,7 +10,6 @@
 
 buildPythonPackage rec {
   pname = "mkdocs-safe-text-plugin";
-  format = "setuptools";
   version = "1.5.1";
 
   pyproject = true;
