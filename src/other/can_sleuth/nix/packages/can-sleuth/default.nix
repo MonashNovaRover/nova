@@ -6,6 +6,7 @@
 
 buildPythonPackage {
   name = "can_sleuth";
+  format = "setuptools";
 
   src = builtins.path rec {
     name = "can_sleuth-source";
