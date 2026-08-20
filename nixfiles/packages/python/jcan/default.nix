@@ -38,6 +38,13 @@ buildPythonPackage rec {
     toml
   ];
 
+  # jcan's cxx-generated callback.h uses uint16_t/uint32_t/uint64_t without
+  # including <cstdint>. GCC 15 no longer pulls it in transitively, so we
+  # force-include it for every C++ compilation unit in the build.
+  env = {
+    CXXFLAGS = "-include cstdint";
+  };
+
   postPatch = ''
     chmod u+w ..
     ln -s ../Cargo.lock .
