@@ -18,6 +18,8 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [ cmake ];
 
+  cmakeFlags = [ "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" ];
+
   patches = [
     (fetchpatch {
       url = "https://patch-diff.githubusercontent.com/raw/Livox-SDK/Livox-SDK2/pull/99.patch";
