@@ -5,6 +5,7 @@
 , yarnConfigHook
 , yarnBuildHook
 , writers
+, nodejs
 , rosbridge-server
 , ros-typescript-definitions
 , ros-core
@@ -16,7 +17,6 @@
 , nova-interfaces
 , nova-camera-msgs
 , nova-science-interfaces
-, nodejs
 }:
 
 let
@@ -56,6 +56,14 @@ stdenv.mkDerivation {
     nodejs
   ];
 
+  postConfigure = ''
+    export HOME="$(mktemp -d)"
+
+    # Link deps/nova-gui to use the node_modules from the root
+    rm -f deps/nova-gui/node_modules
+    ln -s "$PWD/node_modules" deps/nova-gui/node_modules
+  '';
+
   ROS_TS_DEFINITIONS = (ros-typescript-definitions.override {
     typePrefix = "IRos";
     rosEnv = (buildEnv {
@@ -72,10 +80,7 @@ stdenv.mkDerivation {
 
   buildPhase = ''
     runHook preBuild
-
-    export HOME="$(mktemp -d)"
     yarn --offline build
-
     runHook postBuild
   '';
 
