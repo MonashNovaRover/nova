@@ -25,7 +25,7 @@
 }:
 
 buildPythonPackage rec {
-  pname = "data-gradients";
+  pname = "imagededup";
   version = "0.3.2";
 
   pyproject = true;
