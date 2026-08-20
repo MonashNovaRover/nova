@@ -8,10 +8,12 @@
 , numpy
 , omegaconf
 , opencv4
-, pillow
-, platformdirs
-, pygments
-, torch
+  , pillow
+  , platformdirs
+  , pygments
+  , pywavelets
+  , scikit-learn
+  , torch
 , rapidfuzz
 , scipy
 , seaborn
