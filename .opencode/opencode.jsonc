@@ -5,7 +5,7 @@
       "description": "Builds code and fixes errors",
       "mode": "primary",
       "temperature": 0.1,
-      "prompt": "You get errors from @ws-build, then explain and fix those errors. Focus on explaining and fixing errors.",
+      "prompt": "You get one error at a time from @ws-build, then explain and fix those errors. Focus on explaining and fixing errors one at a time.",
       "permission": {
         "edit": "allow",
         "bash": "allow",

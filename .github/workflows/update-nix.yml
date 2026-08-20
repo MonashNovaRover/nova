@@ -96,6 +96,4 @@ jobs:
           share: false
           use_github_token: true
           prompt: |
-            Repeat until there are no errors:
-            - Get build errors from @ws-build
-            - Explain, fix, and @git-commit them
+            Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors.
