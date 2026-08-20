@@ -4,7 +4,7 @@
 , bleach
 , bleach-allowlist
 , pytest
-, pytest-runner
+  , pytestrunner
 , pytest-cov
 }:
 
