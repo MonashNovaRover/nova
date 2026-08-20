@@ -1,12 +1,12 @@
 {
   "nixpkgs": {
-    "rev": "e72e4f299401a3689d4b3d5fc6496b11db7064eb",
-    "hash": "sha256-8fsyqeO+mJqvIzeO4xIpgJe/f7MTbbVTEC6RT6WSXNs="
-  },
+    "rev": "cb9e5af795f0307a41dfe32748f025a050d9fe30",
+    "hash": "sha256-C0CZcQB9wAsfvk5fQuO1ET1GCCYVzPB8Yj/j2MbBkkg="
+  }, 
   "nix-ros-overlay": {
-    "rev": "4dce981ffe0c27b8172c3daaf26e319dbed3ae97",
-    "hash": "sha256-gS+8lI3n2zwgvMTFZChM1B38vgzr6QQZn/VqrV/re8E="
-  },
+    "rev": "4072d6ed51d9053d2cc85c0ec4f69884cc99f392",
+    "hash": "sha256-xvre4xiezhPhU794dpjcHusVLBIfA4jPg9Kq439x4yY="
+  }, 
   "nix-ros-workspace": {
     "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
     "hash": "sha256-q2xrIUD+kgyxGXp6oi7QW0QzxL6PsOODRoj/ru9P9ig="
