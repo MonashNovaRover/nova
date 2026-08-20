@@ -11,17 +11,20 @@
 , pillow
 , platformdirs
 , pygments
-  , torch as pytorch
-, rapidfuzz
-, scipy
-, seaborn
-, tensorboard
-, tqdm
-, torchvision
-, werkzeug
-, wheel
+  , torch
+  , rapidfuzz
+  , scipy
+  , seaborn
+  , tensorboard
+  , tqdm
+  , torchvision
+  , werkzeug
+  , wheel
 }:
 
+let
+  pytorch = torch;
+in
 buildPythonPackage rec {
   pname = "data-gradients";
   format = "setuptools";

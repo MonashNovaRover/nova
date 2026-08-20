@@ -18,23 +18,24 @@
 , pip-tools
 , psutil
 , pygments
-  , torch as pytorch
-, rapidfuzz
-, scipy
-, setuptools
-, stringcase
-, tensorboard
-, termcolor
-, torchmetrics
-, torchvision
-, treelib
-, tqdm
-, werkzeug
-, wheel
+  , torch
+  , rapidfuzz
+  , scipy
+  , setuptools
+  , stringcase
+  , tensorboard
+  , termcolor
+  , torchmetrics
+  , torchvision
+  , treelib
+  , tqdm
+  , werkzeug
+  , wheel
 }:
 
 let
   data-gradients = callPackage ./data-gradients.nix { };
+  pytorch = torch;
   # onnx-simplifier = callPackage ./onnx-simplifier.nix { };
 in
 buildPythonPackage rec {
