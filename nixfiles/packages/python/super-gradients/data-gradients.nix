@@ -11,7 +11,7 @@
 , pillow
 , platformdirs
 , pygments
-, pytorch
+  , torch as pytorch
 , rapidfuzz
 , scipy
 , seaborn

@@ -18,7 +18,7 @@
 , pip-tools
 , psutil
 , pygments
-, pytorch
+  , torch as pytorch
 , rapidfuzz
 , scipy
 , setuptools
