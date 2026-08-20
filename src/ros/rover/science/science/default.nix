@@ -1,6 +1,5 @@
 { lib
 , buildRosPackage
-, pythonPackages
 , ament-cmake
 , ament-cmake-pytest
 , python3Packages
@@ -31,7 +30,7 @@ buildRosPackage {
 
   buildInputs = [ rclcpp geometry-msgs nav-msgs trajectory-msgs ];
 
-  propagatedBuildInputs = with pythonPackages; [
+  propagatedBuildInputs = with python3Packages; [
     rclpy
     jcan
     nova-coms-utils
@@ -53,7 +52,7 @@ buildRosPackage {
 
   checkPhase = ''
     runHook preCheck
-    ${pythonPackages.pytest}/bin/pytest ../science/tests
+    ${python3Packages.pytest}/bin/pytest ../science/tests
     runHook postCheck
   '';
 }

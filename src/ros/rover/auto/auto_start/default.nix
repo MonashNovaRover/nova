@@ -18,7 +18,7 @@
   tf2-msgs,
   tf-transformations,
   rerun,
-  pythonPackages,
+  python3Packages,
 }:
 
 buildRosPackage rec {

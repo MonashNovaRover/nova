@@ -1,6 +1,6 @@
 { lib
 , buildRosPackage
-, pythonPackages
+, python3Packages
 , ament-cmake
 , rclcpp
 , rclpy
@@ -25,7 +25,7 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs std-msgs std-srvs nova-interfaces ];
-  propagatedBuildInputs = with pythonPackages; [ 
+  propagatedBuildInputs = with python3Packages; [ 
     nova-coms-utils 
     smbus2 
     wmm-calculator
