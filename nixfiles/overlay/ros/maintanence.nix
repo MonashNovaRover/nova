@@ -39,10 +39,12 @@ self: super:
 
           fastrtps = rosSuper.fastrtps.overrideAttrs (
             old: {
-              src = self.fetchurl {
-                url = "https://github.com/ros2-gbp/fastrtps-release/archive/release/jazzy/fastrtps/2.14.1-1.tar.gz";
-                name = "2.14.4-1.tar.gz";
-                hash = "sha256-3E1qecQ22aoYCmOvNOWmtjqm4Q4nwn43wFsczKnoDhM=";
+              version = "2.14.6";
+              src = self.fetchFromGitHub {
+                owner = "eProsima";
+                repo = "Fast-DDS";
+                rev = "v2.14.6";
+                hash = "sha256-UrL5m5OWreZyjoubH9F1am3MUajwC9AInOwLTLGqs5I=";
               };
               # GCC 15 no longer implicitly includes <cstdint> via other headers.
               # This fixes: error: 'uint8_t'/'uint64_t' was not declared in this scope
