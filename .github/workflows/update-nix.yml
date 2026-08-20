@@ -1,8 +1,8 @@
 name: update-nix
-on: # push
-  workflow_dispatch:
-  schedule:
-    - cron: '0 12 * * SAT'
+on: push
+  # workflow_dispatch:
+  # schedule:
+  #   - cron: '0 12 * * SAT'
 jobs:
   update-nixpkgs:
     runs-on: ubuntu-latest
@@ -25,12 +25,14 @@ jobs:
     steps:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: install
+        run: |
+          nix-env -f '<nixpkgs>' -iA nurl
       - name: fetch
         id: fetch
         run: |
           # Normally you'd use `gh api /repos/lopsided98/nix-ros-overlay/commits/develop --jq '.sha'`, but I couldn't get it work ~ Victor
           echo "sha=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')" >> "$GITHUB_OUTPUT"
-          nix-env -f '<nixpkgs>' -iA nurl
           echo "hash=$(nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash)" >> "$GITHUB_OUTPUT"
       
   update-revisions:
@@ -42,6 +44,8 @@ jobs:
     needs: [ update-nixpkgs, update-nix-ros-overlay ]
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: update
         env:
           NIXPKGS_SHA: ${{ needs.update-nixpkgs.outputs.sha }}
@@ -53,37 +57,45 @@ jobs:
           jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
           jq '."nix-ros-overlay".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
           jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
-      - name: open-pr
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ github.token }}
-          commit-message: Update Nix packages
-          branch: feat/update-nix
-          title: Update Nix packages
-          base: main
-          body: |-
-            This PR updates nix-ros-overlay and nixpkgs to the latest revisions.
+          cat nixfiles/revisions.json
+      # - name: open-pr
+      #   uses: peter-evans/create-pull-request@v8
+      #   with:
+      #     token: ${{ github.token }}
+      #     commit-message: Update Nix packages
+      #     branch: feat/update-nix
+      #     title: Update Nix packages
+      #     base: main
+      #     body: |-
+      #       This PR updates nix-ros-overlay and nixpkgs to the latest revisions.
 
-            This is an automated pull request, and may need manual intervention to update patches or overrides.
-            Wait for CI to build workspace packages before merging, to check for errors and avoid disrupting development.
+      #       This is an automated pull request, and may need manual intervention to update patches or overrides.
+      #       Wait for CI to build workspace packages before merging, to check for errors and avoid disrupting development.
 
-  fix-changes:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: write
-    needs: [ update-revisions ]
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-      - uses: anomalyco/opencode/github@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          model: opencode/big-pickle
-          use_github_token: true
-          prompt: |
-            Repeat until there are no errors:
-            - Get build errors from @ws-build
-            - Explain, fix, and @git-commit them
+  # fix-changes:
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write
+  #     contents: write
+  #   needs: [ update-revisions ]
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #       with:
+  #         persist-credentials: false
+  #     - uses: DeterminateSystems/nix-installer-action@main
+  #     - uses: DeterminateSystems/magic-nix-cache-action@main
+  #     - name: install
+  #       run: |
+  #         nix-env -f '<nixpkgs>' -iA mcp-nixos
+  #     - uses: anomalyco/opencode/github@latest
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         model: opencode/big-pickle
+  #         agent: patch
+  #         share: false
+  #         use_github_token: true
+  #         prompt: |
+  #           Repeat until there are no errors:
+  #           - Get build errors from @ws-build
+  #           - Explain, fix, and @git-commit them
