@@ -8,10 +8,14 @@
       "prompt": "You get one error at a time from @ws-build, then explain and fix those errors. Focus on explaining and fixing errors one at a time.",
       "permission": {
         "edit": "allow",
+        "read": {
+          "~/nixfiles/secrets/*": "deny"
+        },
         "bash": "allow",
         "rm *": "deny",
         "external_directory": {
-          "/nix/store/**": "allow"
+          "/nix/store/**": "allow",
+          "~/*": "deny"
         },
         "skill": {
           "git-commit": "allow"
@@ -26,16 +30,16 @@
       "permission": {
         "edit": "deny",
         "read": {
-          "~/": "deny",
-          "~/nova/": "allow",
-          "~/nova/src/": "deny"
+          "~/nixfiles/secrets/*": "deny"
         },
         "bash": {
           "*": "deny",
-          "nix-build nixfiles -A pkgs.ros.nova-workspace": "allow"
+          "nix-build nixfiles -A pkgs.ros.nova-workspace": "allow",
+          "nix-build nixfiles -A pkgs.*": "allow"
         },
         "external_directory": {
-          "/nix/store/**": "allow"
+          "/nix/store/**": "allow",
+          "~/*": "deny"
         }
       }
     },
@@ -46,7 +50,13 @@
       "prompt": "/git-commit",
       "permission": {
         "edit": "deny",
-        "read": "allow"
+        "read": {
+          "*": "allow",
+          "~/nixfiles/secrets/*": "deny"
+        },
+        "external_directory": {
+          "~/*": "deny"
+        }
       }
     }
   },
