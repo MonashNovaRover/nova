@@ -32,9 +32,9 @@ buildRosPackage {
     pandas 
     folium 
     pymavlink
+    fabric
   ]) ++ [ 
     sensor-msgs
-    fabric
     nova-interfaces
   ];
 }
