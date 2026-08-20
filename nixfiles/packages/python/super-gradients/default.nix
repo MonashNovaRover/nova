@@ -39,6 +39,7 @@ let
 in
 buildPythonPackage rec {
   pname = "super-gradients";
+  format = "setuptools";
   version = "8.0.146";
 
   src = fetchFromGitHub {

@@ -24,6 +24,7 @@
 
 buildPythonPackage rec {
   pname = "data-gradients";
+  format = "setuptools";
   version = "0.3.2";
 
   src = fetchFromGitHub {

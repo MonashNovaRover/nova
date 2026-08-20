@@ -7,6 +7,7 @@
 
   buildPythonPackage rec {
     pname = "lap";
+    format = "setuptools";
     version = "0.5.12";
 
     src = fetchFromGitHub {
