@@ -30,6 +30,8 @@ buildPythonPackage rec {
 
   pyproject = true;
 
+  pythonRemoveDeps = [ "imagededup" ];
+
   src = fetchFromGitHub {
     owner = "Deci-AI";
     repo = "data_gradients";
