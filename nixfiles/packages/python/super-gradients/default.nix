@@ -1,7 +1,7 @@
 { buildPythonPackage
 , fetchFromGitHub
 , callPackage
-, albumentations
+, albumentationsx
 , boto3
 , deprecated
 , einops
@@ -52,7 +52,7 @@ buildPythonPackage rec {
   };
 
   propagatedBuildInputs = [
-    albumentations
+    albumentationsx
     boto3
     data-gradients
     deprecated
