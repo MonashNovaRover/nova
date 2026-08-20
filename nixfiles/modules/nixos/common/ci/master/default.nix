@@ -125,7 +125,7 @@ in
         hydra-create-user nova \
           --full-name 'Monash Nova Rover' \
           --email-address 'novaroverteam@monash.edu' \
-          --password-hash '${builtins.readFile ../../../../../secrets/hydra-hashed-password.txt}' \
+          --password '${builtins.readFile ../../../../../secrets/hydra-password.txt}' \
           --role admin
 
         # Configure SSH
