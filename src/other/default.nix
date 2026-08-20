@@ -4,7 +4,7 @@
     ./nova_cli
     ./nova_testing
   ] ++ (
-    builtins.filter builtins.pathExists [
+    builtins.filter (p: builtins.pathExists (p + "/default.nix")) [
       ./coms_utils
       ./libblcmd
       ./libcanmd
