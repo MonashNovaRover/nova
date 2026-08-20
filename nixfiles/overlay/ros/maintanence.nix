@@ -53,6 +53,10 @@ self: super:
                   src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterPredicate.hpp; do
                   sed -i '/^#include/a #include <cstdint>' "$f"
                 done
+
+                # asio::io_service was renamed to asio::io_context in newer asio.
+                find src/cpp -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | \
+                  xargs sed -i 's/asio::io_service/asio::io_context/g'
               '';
             }
           );
