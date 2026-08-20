@@ -55,10 +55,13 @@ self: super:
                 done
 
                 # asio::io_service was renamed to asio::io_context in newer asio.
-                # asio::ip::address::from_string() was replaced by asio::ip::make_address().
+                # asio::ip::address::from_string() and variants were removed in asio >= 1.28.
+                # Replace with the free function asio::ip::make_address().
                 find src/cpp -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | \
                   xargs sed -i \
                     -e 's/asio::io_service/asio::io_context/g' \
+                    -e 's/asio::ip::address_v6::from_string/asio::ip::make_address_v6/g' \
+                    -e 's/asio::ip::address_v4::from_string/asio::ip::make_address_v4/g' \
                     -e 's/asio::ip::address::from_string/asio::ip::make_address/g'
                 sed -i \
                   -e 's/asio::io_service/asio::io_context/g' \
