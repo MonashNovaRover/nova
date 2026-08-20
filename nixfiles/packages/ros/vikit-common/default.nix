@@ -6,7 +6,7 @@
   sophus,
   boost,
   fmt,
-  tbb_2021_11,
+   tbb_2021,
   pkg-config,
   breakpointHook,
 }:
@@ -41,7 +41,7 @@ stdenv.mkDerivation rec {
     sophus
     boost
     fmt
-    tbb_2021_11
+    tbb_2021
     pkg-config
   ];
   

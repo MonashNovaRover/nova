@@ -1,6 +1,9 @@
 { lib
+, stdenv
 , buildEnv
-, mkYarnPackage
+, fetchYarnDeps
+, yarnConfigHook
+, yarnBuildHook
 , writers
 , rosbridge-server
 , ros-typescript-definitions
@@ -13,6 +16,7 @@
 , nova-interfaces
 , nova-camera-msgs
 , nova-science-interfaces
+, nodejs
 }:
 
 let
@@ -30,19 +34,27 @@ let
   ];
   serve-gui-script = writers.writePython3 "gui-serve" { doCheck = false; } (builtins.readFile ../../../serve.py);
 in
-mkYarnPackage {
+stdenv.mkDerivation {
   name = "gui";
 
-  # Make sure that the node modules derevation doesn't have the whole source
+  # Make sure that the node modules derivation doesn't have the whole source
   # folder as an input (i.e. changes to tsx files won't trigger rebuilding node_modules)
-  packageJSON = ../../../nova-gui/package.json;
-  yarnLock = ../../../nova-gui/yarn.lock;
-
   src = builtins.path rec {
     name = "gui";
     path = ../../../nova-gui;
     filter = lib.novaSourceFilter [ "node_modules" "dist" ] path;
   };
+
+  yarnOfflineCache = fetchYarnDeps {
+    yarnLock = ../../../nova-gui/yarn.lock;
+    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+  };
+
+  nativeBuildInputs = [
+    yarnConfigHook
+    yarnBuildHook
+    nodejs
+  ];
 
   ROS_TS_DEFINITIONS = (ros-typescript-definitions.override {
     typePrefix = "IRos";
@@ -61,11 +73,7 @@ mkYarnPackage {
   buildPhase = ''
     runHook preBuild
 
-    # without this, the built css file is missing 2/3rds of the content
-    # maybe the deps we pull in aren't specifically marked as deps of nova-gui
-    rm deps/nova-gui/node_modules
-    ln -s "$PWD/node_modules" deps/nova-gui/node_modules
-
+    export HOME="$(mktemp -d)"
     yarn --offline build
 
     runHook postBuild
@@ -75,7 +83,7 @@ mkYarnPackage {
     runHook preInstall
 
     mkdir -p "$out/share/nova-gui"
-    cp -r deps/nova-gui/dist "$out/share/nova-gui/www"
+    cp -r dist "$out/share/nova-gui/www"
 
     mkdir -p "$out/bin/"
 
