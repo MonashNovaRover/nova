@@ -4,60 +4,59 @@ on: push
   # schedule:
   #   - cron: '0 12 * * SAT'
 jobs:
-  # update-nixpkgs:
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     sha: ${{ steps.fetch.outputs.sha }}
-  #     hash: ${{ steps.fetch.outputs.hash }}
-  #   steps:
-  #     - name: fetch
-  #       id: fetch
-  #       run: |
-  #         curl -L https://raw.githubusercontent.com/lopsided98/nix-ros-overlay/refs/heads/develop/flake.lock -o flake.lock
-  #         echo "sha=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)" >> "$GITHUB_OUTPUT"
-  #         echo "hash=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)" >> "$GITHUB_OUTPUT"
+  update-nixpkgs:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.fetch.outputs.sha }}
+      hash: ${{ steps.fetch.outputs.hash }}
+    steps:
+      - name: fetch
+        id: fetch
+        run: |
+          curl -L https://raw.githubusercontent.com/lopsided98/nix-ros-overlay/refs/heads/develop/flake.lock -o flake.lock
+          echo "sha=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)" >> "$GITHUB_OUTPUT"
+          echo "hash=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)" >> "$GITHUB_OUTPUT"
   
-  # update-nix-ros-overlay:
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     sha: ${{ steps.fetch.outputs.sha }}
-  #     hash: ${{ steps.fetch.outputs.hash }}
-  #   steps:
-  #     - uses: DeterminateSystems/nix-installer-action@main
-  #     - uses: DeterminateSystems/magic-nix-cache-action@main
-  #     - name: install
-  #       run: |
-  #         nix-env -f '<nixpkgs>' -iA nurl
-  #     - name: fetch
-  #       id: fetch
-  #       run: |
-  #         # Normally you'd use `gh api /repos/lopsided98/nix-ros-overlay/commits/develop --jq '.sha'`, but I couldn't get it work ~ Victor
-  #         echo "sha=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')" >> "$GITHUB_OUTPUT"
-  #         echo "hash=$(nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash)" >> "$GITHUB_OUTPUT"
+  update-nix-ros-overlay:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.fetch.outputs.sha }}
+      hash: ${{ steps.fetch.outputs.hash }}
+    steps:
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: install
+        run: |
+          nix-env -f '<nixpkgs>' -iA nurl
+      - name: fetch
+        id: fetch
+        run: |
+          # Normally you'd use `gh api /repos/lopsided98/nix-ros-overlay/commits/develop --jq '.sha'`, but I couldn't get it work ~ Victor
+          echo "sha=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "hash=$(nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash)" >> "$GITHUB_OUTPUT"
       
-  # update-revisions:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #     pull-requests: write
-  #   # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/pass-job-outputs
-  #   needs: [ update-nixpkgs, update-nix-ros-overlay ]
-  #   steps:
-  #     - uses: actions/checkout@v6
-  #       with:
-  #         persist-credentials: false
-  #     - name: update
-  #       env:
-  #         NIXPKGS_SHA: ${{ needs.update-nixpkgs.outputs.sha }}
-  #         NIXPKGS_HASH: ${{ needs.update-nixpkgs.outputs.hash }}
-  #         NIX_ROS_OVERLAY_SHA: ${{ needs.update-nix-ros-overlay.outputs.sha }}
-  #         NIX_ROS_OVERLAY_HASH: ${{ needs.update-nix-ros-overlay.outputs.hash }}
-  #       run: |
-  #         jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
-  #         jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
-  #         jq '."nix-ros-overlay".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
-  #         jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
-  #         cat nixfiles/revisions.json
+  update-revisions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/pass-job-outputs
+    needs: [ update-nixpkgs, update-nix-ros-overlay ]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: update
+        env:
+          NIXPKGS_SHA: ${{ needs.update-nixpkgs.outputs.sha }}
+          NIXPKGS_HASH: ${{ needs.update-nixpkgs.outputs.hash }}
+          NIX_ROS_OVERLAY_SHA: ${{ needs.update-nix-ros-overlay.outputs.sha }}
+          NIX_ROS_OVERLAY_HASH: ${{ needs.update-nix-ros-overlay.outputs.hash }}
+        run: |
+          jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
+          jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
+          jq '."nix-ros-overlay".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
+          jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
   #     - name: open-pr
   #       uses: peter-evans/create-pull-request@v8
   #       with:
@@ -77,13 +76,13 @@ jobs:
     permissions:
       id-token: write
       contents: write
-    # needs: [ update-revisions ]
+    needs: [ update-revisions ]
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+      # - uses: DeterminateSystems/nix-installer-action@main
+      # - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: fix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -92,9 +91,13 @@ jobs:
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
         run: |
-          nix-env -f '<nixpkgs>' -iA mcp-nixos
-          nix-env -f '<nixpkgs>' -iA opencode
-          opencode run --model opencode/big-pickle --agent patch Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors
+          git add .
+          git commit -a -m "test"
+          git push
+          # nix-env -f '<nixpkgs>' -iA mcp-nixos
+          # nix-env -f '<nixpkgs>' -iA opencode
+          # opencode run --model opencode/big-pickle --agent patch --auto \
+          #   "Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors"
       # - uses: anomalyco/opencode/github@latest
       #   with:
       #     model: opencode/big-pickle
