@@ -11,7 +11,7 @@
 
 buildRosPackage rec {
   pname = "depthai";
-  version = "2.30.0";
+  version = "2.31.1";
   buildType = "prebuilt";
 
   src = fetchurl {
@@ -24,12 +24,12 @@ buildRosPackage rec {
     #
     # http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai
     x86_64-linux = {
-      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20250424.110737_amd64.deb";
-      hash = "sha256-RkpECv8yHjuIdH72ilUsuLKEv/OhAlPdTHfReE6QAZg=";
+      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20260225.231606_amd64.deb";
+      hash = "sha256-fMo9fv70IZYeJHbOOLWoZIpXxQJrcdyn36p80j7e9I8=";
     };
     aarch64-linux = {
-      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20250424.110307_arm64.deb";
-      hash = "sha256-F4iAJaKsWG+ES1R4yz06mvbglDDpT7jPBJmbQ5zAM7I=";
+      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20260305.233843_arm64.deb";
+      hash = "sha256-vq9wod4vuZ5tRFZqeONMXrU4y32psDqI45FRzlYouwQ=";
     };
   }.${hostPlatform.system} or (throw "There are no DepthAI Core hashes for ${hostPlatform.system}.");
 
