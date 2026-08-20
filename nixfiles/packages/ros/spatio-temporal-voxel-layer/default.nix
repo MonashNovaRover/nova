@@ -30,7 +30,7 @@
  c-blosc, 
  openexr, 
  rosidl-default-runtime, 
- tbb_2021,
+ onetbb,
  zlib, 
  breakpointHook, 
 }:
@@ -75,7 +75,7 @@ buildRosPackage rec {
     c-blosc 
     openexr 
     rosidl-default-runtime 
-    tbb_2021
+    onetbb
     zlib 
   ];
   nativeBuildInputs = [ ament-cmake pkg-config ];
