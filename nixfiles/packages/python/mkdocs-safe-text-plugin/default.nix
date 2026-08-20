@@ -22,7 +22,7 @@ buildPythonPackage rec {
   };
 
   nativeBuildInputs = [
-    pytest-runner
+    pytestrunner
   ];
 
   propagatedBuildInputs = [
@@ -33,7 +33,7 @@ buildPythonPackage rec {
 
   nativeCheckInputs = [
     pytest
-    pytest-runner
+    pytestrunner
     pytest-cov
   ];
 
