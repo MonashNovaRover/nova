@@ -2,6 +2,9 @@
 
 with pkgs;
 
+let
+  libcanmdAvailable = builtins.pathExists ../../../other/libcanmd/default.nix;
+in
 {
   nova-arm-bringup = callPackage ./arm_bringup { };
   nova-arm-interfaces = callPackage ./arm_interfaces { };
@@ -11,9 +14,9 @@ with pkgs;
   nova-teleop-arm = callPackage ./teleop_arm { };
   teleop-turtle = callPackage ./teleop_turtle { };
 }
-// pkgs.lib.optionalAttrs (builtins.pathExists ../../../other/libcanmd/default.nix) {
+// (if libcanmdAvailable then {
   nova-arm = callPackage ./old_arm/arm { };
-}
+} else {})
 // import ./arm_kinematics { inherit pkgs; }
 // import ./arm_controllers { inherit pkgs; }
 // import ./arm_controllers_old { inherit pkgs; }
