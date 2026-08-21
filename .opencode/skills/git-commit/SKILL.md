@@ -46,13 +46,17 @@ git diff
 git status --porcelain
 ```
 
-### 2. Stage Files (if needed)
+### 2. Stage Files and Checkout Submodule (if needed)
 
 If nothing is staged:
 
 ```bash
 # Stage all files
 git add ~/nova/
+
+# If files are in a submodule, stash them, checkout to a new branch in that submodule, and pop the files from the stash
+export GIT_BRANCH=$(git branch --show-current)
+git stash && git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH && git stash pop
 ```
 
 **Never commit secrets** (.env, credentials.json, private keys).
@@ -95,4 +99,5 @@ EOF
 - NEVER run destructive commands (--force, hard reset) without explicit request
 - NEVER skip hooks (--no-verify) unless user asks
 - NEVER force push to main/master
+- NEVER git commit in a submodule unless checked out to a new branch
 - If commit fails due to hooks, fix and create NEW commit (don't amend)
