@@ -33,31 +33,18 @@ Create and push standardized, semantic git commits using the Conventional Commit
 
 ## Workflow
 
-### 1. Analyze Diff
+### 1. Stage Files and Analyze Diff
 
-```bash
-# If files are staged, use staged diff
-git diff --staged
+!`git add ~/nova/`
+!`git diff --staged`
+!`git diff`
+!`git status --porcelain`
 
-# If nothing staged, use working tree diff
-git diff
+### 2. Checkout Submodule (if needed)
 
-# Also check status
-git status --porcelain
-```
-
-### 2. Stage Files and Checkout Submodule (if needed)
-
-If nothing is staged:
-
-```bash
-# Stage all files
-git add ~/nova/
-
-# If files are in a submodule, stash them, checkout to a new branch in that submodule, and pop the files from the stash
-export GIT_BRANCH=$(git branch --show-current)
-git stash && git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH && git stash pop
-```
+!`cd ~/nova`
+!`export GIT_BRANCH=$(git branch --show-current)`
+!`git stash && git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH && git stash pop`
 
 **Never commit secrets** (.env, credentials.json, private keys).
 
