@@ -1,6 +1,6 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Tests for rebuild-master command.
+Tests for rebuild-main command.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        nova_cli
 AUTHOR(S):      Nova Team
@@ -13,7 +13,7 @@ from unittest.mock import patch, MagicMock
 from types import SimpleNamespace
 from pathlib import Path
 
-from nova_cli.commands.rebuild_master import RebuildMasterCommand
+from nova_cli.commands.rebuild_main import RebuildMasterCommand
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def mock_args():
 
 
 class TestRebuildMasterCommand:
-    """Test nova rebuild-master command."""
+    """Test nova rebuild-main command."""
 
     def test_successful_rebuild(self, mock_home, mock_args):
         """Test successful rebuild with no uncommitted changes."""
@@ -126,7 +126,7 @@ class TestRebuildMasterCommand:
 
             assert result == 1
             captured = capsys.readouterr()
-            assert 'Failed to checkout master branch' in captured.err
+            assert 'Failed to checkout main branch' in captured.err
 
     def test_git_pull_fails(self, mock_home, mock_args, capsys):
         """Test error when git pull fails."""

@@ -37,8 +37,8 @@ class TestLaunchCLI:
         assert cmd == ["/builds/active/bin/ros2", "launch", "auto_bringup", "sim.launch.py", "sim:=True", "debug:=False"]
 
     def test_build_flag_short(self, nova_cli):
-        cmd = nova_cli(["launch", "science", "urc", "-b", "master"])
-        assert cmd == ["/builds/master/bin/ros2", "launch", "science_bringup", "urc.launch.py"]
+        cmd = nova_cli(["launch", "science", "urc", "-b", "main"])
+        assert cmd == ["/builds/main/bin/ros2", "launch", "science_bringup", "urc.launch.py"]
 
     def test_build_flag_long(self, nova_cli):
         cmd = nova_cli(["launch", "science", "urc", "--build", "auto"])
@@ -49,16 +49,16 @@ class TestLaunchCLI:
         assert cmd == ["/builds/arm/bin/ros2", "launch", "science_bringup", "urc.launch.py"]
 
     def test_build_flag_with_extra_args(self, nova_cli):
-        cmd = nova_cli(["launch", "auto", "sim", "sim:=True", "-b", "master"])
-        assert cmd == ["/builds/master/bin/ros2", "launch", "auto_bringup", "sim.launch.py", "sim:=True"]
+        cmd = nova_cli(["launch", "auto", "sim", "sim:=True", "-b", "main"])
+        assert cmd == ["/builds/main/bin/ros2", "launch", "auto_bringup", "sim.launch.py", "sim:=True"]
 
     def test_cameras_fallback_no_bringup(self, nova_cli):
         cmd = nova_cli(["launch", "cameras"], packages=["cameras"])
         assert cmd == ["/builds/active/bin/ros2", "launch", "cameras", "cameras.launch.py"]
 
     def test_drive_with_build_flag(self, nova_cli):
-        cmd = nova_cli(["launch", "drive", "-b", "master"])
-        assert cmd == ["/builds/master/bin/ros2", "launch", "drive_bringup", "drive.launch.py"]
+        cmd = nova_cli(["launch", "drive", "-b", "main"])
+        assert cmd == ["/builds/main/bin/ros2", "launch", "drive_bringup", "drive.launch.py"]
 
     def test_drive_with_extra_arg(self, nova_cli):
         cmd = nova_cli(["launch", "drive", "auto:=true"])

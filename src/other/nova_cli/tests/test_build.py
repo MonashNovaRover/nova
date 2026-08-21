@@ -20,10 +20,10 @@ class TestBuildCLI:
     """Full CLI tests for nova build command."""
 
     def test_basic_build(self, nova_cli):
-        cmd = nova_cli(["build", "master"])
+        cmd = nova_cli(["build", "main"])
         assert cmd == [
             "bash", "-ic",
-            "ws-build -o /home/test/Builds/master"
+            "ws-build -o /home/test/Builds/main"
         ]
 
     def test_build_auto(self, nova_cli):
@@ -45,7 +45,7 @@ class TestBuildCommand:
     """Unit tests for BuildCommand error handling."""
 
     def test_nom_build_not_found(self, capsys):
-        args = SimpleNamespace(buildname='master', extra_args=[])
+        args = SimpleNamespace(buildname='main', extra_args=[])
 
         with patch.object(Path, 'home', return_value=Path('/home/test')):
             with patch('subprocess.run', side_effect=FileNotFoundError):
