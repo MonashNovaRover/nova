@@ -99,7 +99,7 @@ in
         if [ -f "/run/user/$UID/nova/active_build" ]; then
           . "/run/user/$UID/nova/active_build"
         else
-          ln -sfn "$HOME/Builds/master" "$HOME/Builds/active"
+          ln -sfn "$HOME/Builds/main" "$HOME/Builds/active"
         fi
 
         # Calculate box width based on longest content line (in subshell to auto-cleanup)
@@ -156,7 +156,7 @@ in
           echo   "Config is written to ~/.config/nova/comp"
           echo   ""
           printf "''${yellow}Active Build:''${end} Set with set_active <build_path> function.\n"
-          echo   "~/Builds/active -> <build_path> symlink. Allows aliases to point to a build other than master. Currently only used by auto."
+          echo   "~/Builds/active -> <build_path> symlink. Allows aliases to point to a build other than main. Currently only used by auto."
           echo   "Config is written to /run/user/''${UID}/nova/active_build"
           echo   ""
           echo   "The files written to are sourced on shell startup."
@@ -336,8 +336,8 @@ in
 
           # Science
           predict-shell = "nom-shell ~/nova/src/other/ilmenite_ml"; # please come up with a more descriptive and less generic alias
-          run-spec = "~/Builds/master/bin/ros2 run science urc_uv_vis_spec.py";
-          run-theta = "sudo -E LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
+          run-spec = "~/Builds/main/bin/ros2 run science urc_uv_vis_spec.py";
+          run-theta = "sudo -E LANG=C ~/Builds/main/bin/ros2 run science urc_theta_360_cam.py";
 
           # ros2_control
           controllers-list = "~/Builds/active/bin/ros2 control list_controllers";
