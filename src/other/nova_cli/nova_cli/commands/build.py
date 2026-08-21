@@ -4,7 +4,7 @@ Builds the Nova workspace to a named output directory. Wraps nom-build
 with automatic output path handling.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 EXAMPLES:
-  nova build master             # Build to ~/Builds/master
+  nova build main             # Build to ~/Builds/main
   nova build auto               # Build to ~/Builds/auto
   nova build test --packages-select science  # Pass extra args
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,7 +36,7 @@ class BuildCommand(Command):
 
         buildname_arg = parser.add_argument(
             'buildname',
-            help='Build output name (e.g., master, auto, arm)'
+            help='Build output name (e.g., main, auto, arm)'
         )
         buildname_arg.completer = BuildCommand.complete_buildname
 

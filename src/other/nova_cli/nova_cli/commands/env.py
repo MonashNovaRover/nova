@@ -8,7 +8,7 @@ EXAMPLES:
   nova env status               # Show all env var values
   nova env set comp URC         # Set competition mode
   nova env set rmw cyclone      # Set RMW (with shortcut)
-  nova env set build master     # Switch active build
+  nova env set build main     # Switch active build
   nova env get domain           # Get ROS domain ID
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        nova_cli

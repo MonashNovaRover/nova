@@ -1,11 +1,11 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Checkout master branch, pull latest changes, and rebuild.
+Checkout main branch, pull latest changes, and rebuild.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 EXAMPLES:
-  nova rebuild-master              # Update and rebuild master
-  nova rebuild-master --stash      # Auto-stash uncommitted changes
-  nova rebuild-master --verbose    # Pass --verbose to nom-build
+  nova rebuild-main              # Update and rebuild main
+  nova rebuild-main --stash      # Auto-stash uncommitted changes
+  nova rebuild-main --verbose    # Pass --verbose to nom-build
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        nova_cli
 AUTHOR(S):      Nova Team
@@ -21,16 +21,16 @@ from nova_cli.commands.base import Command
 
 
 class RebuildMasterCommand(Command):
-    """Implements 'nova rebuild-master' command"""
+    """Implements 'nova rebuild-main' command"""
 
     @staticmethod
     def add_parser(subparsers):
-        """Add rebuild-master subcommand parser"""
+        """Add rebuild-main subcommand parser"""
         parser = subparsers.add_parser(
-            'rebuild-master',
-            help='Checkout master, pull latest changes, and rebuild',
-            description='Checkout master branch in ~/nova, pull latest changes, '
-                       'and build to ~/Builds/master'
+            'rebuild-main',
+            help='Checkout main, pull latest changes, and rebuild',
+            description='Checkout main branch in ~/nova, pull latest changes, '
+                       'and build to ~/Builds/main'
         )
 
         parser.add_argument(
@@ -43,11 +43,11 @@ class RebuildMasterCommand(Command):
 
     @staticmethod
     def execute(args):
-        """Execute rebuild-master command"""
+        """Execute rebuild-main command"""
         # Define paths
         nova_dir = Path.home() / "nova"
         builds_dir = Path.home() / "Builds"
-        output_path = builds_dir / "master"
+        output_path = builds_dir / "main"
 
         # Step 1: Validate nova directory exists
         if not nova_dir.exists():
@@ -79,16 +79,16 @@ class RebuildMasterCommand(Command):
                 print("  git stash", file=sys.stderr)
                 print("  git commit -am 'message'", file=sys.stderr)
                 print("\nOr run with --stash flag to automatically stash changes:", file=sys.stderr)
-                print("  nova rebuild-master --stash", file=sys.stderr)
+                print("  nova rebuild-main --stash", file=sys.stderr)
                 return 1
 
-        # Step 3: Checkout master
-        print("Checking out master branch...", file=sys.stderr)
-        cmd = ['git', '-C', str(nova_dir), 'checkout', 'master']
+        # Step 3: Checkout main
+        print("Checking out main branch...", file=sys.stderr)
+        cmd = ['git', '-C', str(nova_dir), 'checkout', 'main']
         result = subprocess.run(cmd)
 
         if result.returncode != 0:
-            print("Error: Failed to checkout master branch", file=sys.stderr)
+            print("Error: Failed to checkout main branch", file=sys.stderr)
             return 1
 
         # Step 4: Pull latest changes
@@ -100,8 +100,8 @@ class RebuildMasterCommand(Command):
             print("Error: Failed to pull latest changes", file=sys.stderr)
             return 1
 
-        # Step 5: Build master
-        print("Building master...", file=sys.stderr)
+        # Step 5: Build main
+        print("Building main...", file=sys.stderr)
         cmd = [
             'bash', '-ic', # use bash to get the alias
             f'ws-build -o {output_path} {" ".join(args.extra_args)}'
@@ -118,5 +118,5 @@ class RebuildMasterCommand(Command):
             print("Error: nom-build not found in PATH", file=sys.stderr)
             return 1
 
-        print("\nSuccessfully updated and built master!", file=sys.stderr)
+        print("\nSuccessfully updated and built main!", file=sys.stderr)
         return 0
