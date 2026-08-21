@@ -23,7 +23,7 @@ COMMANDS = {
     'build': BuildCommand,
     'env': EnvCommand,
     'launch': LaunchCommand,
-    'rebuild-main': RebuildMasterCommand,
+    'rebuild-main': RebuildMainCommand,
     'run': RunCommand,
     'sleuth': SleuthCommand,
     'start': StartCommand,

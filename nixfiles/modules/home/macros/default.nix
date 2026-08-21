@@ -316,7 +316,7 @@ in
           launch-magnetometer = "~/Builds/active/bin/ros2 run electronics magnetometer.py";
           mast = "ssh -C nova@10.0.0.150";
 
-          # Master build binaries
+          # Active build binaries
           mros2 = "~/Builds/active/bin/ros2";
           mrviz2 = "~/Builds/active/bin/rviz2";
           mrviz = "~/Builds/active/bin/rviz2";

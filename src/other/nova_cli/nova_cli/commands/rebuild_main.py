@@ -20,7 +20,7 @@ from pathlib import Path
 from nova_cli.commands.base import Command
 
 
-class RebuildMasterCommand(Command):
+class RebuildMainCommand(Command):
     """Implements 'nova rebuild-main' command"""
 
     @staticmethod
