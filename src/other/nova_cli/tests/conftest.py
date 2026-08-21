@@ -43,7 +43,7 @@ def nova_cli():
         cmd = nova_cli(["launch", "science", "urc"])
         cmd = nova_cli(["run", "science", "kiln"])
         cmd = nova_cli(["start", "run-gui"])
-        cmd = nova_cli(["build", "master"])
+        cmd = nova_cli(["build", "main"])
 
     Override available packages/executables/scripts:
         cmd = nova_cli(["launch", "cameras"], packages=["cameras"])

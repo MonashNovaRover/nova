@@ -51,7 +51,7 @@ class TestListAvailableBuilds:
     def test_lists_valid_builds(self, tmp_path):
         """Lists only directories with ros2 binary"""
         # Create valid build
-        valid_build = tmp_path / "master"
+        valid_build = tmp_path / "main"
         (valid_build / "bin").mkdir(parents=True)
         (valid_build / "bin" / "ros2").touch()
 
@@ -61,7 +61,7 @@ class TestListAvailableBuilds:
 
         with patch('nova_cli.build_utils.BUILDS_DIR', tmp_path):
             result = list_available_builds()
-            assert result == ["master"]
+            assert result == ["main"]
 
     def test_empty_builds_dir(self, tmp_path):
         """Returns empty list when no builds exist"""
@@ -78,14 +78,14 @@ class TestListAvailableBuilds:
 
     def test_sorted_output(self, tmp_path):
         """Builds are returned in sorted order"""
-        for name in ["drive", "auto", "master", "arm"]:
+        for name in ["drive", "auto", "main", "arm"]:
             build = tmp_path / name
             (build / "bin").mkdir(parents=True)
             (build / "bin" / "ros2").touch()
 
         with patch('nova_cli.build_utils.BUILDS_DIR', tmp_path):
             result = list_available_builds()
-            assert result == ["arm", "auto", "drive", "master"]
+            assert result == ["arm", "auto", "drive", "main"]
 
     def test_includes_symlinks(self, tmp_path):
         """Symlinks with ros2 binary are included"""

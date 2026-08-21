@@ -29,8 +29,8 @@ class TestRunCLI:
         assert cmd == ["/builds/active/bin/ros2", "run", "science", "controller", "--ros-args", "-p", "param:=value"]
 
     def test_build_flag_short(self, nova_cli):
-        cmd = nova_cli(["run", "science", "controller", "-b", "master"])
-        assert cmd == ["/builds/master/bin/ros2", "run", "science", "controller"]
+        cmd = nova_cli(["run", "science", "controller", "-b", "main"])
+        assert cmd == ["/builds/main/bin/ros2", "run", "science", "controller"]
 
     def test_build_flag_long(self, nova_cli):
         cmd = nova_cli(["run", "science", "controller", "--build", "auto"])
@@ -41,8 +41,8 @@ class TestRunCLI:
         assert cmd == ["/builds/arm/bin/ros2", "run", "science", "controller"]
 
     def test_build_flag_with_extra_args(self, nova_cli):
-        cmd = nova_cli(["run", "science", "controller", "--ros-args", "-b", "master"])
-        assert cmd == ["/builds/master/bin/ros2", "run", "science", "controller", "--ros-args"]
+        cmd = nova_cli(["run", "science", "controller", "--ros-args", "-b", "main"])
+        assert cmd == ["/builds/main/bin/ros2", "run", "science", "controller", "--ros-args"]
 
 
 class TestExecutableNotFound:
