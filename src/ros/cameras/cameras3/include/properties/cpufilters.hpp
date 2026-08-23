@@ -29,8 +29,8 @@ template<typename properties> void set_cpu_crop43(GstElement* element, const pro
   const double center_y = max_height / 2.0 + zoom_latitude_bias * (max_height - zoom_height) / 2.0;
 
   g_object_set(element,
-    "left", (int) (center_x - zoom_width/2.0),
-    "right", (int) (max_width - center_x - zoom_width/2.0),
+    "left", (props->crop43 && props->zoom == 1.0) ? (int) crop43(props->width, props->height, props->zoom) : (int) (center_x - zoom_width/2.0),
+    "right", (props->crop43 && props->zoom == 1.0) ? (int) crop43(props->width, props->height, props->zoom) : (int) (max_width - center_x - zoom_width/2.0),
     "top", (int) (center_y - zoom_height/2.0),
     "bottom", (int) (max_height - center_y - zoom_height/2.0),
   NULL);
