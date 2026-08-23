@@ -10,26 +10,29 @@ void set_queue(GstElement* queue);
 
 template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
   // Find the max dimensions if unzoomed
-  const double max_width = props->crop43 ? props->width - crop43(props->width, props->height, props->zoom) : props->width;
+  const double max_width = props->crop43
+    ? props->width - props->height*4.0/3.0
+    : props->width;
+
   const double max_height = props->height;
 
   // Find the size of the zoom window
-  const double zoom_width = max_width/props->zoom;
-  const double zoom_height = max_height/props->zoom;
+  const double zoom_width = max_width / props->zoom;
+  const double zoom_height = max_height / props->zoom;
 
   // Find the centre of the zoom window
   const double zoom_longitude_bias = std::clamp(props->zoom_longitude, -1.0, 1.0);
   const double zoom_latitude_bias = std::clamp(props->zoom_latitude, -1.0, 1.0);
 
-  const double center_x = max_width / 2 + zoom_longitude_bias * (max_width - zoom_width) / 2;
+  const double center_x = max_width / 2.0 + zoom_longitude_bias * (max_width - zoom_width) / 2.0;
 
-  const double center_y = max_height / 2 + zoom_latitude_bias * (max_height - zoom_height) / 2;
+  const double center_y = max_height / 2.0 + zoom_latitude_bias * (max_height - zoom_height) / 2.0;
 
   g_object_set(element,
-    "left", (int) (center_x - zoom_width/2),
-    "right", (int) (max_width - center_x - zoom_width/2),
-    "top", (int) (center_y - zoom_height/2),
-    "bottom", (int) (max_height - center_y - zoom_height/2),
+    "left", (int) (center_x - zoom_width/2.0),
+    "right", (int) (max_width - center_x - zoom_width/2.0),
+    "top", (int) (center_y - zoom_height/2.0),
+    "bottom", (int) (max_height - center_y - zoom_height/2.0),
   NULL);
 };
 

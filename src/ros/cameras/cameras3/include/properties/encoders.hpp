@@ -62,19 +62,14 @@ template <typename properties> static void set_vpXenc(GstElement* element, const
     "dropframe-threshold", 99, // Drop frames as a last resort if bitrate not met
     "end-usage", 1, // constant bitrate
     "error-resilient", 1, // Whole frame
-    "horizontal-scaling-mode", 3, // 50% scaling when resizing
     "keyframe-max-dist", (int) props->gop * (int) ((float) props->framerate/ (float) props->framerate_denominator/ (float) props->downrate + 1.0), // Largest GOP
     "lag-in-frames", (props->deadline != 1) ? (int) ((float)props->deadline/(float)props->framerate) : 0, // Do not lookahead unless if deadline set
     "noise-sensitivity", std::clamp(props->encoder_denoise, 0, 6), // higher is more blurry
     "overshoot", 20, // Do not tolerate overshooting much over the target bitrate
-    "resize-allowed", true,
-    "resize-down-threshold", 10,
-    "resize-up-threshold", 90,
     "static-threshold", std::clamp(100, 1, 100), // Higher to stop updating screen if too little moves
     "target-bitrate", std::clamp(props->bitrate, 1, 4096)*1000,
     "threads", std::clamp(1<<props->threads, 1, num_cores), // 1 thread is most efficient. Log2
     "tuning", 1, // Tune for ssim, better for low bitrate/ blur
-    "vertical-scaling-mode", 3, // 50% scaling when resizing
     NULL);
 }
 

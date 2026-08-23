@@ -4,7 +4,7 @@
 #include "properties/cpufilters.hpp"
 
 int crop43(const int width, const int height, const float zoom) {
-  return (int)((float)((width-(height*4/3))/2)/zoom);
+  return (int)((float)((width-(height*4.0/3.0))/2.0)/zoom);
 }
 
 void set_queue(GstElement* element) {
