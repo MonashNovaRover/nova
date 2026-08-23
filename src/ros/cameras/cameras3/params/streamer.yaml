@@ -161,6 +161,7 @@ camera_streamer:
           bitrate: 64
           noise: 6
 
+
       webcamvendor_SK_series1_20220325JWGD2093:
         default:
           pipeline_type: vp9software
@@ -169,27 +170,27 @@ camera_streamer:
           downscale: 4
           framerate: 30
           cpu_usage: 0
-          bitrate: 640
+          bitrate: 768
         super:
           pipeline_type: vp9software
-          width: 320
-          height: 240
+          width: 1280
+          height: 960
           framerate: 30
           downrate: 2
           cpu_usage: 5
           jpegdec_method: float
-          bitrate: 1280
+          bitrate: 1536
           noise: 0
         still:
           pipeline_type: vp9software
           width: 1280
-          height: 720
+          height: 960
           downscale: 2
           framerate: 30
           downrate: 3
           cpu_usage: 5
           jpegdec_method: float
-          bitrate: 640
+          bitrate: 768
           gop: 5
           noise: 1
         snail:
@@ -199,7 +200,7 @@ camera_streamer:
           downscale: 6
           framerate: 30
           cpu_usage: 5
-          bitrate: 320
+          bitrate: 384
           noise: 6
         emergency:
           pipeline_type: vp9software
