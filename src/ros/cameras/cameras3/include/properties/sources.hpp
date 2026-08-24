@@ -4,15 +4,29 @@
 #include <string>
 #include <gst/gst.h>
 
+inline void add_control(GstStructure* str, const char* name, const int value) {
+  if (value != -1)
+    gst_structure_set(str, name, G_TYPE_INT, value, NULL);
+}
+
 template<typename properties> void set_v4lsource(GstElement* element, const properties& props) {
-  GstStructure *str = gst_structure_new(
-    "controls",
-    "brightness", G_TYPE_INT, props->brightness,
-    "contrast", G_TYPE_INT, props->contrast,
-    "saturation", G_TYPE_INT, props->saturation,
-    "gain", G_TYPE_INT, props->gain,
-    "sharpness", G_TYPE_INT, props->sharpness,
-  NULL);
+  GstStructure *str = gst_structure_new_empty("controls");
+
+  add_control(str, "brightness", props->brightness);
+  add_control(str, "contrast", props->contrast);
+  add_control(str, "saturation", props->saturation);
+  add_control(str, "gain", props->gain);
+  add_control(str, "gamma", props->gamma);
+  add_control(str, "sharpness", props->sharpness);
+  add_control(str, "backlight_compensation", props->backlight_compensation);
+
+  if (props->exposure != -1) {
+    add_control(str, "auto_exposure", 1); // Manual exposure
+    add_control(str, "exposure_time_absolute", props->exposure);
+  } else {
+    add_control(str, "auto_exposure", 3); // Auto exposure
+  }
+
   g_object_set(element,
     "device", props->device.c_str(),
     "io-mode", (
@@ -22,7 +36,7 @@ template<typename properties> void set_v4lsource(GstElement* element, const prop
       props->io_mode == "dmabuf" ? 4 :
       props->io_mode == "dmabuf-import" ? 5 :
       0),
-      "extra-controls", (props->gain != -1) ? str : NULL,
+      "extra-controls", str,
   NULL);
   gst_structure_free(str);
 }
@@ -31,7 +45,7 @@ template<typename properties> void set_rtspsource(GstElement* element, const pro
   g_object_set(element,
     "location", props->url.c_str(),
     "buffer-mode", 4, // synced
-    "do-retransmission", false, // No retransmission, keep latency low
+    "do-retransmission", props->do_retransmission, // No retransmission, keep latency low
     "drop-on-latency", true, // Keeps latency below set ms
     "latency", props->latency,
     "ntp-sync", true, // Sync to computer

@@ -26,7 +26,10 @@ struct v4lProperties
   int contrast;
   int saturation;
   int gain;
+  int gamma;
   int sharpness;
+  int exposure;
+  int backlight_compensation;
 
   bool strict_devname;
 };

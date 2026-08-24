@@ -230,10 +230,13 @@ std::unique_ptr<vpXsoftwarePipelineProperties> get_vpXsoftware_pipeline_properti
   props->contrast = set_property(streamer_node, camera, "contrast", -1);
   props->saturation = set_property(streamer_node, camera, "saturation", -1);
   props->gain = set_property(streamer_node, camera, "gain", -1);
+  props->gamma = set_property(streamer_node, camera, "gamma", -1);
   props->sharpness = set_property(streamer_node, camera, "sharpness", -1);
+  props->exposure = set_property(streamer_node, camera, "exposure", -1);
+  props->backlight_compensation = set_property(streamer_node, camera, "backlight_compensation", -1);
 
   // filter
-  props->format = (vpX == 9) ? "I420_10LE" : "I420";
+  props->format = (vpX == 9 && props->bitrate > 100) ? "I420_10LE" : "I420";
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera, "mime", default_string);
 

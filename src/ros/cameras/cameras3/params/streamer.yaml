@@ -95,7 +95,7 @@ camera_streamer:
           downscale: 6
           framerate: 30
           cpu_usage: 5
-          bitrate: 256
+          bitrate: 128
           noise: 6
         emergency:
           pipeline_type: vp9software
@@ -108,6 +108,7 @@ camera_streamer:
           jpegdec_method: float
           bitrate: 64
           noise: 6
+          saturation: 0
 
       openaicam_openaicam_2505121128:
         default:
@@ -147,7 +148,7 @@ camera_streamer:
           downscale: 6
           framerate: 30
           cpu_usage: 5
-          bitrate: 256
+          bitrate: 128
           noise: 6
         emergency:
           pipeline_type: vp9software
@@ -160,7 +161,7 @@ camera_streamer:
           jpegdec_method: float
           bitrate: 64
           noise: 6
-
+          saturation: 0
 
       webcamvendor_SK_series1_20220325JWGD2093:
         default:
@@ -170,7 +171,7 @@ camera_streamer:
           downscale: 4
           framerate: 30
           cpu_usage: 0
-          bitrate: 768
+          bitrate: 512
         super:
           pipeline_type: vp9software
           width: 1280
@@ -179,7 +180,7 @@ camera_streamer:
           downrate: 2
           cpu_usage: 5
           jpegdec_method: float
-          bitrate: 1536
+          bitrate: 1024
           noise: 0
         still:
           pipeline_type: vp9software
@@ -190,7 +191,7 @@ camera_streamer:
           downrate: 3
           cpu_usage: 5
           jpegdec_method: float
-          bitrate: 768
+          bitrate: 512
           gop: 5
           noise: 1
         snail:
@@ -200,7 +201,7 @@ camera_streamer:
           downscale: 6
           framerate: 30
           cpu_usage: 5
-          bitrate: 384
+          bitrate: 128
           noise: 6
         emergency:
           pipeline_type: vp9software
@@ -211,16 +212,16 @@ camera_streamer:
           downrate: 3
           cpu_usage: 8
           jpegdec_method: float
-          bitrate: 80
+          bitrate: 64
           noise: 6
+          saturation: 0
 
       HZ_USB_Camera_20220301104:
         default:
           pipeline_type: vp9software
-          mime: image/jpeg
           width: 1024
           height: 768
-          downscale: 2
+          downscale: 3
           framerate: 30
           cpu_usage: 0
           bitrate: 512
@@ -234,7 +235,6 @@ camera_streamer:
           cpu_usage: 5
           jpegdec_method: float
           bitrate: 1024
-          threads: 6
           gop: 3
           noise: 0
         still:
@@ -247,29 +247,30 @@ camera_streamer:
           downrate: 3
           cpu_usage: 5
           jpegdec_method: float
-          bitrate: 256
+          bitrate: 512
           gop: 5
           noise: 1
-        snail: 
+        snail:
           pipeline_type: vp9software
           width: 640
           height: 480
           downscale: 2
           framerate: 30
-          downrate: 2
-          cpu_usage: 0
+          cpu_usage: 5
           bitrate: 128
-          denoise: true
+          noise: 6
         emergency:
           pipeline_type: vp9software
           width: 640
           height: 480
           downscale: 5
           framerate: 30
-          downrate: 4
+          downrate: 3
           cpu_usage: 8
-          bitrate: 32
-          greyscale: true
+          jpegdec_method: float
+          bitrate: 64
+          noise: 6
+          saturation: 0
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         default:
@@ -309,7 +310,7 @@ camera_streamer:
           downscale: 4
           framerate: 30
           cpu_usage: 5
-          bitrate: 256
+          bitrate: 128
           noise: 6
         emergency:
           pipeline_type: vp9software
@@ -322,6 +323,7 @@ camera_streamer:
           jpegdec_method: float
           bitrate: 64
           noise: 6
+          saturation: 0
 
     presets:
       auto:
@@ -431,6 +433,13 @@ camera_streamer:
         width: 1280
         height: 720
         framerate: 30
+        brightness: 0
+        contrast: 32
+        saturation: 100
+        sharpness: 0
+        gain: 28
+        gamma: 108
+        exposure: 333
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
@@ -438,23 +447,25 @@ camera_streamer:
         height: 1080
         framerate: 30
         payload_quirk: true
-        denoise: true
-        denoise_sigma: 12.0
-        denoise_threshold: 0.15
-        denoise_radius: 4
-        undistort: true
-        undistort_k1: -0.11
-        undistort_k2: 0.01
+        brightness: 128
+        contrast: 128
+        saturation: 144
+        sharpness: 0
+        gain: 0
+        exposure: 333
 
       HZ_USB_Camera_20220301104:
         pipeline_type: vp9software
         width: 1024
         height: 768
         framerate: 30
-        brightness: 255
-        undistort: true
-        undistort_k1: -0.08
-        undistort_k2: 0.007
+        brightness: 180
+        contrast: 100
+        saturation: 64
+        sharpness: 0
+        gamma: 100
+        exposure: 625
+        backlight_compensation: 0
 
       # Legacy
       Microsoft_Microsoft®_LifeCam_HD-3000:
@@ -462,6 +473,12 @@ camera_streamer:
         width: 800
         height: 600
         framerate: 30
+        brightness: 0
+        contrast: 5
+        saturation: 110
+        sharpness: 0
+        exposure: 333
+        backlight_compensation: 0
 
       # Name violates yaml rules
       # Ricoh_Company__Ltd._RICOH_THETA_Z1_34122798:

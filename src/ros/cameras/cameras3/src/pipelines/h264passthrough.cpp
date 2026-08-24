@@ -133,7 +133,10 @@ std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_
   props->contrast = set_property(streamer_node, camera, "contrast", -1);
   props->saturation = set_property(streamer_node, camera, "saturation", -1);
   props->gain = set_property(streamer_node, camera, "gain", -1);
+  props->gamma = set_property(streamer_node, camera, "gamma", -1);
   props->sharpness = set_property(streamer_node, camera, "sharpness", -1);
+  props->exposure = set_property(streamer_node, camera, "exposure", -1);
+  props->backlight_compensation = set_property(streamer_node, camera, "backlight_compensation", -1);
 
   // filter
   props->mime = "video/x-h264";
