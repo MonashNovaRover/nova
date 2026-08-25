@@ -25,6 +25,7 @@ template <typename properties> static void set_h264enc(GstElement* element, cons
     "b-adapt", false, // Do not add b frames
     "bframes", 0, // Never have b frames
     "dct8x8", true,
+    "intra-refresh", true, // Intraframe lowers i frame size
     "ip-factor", 1.7, // Less priority on I frames
     "noise-reduction", std::clamp(props->encoder_denoise * 1000, 0, 100000), // higher is more blurry
     "option-string", "aq-mode=2:aq-strength:1.0:deblock:-3,-3",
@@ -40,7 +41,7 @@ template <typename properties> static void set_h264enc(GstElement* element, cons
 template <typename properties> static void set_h265enc(GstElement* element, const properties& props) {
   set_h26Xenc(element, props);
   g_object_set(element,
-    "option-string", "frame-threads=1:pools=none:repeat-headers=1",
+    "option-string", "frame-threads=1:pools=none:repeat-headers=1:intra-refresh=1",
   NULL);
 }
 

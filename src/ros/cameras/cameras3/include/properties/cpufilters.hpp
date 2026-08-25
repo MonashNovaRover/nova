@@ -8,33 +8,47 @@ int crop43(const int width, const int height, const float zoom);
 
 void set_queue(GstElement* queue);
 
-template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props) {
-  // Find the max dimensions if unzoomed
-  const double max_width = props->crop43
-    ? props->width - props->height*4.0/3.0
-    : props->width;
+template<typename properties>
+void set_cpu_crop43(GstElement* element, const properties& props) {
+  const double width = props->width;
+  const double height = props->height;
 
-  const double max_height = props->height;
+  // Base crop: 16:9 -> 4:3.
+  const double base_width = props->crop43
+    ? height * 4.0 / 3.0
+    : width;
 
-  // Find the size of the zoom window
-  const double zoom_width = max_width / props->zoom;
-  const double zoom_height = max_height / props->zoom;
+  // Apply zoom.
+  const double crop_width = base_width / props->zoom;
+  const double crop_height = height / props->zoom;
 
-  // Find the centre of the zoom window
-  const double zoom_longitude_bias = std::clamp(props->zoom_longitude, -1.0, 1.0);
-  const double zoom_latitude_bias = std::clamp(props->zoom_latitude, -1.0, 1.0);
+  // Maximum movement available after zooming.
+  const double max_x = base_width - crop_width;
+  const double max_y = height - crop_height;
 
-  const double center_x = max_width / 2.0 + zoom_longitude_bias * (max_width - zoom_width) / 2.0;
+  const double x = std::clamp(props->zoom_longitude, -1.0, 1.0);
+  const double y = std::clamp(props->zoom_latitude, -1.0, 1.0);
 
-  const double center_y = max_height / 2.0 + zoom_latitude_bias * (max_height - zoom_height) / 2.0;
+  // Move the crop window from left/top to right/bottom.
+  const double offset_x = max_x * (x + 1.0) / 2.0;
+  const double offset_y = max_y * (y + 1.0) / 2.0;
+
+  // Centre the 4:3 region inside the original 16:9 frame.
+  const double base_left = (width - base_width) / 2.0;
+
+  const double left = base_left + offset_x;
+  const double right = width - base_left - crop_width - offset_x;
+
+  const double top = offset_y;
+  const double bottom = height - crop_height - offset_y;
 
   g_object_set(element,
-    "left", (props->crop43 && props->zoom == 1.0) ? (int) crop43(props->width, props->height, props->zoom) : (int) (center_x - zoom_width/2.0),
-    "right", (props->crop43 && props->zoom == 1.0) ? (int) crop43(props->width, props->height, props->zoom) : (int) (max_width - center_x - zoom_width/2.0),
-    "top", (int) (center_y - zoom_height/2.0),
-    "bottom", (int) (max_height - center_y - zoom_height/2.0),
-  NULL);
-};
+    "left",   (int)left,
+    "right",  (int)right,
+    "top",    (int)top,
+    "bottom", (int)bottom,
+    NULL);
+}
 
 template<typename properties> void set_cpu_crop43(GstElement* element, const properties& props, const int crop_width) {
   g_object_set(element,

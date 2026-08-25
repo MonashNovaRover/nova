@@ -345,21 +345,15 @@ void set_h26Xsoftware_pipeline_properties(GstElement* gst_pipeline, const std::u
   }
 
   // Do not change width or height if using vp8
-  if (h26X == 4) {
-    gst_structure_get_int(encode_str, "width", &props->width);
-    gst_structure_get_int(encode_str, "height", &props->height);
-  }
+  gst_structure_get_int(encode_str, "width", &props->width);
+  gst_structure_get_int(encode_str, "height", &props->height);
 
   if (source_filter) {
-    if (h26X == 4) {
-      gst_structure_get_int(source_str, "width", &props->width);
-      gst_structure_get_int(source_str, "height", &props->height);
-    }
+    gst_structure_get_int(source_str, "width", &props->width);
+    gst_structure_get_int(source_str, "height", &props->height);
     set_srcfilter(source_filter, props);
-    if (h26X == 4) {
-      gst_structure_get_int(encode_str, "width", &props->width);
-      gst_structure_get_int(encode_str, "height", &props->height);
-    }
+    gst_structure_get_int(encode_str, "width", &props->width);
+    gst_structure_get_int(encode_str, "height", &props->height);
     gst_object_unref(source_filter);
   }  if (source_decode) {
     if (props->mime == "image/jpeg") set_jpegdec(source_decode, props);
@@ -367,22 +361,18 @@ void set_h26Xsoftware_pipeline_properties(GstElement* gst_pipeline, const std::u
   }
 
   if (cpu_crop) {
-    if (h26X == 4) {
-      gst_structure_get_int(source_str, "width", &props->width);
-      gst_structure_get_int(source_str, "height", &props->height);
-    }
+    gst_structure_get_int(source_str, "width", &props->width);
+    gst_structure_get_int(source_str, "height", &props->height);
     set_cpu_crop43(cpu_crop, props);
-    if (h26X == 4) {
-      gst_structure_get_int(encode_str, "width", &props->width);
-      gst_structure_get_int(encode_str, "height", &props->height);
-    }
+    gst_structure_get_int(encode_str, "width", &props->width);
+    gst_structure_get_int(encode_str, "height", &props->height);
     gst_object_unref(cpu_crop);
   }
 
   if (encode_filter) { 
-    if (h26X == 5) set_scalefilter(encode_filter, props);
     gst_object_unref(encode_filter);
   }
+
   if (encode_encoder) {
     (h26X == 5) ? set_h265enc(encode_encoder, props) : set_h264enc(encode_encoder, props);
     gst_object_unref(encode_encoder);

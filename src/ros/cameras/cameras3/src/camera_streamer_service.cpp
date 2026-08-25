@@ -401,8 +401,7 @@ class CameraStreamer : public rclcpp::Node
     std::unique_ptr<Pipeline>& pipeline = it->second;
 
     if (
-        (pipeline->camera->pipeline_type != "vp9software") ||
-        (pipeline->camera->pipeline_type != "h265software")
+        (pipeline->camera->pipeline_type != "vp9software")
         ) {
       response->success = false;
       return;
@@ -411,10 +410,13 @@ class CameraStreamer : public rclcpp::Node
     double new_zoom;
 
     if (request->zoom > 0) {
-      new_zoom = std::clamp(std::pow(pipeline->zoom + request->zoom, 1.25), 1.0, 64.0);
+      new_zoom = pipeline->zoom * std::pow(2.0, request->zoom * 1.5);
     } else {
-      new_zoom = std::clamp(std::pow(pipeline->zoom + request->zoom, 0.75), 1.0, 64.0);
+      new_zoom = pipeline->zoom * std::pow(2.0, request->zoom * 1.5);
     }
+
+    new_zoom = std::clamp(new_zoom, 1.0, 64.0);
+
     
     // World coordinates currently under the cursor
     const double worldX = pipeline->zoom_longitude + request->zoom_longitude / pipeline->zoom;
@@ -435,14 +437,6 @@ class CameraStreamer : public rclcpp::Node
       pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
       pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
       set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
-    }
-
-    if (pipeline->camera->pipeline_type == "h265software") {
-      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 5);
-      pipeline->zoom = props->zoom = new_zoom;
-      pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
-      pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
-      set_h26Xsoftware_pipeline_properties(pipeline->gst_pipeline, props);
     }
 
     RCLCPP_INFO(this->get_logger(), "%sApplied %s%.2f%sx zoom at: (%s%.2f %.2f%s) to %s%s%s", C_QUIET, C_TITLE, pipeline->zoom, C_QUIET, C_MODE, pipeline->zoom_longitude, pipeline->zoom_latitude, C_QUIET, C_MODE, serial.c_str(), C_RESET);

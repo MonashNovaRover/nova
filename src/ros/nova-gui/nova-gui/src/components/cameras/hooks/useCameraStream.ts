@@ -79,6 +79,19 @@ export const useCameraStream = (
     StreamingState.STOPPED
   );
 
+  const requestRandomAccessKeyframe = useCallback(() => {
+    if (!rtcRef.current) return;
+    
+    const receivers = rtcRef.current.getReceivers();
+    const videoReceiver = receivers.find(r => r.track?.kind === 'video');
+    
+    if (videoReceiver && 'requestKeyFrame' in videoReceiver) {
+      (videoReceiver as any).requestKeyFrame()
+        .then(() => console.log(`Random access keyframe requested for ${cameraSerial}`))
+        .catch((err: any) => console.error("Keyframe request failed: ", err));
+    }
+  }, [cameraSerial]);
+
   const closeSession = useCallback(() => {
     if (!isWsOpen) return;
     if (!peerId) {
@@ -187,11 +200,39 @@ export const useCameraStream = (
     } else {
       const rtcConnection = new RTCPeerConnection({
         iceServers: ICE_SERVERS,
+        iceCandidatePoolSize: 0, // Drop old packets for newest
       });
 
       rtcConnection.onicecandidate = iceCandidateCallback;
       rtcConnection.ontrack = (event) => {
+
+        const receiver = event.receiver;
+        if (receiver.track.kind === 'video') {
+          // Do not delay video stream
+          if ('playoutDelayHint' in receiver) {
+            receiver.playoutDelayHint = 0;
+          }
+
+
+          try {
+            // Tag content as motion to bias maintaining framerate
+            if ('contentHint' in event.track) event.track.contentHint = 'motion';
+
+            const senders = rtcConnection.getSenders();
+            const videoSender = senders.find(sender => sender.track?.kind === 'video');
+            if (videoSender) {
+              const parameters = videoSender.getParameters();
+              parameters.degradationPreference = 'balanced';
+              videoSender.setParameters(parameters);
+            }
+          } catch (e) {
+            console.warn("Failed to set leaky bucket parameters: ", e);
+          }
+        }
+
+        // Set mode to streaming
         setStreamingState(StreamingState.STREAMING);
+        requestRandomAccessKeyframe();
         if (videoRef.current) videoRef.current.srcObject = event.streams[0];
       };
 
@@ -199,7 +240,7 @@ export const useCameraStream = (
       return rtcRef.current;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoRef]);
+  }, [videoRef, requestRandomAccessKeyframe]);
 
   useEffect(() => {
     if (!lastJsonMessage) return;
@@ -241,13 +282,20 @@ export const useCameraStream = (
 
       video.requestVideoFrameCallback((now, metadata) => {
         const display_delay = now - (metadata.receiveTime ?? now);
-        if (display_delay > MAX_LATENCY) resetSession();
+        if (display_delay > MAX_LATENCY) 
+          if (display_delay > MAX_LATENCY * 3) {
+            // Session terminated
+            resetSession();
+          } else {
+            // Minor lag
+            requestRandomAccessKeyframe();
+          }
       });
 
     }, HEARTBEAT_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [resetSession]);
+  }, [resetSession, requestRandomAccessKeyframe, videoRef]);
 
   return {
     streamingState,
@@ -255,5 +303,6 @@ export const useCameraStream = (
     isCameraOnline,
     closeSession,
     resetSession,
+    requestRandomAccessKeyframe,
   };
 };
