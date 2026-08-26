@@ -72,43 +72,42 @@ camera_streamer:
           height: 720
           framerate: 30
           downrate: 2
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 1024
           noise: 0
         still:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1280
           height: 720
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 512
           gop: 5
-          noise: 1
+          noise: 0
         snail:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 6
           framerate: 30
-          cpu_usage: 5
+          cpu_usage: 3
           bitrate: 128
           noise: 6
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 12
           framerate: 30
-          downrate: 3
-          cpu_usage: 8
-          jpegdec_method: float
-          bitrate: 64
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
+          bitrate: 32
           noise: 6
-          saturation: 0
 
       openaicam_openaicam_2505121128:
         default:
@@ -125,41 +124,41 @@ camera_streamer:
           height: 720
           framerate: 30
           downrate: 2
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 1024
           noise: 0
         still:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1280
           height: 720
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 512
           gop: 5
-          noise: 1
+          noise: 0
         snail:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 6
           framerate: 30
-          cpu_usage: 5
+          cpu_usage: 3
           bitrate: 128
           noise: 6
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 12
           framerate: 30
-          downrate: 3
-          cpu_usage: 8
-          jpegdec_method: float
-          bitrate: 64
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
+          bitrate: 32
           noise: 6
           saturation: 0
 
@@ -178,41 +177,41 @@ camera_streamer:
           height: 960
           framerate: 30
           downrate: 2
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 1024
           noise: 0
         still:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1280
           height: 960
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 512
           gop: 5
-          noise: 1
+          noise: 0
         snail:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 6
           framerate: 30
-          cpu_usage: 5
+          cpu_usage: 3
           bitrate: 128
           noise: 6
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 12
           framerate: 30
           downrate: 3
-          cpu_usage: 8
-          jpegdec_method: float
-          bitrate: 64
+          cpu_usage: 9
+          jpegdec_method: islow
+          bitrate: 32
           noise: 6
           saturation: 0
 
@@ -227,48 +226,45 @@ camera_streamer:
           bitrate: 512
         super:
           pipeline_type: vp9software
-          mime: image/jpeg
           width: 1024
           height: 768
           framerate: 30
-          downrate: 3
-          cpu_usage: 5
-          jpegdec_method: float
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 1024
-          gop: 3
           noise: 0
         still:
-          pipeline_type: vp9software
-          mime: image/jpeg
+          pipeline_type: h265software
           width:  1024
           height: 768
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 512
           gop: 5
-          noise: 1
+          noise: 0
         snail:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 640
           height: 480
           downscale: 2
           framerate: 30
-          cpu_usage: 5
+          cpu_usage: 0
           bitrate: 128
           noise: 6
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 640
           height: 480
           downscale: 5
           framerate: 30
           downrate: 3
-          cpu_usage: 8
-          jpegdec_method: float
-          bitrate: 64
+          cpu_usage: 9
+          jpegdec_method: islow
+          bitrate: 32
           noise: 6
           saturation: 0
 
@@ -287,41 +283,41 @@ camera_streamer:
           height: 600
           framerate: 30
           downrate: 3
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 1024
           noise: 0
         still:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1280
           height: 720
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 5
-          jpegdec_method: float
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 512
           gop: 5
-          noise: 1
+          noise: 0
         snail:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1280
           height: 720
           downscale: 4
           framerate: 30
-          cpu_usage: 5
+          cpu_usage: 3
           bitrate: 128
           noise: 6
         emergency:
-          pipeline_type: vp9software
+          pipeline_type: h265software
           width: 1280
           height: 720
           downscale: 8
           framerate: 30
-          downrate: 3
-          cpu_usage: 8
-          jpegdec_method: float
-          bitrate: 64
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
+          bitrate: 32
           noise: 6
           saturation: 0
 

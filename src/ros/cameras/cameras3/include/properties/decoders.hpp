@@ -10,7 +10,7 @@ template<typename properties> void set_jpegdec(GstElement* element, const proper
       props->jpegdec_method == "ifast" ? 1:
       props->jpegdec_method == "islow" ? 0:
       props->jpegdec_method == "float" ? 2:
-      1 ), // ifast is default, but float is used for max quality 
+      1 ), // ifast is default, but islow is usually almost as fast while being almost highest quality 
   NULL);
 }
 

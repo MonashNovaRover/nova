@@ -317,9 +317,6 @@ void set_h26Xsoftware_pipeline_properties(GstElement* gst_pipeline, const std::u
 
   GstElement* cpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_crop");
 
-  GstElement* encode_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_filter");
-  GstPad* encode_source_pad = gst_element_get_static_pad(encode_filter, "src");
-  GstCaps* encode_caps = gst_pad_get_current_caps(encode_source_pad);
   GstElement* encode_encoder = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_encoder");
   GstElementFactory* encode_factory = gst_element_get_factory(encode_encoder);
 
@@ -336,41 +333,24 @@ void set_h26Xsoftware_pipeline_properties(GstElement* gst_pipeline, const std::u
   g_object_set(source_valve, "drop", true, NULL);
   const int h26X = ((std::string) gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(encode_factory)) == "x265enc") ? 5 : 4;
 
-  const GstStructure* encode_str = gst_caps_get_structure(encode_caps, 0);
-  const GstStructure* source_str = gst_caps_get_structure(source_caps, 0);
-
   if (source_v4l) {
     set_v4lsource(source_v4l, props);
     gst_object_unref(source_v4l);
   }
 
-  // Do not change width or height if using vp8
-  gst_structure_get_int(encode_str, "width", &props->width);
-  gst_structure_get_int(encode_str, "height", &props->height);
-
   if (source_filter) {
-    gst_structure_get_int(source_str, "width", &props->width);
-    gst_structure_get_int(source_str, "height", &props->height);
     set_srcfilter(source_filter, props);
-    gst_structure_get_int(encode_str, "width", &props->width);
-    gst_structure_get_int(encode_str, "height", &props->height);
     gst_object_unref(source_filter);
-  }  if (source_decode) {
+  }
+
+  if (source_decode) {
     if (props->mime == "image/jpeg") set_jpegdec(source_decode, props);
     gst_object_unref(source_decode);
   }
 
   if (cpu_crop) {
-    gst_structure_get_int(source_str, "width", &props->width);
-    gst_structure_get_int(source_str, "height", &props->height);
     set_cpu_crop43(cpu_crop, props);
-    gst_structure_get_int(encode_str, "width", &props->width);
-    gst_structure_get_int(encode_str, "height", &props->height);
     gst_object_unref(cpu_crop);
-  }
-
-  if (encode_filter) { 
-    gst_object_unref(encode_filter);
   }
 
   if (encode_encoder) {
@@ -384,8 +364,6 @@ void set_h26Xsoftware_pipeline_properties(GstElement* gst_pipeline, const std::u
   // 4. Unreference every element
   gst_object_unref(source_source_pad);
   gst_caps_unref(source_caps);
-  gst_object_unref(encode_source_pad);
-  gst_caps_unref(encode_caps);
   gst_object_unref(cpu_source_pad);
   gst_object_unref(cpu_sink_pad);
   gst_object_unref(cpu_gpu_selector);

@@ -333,30 +333,13 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   g_object_set(source_valve, "drop", true, NULL);
   const int vpX = ((std::string) gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(encode_factory)) == "vp9enc") ? 9 : 8;
 
-  const GstStructure* encode_str = gst_caps_get_structure(encode_caps, 0);
-  const GstStructure* source_str = gst_caps_get_structure(source_caps, 0);
-
   if (source_v4l) {
     set_v4lsource(source_v4l, props);
     gst_object_unref(source_v4l);
   }
 
-  // Do not change width or height if using vp8
-  if (vpX == 8) {
-    gst_structure_get_int(encode_str, "width", &props->width);
-    gst_structure_get_int(encode_str, "height", &props->height);
-  }
-
   if (source_filter) {
-    if (vpX == 8) {
-      gst_structure_get_int(source_str, "width", &props->width);
-      gst_structure_get_int(source_str, "height", &props->height);
-    }
     set_srcfilter(source_filter, props);
-    if (vpX == 8) {
-      gst_structure_get_int(encode_str, "width", &props->width);
-      gst_structure_get_int(encode_str, "height", &props->height);
-    }
     gst_object_unref(source_filter);
   }
   if (source_decode) {
@@ -365,15 +348,7 @@ void set_vpXsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cpu_crop) {
-    if (vpX == 8) {
-      gst_structure_get_int(source_str, "width", &props->width);
-      gst_structure_get_int(source_str, "height", &props->height);
-    }
     set_cpu_crop43(cpu_crop, props);
-    if (vpX == 8) {
-      gst_structure_get_int(encode_str, "width", &props->width);
-      gst_structure_get_int(encode_str, "height", &props->height);
-    }
     gst_object_unref(cpu_crop);
   }
 
