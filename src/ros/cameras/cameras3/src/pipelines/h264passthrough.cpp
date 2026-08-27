@@ -82,7 +82,7 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
   if (props->payload_quirk) {
     set_h264payload(h264_payload);
   }
-  set_h264parse(h264_parse, -1);
+  set_h264parse(h264_parse, 0);
 
   set_webrtcsink(webrtc_sink, props);
 
@@ -96,9 +96,9 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
     return nullptr;
   }
 
-  link_elements(streamer_node, next_element, h264_parse, props->serial);
   link_elements(streamer_node, next_element, h264_payload, props->serial);
   link_elements(streamer_node, next_element, h264_depayload, props->serial);
+  link_elements(streamer_node, next_element, h264_parse, props->serial);
 
   link_elements(streamer_node, next_element, webrtc_sink, props->serial);
 

@@ -164,13 +164,11 @@ camera_streamer:
 
       webcamvendor_SK_series1_20220325JWGD2093:
         default:
-          pipeline_type: vp9software
-          width: 1920
-          height: 1080
-          downscale: 4
+          pipeline_type: h264passthrough
+          io_mode: dmabuf
+          width: 640
+          height: 480
           framerate: 30
-          cpu_usage: 0
-          bitrate: 512
         super:
           pipeline_type: vp9software
           width: 1280
@@ -194,14 +192,10 @@ camera_streamer:
           gop: 5
           noise: 0
         snail:
-          pipeline_type: h265software
-          width: 1920
-          height: 1080
-          downscale: 6
+          io_mode: dmabuf
+          width: 320
+          height: 240
           framerate: 30
-          cpu_usage: 3
-          bitrate: 128
-          noise: 6
         emergency:
           pipeline_type: h265software
           width: 1920
@@ -435,7 +429,6 @@ camera_streamer:
         sharpness: 0
         gain: 28
         gamma: 108
-        exposure: 333
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
@@ -448,7 +441,6 @@ camera_streamer:
         saturation: 144
         sharpness: 0
         gain: 0
-        exposure: 333
 
       HZ_USB_Camera_20220301104:
         pipeline_type: vp9software
@@ -460,7 +452,6 @@ camera_streamer:
         saturation: 64
         sharpness: 0
         gamma: 100
-        exposure: 625
         backlight_compensation: 0
 
       # Legacy
@@ -473,7 +464,6 @@ camera_streamer:
         contrast: 5
         saturation: 110
         sharpness: 0
-        exposure: 333
         backlight_compensation: 0
 
       # Name violates yaml rules
