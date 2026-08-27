@@ -81,6 +81,8 @@ in
         binary_cache_secret_key_file = ${cfg.cacheSecretKey}
         binary_cache_public_uri = ${config.services.hydra.hydraURL}
 
+        allow_import_from_derivation = true
+
         # Increase the maximum output size (useful for things like ISO images)
         max_output_size = 34359738368
 

@@ -7,6 +7,6 @@ let
 in
 {
   config = lib.mkIf (profile == "server") {
-    nova.substituters.nova.enable = lib.mkDefault false;
+    nova.substituters.nova.enable = lib.mkDefault true;
   };
 }
