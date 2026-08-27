@@ -13,7 +13,7 @@ rec {
     emailresponsible = false;
   };
 
-  mkNovaInput = args: mkGitHubInput ({ owner = "MonashNovaRover"; } // args);
+  mkNovaInput = args: mkGitHubInput ({ owner = "MonashNovaRover"; branch = "main"; } // args);
 
   novaInputs = builtins.mapAttrs
     (repo: branch: mkNovaInput { inherit repo branch; })
