@@ -97,9 +97,9 @@ jobs:
 
           # Output the git branch for fix-errors to use
           echo $GIT_BRANCH
-          echo $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
           echo "branch=$GIT_BRANCH" >> "$GITHUB_OUTPUT"
-          echo $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
 
   # fix-errors:
   # # Checks out the new branch and uses an LLM to fix ws-build errors, pushing fixes.
