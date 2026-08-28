@@ -13,7 +13,7 @@ EDITED:         09/07/2026
 from nova_cli.commands.build import BuildCommand
 from nova_cli.commands.env import EnvCommand
 from nova_cli.commands.launch import LaunchCommand
-from nova_cli.commands.rebuild_master import RebuildMasterCommand
+from nova_cli.commands.rebuild_main import RebuildMainCommand
 from nova_cli.commands.run import RunCommand
 from nova_cli.commands.sleuth import SleuthCommand
 from nova_cli.commands.start import StartCommand
@@ -23,7 +23,7 @@ COMMANDS = {
     'build': BuildCommand,
     'env': EnvCommand,
     'launch': LaunchCommand,
-    'rebuild-master': RebuildMasterCommand,
+    'rebuild-main': RebuildMainCommand,
     'run': RunCommand,
     'sleuth': SleuthCommand,
     'start': StartCommand,

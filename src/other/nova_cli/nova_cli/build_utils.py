@@ -22,7 +22,7 @@ def validate_build_path(build_name):
     Validate that a build exists and return its path.
 
     Args:
-        build_name: Name of the build (e.g., 'active', 'master', 'auto')
+        build_name: Name of the build (e.g., 'active', 'main', 'auto')
 
     Returns:
         Path to build directory if valid, None otherwise
@@ -71,7 +71,7 @@ def add_build_argument(parser):
     parser.add_argument(
         '-b', '--build',
         default='active',
-        help='Build to use (default: active). Available: master, auto, arm, drive, etc.'
+        help='Build to use (default: active). Available: main, auto, arm, drive, etc.'
     )
 
 

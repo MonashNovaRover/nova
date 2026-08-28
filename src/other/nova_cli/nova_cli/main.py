@@ -47,8 +47,8 @@ Examples:
   nova launch science urc           Launch science_bringup/urc.launch.py
   nova run science kiln             Run science/kiln.py node
   nova start gui                    Run ~/Builds/active/launch/run-gui script
-  nova build master                 Build workspace to ~/Builds/master
-  nova env set build master         Switch active build to master
+  nova build main                 Build workspace to ~/Builds/main
+  nova env set build main         Switch active build to main
         '''
     )
 

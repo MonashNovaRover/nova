@@ -34,8 +34,8 @@ class TestStartCLI:
         assert cmd == ["/builds/active/launch/run-auto", "nova@10.0.0.2"]
 
     def test_start_with_build_flag(self, nova_cli):
-        cmd = nova_cli(["start", "run-gui", "-b", "master"])
-        assert cmd == ["/builds/master/launch/run-gui"]
+        cmd = nova_cli(["start", "run-gui", "-b", "main"])
+        assert cmd == ["/builds/main/launch/run-gui"]
 
     def test_start_build_flag_position(self, nova_cli):
         cmd = nova_cli(["start", "-b", "arm", "run-drive"])

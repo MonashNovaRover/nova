@@ -25,10 +25,10 @@ class TestEnvStatus:
                 assert var_name in output
 
     def test_status_shows_build_with_arrow(self, capsys):
-        with patch.object(EnvCommand, '_get_value', side_effect=lambda v: "master" if v.name == "build" else "(not set)"):
+        with patch.object(EnvCommand, '_get_value', side_effect=lambda v: "main" if v.name == "build" else "(not set)"):
             EnvCommand._status()
             output = capsys.readouterr().out
-            assert "build:   active -> master" in output
+            assert "build:   active -> main" in output
 
 
 class TestEnvSet:
@@ -60,15 +60,15 @@ class TestEnvSet:
 
     def test_set_build_calls_setter(self, tmp_path):
         builds_dir = tmp_path / "Builds"
-        master_build = builds_dir / "master" / "bin"
-        master_build.mkdir(parents=True)
-        (master_build / "ros2").touch()
+        main_build = builds_dir / "main" / "bin"
+        main_build.mkdir(parents=True)
+        (main_build / "ros2").touch()
 
         with patch('nova_cli.commands.env.BUILDS_DIR', builds_dir):
-            result = set_active_build("master")
+            result = set_active_build("main")
             assert result == 0
             assert (builds_dir / "active").is_symlink()
-            assert (builds_dir / "active").resolve() == builds_dir / "master"
+            assert (builds_dir / "active").resolve() == builds_dir / "main"
 
     def test_set_build_nonexistent(self, tmp_path, capsys):
         builds_dir = tmp_path / "Builds"
@@ -116,16 +116,16 @@ class TestEnvGet:
 
     def test_get_build_uses_getter(self, tmp_path):
         builds_dir = tmp_path / "Builds"
-        master_build = builds_dir / "master" / "bin"
-        master_build.mkdir(parents=True)
-        (master_build / "ros2").touch()
+        main_build = builds_dir / "main" / "bin"
+        main_build.mkdir(parents=True)
+        (main_build / "ros2").touch()
 
         active = builds_dir / "active"
-        active.symlink_to(builds_dir / "master")
+        active.symlink_to(builds_dir / "main")
 
         with patch('nova_cli.commands.env.BUILDS_DIR', builds_dir):
             value = get_active_build()
-            assert value == "master"
+            assert value == "main"
 
     def test_get_build_not_set(self, tmp_path):
         builds_dir = tmp_path / "Builds"

@@ -24,8 +24,8 @@ class TestCreateParser:
     def test_build_flag_on_launch(self):
         """Build flag is available on launch command"""
         parser = create_parser()
-        args, _ = parser.parse_known_args(['launch', 'science', '-b', 'master'])
-        assert args.build == 'master'
+        args, _ = parser.parse_known_args(['launch', 'science', '-b', 'main'])
+        assert args.build == 'main'
 
     def test_build_flag_on_run(self):
         """Build flag is available on run command"""
@@ -42,7 +42,7 @@ class TestCreateParser:
     def test_no_global_build_flag(self):
         """Build flag before command causes an error"""
         parser = create_parser()
-        # -b before command is now invalid - argparse will treat 'master' as the command
-        # and fail because 'master' is not a valid subcommand
+        # -b before command is now invalid - argparse will treat 'main' as the command
+        # and fail because 'main' is not a valid subcommand
         with pytest.raises(SystemExit):
-            parser.parse_known_args(['-b', 'master', 'launch', 'science'])
+            parser.parse_known_args(['-b', 'main', 'launch', 'science'])

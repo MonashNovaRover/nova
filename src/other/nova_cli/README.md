@@ -37,7 +37,7 @@ nova_cli/
 | `build` | [build.py](nova_cli/commands/build.py) | Build workspace to `~/Builds/<name>` using ws-build |
 | `env` | [env.py](nova_cli/commands/env.py) | Manage environment variables (COMP, RMW, domain) and active build |
 | `launch` | [launch.py](nova_cli/commands/launch.py) | Launch ROS2 launch files with automatic `_bringup` and `.launch.py` handling |
-| `rebuild-master` | [rebuild_master.py](nova_cli/commands/rebuild_master.py) | Checkout master, pull latest changes, and build to `~/Builds/master` |
+| `rebuild-main` | [rebuild_main.py](nova_cli/commands/rebuild_main.py) | Checkout main, pull latest changes, and build to `~/Builds/main` |
 | `run` | [run.py](nova_cli/commands/run.py) | Run ROS2 node executables with automatic `.py` extension handling |
 | `sleuth` | [sleuth.py](nova_cli/commands/sleuth.py) | CAN bus tracer/emulator (passthrough to can_sleuth) |
 | `start` | [start.py](nova_cli/commands/start.py) | Execute terminal launch scripts from `~/Builds/<build>/launch/` |

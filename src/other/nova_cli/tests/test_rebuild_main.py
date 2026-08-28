@@ -1,6 +1,6 @@
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Tests for rebuild-master command.
+Tests for rebuild-main command.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE:        nova_cli
 AUTHOR(S):      Nova Team
@@ -13,7 +13,7 @@ from unittest.mock import patch, MagicMock
 from types import SimpleNamespace
 from pathlib import Path
 
-from nova_cli.commands.rebuild_master import RebuildMasterCommand
+from nova_cli.commands.rebuild_main import RebuildMainCommand
 
 
 @pytest.fixture
@@ -30,8 +30,8 @@ def mock_args():
     return _make
 
 
-class TestRebuildMasterCommand:
-    """Test nova rebuild-master command."""
+class TestRebuildMainCommand:
+    """Test nova rebuild-main command."""
 
     def test_successful_rebuild(self, mock_home, mock_args):
         """Test successful rebuild with no uncommitted changes."""
@@ -52,7 +52,7 @@ class TestRebuildMasterCommand:
 
             mock_run.side_effect = run_side_effect
 
-            result = RebuildMasterCommand.execute(mock_args())
+            result = RebuildMainCommand.execute(mock_args())
 
             assert result == 0
             assert mock_run.call_count == 4  # status, checkout, pull, build
@@ -67,7 +67,7 @@ class TestRebuildMasterCommand:
                 stdout='M src/some/file.py\n'
             )
 
-            result = RebuildMasterCommand.execute(mock_args(stash=False))
+            result = RebuildMainCommand.execute(mock_args(stash=False))
 
             assert result == 1
             captured = capsys.readouterr()
@@ -88,7 +88,7 @@ class TestRebuildMasterCommand:
 
             mock_run.side_effect = run_side_effect
 
-            result = RebuildMasterCommand.execute(mock_args(stash=True))
+            result = RebuildMainCommand.execute(mock_args(stash=True))
 
             assert result == 0
             # Verify stash was called with -u flag
@@ -103,7 +103,7 @@ class TestRebuildMasterCommand:
              patch('pathlib.Path.exists', return_value=True):
             mock_run.return_value = MagicMock(returncode=1)
 
-            result = RebuildMasterCommand.execute(mock_args())
+            result = RebuildMainCommand.execute(mock_args())
 
             assert result == 1
             captured = capsys.readouterr()
@@ -122,11 +122,11 @@ class TestRebuildMasterCommand:
 
             mock_run.side_effect = run_side_effect
 
-            result = RebuildMasterCommand.execute(mock_args())
+            result = RebuildMainCommand.execute(mock_args())
 
             assert result == 1
             captured = capsys.readouterr()
-            assert 'Failed to checkout master branch' in captured.err
+            assert 'Failed to checkout main branch' in captured.err
 
     def test_git_pull_fails(self, mock_home, mock_args, capsys):
         """Test error when git pull fails."""
@@ -141,7 +141,7 @@ class TestRebuildMasterCommand:
 
             mock_run.side_effect = run_side_effect
 
-            result = RebuildMasterCommand.execute(mock_args())
+            result = RebuildMainCommand.execute(mock_args())
 
             assert result == 1
             captured = capsys.readouterr()
@@ -160,7 +160,7 @@ class TestRebuildMasterCommand:
 
             mock_run.side_effect = run_side_effect
 
-            result = RebuildMasterCommand.execute(mock_args())
+            result = RebuildMainCommand.execute(mock_args())
 
             assert result == 1
             captured = capsys.readouterr()
@@ -179,7 +179,7 @@ class TestRebuildMasterCommand:
 
             mock_run.side_effect = run_side_effect
 
-            result = RebuildMasterCommand.execute(mock_args())
+            result = RebuildMainCommand.execute(mock_args())
 
             assert result == 5  # Propagate nom-build's exit code
             captured = capsys.readouterr()
@@ -196,7 +196,7 @@ class TestRebuildMasterCommand:
 
             mock_run.side_effect = run_side_effect
 
-            result = RebuildMasterCommand.execute(
+            result = RebuildMainCommand.execute(
                 mock_args(extra=['--packages-select', 'science'])
             )
 
@@ -211,7 +211,7 @@ class TestRebuildMasterCommand:
     def test_nova_directory_missing(self, mock_home, mock_args, capsys):
         """Test error when ~/nova directory doesn't exist."""
         with patch.object(Path, 'exists', return_value=False):
-            result = RebuildMasterCommand.execute(mock_args())
+            result = RebuildMainCommand.execute(mock_args())
 
             assert result == 1
             captured = capsys.readouterr()
@@ -230,7 +230,7 @@ class TestRebuildMasterCommand:
 
             mock_run.side_effect = run_side_effect
 
-            result = RebuildMasterCommand.execute(mock_args(stash=True))
+            result = RebuildMainCommand.execute(mock_args(stash=True))
 
             assert result == 1
             captured = capsys.readouterr()
