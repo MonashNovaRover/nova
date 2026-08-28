@@ -10,7 +10,7 @@ in
     remotePubSSHKey = lib.mkOption {
         type = with lib.types; str;
         description = "SSH pub key of the nixbuild user on the master.";
-        default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC0Uce72ktg6CcPeMb94XhukecdBmuTnsUVyb2R/+wDe root@ci";
+        default = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICkKKd80u9BCfUl9RJde8CZtlNalOhF3zF6mpVdMjcu+ nova@nixos";
       };
 
   };
