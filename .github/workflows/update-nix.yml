@@ -88,74 +88,76 @@ jobs:
           jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
 
           # Push the changes
-          git add .
-          git commit -a -m "Updating nixpkgs and nix-ros-overlay to the latest versions"
-          git push
+          if ! git diff --quiet; then
+            git add .
+            git commit -a -m "Updating nixpkgs and nix-ros-overlay to the latest versions"
+            git push
+          fi
 
           # Output the git branch for fix-errors to use
           echo "git-branch=$GIT_BRANCH" >> "$GITHUB_OUTPUT"
 
-  fix-errors:
-  # Checks out the new branch and uses an LLM to fix ws-build errors, pushing fixes.
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: write
-    needs: [ update-revisions ]
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-          token: ${{ secrets.SISYPHUS_PAT_TOKEN }}
-          submodules: true
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-      - name: fix
-        env:
-          GITHUB_TOKEN: ${{ secrets.SISYPHUS_PAT_TOKEN }}
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_COMMITTER_NAME: github-actions[bot]
-          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_TERMINAL_PROMPT: 0
-          GIT_BRANCH: ${{ needs.update-revisions.outputs.git-branch }}
-        run: |
-          # Install Nix packages to run LLM
-          nix-env -f '<nixpkgs>' -iA mcp-nixos
-          nix-env -f '<nixpkgs>' -iA opencode
+  # fix-errors:
+  # # Checks out the new branch and uses an LLM to fix ws-build errors, pushing fixes.
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write
+  #     contents: write
+  #   needs: [ update-revisions ]
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #       with:
+  #         persist-credentials: false
+  #         token: ${{ secrets.SISYPHUS_PAT_TOKEN }}
+  #         submodules: true
+  #     - uses: DeterminateSystems/nix-installer-action@main
+  #     - uses: DeterminateSystems/magic-nix-cache-action@main
+  #     - name: fix
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.SISYPHUS_PAT_TOKEN }}
+  #         GIT_AUTHOR_NAME: github-actions[bot]
+  #         GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+  #         GIT_COMMITTER_NAME: github-actions[bot]
+  #         GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+  #         GIT_TERMINAL_PROMPT: 0
+  #         GIT_BRANCH: ${{ needs.update-revisions.outputs.git-branch }}
+  #       run: |
+  #         # Install Nix packages to run LLM
+  #         nix-env -f '<nixpkgs>' -iA mcp-nixos
+  #         nix-env -f '<nixpkgs>' -iA opencode
 
-          # Set up the origin so commits can be pushed to remote
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+  #         # Set up the origin so commits can be pushed to remote
+  #         git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
-          # Checkout the branch if it already exists
-          if git rev-parse $GIT_BRANCH >/dev/null; then
-            git checkout $GIT_BRANCH
-          else
-          # Create the branch if it does not exist
-            git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
-          fi
+  #         # Checkout the branch if it already exists
+  #         if git rev-parse $GIT_BRANCH >/dev/null; then
+  #           git checkout $GIT_BRANCH
+  #         else
+  #         # Create the branch if it does not exist
+  #           git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+  #         fi
 
-          git submodule foreach --recursive '
-            if [ "$name" != "nixfiles/secrets" ]; then
+  #         git submodule foreach --recursive '
+  #           if [ "$name" != "nixfiles/secrets" ]; then
 
-              # Wandering what this does? $name = filepath to submodule, e.g. 'src/other/coms_utils'.
-              # We just want 'coms_utils', so we treat $name as a '/'-separated value, and print the 
-              # field at $NF ($NF = Number of Fields, e.g. 3, assuming 1-indexed) to $submodule_repository.
-              submodule_repository=$(echo "$name" | awk -F'\''/'\'' '\''{print $NF}'\'')
+  #             # Wandering what this does? $name = filepath to submodule, e.g. 'src/other/coms_utils'.
+  #             # We just want 'coms_utils', so we treat $name as a '/'-separated value, and print the 
+  #             # field at $NF ($NF = Number of Fields, e.g. 3, assuming 1-indexed) to $submodule_repository.
+  #             submodule_repository=$(echo "$name" | awk -F'\''/'\'' '\''{print $NF}'\'')
 
-              # Set up the origin so branch and commits can be pushed to remote
-              git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/MonashNovaRover/$submodule_repository.git"
+  #             # Set up the origin so branch and commits can be pushed to remote
+  #             git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/MonashNovaRover/$submodule_repository.git"
 
-              # Checkout the branch if it already exists
-              if git rev-parse $GIT_BRANCH >/dev/null; then
-                git checkout $GIT_BRANCH
-              else
-              # Create the branch if it does not exist
-                git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
-              fi
-            fi
-          '
+  #             # Checkout the branch if it already exists
+  #             if git rev-parse $GIT_BRANCH >/dev/null; then
+  #               git checkout $GIT_BRANCH
+  #             else
+  #             # Create the branch if it does not exist
+  #               git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+  #             fi
+  #           fi
+  #         '
 
-          # Run LLM
-          opencode run --model opencode/big-pickle --agent patch --auto --print-logs --log-level DEBUG \
-            "Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors"
+  #         # Run LLM
+  #         opencode run --model opencode/big-pickle --agent patch --auto --print-logs --log-level DEBUG \
+  #           "Get one single build error from @ws-build, then explain, fix, and @git-commit it. Then repeat until there are no more errors"
