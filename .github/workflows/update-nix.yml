@@ -57,6 +57,7 @@ jobs:
         with:
           persist-credentials: false
       - name: update
+        id: update
         env:
           # NIXPKGS_SHA: ${{ needs.update-nixpkgs.outputs.sha }}
           # NIXPKGS_HASH: ${{ needs.update-nixpkgs.outputs.hash }}
