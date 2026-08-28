@@ -130,6 +130,8 @@ jobs:
           # Set up the origin so commits can be pushed to remote
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
+          echo AAAAAAAAAAAAAA
+          echo $GIT_BRANCH
           # Checkout the branch if it already exists
           if git rev-parse $GIT_BRANCH >/dev/null; then
             git checkout $GIT_BRANCH
