@@ -2,10 +2,11 @@
 # See https://github.com/MonashNovaRover/nova/issues/1183 for more.
 
 name: update-nix
-on: push
-  # workflow_dispatch:
-  # schedule:
-  #   - cron: '0 12 * * SAT'
+on: # push
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * *'
+      timezone: 'Australia/Melbourne'
 jobs:
 
   update-nixpkgs:
