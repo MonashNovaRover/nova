@@ -7,8 +7,9 @@ on: push
   # schedule:
   #   - cron: '0 12 * * SAT'
 jobs:
-  # Outputs the latest pinned nixpkgs version used by nix-ros-overlay.
+
   update-nixpkgs:
+  # Outputs the latest pinned nixpkgs version used by nix-ros-overlay.
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.fetch.outputs.sha }}
@@ -72,11 +73,13 @@ jobs:
           # Set up the origin so branch and commits can be pushed to remote
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
 
-          # Create the branch if it does not exist
-          git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
-
           # Checkout the branch if it already exists
-          git checkout $GIT_BRANCH
+          if git rev-parse $GIT_BRANCH >/dev/null; then
+            git checkout $GIT_BRANCH
+          else
+          # Create the branch if it does not exist
+            git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+          fi
 
           # Write the latest versions of nixpkgs and nix-ros-overlay
           jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
@@ -123,7 +126,14 @@ jobs:
 
           # Set up the origin so commits can be pushed to remote
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
-          git checkout $GIT_BRANCH
+
+          # Checkout the branch if it already exists
+          if git rev-parse $GIT_BRANCH >/dev/null; then
+            git checkout $GIT_BRANCH
+          else
+          # Create the branch if it does not exist
+            git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+          fi
 
           git submodule foreach --recursive '
             if [ "$name" != "nixfiles/secrets" ]; then
@@ -136,11 +146,13 @@ jobs:
               # Set up the origin so branch and commits can be pushed to remote
               git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/MonashNovaRover/$submodule_repository.git"
 
-              # Create the branch if it does not exist
-              git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
-
               # Checkout the branch if it already exists
-              git checkout $GIT_BRANCH
+              if git rev-parse $GIT_BRANCH >/dev/null; then
+                git checkout $GIT_BRANCH
+              else
+              # Create the branch if it does not exist
+                git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+              fi
             fi
           '
 
