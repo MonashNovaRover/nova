@@ -1,11 +1,11 @@
 # This workflow automatically updates our nixpkgs and nix-ros-overlay versions, using an LLM to fix ws-build errors.
 # See https://github.com/MonashNovaRover/nova/issues/1183 for more.
 
-name: update-nix
+name: update-nix ❄️
 on: # push
   workflow_dispatch:
   schedule:
-    - cron: '0 7 * * *'
+    - cron: '0 10 * * *'
       timezone: 'Australia/Melbourne'
 jobs:
 
