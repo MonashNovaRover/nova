@@ -66,6 +66,9 @@ camera_streamer:
           framerate: 30
           cpu_usage: 0
           bitrate: 512
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
         super:
           pipeline_type: vp9software
           width: 1280
@@ -83,18 +86,22 @@ camera_streamer:
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 9
-          jpegdec_method: islow
+          cpu_usage: 3
           bitrate: 512
           gop: 5
           noise: 0
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
         snail:
           pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 6
           framerate: 30
+          downrate: 2
           cpu_usage: 3
+          jpegdec_method: islow
           bitrate: 128
           noise: 6
         emergency:
@@ -118,6 +125,9 @@ camera_streamer:
           framerate: 30
           cpu_usage: 0
           bitrate: 512
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
         super:
           pipeline_type: vp9software
           width: 1280
@@ -135,17 +145,20 @@ camera_streamer:
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 9
-          jpegdec_method: islow
+          cpu_usage: 3
           bitrate: 512
           gop: 5
           noise: 0
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
         snail:
           pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 6
           framerate: 30
+          downrate: 2
           cpu_usage: 3
           bitrate: 128
           noise: 6
@@ -174,7 +187,7 @@ camera_streamer:
           width: 1280
           height: 960
           framerate: 30
-          downrate: 2
+          downrate: 3
           cpu_usage: 9
           jpegdec_method: islow
           bitrate: 1024
@@ -183,14 +196,16 @@ camera_streamer:
           pipeline_type: h265software
           width: 1280
           height: 960
-          downscale: 2
+          downscale: 3
           framerate: 30
           downrate: 3
-          cpu_usage: 9
-          jpegdec_method: islow
+          cpu_usage: 3
           bitrate: 512
           gop: 5
           noise: 0
+          chroma_resample: linear
+          dither: bayer
+          method: bilinear
         snail:
           io_mode: dmabuf
           width: 320
@@ -198,11 +213,11 @@ camera_streamer:
           framerate: 30
         emergency:
           pipeline_type: h265software
-          width: 1920
-          height: 1080
-          downscale: 12
+          width: 320
+          height: 240
+          downscale: 3
           framerate: 30
-          downrate: 3
+          downrate: 2
           cpu_usage: 9
           jpegdec_method: islow
           bitrate: 32
@@ -218,6 +233,9 @@ camera_streamer:
           framerate: 30
           cpu_usage: 0
           bitrate: 512
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
         super:
           pipeline_type: vp9software
           width: 1024
@@ -235,27 +253,31 @@ camera_streamer:
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 9
-          jpegdec_method: islow
+          cpu_usage: 1
           bitrate: 512
           gop: 5
           noise: 0
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
         snail:
           pipeline_type: h265software
-          width: 640
-          height: 480
-          downscale: 2
+          width: 1024
+          height: 768
+          downscale: 4
           framerate: 30
-          cpu_usage: 0
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 128
           noise: 6
         emergency:
           pipeline_type: h265software
-          width: 640
-          height: 480
-          downscale: 5
+          width: 1024
+          height: 768
+          downscale: 8
           framerate: 30
-          downrate: 3
+          downrate: 2
           cpu_usage: 9
           jpegdec_method: islow
           bitrate: 32
@@ -271,12 +293,15 @@ camera_streamer:
           framerate: 30
           cpu_usage: 0
           bitrate: 512
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
         super:
           pipeline_type: vp9software
           width: 800
           height: 600
           framerate: 30
-          downrate: 3
+          downrate: 2
           cpu_usage: 9
           jpegdec_method: islow
           bitrate: 1024
@@ -288,18 +313,22 @@ camera_streamer:
           downscale: 2
           framerate: 30
           downrate: 3
-          cpu_usage: 9
-          jpegdec_method: islow
+          cpu_usage: 3
           bitrate: 512
           gop: 5
           noise: 0
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
         snail:
           pipeline_type: h265software
           width: 1280
           height: 720
           downscale: 4
           framerate: 30
-          cpu_usage: 3
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 128
           noise: 6
         emergency:
