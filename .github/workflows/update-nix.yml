@@ -66,7 +66,6 @@ jobs:
           GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
-          GIT_TERMINAL_PROMPT: 0
           GIT_BRANCH: test/update-nix
         run: |
           # Set up the origin so branch and commits can be pushed to remote
@@ -91,20 +90,6 @@ jobs:
 
           # Output the git branch for fix-errors to use
           echo "git-branch=$GIT_BRANCH" >> "$GITHUB_OUTPUT"
-
-      # - name: open-pr
-      #   uses: peter-evans/create-pull-request@v8
-      #   with:
-      #     token: ${{ github.token }}
-      #     commit-message: Update Nix packages
-      #     branch: feat/update-nix
-      #     title: Update Nix packages
-      #     base: main
-      #     body: |-
-      #       This PR updates nix-ros-overlay and nixpkgs to the latest revisions.
-
-      #       This is an automated pull request, and may need manual intervention to update patches or overrides.
-      #       Wait for CI to build workspace packages before merging, to check for errors and avoid disrupting development.
 
   # fix-errors:
   # # Checks out the new branch and uses an LLM to fix ws-build errors, pushing fixes.
