@@ -10,7 +10,7 @@
   "nix-ros-workspace": {
     "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
     "hash": "sha256-q2xrIUD+kgyxGXp6oi7QW0QzxL6PsOODRoj/ru9P9ig="
-  }, 
+  },
   "teleop-modular": {
     "rev": "0ccb9e3aa3d8258b59e9ccc31a8bb68d4980f296",
     "hash": "sha256-Qtre2HN+am2BwgBqX45n4DvwsBvO2InCyiR7rB5TbEc="
