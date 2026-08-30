@@ -2,10 +2,10 @@
 # See https://github.com/MonashNovaRover/nova/issues/1183 for more.
 
 name: update-nix ❄️
-on: # push
-  workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'
+on: push
+  # workflow_dispatch:
+  # schedule:
+  #   - cron: '0 0 * * *'
 jobs:
 
   update-nixpkgs:
