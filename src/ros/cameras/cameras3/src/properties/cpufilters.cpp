@@ -3,22 +3,17 @@
 #include <gst/gst.h>
 #include "properties/cpufilters.hpp"
 
-int crop43(const int width, const int height) {
-  return (width-(height*4/3))/2;
+int crop43(const int width, const int height, const float zoom) {
+  return (int)((float)((width-(height*4.0/3.0))/2.0)/zoom);
 }
 
 void set_queue(GstElement* element) {
   g_object_set(element,
     "max-size-buffers", 1,
-    "max-size-time", 0,
-    "max-size-bytes", 0,
+    "max-size-time", 1,
+    "max-size-bytes", 1,
     "leaky", 2, // Drop old buffers
+    "silent", true,
   NULL);
 };
 
-void set_no_cpu_crop43(GstElement* element) {
-  g_object_set(element,
-    "left", 0,
-    "right", 0,
-  NULL);
-};

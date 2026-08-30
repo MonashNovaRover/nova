@@ -9,16 +9,16 @@
 #include <unordered_map>
 #include <any>
 #include <thread>
+#include <cmath>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
-#include <gst/gst.h>
-#include <gst/gl/gl.h>
-#include <gst/gl/gstglcontext.h>
+#include <gst/gst.h> 
 #include <stdlib.h>
 
 #include <camera_msgs/srv/camera_operation.hpp>
 #include <camera_msgs/srv/camera_profile_selection.hpp>
+#include <camera_msgs/srv/camera_zoom_selection.hpp>
 #include <camera_msgs/srv/get_camera_stream_stats.hpp>
 #include <camera_msgs/srv/get_ip_list.hpp>
 #include <camera_msgs/msg/camera.hpp>
@@ -34,7 +34,6 @@
 
 #include "properties/capsfilters.hpp"
 #include "properties/cpufilters.hpp"
-#include "properties/glfilters.hpp"
 #include "properties/decoders.hpp"
 #include "properties/encoders.hpp"
 
@@ -54,32 +53,37 @@ class CameraStreamer : public rclcpp::Node
     )
   {
     start_service_ = this->create_service<camera_msgs::srv::CameraOperation>(
-      SERVICE_START, 
+      SERVICE_START,
       std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::START)
     );
     stop_service_ = this->create_service<camera_msgs::srv::CameraOperation>(
-      SERVICE_STOP, 
+      SERVICE_STOP,
       std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::STOP)
     );
     pause_service_ = this->create_service<camera_msgs::srv::CameraOperation>(
-      SERVICE_PAUSE, 
+      SERVICE_PAUSE,
       std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::PAUSE)
     );
     profile_service_ = this->create_service<camera_msgs::srv::CameraProfileSelection>(
-      SERVICE_PROFILE, 
+      SERVICE_PROFILE,
       std::bind(&CameraStreamer::profile_callback,
         this, _1, _2)
     );
+    zoom_service_ = this->create_service<camera_msgs::srv::CameraZoomSelection>(
+      SERVICE_ZOOM,
+      std::bind(&CameraStreamer::zoom_callback,
+        this, _1, _2)
+    );
     stats_service_ = this->create_service<camera_msgs::srv::GetCameraStreamStats>(
-      SERVICE_STATS, 
+      SERVICE_STATS,
       std::bind(&CameraStreamer::stats_callback, 
         this, _1, _2)
     );
     ips_service_ = this->create_service<camera_msgs::srv::GetIPList>(
-      SERVICE_IPS, 
+      SERVICE_IPS,
       std::bind(&CameraStreamer::ips_callback, 
         this, _1, _2)
     );
@@ -109,10 +113,9 @@ class CameraStreamer : public rclcpp::Node
           }
       }
 
-      // Unref GL display if created
-      if (gl_display) {
-          gst_object_unref(gl_display);
-          gl_display = nullptr;
+      // Unref shared clock if created
+      if (shared_clock) {
+        gst_object_unref(shared_clock);
       }
   }
 
@@ -120,40 +123,58 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr stop_service_;
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr pause_service_;
   rclcpp::Service<camera_msgs::srv::CameraProfileSelection>::SharedPtr profile_service_;
+  rclcpp::Service<camera_msgs::srv::CameraZoomSelection>::SharedPtr zoom_service_;
   rclcpp::Service<camera_msgs::srv::GetCameraStreamStats>::SharedPtr stats_service_;
   rclcpp::Service<camera_msgs::srv::GetIPList>::SharedPtr ips_service_;
   rclcpp::Subscription<camera_msgs::msg::Cameras>::SharedPtr subscription_;
   std::unordered_map<std::string, std::unique_ptr<Pipeline>> pipelines;
   const std::unordered_set<std::string> profiles = {"default", "super", "still", "snail", "emergency"};
 
-  // Initialize gstreamer opengl
-  GstGLDisplay *gl_display = gst_gl_display_new();
+  // Initialize shared clock
+  GstClock *shared_clock = gst_system_clock_obtain();
   
   private: void start_pipeline(const std::unique_ptr<Pipeline>& pipeline)
   {
-    // get pipeline properties and use them to create the pipeline
+
+    // Get pipeline properties and use them to create the pipeline
     if (pipeline->camera->pipeline_type == "v4lfallback")
     {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
+    } else if (pipeline->camera->pipeline_type == "h264software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 4);
+      pipeline->gst_pipeline = h26Xsoftware_pipeline(this, props, 4);
+      pipeline->zoom = props->zoom;
+      pipeline->zoom_longitude = props->zoom_longitude;
+      pipeline->zoom_latitude = props->zoom_latitude;
+    } else if (pipeline->camera->pipeline_type == "h265software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 5);
+      pipeline->gst_pipeline = h26Xsoftware_pipeline(this, props, 5);
+      pipeline->zoom = props->zoom;
+      pipeline->zoom_longitude = props->zoom_longitude;
+      pipeline->zoom_latitude = props->zoom_latitude;
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
+    } else if (pipeline->camera->pipeline_type == "rtsppassthrough") {
+      std::unique_ptr<rtsppassthroughPipelineProperties> props = get_rtsppassthrough_pipeline_properties(this, pipeline->camera);
+      pipeline->gst_pipeline = rtsppassthrough_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 8);
-      GstContext *gl_context = gst_context_new("gst.gl.GLDisplay", TRUE);
-      gst_context_set_gl_display(gl_context, gl_display);
-      gst_element_set_context(pipeline->gst_pipeline, gl_context);
-      gst_context_unref(gl_context);
+      pipeline->zoom = props->zoom;
+      pipeline->zoom_longitude = props->zoom_longitude;
+      pipeline->zoom_latitude = props->zoom_latitude;
     } else if (pipeline->camera->pipeline_type == "vp9software") {
-      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);      
       pipeline->gst_pipeline = vpXsoftware_pipeline(this, props, 9);
-      GstContext *gl_context = gst_context_new("gst.gl.GLDisplay", TRUE);
-      gst_context_set_gl_display(gl_context, gl_display);
-      gst_element_set_context(pipeline->gst_pipeline, gl_context);
-      gst_context_unref(gl_context);
+      pipeline->zoom = props->zoom;
+      pipeline->zoom_longitude = props->zoom_longitude;
+      pipeline->zoom_latitude = props->zoom_latitude;
     }
+
+    // Use shared clock
+    gst_pipeline_set_clock(GST_PIPELINE(pipeline->gst_pipeline), shared_clock);
   }
 
   private: void change_profile_properties(const std::unique_ptr<Pipeline>& pipeline)
@@ -162,16 +183,39 @@ class CameraStreamer : public rclcpp::Node
     if (pipeline->camera->pipeline_type == "v4lfallback") {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       set_v4lfallback_pipeline_properties(pipeline->gst_pipeline, props);
+    } else if (pipeline->camera->pipeline_type == "h264software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 4);
+      props->zoom = pipeline->zoom;
+      props->zoom_longitude = pipeline->zoom_longitude;
+      props->zoom_latitude = pipeline->zoom_latitude;
+      set_h26Xsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    } else if (pipeline->camera->pipeline_type == "h265software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 5);
+      set_h26Xsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      pipeline->zoom = props->zoom;
+      pipeline->zoom_longitude = props->zoom_longitude;
+      pipeline->zoom_latitude = props->zoom_latitude;
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       set_h264passthrough_pipeline_properties(pipeline->gst_pipeline, props);
+    } else if (pipeline->camera->pipeline_type == "rtsppassthrough") {
+      std::unique_ptr<rtsppassthroughPipelineProperties> props = get_rtsppassthrough_pipeline_properties(this, pipeline->camera);
+      set_rtsppassthrough_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
       set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      props->zoom = pipeline->zoom;
+      props->zoom_longitude = pipeline->zoom_longitude;
+      props->zoom_latitude = pipeline->zoom_latitude;
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
       set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      props->zoom = pipeline->zoom;
+      props->zoom_longitude = pipeline->zoom_longitude;
+      props->zoom_latitude = pipeline->zoom_latitude;
     }
+
+    gst_bin_recalculate_latency(GST_BIN(pipeline->gst_pipeline));
   }
 
   private: void get_pipeline_type(const std::unique_ptr<Pipeline>& pipeline)
@@ -241,7 +285,13 @@ class CameraStreamer : public rclcpp::Node
             std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
             if (this->pipelines[serial]->gst_pipeline != nullptr) {
             // gstreamer play pipeline if paused
-              RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET); 
+              RCLCPP_INFO(this->get_logger(), "%sResuming %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
+
+              // Turn on usb camera source
+              GstElement *source_v4l = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_v4l");
+              gst_element_set_state(source_v4l, GST_STATE_PLAYING);
+              gst_object_unref(source_v4l);
+
               GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
               g_object_set(source_valve, "drop", false, NULL);
               gst_object_unref(source_valve);
@@ -283,10 +333,17 @@ class CameraStreamer : public rclcpp::Node
           if (this->pipelines.find(serial) != pipelines.end() && this->pipelines[serial]->gst_pipeline != nullptr) {
             std::unique_ptr<Pipeline>& pipeline = pipelines[serial];
 
+            // Close source valve
             GstElement *source_valve = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_valve");
             g_object_set(source_valve, "drop", true, NULL);
             gst_object_unref(source_valve);
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_PAUSED);
+
+
+            // Turn off usb camera source
+            GstElement *source_v4l = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "source_v4l");
+            gst_element_set_state(source_v4l, GST_STATE_READY);
+            gst_object_unref(source_v4l);
 
 
             RCLCPP_INFO(this->get_logger(), "%sPausing %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
@@ -339,6 +396,89 @@ class CameraStreamer : public rclcpp::Node
         RCLCPP_INFO(this->get_logger(), "%sApplied %s%s%s to profile: %s%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_MODE, pipeline->camera->profile.c_str(), C_RESET);
       }
     }
+  }
+
+  private: void zoom_callback(
+    const std::shared_ptr<camera_msgs::srv::CameraZoomSelection::Request> request,
+    std::shared_ptr<camera_msgs::srv::CameraZoomSelection::Response> response)  
+  {
+    response->success = true;
+    std::string serial = request->serial;
+    auto it = this->pipelines.find(serial);
+    if (it == pipelines.end() || !it->second->gst_pipeline || !it->second) {
+      response->success = false;
+      return;
+    }
+    
+    std::unique_ptr<Pipeline>& pipeline = it->second;
+
+    if (
+        (pipeline->camera->pipeline_type != "h264software") &&
+        (pipeline->camera->pipeline_type != "h265software") &&
+        (pipeline->camera->pipeline_type != "vp8software") &&
+        (pipeline->camera->pipeline_type != "vp9software")
+      ) {
+      response->success = false;
+      return;
+    }
+
+    double new_zoom;
+
+    if (request->zoom > 0) {
+      new_zoom = pipeline->zoom * std::pow(2.0, request->zoom * 1.5);
+    } else {
+      new_zoom = pipeline->zoom * std::pow(2.0, request->zoom * 1.5);
+    }
+
+    new_zoom = std::clamp(new_zoom, 1.0, 64.0);
+    
+    // World coordinates currently under the cursor
+    const double worldX = pipeline->zoom_longitude + request->zoom_longitude / pipeline->zoom;
+    const double worldY = pipeline->zoom_latitude + request->zoom_latitude / pipeline->zoom;
+
+    // Compute new centre so the same world point stays under the cursor
+    double centreX = worldX - request->zoom_longitude / new_zoom;
+    double centreY = worldY - request->zoom_latitude / new_zoom;
+
+    // Clamp so the viewport never leaves the image
+    const double limit = 1.0 - 1.0 / new_zoom;
+    centreX = std::clamp(centreX, -limit, limit);
+    centreY = std::clamp(centreY, -limit, limit);
+
+    if (pipeline->camera->pipeline_type == "h264software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 4);
+      pipeline->zoom = props->zoom = new_zoom;
+      pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
+      pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
+      set_h26Xsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    }
+
+    else if (pipeline->camera->pipeline_type == "h265software") {
+      std::unique_ptr<h26XsoftwarePipelineProperties> props = get_h26Xsoftware_pipeline_properties(this, pipeline->camera, 5);
+      pipeline->zoom = props->zoom = new_zoom;
+      pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
+      pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
+      set_h26Xsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    }
+
+    else if (pipeline->camera->pipeline_type == "vp8software") {
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 8);
+      pipeline->zoom = props->zoom = new_zoom;
+      pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
+      pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
+      set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    }
+
+    else if (pipeline->camera->pipeline_type == "vp9software") {
+      std::unique_ptr<vpXsoftwarePipelineProperties> props = get_vpXsoftware_pipeline_properties(this, pipeline->camera, 9);
+      pipeline->zoom = props->zoom = new_zoom;
+      pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
+      pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
+      set_vpXsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+    }
+
+    RCLCPP_DEBUG(this->get_logger(), "%sApplied %s%.2f%sx zoom at: (%s%.2f %.2f%s) to %s%s%s", C_QUIET, C_TITLE, pipeline->zoom, C_QUIET, C_MODE, pipeline->zoom_longitude, pipeline->zoom_latitude, C_QUIET, C_MODE, serial.c_str(), C_RESET);
+
   }
 
   private: void stats_callback(

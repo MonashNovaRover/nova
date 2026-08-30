@@ -35,6 +35,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Cameras.msg"
   "srv/CameraOperation.srv"
   "srv/CameraProfileSelection.srv"
+  "srv/CameraZoomSelection.srv"
   "srv/GetCameraStreamStats.srv"
   "srv/GetIPList.srv"
 )

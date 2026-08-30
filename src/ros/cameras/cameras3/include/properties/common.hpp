@@ -17,6 +17,8 @@ int set_property(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs:
 
 float set_property(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const std::string element, float value);
 
+double set_property(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const std::string element, double value);
+
 bool set_property(rclcpp::Node* streamer_node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const std::string element, bool value);
 
 template<typename properties> void display_resolution(rclcpp::Node* streamer_node, const properties& props, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const int crop_width) {

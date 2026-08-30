@@ -15,14 +15,21 @@ struct Properties
   std::string serial;
   std::string node;
   std::string original_serial;
-
-  bool use_gl;
 };
 
 struct v4lProperties
 {
   std::string device;
   std::string io_mode;
+
+  int brightness;
+  int contrast;
+  int saturation;
+  int gain;
+  int gamma;
+  int sharpness;
+  int exposure;
+  int backlight_compensation;
 
   bool strict_devname;
 };
@@ -32,8 +39,6 @@ struct capsProperties
   std::string format;
   std::string mime;
 
-  int brightness;
-  int contrast;
   int downrate;
   int downscale;
   int height;
@@ -47,28 +52,8 @@ struct h264PassthroughProperties
   bool payload_quirk;
 };
 
-struct glProperties
-{
-  float denoise_factor;
-  float denoise_sigma;
-  float denoise_threshold;
-  int denoise_radius;
-  float sharpen_radius;
-  float sharpen_strength;
-  float undistort_k1;
-  float undistort_k2;
-  float undistort_scale;
-
-  bool denoise;
-  bool sharpen;
-  bool undistort;
-};
-
 struct softwareEncProperties
 {
-  std::string end_usage;
-  std::string usage_profile;
-
   int cpu_used;
   int deadline;
   int gop;
@@ -89,9 +74,15 @@ struct webRTCProperties
 
 struct decodeProperties
 {
-
   std::string decoder;
   std::string jpegdec_method;
+};
+
+struct zoomProperties
+{
+  double zoom;
+  double zoom_longitude;
+  double zoom_latitude;
 };
 
 struct cpuFiltersProperties
@@ -100,7 +91,6 @@ struct cpuFiltersProperties
   std::string dither;
   std::string method;
 
-  bool greyscale;
   bool crop43;
 };
 
@@ -117,11 +107,22 @@ struct rossinkProperties
   bool rossink;
 };
 
+struct rtspProperties
+{
+  std::string url;
+  std::string rtsp_protocol;
+  
+  int latency;
+};
 
 struct Pipeline
 {
   GstElement* gst_pipeline;
   std::unique_ptr<camera_msgs::msg::Camera> camera;
+
+  double zoom;
+  double zoom_longitude;
+  double zoom_latitude;
 };
 
 #endif

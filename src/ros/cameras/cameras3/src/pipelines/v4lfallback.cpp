@@ -100,8 +100,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
   set_v4lsource(source_v4l, props);
   set_srcfilter(source_filter, props);
 
-  if (props->crop43) set_cpu_crop43(cpu_crop, props);
-  else set_no_cpu_crop43(cpu_crop);
+  set_cpu_crop43(cpu_crop, props);
   set_convertscale(cpu_convertscale, props);
   set_scalefilter(cpu_filter, props);
 
@@ -169,14 +168,21 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
 
+  props->brightness = set_property(streamer_node, camera, "brightness", -1);
+  props->contrast = set_property(streamer_node, camera, "contrast", -1);
+  props->saturation = set_property(streamer_node, camera, "saturation", -1);
+  props->gain = set_property(streamer_node, camera, "gain", -1);
+  props->gamma = set_property(streamer_node, camera, "gamma", -1);
+  props->sharpness = set_property(streamer_node, camera, "sharpness", -1);
+  props->exposure = set_property(streamer_node, camera, "exposure", -1);
+  props->backlight_compensation = set_property(streamer_node, camera, "backlight_compensation", -1);
+
   // filter
   default_string = "I420";
   props->format = set_property(streamer_node, camera, "format", default_string);
   default_string = "image/jpeg";
   props->mime = set_property(streamer_node, camera, "mime", default_string);
 
-  props->brightness = set_property(streamer_node, camera, "brightness", 0);
-  props->contrast = set_property(streamer_node, camera, "contrast", 0);
   props->framerate = set_property(streamer_node, camera, "framerate", 30);
   props->framerate_denominator = set_property(streamer_node, camera, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera, "height", 720);
@@ -197,6 +203,10 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   props->downrate = set_property(streamer_node, camera, "downrate", 1);
 
   // cropper
+  props->zoom = set_property(streamer_node, camera, "zoom", 1.0);
+  props->zoom_longitude = set_property(streamer_node, camera, "zoom_longitude", 0.0);
+  props->zoom_latitude = set_property(streamer_node, camera, "zoom_latitude", 0.0);
+
   props->crop43 = set_property(streamer_node, camera, "crop43", true);
 
   // clock
@@ -214,18 +224,13 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   props->do_retransmission = set_property(streamer_node, camera, "do_retransmission", false);
 
   // 2. Finalize props
-
-  // Disable crop43 if it is already 4:3
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  if (crop_width == 0) props->crop43 = false;
+  const int crop_width = props->crop43 ? crop43(props->width, props->height, props->zoom): 0;
   display_resolution(streamer_node, props, camera, crop_width);
 
   return props;
 }
 
 void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props) {
-  const int crop_width = (props->crop43) ? crop43(props->width, props->height) : 0;
-  if (crop_width == 0) props->crop43 = false;
 
   // 1. Initialize constants
   GstElement *source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
@@ -247,8 +252,7 @@ void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::un
   }
 
   if (cpu_crop) {
-    if (props->crop43) set_cpu_crop43(cpu_crop, props);
-    else set_no_cpu_crop43(cpu_crop);
+    set_cpu_crop43(cpu_crop, props);
     gst_object_unref(cpu_crop);
   }
 
