@@ -28,6 +28,8 @@ import { useCartographerActions } from "../../../../redux/actions/useCartographe
 import { MapTile } from "../config.tsx";
 import { MapPoint, Vehicle } from "../../../../redux/models/CartographerState.ts";
 import React from "react";
+import {displayMapCoordinate, useDisplayMapCoordinate} from "../utils/convertCoords.ts";
+import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
 
 interface BottomOverlayProps {
   mapTile: MapTile;
@@ -38,6 +40,7 @@ interface BottomOverlayProps {
 }
 
 export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTile, deletePoint, bottomOverlayComponents = [], enableDroneTracking = false}) => {
+  const [cartographerCoordinateFormat] = useGenericStore<number>("cartographerCoordinateFormat");
   const [overlayVisible, setOverlayVisible] = useState(true);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const { points, centerOnRover, trackRover, showTrackRover, centerOnDrone, trackDrone, showTrackDrone, focusVehicle, showSearchZones } = useSelector(
@@ -117,6 +120,9 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
     }
   };
 
+  const {lat: baseLat, long: baseLong} = useDisplayMapCoordinate({lat: base.latitude, long: base.longitude})
+  const {lat: vehLat, long: vehLong} = useDisplayMapCoordinate({lat: currentVehicle.location.latitude, long: currentVehicle.location.longitude})
+
   return (
     <div className="relative w-full">
       <div className="flex justify-end p-2 z-50">
@@ -149,22 +155,22 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 <div className="flex flex-row gap-3">
                 <CopyableInput
                   readOnly
-                  value={String(base.latitude)}
+                  value={baseLat}
                   placeholder={`Base Latitude`}
                   label="Base Latitude"/>
                 <CopyableInput
                   readOnly
-                  value={String(base.longitude)}
+                  value={baseLong}
                   placeholder={`Base Longitude`}
                   label="Base Longitude"/>
                 <CopyableInput
                   readOnly
-                  value={String(currentVehicle.location.latitude)}
+                  value={vehLat}
                   placeholder={`${currentVehicle.label} Latitude`}
                   label={`${currentVehicle.label} Latitude`}/>
                 <CopyableInput
                   readOnly
-                  value={String(currentVehicle.location.longitude)}
+                  value={vehLong}
                   placeholder={`${currentVehicle.label} Longitude`}
                   label={`${currentVehicle.label} Longitude`}/>
                   <CopyableInput
@@ -277,11 +283,13 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                           </TableColumn>
                         </TableHeader>
                         <TableBody emptyContent="Add Points on the Map to Display here">
-                          {points.map((point) => (
+                          {points.map((point) => {
+                            const {lat: pointLat, long: pointLong} = displayMapCoordinate({lat: point.lat, long: point.long}, cartographerCoordinateFormat)
+                            return (
                             <TableRow key={point.name}>
                               <TableCell>{point.name}</TableCell>
-                              <TableCell>{point.lat}</TableCell>
-                              <TableCell>{point.long}</TableCell>
+                              <TableCell>{pointLat}</TableCell>
+                              <TableCell>{pointLong}</TableCell>
                               <TableCell>{point.searchRadius != null ? `${point.searchRadius}m` : ''}</TableCell>
                               <TableCell>{point.labelName != null ? point.labelName : ''}</TableCell>
                               <TableCell className="flex flex-row justify-end">
@@ -295,7 +303,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                                 </ToolTipButton>
                               </TableCell>
                             </TableRow>
-                          ))}
+                          )})}
                         </TableBody>
                       </Table>
                     </div>
