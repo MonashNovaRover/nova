@@ -209,10 +209,19 @@ self: super:
             content = content.replace('.shape()[1]', '.cols()')
             content = re.sub(r'\.shape\(\s*0\s*\)', '.rows()', content)
             content = re.sub(r'\.shape\(\s*1\s*\)', '.cols()', content)
-            # Also replace standalone shape[] references
+            # If the auto & shape = ... .shape(); line became auto & shape = ... .rows();
+            # then we need to replace it with n_rows/n_cols definitions
+            content = re.sub(
+                r'auto & shape = trajectories\.x\.rows\(\);\n(\s*)const float shape_1 = static_cast<float>\(shape\[1\]\);',
+                r'size_t n_rows = trajectories.x.rows();\n\1size_t n_cols = trajectories.x.cols();\n\1const float shape_1 = static_cast<float>(n_cols);',
+                content)
+            content = re.sub(
+                r'auto & shape = trajectories\.x\.rows\(\);\n(\s*)const float shape_1 = static_cast<float>\(n_cols\);',
+                r'size_t n_rows = trajectories.x.rows();\n\1size_t n_cols = trajectories.x.cols();\n\1const float shape_1 = static_cast<float>(n_cols);',
+                content)
+            # Replace remaining shape[0] and shape[1] references with n_rows and n_cols
             content = content.replace('shape[0]', 'n_rows')
             content = content.replace('shape[1]', 'n_cols')
-            content = re.sub(r'auto & shape = trajectories\.x\.rows\(\);', "", content)
             with open('src/trajectory_visualizer.cpp', 'w') as f:
                 f.write(content)
             PYEOF
@@ -243,10 +252,16 @@ self: super:
             # Replace xt::minimum(a, b) -> a.cwiseMin(b)
             content = re.sub(r'xt::minimum\(([^,]+),\s*([^)]+)\)', r'(\1).cwiseMin(\2)', content)
 
-            # Fix Eigen expression assignment: add .eval() where needed
+            # Fix Eigen expression: ensure angular_distances is eval'd to an Array
             content = content.replace(
-                'angular_distances = (angular_distances).cwiseMin(symmetric_distances);',
-                'angular_distances = (angular_distances).cwiseMin(symmetric_distances).eval();')
+                'auto angular_distances = utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs();',
+                'auto angular_distances = utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs().eval();')
+            content = content.replace(
+                'auto symmetric_distances = utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs();',
+                'auto symmetric_distances = utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs().eval();')
+
+            # Fix .pow({1}) -> .pow(1) - Eigen can't deduce template from initializer list
+            content = content.replace('.pow({1})', '.pow(1)')
 
             with open('src/critics/goal_angle_critic.cpp', 'w') as f:
                 f.write(content)
@@ -331,7 +346,7 @@ self: super:
               src/path_handler.cpp
               src/trajectory_visualizer.cpp
             )
-            target_compile_options(mppi_controller PUBLIC -O3)
+            target_compile_options(mppi_controller PUBLIC -O3 -Wno-error=null-dereference)
             target_include_directories(mppi_controller
               PUBLIC
                 "$<BUILD_INTERFACE:''${CMAKE_CURRENT_SOURCE_DIR}/include>"
