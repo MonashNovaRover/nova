@@ -229,17 +229,17 @@ content = content.replace('data.path.x.shape(0)', 'data.path.x.size()')
 #   xt::pow(xt::mean(xt::fabs(utils::shortest_angular_distance(...)), {1}) * weight_, power_)
 # Eigen equivalent:
 #   ((...).abs().rowwise().mean() * weight_).pow(power_).eval()
-old_pow = '''    data.costs += xt::pow(
+old_pow = """    data.costs += xt::pow(
       xt::mean(xt::fabs(utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw)), {1}) *
-      weight_, power_);'''
-new_pow = '''    data.costs += ((utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs()).
-      rowwise().mean() * weight_).pow(power_).eval();'''
+      weight_, power_);"""
+new_pow = """    data.costs += ((utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs()).
+      rowwise().mean() * weight_).pow(power_).eval();"""
 content = content.replace(old_pow, new_pow)
 
-old_no_pow = '''    data.costs += xt::mean(
-      xt::fabs(utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw)), {1}) * weight_;'''
-new_no_pow = '''    data.costs += (utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs()).
-      rowwise().mean() * weight_;'''
+old_no_pow = """    data.costs += xt::mean(
+      xt::fabs(utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw)), {1}) * weight_;"""
+new_no_pow = """    data.costs += (utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs()).
+      rowwise().mean() * weight_;"""
 content = content.replace(old_no_pow, new_no_pow)
 
 with open('src/critics/goal_angle_critic.cpp', 'w') as f:
