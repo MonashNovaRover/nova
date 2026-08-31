@@ -39,7 +39,7 @@
         },
         "bash": {
           "*": "deny",
-          "nix-build nixfiles -A pkgs.ros.nova-workspace": "allow"
+          "nix-build nixfiles -A pkgs.ros.nova-workspace 2>&1": "allow"
         },
         "external_directory": {
           "/nix/store/**": "allow"
