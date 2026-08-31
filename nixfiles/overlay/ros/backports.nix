@@ -373,7 +373,7 @@ self: super:
               src/critics/twirling_critic.cpp
               src/critics/velocity_deadband_critic.cpp
             )
-            target_compile_options(mppi_critics PUBLIC -O3)
+            target_compile_options(mppi_critics PUBLIC -O3 -Wno-error=null-dereference)
             target_include_directories(mppi_critics
               PUBLIC
                 "$<BUILD_INTERFACE:''${CMAKE_CURRENT_SOURCE_DIR}/include>"
