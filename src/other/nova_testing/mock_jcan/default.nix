@@ -4,6 +4,7 @@
 
 buildPythonPackage {
   name = "mock-jcan";
+  format = "setuptools";
 
   src = builtins.path rec {
     name = "mock-jcan-source";

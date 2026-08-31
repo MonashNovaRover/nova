@@ -40,4 +40,9 @@ buildPythonPackage {
   '';
 
   pythonImportsCheck = [ "ros2_unbag" ];
+
+  # The wheel pins exact dependency versions (numpy==1.26.4, pyside6==6.9.1, etc.)
+  # that don't match the versions in this nixpkgs revision. The Nix-provided
+  # versions are compatible at runtime; skip the strict check.
+  dontCheckRuntimeDeps = true;
 }
