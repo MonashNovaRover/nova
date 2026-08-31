@@ -187,6 +187,14 @@ self: super:
             # 16 translation units that include this header.
             sed -i 's/\.shape(0)/.rows()/g; s/\.shape(1)/.cols()/g' include/nav2_mppi_controller/motion_models.hpp
 
+            # Fix incomplete xtensor-to-Eigen migration in trajectory_visualizer.cpp.
+            # The Eigen optimization patch (a33e8d2b) failed to fully convert this file:
+            # the xtensor type xt::xtensor<float,2> was not replaced with Eigen::ArrayXXf,
+            # and .shape()/.shape[n] calls were not replaced with .rows()/.cols()/.
+            sed -i 's/xt::xtensor<float, 2>/Eigen::ArrayXXf/g' src/trajectory_visualizer.cpp
+            sed -i 's/\.shape(0)/.rows()/g; s/\.shape(1)/.cols()/g' src/trajectory_visualizer.cpp
+            sed -i 's/shape\[0\]/rows()/g; s/shape\[1\]/cols()/g' src/trajectory_visualizer.cpp
+
             # Write the entire CMakeLists.txt from scratch. Too many patches partially
             # fail on this file leaving it in an inconsistent state (xtensor refs mixed
             # with Eigen, broken exports, etc). The target state incorporates:
