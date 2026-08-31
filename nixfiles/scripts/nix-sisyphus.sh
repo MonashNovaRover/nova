@@ -31,6 +31,9 @@ export NIX_ROS_OVERLAY_HASH=$(nurl https://github.com/lopsided98/nix-ros-overlay
 # update-revisions:
 # Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
 
+# TODO: replace this with cleaner logic
+rm flake.lock
+
 # Checkout the branch if it already exists
 git pull
 if git rev-parse origin/$GIT_BRANCH >/dev/null; then
