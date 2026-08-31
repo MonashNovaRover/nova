@@ -60,6 +60,7 @@ stdenv.mkDerivation {
     export HOME="$(mktemp -d)"
 
     # Link deps/nova-gui to use the node_modules from the root
+    mkdir -p deps/nova-gui
     rm -f deps/nova-gui/node_modules
     ln -s "$PWD/node_modules" deps/nova-gui/node_modules
   '';
