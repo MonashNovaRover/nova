@@ -7,7 +7,3 @@
 [submodule "src/other/libcanmd"]
 	path = src/other/libcanmd
 	url = git@github.com:MonashNovaRover/libcanmd
-[submodule "nixfiles/secrets"]
-	path = nixfiles/secrets
-	url = git@github.com:MonashNovaRover/secrets.git
-	branch = master
