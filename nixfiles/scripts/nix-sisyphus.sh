@@ -44,9 +44,6 @@ else
 fi
 git pull
 
-git branch --show-current
-exit
-
 # Write the latest versions of nixpkgs and nix-ros-overlay
 jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
 jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
