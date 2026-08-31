@@ -49,7 +49,7 @@ jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json >
 # Push any changes
 if ! git diff --quiet; then
     git add .
-    git commit -a -m "Updating nixpkgs and nix-ros-overlay to the latest versions"
+    git commit -a -m "setup: Updating nixpkgs and nix-ros-overlay to the latest versions"
     git push
 fi
 
@@ -61,7 +61,14 @@ nix-env -f '<nixpkgs>' -iA mcp-nixos
 nix-env -f '<nixpkgs>' -iA opencode
 
 # Remove nixfiles/secrets
-git rm nixfiles/secrets && git commit
+git rm -f nixfiles/secrets
+
+# Push any changes
+if ! git diff --quiet; then
+    git add .
+    git commit -a -m "setup: Hiding secrets from Sisyphus, ADD BACK BEFORE MERGING"
+    git push
+fi
 
 # Make sure remaining submodules are checked out
 git submodule update --init --recursive
