@@ -749,7 +749,7 @@ self: super:
                 postPatch = ''
                   substituteInPlace CMakeLists.txt \
                     --replace-warn 'find_package(libcurl_vendor REQUIRED)' 'find_package(CURL REQUIRED)' \
-                    --replace-warn 'libcurl_vendor' 'CURL::libcurl'
+                    --replace-warn 'libcurl_vendor' 'CURL'
                 '';
                 propagatedBuildInputs = (rosSuper.ntrip-client-node.propagatedBuildInputs or []) ++ [
                   self.curl
