@@ -64,7 +64,7 @@ nix-env -f '<nixpkgs>' -iA opencode
 git rm -f nixfiles/secrets
 
 # Push any changes
-if ! git diff --quiet; then
+if ! git diff --staged --quiet; then
     git add .
     git commit -a -m "setup: Hiding secrets from Sisyphus, ADD BACK BEFORE MERGING"
     git push
