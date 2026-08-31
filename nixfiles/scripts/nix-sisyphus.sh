@@ -5,13 +5,13 @@
 
 ## prechecks:
 # Confirm in ~/nova
-cd $HOME/nova
+cd "$HOME"/nova
 
 # Configure git
-export GIT_AUTHOR_NAME=github-actions[bot]
-export GIT_AUTHOR_EMAIL=github-actions[bot]@users.noreply.github.com
-export GIT_COMMITTER_NAME=github-actions[bot]
-export GIT_COMMITTER_EMAIL=github-actions[bot]@users.noreply.github.com
+export GIT_AUTHOR_NAME='github-actions[bot]'
+export GIT_AUTHOR_EMAIL='github-actions[bot]@users.noreply.github.com'
+export GIT_COMMITTER_NAME='github-actions[bot]'
+export GIT_COMMITTER_EMAIL='github-actions[bot]@users.noreply.github.com'
 export GIT_BRANCH=test/update-nix
 
 # Checkout the branch if it already exists
@@ -28,14 +28,22 @@ git pull
 # Outputs the latest pinned nixpkgs version used by nix-ros-overlay.
 nix-env -f '<nixpkgs>' -iA jq
 curl -L https://raw.githubusercontent.com/lopsided98/nix-ros-overlay/refs/heads/develop/flake.lock -o flake.lock
-export NIXPKGS_SHA=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
-export NIXPKGS_HASH=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)
+
+NIXPKGS_SHA=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+export NIXPKGS_SHA
+
+NIXPKGS_HASH=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)
+export NIXPKGS_HASH
 
 ## update-nix-ros-overlay:
 # Outputs the latest nix-ros-overlay version.
 nix-env -f '<nixpkgs>' -iA nurl
-export NIX_ROS_OVERLAY_SHA=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')
-export NIX_ROS_OVERLAY_HASH=$(nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash)
+
+NIX_ROS_OVERLAY_SHA=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')
+export NIX_ROS_OVERLAY_SHA
+
+NIX_ROS_OVERLAY_HASH=$(nurl https://github.com/lopsided98/nix-ros-overlay "$NIX_ROS_OVERLAY_SHA" --hash)
+export NIX_ROS_OVERLAY_HASH
 
 ## update-revisions:
 # Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
@@ -74,7 +82,7 @@ fi
 git submodule update --init --recursive
 
 # To the same above for each cloned submodule
-git submodule foreach --recursive '
+git submodule foreach --recursive "
     # Checkout the branch if it already exists
     git pull origin master
     if git rev-parse --verify --quiet origin/$GIT_BRANCH >/dev/null; then
@@ -84,7 +92,7 @@ git submodule foreach --recursive '
         git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
     fi
     git pull
-'
+"
 
 # Run LLM
 opencode run --model opencode/mimo-v2.5-free --agent patch --auto --print-logs --log-level DEBUG "/fix-errors"
