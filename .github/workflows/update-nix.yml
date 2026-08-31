@@ -144,7 +144,7 @@ jobs:
           # Convert submodule urls from SSH to HTTPS so the PAT can work
           sed -i 's|git@github.com:|https://github.com/|g' .gitmodules
 
-          # Remove nixfiles/secrets so it is not cloned
+          # Skip nixfiles/secrets so it is not cloned
           git -c submodule."nixfiles/secrets".update=none submodule update --init --recursive
 
           # To the same above for each cloned submodule (ignores nixfiles/secrets)
