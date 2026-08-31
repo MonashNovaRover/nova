@@ -24,8 +24,8 @@ Repeat this loop until @ws-build completes successfully with no build errors:
 
 Rules:
 - Never skip @ws-build.
+- Never skip @git-commit.
 - Every iteration begins with a fresh @ws-build invocation.
-- Do not use cached or previous build output instead of rerunning @ws-build.
 - Do not fix multiple unrelated errors in one iteration.
-- Do not stop after a fix; rerun @ws-build.
+- Do not stop after a fix or commit; rerun @ws-build.
 - Only stop when @ws-build itself reports no build errors.
