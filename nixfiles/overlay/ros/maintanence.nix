@@ -746,6 +746,14 @@ self: super:
                   name = "0.5.5-3.tar.gz";
                   sha256 = "sha256-dV2nf44RBrq0S3a74hr7j1Fe0zSnRD8jYf41QhgeuuM=";
                 };
+                postPatch = ''
+                  substituteInPlace CMakeLists.txt \
+                    --replace-warn 'find_package(libcurl_vendor REQUIRED)' 'find_package(CURL REQUIRED)' \
+                    --replace-warn 'libcurl_vendor' 'CURL::libcurl'
+                '';
+                propagatedBuildInputs = (rosSuper.ntrip-client-node.propagatedBuildInputs or []) ++ [
+                  self.curl
+                ];
               };
 
               ublox-dgnss-node = rosSuper.ublox-dgnss-node.overrideAttrs rec {
