@@ -184,27 +184,28 @@ self: super:
             # Remove goal_ = goal;
             sed -i '/^  goal_ = goal;$/d' src/optimizer.cpp
 
-            # Fix failed hunks from a33e8d2bef Eigen patch: remove xtensor/xsimd refs
+            # Fix failed hunks from a33e8d2bef Eigen patch:
+            # Remove all xtensor/xsimd references that the patch was supposed to remove.
             # The patch's CMakeLists.txt hunks failed because context changed from
-            # earlier CMake modernization patches. Manually clean up xtensor references.
-            sed -i '/add_definitions(-DXTENSOR_ENABLE_XSIMD)/d' CMakeLists.txt
-            sed -i '/add_definitions(-DXTENSOR_USE_XSIMD)/d' CMakeLists.txt
-            sed -i '/^set(XTENSOR_USE_TBB/d' CMakeLists.txt
-            sed -i '/^set(XTENSOR_USE_OPENMP/d' CMakeLists.txt
-            sed -i '/^set(XTENSOR_USE_XSIMD/d' CMakeLists.txt
+            # earlier CMake modernization patches.
+            # Remove xtensor definitions and settings block
+            sed -i '/XTENSOR_ENABLE_XSIMD/d' CMakeLists.txt
+            sed -i '/XTENSOR_USE_XSIMD/d' CMakeLists.txt
+            sed -i '/XTENSOR_USE_TBB/d' CMakeLists.txt
+            sed -i '/XTENSOR_USE_OPENMP/d' CMakeLists.txt
+            # Remove find_package lines for xsimd/xtensor
             sed -i '/find_package(xsimd/d' CMakeLists.txt
             sed -i '/find_package(xtensor/d' CMakeLists.txt
-            sed -i '/''${xsimd_INCLUDE_DIRS}/d' CMakeLists.txt
-            sed -i '/^  xtensor$/d' CMakeLists.txt
-            sed -i '/^  xtensor::optimize$/d' CMakeLists.txt
-            sed -i '/^  xtensor::use_xsimd$/d' CMakeLists.txt
-            # Also remove -mno-avx512f, -msse4.2, -mavx2 options that the patch removed
+            # Remove xsimd include dirs and xtensor link libs from the foreach loop
+            sed -i '\|target_include_directories.*xsimd|d' CMakeLists.txt
+            sed -i '\|target_link_libraries.*xtensor|d' CMakeLists.txt
+            # Remove aggressive compiler flags that the patch replaced with -O3
+            sed -i 's/-fconcepts -O3 -finline-limit=10000000 -ffp-contract=fast -ffast-math -mtune=generic/-O3/g' CMakeLists.txt
+            # Remove AVX/SSE restrictions that the patch removed
             sed -i '/-mno-avx512f/d' CMakeLists.txt
             sed -i '/-msse4.2/d' CMakeLists.txt
             sed -i '/-mavx2/d' CMakeLists.txt
-            # Remove -fconcepts and extra flags the patch removed from mppi_critics
-            sed -i 's/-fconcepts -O3 -finline-limit=10000000 -ffp-contract=fast -ffast-math -mtune=generic/-O3/g' CMakeLists.txt
-            # Add Eigen include if not already present
+            # Add Eigen include directory if the patch's include_directories hunk failed
             grep -q 'EIGEN3_INCLUDE_DIR' CMakeLists.txt || sed -i '/find_package(Eigen3/a include_directories(include ''${EIGEN3_INCLUDE_DIR})' CMakeLists.txt
           '';
 
