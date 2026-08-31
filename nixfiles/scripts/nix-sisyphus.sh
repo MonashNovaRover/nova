@@ -3,7 +3,7 @@
 # This workflow automatically updates our nixpkgs and nix-ros-overlay versions, using an LLM to fix ws-build errors.
 # See https://github.com/MonashNovaRover/nova/issues/1183 for more.
 
-# prechecks:
+## prechecks:
 # Confirm in ~/nova
 cd $HOME/nova
 
@@ -12,26 +12,7 @@ export GIT_AUTHOR_NAME=github-actions[bot]
 export GIT_AUTHOR_EMAIL=github-actions[bot]@users.noreply.github.com
 export GIT_COMMITTER_NAME=github-actions[bot]
 export GIT_COMMITTER_EMAIL=github-actions[bot]@users.noreply.github.com
-export GIT_BRANCH=test/update-nix
-
-# update-nixpkgs:
-# Outputs the latest pinned nixpkgs version used by nix-ros-overlay.
-nix-env -f '<nixpkgs>' -iA jq
-curl -L https://raw.githubusercontent.com/lopsided98/nix-ros-overlay/refs/heads/develop/flake.lock -o flake.lock
-export NIXPKGS_SHA=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
-export NIXPKGS_HASH=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)
-
-# update-nix-ros-overlay:
-# Outputs the latest nix-ros-overlay version.
-nix-env -f '<nixpkgs>' -iA nurl
-export NIX_ROS_OVERLAY_SHA=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')
-export NIX_ROS_OVERLAY_HASH=$(nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash)
-
-# update-revisions:
-# Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
-
-# TODO: replace this with cleaner logic
-rm flake.lock
+export GIT_BRANCH=test/update-nix2
 
 # Checkout the branch if it already exists
 git pull
@@ -42,6 +23,22 @@ else
     git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
 fi
 git pull
+
+## update-nixpkgs:
+# Outputs the latest pinned nixpkgs version used by nix-ros-overlay.
+nix-env -f '<nixpkgs>' -iA jq
+curl -L https://raw.githubusercontent.com/lopsided98/nix-ros-overlay/refs/heads/develop/flake.lock -o flake.lock
+export NIXPKGS_SHA=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+export NIXPKGS_HASH=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)
+
+## update-nix-ros-overlay:
+# Outputs the latest nix-ros-overlay version.
+nix-env -f '<nixpkgs>' -iA nurl
+export NIX_ROS_OVERLAY_SHA=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')
+export NIX_ROS_OVERLAY_HASH=$(nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash)
+
+## update-revisions:
+# Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
 
 # Write the latest versions of nixpkgs and nix-ros-overlay
 jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
@@ -56,25 +53,26 @@ if ! git diff --quiet; then
     git push
 fi
 
-# fix-errors:
+## fix-errors:
 # Checks out the new branch and uses an LLM to fix ws-build errors, pushing fixes.
+
 # Install Nix packages to run LLM
 nix-env -f '<nixpkgs>' -iA mcp-nixos
 nix-env -f '<nixpkgs>' -iA opencode
 
-# Checkout the branch if it already exists
-git pull
-if git rev-parse origin/$GIT_BRANCH >/dev/null; then
-git checkout $GIT_BRANCH
-else
-# Create the branch if it does not exist
-git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+# Remove nixfiles/secrets
+sed -i '/^\[submodule "nixfiles\/secrets"\]/,$d' .gitmodules
+rm -rf nixfiles/secrets/*
+
+# Push any changes
+if ! git diff --quiet; then
+    git add .
+    git commit -a -m "Updating nixpkgs and nix-ros-overlay to the latest versions"
+    git push
 fi
-git pull
 
 # Skip nixfiles/secrets so it is not cloned
 git -c submodule."nixfiles/secrets".update=none submodule update --init --recursive
-rm -rf nixfiles/secrets
 
 # To the same above for each cloned submodule (ignores nixfiles/secrets)
 git submodule foreach --recursive '
@@ -89,5 +87,5 @@ git submodule foreach --recursive '
     git pull
 '
 
-# Run LLM
-opencode run --model opencode/mimo-v2.5-free --agent patch --auto --print-logs --log-level DEBUG "/fix-errors"
+# # Run LLM
+# opencode run --model opencode/mimo-v2.5-free --agent patch --auto --print-logs --log-level DEBUG "/fix-errors"
