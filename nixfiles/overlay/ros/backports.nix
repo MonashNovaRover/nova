@@ -191,35 +191,17 @@ self: super:
                 content = f.read()
             content = content.replace('xt::xtensor<float, 2>', 'Eigen::ArrayXXf')
             content = content.replace('auto & size = trajectory.shape()[0]', 'size_t size = trajectory.rows()')
-            # Replace the shape block in the second add() overload
-            content = content.replace(
-                'auto & shape = trajectories.x.shape();\n'
-                '  const float shape_1 = static_cast<float>(shape[1]);\n'
-                '  points_->markers.reserve(floor(shape[0] / trajectory_step_) * floor(shape[1] * time_step_));\n'
-                '  for (size_t i = 0; i < shape[0]; i += trajectory_step_) {\n'
-                '    for (size_t j = 0; j < shape[1]; j += time_step_) {',
-                'size_t n_rows = trajectories.x.rows();\n'
-                '  size_t n_cols = trajectories.x.cols();\n'
-                '  const float shape_1 = static_cast<float>(n_cols);\n'
-                '  points_->markers.reserve(floor(n_rows / trajectory_step_) * floor(n_cols * time_step_));\n'
-                '  for (size_t i = 0; i < n_rows; i += trajectory_step_) {\n'
-                '    for (size_t j = 0; j < n_cols; j += time_step_) {')
-            # Fallback: replace any remaining .shape() calls on Eigen types
-            content = content.replace('.shape()[0]', '.rows()')
-            content = content.replace('.shape()[1]', '.cols()')
+            # Replace any .shape() or .shape[N] on Eigen arrays
             content = re.sub(r'\.shape\(\s*0\s*\)', '.rows()', content)
             content = re.sub(r'\.shape\(\s*1\s*\)', '.cols()', content)
-            # If the auto & shape = ... .shape(); line became auto & shape = ... .rows();
-            # then we need to replace it with n_rows/n_cols definitions
+            content = content.replace('.shape()[0]', '.rows()')
+            content = content.replace('.shape()[1]', '.cols()')
+            # Replace 'auto & shape = trajectories.x.rows()' with n_rows/n_cols definitions
             content = re.sub(
-                r'auto & shape = trajectories\.x\.rows\(\);\n(\s*)const float shape_1 = static_cast<float>\(shape\[1\]\);',
-                r'size_t n_rows = trajectories.x.rows();\n\1size_t n_cols = trajectories.x.cols();\n\1const float shape_1 = static_cast<float>(n_cols);',
+                r'auto\s+&\s+shape\s*=\s*trajectories\.x\.rows\(\)\s*;',
+                'size_t n_rows = trajectories.x.rows();\n  size_t n_cols = trajectories.x.cols();',
                 content)
-            content = re.sub(
-                r'auto & shape = trajectories\.x\.rows\(\);\n(\s*)const float shape_1 = static_cast<float>\(n_cols\);',
-                r'size_t n_rows = trajectories.x.rows();\n\1size_t n_cols = trajectories.x.cols();\n\1const float shape_1 = static_cast<float>(n_cols);',
-                content)
-            # Replace remaining shape[0] and shape[1] references with n_rows and n_cols
+            # Replace shape[0] and shape[1] with n_rows and n_cols
             content = content.replace('shape[0]', 'n_rows')
             content = content.replace('shape[1]', 'n_cols')
             with open('src/trajectory_visualizer.cpp', 'w') as f:
@@ -252,13 +234,15 @@ self: super:
             # Replace xt::minimum(a, b) -> a.cwiseMin(b)
             content = re.sub(r'xt::minimum\(([^,]+),\s*([^)]+)\)', r'(\1).cwiseMin(\2)', content)
 
-            # Fix Eigen expression: ensure angular_distances is eval'd to an Array
-            content = content.replace(
-                'auto angular_distances = utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs();',
-                'auto angular_distances = utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs().eval();')
-            content = content.replace(
-                'auto symmetric_distances = utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs();',
-                'auto symmetric_distances = utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs().eval();')
+            # Ensure angular_distances is an Array, not a lazy expression
+            content = re.sub(
+                r'(auto\s+angular_distances\s*=\s*utils::shortest_angular_distance\([^)]+\)\.abs\(\))\s*;',
+                r'\1.eval();',
+                content)
+            content = re.sub(
+                r'(auto\s+symmetric_distances\s*=\s*utils::shortest_angular_distance\([^)]+\)\.abs\(\))\s*;',
+                r'\1.eval();',
+                content)
 
             # Fix .pow({1}) -> .pow(1) - Eigen can't deduce template from initializer list
             content = content.replace('.pow({1})', '.pow(1)')
