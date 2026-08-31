@@ -176,37 +176,168 @@ self: super:
             # Fix the failed hunk #2 from a6a4c263 revert: remove goal param from prepare()
             # The revert removed goal from evalControl (hunk #1 succeeded) but failed on
             # prepare (hunk #2) because context line state_.speed = robot_speed doesn't match.
-
-            # Remove the goal parameter line from prepare signature
             sed -i '/^  const geometry_msgs::msg::Pose & goal,$/d' src/optimizer.cpp
-            # Merge the now-split "plan," and "goal_checker)" lines into one
             sed -i '/^  const nav_msgs::msg::Path & plan,$/{N;s|\n  nav2_core::GoalChecker \* goal_checker)|, nav2_core::GoalChecker * goal_checker)|}' src/optimizer.cpp
-            # Remove goal_ = goal;
             sed -i '/^  goal_ = goal;$/d' src/optimizer.cpp
 
-            # Fix failed hunks from a33e8d2bef Eigen patch:
-            # Remove all xtensor/xsimd references that the patch was supposed to remove.
-            # The patch's CMakeLists.txt hunks failed because context changed from
-            # earlier CMake modernization patches.
-            # Remove xtensor definitions and settings block
-            sed -i '/XTENSOR_ENABLE_XSIMD/d' CMakeLists.txt
-            sed -i '/XTENSOR_USE_XSIMD/d' CMakeLists.txt
-            sed -i '/XTENSOR_USE_TBB/d' CMakeLists.txt
-            sed -i '/XTENSOR_USE_OPENMP/d' CMakeLists.txt
-            # Remove find_package lines for xsimd/xtensor
-            sed -i '/find_package(xsimd/d' CMakeLists.txt
-            sed -i '/find_package(xtensor/d' CMakeLists.txt
-            # Remove xsimd include dirs and xtensor link libs from the foreach loop
-            sed -i '\|target_include_directories.*xsimd|d' CMakeLists.txt
-            sed -i '\|target_link_libraries.*xtensor|d' CMakeLists.txt
-            # Remove aggressive compiler flags that the patch replaced with -O3
-            sed -i 's/-fconcepts -O3 -finline-limit=10000000 -ffp-contract=fast -ffast-math -mtune=generic/-O3/g' CMakeLists.txt
-            # Remove AVX/SSE restrictions that the patch removed
-            sed -i '/-mno-avx512f/d' CMakeLists.txt
-            sed -i '/-msse4.2/d' CMakeLists.txt
-            sed -i '/-mavx2/d' CMakeLists.txt
-            # Add Eigen include directory if the patch's include_directories hunk failed
-            grep -q 'EIGEN3_INCLUDE_DIR' CMakeLists.txt || sed -i '/find_package(Eigen3/a include_directories(include ''${EIGEN3_INCLUDE_DIR})' CMakeLists.txt
+            # Write the entire CMakeLists.txt from scratch. Too many patches partially
+            # fail on this file leaving it in an inconsistent state (xtensor refs mixed
+            # with Eigen, broken exports, etc). The target state incorporates:
+            # - Eigen optimization (replaces xtensor/xsimd)
+            # - CMake modernization (per-target options instead of foreach loop)
+            # - Small CMake fixes
+            cat > CMakeLists.txt << 'CMAKE_EOF'
+            cmake_minimum_required(VERSION 3.5)
+            project(nav2_mppi_controller)
+
+            find_package(ament_cmake REQUIRED)
+            find_package(angles REQUIRED)
+            find_package(eigen3_cmake_module REQUIRED)
+            find_package(Eigen3 REQUIRED)
+            find_package(geometry_msgs REQUIRED)
+            find_package(nav2_common REQUIRED)
+            find_package(nav2_core REQUIRED)
+            find_package(nav2_costmap_2d REQUIRED)
+            find_package(nav2_msgs REQUIRED)
+            find_package(nav2_params REQUIRED)
+            find_package(nav2_util REQUIRED)
+            find_package(nav_msgs REQUIRED)
+            find_package(pluginlib REQUIRED)
+            find_package(rclcpp REQUIRED)
+            find_package(tf2 REQUIRED)
+            find_package(tf2_eigen REQUIRED)
+            find_package(tf2_geometry_msgs REQUIRED)
+            find_package(tf2_ros REQUIRED)
+            find_package(visualization_msgs REQUIRED)
+
+            include_directories(
+              include
+              ${EIGEN3_INCLUDE_DIR}
+            )
+
+            nav2_package()
+
+            include(CheckCXXCompilerFlag)
+            check_cxx_compiler_flag("-mfma" COMPILER_SUPPORTS_FMA)
+            if(COMPILER_SUPPORTS_FMA)
+              add_compile_options(-mfma)
+            endif()
+
+            add_library(mppi_controller SHARED
+              src/controller.cpp
+              src/critic_manager.cpp
+              src/noise_generator.cpp
+              src/optimizer.cpp
+              src/parameters_handler.cpp
+              src/path_handler.cpp
+              src/trajectory_visualizer.cpp
+            )
+            target_compile_options(mppi_controller PUBLIC -O3)
+            target_include_directories(mppi_controller
+              PUBLIC
+                "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+            target_link_libraries(mppi_controller PUBLIC
+              angles::angles
+              Eigen3::Eigen
+              geometry_msgs::geometry_msgs
+              nav2_common::nav2_common
+              nav2_core::nav2_core
+              nav2_costmap_2d::nav2_costmap_2d
+              nav2_msgs::nav2_msgs
+              nav2_util::nav2_util
+              nav_msgs::nav_msgs
+              rclcpp::rclcpp
+              tf2::tf2
+              tf2_eigen::tf2_eigen
+              tf2_geometry_msgs::tf2_geometry_msgs
+              tf2_ros::tf2_ros
+              ${visualization_msgs_TARGETS}
+            )
+
+            add_library(mppi_critics SHARED
+              src/critics/constraint_critic.cpp
+              src/critics/cost_critic.cpp
+              src/critics/goal_angle_critic.cpp
+              src/critics/goal_critic.cpp
+              src/critics/obstacles_critic.cpp
+              src/critics/path_align_critic.cpp
+              src/critics/path_angle_critic.cpp
+              src/critics/path_follow_critic.cpp
+              src/critics/prefer_forward_critic.cpp
+              src/critics/twirling_critic.cpp
+              src/critics/velocity_deadband_critic.cpp
+            )
+            target_compile_options(mppi_critics PUBLIC -fconcepts -O3)
+            target_include_directories(mppi_critics
+              PUBLIC
+                "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+            target_link_libraries(mppi_critics PUBLIC
+              angles::angles
+              Eigen3::Eigen
+              geometry_msgs::geometry_msgs
+              nav2_common::nav2_common
+              nav2_core::nav2_core
+              nav2_costmap_2d::nav2_costmap_2d
+              nav2_msgs::nav2_msgs
+              nav2_util::nav2_util
+              nav_msgs::nav_msgs
+              rclcpp::rclcpp
+              tf2::tf2
+              tf2_eigen::tf2_eigen
+              tf2_geometry_msgs::tf2_geometry_msgs
+              tf2_ros::tf2_ros
+              ${visualization_msgs_TARGETS}
+            )
+            target_link_libraries(mppi_critics PRIVATE
+              pluginlib::pluginlib
+            )
+
+            install(TARGETS mppi_controller mppi_critics
+              EXPORT nav2_mppi_controller
+              ARCHIVE DESTINATION lib
+              LIBRARY DESTINATION lib
+              RUNTIME DESTINATION bin
+            )
+
+            install(DIRECTORY include/
+              DESTINATION include/${PROJECT_NAME}
+            )
+
+            if(BUILD_TESTING)
+              find_package(ament_lint_auto REQUIRED)
+              set(ament_cmake_copyright_FOUND TRUE)
+              ament_lint_auto_find_test_dependencies()
+              find_package(ament_cmake_gtest REQUIRED)
+              ament_find_gtest()
+              add_subdirectory(test)
+            endif()
+
+            ament_export_libraries(mppi_controller mppi_critics)
+            ament_export_dependencies(
+              angles
+              geometry_msgs
+              nav2_common
+              nav2_core
+              nav2_costmap_2d
+              nav2_msgs
+              nav2_util
+              nav_msgs
+              rclcpp
+              tf2
+              tf2_geometry_msgs
+              tf2_ros
+              visualization_msgs
+              Eigen3
+            )
+            ament_export_include_directories(include/${PROJECT_NAME})
+            ament_export_targets(nav2_mppi_controller)
+            pluginlib_export_plugin_description_file(nav2_core mppic.xml)
+            pluginlib_export_plugin_description_file(nav2_mppi_controller critics.xml)
+
+            ament_package()
+            CMAKE_EOF
           '';
 
           nativeBuildInputs = with rosSelf; [ ament-cmake ];
