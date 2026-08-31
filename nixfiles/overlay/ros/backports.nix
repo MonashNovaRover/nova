@@ -235,22 +235,6 @@ self: super:
               PUBLIC
                 "$<BUILD_INTERFACE:''${CMAKE_CURRENT_SOURCE_DIR}/include>"
                 "$<INSTALL_INTERFACE:include/''${PROJECT_NAME}>")
-            target_link_libraries(mppi_controller PUBLIC
-              angles::angles
-              Eigen3::Eigen
-              geometry_msgs::geometry_msgs
-              nav2_common::nav2_common
-              nav2_core::nav2_core
-              nav2_costmap_2d::nav2_costmap_2d
-              nav2_msgs::nav2_msgs
-              nav2_util::nav2_util
-              nav_msgs::nav_msgs
-              rclcpp::rclcpp
-              tf2::tf2
-              tf2_geometry_msgs::tf2_geometry_msgs
-              tf2_ros::tf2_ros
-              ''${visualization_msgs_TARGETS}
-            )
 
             add_library(mppi_critics SHARED
               src/critics/constraint_critic.cpp
@@ -265,30 +249,35 @@ self: super:
               src/critics/twirling_critic.cpp
               src/critics/velocity_deadband_critic.cpp
             )
-            target_compile_options(mppi_critics PUBLIC -fconcepts -O3)
+            target_compile_options(mppi_critics PUBLIC -O3)
             target_include_directories(mppi_critics
               PUBLIC
                 "$<BUILD_INTERFACE:''${CMAKE_CURRENT_SOURCE_DIR}/include>"
                 "$<INSTALL_INTERFACE:include/''${PROJECT_NAME}>")
-            target_link_libraries(mppi_critics PUBLIC
-              angles::angles
-              Eigen3::Eigen
-              geometry_msgs::geometry_msgs
-              nav2_common::nav2_common
-              nav2_core::nav2_core
-              nav2_costmap_2d::nav2_costmap_2d
-              nav2_msgs::nav2_msgs
-              nav2_util::nav2_util
-              nav_msgs::nav_msgs
-              rclcpp::rclcpp
-              tf2::tf2
-              tf2_geometry_msgs::tf2_geometry_msgs
-              tf2_ros::tf2_ros
-              ''${visualization_msgs_TARGETS}
-            )
             target_link_libraries(mppi_critics PRIVATE
               pluginlib::pluginlib
             )
+
+            set(libraries mppi_controller mppi_critics)
+
+            foreach(lib IN LISTS libraries)
+              ament_target_dependencies($''{lib} PUBLIC
+                angles
+                Eigen3
+                geometry_msgs
+                nav2_common
+                nav2_core
+                nav2_costmap_2d
+                nav2_msgs
+                nav2_util
+                nav_msgs
+                rclcpp
+                tf2
+                tf2_geometry_msgs
+                tf2_ros
+                visualization_msgs
+              )
+            endforeach()
 
             install(TARGETS mppi_controller mppi_critics
               EXPORT nav2_mppi_controller
