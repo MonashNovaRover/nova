@@ -61,7 +61,7 @@ nix-env -f '<nixpkgs>' -iA mcp-nixos
 nix-env -f '<nixpkgs>' -iA opencode
 
 # Remove nixfiles/secrets
-git rm -f nixfiles/secrets
+git rm -f --ignore-unmatch nixfiles/secrets
 
 # Push any changes
 if ! git diff --staged --quiet; then
