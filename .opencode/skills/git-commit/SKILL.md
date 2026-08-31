@@ -10,7 +10,7 @@ source: https://github.com/github/awesome-copilot/blob/main/skills/git-commit/SK
 
 ## Overview
 
-Create and push standardized, semantic git commits using the Conventional Commits specification. Analyze the actual diff to determine appropriate type, scope, and message. Do NOT skip `git push`.
+Create and push standardized, semantic git commits using the Conventional Commits specification. Do NOT skip git push. A successful commit alone is NOT success. DO NOT finish, return control, or report completion until git push has been executed and its exit status verified as successful.
 
 ## Conventional Commit Format
 
@@ -63,7 +63,7 @@ Analyze the diff to determine:
 
 - **Type**: What kind of change is this?
 - **Scope**: What area/module is affected?
-- **Description**: One-line summary of what changed (present tense, imperative mood, <72 chars)
+- **Description**: Detailed summary of what changed?
 
 ### 4. Execute and Push Commit
 
@@ -82,13 +82,6 @@ EOF
 )" && git push
 ```
 
-## Best Practices
-
-- One logical change per commit
-- Present tense: "add" not "added"
-- Imperative mood: "fix bug" not "fixes bug"
-- Keep description under 72 characters
-
 ## Git Safety Protocol
 
 - NEVER update git config
@@ -96,3 +89,8 @@ EOF
 - NEVER skip hooks (--no-verify) unless user asks
 - NEVER force push to main/master
 - If commit fails due to hooks, fix and create NEW commit (don't amend)
+
+## Success Criteria
+This skill is successful ONLY when one of the following is true:
+- A new commit was created AND git push completed successfully.
+- There was nothing to commit AND there are no unpushed commits
