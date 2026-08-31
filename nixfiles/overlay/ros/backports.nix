@@ -191,7 +191,9 @@ self: super:
                 content = f.read()
             content = content.replace('xt::xtensor<float, 2>', 'Eigen::ArrayXXf')
             content = content.replace('auto & size = trajectory.shape()[0]', 'size_t size = trajectory.rows()')
-            # Replace any .shape() or .shape[N] on Eigen arrays
+            # Replace .shape() with .rows() for zero-arg case
+            content = re.sub(r'\.shape\(\)', '.rows()', content)
+            # Replace .shape(0) and .shape(1) with .rows() and .cols()
             content = re.sub(r'\.shape\(\s*0\s*\)', '.rows()', content)
             content = re.sub(r'\.shape\(\s*1\s*\)', '.cols()', content)
             content = content.replace('.shape()[0]', '.rows()')
@@ -234,13 +236,22 @@ self: super:
             # Replace xt::minimum(a, b) -> a.cwiseMin(b)
             content = re.sub(r'xt::minimum\(([^,]+),\s*([^)]+)\)', r'(\1).cwiseMin(\2)', content)
 
-            # Ensure angular_distances is an Array, not a lazy expression
+            # Force all auto angular/symmetric_distance declarations to be evaluated Arrays
             content = re.sub(
-                r'(auto\s+angular_distances\s*=\s*utils::shortest_angular_distance\([^)]+\)\.abs\(\))\s*;',
+                r'(auto\s+angular_distances\s*=\s*[^;]+\.abs\(\))\s*;',
                 r'\1.eval();',
                 content)
             content = re.sub(
-                r'(auto\s+symmetric_distances\s*=\s*utils::shortest_angular_distance\([^)]+\)\.abs\(\))\s*;',
+                r'(auto\s+symmetric_distances\s*=\s*[^;]+\.abs\(\))\s*;',
+                r'\1.eval();',
+                content)
+            # Also handle any auto angular/symmetric_distances without .abs()
+            content = re.sub(
+                r'(auto\s+angular_distances\s*=\s*utils::[^(]+\([^)]*\))\s*;',
+                r'\1.eval();',
+                content)
+            content = re.sub(
+                r'(auto\s+symmetric_distances\s*=\s*utils::[^(]+\([^)]*\))\s*;',
                 r'\1.eval();',
                 content)
 
