@@ -159,6 +159,21 @@ self: super:
             ./patches/mppi-visualisation.patch
           ];
 
+          # Manually fix the failed hunk from the a6a4c263 revert patch
+          # The revert tries to remove goal param from prepare() but context lines
+          # don't match due to upstream changes (settings_.open_loop branch).
+          postPatch = ''
+            # Remove the goal parameter from prepare() signature
+            sed -i '/^  const geometry_msgs::msg::Pose & goal,$/d' src/optimizer.cpp
+            # Rejoin the split line (plan + goal_checker on same line)
+            sed -i '/^  const nav_msgs::msg::Path & plan,$/{
+              N
+              s|  const nav_msgs::msg::Path & plan,\n  nav2_core::GoalChecker \* goal_checker\)|  const nav_msgs::msg::Path \& plan, nav2_core::GoalChecker * goal_checker)|
+            }' src/optimizer.cpp
+            # Remove goal_ = goal; assignment
+            sed -i '/^  goal_ = goal;$/d' src/optimizer.cpp
+          '';
+
           nativeBuildInputs = with rosSelf; [ ament-cmake ];
 
           buildInputs = with self; with rosSelf; [
