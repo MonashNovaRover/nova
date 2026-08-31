@@ -191,9 +191,105 @@ self: super:
             # The Eigen optimization patch (a33e8d2b) failed to fully convert this file:
             # the xtensor type xt::xtensor<float,2> was not replaced with Eigen::ArrayXXf,
             # and .shape()/.shape[n] calls were not replaced with .rows()/.cols()/.
-            sed -i 's/xt::xtensor<float, 2>/Eigen::ArrayXXf/g' src/trajectory_visualizer.cpp
-            sed -i 's/\.shape(0)/.rows()/g; s/\.shape(1)/.cols()/g' src/trajectory_visualizer.cpp
-            sed -i 's/shape\[0\]/rows()/g; s/shape\[1\]/cols()/g' src/trajectory_visualizer.cpp
+            python3 -c "
+import re, sys
+with open('src/trajectory_visualizer.cpp', 'r') as f:
+    content = f.read()
+
+# Replace xt::xtensor type with Eigen
+content = content.replace('xt::xtensor<float, 2>', 'Eigen::ArrayXXf')
+
+# Replace 'auto & size = trajectory.shape()[0]' with 'size_t size = trajectory.rows()'
+content = content.replace('auto & size = trajectory.shape()[0]', 'size_t size = trajectory.rows()')
+
+# Replace the shape block in the second add() overload
+content = content.replace(
+    'auto & shape = trajectories.x.shape();\n'
+    '  const float shape_1 = static_cast<float>(shape[1]);\n'
+    '  points_->markers.reserve(floor(shape[0] / trajectory_step_) * floor(shape[1] * time_step_));\n'
+    '  for (size_t i = 0; i < shape[0]; i += trajectory_step_) {\n'
+    '    for (size_t j = 0; j < shape[1]; j += time_step_) {',
+    'size_t n_rows = trajectories.x.rows();\n'
+    '  size_t n_cols = trajectories.x.cols();\n'
+    '  const float shape_1 = static_cast<float>(n_cols);\n'
+    '  points_->markers.reserve(floor(n_rows / trajectory_step_) * floor(n_cols * time_step_));\n'
+    '  for (size_t i = 0; i < n_rows; i += trajectory_step_) {\n'
+    '    for (size_t j = 0; j < n_cols; j += time_step_) {'
+)
+
+            with open('src/trajectory_visualizer.cpp', 'w') as f:
+                f.write(content)
+            "
+
+            # Fix incomplete xtensor-to-Eigen migration in goal_angle_critic.cpp.
+            # The Eigen optimization patch (a33e8d2b) failed to apply hunk #1 to this file,
+            # so the xtensor->Eigen conversion was never applied.
+            python3 -c "
+import re
+with open('src/critics/goal_angle_critic.cpp', 'r') as f:
+    content = f.read()
+
+# Fix .shape(0) -> .size() for path length
+content = content.replace('data.path.x.shape(0)', 'data.path.x.size()')
+
+# Replace the xtensor score() body with Eigen equivalent
+# Original xtensor code:
+#   xt::pow(xt::mean(xt::fabs(utils::shortest_angular_distance(...)), {1}) * weight_, power_)
+# Eigen equivalent:
+#   ((...).abs().rowwise().mean() * weight_).pow(power_).eval()
+old_pow = '''    data.costs += xt::pow(
+      xt::mean(xt::fabs(utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw)), {1}) *
+      weight_, power_);'''
+new_pow = '''    data.costs += ((utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs()).
+      rowwise().mean() * weight_).pow(power_).eval();'''
+content = content.replace(old_pow, new_pow)
+
+old_no_pow = '''    data.costs += xt::mean(
+      xt::fabs(utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw)), {1}) * weight_;'''
+new_no_pow = '''    data.costs += (utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs()).
+      rowwise().mean() * weight_;'''
+content = content.replace(old_no_pow, new_no_pow)
+
+with open('src/critics/goal_angle_critic.cpp', 'w') as f:
+    f.write(content)
+"
+
+            # Fix incomplete xtensor-to-Eigen migration in optimizer.cpp.
+            # The Eigen optimization patch (a33e8d2b) failed to apply hunk #8 to this file,
+            # so xt::clip calls and .shape() calls remain.
+            # Also fix signature mismatch: patches left 'int' parameter where header expects 'const geometry_msgs::msg::Pose&'.
+            python3 -c "
+import re
+with open('src/optimizer.cpp', 'r') as f:
+    content = f.read()
+
+# Fix double comma from failed goal parameter removal
+content = content.replace('plan,, nav2_core', 'plan, nav2_core')
+
+# Fix .shape(0) -> .size() for control sequence
+content = content.replace('control_sequence_.vx.shape(0)', 'control_sequence_.vx.size()')
+content = content.replace('control_sequence_.wz.shape(0)', 'control_sequence_.wz.size()')
+content = content.replace('control_sequence_.vy.shape(0)', 'control_sequence_.vy.size()')
+
+# Replace xt::clip with utils::clamp
+# xt::clip(val, min, max) -> utils::clamp(min, max, val)
+content = re.sub(
+    r'control_sequence_\.(\w+) = xt::clip\(control_sequence_\.\1,\s*(-?s\.constraints\.\w+),\s*(s\.constraints\.\w+)\)',
+    r'control_sequence_.\1 = utils::clamp(\2, \3, control_sequence_.\1)',
+    content
+)
+
+# Fix signature mismatch: replace 'int' parameter with 'const geometry_msgs::msg::Pose & goal'
+# where the .hpp header expects the Pose type
+content = re.sub(
+    r'(const nav_msgs::msg::Path & plan,\s*)int(\s*nav2_core::GoalChecker \* goal_checker)',
+    r'\1const geometry_msgs::msg::Pose & goal,\2',
+    content
+)
+
+with open('src/optimizer.cpp', 'w') as f:
+    f.write(content)
+"
 
             # Write the entire CMakeLists.txt from scratch. Too many patches partially
             # fail on this file leaving it in an inconsistent state (xtensor refs mixed
