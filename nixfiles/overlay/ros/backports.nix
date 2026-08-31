@@ -264,6 +264,9 @@ self: super:
                 r'angular_distances\s*=\s*angular_distances\.cwiseMin\(symmetric_distances\)\s*;',
                 'angular_distances = angular_distances.cwiseMin(symmetric_distances).eval();',
                 content)
+            # Nuclear option: replace 'auto angular_distances' with 'Eigen::ArrayXXf angular_distances'
+            content = content.replace('auto angular_distances', 'Eigen::ArrayXXf angular_distances')
+            content = content.replace('auto symmetric_distances', 'Eigen::ArrayXXf symmetric_distances')
 
             # Fix .pow({1}) -> .pow(1) - Eigen can't deduce template from initializer list
             content = content.replace('.pow({1})', '.pow(1)')
