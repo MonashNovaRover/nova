@@ -31,9 +31,6 @@ export NIX_ROS_OVERLAY_HASH=$(nurl https://github.com/lopsided98/nix-ros-overlay
 # update-revisions:
 # Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
 
-# # Set up the origin so the remote can be accessed using the PAT
-# git config --global url."https://x-access-token:$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
-
 # Checkout the branch if it already exists
 git pull
 if git rev-parse origin/$GIT_BRANCH >/dev/null; then
@@ -63,9 +60,6 @@ fi
 nix-env -f '<nixpkgs>' -iA mcp-nixos
 nix-env -f '<nixpkgs>' -iA opencode
 
-# Set up the origin so the remote can be accessed using the PAT
-git config --global url."https://x-access-token:$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
-
 # Checkout the branch if it already exists
 git pull
 if git rev-parse origin/$GIT_BRANCH >/dev/null; then
@@ -76,11 +70,9 @@ git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
 fi
 git pull
 
-# Convert submodule urls from SSH to HTTPS so the PAT can work
-sed -i 's|git@github.com:|https://github.com/|g' .gitmodules
-
-# Remove nixfiles/secrets so it is not cloned
+# Skip nixfiles/secrets so it is not cloned
 git -c submodule."nixfiles/secrets".update=none submodule update --init --recursive
+rm -rf nixfiles/secrets
 
 # To the same above for each cloned submodule (ignores nixfiles/secrets)
 git submodule foreach --recursive '
