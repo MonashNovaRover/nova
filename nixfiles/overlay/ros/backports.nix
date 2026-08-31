@@ -173,12 +173,6 @@ self: super:
           '';
 
           postPatch = ''
-            # Fix the failed hunk #2 from a6a4c263 revert: remove goal param from prepare()
-            # The revert removed goal from evalControl (hunk #1 succeeded) but failed on
-            # prepare (hunk #2) because context line state_.speed = robot_speed doesn't match.
-            sed -i '/^  const geometry_msgs::msg::Pose & goal,$/d' src/optimizer.cpp
-            sed -i '/^  const nav_msgs::msg::Path & plan,$/{N;s|\n  nav2_core::GoalChecker \* goal_checker)|, nav2_core::GoalChecker * goal_checker)|}' src/optimizer.cpp
-            sed -i '/^  goal_ = goal;$/d' src/optimizer.cpp
 
             # Fix incomplete xtensor-to-Eigen migration in motion_models.hpp.
             # The Eigen optimization patch (a33e8d2b) partially failed to apply to this file.
@@ -275,18 +269,11 @@ self: super:
             content = content.replace('.shape(0)', '.size()')
             content = content.replace('.shape(1)', '.cols()')
 
-            # Replace xt::clip with utils::clamp
-            # xt::clip(val, min, max) -> utils::clamp(min, max, val)
+            # Replace xt::clip with utils::clamp (array clamp with element-wise semantics)
+            # xt::clip(val, min, max) -> val = val.max(min).min(max) for Eigen arrays
             content = re.sub(
                 r'control_sequence_\.(\w+) = xt::clip\(control_sequence_\.\1,\s*(-?[\w.]+),\s*([\w.]+)\)',
-                r'control_sequence_.\1 = utils::clamp(\2, \3, control_sequence_.\1)',
-                content
-            )
-
-            # Fix signature mismatch: any 'int' parameter in evalControl/prepare signatures
-            content = re.sub(
-                r'(const nav_msgs::msg::Path & plan,\s*)int(\s*nav2_core::GoalChecker \* goal_checker)',
-                r'\1const geometry_msgs::msg::Pose & goal,\2',
+                r'control_sequence_.\1 = control_sequence_.\1.max(\2).min(\3)',
                 content
             )
 
