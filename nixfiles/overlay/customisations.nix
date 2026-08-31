@@ -23,10 +23,11 @@ self: super:
         json-tricks = pySuper.json-tricks.overridePythonAttrs (old: {
           doCheck = false;
         });
-        mavproxy = pySuper.mavproxy.overridePythonAttrs (old: {
-          dontCheckVersion = true;
-        });
       }
     )
   ];
+
+  mavproxy = super.mavproxy.overridePythonAttrs (old: {
+    dontCheckVersion = true;
+  });
 }
