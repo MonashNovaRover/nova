@@ -183,6 +183,29 @@ self: super:
             sed -i '/^  const nav_msgs::msg::Path & plan,$/{N;s|\n  nav2_core::GoalChecker \* goal_checker)|, nav2_core::GoalChecker * goal_checker)|}' src/optimizer.cpp
             # Remove goal_ = goal;
             sed -i '/^  goal_ = goal;$/d' src/optimizer.cpp
+
+            # Fix failed hunks from a33e8d2bef Eigen patch: remove xtensor/xsimd refs
+            # The patch's CMakeLists.txt hunks failed because context changed from
+            # earlier CMake modernization patches. Manually clean up xtensor references.
+            sed -i '/add_definitions(-DXTENSOR_ENABLE_XSIMD)/d' CMakeLists.txt
+            sed -i '/add_definitions(-DXTENSOR_USE_XSIMD)/d' CMakeLists.txt
+            sed -i '/^set(XTENSOR_USE_TBB/d' CMakeLists.txt
+            sed -i '/^set(XTENSOR_USE_OPENMP/d' CMakeLists.txt
+            sed -i '/^set(XTENSOR_USE_XSIMD/d' CMakeLists.txt
+            sed -i '/find_package(xsimd/d' CMakeLists.txt
+            sed -i '/find_package(xtensor/d' CMakeLists.txt
+            sed -i '/${xsimd_INCLUDE_DIRS}/d' CMakeLists.txt
+            sed -i '/^  xtensor$/d' CMakeLists.txt
+            sed -i '/^  xtensor::optimize$/d' CMakeLists.txt
+            sed -i '/^  xtensor::use_xsimd$/d' CMakeLists.txt
+            # Also remove -mno-avx512f, -msse4.2, -mavx2 options that the patch removed
+            sed -i '/-mno-avx512f/d' CMakeLists.txt
+            sed -i '/-msse4.2/d' CMakeLists.txt
+            sed -i '/-mavx2/d' CMakeLists.txt
+            # Remove -fconcepts and extra flags the patch removed from mppi_critics
+            sed -i 's/-fconcepts -O3 -finline-limit=10000000 -ffp-contract=fast -ffast-math -mtune=generic/-O3/g' CMakeLists.txt
+            # Add Eigen include if not already present
+            grep -q 'EIGEN3_INCLUDE_DIR' CMakeLists.txt || sed -i '/find_package(Eigen3/a include_directories(include ${EIGEN3_INCLUDE_DIR})' CMakeLists.txt
           '';
 
           nativeBuildInputs = with rosSelf; [ ament-cmake ];
