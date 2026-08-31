@@ -2,6 +2,14 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 830b48b..45497ee 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
+@@ -1,5 +1,5 @@
+-SET(PROJECT_NAME vikit_common)
+-PROJECT(${PROJECT_NAME})
+-CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
++CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
++SET(PROJECT_NAME vikit_common)
++PROJECT(${PROJECT_NAME})
+ SET(CMAKE_BUILD_TYPE Release) # Release, RelWithDebInfo
 @@ -6,27 +6,6 @@ SET(CMAKE_VERBOSE_MAKEFILE OFF)
  SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
  SET(USE_ROS False) # Set False if you want to build this package without Catkin
