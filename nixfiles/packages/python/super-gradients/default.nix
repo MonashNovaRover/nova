@@ -53,6 +53,11 @@ buildPythonPackage rec {
     hash = "sha256-51TWJatypEkTnh+0VsQSt9UFHIh0f7Lp/bKhnyjijeE=";
   };
 
+  prePatch = ''
+    substituteInPlace pyproject.toml \
+      --replace-warn 'version = "3.7.1+master"' 'version = "${version}"'
+  '';
+
   propagatedBuildInputs = [
     albumentationsx
     boto3
