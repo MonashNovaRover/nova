@@ -16,7 +16,7 @@ export GIT_BRANCH=test/update-nix2
 
 # Checkout the branch if it already exists
 git pull
-if git rev-parse origin/$GIT_BRANCH >/dev/null; then
+if git rev-parse --verify --quiet origin/$GIT_BRANCH >/dev/null; then
     git checkout $GIT_BRANCH
 else
     # Create the branch if it does not exist
@@ -61,24 +61,16 @@ nix-env -f '<nixpkgs>' -iA mcp-nixos
 nix-env -f '<nixpkgs>' -iA opencode
 
 # Remove nixfiles/secrets
-sed -i '/^\[submodule "nixfiles\/secrets"\]/,$d' .gitmodules
-rm -rf nixfiles/secrets/*
+git rm nixfiles/secrets && git commit
 
-# Push any changes
-if ! git diff --quiet; then
-    git add .
-    git commit -a -m "Updating nixpkgs and nix-ros-overlay to the latest versions"
-    git push
-fi
+# Make sure remaining submodules are checked out
+git submodule update --init --recursive
 
-# Skip nixfiles/secrets so it is not cloned
-git -c submodule."nixfiles/secrets".update=none submodule update --init --recursive
-
-# To the same above for each cloned submodule (ignores nixfiles/secrets)
+# To the same above for each cloned submodule
 git submodule foreach --recursive '
     # Checkout the branch if it already exists
     git pull origin master
-    if git rev-parse origin/$GIT_BRANCH >/dev/null; then
+    if git rev-parse --verify --quiet origin/$GIT_BRANCH >/dev/null; then
         git checkout $GIT_BRANCH
     else
         # Create the branch if it does not exist
