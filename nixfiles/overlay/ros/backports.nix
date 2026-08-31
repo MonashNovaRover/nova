@@ -261,7 +261,7 @@ self: super:
             set(libraries mppi_controller mppi_critics)
 
             foreach(lib IN LISTS libraries)
-              ament_target_dependencies($''{lib} PUBLIC
+              ament_target_dependencies(''${lib} PUBLIC
                 angles
                 Eigen3
                 geometry_msgs
