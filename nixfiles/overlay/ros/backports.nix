@@ -218,7 +218,7 @@ self: super:
             # Also replace standalone shape[] references
             content = content.replace('shape[0]', 'n_rows')
             content = content.replace('shape[1]', 'n_cols')
-            content = re.sub(r'auto & shape = trajectories\.x\.rows\(\);', '', content)
+            content = re.sub(r'auto & shape = trajectories\.x\.rows\(\);', "", content)
             with open('src/trajectory_visualizer.cpp', 'w') as f:
                 f.write(content)
             PYEOF
