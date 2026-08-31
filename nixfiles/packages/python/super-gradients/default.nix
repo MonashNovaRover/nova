@@ -54,8 +54,9 @@ buildPythonPackage rec {
   };
 
   prePatch = ''
-    substituteInPlace pyproject.toml \
-      --replace-warn 'version = "3.7.1+master"' 'version = "${version}"'
+    echo "${version}" > version.txt
+    substituteInPlace src/super_gradients/__init__.py \
+      --replace-warn '__version__ = "3.7.1"' '__version__ = "${version}"'
   '';
 
   propagatedBuildInputs = [
