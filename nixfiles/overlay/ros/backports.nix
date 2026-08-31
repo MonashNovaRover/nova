@@ -180,6 +180,13 @@ self: super:
             sed -i '/^  const nav_msgs::msg::Path & plan,$/{N;s|\n  nav2_core::GoalChecker \* goal_checker)|, nav2_core::GoalChecker * goal_checker)|}' src/optimizer.cpp
             sed -i '/^  goal_ = goal;$/d' src/optimizer.cpp
 
+            # Fix incomplete xtensor-to-Eigen migration in motion_models.hpp.
+            # The Eigen optimization patch (a33e8d2b) partially failed to apply to this file.
+            # The types were converted from xtensor to Eigen, but .shape() calls (xtensor method)
+            # were not converted to .rows()/.cols() (Eigen method). This error cascades to all
+            # 16 translation units that include this header.
+            sed -i 's/\.shape(0)/.rows()/g; s/\.shape(1)/.cols()/g' include/nav2_mppi_controller/motion_models.hpp
+
             # Write the entire CMakeLists.txt from scratch. Too many patches partially
             # fail on this file leaving it in an inconsistent state (xtensor refs mixed
             # with Eigen, broken exports, etc). The target state incorporates:
