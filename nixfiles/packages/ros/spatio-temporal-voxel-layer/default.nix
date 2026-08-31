@@ -93,5 +93,7 @@ buildRosPackage rec {
     sed -i '/set(CMAKE_MODULE_PATH/alist(APPEND CMAKE_MODULE_PATH "${openvdb.dev}/lib/cmake/OpenVDB/")' CMakeLists.txt
     sed -i '/find_package(OPENVDB REQUIRED)/afind_package(TBB REQUIRED)' CMakeLists.txt
     sed -i '/{OpenVDB_LIBRARIES}/aTBB::tbb' CMakeLists.txt
+    # Boost 1.89+ merged system into header-only; remove it from COMPONENTS
+    sed -i 's/find_package(Boost[^)]*COMPONENTS[[:space:]]*system/find_package(Boost COMPONENTS/g' CMakeLists.txt
   '';
 }
