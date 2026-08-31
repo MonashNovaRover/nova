@@ -41,6 +41,7 @@ stdenv.mkDerivation (finalAttrs: {
     cp package.json $out/lib/node_modules/ros-typescript-generator/
     mkdir -p $out/bin
     ln -s $out/lib/node_modules/ros-typescript-generator/.bin/ros-typescript-generator $out/bin/ros-typescript-generator
+    patchShebangs $out
     runHook postInstall
   '';
 
