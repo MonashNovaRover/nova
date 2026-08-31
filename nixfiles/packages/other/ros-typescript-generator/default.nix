@@ -38,6 +38,7 @@ stdenv.mkDerivation (finalAttrs: {
     mkdir -p $out/lib/node_modules/ros-typescript-generator
     cp -r build $out/lib/node_modules/ros-typescript-generator/
     cp -r .bin $out/lib/node_modules/ros-typescript-generator/
+    cp -r node_modules $out/lib/node_modules/ros-typescript-generator/
     cp package.json $out/lib/node_modules/ros-typescript-generator/
     mkdir -p $out/bin
     ln -s $out/lib/node_modules/ros-typescript-generator/.bin/ros-typescript-generator $out/bin/ros-typescript-generator
