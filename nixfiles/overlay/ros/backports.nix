@@ -205,7 +205,7 @@ self: super:
             # Remove -fconcepts and extra flags the patch removed from mppi_critics
             sed -i 's/-fconcepts -O3 -finline-limit=10000000 -ffp-contract=fast -ffast-math -mtune=generic/-O3/g' CMakeLists.txt
             # Add Eigen include if not already present
-            grep -q 'EIGEN3_INCLUDE_DIR' CMakeLists.txt || sed -i '/find_package(Eigen3/a include_directories(include ${EIGEN3_INCLUDE_DIR})' CMakeLists.txt
+            grep -q 'EIGEN3_INCLUDE_DIR' CMakeLists.txt || sed -i '/find_package(Eigen3/a include_directories(include ''${EIGEN3_INCLUDE_DIR})' CMakeLists.txt
           '';
 
           nativeBuildInputs = with rosSelf; [ ament-cmake ];
