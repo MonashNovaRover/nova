@@ -212,7 +212,7 @@ self: super:
 
             include_directories(
               include
-              ${EIGEN3_INCLUDE_DIR}
+              ''${EIGEN3_INCLUDE_DIR}
             )
 
             nav2_package()
@@ -235,8 +235,8 @@ self: super:
             target_compile_options(mppi_controller PUBLIC -O3)
             target_include_directories(mppi_controller
               PUBLIC
-                "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+                "$<BUILD_INTERFACE:''${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                "$<INSTALL_INTERFACE:include/''${PROJECT_NAME}>")
             target_link_libraries(mppi_controller PUBLIC
               angles::angles
               Eigen3::Eigen
@@ -252,7 +252,7 @@ self: super:
               tf2_eigen::tf2_eigen
               tf2_geometry_msgs::tf2_geometry_msgs
               tf2_ros::tf2_ros
-              ${visualization_msgs_TARGETS}
+              ''${visualization_msgs_TARGETS}
             )
 
             add_library(mppi_critics SHARED
@@ -271,8 +271,8 @@ self: super:
             target_compile_options(mppi_critics PUBLIC -fconcepts -O3)
             target_include_directories(mppi_critics
               PUBLIC
-                "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+                "$<BUILD_INTERFACE:''${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                "$<INSTALL_INTERFACE:include/''${PROJECT_NAME}>")
             target_link_libraries(mppi_critics PUBLIC
               angles::angles
               Eigen3::Eigen
@@ -288,7 +288,7 @@ self: super:
               tf2_eigen::tf2_eigen
               tf2_geometry_msgs::tf2_geometry_msgs
               tf2_ros::tf2_ros
-              ${visualization_msgs_TARGETS}
+              ''${visualization_msgs_TARGETS}
             )
             target_link_libraries(mppi_critics PRIVATE
               pluginlib::pluginlib
@@ -302,7 +302,7 @@ self: super:
             )
 
             install(DIRECTORY include/
-              DESTINATION include/${PROJECT_NAME}
+              DESTINATION include/''${PROJECT_NAME}
             )
 
             if(BUILD_TESTING)
@@ -331,7 +331,7 @@ self: super:
               visualization_msgs
               Eigen3
             )
-            ament_export_include_directories(include/${PROJECT_NAME})
+            ament_export_include_directories(include/''${PROJECT_NAME})
             ament_export_targets(nav2_mppi_controller)
             pluginlib_export_plugin_description_file(nav2_core mppic.xml)
             pluginlib_export_plugin_description_file(nav2_mppi_controller critics.xml)
