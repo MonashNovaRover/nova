@@ -385,7 +385,8 @@ index 0ee491fbfd2..1afe0e14331 100644
  #include "nav2_behavior_tree/plugins/condition/transform_available_condition.hpp"
  
 diff --git a/nav2_behavior_tree/test/CMakeLists.txt b/nav2_behavior_tree/test/CMakeLists.txt
-index eff6e78c5db..00000000000 100644
+--- a/nav2_behavior_tree/test/CMakeLists.txt
++++ b/nav2_behavior_tree/test/CMakeLists.txt
 @@ -1,12 +1,27 @@
  ament_add_gtest(test_bt_utils test_bt_utils.cpp)
 -ament_target_dependencies(test_bt_utils ${dependencies})
@@ -417,7 +418,8 @@ index eff6e78c5db..00000000000 100644
  add_subdirectory(plugins/condition)
  add_subdirectory(plugins/decorator)
 diff --git a/nav2_behavior_tree/test/plugins/action/CMakeLists.txt b/nav2_behavior_tree/test/plugins/action/CMakeLists.txt
-index 513a19caec2..00000000000 100644
+--- a/nav2_behavior_tree/test/plugins/action/CMakeLists.txt
++++ b/nav2_behavior_tree/test/plugins/action/CMakeLists.txt
 @@ -1,137 +1,74 @@
  find_package(test_msgs REQUIRED)
  
@@ -935,7 +937,8 @@ index 4b55e3d1335..4e91db8e5be 100644
  #include "lifecycle_msgs/srv/change_state.hpp"
  
 diff --git a/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt b/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt
-index d2ba3c1179d..00000000000 100644
+--- a/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt
++++ b/nav2_behavior_tree/test/plugins/condition/CMakeLists.txt
 @@ -1,67 +1,39 @@
 -ament_add_gtest(test_condition_distance_traveled test_distance_traveled.cpp)
 -target_link_libraries(test_condition_distance_traveled nav2_distance_traveled_condition_bt_node)
@@ -1102,7 +1105,8 @@ index ed6504a6824..98e6db595b5 100644
 -ament_target_dependencies(test_decorator_path_longer_on_approach ${dependencies})
 +plugin_add_test(test_decorator_path_longer_on_approach test_path_longer_on_approach.cpp nav2_path_longer_on_approach_bt_node)
 diff --git a/nav2_behavior_tree/test/plugins/decorator/test_goal_updater_node.cpp b/nav2_behavior_tree/test/plugins/decorator/test_goal_updater_node.cpp
-index fa56a2064ab..00000000000 100644
+--- a/nav2_behavior_tree/test/plugins/decorator/test_goal_updater_node.cpp
++++ b/nav2_behavior_tree/test/plugins/decorator/test_goal_updater_node.cpp
 @@ -23,7 +23,7 @@
  
  #include "behaviortree_cpp/bt_factory.h"
@@ -1112,4 +1116,3 @@ index fa56a2064ab..00000000000 100644
  #include "nav2_behavior_tree/plugins/decorator/goal_updater_node.hpp"
  
  
-

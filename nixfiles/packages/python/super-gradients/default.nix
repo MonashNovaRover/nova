@@ -87,4 +87,6 @@ buildPythonPackage rec {
     werkzeug
     wheel
   ];
+
+  dontCheckRuntimeDeps = true;
 }
