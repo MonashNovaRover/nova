@@ -86,5 +86,5 @@ git submodule foreach --recursive '
     git pull
 '
 
-# # Run LLM
-# opencode run --model opencode/mimo-v2.5-free --agent patch --auto --print-logs --log-level DEBUG "/fix-errors"
+# Run LLM
+opencode run --model opencode/mimo-v2.5-free --agent patch --auto --print-logs --log-level DEBUG "/fix-errors"
