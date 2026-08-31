@@ -215,6 +215,10 @@ self: super:
             content = content.replace('.shape()[1]', '.cols()')
             content = re.sub(r'\.shape\(\s*0\s*\)', '.rows()', content)
             content = re.sub(r'\.shape\(\s*1\s*\)', '.cols()', content)
+            # Also replace standalone shape[] references
+            content = content.replace('shape[0]', 'n_rows')
+            content = content.replace('shape[1]', 'n_cols')
+            content = re.sub(r'auto & shape = trajectories\.x\.rows\(\);', '', content)
             with open('src/trajectory_visualizer.cpp', 'w') as f:
                 f.write(content)
             PYEOF
@@ -236,14 +240,19 @@ self: super:
             # Replace xt::fabs(x) -> (x).abs()
             content = re.sub(r'xt::fabs\(([^)]+)\)', r'(\1).abs()', content)
 
-            # Replace xt::pow(x, y) -> (x).pow(y)
+            # Replace xt::pow(x, y) -> (x).pow(y) - handles chained .pow too
             content = re.sub(r'xt::pow\(([^,]+),\s*([^)]+)\)', r'(\1).pow(\2)', content)
 
-            # Replace xt::mean(x, {1}) -> (x).rowwise().mean()
-            content = re.sub(r'xt::mean\(([^,]+),\s*\{1\}\)', r'(\1).rowwise().mean()', content)
+            # Replace xt::mean(x, {1}) or xt::mean(x) -> (x).rowwise().mean()
+            content = re.sub(r'xt::mean\(([^,)]+)(?:,\s*\{1\})?\)', r'(\1).rowwise().mean()', content)
 
             # Replace xt::minimum(a, b) -> a.cwiseMin(b)
             content = re.sub(r'xt::minimum\(([^,]+),\s*([^)]+)\)', r'(\1).cwiseMin(\2)', content)
+
+            # Fix Eigen expression assignment: add .eval() where needed
+            content = content.replace(
+                'angular_distances = (angular_distances).cwiseMin(symmetric_distances);',
+                'angular_distances = (angular_distances).cwiseMin(symmetric_distances).eval();')
 
             with open('src/critics/goal_angle_critic.cpp', 'w') as f:
                 f.write(content)
