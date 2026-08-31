@@ -28,6 +28,6 @@ self: super:
   ];
 
   mavproxy = super.mavproxy.overridePythonAttrs (old: {
-    dontCheckVersion = true;
+    dontVersionCheck = true;
   });
 }
