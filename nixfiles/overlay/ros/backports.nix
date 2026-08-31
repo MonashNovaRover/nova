@@ -195,14 +195,8 @@ self: super:
 import re, sys
 with open('src/trajectory_visualizer.cpp', 'r') as f:
     content = f.read()
-
-# Replace xt::xtensor type with Eigen
 content = content.replace('xt::xtensor<float, 2>', 'Eigen::ArrayXXf')
-
-# Replace 'auto & size = trajectory.shape()[0]' with 'size_t size = trajectory.rows()'
 content = content.replace('auto & size = trajectory.shape()[0]', 'size_t size = trajectory.rows()')
-
-# Replace the shape block in the second add() overload
 content = content.replace(
     'auto & shape = trajectories.x.shape();\n'
     '  const float shape_1 = static_cast<float>(shape[1]);\n'
@@ -214,12 +208,10 @@ content = content.replace(
     '  const float shape_1 = static_cast<float>(n_cols);\n'
     '  points_->markers.reserve(floor(n_rows / trajectory_step_) * floor(n_cols * time_step_));\n'
     '  for (size_t i = 0; i < n_rows; i += trajectory_step_) {\n'
-    '    for (size_t j = 0; j < n_cols; j += time_step_) {'
-)
-
-            with open('src/trajectory_visualizer.cpp', 'w') as f:
-                f.write(content)
-            "
+    '    for (size_t j = 0; j < n_cols; j += time_step_) {')
+with open('src/trajectory_visualizer.cpp', 'w') as f:
+    f.write(content)
+"
 
             # Fix incomplete xtensor-to-Eigen migration in goal_angle_critic.cpp.
             # The Eigen optimization patch (a33e8d2b) failed to apply hunk #1 to this file,
