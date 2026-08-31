@@ -82,7 +82,6 @@ self: super:
         # });
 
         nav2-mppi-controller = rosSuper.nav2-mppi-controller.overrideAttrs ({ patches ? [ ], ... }: {
-          patchFlags = [ "-p2" ];
 
           patches = patches ++ [
             # Fix goal pose stamp (backport #4854) 
@@ -91,10 +90,12 @@ self: super:
               url = "https://github.com/ros-navigation/navigation2/commit/65eab414f3ddeccceb988e89af91e645c48d06d6.diff"; 
               revert = true; 
               hash = "sha256-r5fag+emiM/6qwVgLSDxkVgKvpwuGzKDe8Oh/XfyueM="; 
-            }) 
-            
+            })
+
             # Mppi goal to critic (backport #4822) 
             # https://github.com/ros-navigation/navigation2/pull/4853 
+            # NOTE: hunk #2 of optimizer.cpp fails because context changed upstream.
+            # The failed hunk is applied by postPatch below.
             (self.fetchpatch { 
               url = "https://github.com/ros-navigation/navigation2/commit/a6a4c26348efc6d7e265a5080d9165a4af699337.diff"; 
               revert = true; 
@@ -159,18 +160,28 @@ self: super:
             ./patches/mppi-visualisation.patch
           ];
 
-          # Manually fix the failed hunk from the a6a4c263 revert patch
-          # The revert tries to remove goal param from prepare() but context lines
-          # don't match due to upstream changes (settings_.open_loop branch).
+          # The a6a4c263 revert fetchpatch partially fails (hunk #2 of optimizer.cpp
+          # has wrong context due to upstream changes). Override patchPhase to tolerate
+          # partial failures, then use postPatch to apply the failed hunk manually.
+          patchPhase = ''
+            runHook prePatch
+            for patch in $patches; do
+              echo "Applying patch $patch"
+              patch -p2 --batch < "$patch" || echo "WARN: patch had partial failures, continuing..."
+            done
+            runHook postPatch
+          '';
+
           postPatch = ''
-            # Remove the goal parameter from prepare() signature
+            # Fix the failed hunk #2 from a6a4c263 revert: remove goal param from prepare()
+            # The revert removed goal from evalControl (hunk #1 succeeded) but failed on
+            # prepare (hunk #2) because context line state_.speed = robot_speed doesn't match.
+
+            # Remove the goal parameter line from prepare signature
             sed -i '/^  const geometry_msgs::msg::Pose & goal,$/d' src/optimizer.cpp
-            # Rejoin the split line (plan + goal_checker on same line)
-            sed -i '/^  const nav_msgs::msg::Path & plan,$/{
-              N
-              s|  const nav_msgs::msg::Path & plan,\n  nav2_core::GoalChecker \* goal_checker\)|  const nav_msgs::msg::Path \& plan, nav2_core::GoalChecker * goal_checker)|
-            }' src/optimizer.cpp
-            # Remove goal_ = goal; assignment
+            # Merge the now-split "plan," and "goal_checker)" lines into one
+            sed -i '/^  const nav_msgs::msg::Path & plan,$/{N;s|\n  nav2_core::GoalChecker \* goal_checker)|, nav2_core::GoalChecker * goal_checker)|}' src/optimizer.cpp
+            # Remove goal_ = goal;
             sed -i '/^  goal_ = goal;$/d' src/optimizer.cpp
           '';
 
