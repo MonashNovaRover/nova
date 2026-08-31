@@ -7,6 +7,7 @@
 
 buildPythonPackage {
   name = "nova-pytest-framework";
+  format = "setuptools";
 
   src = builtins.path rec {
     name = "nova-pytest-framework-source";

@@ -30,9 +30,8 @@
  c-blosc, 
  openexr, 
  rosidl-default-runtime, 
- tbb_2021_11, 
+ onetbb,
  zlib, 
- breakpointHook, 
 }:
 
 buildRosPackage rec {
@@ -50,7 +49,7 @@ buildRosPackage rec {
 
   buildType = "ament_cmake";
   
-  buildInputs = [ ament-cmake pkg-config breakpointHook ];
+  buildInputs = [ ament-cmake pkg-config ];
   checkInputs = [ ament-cmake-copyright ament-cmake-cppcheck ament-cmake-uncrustify ament-lint-auto ament-lint-common ];
   propagatedBuildInputs = [ 
     nav2-costmap-2d 
@@ -75,7 +74,7 @@ buildRosPackage rec {
     c-blosc 
     openexr 
     rosidl-default-runtime 
-    tbb_2021_11 
+    onetbb
     zlib 
   ];
   nativeBuildInputs = [ ament-cmake pkg-config ];

@@ -8,16 +8,17 @@ Subject: [PATCH 1/1] don't wrap qt apps for the whole env
  1 file changed, 1 insertion(+)
 
 diff --git a/distros/build-env/default.nix b/distros/build-env/default.nix
-index bcf5bcaf..537041a1 100644
+index f76bffdb..fa977aa4 100644
 --- a/distros/build-env/default.nix
 +++ b/distros/build-env/default.nix
-@@ -110,5 +110,6 @@ let
-     dontGzipMan = true;
-     dontPatchShebangs = true;
-     dontMoveLib64 = true;
-+    dontWrapQtApps = true;
-   });
- in env
+@@ -65,6 +65,7 @@ let
+       dontGzipMan = true;
+       dontPatchShebangs = true;
+       dontMoveLib64 = true;
++      dontWrapQtApps = true;
+ 
+       # nixpkgs's buildEnv disables substitutes, which can lead to
+       # unnecessarily long build times for development environments.
 -- 
 2.51.2
 

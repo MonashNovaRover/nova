@@ -3,7 +3,6 @@
   makeWrapper,
   steam-run-free,
   fetchurl,
-  breakpointHook,
 }:
 
 # https://nixos.wiki/wiki/Packaging/Binaries
@@ -17,7 +16,6 @@ stdenv.mkDerivation rec {
     hash = "sha256-Kv7CSyNJQKMuEATjBTDXIpn/u9sjAvPVJOlm7/SETN8=";
   };
 
-  nativeBuildInputs = [ breakpointHook ];
   buildInputs = [ steam-run-free makeWrapper ];
 
   sourceRoot = ".";

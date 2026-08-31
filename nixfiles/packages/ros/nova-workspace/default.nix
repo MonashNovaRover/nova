@@ -13,72 +13,76 @@
   ## Manually specify which Nova Rover packages to include.
   ## Note that some packages may have dependencies on others that will be
   ## implicitly included.
-, novaPackages ? {
-    inherit (pkgs.ros)
-      nova-dgnss
-      nova-electronics
-      nova-science
-      nova-blcmd-hardware
-      nova-blcmd-hardware2
-      nova-cmd-hardware
-      nova-qcmd-hardware
-      nova-controller-common
-      nova-drive-controller-base
-      nova-pivot-drive-controller
-      nova-strafe-drive-controller
-      nova-diff-drive-controller
-      nova-teleop-drive-joy
-      nova-teleop-arm-joy
-      nova-gui
-      nova-drive
-      nova-drive-interfaces
-      nova-blcmd-interfaces
-      nova-blcmd-utils
-      nova-arm-interfaces
-      nova-arm
-      nova-input-interfaces
-      nova-inputs
-      nova-cmd-interfaces
-      nova-cmd-utils
-      nova-gimbal-cam
-      nova-interfaces
-      nova-bringup
-      nova-auto-bringup
-      nova-arm-bringup
-      nova-drive-bringup
-      nova-rover-description
-      nova-gazebo
-      nova-python-control
-      nova-python-control2
-      nova-excavation-construction
-      nova-teleop-ec
-      nova-utils
-      nova-arm-controller
-      nova-twistmapper
-      nova-path-planner
-      nova-banksia-kinematics-plugin
-      nova-waratah-kinematics-plugin
-      nova-joint-space-control-mode
-      nova-teleop-arm
-      nova-legacy-input-mode
-      nova-teleop-science
-      nova-science-interfaces
-      nova-science-bringup
-      nova-arm-kinematics
-      nova-cameras
-      nova-camera-msgs
-      nova-locked-publisher
-      ;
-    inherit (pkgs)
-      nova-launch-scripts
-      reolink
-      ;
-    inherit (pkgs.python3Packages)
-      nova-can-sleuth
-      nova-cli
-      ;
-    nova-git-metadata = (pkgs.writeTextDir "nova-git-metadata" git-metadata);
-  }
+, novaPackages ? let
+    basePkgs = {
+      inherit (pkgs.ros)
+        nova-dgnss
+        nova-electronics
+        nova-science
+        nova-blcmd-hardware
+        nova-blcmd-hardware2
+        nova-cmd-hardware
+        nova-qcmd-hardware
+        nova-controller-common
+        nova-drive-controller-base
+        nova-pivot-drive-controller
+        nova-strafe-drive-controller
+        nova-diff-drive-controller
+        nova-teleop-drive-joy
+        nova-teleop-arm-joy
+        nova-gui
+        nova-drive-interfaces
+        nova-blcmd-interfaces
+        nova-blcmd-utils
+        nova-arm-interfaces
+        nova-input-interfaces
+        nova-inputs
+        nova-cmd-interfaces
+        nova-gimbal-cam
+        nova-interfaces
+        nova-bringup
+        nova-auto-bringup
+        nova-arm-bringup
+        nova-drive-bringup
+        nova-rover-description
+        nova-gazebo
+        nova-python-control
+        nova-python-control2
+        nova-excavation-construction
+        nova-teleop-ec
+        nova-utils
+        nova-arm-controller
+        nova-twistmapper
+        nova-path-planner
+        nova-banksia-kinematics-plugin
+        nova-waratah-kinematics-plugin
+        nova-joint-space-control-mode
+        nova-teleop-arm
+        nova-legacy-input-mode
+        nova-teleop-science
+        nova-science-interfaces
+        nova-science-bringup
+        nova-arm-kinematics
+        nova-cameras
+        nova-camera-msgs
+        nova-locked-publisher
+        ;
+      inherit (pkgs)
+        nova-launch-scripts
+        reolink
+        ;
+      inherit (pkgs.python3Packages)
+        nova-can-sleuth
+        nova-cli
+        ;
+      nova-git-metadata = (pkgs.writeTextDir "nova-git-metadata" git-metadata);
+    };
+    optionalPkgs = lib.filterAttrs (name: _: pkgs.ros ? ${name}) {
+      nova-arm = pkgs.ros.nova-arm;
+      nova-cmd-utils = pkgs.ros.nova-cmd-utils;
+      nova-drive = pkgs.ros.nova-drive;
+    };
+  in basePkgs // optionalPkgs
 
   ## Extra packages to add to the workspace.
 , extraPackages ? { 

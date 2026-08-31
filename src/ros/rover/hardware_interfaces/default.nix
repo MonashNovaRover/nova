@@ -2,6 +2,9 @@
 
 with pkgs;
 
+let
+  libcanmdAvailable = builtins.pathExists ../../../other/libcanmd/default.nix;
+in
 {
   nova-blcmd-hardware = callPackage ./blcmd_hardware { };
   nova-blcmd-hardware2 = callPackage ./blcmd_hardware2 { };
@@ -10,5 +13,7 @@ with pkgs;
   nova-blcmd-interfaces = callPackage ./old/blcmds/blcmd_interfaces { };
   nova-blcmd-utils = callPackage ./old/blcmds/blcmd_utils { };
   nova-cmd-interfaces = callPackage ./old/cmds/cmd_interfaces { };
-  nova-cmd-utils = callPackage ./old/cmds/cmd_utils { };
 }
+// (if libcanmdAvailable then {
+  nova-cmd-utils = callPackage ./old/cmds/cmd_utils { };
+} else {})
