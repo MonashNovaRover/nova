@@ -197,6 +197,7 @@ self: super:
                 content = f.read()
             content = content.replace('xt::xtensor<float, 2>', 'Eigen::ArrayXXf')
             content = content.replace('auto & size = trajectory.shape()[0]', 'size_t size = trajectory.rows()')
+            # Replace the shape block in the second add() overload
             content = content.replace(
                 'auto & shape = trajectories.x.shape();\n'
                 '  const float shape_1 = static_cast<float>(shape[1]);\n'
@@ -209,6 +210,11 @@ self: super:
                 '  points_->markers.reserve(floor(n_rows / trajectory_step_) * floor(n_cols * time_step_));\n'
                 '  for (size_t i = 0; i < n_rows; i += trajectory_step_) {\n'
                 '    for (size_t j = 0; j < n_cols; j += time_step_) {')
+            # Fallback: replace any remaining .shape() calls on Eigen types
+            content = content.replace('.shape()[0]', '.rows()')
+            content = content.replace('.shape()[1]', '.cols()')
+            content = re.sub(r'\.shape\(\s*0\s*\)', '.rows()', content)
+            content = re.sub(r'\.shape\(\s*1\s*\)', '.cols()', content)
             with open('src/trajectory_visualizer.cpp', 'w') as f:
                 f.write(content)
             PYEOF
@@ -224,19 +230,20 @@ self: super:
             # Fix .shape(0) -> .size() for path length
             content = content.replace('data.path.x.shape(0)', 'data.path.x.size()')
 
-            # Replace the xtensor score() body with Eigen equivalent
-            old_pow = ("    data.costs += xt::pow(\n"
-                       "      xt::mean(xt::fabs(utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw)), {1}) *\n"
-                       "      weight_, power_);")
-            new_pow = ("    data.costs += ((utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs()).\n"
-                       "      rowwise().mean() * weight_).pow(power_).eval();")
-            content = content.replace(old_pow, new_pow)
+            # Replace xt::eval() calls - just remove xt::eval wrapper
+            content = re.sub(r'xt::eval\(([^)]+)\)', r'\1', content)
 
-            old_no_pow = ("    data.costs += xt::mean(\n"
-                          "      xt::fabs(utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw)), {1}) * weight_;")
-            new_no_pow = ("    data.costs += (utils::shortest_angular_distance(data.trajectories.yaws, goal_yaw).abs()).\n"
-                          "      rowwise().mean() * weight_;")
-            content = content.replace(old_no_pow, new_no_pow)
+            # Replace xt::fabs(x) -> (x).abs()
+            content = re.sub(r'xt::fabs\(([^)]+)\)', r'(\1).abs()', content)
+
+            # Replace xt::pow(x, y) -> (x).pow(y)
+            content = re.sub(r'xt::pow\(([^,]+),\s*([^)]+)\)', r'(\1).pow(\2)', content)
+
+            # Replace xt::mean(x, {1}) -> (x).rowwise().mean()
+            content = re.sub(r'xt::mean\(([^,]+),\s*\{1\}\)', r'(\1).rowwise().mean()', content)
+
+            # Replace xt::minimum(a, b) -> a.cwiseMin(b)
+            content = re.sub(r'xt::minimum\(([^,]+),\s*([^)]+)\)', r'(\1).cwiseMin(\2)', content)
 
             with open('src/critics/goal_angle_critic.cpp', 'w') as f:
                 f.write(content)
@@ -253,22 +260,21 @@ self: super:
 
             # Fix double comma from failed goal parameter removal
             content = content.replace('plan,, nav2_core', 'plan, nav2_core')
+            content = content.replace('plan,, int', 'plan, int')
 
             # Fix .shape(0) -> .size() for control sequence
-            content = content.replace('control_sequence_.vx.shape(0)', 'control_sequence_.vx.size()')
-            content = content.replace('control_sequence_.wz.shape(0)', 'control_sequence_.wz.size()')
-            content = content.replace('control_sequence_.vy.shape(0)', 'control_sequence_.vy.size()')
+            content = content.replace('.shape(0)', '.size()')
+            content = content.replace('.shape(1)', '.cols()')
 
             # Replace xt::clip with utils::clamp
             # xt::clip(val, min, max) -> utils::clamp(min, max, val)
             content = re.sub(
-                r'control_sequence_\.(\w+) = xt::clip\(control_sequence_\.\1,\s*(-?s\.constraints\.\w+),\s*(s\.constraints\.\w+)\)',
+                r'control_sequence_\.(\w+) = xt::clip\(control_sequence_\.\1,\s*(-?[\w.]+),\s*([\w.]+)\)',
                 r'control_sequence_.\1 = utils::clamp(\2, \3, control_sequence_.\1)',
                 content
             )
 
-            # Fix signature mismatch: replace 'int' parameter with 'const geometry_msgs::msg::Pose & goal'
-            # where the .hpp header expects the Pose type
+            # Fix signature mismatch: any 'int' parameter in evalControl/prepare signatures
             content = re.sub(
                 r'(const nav_msgs::msg::Path & plan,\s*)int(\s*nav2_core::GoalChecker \* goal_checker)',
                 r'\1const geometry_msgs::msg::Pose & goal,\2',
