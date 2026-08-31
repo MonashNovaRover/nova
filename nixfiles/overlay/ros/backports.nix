@@ -254,6 +254,16 @@ self: super:
                 r'(auto\s+symmetric_distances\s*=\s*utils::[^(]+\([^)]*\))\s*;',
                 r'\1.eval();',
                 content)
+            # Directly fix the cwiseMin assignment to use .eval()
+            content = re.sub(
+                r'angular_distances\s*=\s*\(angular_distances\)\.cwiseMin\(symmetric_distances\)\s*;',
+                'angular_distances = (angular_distances).cwiseMin(symmetric_distances).eval();',
+                content)
+            # Also handle case without parens wrapper
+            content = re.sub(
+                r'angular_distances\s*=\s*angular_distances\.cwiseMin\(symmetric_distances\)\s*;',
+                'angular_distances = angular_distances.cwiseMin(symmetric_distances).eval();',
+                content)
 
             # Fix .pow({1}) -> .pow(1) - Eigen can't deduce template from initializer list
             content = content.replace('.pow({1})', '.pow(1)')
