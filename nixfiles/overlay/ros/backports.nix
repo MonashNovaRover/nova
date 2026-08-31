@@ -194,7 +194,7 @@ self: super:
             sed -i '/^set(XTENSOR_USE_XSIMD/d' CMakeLists.txt
             sed -i '/find_package(xsimd/d' CMakeLists.txt
             sed -i '/find_package(xtensor/d' CMakeLists.txt
-            sed -i '/${xsimd_INCLUDE_DIRS}/d' CMakeLists.txt
+            sed -i '/''${xsimd_INCLUDE_DIRS}/d' CMakeLists.txt
             sed -i '/^  xtensor$/d' CMakeLists.txt
             sed -i '/^  xtensor::optimize$/d' CMakeLists.txt
             sed -i '/^  xtensor::use_xsimd$/d' CMakeLists.txt
