@@ -8,7 +8,6 @@
 cd $HOME/nova
 
 # Configure git
-export GITHUB_TOKEN=$(echo $(cat nixfiles/secrets/sisyphus-pat.txt))
 export GIT_AUTHOR_NAME=github-actions[bot]
 export GIT_AUTHOR_EMAIL=github-actions[bot]@users.noreply.github.com
 export GIT_COMMITTER_NAME=github-actions[bot]
