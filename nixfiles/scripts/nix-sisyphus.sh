@@ -89,4 +89,4 @@ git submodule foreach --recursive "
 "
 
 # Run LLM
-nix-shell -p opencode mcp-nixos --run "opencode run --model opencode/muse-spark-1.2-contributor-free --agent patch --print-logs --log-level DEBUG \"/fix-errors\""
+nix-shell -p opencode mcp-nixos --run "opencode run --model opencode/mimo-v2.5-free --agent patch --print-logs --log-level DEBUG \"/fix-errors\""
