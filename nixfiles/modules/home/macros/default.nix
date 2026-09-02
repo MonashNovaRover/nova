@@ -376,6 +376,9 @@ in
           reset-blp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 6}"'';
           reset-brp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 7}"'';
           reset-frp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 8}"'';
+
+          # Nix sisyphus
+          nix-sisyphus = "${pkgs.bash}/bin/bash ${../../../scripts/nix-sisyphus.sh}";
         }
       ];
 
