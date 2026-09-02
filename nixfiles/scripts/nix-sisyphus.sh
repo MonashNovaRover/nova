@@ -46,11 +46,15 @@ export NIX_ROS_OVERLAY_HASH
 # Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
 
 # Write the latest versions of nixpkgs and nix-ros-overlay
-cat nixfiles/revisions.json
-nix-shell -p jq --keep NIXPKGS_SHA --run "jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
-nix-shell -p jq --keep NIXPKGS_HASH --run "jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
-nix-shell -p jq --keep NIX_ROS_OVERLAY_SHA --run "jq '.\"nix-ros-overlay\".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
-nix-shell -p jq --keep NIX_ROS_OVERLAY_HASH --run "jq '.\"nix-ros-overlay\".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
+cat nixfiles/revisions.
+echo $NIXPKGS_SHA
+echo $NIXPKGS_HASH
+echo $NIX_ROS_OVERLAY_SHA
+echo $NIX_ROS_OVERLAY_HASH
+nix-shell -p jq --keep NIXPKGS_SHA --run "jq '.nixpkgs.rev=env.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
+nix-shell -p jq --keep NIXPKGS_HASH --run "jq '.nixpkgs.hash=env.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
+nix-shell -p jq --keep NIX_ROS_OVERLAY_SHA --run "jq '.\"nix-ros-overlay\".rev=env.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
+nix-shell -p jq --keep NIX_ROS_OVERLAY_HASH --run "jq '.\"nix-ros-overlay\".hash=env.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 
 cat nixfiles/revisions.json
 # Push any changes
