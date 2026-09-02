@@ -12,7 +12,8 @@
           "nixfiles/secrets/**": "deny"
         },
         "read": {
-          "nixfiles/secrets/**": "deny"
+          "nixfiles/secrets/**": "deny",
+          ".git/**": "deny"
         },
         "bash": "allow",
         "rm *": "deny",
@@ -35,7 +36,8 @@
           "~/": "deny",
           "~/nova/": "allow",
           "~/nova/src/": "deny",
-          "nixfiles/secrets/**": "deny"
+          "nixfiles/secrets/**": "deny",
+          ".git/**": "deny"
         },
         "bash": {
           "*": "deny",
@@ -54,7 +56,8 @@
       "permission": {
         "edit": "deny",
         "read": {
-          "nixfiles/secrets/**": "deny"
+          "nixfiles/secrets/**": "deny",
+          ".git/**": "deny"
         }
       }
     }
