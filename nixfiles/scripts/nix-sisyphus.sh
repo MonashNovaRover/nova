@@ -39,7 +39,7 @@ export NIXPKGS_HASH
 NIX_ROS_OVERLAY_SHA=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')
 export NIX_ROS_OVERLAY_SHA
 
-NIX_ROS_OVERLAY_HASH=$(nix-shell -p nurl --keep --run NIX_ROS_OVERLAY_SHA "nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash")
+NIX_ROS_OVERLAY_HASH=$(nix-shell -p nurl --keep NIX_ROS_OVERLAY_SHA --run "nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash")
 export NIX_ROS_OVERLAY_HASH
 
 ## update-revisions:
@@ -49,7 +49,7 @@ export NIX_ROS_OVERLAY_HASH
 nix-shell -p jq --keep NIXPKGS_SHA --run "jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 nix-shell -p jq --keep NIXPKGS_HASH --run "jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 nix-shell -p jq --keep NIX_ROS_OVERLAY_SHA --run "jq '.\"nix-ros-overlay\".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
-nix-shell -p jq --keep NIX_ROS_OVERLAY_HASH --run "jq '.\"nix-ros-overlay\".hash=\"$ENV.NIX_ROS_OVERLAY_HASH\"' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
+nix-shell -p jq --keep NIX_ROS_OVERLAY_HASH --run "jq '.\"nix-ros-overlay\".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 
 # Push any changes
 if ! git diff --quiet; then
