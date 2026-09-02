@@ -46,11 +46,13 @@ export NIX_ROS_OVERLAY_HASH
 # Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
 
 # Write the latest versions of nixpkgs and nix-ros-overlay
+cat nixfiles/revisions.json
 nix-shell -p jq --keep NIXPKGS_SHA --run "jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 nix-shell -p jq --keep NIXPKGS_HASH --run "jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 nix-shell -p jq --keep NIX_ROS_OVERLAY_SHA --run "jq '.\"nix-ros-overlay\".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 nix-shell -p jq --keep NIX_ROS_OVERLAY_HASH --run "jq '.\"nix-ros-overlay\".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 
+cat nixfiles/revisions.json
 # Push any changes
 if ! git diff --quiet; then
     git add .
