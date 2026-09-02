@@ -26,33 +26,30 @@ git pull
 
 ## update-nixpkgs:
 # Outputs the latest pinned nixpkgs version used by nix-ros-overlay.
-nix-env -f '<nixpkgs>' -iA jq
 curl -L https://raw.githubusercontent.com/lopsided98/nix-ros-overlay/refs/heads/develop/flake.lock -o flake.lock
 
-NIXPKGS_SHA=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)
+NIXPKGS_SHA=$(nix-shell -p jq --run "jq -r '.nodes.nixpkgs.locked.rev' flake.lock")
 export NIXPKGS_SHA
 
-NIXPKGS_HASH=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)
+NIXPKGS_HASH=$(nix-shell -p jq --run "jq -r '.nodes.nixpkgs.locked.narHash' flake.lock")
 export NIXPKGS_HASH
 
 ## update-nix-ros-overlay:
 # Outputs the latest nix-ros-overlay version.
-nix-env -f '<nixpkgs>' -iA nurl
-
 NIX_ROS_OVERLAY_SHA=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')
 export NIX_ROS_OVERLAY_SHA
 
-NIX_ROS_OVERLAY_HASH=$(nurl https://github.com/lopsided98/nix-ros-overlay "$NIX_ROS_OVERLAY_SHA" --hash)
+NIX_ROS_OVERLAY_HASH=$(nix-shell -p nurl --run "nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash")
 export NIX_ROS_OVERLAY_HASH
 
 ## update-revisions:
 # Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
 
 # Write the latest versions of nixpkgs and nix-ros-overlay
-jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
-jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
-jq '."nix-ros-overlay".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
-jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
+nix-shell -p jq --run "jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
+nix-shell -p jq --run "jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
+nix-shell -p jq --run "jq '."nix-ros-overlay".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
+nix-shell -p jq --run "jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json"
 
 # Push any changes
 if ! git diff --quiet; then
@@ -63,10 +60,6 @@ fi
 
 ## fix-errors:
 # Checks out the new branch and uses an LLM to fix ws-build errors, pushing fixes.
-
-# Install Nix packages to run LLM
-nix-env -f '<nixpkgs>' -iA mcp-nixos
-nix-env -f '<nixpkgs>' -iA opencode
 
 # Remove nixfiles/secrets
 git rm -f --ignore-unmatch nixfiles/secrets
@@ -96,4 +89,4 @@ git submodule foreach --recursive "
 "
 
 # Run LLM
-opencode run --model opencode/mimo-v2.5-free --agent patch --auto --print-logs --log-level DEBUG "/fix-errors"
+nix-shell -p opencode mcp-nixos --run "opencode run --model opencode/muse-spark-1.2-contributor-free --agent patch --auto --print-logs --log-level DEBUG '/fix-errors'"
