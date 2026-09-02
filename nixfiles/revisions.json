@@ -4,8 +4,8 @@
     "hash": null
   },
   "nix-ros-overlay": {
-    "rev": "d32b9f8be7e7c63b48c9ea468b1d9911e04dbe37",
-    "hash": "sha256-jdbrpe9VQWb5VvivEoUUQ/T+Q7P4I6PzNLTFm5UXVBE="
+    "rev": null,
+    "hash": null
   },
   "nix-ros-workspace": {
     "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
