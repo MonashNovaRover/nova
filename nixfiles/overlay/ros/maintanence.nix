@@ -32,48 +32,6 @@ self: super:
             }
           );
 
-          fastrtps = rosSuper.fastrtps.overrideAttrs (
-            old: {
-              version = "2.14.6";
-              src = self.fetchFromGitHub {
-                owner = "eProsima";
-                repo = "Fast-DDS";
-                rev = "v2.14.6";
-                hash = "sha256-UrL5m5OWreZyjoubH9F1am3MUajwC9AInOwLTLGqs5I=";
-              };
-              # GCC 15 no longer implicitly includes <cstdint> via other headers.
-              # This fixes: error: 'uint8_t'/'uint64_t' was not declared in this scope
-              postPatch = (old.postPatch or "") + ''
-                for f in \
-                  src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterCompoundCondition.hpp \
-                  src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterValue.hpp \
-                  src/cpp/fastdds/topic/DDSSQLFilter/DDSFilterPredicate.hpp; do
-                  sed -i '/^#include/a #include <cstdint>' "$f"
-                done
-
-                # asio 1.38 API compatibility patches:
-                # 1. io_service -> io_context
-                # 2. address/address_v4/address_v6::from_string -> make_address variants
-                # 3. io_context::post(handler) -> asio::post(ctx, handler)
-                # 4. resolver.resolve({...}) brace-init-list overload
-                find src/cpp -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | \
-                  xargs sed -i \
-                    -e 's/asio::io_service/asio::io_context/g' \
-                    -e 's/asio::ip::address_v6::from_string/asio::ip::make_address_v6/g' \
-                    -e 's/asio::ip::address_v4::from_string/asio::ip::make_address_v4/g' \
-                    -e 's/asio::ip::address::from_string/asio::ip::make_address/g'
-
-                # io_context::post(lambda) -> asio::post(io_context, lambda)
-                find src/cpp -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | \
-                  xargs sed -i -E 's/(\w+)\.post\(([&\[])/asio::post(\1, \2/g'
-
-                # resolver.resolve({...}) brace-init-list overload removed.
-                find src/cpp -name '*.h' -o -name '*.hpp' -o -name '*.cpp' | \
-                  xargs sed -i -E 's/\.resolve\(\{/.resolve(/g'
-              '';
-            }
-          );
-
           # Add ninja to cmake for faster builds
           buildRosPackage =
             {
