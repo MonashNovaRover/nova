@@ -3,6 +3,7 @@
     ./branding
     ./ci
     ./desktop
+    ./ld
     ./mocking
     ./monitoring
     ./networking
