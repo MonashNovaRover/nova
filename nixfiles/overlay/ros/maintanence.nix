@@ -697,23 +697,6 @@ self: super:
               #   }
               # );
 
-              ntrip-client-node = rosSuper.ntrip-client-node.overrideAttrs rec {
-                version = "0.5.5-r3";
-                src = self.fetchurl {
-                  url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ntrip_client_node/0.5.5-3.tar.gz";
-                  name = "0.5.5-3.tar.gz";
-                  sha256 = "sha256-dV2nf44RBrq0S3a74hr7j1Fe0zSnRD8jYf41QhgeuuM=";
-                };
-                postPatch = ''
-                  substituteInPlace CMakeLists.txt \
-                    --replace-warn 'find_package(libcurl_vendor REQUIRED)' 'find_package(CURL REQUIRED)' \
-                    --replace-warn 'libcurl_vendor' 'CURL'
-                '';
-                propagatedBuildInputs = (rosSuper.ntrip-client-node.propagatedBuildInputs or []) ++ [
-                  self.curl
-                ];
-              };
-
               ublox-dgnss-node = rosSuper.ublox-dgnss-node.overrideAttrs rec {
                   version = "0.5.5-r3";
                   src = self.fetchurl {
