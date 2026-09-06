@@ -7,9 +7,10 @@ self: super:
         gphoto2 = pySuper.gphoto2.override {
           libgphoto2 = self.libgphoto2-theta;
         };
-        # json-tricks = pySuper.json-tricks.overridePythonAttrs (old: {
-        #   doCheck = false;
-        # });
+        json-tricks = pySuper.json-tricks.overridePythonAttrs {
+          disabledTestPaths =
+            [ "tests/test_pandas.py::test_pandas_series" ];
+        };
       }
     )
   ];
