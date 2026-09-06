@@ -1,14 +1,14 @@
-{ lib
-, stdenvNoCC
-, fetchYarnDeps
-, yarnConfigHook
-, yarnInstallHook
-, nodejs
+{ stdenv,
+  fetchYarnDeps,
+  yarnConfigHook,
+  yarnBuildHook,
+  yarnInstallHook,
+  nodejs,
 }:
 
-stdenvNoCC.mkDerivation {
-  pname = "reolink-ctl";
-  version = "0.0.1";
+stdenv.mkDerivation {
+  name = "reolink-ctl";
+  version = "1.0.0";
 
   src = ./src;
 
@@ -19,14 +19,10 @@ stdenvNoCC.mkDerivation {
 
   nativeBuildInputs = [
     yarnConfigHook
+    yarnBuildHook
     yarnInstallHook
     nodejs
   ];
 
-  dontYarnBuild = true;
-
-  meta = with lib; {
-    description = "Reolink ONVIF control utility";
-    license = licenses.asl20;
-  };
+  dontBuild = true;
 }
