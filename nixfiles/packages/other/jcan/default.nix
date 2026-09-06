@@ -27,6 +27,8 @@ let
 
       nativeBuildInputs = [ validatePkgConfig ];
 
+      env.CXXFLAGS = "-include cstdint";
+
       postInstall = ''
         mkdir -p "$dev/include/jcan"
         cp target/cxxbridge/jcan/src/lib.rs.h "$dev/include/jcan/jcan.h"

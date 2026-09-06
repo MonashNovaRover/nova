@@ -23,7 +23,6 @@
   std-srvs, 
   gst-msgs, 
   sensor-msgs, 
-  breakpointHook, 
 }:
 
 buildRosPackage {
@@ -42,7 +41,7 @@ buildRosPackage {
   sourceRoot = "ros-gst-bridge-a4d4b74/gst_pipeline_plugins_webrtc";
 
   buildType = "ament_cmake";
-  buildInputs = [ ament-cmake pkg-config breakpointHook ];
+  buildInputs = [ ament-cmake pkg-config ];
   checkInputs = [ ament-cmake-copyright ament-cmake-cppcheck ament-cmake-uncrustify ament-lint-auto ament-lint-common ];
   propagatedBuildInputs = [ rclcpp rclcpp-components gst-pipeline gst-bridge pluginlib gst_all_1.gst-plugins-bad libsoup libsysprof-capture sqlite libpsl brotli json-glib std-msgs std-srvs gst-msgs sensor-msgs ];
   nativeBuildInputs = [ ament-cmake ];

@@ -1,12 +1,22 @@
 { 
-  stdenv,
-  makeWrapper,
-  steam-run-free,
   fetchurl,
-  breakpointHook,
+  lib, 
+  libGL, 
+  libudev0-shim, 
+  libx11,
+  libxi, 
+  libxrandr, 
+  makeWrapper, 
+  stdenv,
+  vulkan-loader, 
+  zlib, 
 }:
 
-# https://nixos.wiki/wiki/Packaging/Binaries
+# https://discourse.nixos.org/t/makewrapper-vs-buildinputs/21474
+# Used Claude
+# The unity build requires several of the dependencies listed below to be
+# available at runtime, which is achieved by linking them to the build executable.
+# The dependencies were determined by muntzing.
 stdenv.mkDerivation rec {
   name = "nova-unity-sim";
   version = "1.0.0";
@@ -17,23 +27,30 @@ stdenv.mkDerivation rec {
     hash = "sha256-Kv7CSyNJQKMuEATjBTDXIpn/u9sjAvPVJOlm7/SETN8=";
   };
 
-  nativeBuildInputs = [ breakpointHook ];
-  buildInputs = [ steam-run-free makeWrapper ];
-
   sourceRoot = ".";
 
-  installPhase = ''
-    mkdir -p $out/bin
-    mkdir -p $out/share
-    
-    cp -r ${build}/build_Data $out/share/
-    cp ${build}/build.x86_64 $out/share/
-    cp ${build}/libdecor-0.so.0 $out/share/
-    cp ${build}/libdecor-cairo.so $out/share/
-    cp ${build}/UnityPlayer.so $out/share/
+  nativeBuildInputs = [
+    makeWrapper
+  ];
 
-    makeWrapper ${steam-run-free}/bin/steam-run $out/bin/${name} \
-      --add-flags $out/share/build.x86_64
+  installPhase = ''
+    runHook preInstall
+
+    mkdir -p $out/bin $out/share
+    cp -r ${build}/* $out/share/
+
+    makeWrapper $out/share/build.x86_64 $out/bin/${name} \
+      --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ 
+        libGL
+        libudev0-shim
+        libx11
+        libxi
+        libxrandr
+        vulkan-loader
+        zlib
+      ]}
+
+    runHook postInstall
   '';
 
   platforms = [ "x86_64-linux" ];

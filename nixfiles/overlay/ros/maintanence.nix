@@ -23,30 +23,12 @@ self: super:
           librealsense2 = rosSuper.librealsense2.overrideAttrs (
             {
               cmakeFlags ? [],
-              patches ? [],
               ...
             }:
             {
               cmakeFlags = cmakeFlags ++ [
                 "-DCHECK_FOR_UPDATES=OFF"
               ];
-
-              patches = patches ++ [
-                ./patches/librealsense2.patch
-              ];
-            }
-          );
-
-          fastrtps = rosSuper.fastrtps.overrideAttrs (
-            {
-            ...
-            }:
-            {
-              src = self.fetchurl {
-                url = "https://github.com/ros2-gbp/fastrtps-release/archive/release/jazzy/fastrtps/2.14.1-1.tar.gz";
-                name = "2.14.4-1.tar.gz";
-                hash = "sha256-3E1qecQ22aoYCmOvNOWmtjqm4Q4nwn43wFsczKnoDhM=";
-              };
             }
           );
 
@@ -145,7 +127,6 @@ self: super:
           #         ...
           #       }:
           #       {
-          #         nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
           #         preFixup = preFixup + ''
           #           mv "$out/lib64/cmake/"* "$out/lib/cmake"
           #           rmdir "$out/lib64/cmake"
@@ -649,7 +630,6 @@ self: super:
                   ...
                 }:
                 {
-                  # nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
                   postPatch = postPatch + ''
                     sed -i 's|file:///nix/store/[^"]*gz-transport13_13\.4\.1\.tar|file://${gz-transport-tarball}|' CMakeLists.txt
                   ''; 
@@ -716,15 +696,6 @@ self: super:
               #     ];
               #   }
               # );
-
-              ntrip-client-node = rosSuper.ntrip-client-node.overrideAttrs rec {
-                version = "0.5.5-r3";
-                src = self.fetchurl {
-                  url = "https://github.com/ros2-gbp/ublox_dgnss-release/archive/release/jazzy/ntrip_client_node/0.5.5-3.tar.gz";
-                  name = "0.5.5-3.tar.gz";
-                  sha256 = "sha256-dV2nf44RBrq0S3a74hr7j1Fe0zSnRD8jYf41QhgeuuM=";
-                };
-              };
 
               ublox-dgnss-node = rosSuper.ublox-dgnss-node.overrideAttrs rec {
                   version = "0.5.5-r3";

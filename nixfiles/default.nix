@@ -6,13 +6,6 @@
 let
   revisions = builtins.fromJSON (builtins.readFile ./revisions.json);
 
-  # backport https://github.com/NixOS/nixpkgs/pull/481399
-  # remove once backported to nixos-unstable
-  nixpkgs-481399 = pkgs.fetchurl {
-    url = "https://github.com/NixOS/nixpkgs/commit/6c6d4daf79263066efae45467cb4a95021ad2bb8.patch";
-    hash = "sha256-ksg95OjJsI88gVUiHX2Iv0y63To4djgLxEof1dibwDk=";
-  };
-
   maybeApplyPatches = { src, patches, ... }@args: if patches == [ ] then src else pkgs.applyPatches args;
 
   # Pin the version of Nixpkgs to ensure reproducibility.
@@ -27,9 +20,7 @@ let
       repo = "nixpkgs";
       inherit (revisions.nixpkgs) rev hash;
     };
-    patches = [
-      nixpkgs-481399
-    ];
+    patches = [ ];
   });
 
   # nix-ros-overlay = ../nix-ros-overlay;
@@ -40,17 +31,6 @@ let
       inherit (revisions.nix-ros-overlay) rev hash;
     };
     patches = [
-      # # fix: gz vendor
-      # # https://github.com/lopsided98/nix-ros-overlay/pull/472
-      # ./overlay/ros/patches/nix-ros-workspace.patch
-
-      # # Some more Gazebo improvements
-      # # https://github.com/muellerbernd/nix-ros-overlay/pull/2
-      # (pkgs.fetchpatch {
-      #   url = "https://github.com/lopsided98/nix-ros-overlay/compare/6d04148eac0727be34e5333f6e12cfc7e86673c3...eca9687ce15335bbb2d4b7b14fbf74ce0e957f43.patch";
-      #   hash = "sha256-c6DD2U6Lo2dcs0APxEHg9l0bz1Ioa5aX5FoATajXYAc=";
-      # })
-
       # speed up ws-build by avoiding wrapping qt apps twice.
       ./overlay/ros/patches/0001-don-t-wrap-qt-apps-for-the-whole-env.patch
     ];

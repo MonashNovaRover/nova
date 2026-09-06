@@ -30,9 +30,8 @@
  c-blosc, 
  openexr, 
  rosidl-default-runtime, 
- tbb_2021_11, 
+ onetbb,
  zlib, 
- breakpointHook, 
 }:
 
 buildRosPackage rec {
@@ -50,7 +49,7 @@ buildRosPackage rec {
 
   buildType = "ament_cmake";
   
-  buildInputs = [ ament-cmake pkg-config breakpointHook ];
+  buildInputs = [ ament-cmake pkg-config ];
   checkInputs = [ ament-cmake-copyright ament-cmake-cppcheck ament-cmake-uncrustify ament-lint-auto ament-lint-common ];
   propagatedBuildInputs = [ 
     nav2-costmap-2d 
@@ -75,7 +74,7 @@ buildRosPackage rec {
     c-blosc 
     openexr 
     rosidl-default-runtime 
-    tbb_2021_11 
+    onetbb
     zlib 
   ];
   nativeBuildInputs = [ ament-cmake pkg-config ];
@@ -94,5 +93,7 @@ buildRosPackage rec {
     sed -i '/set(CMAKE_MODULE_PATH/alist(APPEND CMAKE_MODULE_PATH "${openvdb.dev}/lib/cmake/OpenVDB/")' CMakeLists.txt
     sed -i '/find_package(OPENVDB REQUIRED)/afind_package(TBB REQUIRED)' CMakeLists.txt
     sed -i '/{OpenVDB_LIBRARIES}/aTBB::tbb' CMakeLists.txt
+    # Boost 1.89+ merged system into header-only; remove it from COMPONENTS
+    sed -i 's/find_package(Boost[^)]*COMPONENTS[[:space:]]*system/find_package(Boost COMPONENTS/g' CMakeLists.txt
   '';
 }

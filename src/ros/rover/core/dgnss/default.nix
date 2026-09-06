@@ -1,6 +1,6 @@
 { lib
 , buildRosPackage
-, pythonPackages
+, python3Packages
 , ament-cmake
 , rclcpp
 , rclpy
@@ -25,16 +25,16 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
   buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs std-msgs std-srvs nova-interfaces ];
-  propagatedBuildInputs = with pythonPackages; [ 
+  propagatedBuildInputs = with python3Packages; [ 
     pyunigps
     smbus2
     wmm-calculator
     pandas 
     folium 
     pymavlink
+    fabric
   ] ++ [ 
     sensor-msgs
-    fabric
     nova-interfaces
   ];
 }
