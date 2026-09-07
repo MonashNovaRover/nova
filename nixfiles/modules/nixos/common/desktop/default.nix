@@ -66,7 +66,7 @@ in
       gnome-contacts
       gnome-maps
       gnome-music
-      gnome-photos
+      loupe
       gnome-connections
       gnome-weather
       simple-scan
