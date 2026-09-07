@@ -20,7 +20,6 @@ let
       repo = "nixpkgs";
       inherit (revisions.nixpkgs) rev hash;
     };
-    patches = [ ];
   });
 
   # nix-ros-overlay = ../nix-ros-overlay;
