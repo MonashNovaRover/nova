@@ -741,6 +741,22 @@ self: super:
                   sha256 = "sha256-agwbwcFQv0MlgSdL8gSez1+8GHIF8d99yOoy1RAVCsE=";
                 };
               };
+
+              unbag = rosSuper.unbag.overrideAttrs (
+                {
+                  nativeBuildInputs ? [],
+                  postFixup ? "",
+                  ...
+                }:
+                {
+                  nativeBuildInputs = nativeBuildInputs ++ [ self.makeWrapper ];
+                  postFixup = postFixup + ''
+                    wrapProgram $out/lib/unbag/ros2_unbag_gui \
+                      --set QT_QPA_PLATFORM_PLUGIN_PATH \
+                      "${self.qt5.qtbase.bin}/lib/qt-${self.qt5.qtbase.version}/plugins/platforms"
+                  ''; 
+                }
+              );
             }
           );
         }
