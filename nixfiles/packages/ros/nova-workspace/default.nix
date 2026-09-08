@@ -101,7 +101,7 @@
       livox-ros-driver2
       rmw-cyclonedds-cpp
       rqt-controller-manager
-      ros2-unbag
+      unbag
       ;
     inherit (pkgs)
       mbtileserver
