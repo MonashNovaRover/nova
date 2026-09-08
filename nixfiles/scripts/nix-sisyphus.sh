@@ -89,4 +89,6 @@ git submodule foreach --recursive "
 "
 
 # Run LLM
-nix-shell -p opencode mcp-nixos --run "opencode run --model opencode/muse-spark-1.2-contributor-free --agent patch --auto --print-logs --log-level DEBUG \"/fix-errors\""
+# Note that muse-spark-1.2 fails with the --auto flag; if the LLM is hanging on requesting permission, 
+# add --auto and substitute muse-spark-1.2 with something else (list alternative models with `opencode models`).
+nix-shell -p opencode mcp-nixos --run "opencode run --model opencode/muse-spark-1.2-contributor-free --agent patch --print-logs --log-level DEBUG \"/fix-errors\""
