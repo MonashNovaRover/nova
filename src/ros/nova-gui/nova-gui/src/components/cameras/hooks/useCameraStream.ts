@@ -3,6 +3,7 @@ import { PeerMessage, ServerMessage } from "./serverMessages.ts";
 import useWebSocket from "react-use-websocket";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
+import { useStreamingBifrost } from "./cameraBifrostHooks.ts";
 import toast from "react-hot-toast";
 
 export enum StreamingState {
@@ -42,7 +43,8 @@ const RESET_SESSION_COOLDOWN = 3000; // ms, suppress heartbeat action right afte
 export const useCameraStream = (
   cameraSerial: string,
   videoRef: React.MutableRefObject<HTMLVideoElement | null>,
-  autoStart?: boolean
+  autoStart?: boolean,
+  refreshAvailabilies?: () => void
 ) => {
   const [isWsOpen, setWsOpen] = useState(false);
   const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
@@ -54,7 +56,9 @@ export const useCameraStream = (
         setWsOpen(true);
       },
     }
-  );
+  ); 
+
+  const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(refreshAvailabilies);
 
   const camerasFromRos = useSelector(
     (state: RootState) => state.camerasStore.cameras
@@ -76,6 +80,10 @@ export const useCameraStream = (
     (state: RootState) => state.cameraStreamerState.cameras[cameraSerial]
   );
 
+  const [streamingState, setStreamingState] = useState<StreamingState>(
+    StreamingState.STOPPED
+  );
+
   const sendSessionStartMessage = useCallback(() => {
     if (!isWsOpen) return;
     if (!peerId) {
@@ -84,11 +92,8 @@ export const useCameraStream = (
     }
     setStreamingState(StreamingState.LOADING);
     sendJsonMessage({ type: "startSession", peerId });
+    //startStreaming([cameraSerial], false);
   }, [sendJsonMessage, peerId, isWsOpen, cameraSerial]);
-
-  const [streamingState, setStreamingState] = useState<StreamingState>(
-    StreamingState.STOPPED
-  );
 
   const requestRandomAccessKeyframe = useCallback(() => {
     if (!rtcRef.current) return;
@@ -117,6 +122,7 @@ export const useCameraStream = (
   }, [cameraSerial]);
 
   const closeSession = useCallback(() => {
+    //pauseStreaming([cameraSerial], false);
     if (!isWsOpen) return;
     if (!peerId) {
       toast.error(`${cameraSerial} unable to start up`);
@@ -384,10 +390,6 @@ export const useCameraStream = (
       const video = videoRef.current;
       if (!video) return;
 
-      // Self-heal: if the <video> element wasn't attached yet when this
-      // effect first ran, or was swapped for a different element (e.g. a
-      // "hide and show" that remounts it), (re)attach the frame-callback
-      // chain to whatever element is current.
       if (video !== attachedVideo) {
         if (attachedVideo && rvfcHandle !== undefined) {
           attachedVideo.cancelVideoFrameCallback(rvfcHandle);
@@ -396,15 +398,11 @@ export const useCameraStream = (
         scheduleFrameCallback(video);
       }
 
-      // Watchdog: requestVideoFrameCallback only fires when a new frame is
-      // actually presented. If the stream has genuinely stalled (frozen
-      // decoder, dead track, etc.) it can stop firing entirely, which means
-      // the delay-based check above never runs and never recovers. Detect
-      // that "no frames at all" case on a plain wall clock instead.
       if (
         lastFrameCallbackTime.current !== 0 &&
         Date.now() - lastFrameCallbackTime.current > MAX_LATENCY * 5 &&
-        Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN
+        Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN &&
+        streamingState === StreamingState.STOPPED
       ) {
         resetSession();
       }

@@ -10,10 +10,9 @@ int crop43(const int width, const int height, const float zoom) {
 void set_queue(GstElement* element) {
   g_object_set(element,
     "max-size-buffers", 1,
-    "max-size-time", 1,
     "max-size-bytes", 1,
+    "max-size-time", 1,
     "leaky", 2, // Drop old buffers
-    "silent", true,
   NULL);
 };
 

@@ -45,11 +45,10 @@ add_executable(camera_streamer_service src/camera_streamer_service.cpp src/camer
   src/properties/h26X.cpp
 
   # Pipelines
-  src/pipelines/h26Xsoftware.cpp
   src/pipelines/h264passthrough.cpp
   src/pipelines/rtsppassthrough.cpp
   src/pipelines/v4lfallback.cpp
-  src/pipelines/vpXsoftware.cpp
+  src/pipelines/v4lsoftware.cpp
 )
 target_link_libraries(camera_streamer_service ${GSTREAMERMM_LIBRARIES} ${GST_GL_LIBRARIES} ${SYSTEMD_LIBRARIES})
 ament_target_dependencies(camera_streamer_service ${THIS_PACKAGE_INCLUDE_DEPENDS})
