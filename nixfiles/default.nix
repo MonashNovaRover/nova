@@ -20,7 +20,10 @@ let
       repo = "nixpkgs";
       inherit (revisions.nixpkgs) rev hash;
     };
-    patches = [ ];
+    patches = [ 
+      # The release was mistitled v03.3 instead of v0.3.3
+      ./overlay/ros/patches/imagededup.patch 
+    ];
   });
 
   # nix-ros-overlay = ../nix-ros-overlay;
