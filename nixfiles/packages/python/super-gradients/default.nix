@@ -88,6 +88,7 @@ buildPythonPackage rec {
   ];
 
   patches = [
+    # Stop version checking from failing
     ../../../overlay/ros/patches/super-gradients.patch
   ];
 
@@ -95,7 +96,7 @@ buildPythonPackage rec {
   # This is a temporary fix.
   # To resolve this issue properly, there are 3 (or more) options:
   # 1. Convert this to a flake and use an earlier version of nixpkgs as an input
-  # 2. Manually override each dependency to an earlier version (this isn't hard, just tedious)
+  # 2. Manually override each dependency to an earlier version (this isn't impossible, just tedious)
   # 3. Open a PR against upstream source files with new versions and fixes, then patch the PR into the source files above.
   dontCheckRuntimeDeps = true;
 }
