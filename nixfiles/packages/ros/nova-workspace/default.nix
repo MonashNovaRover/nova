@@ -101,12 +101,10 @@
       livox-ros-driver2
       rmw-cyclonedds-cpp
       rqt-controller-manager
+      ros2-unbag
       ;
     inherit (pkgs)
       mbtileserver
-      ;
-    inherit (pkgs.python3Packages)
-      ros2-unbag
       ;
 }
 }:
