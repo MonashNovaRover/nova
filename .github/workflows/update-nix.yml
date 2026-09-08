@@ -1,0 +1,164 @@
+# This workflow automatically updates our nixpkgs and nix-ros-overlay versions, using an LLM to fix ws-build errors.
+# See https://github.com/MonashNovaRover/nova/issues/1183 for more.
+
+name: update-nix ❄️
+on: # push
+  # workflow_dispatch:
+  # schedule:
+  #   - cron: '0 0 * * *'
+jobs:
+
+  update-nixpkgs:
+  # Outputs the latest pinned nixpkgs version used by nix-ros-overlay.
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.fetch.outputs.sha }}
+      hash: ${{ steps.fetch.outputs.hash }}
+    steps:
+      - name: fetch
+        id: fetch
+        run: |
+          curl -L https://raw.githubusercontent.com/lopsided98/nix-ros-overlay/refs/heads/develop/flake.lock -o flake.lock
+          echo "sha=$(jq -r '.nodes.nixpkgs.locked.rev' flake.lock)" >> "$GITHUB_OUTPUT"
+          echo "hash=$(jq -r '.nodes.nixpkgs.locked.narHash' flake.lock)" >> "$GITHUB_OUTPUT"
+  
+  update-nix-ros-overlay:
+  # Outputs the latest nix-ros-overlay version.
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.fetch.outputs.sha }}
+      hash: ${{ steps.fetch.outputs.hash }}
+    steps:
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: install
+        run: |
+          nix-env -f '<nixpkgs>' -iA nurl
+      - name: fetch
+        id: fetch
+        run: |
+          # Normally you'd use `gh api /repos/lopsided98/nix-ros-overlay/commits/develop --jq '.sha'`, but I couldn't get it work ~ Victor
+          echo "sha=$(git ls-remote https://github.com/lopsided98/nix-ros-overlay develop | awk -F'\t' '{print $1}')" >> "$GITHUB_OUTPUT"
+
+          echo "hash=$(nurl https://github.com/lopsided98/nix-ros-overlay $NIX_ROS_OVERLAY_SHA --hash)" >> "$GITHUB_OUTPUT"
+      
+  update-revisions:
+  # Pushes the latest versions of nixpkgs and nix-ros-overlay to a new branch.
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.update.outputs.branch }}
+    permissions:
+      contents: write
+      pull-requests: write
+    # https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/pass-job-outputs
+    needs: [ update-nixpkgs, update-nix-ros-overlay ]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: update
+        id: update
+        env:
+          NIXPKGS_SHA: ${{ needs.update-nixpkgs.outputs.sha }}
+          NIXPKGS_HASH: ${{ needs.update-nixpkgs.outputs.hash }}
+          NIX_ROS_OVERLAY_SHA: ${{ needs.update-nix-ros-overlay.outputs.sha }}
+          NIX_ROS_OVERLAY_HASH: ${{ needs.update-nix-ros-overlay.outputs.hash }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_TERMINAL_PROMPT: 0
+          GIT_BRANCH: test/update-nix
+        run: |
+          # Set up the origin so the remote can be accessed using the PAT
+          git config --global url."https://x-access-token:$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
+
+          # Checkout the branch if it already exists
+          git pull
+          if git rev-parse origin/$GIT_BRANCH >/dev/null; then
+            git checkout $GIT_BRANCH
+          else
+          # Create the branch if it does not exist
+            git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+          fi
+          git pull
+
+          # Write the latest versions of nixpkgs and nix-ros-overlay
+          jq '.nixpkgs.rev=$ENV.NIXPKGS_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
+          jq '.nixpkgs.hash=$ENV.NIXPKGS_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
+          jq '."nix-ros-overlay".rev=$ENV.NIX_ROS_OVERLAY_SHA' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
+          jq '."nix-ros-overlay".hash=$ENV.NIX_ROS_OVERLAY_HASH' nixfiles/revisions.json > tmp.json && mv tmp.json nixfiles/revisions.json
+
+          # Push any changes
+          if ! git diff --quiet; then
+            git add .
+            git commit -a -m "Updating nixpkgs and nix-ros-overlay to the latest versions"
+            git push
+          fi
+
+          # Output the git branch for fix-errors to use
+          echo "branch=$GIT_BRANCH" >> "$GITHUB_OUTPUT"
+
+  fix-errors:
+  # Checks out the new branch and uses an LLM to fix ws-build errors, pushing fixes.
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    needs: [ update-revisions ]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          token: ${{ secrets.SISYPHUS_PAT_TOKEN }}
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: fix
+        env:
+          GITHUB_TOKEN: ${{ secrets.SISYPHUS_PAT_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_TERMINAL_PROMPT: 0
+          GIT_BRANCH: ${{ needs.update-revisions.outputs.branch }}
+        run: |
+          # Install Nix packages to run LLM
+          nix-env -f '<nixpkgs>' -iA mcp-nixos
+          nix-env -f '<nixpkgs>' -iA opencode
+
+          # Set up the origin so the remote can be accessed using the PAT
+          git config --global url."https://x-access-token:$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
+
+          # Checkout the branch if it already exists
+          git pull
+          if git rev-parse origin/$GIT_BRANCH >/dev/null; then
+            git checkout $GIT_BRANCH
+          else
+          # Create the branch if it does not exist
+            git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+          fi
+          git pull
+
+          # Convert submodule urls from SSH to HTTPS so the PAT can work
+          sed -i 's|git@github.com:|https://github.com/|g' .gitmodules
+
+          # Skip nixfiles/secrets so it is not cloned
+          git -c submodule."nixfiles/secrets".update=none submodule update --init --recursive
+
+          # To the same above for each cloned submodule (ignores nixfiles/secrets)
+          git submodule foreach --recursive '
+            # Checkout the branch if it already exists
+            git pull origin master
+            if git rev-parse origin/$GIT_BRANCH >/dev/null; then
+              git checkout $GIT_BRANCH
+            else
+            # Create the branch if it does not exist
+              git checkout -b $GIT_BRANCH && git push --set-upstream origin $GIT_BRANCH
+            fi
+            git pull
+          '
+
+          # Run LLM
+          opencode run --model opencode/mimo-v2.5-free --agent patch --auto --print-logs --log-level DEBUG "/fix-errors"
