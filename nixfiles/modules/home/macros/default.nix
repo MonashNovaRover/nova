@@ -241,6 +241,7 @@ in
           rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
           launch-teleop = "echo 'DEPRECATED - Please use launch-teleop-drive instead for drive teleop'";
           launch-teleop-drive = "~/Builds/active/bin/ros2 launch teleop_drive_joy teleop.launch.py";
+          launch-terryop-drive = "launch-teleop-drive";
           launch-drive = "~/Builds/active/bin/ros2 launch drive_bringup drive.launch.py";
           launch-base = "~/Builds/active/bin/ros2 launch nova_bringup base.launch.py";
           launch-old-drive = "~/Builds/active/bin/ros2 launch nova_bringup old_drive.launch.py";
