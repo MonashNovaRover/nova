@@ -42,7 +42,7 @@ buildRosPackage {
 
   cmakeFlags = [
     "-DBUILD_WITH_CUDA=OFF"
-    "-DBUILD_WITH_VIEWER=OFF"
+    "-DBUILD_WITH_VIEWER=ON"
   ];
 
   nativeBuildInputs = [

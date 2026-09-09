@@ -42,6 +42,7 @@
   usb-cam,
   fast-livo2,
   fast-calib,
+  glim,
   glim-ros2,
   demo-nodes-cpp,
   pcl,
@@ -106,6 +107,7 @@ buildRosPackage rec {
       usb-cam
       fast-livo2
       fast-calib
+      glim
       glim-ros2
       demo-nodes-cpp
       pcl-ros
