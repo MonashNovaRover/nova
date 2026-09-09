@@ -1,11 +1,11 @@
-{ hostPlatform
-, stdenv
-, fetchurl
-, buildRosPackage
-, ros-environment
-, dpkg
-, autoPatchelfHook
-, opencv
+{ 
+  hostPlatform, 
+  stdenv, 
+  fetchurl, 
+  buildRosPackage, 
+  dpkg, 
+  autoPatchelfHook, 
+  opencv, 
 }:
 
 buildRosPackage rec {
