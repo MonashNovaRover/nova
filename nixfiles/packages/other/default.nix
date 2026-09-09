@@ -5,6 +5,7 @@
   libgphoto2-theta = callPackage ./libgphoto2-theta { };
   groot2 = callPackage ({ libsForQt5 }: libsForQt5.callPackage ./groot2 { }) { };
   gstthetauvc = callPackage ./gstthetauvc { };
+  gtsam-points = callPackage ./gtsam-points { inherit (pkgs.ros) gtsam; };
   jcan = callPackage ./jcan { };
   libuvc-theta = callPackage ./libuvc-theta { };
   novafox = callPackage ./novafox { } { };

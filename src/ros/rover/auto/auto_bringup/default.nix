@@ -42,10 +42,10 @@
   usb-cam,
   fast-livo2,
   fast-calib,
+  glim-ros2,
   demo-nodes-cpp,
   pcl,
   pcl-ros,
-  direct-visual-lidar-calibration,
   nova-auto-start,
   ros-tcp-endpoint,
   nova-unity-sim,
@@ -106,9 +106,9 @@ buildRosPackage rec {
       usb-cam
       fast-livo2
       fast-calib
+      glim-ros2
       demo-nodes-cpp
       pcl-ros
-      direct-visual-lidar-calibration
       nova-auto-start
       ros-tcp-endpoint;
   } // lib.optionalAttrs isx86 { inherit nova-unity-sim; };

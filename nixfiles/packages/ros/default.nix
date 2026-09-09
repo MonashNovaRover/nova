@@ -2,9 +2,10 @@
 {
   audio-msgs = callPackage ./audio-msgs { };
   depthai = callPackage ./depthai { };
-  direct-visual-lidar-calibration = callPackage ./direct-visual-lidar-calibration { };
   fast-calib = callPackage ./fast-calib { };
   fast-livo2 = callPackage ./fast-livo2 { };
+  glim = callPackage ./glim { };
+  glim-ros2 = callPackage ./glim-ros2 { };
   ground-segmentation = callPackage ./ground-segmentation { };
   ground-segmentation-ros2 = callPackage ./ground-segmentation-ros2 { };
   gst-bridge = callPackage ./gst-bridge { };

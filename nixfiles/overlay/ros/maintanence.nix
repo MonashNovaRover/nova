@@ -37,6 +37,30 @@ self: super:
             }
           );
 
+          # gtsam_points (and glim, which depends on it) requires GTSAM 4.3a1.
+          gtsam = rosSuper.gtsam.overrideAttrs (
+            {
+              cmakeFlags ? [ ],
+              ...
+            }:
+            {
+              version = "4.3a1";
+              src = self.fetchgit {
+                url = "https://github.com/borglab/gtsam";
+                rev = "2f3e56c0ddbd3a1aa54ed043643b553d26a069f6";
+                hash = "sha256-sqCTY0a7Mzj+qo8IL0+RCkNjkOfoSDJBjlAhC5spo80=";
+              };
+
+              # The upstream repo defaults to vendoring its own copy of Eigen,
+              # unlike the ROS release tarball. Force it to use the system
+              # Eigen so it stays ABI-compatible with everything else built
+              # against nixpkgs' eigen.
+              cmakeFlags = cmakeFlags ++ [
+                "-DGTSAM_USE_SYSTEM_EIGEN=ON"
+              ];
+            }
+          );
+
           fastrtps = rosSuper.fastrtps.overrideAttrs (
             {
             ...
