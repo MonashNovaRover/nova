@@ -1,5 +1,4 @@
 { 
-  hostPlatform, 
   stdenv, 
   fetchurl, 
   buildRosPackage, 
@@ -30,7 +29,7 @@ buildRosPackage rec {
       url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20260305.233843_arm64.deb";
       hash = "sha256-vq9wod4vuZ5tRFZqeONMXrU4y32psDqI45FRzlYouwQ=";
     };
-  }.${hostPlatform.system} or (throw "There are no DepthAI Core hashes for ${hostPlatform.system}.");
+  }.${stdenv.hostPlatform.system} or (throw "There are no DepthAI Core hashes for ${stdenv.hostPlatform.system}.");
 
   nativeBuildInputs = [ dpkg autoPatchelfHook ];
   buildInputs = [ stdenv.cc.cc.lib opencv ];
