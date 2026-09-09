@@ -1,19 +1,19 @@
 { 
-  stdenv, 
-  fetchgit, 
   cmake, 
+  fetchFromGitHub, 
   fetchpatch, 
+  stdenv, 
 }:
 
-stdenv.mkDerivation {
+stdenv.mkDerivation (finalAttrs: {
   pname = "livox-sdk2";
-  version = "0.0.0";
+  version = "1.3.1";
 
-  src = fetchgit {
-    name = "livox-sdk2-source";
-    url = "https://github.com/Livox-SDK/Livox-SDK2";
-    rev = "6a940156dd7151c3ab6a52442d86bc83613bd11b";
-    hash = "sha256-NGscO/vLiQ17yQJtdPyFzhhMGE89AJ9kTL5cSun/bpU=";
+  src = fetchFromGitHub {
+    owner = "Livox-SDK";
+    repo = "Livox-SDK2";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-XM2jhytXbLVd3jkeZrpxDjegPWPiXCaVQ3nYm1DD928=";
   };
 
   nativeBuildInputs = [ cmake ];
@@ -23,8 +23,7 @@ stdenv.mkDerivation {
   patches = [
     (fetchpatch {
       url = "https://patch-diff.githubusercontent.com/raw/Livox-SDK/Livox-SDK2/pull/99.patch";
-      # revert = true;
       hash = "sha256-/lrLO8jeZaO8+MCVAV0olTIdS9kdrf7hPZz9fHqAOyU=";
     })
   ];
-}
+})
