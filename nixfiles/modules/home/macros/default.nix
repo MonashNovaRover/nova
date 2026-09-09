@@ -315,6 +315,7 @@ in
           launch-gps-base = "~/Builds/active/bin/ros2 launch nova_bringup gps_base.launch.py";
           launch-magnetometer = "~/Builds/active/bin/ros2 run electronics magnetometer.py";
           mast = "ssh -C nova@10.0.0.150";
+          cc = "python3 ~/nova/src/other/convert_coordinates.py";
 
           # Active build binaries
           mros2 = "~/Builds/active/bin/ros2";

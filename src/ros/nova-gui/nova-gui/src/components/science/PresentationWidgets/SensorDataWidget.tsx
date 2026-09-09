@@ -4,6 +4,7 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import {SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
 import NIRResultsWidget from "./NIRResultsWidget.tsx";
+import {useDisplayMapCoordinate} from "../../maps/Cartographer/utils/convertCoords.ts";
 
 interface SensorDataWidgetProps {
   site: Site;
@@ -29,6 +30,8 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
     return sensor.data.toFixed(2);
   };
 
+  const {lat: sensorLat, long: sensorLong} = useDisplayMapCoordinate({lat: +getSensorValue("Latitude"), long: +getSensorValue("Longitude")})
+
   return (
     <Card>
       <CardHeader className="text-h1 pb-0">
@@ -46,11 +49,11 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
                 <div className="flex flex-row gap-4 flex-shrink-0">
                   <div className="flex flex-row gap-1 items-baseline whitespace-nowrap">
                     <span className="text-small text-default-500">Lat:</span>
-                    <span className="text-lg font-semibold">{getSensorValue("Latitude")}°</span>
+                    <span className="text-lg font-semibold">{sensorLat}</span>
                   </div>
                   <div className="flex flex-row gap-1 items-baseline whitespace-nowrap">
                     <span className="text-small text-default-500">Long:</span>
-                    <span className="text-lg font-semibold">{getSensorValue("Longitude")}°</span>
+                    <span className="text-lg font-semibold">{sensorLong}</span>
                   </div>
                 </div>
               </div>
