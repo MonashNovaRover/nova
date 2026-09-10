@@ -95,4 +95,38 @@ stdenv.mkDerivation {
   passthru.workspacePackages = {
     inherit rosbridge-server;
   };
+
+  shellHook = ''
+    export oldDir=$(pwd)
+    cd ${toString ../../../nova-gui}
+
+    # auto install node_modules from the offline cache
+    # inspired by https://github.com/NixOS/nixpkgs/blob/c27cdad491a991b11ed731760aa2ef8db0cb0410/pkgs/build-support/node/fetch-yarn-deps/yarn-config-hook.sh
+    echo -e "\e[33mInstalling node_modules from yarn offline cache...\e[0m"
+    cp yarn.lock yarn.lock.keep
+    yarn config --offline set yarn-offline-mirror "$yarnOfflineCache"
+    fixup-yarn-lock yarn.lock
+    yarn install \
+        --frozen-lockfile \
+        --force \
+        --production=false \
+        --ignore-engines \
+        --ignore-platform \
+        --ignore-scripts \
+        --non-interactive \
+        --offline \
+    rm yarn.lock
+    mv yarn.lock.keep yarn.lock
+
+    # automatically link generated ROS TypeScript definitions to rostypes.ts
+    echo -e "\e[33mLinking generated ROS TypeScript definitions\e[0m"
+    rm src/ros/rosTypes.ts
+    ln -s "$ROS_TS_DEFINITIONS" "src/ros/rosTypes.ts"
+
+    cd $oldDir
+
+    echo -e "\e[32mRun the gui in dev mode with \e[0m\e[37;41mgui-run\e[0m\n\e[32mTo build the production version gui, run: \e[0m\e[37;41mgui-build\e[0m\n\e[33mDon't forget to run Rosbridge! \e[0m\e[37;41mgui-rosbridge;\e[0m"
+
+    # for some reason this shell likes to print out the yarn output again when it exits. Not harmful but I can't seem to fix it and i've spent half an hour on it already so i give up
+  '';
 }
