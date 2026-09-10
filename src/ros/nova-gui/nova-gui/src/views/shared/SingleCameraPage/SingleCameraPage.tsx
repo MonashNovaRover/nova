@@ -2,7 +2,7 @@ import {useParams, useSearchParams} from "react-router-dom";
 import { useCameraStreamer } from "../../../components/cameras/hooks/useCameraStreamer";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState";
-import { Spinner } from "@nextui-org/react";
+import { Spinner } from "@heroui/react";
 import SerialMappedCameraComponent from "../CamerasPage/SerialMappedCameraComponent.tsx";
 
 export const SingleCameraPage = () => {

@@ -4,7 +4,7 @@ import {
   ModalContent,
   ModalHeader,
   ScrollShadow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { SidebarWrapper } from "./SidebarWrapper.tsx";
 import { RootState } from "../../../redux/RootState.ts";
 import { useSelector } from "react-redux";

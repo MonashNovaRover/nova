@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { BaseCameraComponentProps } from "../CameraComponent.tsx";
-import { Switch, Slider, Select, SelectItem } from "@nextui-org/react";
+import { Switch, Slider, Select, SelectItem } from "@heroui/react";
 import { StreamingState } from "../../hooks/useCameraStream.ts";
 import { CameraComponent } from "../CameraComponent.tsx";
 import Overlay from "../../../shared/components/Overlay/Overlay.tsx";

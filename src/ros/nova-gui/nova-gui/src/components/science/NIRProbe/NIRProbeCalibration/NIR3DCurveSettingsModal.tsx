@@ -1,4 +1,4 @@
-import {Button, Input, Modal, ModalBody, ModalContent, ModalHeader} from "@nextui-org/react";
+import {Button, Input, Modal, ModalBody, ModalContent, ModalHeader} from "@heroui/react";
 import React from "react";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
 import {

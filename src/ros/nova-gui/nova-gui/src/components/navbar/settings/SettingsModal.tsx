@@ -3,7 +3,7 @@ import {
   ModalBody,
   ModalContent,
   ModalHeader, Tab, Tabs,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";

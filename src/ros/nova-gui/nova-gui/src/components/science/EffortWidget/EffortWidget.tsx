@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
-import {Card, CardBody, CardProps} from "@nextui-org/react";
+import {Card, CardBody, CardProps} from "@heroui/react";
 import {RosService} from "../../../ros/services/rosService.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";

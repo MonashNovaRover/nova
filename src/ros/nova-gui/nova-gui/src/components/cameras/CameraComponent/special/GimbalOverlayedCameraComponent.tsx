@@ -4,7 +4,7 @@ import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.t
 import { RosService } from "../../../../ros/services/rosService.ts";
 import OverlayedCameraComponent from "./OverlayedCameraComponent.tsx";
 import { BaseCameraComponentProps } from "../CameraComponent.tsx";
-import { Input, Tooltip, Switch } from "@nextui-org/react";
+import { Input, Tooltip, Switch } from "@heroui/react";
 import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
 import { useToolRotatorKeyboard } from "../../../science/ToolRotatorWidget/useToolRotator.ts";
 

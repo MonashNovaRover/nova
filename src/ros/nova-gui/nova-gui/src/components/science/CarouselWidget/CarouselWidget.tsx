@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {Button, Card, CardBody, CardHeader, CardProps, Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {Check, MoreHorizontal, Trash2} from "react-feather";
 import CarouselDial, {PumpedCuvettes} from "./CarouselDial.tsx";
 import CarouselControls from "./CarouselControls.tsx";

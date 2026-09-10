@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../../ros/services/rosService.ts";
 import {IRosStdSrvsSetBoolResponse} from "../../../../ros/rosTypes.ts";
-import {Card, CardBody, CardHeader, CardProps, Switch} from "@nextui-org/react";
+import {Card, CardBody, CardHeader, CardProps, Switch} from "@heroui/react";
 
 export interface GenericSetBoolWidgetProps extends CardProps {
   label?: string

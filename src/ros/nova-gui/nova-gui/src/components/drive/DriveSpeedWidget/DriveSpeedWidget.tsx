@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, CardProps } from "@heroui/react";
 import { ReactNode, useEffect } from "react";
 import "../DriveModeWidget/DriveWidget.css";
 import { OverlayedProgress } from "../../shared/components/OverlayedProgress/OverlayedProgress.tsx";

@@ -1,4 +1,4 @@
-import {CardProps, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@nextui-org/react";
+import {CardProps, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@heroui/react";
 import React, {useMemo} from "react";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
 import {SiteDataState} from "../../../../redux/models/genericStores/SiteDataState.ts";

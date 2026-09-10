@@ -6,7 +6,7 @@ import {
   ModalFooter,
   Button,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect, useRef } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore";
 import { CameraProfilesState, CameraProfile, CameraSettings } from "../../../redux/models/CameraProfilesState";

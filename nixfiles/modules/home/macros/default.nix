@@ -269,14 +269,14 @@ in
           mast-up="cansend can0 0E2#1000; sleep 5.2; cansend can0 0E2#0000";
 
           # GUI
+          gui-build = "$(nova-build -A pkgs.ros.nova-gui --no-out-link)/bin/gui-serve 5173 && echo http://localhost:5173";
           gui-serve = "~/Builds/active/bin/gui-serve 5173 && echo http://localhost:5173";
 
-          gui-dev-shell = "nova-shell -A pkgs.ros.nova-gui-dev-shell";
           gui-shell = "nova-shell -A pkgs.ros.nova-gui";
-          gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
-          gui-rosbridge = "~/Builds/active/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
           gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";
+
           gui-yarn = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui";
+          gui-rosbridge = "~/Builds/active/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
 
           # Tile server
           tileserver = "~/Builds/active/bin/mbtileserver -p 8080 --missing-image-tile-404 -d ~/maps";

@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, Kbd, CardProps } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Kbd, CardProps } from "@heroui/react";
 import "./DriveWidget.css";
 import { DriveMode, driveModes } from "./DriveModeDisplayData.tsx";
 import { DriveModeButton } from "./DriveModeButton.tsx";

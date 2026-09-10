@@ -5,7 +5,7 @@ import {
   DropdownMenu,
   DropdownSection,
   DropdownTrigger,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Check, MoreHorizontal, Trash2 } from "react-feather";
 
 export interface PotentiostatOptionsMenuProps {

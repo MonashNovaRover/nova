@@ -30,7 +30,6 @@
   rclnodejs = callPackage ./rclnodejs { };
   ros-tcp-endpoint = callPackage ./ros-tcp-endpoint { };
   ros-typescript-definitions = callPackage ./ros-typescript-definitions { };
-  spatio-temporal-voxel-layer = callPackage ./spatio-temporal-voxel-layer { };
   vikit-common = callPackage ./vikit-common { };
   vikit-ros = callPackage ./vikit-ros { };
   yolo-ros = callPackage ./yolo-ros { };

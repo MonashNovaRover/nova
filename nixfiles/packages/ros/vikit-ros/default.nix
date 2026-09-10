@@ -12,7 +12,6 @@
   sophus,
   tf2-geometry-msgs,
   rosidl-default-generators,
-  breakpointHook,
 }:
 
 buildRosPackage {
@@ -51,7 +50,6 @@ buildRosPackage {
     sophus
     tf2-geometry-msgs
     rosidl-default-generators
-    breakpointHook
   ];
 
   postPatch = ''

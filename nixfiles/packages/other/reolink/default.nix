@@ -1,11 +1,28 @@
-{ lib
-, stdenvNoCC
-, mkYarnPackage
+{ stdenv,
+  fetchYarnDeps,
+  yarnConfigHook,
+  yarnBuildHook,
+  yarnInstallHook,
+  nodejs,
 }:
-mkYarnPackage {
-    name = "reolink-ctl";
-    src = ./src;
-    packageJSON = ./src/package.json;
+
+stdenv.mkDerivation {
+  name = "reolink-ctl";
+  version = "1.0.0";
+
+  src = ./src;
+
+  yarnOfflineCache = fetchYarnDeps {
     yarnLock = ./src/yarn.lock;
-    yarnNix = ./src/yarn.nix;
-  }
+    hash = "sha256-noFsgfDrGE712okHCBuifJoT8WOtF/rpKmE51hCL5Hk=";
+  };
+
+  nativeBuildInputs = [
+    yarnConfigHook
+    yarnBuildHook
+    yarnInstallHook
+    nodejs
+  ];
+
+  dontBuild = true;
+}
