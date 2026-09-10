@@ -2,7 +2,6 @@
 , buildRosPackage
 , python3Packages
 , ament-cmake
-, ament-cmake-pytest
 , rclcpp
 , rclpy
 , geometry-msgs
@@ -30,8 +29,8 @@ buildRosPackage {
 
   buildInputs = [ rclcpp geometry-msgs nav-msgs trajectory-msgs ];
 
-  propagatedBuildInputs = lib.optional (python3Packages ? nova-coms-utils) python3Packages.nova-coms-utils
-    ++ (with python3Packages; [
+  propagatedBuildInputs = with python3Packages; [
+    nova-coms-utils
     rclpy
     jcan
     pymodbus
@@ -46,7 +45,7 @@ buildRosPackage {
     teleop-modular-python-utils
     nova-science-interfaces
     nova-pytest-framework
-  ]);
+  ];
 
   doCheck = true;
 
