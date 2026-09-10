@@ -12,7 +12,7 @@ import {
   Input,
   Select,
   SelectItem
-} from "@nextui-org/react";
+} from "@heroui/react";
 import CopyableOutput from "../../../shared/components/CopyableOutput/CopyableOutput.tsx";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";

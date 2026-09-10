@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from "react";
-import {Card, CardHeader, CardBody, CardProps, Button} from "@nextui-org/react";
+import {Card, CardHeader, CardBody, CardProps, Button} from "@heroui/react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../../redux/RootState.ts";
 import { useSelector } from "react-redux";

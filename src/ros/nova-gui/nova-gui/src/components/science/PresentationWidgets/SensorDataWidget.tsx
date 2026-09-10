@@ -1,5 +1,5 @@
 import React, {useMemo} from "react";
-import {Card, CardHeader, CardBody} from "@nextui-org/react";
+import {Card, CardHeader, CardBody} from "@heroui/react";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import {SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";

@@ -15,7 +15,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader
-} from "@nextui-org/react";
+} from "@heroui/react";
 import CopyableInput from "../../../shared/components/CopyableInput/CopyableInput.tsx";
 import { useState } from "react";
 import { ChevronCompactDown, ChevronCompactUp, ChevronDoubleDown, ChevronDoubleUp } from "react-bootstrap-icons";

@@ -1,4 +1,4 @@
-import {Button, Input} from "@nextui-org/react";
+import {Button, Input} from "@heroui/react";
 import {useResetGenericStore} from "../../../hooks/useResetGenericStore.ts";
 import {useState} from "react";
 

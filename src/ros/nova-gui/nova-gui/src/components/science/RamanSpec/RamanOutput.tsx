@@ -4,7 +4,7 @@
  * It accepts responses from the 'raman_spectra' ROS service.
  */
 
-import {Card, CardFooter, CardProps} from "@nextui-org/react";
+import {Card, CardFooter, CardProps} from "@heroui/react";
 import React, {memo, useCallback, useEffect, useMemo} from "react";
 import { RootState } from "../../../redux/RootState.ts";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";

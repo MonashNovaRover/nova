@@ -1,6 +1,6 @@
 import React from "react";
 import {CameraComponentProps} from "../../cameras/CameraComponent/CameraComponent.tsx";
-import {Card, CardBody, Tab, Tabs} from "@nextui-org/react";
+import {Card, CardBody, Tab, Tabs} from "@heroui/react";
 import MicroscopeThresholdWidget from "./MicroscopeThresholdWidget.tsx";
 import {CameraSerials} from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 import MicroscopeCamerasWidget from "./MicroscopeCamerasWidget.tsx";

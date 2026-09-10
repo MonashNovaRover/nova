@@ -12,7 +12,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow
-} from "@nextui-org/react";
+} from "@heroui/react";
 import CopyableInput from "../../shared/components/CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../../cameras/CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../../cameras/CameraComponent/components/CameraSessionStartStopButton.tsx";
