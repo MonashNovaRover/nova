@@ -80,9 +80,7 @@ stdenv.mkDerivation {
     ln -s "$PWD/node_modules" deps/nova-gui/node_modules
   '';
 
-  installPhase = ''
-    runHook preInstall
-
+  postInstall = ''
     mkdir -p "$out/share/nova-gui"
     cp -r dist "$out/share/nova-gui/www"
 
@@ -91,8 +89,6 @@ stdenv.mkDerivation {
     echo "#!/bin/bash
     ${serve-gui-script} \"$out/share/nova-gui/www\" \$@" > "$out/bin/gui-serve"
     chmod +x "$out/bin/gui-serve"
-
-    runHook postInstall
   '';
 
   distPhase = "true";
