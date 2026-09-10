@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
-import {Card, CardBody, CardHeader, CardProps, Divider} from "@nextui-org/react";
+import {Card, CardContent, CardHeader, CardProps, Separator} from "@heroui/react";
 import {RosService} from "../../../ros/services/rosService.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -37,20 +37,20 @@ const HeaterWidget: React.FC<HeaterWidgetWidgetProps> = (props) => {
 
   return <Card {...props}>
     <CardHeader className="pb-0">Temperature Sensors</CardHeader>
-    <CardBody>
+    <CardContent>
       <SensorDataDisplay values={tempReadings.temp.slice(0,1)} labels={["Heater"]} suffixes={["°C"]}/>
-    </CardBody>
+    </CardContent>
     <div className="mx-3 my-1">
-      <Divider/>
+      <Separator/>
     </div>
-    <CardBody>
+    <CardContent>
       <ThermalControl
         currentHeaterStatus={tempReadings.state}
         setHeaterStatus={setHeaterStatus}
         targetTemp={targetTemp}
         setTargetTemp={updateTargetTemp}
       />
-    </CardBody>
+    </CardContent>
   </Card>
 }
 

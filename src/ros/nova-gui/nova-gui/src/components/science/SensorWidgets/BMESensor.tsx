@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from "react";
-import {Card, CardHeader, CardBody, CardProps, Button} from "@nextui-org/react";
+import {Card, CardHeader, CardContent, CardProps, Button} from "@heroui/react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../../redux/RootState.ts";
 import { useSelector } from "react-redux";
@@ -59,7 +59,7 @@ const BMESensor: React.FC<IBMESensorProps> = (
   }
 
   const BMESensorCardBody = (
-    <CardBody className="flex flex-col gap-3">
+    <CardContent className="flex flex-col gap-3">
       <SensorDataDisplay
         values={sensorData}
         labels={["Temperature", "Pressure"]}
@@ -68,7 +68,7 @@ const BMESensor: React.FC<IBMESensorProps> = (
       <Button onPressStart={() => bifrost.callService({})}>
         Take Reading
       </Button>
-    </CardBody>
+    </CardContent>
   );
 
   return (

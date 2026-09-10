@@ -1,33 +1,27 @@
-import {Snippet, SnippetProps} from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import React from "react";
+import { Copy } from "react-feather";
 
-/**
- * A component based on Next UI's Snippet class that displays a value in a box, with a copy button on it's right.
- * @constructor
- */
-const CopyableOutput: React.FC<SnippetProps> = ({
-  hideSymbol: hideSymbol,
-  className: className,
-  classNames: classNames,
-  children: children,
-  ...props
-}) => {
+interface CopyableOutputProps {
+  children?: React.ReactNode;
+  className?: string;
+  classNames?: {
+    base?: string;
+    pre?: string;
+  };
+}
+
+const CopyableOutput: React.FC<CopyableOutputProps> = ({ children, className, classNames }) => {
+  const copyValue = () => navigator.clipboard.writeText(String(children ?? ""));
 
   return (
-    <Snippet
-      {...props}
-      hideSymbol={hideSymbol ?? true}
-      className={"overflow-hidden " + (className ?? "")}
-      classNames={{
-        ...classNames,
-        pre: "absolute top-0 left-0 right-0 bottom-0 flex flex-col justify-around content-center "
-          + (classNames?.pre ?? ""),
-        base: "justify-end relative overflow-hidden" + (classNames?.base ?? ""),
-      }}
-    >
-      <div className=" text-center">{children}</div>
-    </Snippet>
+    <div className={`relative flex items-center justify-between overflow-hidden ${className ?? ""} ${classNames?.base ?? ""}`}>
+      <output className={`flex-1 text-center ${classNames?.pre ?? ""}`}>{children}</output>
+      <Button aria-label="Copy to clipboard" isIconOnly size="sm" variant="ghost" onPress={copyValue}>
+        <Copy size={16} />
+      </Button>
+    </div>
   );
-}
+};
 
 export default CopyableOutput;

@@ -1,10 +1,8 @@
 import {
   Card,
   CardHeader,
-  CardBody,
   CardProps,
-  Image,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useEffect } from "react";
 import '../DriveModeWidget/DriveWidget.css';
 import './WheelTelemetryWidget.css';
@@ -68,13 +66,13 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
 
   // Bottom Section of the component for displaying wheel and pivot telemetry
   const wheelDataCardBody = (
-    <CardBody className="flex flex-col gap-3">
+    <Card.Content className="flex flex-col gap-3">
       <div className="DriveWheelWidgetGrid gap-2">
         <div className="DriveWheelWidgetGridImage row-end-3 row-start-1 flex justify-center flex-col align-middle">
           <span className="text-default-300 text-opacity-80">
             <ChevronUp size={20}></ChevronUp>
           </span>
-          {!props.hideImage && <Image className="mx-2" radius="none" src={RoverTopDownImage}></Image>}
+          {!props.hideImage && <img className="mx-2 rounded-md" src={RoverTopDownImage}></img>}
         </div>
         {cellProps.map((cellProp, index) => (
           <WheelTelemetryWidgetCell
@@ -85,7 +83,7 @@ const WheelTelemetryWidget: React.FC<IDriveWheelWidgetProps> = (
           />
         ))}
       </div>
-    </CardBody>
+    </Card.Content>
   );
 
   // Finally, put the body into a card

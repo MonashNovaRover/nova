@@ -1,4 +1,4 @@
-import {Button, Card, CardBody, CardFooter, CardHeader, Input, Tooltip} from "@nextui-org/react";
+import {Button, Card, CardContent, CardFooter, CardHeader, Input, Tooltip} from "@heroui/react";
 import {Minus, Pause, Play, Plus, Square, X} from "react-feather";
 import {BooleanChip} from "../CameraComponent/components/BooleanChip.tsx";
 import {CamerasTable} from "./CamerasTable.tsx";
@@ -72,7 +72,7 @@ export const CameraSidebar = (
               <X size={20}/>
             </Button>
           </CardHeader>
-          <CardBody className="flex flex-col gap-3 overflow-y-auto">
+          <CardContent className="flex flex-col gap-3 overflow-y-auto">
             <Tooltip
               className="dark text-foreground"
               content="Not Real Time"
@@ -102,7 +102,7 @@ export const CameraSidebar = (
 
             <div className="grow"></div>
 
-          </CardBody>
+          </CardContent>
 
           {serialPresetGroups && serialPresetGroups.length > 0 && (
             <div className="px-3 py-3 border-t border-divider">

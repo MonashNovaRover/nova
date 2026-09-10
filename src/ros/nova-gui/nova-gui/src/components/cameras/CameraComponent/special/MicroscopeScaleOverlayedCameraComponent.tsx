@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { BaseCameraComponentProps } from "../CameraComponent.tsx";
-import { Switch, Slider, Select, SelectItem } from "@nextui-org/react";
+import { ListBox, ListBoxItem, Select, Slider, Switch } from "@heroui/react";
 import { StreamingState } from "../../hooks/useCameraStream.ts";
 import { CameraComponent } from "../CameraComponent.tsx";
 import Overlay from "../../../shared/components/Overlay/Overlay.tsx";
@@ -209,16 +209,23 @@ const MicroscopeScaleOverlayedCameraComponent: FC<BaseCameraComponentProps> = (p
           />
           <Select
             size="sm"
-            label="Scale Position"
             selectedKeys={[scalePosition]}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as ScalePosition;
+            onSelectionChange={(key) => {
+              const selected = key as ScalePosition;
               if (selected) setScalePosition(selected);
             }}
           >
-            {POSITION_OPTIONS.map((opt) => (
-              <SelectItem key={opt.key}>{opt.label}</SelectItem>
-            ))}
+            <Select.Trigger aria-label="Scale Position">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox>
+                {POSITION_OPTIONS.map((opt) => (
+                  <ListBoxItem id={opt.key} key={opt.key}>{opt.label}</ListBoxItem>
+                ))}
+              </ListBox>
+            </Select.Popover>
           </Select>
         </>
       )}

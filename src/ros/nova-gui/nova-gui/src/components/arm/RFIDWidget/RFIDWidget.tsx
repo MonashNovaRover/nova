@@ -1,11 +1,11 @@
 import {
   Button,
   Card,
-  CardBody,
+  CardContent,
   CardHeader,
   CardProps,
-  Textarea,
-} from "@nextui-org/react";
+  TextArea,
+} from "@heroui/react";
 import React, { useEffect } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
@@ -56,8 +56,8 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
   return (
     <Card {...props}>
       <CardHeader className="pb-0">RFID</CardHeader>
-      <CardBody className="flex flex-col gap-2.5">
-        <Textarea
+      <CardContent className="flex flex-col gap-2.5">
+        <TextArea
           isReadOnly
           variant="bordered"
           labelPlacement="outside"
@@ -80,7 +80,7 @@ const RFIDWidget: React.FC<CardProps> = (props) => {
             Save
           </DownloadButton>
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

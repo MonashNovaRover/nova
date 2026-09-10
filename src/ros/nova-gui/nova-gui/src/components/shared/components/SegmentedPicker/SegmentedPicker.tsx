@@ -1,4 +1,4 @@
-import {Tab, Tabs, TabsProps} from "@nextui-org/react";
+import {Tab, TabList, Tabs, TabsProps} from "@heroui/react";
 import React, {Children, Key, ReactNode} from "react";
 
 export interface SegmentedPickerProps extends TabsProps {
@@ -36,12 +36,12 @@ const SegmentedPicker: React.FC<SegmentedPickerProps> = ({
   const childrenArray = Children.toArray(children);
 
   const tabs = childrenArray.map((child, index) => (
-    <Tab key={index.toString()} title={child}>{}</Tab>
+    <Tab id={index.toString()} key={index.toString()}>{child}</Tab>
   ));
 
   return (
     <Tabs onSelectionChange={onSelectionChange} selectedKey={selectedKey} {...props}>
-      {tabs}
+      <TabList>{tabs}</TabList>
     </Tabs>
   )
 }

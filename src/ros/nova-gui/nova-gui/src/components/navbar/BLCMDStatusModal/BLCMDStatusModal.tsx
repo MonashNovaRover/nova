@@ -1,7 +1,7 @@
 import {
   Modal,
   ModalBody,
-  ModalContent,
+  ModalDialog,
   ModalHeader,
   Table,
   TableBody,
@@ -9,7 +9,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useEffect } from "react";
@@ -74,7 +74,7 @@ export const BLCMDStatusModal = () => {
       onClose={onClose}
       size="5xl"
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-col gap-1">Motor Status</ModalHeader>
         <ModalBody>
           <Table
@@ -130,7 +130,7 @@ export const BLCMDStatusModal = () => {
             </TableBody>
           </Table>
         </ModalBody>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

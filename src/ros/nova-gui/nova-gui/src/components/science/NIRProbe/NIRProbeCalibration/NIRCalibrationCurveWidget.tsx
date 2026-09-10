@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from "react";
-import {Button, Card, CardBody, CardHeader,} from "@nextui-org/react";
+import {Button, Card, CardContent, CardHeader,} from "@heroui/react";
 import {MoreHorizontal} from "react-feather";
 import NIR3DCalibrationCurve, {ScatterPlotData} from "./NIR3DCalibrationCurve.tsx";
 import NIR3DCurveSettingsModal from "./NIR3DCurveSettingsModal.tsx";
@@ -87,13 +87,13 @@ const NIRCalibrationCurveWidget: React.FC<NIRCalibrationCurveWidgetProps> = () =
           <MoreHorizontal/>
         </Button>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <NIR3DCalibrationCurve
           surfaceData={{x: xValuesSurface, y: yValuesSurface, z: zValuesSurface}}
           readingsScatterData={readingsScatterData}
           averageScatterData={{x: [averageX], y: [averageY], text: []}}
         />
-      </CardBody>
+      </CardContent>
       <NIR3DCurveSettingsModal
         isOpen={calibrationModalIsOpen}
         setIsOpen={setCalibrationModalIsOpen}

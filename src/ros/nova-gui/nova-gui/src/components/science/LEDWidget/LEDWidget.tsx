@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, Switch} from "@nextui-org/react";
+import { Card, CardContent, CardHeader, Switch} from "@heroui/react";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
@@ -51,7 +51,7 @@ const LEDWidget = () => {
         <CardHeader>
           Vis Spec LEDs
         </CardHeader>
-        <CardBody className="grid grid-cols-2 justify-between">
+        <CardContent className="grid grid-cols-2 justify-between">
           {LED_CONFIG.map((led: LED) => (
             <div key={led.name} className="flex flex-col gap-2 items-center">
               <span className="text-sm">{led.displayName}</span>
@@ -62,7 +62,7 @@ const LEDWidget = () => {
               />
             </div>
           ))}
-        </CardBody>
+        </CardContent>
       </Card>
     );
 };

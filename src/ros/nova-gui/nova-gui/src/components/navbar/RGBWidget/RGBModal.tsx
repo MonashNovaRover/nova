@@ -3,9 +3,9 @@ import {
     Button,
     Modal,
     ModalBody,
-    ModalContent,
+    ModalDialog,
     ModalHeader,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import RGBInput from "./RGBInput.tsx";
 
 /**
@@ -28,12 +28,12 @@ export function RGBInputModal() {
             Colour
         </Button>
         <Modal className="dark text-foreground" isOpen={isOpen} onClose={onClose}>
-            <ModalContent>
+            <ModalDialog>
                 <ModalHeader className="flex flex-col gap-1">RGB Color Input</ModalHeader>
                 <ModalBody>
                     <RGBInput />
                 </ModalBody>
-            </ModalContent>
+            </ModalDialog>
         </Modal>
         </>
     );

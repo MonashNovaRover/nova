@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader} from "@nextui-org/react";
+import {Card, CardContent, CardHeader} from "@heroui/react";
 import AnalysisArmDiagram from "./AnalysisPlatformDiagram.tsx";
 import {useAnalysisArmPosition, useAnalysisArmServices} from "./useAnalysisArmPosition.ts";
 import {useCallback, useEffectEvent, useMemo, useState} from "react";
@@ -56,14 +56,14 @@ const AnalysisArmWidget: React.FC<AnalysisArmWidgetProps> = () => {
       <CardHeader>
         Analysis Arm
       </CardHeader>
-      <CardBody className="py-0">
+      <CardContent className="py-0">
         <div className="grid grid-cols-2">
           <div className="flex flex-col">
             <AnalysisArmDiagram percent={percent} target={targetPercent} bottomDistance={tofDist.range} topDistance={aaPos.range}/>
           </div>
           <AnalysisArmControls currentPos={aaPos.range} TOFReading={tofDist.range} setPosition={setPos} zeroPosition={zeroAA} stopAA={stopAA} resetTOF={resetTOF}/>
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

@@ -1,8 +1,8 @@
 import {
   Card,
-  CardBody,
+  CardContent,
   CardProps
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, {ReactNode} from "react";
 import '../DriveModeWidget/DriveWidget.css';
 import './WheelTelemetryWidget.css';
@@ -54,13 +54,13 @@ const WheelTelemetryWidgetCell: React.FC<IWheelTelemetryWidgetCellProps> = (prop
 
 
   return <Card shadow="sm" {...props} >
-    <CardBody className="pt-1 flex gap-1 flex-col content-center bg-content2">
+    <CardContent className="pt-1 flex gap-1 flex-col content-center bg-content2">
       <SubCardLabel>{props.label}</SubCardLabel>
       <div className="flex flex-col gap-2 content-center">
         {wheelProgress}
         {pivotProgress}
       </div>
-    </CardBody>
+    </CardContent>
   </Card>
 }
 

@@ -1,4 +1,4 @@
-import { Modal, ModalBody, ModalContent, ModalHeader } from "@nextui-org/react";
+import { Modal, ModalBody, ModalDialog, ModalHeader } from "@heroui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
@@ -17,12 +17,12 @@ const ControllerHelpModal: React.FC = () => {
       isOpen={uiState.controllerHelpModalOpen}
       onClose={closeModal}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader>Controller Help</ModalHeader>
         <ModalBody>
           <img className="w-full my-4" src={controls} alt="Image" />
         </ModalBody>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

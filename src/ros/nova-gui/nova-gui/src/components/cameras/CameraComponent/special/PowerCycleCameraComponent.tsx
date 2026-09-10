@@ -1,6 +1,6 @@
 import {BaseCameraComponentProps} from "../CameraComponent.tsx";
 import {FC} from "react";
-import {Card, CardBody, CardHeader} from "@nextui-org/react";
+import {Card, CardContent, CardHeader} from "@heroui/react";
 import PowerCycle from "../../../science/PowerCycle/PowerCycle.tsx";
 
 export const PowerCycleCameraComponent: FC<BaseCameraComponentProps> = (_: BaseCameraComponentProps) => {
@@ -9,9 +9,9 @@ export const PowerCycleCameraComponent: FC<BaseCameraComponentProps> = (_: BaseC
       <CardHeader>
         Power Cycle Science Voltage Rails
       </CardHeader>
-      <CardBody className="pt-0">
+      <CardContent className="pt-0">
         <PowerCycle/>
-      </CardBody>
+      </CardContent>
     </Card>
   )
 }

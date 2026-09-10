@@ -1,5 +1,5 @@
 import React, {useMemo} from "react";
-import {Card, CardHeader, CardBody} from "@nextui-org/react";
+import {Card, CardHeader, CardContent} from "@heroui/react";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import {SiteDataState} from "../../../redux/models/genericStores/SiteDataState.ts";
@@ -34,7 +34,7 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
       <CardHeader className="text-h1 pb-0">
         Site {site + 1} Sensor Data
       </CardHeader>
-      <CardBody className="gap-4">
+      <CardContent className="gap-4">
         {sensorData.length === 0 ? (
           <p className="text-default-500 text-center py-4">No sensor data saved</p>
         ) : (
@@ -97,7 +97,7 @@ const SensorDataWidget: React.FC<SensorDataWidgetProps> = ({site}) => {
 
         {/* NIR Results Section */}
         <NIRResultsWidget site={site} />
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Button, Card, CardBody, CardHeader, Tooltip} from "@nextui-org/react";
+import {Button, Card, CardContent, CardHeader, Tooltip} from "@heroui/react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -109,10 +109,10 @@ const Theta360CamWidget: React.FC = () => {
           <>Panorama</>
         </SegmentedPicker>
       </CardHeader>
-      <CardBody className="flex flex-col">
+      <CardContent className="flex flex-col">
         { canvasIndex === 0 ? perspective : panorama }
         <HeightCalculator angles={angles} setAngles={setAngles}/>
-      </CardBody>
+      </CardContent>
     </Card>
   )
 }

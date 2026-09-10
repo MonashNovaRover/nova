@@ -1,4 +1,4 @@
-import { Modal, ModalBody, ModalContent, ModalHeader} from "@nextui-org/react";
+import { Modal, ModalBody, ModalDialog, ModalHeader} from "@heroui/react";
 import guide from '../../../assets/auto-typing-keyboard-guide.png';
 
 interface IAutoTypingModalProps {
@@ -14,12 +14,12 @@ const AutoTypingModal: React.FC<IAutoTypingModalProps>= (props) => {
       onClose={props.closeModal}
       size="5xl"
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-col gap-1">Auto Typing Keyboard Guide</ModalHeader>
         <ModalBody>
           <img src={guide} alt="Auto Typing Key Guide"/>
         </ModalBody>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

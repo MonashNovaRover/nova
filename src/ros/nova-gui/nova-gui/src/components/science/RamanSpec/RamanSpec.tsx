@@ -5,7 +5,7 @@
  */
 
 
-import { Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Card, CardContent, CardHeader } from "@heroui/react";
 import RamanCCDInputs from "./RamanCCDInputs.tsx";
 import RamanMechanicalInputs from "./RamanMechanicalInputs.tsx";
 import RamanOutput, {RamanOutputProps} from "./RamanOutput.tsx";
@@ -14,7 +14,7 @@ const RamanSpec: React.FC<RamanOutputProps> = (props) => {
     return (
         <Card {...props}>
             <CardHeader>Raman Spec</CardHeader>
-            <CardBody>
+            <CardContent>
                 <div className="flex flex-row m-3 rounded-xl bg-zinc-800">
                     <div className="w-1/2 flex flex-col space-y-10 p-2 py-8">
                         <RamanMechanicalInputs />
@@ -24,7 +24,7 @@ const RamanSpec: React.FC<RamanOutputProps> = (props) => {
                         <RamanOutput onSave={props.onSave}/>
                     </div>
                 </div>
-            </CardBody>
+            </CardContent>
         </Card>
     )
 }

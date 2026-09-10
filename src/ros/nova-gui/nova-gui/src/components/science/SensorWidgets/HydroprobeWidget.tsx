@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo} from "react";
-import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
+import {Button, Card, CardContent, CardHeader, CardProps} from "@heroui/react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RootState} from "../../../redux/RootState.ts";
 import {useSelector} from "react-redux";
@@ -48,13 +48,13 @@ const HydroprobeWidget: React.FC<IHydroprobeProps> = (
   }
 
   const HydraprobeCardBody = (
-    <CardBody className="gap-4">
+    <CardContent className="gap-4">
       <SensorDataDisplay
         values={sensorData}
         labels={["Temperature", "Moisture", "Conductivity", "Salinity"]}
         suffixes={["°C", "%", "µS/cm", "ppt"]}
       />
-    </CardBody>
+    </CardContent>
   );
 
   return (

@@ -1,7 +1,7 @@
 import LSObjectCard from "./LSObjectCard.tsx";
 import SiteSelectorTest from "./SiteSelectorTest.tsx";
 import GenericStoreCard from "./GenericStoreCard.tsx";
-import {Button, Card, CardBody} from "@nextui-org/react";
+import {Button, Card, CardContent} from "@heroui/react";
 
 export default function TestStateView () {
 
@@ -19,14 +19,14 @@ export default function TestStateView () {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <Card className="grid grid-cols-1">
-          <CardBody className="flex flex-row gap-4 m-8">
+          <CardContent className="flex flex-row gap-4 m-8">
             <Button size="lg" color="default">Default</Button>
             <Button size="lg" color="primary">Primary</Button>
             <Button size="lg" color="secondary">Secondary</Button>
             <Button size="lg" color="success">Success</Button>
             <Button size="lg" color="warning">Warning</Button>
             <Button size="lg" color="danger">Danger</Button>
-          </CardBody>
+          </CardContent>
         </Card>
       </div>
     </div>

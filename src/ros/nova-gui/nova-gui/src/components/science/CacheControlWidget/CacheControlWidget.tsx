@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Card, CardBody, CardHeader, Input, Tab, Tabs } from "@nextui-org/react";
+import { Button, Card, CardContent, CardHeader, Input, Tab, TabList, Tabs } from "@heroui/react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { ArrowClockwise, ArrowCounterclockwise } from "react-bootstrap-icons";
@@ -39,13 +39,15 @@ const CachePanel: React.FC<CacheConfig> = ({ label, positionService, twitchServi
   return (
     <Card>
       <CardHeader>{`${label}`} cache</CardHeader>
-      <CardBody className="flex flex-col pt-0">
+      <CardContent className="flex flex-col pt-0">
         <div className="flex flex-col gap-3">
           <div className="flex flex-row">
             <Tabs key="tabs" color="primary" size="md" fullWidth selectedKey={selected.toString()} onSelectionChange={setPosition}>
-              <Tab key={0} title={CachePositionNames[0]} />
-              <Tab key={1} title={CachePositionNames[1]} />
-              <Tab key={2} title={CachePositionNames[2]} />
+              <TabList>
+                <Tab id="0">{CachePositionNames[0]}</Tab>
+                <Tab id="1">{CachePositionNames[1]}</Tab>
+                <Tab id="2">{CachePositionNames[2]}</Tab>
+              </TabList>
             </Tabs>
           </div>
           <div className="flex flex-row justify-between gap-3">
@@ -58,7 +60,7 @@ const CachePanel: React.FC<CacheConfig> = ({ label, positionService, twitchServi
             <Button onPress={() => twitch(twitchStep ?? 5 * multiplier)}><ArrowClockwise /></Button>
           </div>
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
 
   );

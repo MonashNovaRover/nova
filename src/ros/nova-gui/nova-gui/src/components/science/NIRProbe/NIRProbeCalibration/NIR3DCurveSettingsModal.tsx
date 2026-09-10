@@ -1,4 +1,4 @@
-import {Button, Input, Modal, ModalBody, ModalContent, ModalHeader} from "@nextui-org/react";
+import {Button, Input, Modal, ModalBody, ModalDialog, ModalHeader} from "@heroui/react";
 import React from "react";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
 import {
@@ -83,14 +83,14 @@ const NIR3DCurveSettingsModal: React.FC<NIRCalibrationSettingsModalProps> = ({
       isOpen={isOpen}
       onClose={() => setIsOpen(false)}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-col gap-1">
           NIR Calibration Settings
         </ModalHeader>
         <ModalBody>
           {renderRanges()}
         </ModalBody>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   )
 }

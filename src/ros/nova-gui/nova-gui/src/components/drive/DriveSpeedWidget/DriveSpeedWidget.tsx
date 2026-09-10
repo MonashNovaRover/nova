@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
+import { Card, CardHeader, CardContent, CardProps } from "@heroui/react";
 import { ReactNode, useEffect } from "react";
 import "../DriveModeWidget/DriveWidget.css";
 import { OverlayedProgress } from "../../shared/components/OverlayedProgress/OverlayedProgress.tsx";
@@ -44,7 +44,7 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (
 
   // The top half of the card, containing drive mode info data
   const driveInfoCardBody = (
-    <CardBody className="grid DriveWidgetTopGrid gap-y-2.5 gap-x-5">
+    <CardContent className="grid DriveWidgetTopGrid gap-y-2.5 gap-x-5">
       {createLabelCell(<>Average Velocity</>)}
       {createLabelCell(<>Speed Control</>)}
 
@@ -69,7 +69,7 @@ const DriveSpeedWidget: React.FC<IDriveWidgetProps> = (
           {(driveMultiplier * 100).toFixed(0)} %
         </OverlayedProgress>
       </div>
-    </CardBody>
+    </CardContent>
   );
 
   // Finally, put the body into a card

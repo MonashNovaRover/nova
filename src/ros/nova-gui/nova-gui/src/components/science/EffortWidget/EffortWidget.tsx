@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
-import {Card, CardBody, CardProps} from "@nextui-org/react";
+import {Card, CardContent, CardProps} from "@heroui/react";
 import {RosService} from "../../../ros/services/rosService.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -41,7 +41,7 @@ const EffortWidget: React.FC<EffortWidgetWidgetProps> = (props) => {
   const setEffortStatus = (state: boolean) => sendCommand(state, currentEffort)
 
   return <Card {...props}>
-    <CardBody>
+    <CardContent>
       <EffortControl
         controlName={props.label}
         currentStatus={effortStatus.state}
@@ -49,7 +49,7 @@ const EffortWidget: React.FC<EffortWidgetWidgetProps> = (props) => {
         currentEffort={currentEffort}
         setEffort={updateEffort}
       />
-    </CardBody>
+    </CardContent>
   </Card>
 }
 

@@ -5,7 +5,7 @@
 import React, {memo, ReactNode, useCallback, useMemo, useState} from "react";
 import {ApexDataset} from "../../../science/SpectraDisplay/DataChart.tsx";
 import {ApexOptions} from "apexcharts";
-import {Button, Card, CardBody, CardHeader, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem} from "@nextui-org/react";
+import {Button, Card, CardContent, CardHeader, Modal, ModalBody, ModalDialog, ModalFooter, ModalHeader, Select, ListBoxItem} from "@heroui/react";
 import {Trash} from "react-feather";
 import ReactApexChart from "react-apexcharts";
 
@@ -107,14 +107,14 @@ const GenericGraphComparisonWidgetUnmemoed: React.FC<GenericGraphComparisonWidge
           )}
         >
           {graphs.map(({name}) => (
-            <SelectItem key={name} className="py-0">
+            <ListBoxItem key={name} className="py-0">
               <div className="flex flex-row items-center">
                 <div className="flex-grow">{name}</div>
                 <Button isIconOnly={true} size="sm" color="danger" variant="light" onPress={() => onDeleteItem(name)}>
                   <Trash/>
                 </Button>
               </div>
-            </SelectItem>
+            </ListBoxItem>
           ))}
         </Select>
         {props.onDeleteAll && (
@@ -128,7 +128,7 @@ const GenericGraphComparisonWidgetUnmemoed: React.FC<GenericGraphComparisonWidge
           isOpen={showDeleteAllModal}
           onClose={() => setShowDeleteAllModal(false)}
         >
-          <ModalContent>
+          <ModalDialog>
             <ModalHeader>Delete all saved graphs?</ModalHeader>
             <ModalBody>
               <span>This will delete all saved graphs. This action cannot be undone.</span>
@@ -144,12 +144,12 @@ const GenericGraphComparisonWidgetUnmemoed: React.FC<GenericGraphComparisonWidge
                 Delete All
               </Button>
             </ModalFooter>
-          </ModalContent>
+          </ModalDialog>
         </Modal>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <ReactApexChart options={options} type="line" series={selectedOutput}></ReactApexChart>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

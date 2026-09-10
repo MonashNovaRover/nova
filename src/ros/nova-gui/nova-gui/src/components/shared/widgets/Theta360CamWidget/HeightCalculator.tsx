@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
-import {Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Tooltip} from "@nextui-org/react";
+import {Button, Input, Modal, ModalBody, ModalDialog, ModalHeader, Tooltip} from "@heroui/react";
 import { AngleType } from "./Theta360CamWidget.tsx";
 import { HelpCircle } from "react-feather";
 
@@ -101,7 +101,7 @@ export interface heightCalc360CamProps {
   return (
     <div className="flex flex-row gap-1 justify-center mt-3 ">
       <Modal isOpen={isModalOpen} onClose={()=>setModalOpen(false)} className="dark text-foreground" size="xl">
-        <ModalContent>
+        <ModalDialog>
           <ModalHeader>
             Height Calculator Usage
           </ModalHeader>
@@ -111,7 +111,7 @@ export interface heightCalc360CamProps {
             Fast fill (high): <b>Shift</b> + <b>Left Click</b> on canvas to fill low angle <br/>
             Fast fill will automatically calculate the height. 
           </ModalBody>
-        </ModalContent>
+        </ModalDialog>
       </Modal>
       <div className="flex flex-row gap-1 items-center">
         <span className="ml-3 w-[8rem] text-[0.7rem]">

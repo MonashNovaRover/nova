@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import { CameraControlPanelModal } from "../../components/cameras/CameraPage/CamerasControlPanelModal.tsx";
 import { useCameraStreamer } from "../../components/cameras/hooks/useCameraStreamer";
@@ -12,7 +12,7 @@ const URCGazeboView: React.FC = () => {
   return (
     <div className="p-3 flex flex-col gap-3">
       <div>
-        <CameraControlPanelModal showModal={controlPanelOpen} closeModal={closeControlPanel} refreshAvailabilies={refreshAvailabilities} />
+        {controlPanelOpen && <CameraControlPanelModal showModal={controlPanelOpen} closeModal={closeControlPanel} refreshAvailabilies={refreshAvailabilities} />}
         <Button size="md" color="primary" variant="ghost" className="w-36" onPress={() => setControlPanelOpen(true)}> Control Panel </Button>
       </div>
       <div className="grid grid-cols-2 gap-3">

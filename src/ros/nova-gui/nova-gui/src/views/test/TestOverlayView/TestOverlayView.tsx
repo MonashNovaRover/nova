@@ -1,4 +1,4 @@
-import {Button, Card, CardBody, CardHeader} from "@nextui-org/react";
+import {Button, Card, CardContent, CardHeader} from "@heroui/react";
 import {useCallback, useState} from "react";
 import SpinnerButton from "../../../components/shared/components/buttons/SpinnerButton.tsx";
 
@@ -23,7 +23,7 @@ export default function TestOverlayView () {
       <Card>
         <CardHeader>Spinner buttons</CardHeader>
 
-        <CardBody className="flex flex-col gap-3">
+        <CardContent className="flex flex-col gap-3">
           <Button>
             Hello
           </Button>
@@ -45,7 +45,7 @@ export default function TestOverlayView () {
           <SpinnerButton isLoading={isLoading} onPress={load} color="primary" variant="light">Hello</SpinnerButton>
           <SpinnerButton isLoading={isLoading} onPress={load} color="primary" variant="faded">Hello</SpinnerButton>
           <SpinnerButton isLoading={isLoading} onPress={load} color="primary" variant="flat">Hello</SpinnerButton>
-        </CardBody>
+        </CardContent>
       </Card>
 
 

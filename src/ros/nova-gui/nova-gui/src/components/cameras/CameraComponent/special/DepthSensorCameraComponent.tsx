@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardHeader, CardBody, Chip } from "@nextui-org/react";
+import { Card, CardHeader, CardContent, Chip } from "@heroui/react";
 import { BaseCameraComponentProps } from "../CameraComponent.tsx";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../../../redux/RootState.ts";
@@ -44,7 +44,7 @@ const DepthSensor = (includeSiteSelector: boolean): React.FC<BaseCameraComponent
     }, [auger_right_bifrost]);
 
     const DepthSensorCardBody = (
-        <CardBody className="flex flex-row justify-around p-0">
+        <CardContent className="flex flex-row justify-around p-0">
             <text className="w-max">Auger Left:</text>
             <Chip className={auger_left_depth_hit ? "w-min bg-success" : "w-min bg-danger"}>
                 {auger_left_depth_hit ? "Yes" : "No"}
@@ -53,7 +53,7 @@ const DepthSensor = (includeSiteSelector: boolean): React.FC<BaseCameraComponent
             <Chip className={auger_right_depth_hit ? "w-min bg-success" : "w-min bg-danger"}>
                 {auger_right_depth_hit ? "Yes" : "No"}
             </Chip>
-        </CardBody>
+        </CardContent>
     );
 
     return (

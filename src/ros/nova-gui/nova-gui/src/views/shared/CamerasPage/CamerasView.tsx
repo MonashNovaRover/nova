@@ -20,7 +20,7 @@ export const CameraView = (props: CameraViewProps) => {
         className="flex flex-row w-full items-stretch"
         style={{ height: "calc(100vh - 4.05rem)" }}
       >
-        <CameraSidebar
+        {showSidebar && <CameraSidebar
           refreshAvailabilities={refreshAvailabilities}
           showSidebar={showSidebar}
           setShowSidebar={setShowSidebar}
@@ -28,7 +28,7 @@ export const CameraView = (props: CameraViewProps) => {
           setGridSize={setGridSize}
           presets={props.views[0].cameraPrests ? props.views[0].cameraPrests : defaultCameraProfilePresets}
           serialPresetGroups={props.views[0].serialPresetGroups}
-        />
+        />}
         <div className="grow">
           <CamerasPage
             refreshAvailabilities={refreshAvailabilities}

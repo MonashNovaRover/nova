@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis, restrictToWindowEdges, restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
-import { Modal, ModalHeader, ModalFooter, ModalBody, ModalContent, Card, Divider } from "@nextui-org/react";
+import { Modal, ModalHeader, ModalFooter, ModalBody, ModalDialog, Card, Separator } from "@heroui/react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
 import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
@@ -142,7 +142,7 @@ export const CartographerGoalModal: React.FC<{
       scrollBehavior="inside"
       onClose={onClose}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader>Publish Goals</ModalHeader>
         <ModalBody>
           <div>
@@ -166,7 +166,7 @@ export const CartographerGoalModal: React.FC<{
                 </SortableContext>
               </DndContext>
             </div>
-            <Divider className="my-4" />
+            <Separator className="my-4" />
             <h3 className="font-bold my-4">Unselected Points</h3>
             {renderPoints(unselectedItems, false)}
           </div>
@@ -183,7 +183,7 @@ export const CartographerGoalModal: React.FC<{
             onPublish={sendCartographerPoints}
           />
         </ModalFooter>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

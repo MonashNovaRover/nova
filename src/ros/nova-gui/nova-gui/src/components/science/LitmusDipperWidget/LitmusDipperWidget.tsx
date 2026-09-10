@@ -1,7 +1,7 @@
 import {
-  Button, Card, CardBody, CardHeader, CardProps, Input, Progress,
-  useDisclosure
-} from "@nextui-org/react";
+  Button, Card, CardContent, CardHeader, CardProps, Input, ProgressBar,
+  useOverlayState
+} from "@heroui/react";
 import React, { useEffect, useState } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
@@ -26,7 +26,7 @@ export interface LitmusDipperConfig {
  * @constructor
  */
 const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, open: onOpen, setOpen: onOpenChange } = useOverlayState();
 
   const [config, setConfig] = useGenericStore<LitmusDipperConfig>("litmusDipperConfig");
   const defaultDuration = config?.defaultDuration ?? 2;
@@ -105,11 +105,11 @@ const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
 
   const progressBar = (
     <div className="flex flex-row items-center gap-3">
-      <Progress
+      <ProgressBar
         className="flex-1"
         disableAnimation
         color={waitingForReady || isReady ? "success" : "secondary"}
-        aria-label="Dip Progress"
+        aria-label="Dip ProgressBar"
         value={
           isReady ? 100 :
           waitingForReady ? waitTimeElapsed :
@@ -146,7 +146,7 @@ const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
           </Button>
         </div>
       </CardHeader>
-      <CardBody className="flex flex-col">
+      <CardContent className="flex flex-col">
         {progressBar}
         <div className="flex flex-col gap-3 mt-3">
           <div className="flex flex-row gap-3">
@@ -196,7 +196,7 @@ const LitmusDipperWidget: React.FC<LitmusDipperWidgetProps> = (props) => {
             </Button>
           </div>
         </div>
-      </CardBody>
+      </CardContent>
       <LitmusDipperModal isOpen={isOpen} onOpenChange={onOpenChange} />
     </Card>
   );

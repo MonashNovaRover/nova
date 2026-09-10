@@ -1,9 +1,6 @@
 import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader, Tab, Tabs,
-} from "@nextui-org/react";
+  Modal, ModalBody, ModalDialog, ModalHeader, Tab, TabList, TabPanel, Tabs,
+} from "@heroui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
@@ -26,31 +23,31 @@ export function SettingsModal() {
       isOpen={uiState.settingsModalOpen}
       onClose={closeModal}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-col gap-1">Settings</ModalHeader>
         <ModalBody>
 
           <Tabs
             variant="underlined"
-            classNames={{
-              tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-            }}
           >
-            <Tab title="IP">
+            <TabList className="gap-6 w-full relative rounded-none p-0 border-b border-divider">
+              <Tab id="ip">IP</Tab>
+              <Tab id="store">Store</Tab>
+              <Tab id="yolo">YOLO</Tab>
+            </TabList>
+            <TabPanel id="ip">
               <IPSettings/>
-            </Tab>
-
-            <Tab title="Store">
+            </TabPanel>
+            <TabPanel id="store">
               <StoreSettings/>
-            </Tab>
-
-            <Tab title="YOLO">
+            </TabPanel>
+            <TabPanel id="yolo">
               <YoloSettings />
-            </Tab>
+            </TabPanel>
           </Tabs>
 
         </ModalBody>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 }

@@ -4,10 +4,10 @@ import {
   Kbd,
   Modal,
   ModalBody,
-  ModalContent,
+  ModalDialog,
   ModalFooter,
-  ModalHeader, Select, SelectItem,
-} from "@nextui-org/react";
+  ModalHeader, Select, ListBoxItem,
+} from "@heroui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { MapPoint } from "../../../../redux/models/CartographerState.ts";
@@ -82,7 +82,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       className="dark text-foreground"
       onClose={() => props.closeModal()}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader>{"Drop Pin"}</ModalHeader>
         <ModalBody>
           <Input
@@ -133,7 +133,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               }}
             >
               {props.labels.map((label) => (
-                <SelectItem key={label.key}>{label.text}</SelectItem>
+                <ListBoxItem key={label.key}>{label.text}</ListBoxItem>
               ))}
             </Select>
           )}
@@ -158,7 +158,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
             Drop Pin <Kbd keys={["enter"]} />
           </Button>
         </ModalFooter>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

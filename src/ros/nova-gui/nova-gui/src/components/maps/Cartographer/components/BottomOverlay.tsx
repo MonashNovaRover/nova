@@ -1,10 +1,11 @@
 import {
   Button,
   Card,
-  CardBody,
+  CardContent,
   CardHeader,
+  ListBox,
   Select,
-  SelectItem,
+  ListBoxItem,
   Table,
   TableBody,
   TableCell,
@@ -12,10 +13,10 @@ import {
   TableHeader,
   TableRow,
   Modal,
-  ModalContent,
+  ModalDialog,
   ModalFooter,
   ModalHeader
-} from "@nextui-org/react";
+} from "@heroui/react";
 import CopyableInput from "../../../shared/components/CopyableInput/CopyableInput.tsx";
 import { useState } from "react";
 import { ChevronCompactDown, ChevronCompactUp, ChevronDoubleDown, ChevronDoubleUp } from "react-bootstrap-icons";
@@ -87,16 +88,16 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
       isOpen={showModal}
       onClose={() => setShowModal(false)}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-col gap-1">
           Delete {currentVehicle.label} trace?
         </ModalHeader>
         <ModalFooter>
-          <Button variant="light" onPressStart={() => setShowModal(false)}>
+          <Button variant="ghost" onPressStart={() => setShowModal(false)}>
             Close
           </Button>
           <Button
-            color="danger"
+            variant="danger"
             onPressStart={() => {
               currentVehicle.toggleTracking();
               setTimeout(() => currentVehicle.toggleTracking(), 0);
@@ -106,7 +107,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
             Delete
           </Button>
         </ModalFooter>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   )
   
@@ -121,7 +122,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
     <div className="relative w-full">
       <div className="flex justify-end p-2 z-50">
       <Button
-          variant="shadow"
+          variant="primary"
           isIconOnly
           onClick={toggleOverlay}
           className="absolute -top-4 shadow-md w-20 h-8 flex items-center justify-center"
@@ -144,7 +145,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
           transition={{ duration: 0.4, ease: "easeInOut" }}
           className="overflow-hidden"
         >
-          <Card fullWidth className="h-full rounded-none" style={{ maxHeight: "400px" }}>
+          <Card className="h-full rounded-none" style={{ maxHeight: "400px" }}>
             <CardHeader className="w-full flex flex-row justify-between gap-3 items-center" style={{ height: "80px" }}>
                 <div className="flex flex-row gap-3">
                 <CopyableInput
@@ -178,17 +179,23 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   placeholder={`${currentVehicle.label} Heading`}
                   label={`${currentVehicle.label} Heading`}/>
                 <Select
-                  selectedKeys={[mapTile]}
-                  label="Map Tiles"
-                  placeholder="Select Tiles"
-                  onChange={(e) => setMapTile(e.target.value as MapTile)}
-                  >
-                  {Object.values(MapTile).map((tile) => (
-                    <SelectItem
-                      key={tile} >
-                      {tile}
-                    </SelectItem>
-                  ))}
+                  selectedKey={mapTile}
+                  onSelectionChange={(key) => key !== null && setMapTile(String(key) as MapTile)}
+                  aria-label="Map Tiles"
+                >
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      {Object.values(MapTile).map((tile) => (
+                        <ListBoxItem id={tile} key={tile}>
+                          {tile}
+                        </ListBoxItem>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
                 </Select>
                 </div>
                 <div className="flex flex-row gap-3 items-center">
@@ -199,7 +206,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 ))}
                 <div className="relative">
                   <Button
-                    variant="shadow"
+                    variant="primary"
                     fullWidth
                     color={currentVehicle.showTrack ? "primary" : "default"}
                     onClick={currentVehicle.toggleShowTracking}
@@ -219,7 +226,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   <ToolTipButton
                     tooltipContent={`Toggle Show Search Zone`}
                     isIconOnly
-                    variant="shadow"
+                    variant="primary"
                     color={showSearchZones ? "primary" : "default"}
                     onPressStart={toggleShowSearchZones}
                   >
@@ -228,7 +235,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                 <ToolTipButton
                   tooltipContent={`Center ${currentVehicle.label}`}
                   isIconOnly
-                  variant="shadow"
+                  variant="primary"
                   color={currentVehicle.centerOn ? "primary" : "default"}
                   onClick={currentVehicle.toggleCentering}
                 >
@@ -238,14 +245,14 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   <ToolTipButton
                     tooltipContent={focusVehicle == Vehicle.ROVER ? "Focus Drone" : "Focus Rover"}
                     isIconOnly
-                    variant="shadow"
+                    variant="primary"
                     onClick={handleFocusVehicle}
                   >
                     {focusVehicle == Vehicle.ROVER ? <Twitter /> : <Truck />}
                   </ToolTipButton>
                 )}
                 <Button
-                  variant="shadow"
+                  variant="primary"
                   isIconOnly
                   fullWidth
                   onClick={() => setOverlayOpen(!overlayOpen)}
@@ -263,20 +270,20 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                   exit={{ opacity: 1, height: 0 }}
                   transition={{ duration: 0.4, ease: "easeInOut" }}
                 >
-                  <CardBody className="overflow-y-auto" style={{ height: "320px" }}>
+                  <CardContent className="overflow-y-auto" style={{ height: "320px" }}>
                     <div className="flex-1">
-                      <Table removeWrapper title="Map Points" aria-label="Map Points" >
+                      <Table aria-label="Map Points" >
                         <TableHeader>
                           <TableColumn>Name</TableColumn>
                           <TableColumn>Latitude</TableColumn>
                           <TableColumn>Longitude</TableColumn>
                           <TableColumn>Radius</TableColumn>
                           <TableColumn>Label</TableColumn>
-                          <TableColumn align="end">
+                          <TableColumn>
                             <div className="flex flex-row justify-end">Actions</div>
                           </TableColumn>
                         </TableHeader>
-                        <TableBody emptyContent="Add Points on the Map to Display here">
+                        <TableBody>
                           {points.map((point) => (
                             <TableRow key={point.name}>
                               <TableCell>{point.name}</TableCell>
@@ -299,7 +306,7 @@ export const BottomOverlay : React.FC<BottomOverlayProps> = ({mapTile, setMapTil
                         </TableBody>
                       </Table>
                     </div>
-                  </CardBody>
+                  </CardContent>
                 </motion.div>
               )}
             </AnimatePresence>

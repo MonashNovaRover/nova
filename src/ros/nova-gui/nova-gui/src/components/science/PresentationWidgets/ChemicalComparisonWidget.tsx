@@ -1,5 +1,5 @@
 import React, {useMemo} from "react";
-import {Card, CardHeader, CardBody, Button} from "@nextui-org/react";
+import {Card, CardHeader, CardContent, Button} from "@heroui/react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import {ApexDataset} from "../SpectraDisplay/DataChart.tsx";
 import ReactApexChart from "react-apexcharts";
@@ -164,7 +164,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
           {CHEMICALS.map((chemical) => CHEMICAL_DISPLAY_NAMES[chemical])}
         </SegmentedPicker>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         {filteredSpectra.length > 0 ? (
           <ReactApexChart
             options={chartOptions}
@@ -180,7 +180,7 @@ const ChemicalComparisonWidget: React.FC<ChemicalComparisonWidgetProps> = ({
             No data available for {selectedChemical} ({spectrometer})
           </div>
         )}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

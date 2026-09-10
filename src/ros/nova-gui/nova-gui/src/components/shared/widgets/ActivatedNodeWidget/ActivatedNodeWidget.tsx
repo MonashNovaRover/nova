@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
+import { Card, CardHeader, CardContent, CardProps } from "@heroui/react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {useEffect, useState} from "react";
 import { RosTopic } from "../../../../ros/topics/rosTopic.ts";
@@ -56,7 +56,7 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
         <div className="grow" />
         {lockedStatusMessage.locked ? lockedMessage : <></>}
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <div className="grid grid-cols-2 gap-3">
           {props.config.map((data, i) => (
             <ActivatedNodeButton
@@ -67,7 +67,7 @@ const ActivatedNodeWidget: React.FC<ActivatedNodeWidgetProps> = (
           ))}
         </div>
         {lockedStatusMessage.locked ? blurOverlay : <></>}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

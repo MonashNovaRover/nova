@@ -1,9 +1,9 @@
 import {
     Card,
     CardHeader,
-    CardBody,
+    CardContent,
     CardProps,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useEffect } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../../redux/RootState.ts";
@@ -33,7 +33,7 @@ const ArmTypingWidget: React.FC<IArmTypingWidgetProps> = (
     }, [bifrostArm]);
 
     const armDataCardBody = (
-        <CardBody className="gap-2">
+        <CardContent className="gap-2">
             <div className="grid grid-cols-2 gap-1">
                 <div className="flex flex-col justify-center gap-1">
                     <ArmWidgetCell
@@ -76,7 +76,7 @@ const ArmTypingWidget: React.FC<IArmTypingWidgetProps> = (
                     />
                 </div>
             </div>
-        </CardBody>
+        </CardContent>
     );
 
     return (

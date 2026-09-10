@@ -1,5 +1,4 @@
-import { Button } from "@nextui-org/react";
-import { BLCMDStatusModal } from "./BLCMDStatusModal.tsx";
+import { Button } from "@heroui/react";
 import { ExclamationCircleFill } from "react-bootstrap-icons";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 import { useBLCMDFaults } from "./hooks/useBLCMDFaults.ts";
@@ -22,7 +21,6 @@ export const BLCMDStatusButton = () => {
         {fault ? fault :<p>No Errors</p>}
         <ExclamationCircleFill className="w-4 h-4"/>
       </Button>
-      <BLCMDStatusModal/>
     </div>
   );
 };

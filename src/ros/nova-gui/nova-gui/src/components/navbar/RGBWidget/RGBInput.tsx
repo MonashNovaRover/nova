@@ -1,5 +1,5 @@
 import React, {useCallback} from "react";
-import {Button, Card, CardProps, Input, Tooltip} from "@nextui-org/react";
+import {Button, Card, CardProps, Input, Tooltip} from "@heroui/react";
 import {SubCardLabel} from "../../shared/components/Labels.tsx";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
@@ -76,7 +76,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
 
     return (
         <Card {...props} className="space-y-3 p-3">
-            <Card className="space-y-3 p-3 bg-content2" shadow="sm">
+            <Card className="space-y-3 p-3 bg-content2">
                 <div className="flex grid-cols-3 gap-5">
                     <div className="w-1/3">
                         <label htmlFor="r" className="block text-sm font-semibold pl-3">R</label>
@@ -84,7 +84,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                             id="r"
                             type="number"
                             value={tempR}
-                            onValueChange={handleRChange}
+                            onChange={(event) => handleRChange(event.target.value)}
                             placeholder="0-255"
                             minLength={1}
                             maxLength={3}
@@ -97,7 +97,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                             id="g"
                             type="number"
                             value={tempG}
-                            onValueChange={handleGChange}
+                            onChange={(event) => handleGChange(event.target.value)}
                             placeholder="0-255"
                             minLength={1}
                             maxLength={3}
@@ -110,7 +110,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                             id="b"
                             type="number"
                             value={tempB}
-                            onValueChange={handleBChange}
+                            onChange={(event) => handleBChange(event.target.value)}
                             placeholder="0-255"
                             minLength={1}
                             maxLength={3}
@@ -118,7 +118,7 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                     </div>
                 </div>
             </Card>
-            <Card className="space-y-3 p-3 bg-content2" shadow="sm">
+            <Card className="space-y-3 p-3 bg-content2">
                 <SubCardLabel>COLOR PREVIEW</SubCardLabel>
                 <div className={`h-24 w-full flex items-center justify-center mt-4 rounded-lg bg-${colorPreview}`} style={{ backgroundColor: colorPreview}}>
                     <span className={`text-lg font-bold p-2 text-${previewTextColor}`}>
@@ -126,65 +126,50 @@ const RGBInputWidget: React.FC<RGBInputWidgetProps> = (props) => {
                     </span>
                 </div>
             </Card>
-            <Card className="p-3 bg-content2" shadow="sm">
+            <Card className="p-3 bg-content2">
                 <SubCardLabel>PRESETS</SubCardLabel>
                 <div className="flex flex-row flex-wrap gap-2 items-center justify-between">
-                    <Tooltip content="Red" placement="top">
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          className="w-6 h-6 bg-[rgb(255,0,0)]"
-                          aria-label="Red"
-                          onPress={()=>setRgbValues({r: "255", g: "0", b: "0"})}
-                        />
+                                        <Tooltip>
+                                                <Tooltip.Trigger>
+                                                    <Button isIconOnly size="sm" className="w-6 h-6 bg-[rgb(255,0,0)]" aria-label="Red" onPress={()=>setRgbValues({r: "255", g: "0", b: "0"})} />
+                                                </Tooltip.Trigger>
+                                                <Tooltip.Content placement="top">Red</Tooltip.Content>
                     </Tooltip>
-                    <Tooltip content="Green" placement="top">
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          className="w-6 h-6 bg-[rgb(0,255,0)]"
-                          aria-label="Green"
-                          onPress={()=>setRgbValues({r: "0", g: "255", b: "0"})}
-                        />
+                                        <Tooltip>
+                                                <Tooltip.Trigger>
+                                                    <Button isIconOnly size="sm" className="w-6 h-6 bg-[rgb(0,255,0)]" aria-label="Green" onPress={()=>setRgbValues({r: "0", g: "255", b: "0"})} />
+                                                </Tooltip.Trigger>
+                                                <Tooltip.Content placement="top">Green</Tooltip.Content>
                     </Tooltip>
-                    <Tooltip content="Blue" placement="top">
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          className="w-6 h-6 bg-[rgb(0,0,255)]"
-                          aria-label="Blue"
-                          onPress={()=>setRgbValues({r: "255", g: "0", b: "255"})}
-                        />
+                                        <Tooltip>
+                                                <Tooltip.Trigger>
+                                                    <Button isIconOnly size="sm" className="w-6 h-6 bg-[rgb(0,0,255)]" aria-label="Blue" onPress={()=>setRgbValues({r: "255", g: "0", b: "255"})} />
+                                                </Tooltip.Trigger>
+                                                <Tooltip.Content placement="top">Blue</Tooltip.Content>
                     </Tooltip>
-                    <Tooltip content="Yellow" placement="top">
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          className="w-6 h-6 bg-[rgb(255,255,0)]"
-                          aria-label="Yellow"
-                          onPress={()=>setRgbValues({r: "255", g: "255", b: "0"})}
-                        />
+                                        <Tooltip>
+                                                <Tooltip.Trigger>
+                                                    <Button isIconOnly size="sm" className="w-6 h-6 bg-[rgb(255,255,0)]" aria-label="Yellow" onPress={()=>setRgbValues({r: "255", g: "255", b: "0"})} />
+                                                </Tooltip.Trigger>
+                                                <Tooltip.Content placement="top">Yellow</Tooltip.Content>
                     </Tooltip>
-                    <Tooltip content="Pink" placement="top">
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          className="w-6 h-6 bg-[rgb(255,105,180)]"
-                          aria-label="Pink"
-                          onPress={()=>setRgbValues({r: "255", g: "105", b: "180"})}
-                        />
+                                        <Tooltip>
+                                                <Tooltip.Trigger>
+                                                    <Button isIconOnly size="sm" className="w-6 h-6 bg-[rgb(255,105,180)]" aria-label="Pink" onPress={()=>setRgbValues({r: "255", g: "105", b: "180"})} />
+                                                </Tooltip.Trigger>
+                                                <Tooltip.Content placement="top">Pink</Tooltip.Content>
                     </Tooltip>
                         <Button
                           size="sm"
                           className="text-xs px-2 bg-[rgb(0,64,0)] text-[rgb(127,255,127)]"
-                          variant="flat"
+                          variant="secondary"
                           onPress={flashGreen}
                         >
                         Flash Green
                     </Button>
                 </div>
             </Card>
-            <Button onPress={() => sendRGBValues(false)} color="primary">
+            <Button onPress={() => sendRGBValues(false)} variant="primary">
                 Set LEDs
             </Button>
         </Card>

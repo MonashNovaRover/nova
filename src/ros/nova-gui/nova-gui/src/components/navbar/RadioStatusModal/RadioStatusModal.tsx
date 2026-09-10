@@ -1,9 +1,11 @@
 import {
     Modal,
     ModalBody,
-    ModalContent,
+    ModalDialog,
     ModalHeader,
     Tab,
+    TabList,
+    TabPanel,
     Tabs,
     Button,
     Input,
@@ -14,7 +16,7 @@ import {
     DropdownTrigger,
     DropdownMenu,
     DropdownItem
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 import { useCallback, useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
@@ -114,7 +116,7 @@ export const RadioStatusModal = ({ rosTimeout, setRosTimeout }: RadioStatusModal
             onClose={onClose}
             size="5xl"
         >
-            <ModalContent>
+            <ModalDialog>
                 <ModalHeader className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                         Radio data
@@ -159,20 +161,22 @@ export const RadioStatusModal = ({ rosTimeout, setRosTimeout }: RadioStatusModal
                                                 <DropdownTrigger>
                                                     <Button size="sm">Manage radios</Button>
                                                 </DropdownTrigger>
+                                                <Dropdown.Popover>
                                                 <DropdownMenu>
                                                     <DropdownItem
                                                         description="10.0.1.11"
-                                                        key="base-bullet"
+                                                        id="base-bullet"
                                                         onPress={() => window.open('https://10.0.1.11', "_blank", "rel=noopener noreferrer")}>
                                                         Base Bullet
                                                     </DropdownItem>
                                                     <DropdownItem
                                                         description="10.0.1.10"
-                                                        key="rover-bullet"
+                                                        id="rover-bullet"
                                                         onPress={() => window.open('https://10.0.1.10', "_blank", "rel=noopener noreferrer")}>
                                                         Rover Bullet
                                                     </DropdownItem>
                                                 </DropdownMenu>
+                                                </Dropdown.Popover>
                                             </Dropdown>
                                         </div>
                                         <Button
@@ -190,46 +194,46 @@ export const RadioStatusModal = ({ rosTimeout, setRosTimeout }: RadioStatusModal
                 </ModalHeader>
                 <ModalBody>
                     <Tabs
-                        variant="underlined"
-                        classNames={{
-                            tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-                        }}
+                        variant="primary"
                     >
-                        <Tab title="Signal">
+                        <TabList className="gap-6 w-full relative rounded-none p-0 border-b border-divider">
+                            <Tab id="signal">Signal</Tab>
+                            <Tab id="received">Received</Tab>
+                            <Tab id="sent">Sent</Tab>
+                            <Tab id="ping">Ping</Tab>
+                        </TabList>
+                        <TabPanel id="signal">
                             <ReactApexChart
                                 type="line"
                                 options={ChartOptions(ChartStyle.Signal, radioData.signal.name, windowSize)}
                                 series={[radioData.signal]}
                             />
-                        </Tab>
-
-                        <Tab title="Received">
+                        </TabPanel>
+                        <TabPanel id="received">
                             <ReactApexChart
                                 type="line"
                                 options={ChartOptions(ChartStyle.Received, radioData.recv.name, windowSize)}
                                 series={[radioData.recv]}
                             />
-                        </Tab>
-
-                        <Tab title="Sent">
+                        </TabPanel>
+                        <TabPanel id="sent">
                             <ReactApexChart
                                 type="line"
                                 options={ChartOptions(ChartStyle.Sent, radioData.sent.name, windowSize)}
                                 series={[radioData.sent]}
                             />
-                        </Tab>
-
-                        <Tab title="Ping">
+                        </TabPanel>
+                        <TabPanel id="ping">
                             <ReactApexChart
                                 type="line"
                                 options={ChartOptions(ChartStyle.Ping, radioData.ping.name, windowSize)}
                                 series={[radioData.ping]}
                             />
-                        </Tab>
+                        </TabPanel>
 
                     </Tabs>
                 </ModalBody>
-            </ModalContent>
+            </ModalDialog>
         </Modal>
     );
 };

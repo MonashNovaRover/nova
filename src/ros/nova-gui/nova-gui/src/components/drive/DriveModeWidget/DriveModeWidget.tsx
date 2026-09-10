@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, Kbd, CardProps } from "@nextui-org/react";
+import { Card, CardHeader, Kbd, CardProps } from "@heroui/react";
 import "./DriveWidget.css";
 import { DriveMode, driveModes } from "./DriveModeDisplayData.tsx";
 import { DriveModeButton } from "./DriveModeButton.tsx";
@@ -65,7 +65,7 @@ const DriveModeWidget: React.FC<IDriveModeWidgetProps> = (
         <div className="grow" />
         {!isConnected ? disconnectedMessage : isLocked ? lockedMessage : <></>}
       </CardHeader>
-      <CardBody className="flex justify-center flex-col content-center">
+      <Card.Content className="flex justify-center flex-col content-center">
         <div>
           <div className="grid grid-flow-row grid-cols-[repeat(auto-fit,_minmax(10em,_1fr))] gap-3">
             {driveModes.map((mode, index) => (
@@ -89,7 +89,7 @@ const DriveModeWidget: React.FC<IDriveModeWidgetProps> = (
           </div>
         </div>
         {!isConnected || isLocked ? blurOverlay : <></>}
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 };

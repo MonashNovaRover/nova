@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { useState } from "react";
 import {CameraControlPanelModal} from "./CamerasControlPanelModal.tsx";
 import {useCameraStreamer} from "../hooks/useCameraStreamer.ts";
@@ -20,11 +20,11 @@ export const CameraControlModalButton = () => {
       >
         Control Panel
       </Button>
-      <CameraControlPanelModal
+      {controlPanelOpen && <CameraControlPanelModal
         showModal={controlPanelOpen}
         closeModal={closeControlPanel}
         refreshAvailabilies={refreshAvailabilities}
-      />
+      />}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import {
-  Button, Card, CardBody, CardHeader, CardProps, Input, Progress, Select, SelectItem,
-  SharedSelection, useDisclosure
-} from "@nextui-org/react";
+  Button, Card, CardContent, CardHeader, CardProps, Input, ProgressBar, Select, ListBoxItem,
+  Selection, useOverlayState
+} from "@heroui/react";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
@@ -67,7 +67,7 @@ export const PUMPS: PumpData[] = [
 
 const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
   const [selectedPump, setSelectedPump] = useState<PumpData>(PUMPS[0]);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, open: onOpen, setOpen: onOpenChange } = useOverlayState();
 
   const [defaultDurations, _] = useGenericStore<Record<string, number>>("pumpDefaultDurations");
   const [duration, setDuration] = useState<string>(defaultDurations[selectedPump.value]?.toString() ?? "10");
@@ -135,7 +135,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
   }, [mlTiming.calculatedDuration, mlTiming.usesMlTiming]);
 
   // Prefill duration when pump selection changes
-  const onSelectedPumpChange = useCallback((keys: SharedSelection) => {
+  const onSelectedPumpChange = useCallback((keys: Selection) => {
     // Update selectedPump state
     const selected = Array.from(keys)[0] as string;
     const pump = PUMPS.find(p => p.value === selected) ?? PUMPS[0];
@@ -187,10 +187,10 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
   const progressBar = (
     <div className="flex flex-row items-center justify-center">
       {selectedPump.leftIcon}
-      <Progress
+      <ProgressBar
         disableAnimation
         color="secondary"
-        aria-label="Pump Progress"
+        aria-label="Pump ProgressBar"
         value={pumpStatus.running ? pumpStatus.time_elapsed : 0}
         maxValue={pumpStatus.running && pumpStatus.time_target > 0 ? pumpStatus.time_target : 1}
       />
@@ -215,7 +215,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
           </Button>
         </div>
       </CardHeader>
-      <CardBody className="flex flex-col">
+      <CardContent className="flex flex-col">
         {progressBar}
 
         <div className="flex flex-row justify-around">
@@ -237,7 +237,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
             isDisabled={pumpStatus.running}
           >
             {PUMPS.map((pump) => (
-              <SelectItem key={pump.value}>{pump.display}</SelectItem>
+              <ListBoxItem key={pump.value}>{pump.display}</ListBoxItem>
             ))}
           </Select>
           {timeField}
@@ -251,7 +251,7 @@ const PumpsWidget: React.FC<PumpsWidgetProps> = (props) => {
             </Button>
           </div>
         </div>
-      </CardBody>
+      </CardContent>
       <PumpsModal isOpen={isOpen} onOpenChange={onOpenChange}/>
     </Card>
   );

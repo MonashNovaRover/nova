@@ -1,4 +1,4 @@
-import {Button, Card, CardHeader, CardProps} from "@nextui-org/react";
+import {Button, Card, CardHeader, CardProps} from "@heroui/react";
 import {Eye, EyeOff, Menu, Move} from "react-feather";
 import { useState } from "react";
 import {CameraControlPanelModal,} from "./CamerasControlPanelModal.tsx";
@@ -134,15 +134,15 @@ export const CamerasPage = ({refreshAvailabilities, gridSize, views, toggleSideb
         ))}
       </div>
 
-      <CameraControlPanelModal
+      {controlPanelOpen && <CameraControlPanelModal
         showModal={controlPanelOpen}
         closeModal={closeControlPanel}
         refreshAvailabilies={refreshAvailabilities}
-      />
-      <SaveAllCamerasModal
+      />}
+      {isSaveModalOpen && <SaveAllCamerasModal
         isOpen={isSaveModalOpen}
         onClose={() => setIsSaveModalOpen(false)}
-      />
+      />}
     </div>
   );
 };

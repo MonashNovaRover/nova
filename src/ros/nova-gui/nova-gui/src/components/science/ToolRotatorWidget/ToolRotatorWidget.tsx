@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Card, CardBody, CardHeader, Input, Switch } from "@nextui-org/react";
+import { Button, Card, CardContent, CardHeader, Input, Switch } from "@heroui/react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import { useToolRotatorServices } from "./useToolRotator.ts";
 import { ArrowClockwise, ArrowCounterclockwise } from "react-bootstrap-icons";
@@ -51,7 +51,7 @@ const ToolRotatorWidget: React.FC = () => {
         </Switch>
       </CardHeader>
 
-      <CardBody className="flex flex-col pt-0">
+      <CardContent className="flex flex-col pt-0">
         <div className="grid grid-cols-4 gap-3">
           <div className="flex flex-col gap-3">
             <Input
@@ -135,7 +135,7 @@ const ToolRotatorWidget: React.FC = () => {
             </div>
           </div>
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
   )
 }

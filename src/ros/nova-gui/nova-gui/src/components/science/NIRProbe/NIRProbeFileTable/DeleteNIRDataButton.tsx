@@ -1,4 +1,4 @@
-import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "@nextui-org/react";
+import {Button, Modal, ModalBody, ModalDialog, ModalFooter, ModalHeader} from "@heroui/react";
 import React, {useState} from "react";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {Trash2} from "react-feather";
@@ -27,7 +27,7 @@ const DeleteNIRDataButton: React.FC = () => {
       isOpen={showModel}
       onClose={() => setShowModel(false)}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-col gap-1">
           Delete all NIR data?
         </ModalHeader>
@@ -42,7 +42,7 @@ const DeleteNIRDataButton: React.FC = () => {
             Delete
           </Button>
         </ModalFooter>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   )
 

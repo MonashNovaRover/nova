@@ -1,10 +1,10 @@
 import {
   Button,
   ModalBody,
-  ModalContent,
+  ModalDialog,
   ModalHeader,
   ScrollShadow,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { SidebarWrapper } from "./SidebarWrapper.tsx";
 import { RootState } from "../../../redux/RootState.ts";
 import { useSelector } from "react-redux";
@@ -35,7 +35,7 @@ export const NeoSidebar = () => {
       isOpen={uiState.sidebarIsVisible}
       onClose={() => uiActions.setSideBarVisibility(false)}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-row justify-start pt-5">
           <img src={novaLogo} className="w-24" alt="Nova Logo" />
         </ModalHeader>
@@ -75,7 +75,7 @@ export const NeoSidebar = () => {
             })}
           </ScrollShadow>
         </ModalBody>
-      </ModalContent>
+      </ModalDialog>
     </SidebarWrapper>
   );
 };

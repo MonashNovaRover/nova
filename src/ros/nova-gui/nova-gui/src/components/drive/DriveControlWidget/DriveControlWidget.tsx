@@ -1,4 +1,4 @@
-import {Button, Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
+import {Button, Card, CardContent, CardHeader, CardProps} from "@heroui/react";
 import React, {useEffect, useState} from "react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
@@ -137,7 +137,7 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
   return (
     <Card {...props}>
       <CardHeader className="pb-0">Drive Controls</CardHeader>
-      <CardBody className="grid grid-flow-row gap-4 grid-cols-2">
+      <CardContent className="grid grid-flow-row gap-4 grid-cols-2">
 
         {/*display locked status of drive*/}
         <Button className="col-span-full opacity-100" isDisabled variant="shadow"
@@ -159,7 +159,7 @@ const DriveControlWidget: React.FC<IDriveControlWidgetProps> = (
           {driveInfo.connected ? "Connected" : "Disconnected"}
         </Button>
 
-      </CardBody>
+      </CardContent>
     </Card>
   )
 

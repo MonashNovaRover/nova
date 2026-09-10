@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Button, Card, CardContent, CardHeader } from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 import { HomePageProps } from "../../../views/shared/HomePageView";
 
@@ -15,7 +15,7 @@ export const HomePage = (props: HomePageProps) => {
             <CardHeader className="text-lg font-semibold text-white">
               {item}
             </CardHeader>
-            <CardBody>
+            <CardContent>
               <div className="flex gap-3 p-0 h-full">
                 {navigationData[item].map((mode) => {
                   return (
@@ -33,7 +33,7 @@ export const HomePage = (props: HomePageProps) => {
                   );
                 })}
               </div>
-            </CardBody>
+            </CardContent>
           </Card>
         );
       })}

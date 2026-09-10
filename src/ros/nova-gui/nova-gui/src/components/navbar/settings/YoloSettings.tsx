@@ -1,4 +1,5 @@
-import { Select, SelectItem, SharedSelection, Switch } from "@nextui-org/react";
+import { ListBox, ListBoxItem, Select, Switch } from "@heroui/react";
+import type { Selection } from "react-aria-components";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import { getYoloConfig, YoloModelOptions } from "../../auto/ObjectDetection/YoloConfig.ts";
 
@@ -12,7 +13,7 @@ export function YoloSettings() {
   const [yoloTimingLogs, setYoloTimingLogs] = useGenericStore<boolean>("yoloTimingLogs");
   const activeModel = getYoloConfig(yoloActiveModel);
 
-  const onModelSelectionChange = (keys: SharedSelection) => {
+  const onModelSelectionChange = (keys: Selection) => {
     const selected = Array.from(keys)[0];
     if (typeof selected === "string") {
       setYoloActiveModel(selected);
@@ -23,15 +24,22 @@ export function YoloSettings() {
     <div className="flex flex-col gap-3 mt-2 mb-4">
       <Select
         size="sm"
-        label="Active YOLO Model"
         selectedKeys={[activeModel.id]}
         onSelectionChange={onModelSelectionChange}
       >
-        {YoloModelOptions.map((option) => (
-          <SelectItem key={option.id}>
-            {option.label}
-          </SelectItem>
-        ))}
+        <Select.Trigger aria-label="Active YOLO Model">
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover>
+          <ListBox>
+            {YoloModelOptions.map((option) => (
+              <ListBoxItem id={option.id} key={option.id}>
+                {option.label}
+              </ListBoxItem>
+            ))}
+          </ListBox>
+        </Select.Popover>
       </Select>
 
       <div className="text-xs text-default-500">

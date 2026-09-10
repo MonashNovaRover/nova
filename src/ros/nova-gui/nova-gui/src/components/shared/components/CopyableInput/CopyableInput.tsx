@@ -1,10 +1,13 @@
-import { Button, Input, InputProps, Tooltip } from "@nextui-org/react";
+import { Button, Input, InputProps } from "@heroui/react";
 import React, { useCallback } from "react";
 import { Copy } from "react-feather";
 
-export interface CopyableInputProps extends InputProps {
+export interface CopyableInputProps extends Omit<InputProps, "children"> {
   // The value to copy to the clipboard when the copy button is pressed. Otherwise uses value by default
   copyValue?: string;
+  label?: React.ReactNode;
+  endContent?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 /**
@@ -12,8 +15,8 @@ export interface CopyableInputProps extends InputProps {
  * @constructor
  */
 const CopyableInput: React.FC<CopyableInputProps> = ({
-  children: children,
   endContent,
+  label,
   value,
   copyValue,
   ...inputProps
@@ -23,21 +26,15 @@ const CopyableInput: React.FC<CopyableInputProps> = ({
   }, [value, copyValue]);
 
   const copyButton = (
-    <Tooltip
-      content={"Copy to Clipboard"}
-      placement="bottom"
-      showArrow
-      className="dark text-foreground"
+    <Button
+      aria-label="Copy to clipboard"
+      isIconOnly
+      size="sm"
+      variant="ghost"
+      onPress={copyValueToClipboard}
     >
-      <Button
-        isIconOnly
-        size="sm"
-        variant="light"
-        onPress={copyValueToClipboard}
-      >
-        <Copy size="16" />
-      </Button>
-    </Tooltip>
+      <Copy size="16" />
+    </Button>
   );
 
   const newEndContent = (
@@ -47,11 +44,7 @@ const CopyableInput: React.FC<CopyableInputProps> = ({
     </div>
   );
 
-  return (
-    <Input value={value} {...inputProps} endContent={newEndContent}>
-      {children}
-    </Input>
-  );
+  return <label className="flex flex-col gap-1">{label}<span className="flex items-center gap-1"><Input value={value} {...inputProps} />{newEndContent}</span></label>;
 };
 
 export default CopyableInput;

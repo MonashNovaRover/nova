@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import React from "react";
 import {ChevronLeft, ChevronRight} from "react-feather";
 import {RecordCircle, RecordCircleFill} from "react-bootstrap-icons";

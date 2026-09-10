@@ -1,4 +1,4 @@
-import {Button, Switch, Tooltip, Tab, Tabs} from "@nextui-org/react";
+import {Button, Switch, Tooltip, Tab, TabList, Tabs} from "@heroui/react";
 import {Pause, Play, Square} from "react-feather";
 import {SerialPreset, SerialPresetGroup} from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 import {useState} from "react";
@@ -61,9 +61,11 @@ export const SerialPresetControls = ({
             setActiveTask("");
           }}
         >
-          {presetGroups.map((group) => (
-            <Tab key={group.groupName} title={group.groupName} />
-          ))}
+          <TabList>
+            {presetGroups.map((group) => (
+              <Tab id={group.groupName} key={group.groupName}>{group.groupName}</Tab>
+            ))}
+          </TabList>
         </Tabs>
       )}
       {activeGroupData.presets.map((preset, idx) => (

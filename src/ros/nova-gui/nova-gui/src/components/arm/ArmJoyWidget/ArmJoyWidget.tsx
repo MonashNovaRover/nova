@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, CardProps, Slider, Switch } from "@nextui-org/react";
+import { Button, Card, CardContent, CardHeader, CardProps, Slider, Switch } from "@heroui/react";
 import { useState, useEffect, useRef } from "react";
 import { Lock } from "react-feather";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
@@ -257,7 +257,7 @@ const ArmJoyWidget: React.FC<IArmJoyWidgetProps> = (props) => {
         <div className="grow" />
         {widgetLocked ? widgetLockMessage : <></>}
       </CardHeader>
-      <CardBody className="flex">
+      <CardContent className="flex">
         <div className="flex gap-4 justify-center">
           <div className="grid grid-cols-2 content-center gap-2">
             <Button className="min-w-0"
@@ -285,7 +285,7 @@ const ArmJoyWidget: React.FC<IArmJoyWidgetProps> = (props) => {
           </div>
         </div>
         {widgetLocked ? blurOverlay : <></>}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

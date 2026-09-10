@@ -1,9 +1,9 @@
 import {
     Card,
     CardHeader,
-    CardBody,
+    CardContent,
     CardProps,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useEffect } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../../redux/RootState.ts";
@@ -37,7 +37,7 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
     }, [bifrostArm]);
 
     const armDataCardBody = (
-        <CardBody className="grid auto-cols-fr grid-flow-col gap-2 p-2">
+        <CardContent className="grid auto-cols-fr grid-flow-col gap-2 p-2">
             <div className="flex flex-col justify-center gap-2">
                 <ArmWidgetCell
                     jointCurrent={getProcessedJointCurrent("j1", jointStates)}
@@ -80,7 +80,7 @@ const ArmWidget: React.FC<IArmWidgetProps> = (
                     label={<>ROLL</>}
                 />
             </div>
-        </CardBody>
+        </CardContent>
     );
 
     return (

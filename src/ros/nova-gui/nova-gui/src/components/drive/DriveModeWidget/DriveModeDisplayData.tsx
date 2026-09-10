@@ -1,6 +1,5 @@
 import {DetailedReactHTMLElement} from "react";
 import {Maximize2, RefreshCw} from "react-feather";
-import {Image} from "@nextui-org/react";
 import Tank from "../../../assets/tank-icon.svg";
 import {CarFront} from "react-bootstrap-icons";
 
@@ -25,7 +24,7 @@ export interface IDriveModeDisplayData {
 export const driveModes : IDriveModeDisplayData[] = [
   { 
     name: "Tank", 
-    icon: <Image src={Tank} className="w-5 h-5"/>,
+    icon: <img src={Tank} className="w-5 h-5"/>,
     keybind: "Y",
     driveMode: DriveMode.TANK
   } as IDriveModeDisplayData,

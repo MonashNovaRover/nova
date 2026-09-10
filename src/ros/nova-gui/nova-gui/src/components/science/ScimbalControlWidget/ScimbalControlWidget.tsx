@@ -2,13 +2,13 @@ import React, { useCallback, useMemo } from "react";
 import {
   Button,
   Card,
-  CardBody,
+  CardContent,
   CardHeader,
   Input,
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal } from "react-feather";
 import toast from "react-hot-toast";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
@@ -106,7 +106,7 @@ const ScimbalControlWidget: React.FC = () => {
           </PopoverContent>
         </Popover>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <div
           tabIndex={0}
           onKeyDown={handleKeyDown}
@@ -162,7 +162,7 @@ const ScimbalControlWidget: React.FC = () => {
             <ChevronDown size={28} />
           </Button>
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

@@ -1,10 +1,10 @@
-import { Button, Slider, Switch } from "@nextui-org/react";
+import { Button, Slider, Switch } from "@heroui/react";
 import {
   ArrowCounterclockwise,
   CircleFill,
   CircleHalf,
 } from "react-bootstrap-icons";
-import { Droplet, Pause, Play, RotateCcw, Square } from "react-feather";
+import { Pause, Play, Square } from "react-feather";
 import { CameraFilters } from "../CameraComponent.tsx";
 import {ReactNode} from "react";
 import { useStreamingBifrost } from "../../hooks/cameraBifrostHooks.ts";
@@ -45,12 +45,11 @@ export const CameraSettingsForm = ({
         <Switch
           className="col-start-1 row-start-1 pb-2"
           size="sm"
-          thumbIcon={<RotateCcw fill="white" />}
           isSelected={cameraFilters.flipCamera}
-          onChange={(event) =>
+          onChange={(isSelected) =>
             setCameraFilters((oldFilters) => ({
               ...oldFilters,
-              flipCamera: event.target.checked,
+              flipCamera: isSelected,
             }))
           }
         >
@@ -59,12 +58,11 @@ export const CameraSettingsForm = ({
         <Switch
           className="col-start-1 row-start-2"
           size="sm"
-          thumbIcon={<Droplet fill="white" />}
           isSelected={cameraFilters.invertCamera}
-          onChange={(event) =>
+          onChange={(isSelected) =>
             setCameraFilters((oldFilters) => ({
               ...oldFilters,
-              invertCamera: event.target.checked,
+              invertCamera: isSelected,
             }))
           }
         >
@@ -74,8 +72,8 @@ export const CameraSettingsForm = ({
           <Button
             isIconOnly
             size="sm"
-            color="primary"
-            disabled={!isOnline}
+            variant="primary"
+            isDisabled={!isOnline}
             onPress={() => startStreaming([cameraSerial], false)}
           >
             <Play size="15px" fill="white" />
@@ -84,8 +82,8 @@ export const CameraSettingsForm = ({
             className="mx-2"
             isIconOnly
             size="sm"
-            color="warning"
-            disabled={!isOnline}
+            variant="secondary"
+            isDisabled={!isOnline}
             onPress={() => pauseStreaming([cameraSerial], false)}
           >
             <Pause size="15px" fill="white" />
@@ -93,8 +91,8 @@ export const CameraSettingsForm = ({
           <Button
             isIconOnly
             size="sm"
-            color="danger"
-            disabled={!isOnline}
+            variant="danger"
+            isDisabled={!isOnline}
             onPress={() => stopStreaming([cameraSerial], false)}
           >
             <Square size="15px" fill="white" />

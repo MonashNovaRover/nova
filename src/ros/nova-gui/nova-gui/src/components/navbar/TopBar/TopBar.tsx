@@ -1,15 +1,11 @@
 import {
   Button,
-  Divider,
+  Separator,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-  Navbar,
-  NavbarBrand,
-  NavbarContent,
-  NavbarItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { ChevronDown, Settings, HelpCircle } from "react-feather";
 import novaLogo from "../../../assets/nova-logo.png";
 import { useSelector } from "react-redux";
@@ -27,12 +23,12 @@ import { BatteryWidget } from "../BatteryWidget/BatteryWidget.tsx";
 import {RGBInputModal} from "../RGBWidget/RGBModal.tsx";
 import {RadioStatusButton} from "../RadioStatusModal/RadioStatusButton.tsx";
 
-const connectionStatusColor: {
-  [key: string]: "success" | "warning" | "danger";
+const connectionStatusClass: {
+  [key: string]: string;
 } = {
-  [BifrostConnectionStatus.CONNECTED]: "success",
-  [BifrostConnectionStatus.CONNECTING]: "warning",
-  [BifrostConnectionStatus.DISCONNECTED]: "danger",
+  [BifrostConnectionStatus.CONNECTED]: "bg-success",
+  [BifrostConnectionStatus.CONNECTING]: "bg-warning",
+  [BifrostConnectionStatus.DISCONNECTED]: "bg-danger",
 };
 
 const prettyViewNames = new Map<string, string>([
@@ -64,9 +60,9 @@ export const NovaTopBar: React.FC = () => {
   const title = parsedLocation.reverse()[0];
 
   return (
-    <Navbar maxWidth="full" isBordered position="static">
+    <header className="flex w-full items-center border-b border-default-200 px-4 py-2">
       <Button
-        variant="light"
+        variant="ghost"
         isIconOnly
         onPress={() =>
           uiActions.setSideBarVisibility(!uiState.sidebarIsVisible)
@@ -75,138 +71,132 @@ export const NovaTopBar: React.FC = () => {
       >
         <List size="24px" />
       </Button>
-      <NavbarContent justify="start" className="ml-7">
-        <NavbarBrand>
+      <div className="ml-7 flex items-center">
+        <div className="flex items-center">
           <Link to="/">
             <img src={novaLogo} className="w-16" alt="Nova Logo" />
           </Link>
           {!!title && (
             <>
-              <Divider orientation="vertical" className="h-10 w-[2px] mx-2" />
+              <Separator orientation="vertical" className="h-10 w-[2px] mx-2" />
               <p className="title hidden sm:block text-2xl ">
                 {humanizeString(title)}
               </p>
             </>
           )}
-        </NavbarBrand>
-      </NavbarContent>
-      <NavbarContent as="div" className="items-center" justify="end">
-        <NavbarItem>
+        </div>
+      </div>
+      <div className="ml-auto flex items-center gap-2">
+        <div>
           <BLCMDStatusButton />
-        </NavbarItem>
-        <NavbarItem>
+        </div>
+        <div>
             <RadioStatusButton />
-        </NavbarItem>
-        <NavbarItem>
-          <Dropdown placement="bottom-end">
+        </div>
+        <div>
+          <Dropdown>
             <DropdownTrigger>
               <Button
-                radius="sm"
-                color={connectionStatusColor[bifrostStatus]}
                 size="sm"
-                variant="shadow"
+                variant="primary"
+                className={connectionStatusClass[bifrostStatus]}
               >
                 {bifrostStatus.toString()}
               </Button>
             </DropdownTrigger>
-            <DropdownMenu
-              aria-label="ROS Connection"
-              onAction={(key) => {
-                if (key === "reconnect") {
-                  bifrostActions.updateBifrostConnection(BifrostConnectionStatus.DISCONNECTED);
-                }
-              }}
-            >
-              <DropdownItem key="reconnect">Reconnect</DropdownItem>
-              <DropdownItem key="disconnect">Disconnect</DropdownItem>
-            </DropdownMenu>
+            <Dropdown.Popover placement="bottom end">
+              <DropdownMenu
+                aria-label="ROS Connection"
+                onAction={(key) => {
+                  if (key === "reconnect") {
+                    bifrostActions.updateBifrostConnection(BifrostConnectionStatus.DISCONNECTED);
+                  }
+                }}
+              >
+                <DropdownItem id="reconnect">Reconnect</DropdownItem>
+                <DropdownItem id="disconnect">Disconnect</DropdownItem>
+              </DropdownMenu>
+            </Dropdown.Popover>
           </Dropdown>
-        </NavbarItem>
-        <NavbarItem>
-          <Dropdown placement="bottom-end" backdrop="blur">
+        </div>
+        <div>
+          <Dropdown>
             <DropdownTrigger>
-              <Button radius="sm" size="sm">
+              <Button size="sm">
                 <div className="w-10">
                   {prettyViewNames.has(viewName) ? prettyViewNames.get(viewName) : "???"}
                 </div>
                 <ChevronDown className="w-4 h-4"/>
               </Button>
             </DropdownTrigger>
+            <Dropdown.Popover placement="bottom end">
             <DropdownMenu aria-label="Operation Mode">
               <DropdownItem
-                description="General Tab for Rover Operation"
                 href="/general"
-                key={"general"}
+                id="general"
               >
                 General
               </DropdownItem>
               <DropdownItem
-                description="Australian Rover Challenge"
                 href="/arc"
-                key={"arc"}
+                id="arc"
               >
                 ARC
               </DropdownItem>
               <DropdownItem
-                description="University Rover Challenge"
                 href="/urc"
-                key={"urc"}
+                id="urc"
               >
                 URC
               </DropdownItem>
               <DropdownItem
-                description="Pages for Testing"
                 href="/test"
-                key={"test"}
+                id="test"
               >
                 Test
               </DropdownItem>
               <DropdownItem
-                description="GUI Home Page"
                 href="/"
-                key={"home"}
+                id="home"
               >
                 Home
               </DropdownItem>
             </DropdownMenu>
+            </Dropdown.Popover>
           </Dropdown>
-        </NavbarItem>
-        <NavbarItem className="">
-          <Button
-            radius="sm"
-            size="sm"
-          >
+        </div>
+        <div>
+          <Button size="sm">
             <BatteryWidget />
           </Button>
-        </NavbarItem>
-        <NavbarItem className="">
+        </div>
+        <div>
           <>
             <RGBInputModal />
           </>
-        </NavbarItem>
-        <NavbarItem>
+        </div>
+        <div>
           {/*Controller Help Modal*/}
           <Button
             isIconOnly
-            radius="sm"
             size="sm"
-            variant="shadow"
+            variant="primary"
             onPress={() => uiActions.setControllerHelpModal(true)}
           >
             <HelpCircle className="w-4 h-4 " />
           </Button>
-        </NavbarItem>
-        <NavbarItem>
+        </div>
+        <div>
           <Button
             isIconOnly
             size="sm"
-            variant="shadow"
+            variant="primary"
             onPress={() => uiActions.setSettingsModal(true)}
           >
             <Settings className="w-4 h-4" />
           </Button>
-        </NavbarItem>
-      </NavbarContent>
-    </Navbar>
+        </div>
+      </div>
+    </header>
   );
 };

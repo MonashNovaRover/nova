@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@nextui-org/react";
+import {Card, CardContent, CardHeader, CardProps, ListBox, ListBoxItem, Select} from "@heroui/react";
 import React from "react";
 import {Box, Droplet} from "react-feather";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
@@ -55,21 +55,27 @@ const SiteTypeSelectWidget: React.FC<SiteSelectWidgetProps> = (
           selectedKeys={[`${currentSiteType}`]}
           className="min-w-unit-32 w-48 shrink"
           size="md"
-          labelPlacement="outside-left"
-          onChange={onTypeChange}
           aria-label="Site Type"
-          startContent={siteTypeSelectOptions[currentSiteType].icon}
+          onSelectionChange={(key) => onTypeChange({ target: { value: String(key) } } as React.ChangeEvent<HTMLSelectElement>)}
         >
-          {siteTypeSelectOptions.map(({type, name, icon}) => (
-            <SelectItem key={`${type}`} value={type} startContent={icon}>
-              {name}
-            </SelectItem>
-          ))}
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {siteTypeSelectOptions.map(({type, name, icon}) => (
+                <ListBoxItem id={`${type}`} key={`${type}`} textValue={name}>
+                  <span className="flex items-center gap-2">{icon}{name}</span>
+                </ListBoxItem>
+              ))}
+            </ListBox>
+          </Select.Popover>
         </Select>
       </CardHeader>
-      <CardBody className="flex flex-row gap-3">
+      <CardContent className="flex flex-row gap-3">
         <SiteSelectWidget pickerClassName={pickerClassName} />
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

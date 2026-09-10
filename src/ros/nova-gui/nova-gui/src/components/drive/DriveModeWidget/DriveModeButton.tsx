@@ -1,16 +1,16 @@
-import { Badge, Button, ButtonProps, Tooltip } from "@nextui-org/react"
+import { Badge, Button, ButtonProps, Tooltip } from "@heroui/react"
 import { IDriveModeDisplayData } from "./DriveModeDisplayData.tsx"
 import { cloneElement } from "react"
-import { OverlayPlacement } from "@nextui-org/aria-utils"
 
 type BadgePlacement = "top-right" | "top-left" |  "bottom-right" | "bottom-left"
+type TooltipPlacement = "top" | "top-start" | "top-end" | "bottom" | "bottom-start" | "bottom-end" | "left" | "left-start" | "left-end" | "right" | "right-start" | "right-end"
 
 // Properties for the DriveModeButton component.
 export interface IDriveModeButtonProps extends ButtonProps {
   driveModeData: IDriveModeDisplayData,
   driveModeActive: boolean,
   iconClassName?: string,
-  tooltipPlacement?: OverlayPlacement,
+  tooltipPlacement?: TooltipPlacement,
   keybindPlacement?: BadgePlacement,
   hideTooltip?: boolean,
   hideKeybind?: boolean,

@@ -1,8 +1,10 @@
-import {Button, ButtonProps, Spinner, SpinnerProps} from "@nextui-org/react";
+import {Button, ButtonProps, Spinner, SpinnerProps} from "@heroui/react";
 import {FC, ReactNode} from "react";
 import Overlay from "../Overlay/Overlay.tsx";
 
-export interface SpinnerButtonProps extends ButtonProps {
+export interface SpinnerButtonProps extends Omit<ButtonProps, "children"> {
+  children?: ReactNode;
+  isLoading?: boolean;
   // Custom defined spinner element (optional)
   spinner?: ReactNode
   // Props for the default spinner element
@@ -15,26 +17,26 @@ export interface SpinnerButtonProps extends ButtonProps {
  * @constructor
  */
 const SpinnerButton: FC<SpinnerButtonProps> = (props) => {
+  const { children, isLoading = false, spinner, spinnerProps, ...buttonProps } = props;
 
   const spinnerOverlay = (
-    props.spinner ||
+    spinner ||
     <Spinner
       size={props.size == "lg" ? "md" : "sm"}
-      color={!props.variant || props.variant === "solid" || props.variant === "shadow" ? "white" : props.color}
-      className={"transition-opacity pointer-events-none ease-out " + (props.isLoading ? "" : "opacity-0")}
-      {...props.spinnerProps}
+      color="current"
+      className={"transition-opacity pointer-events-none ease-out " + (isLoading ? "" : "opacity-0")}
+      {...spinnerProps}
     />
   )
 
   const button = (
     <Button
       fullWidth
-      {...props}
-      isDisabled={props.isDisabled || props.isLoading}
-      isLoading={false}
+      {...buttonProps}
+      isDisabled={props.isDisabled || isLoading}
     >
-      <div className={props.isLoading ? "blur-[1pt] transition-all ease-in" : "transition-all ease-in"}>
-        {props.children}
+      <div className={isLoading ? "blur-[1pt] transition-all ease-in" : "transition-all ease-in"}>
+        {children}
       </div>
     </Button>
   );

@@ -1,13 +1,13 @@
 import { useState } from "react";
 import {
   Modal,
-  ModalContent,
+  ModalDialog,
   ModalHeader,
   ModalBody,
   ModalFooter,
   Button,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import type { CalibrationOffsets } from "./potentiostatStorage.ts";
 
 export interface ManualOffsetDialogProps {
@@ -52,7 +52,7 @@ export const ManualOffsetDialog = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalContent className="dark bg-content1">
+      <ModalDialog className="dark bg-content1">
         {(onClose) => (
           <>
             <ModalHeader>Set Manual Offset - {channel === 1 ? "Left" : "Right"}</ModalHeader>
@@ -90,7 +90,7 @@ export const ManualOffsetDialog = ({
             </ModalFooter>
           </>
         )}
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

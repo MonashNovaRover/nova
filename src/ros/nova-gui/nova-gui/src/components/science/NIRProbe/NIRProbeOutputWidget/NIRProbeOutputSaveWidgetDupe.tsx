@@ -1,7 +1,7 @@
 import {
   Button,
   Card,
-  CardBody,
+  CardContent,
   CardHeader,
   CardProps,
   Chip,
@@ -11,10 +11,11 @@ import {
   DropdownTrigger,
   Input,
   Select,
-  SelectItem
-} from "@nextui-org/react";
+  ListBox,
+  ListBoxItem
+} from "@heroui/react";
 import CopyableOutput from "../../../shared/components/CopyableOutput/CopyableOutput.tsx";
-import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
 import {Check, MoreHorizontal} from "react-feather";
@@ -72,15 +73,6 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
   const [advancedSampleLabel, setAdvancedSampleLabel] = useState<string>("");
 
   const [autosave, setAutosave] = useState<boolean>(true)
-
-  const OffIcon = useMemo(() => readingInfo[0].icon, [readingInfo])
-  const PD1Icon = useMemo(() => readingInfo[1].icon, [readingInfo])
-  const PD2Icon = useMemo(() => readingInfo[2].icon, [readingInfo])
-  const icons = useMemo(() => [
-    <OffIcon size={18}/>,
-    <PD1Icon size={18}/>,
-    <PD2Icon size={18}/>,
-  ], [OffIcon, PD1Icon, PD2Icon])
 
   // Used for autosaving
   const previousDataRef = useRef<number[] | undefined>(undefined);
@@ -154,9 +146,10 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
     save(nirData);
   }, [autosave, save, nirData.data, previousDataRef, nirData]);
 
-  const onTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (+e.target.value !== 0)
-      setType(+e.target.value as NIRProbeReadingType.PD1 | NIRProbeReadingType.PD2)
+  const onTypeChange = (key: React.Key | null) => {
+    const selectedType = Number(key);
+    if (key !== null && selectedType !== 0)
+      setType(selectedType as NIRProbeReadingType.PD1 | NIRProbeReadingType.PD2)
   }
 
   const takeFakeReadings = () => {
@@ -181,26 +174,28 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         <Dropdown className="m-0">
           <DropdownTrigger>
             <Button
-              variant={"light"}
+              variant="ghost"
               isIconOnly
               className="m-0"
             >
               <MoreHorizontal></MoreHorizontal>
             </Button>
           </DropdownTrigger>
+          <Dropdown.Popover>
           <DropdownMenu aria-label="Static Actions">
-            <DropdownItem key="advanced" startContent={showAdvanced ? <Check/> : <></>}
+            <DropdownItem id="advanced"
                           onPress={() => setShowAdvanced(!showAdvanced)}>
-              Show Advanced
+              <span className="flex items-center gap-2">{showAdvanced && <Check/>}Show Advanced</span>
             </DropdownItem>
-            <DropdownItem key="autosave" startContent={autosave ? <Check/> : <></>}
+            <DropdownItem id="autosave"
                           onPress={() => setAutosave(!autosave)}>
-              Autosave
+              <span className="flex items-center gap-2">{autosave && <Check/>}Autosave</span>
             </DropdownItem>
           </DropdownMenu>
+          </Dropdown.Popover>
         </Dropdown>
       </CardHeader>
-      <CardBody className="flex flex-col gap-3">
+      <CardContent className="flex flex-col gap-3">
         <SpinnerButton
           onPressStart={takeDelayedFakeReadings}
           isLoading={isLoading}
@@ -209,74 +204,53 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
         </SpinnerButton>
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
-                startContent={icons[nirData.reading_taken? LED.nir1 : 0]}
-                color={readingInfo[nirData.reading_taken? LED.nir1 : 0].colour as "default" | "secondary" | "primary"}
-                classNames={{
-                  base: "min-w-24",
-                }}
+                color={readingInfo[nirData.reading_taken? LED.nir1 : 0].colour === "primary" ? "accent" : "default"}
+                className="min-w-24"
           >
             {readingInfo[nirData.reading_taken? LED.nir1 : 0].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data[0]}
           </CopyableOutput>
-          <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
-                 labelPlacement="inside" label="Sample Label"
-                  className="w-1/4">
-          </Input>
+            <Input aria-label="Sample Label" onChange={(event) => setSampleLabel(event.target.value)} value={sampleLabel} className="w-1/4" />
         </div>
         <div className="flex flex-row gap-3 items-center">
           <Chip size="lg"
-                startContent={icons[nirData.reading_taken? LED.nir2 : 0]}
-                color={readingInfo[nirData.reading_taken? LED.nir2 : 0].colour as "default" | "secondary" | "primary"}
-                classNames={{
-                  base: "min-w-24",
-                }}
+                color={readingInfo[nirData.reading_taken? LED.nir2 : 0].colour === "primary" ? "accent" : "default"}
+                className="min-w-24"
           >
             {readingInfo[nirData.reading_taken? LED.nir2 : 0].name}
           </Chip>
           <CopyableOutput className="tracking-wide grow" classNames={{pre: "text-lg pt-1"}}>
             {nirData.data[1]}
           </CopyableOutput>
-          <Input onValueChange={setSampleLabel} value={sampleLabel} size="sm"
-                 labelPlacement="inside" label="Sample Label"
-                 className="w-1/4">
-          </Input>
+             <Input aria-label="Sample Label" onChange={(event) => setSampleLabel(event.target.value)} value={sampleLabel} className="w-1/4" />
         </div>
         <div className="grid auto-cols-fr gap-3 grid-flow-col">
           {
-            <Button color="primary" onPress={onSave}>
+            <Button variant="primary" onPress={onSave}>
               Save Reading
             </Button>
           }
         </div>
-      </CardBody>
+      </CardContent>
 
       {
         showAdvanced &&
-        <CardBody className="flex flex-row gap-3">
-          <Input onValueChange={onFloatChanged(setData)} value={data?.toString() ?? ""} size="sm"
-            labelPlacement="outside" label={`Manual Reading Entry`}>
-          </Input>
+        <CardContent className="flex flex-row gap-3">
+          <Input aria-label="Manual Reading Entry" onChange={(event) => onFloatChanged(setData)(event.target.value)} value={data?.toString() ?? ""} />
           <Select
-            selectedKeys={[`${type}`]}
-            size="sm"
-            labelPlacement="outside"
-            label="Reading Type"
-            onChange={onTypeChange}
+            selectedKey={`${type}`}
+            onSelectionChange={onTypeChange}
             aria-label="NIR Probe Type"
-            startContent={icons[type]}
           >
-            {readingInfo.slice(1).map(({type, name}) => (
-              <SelectItem key={`${type}`} value={type} startContent={icons[type]}>
-                {name}
-              </SelectItem>
-            ))}
+            <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
+            <Select.Popover><ListBox>{readingInfo.slice(1).map(({type, name}) => (
+              <ListBoxItem id={`${type}`} key={`${type}`}>{name}</ListBoxItem>
+            ))}</ListBox></Select.Popover>
           </Select>
-          <Input onValueChange={setAdvancedSampleLabel} value={advancedSampleLabel} size="sm"
-            labelPlacement="outside" label="Sample Label">
-          </Input>
-        </CardBody>
+          <Input aria-label="Sample Label" onChange={(event) => setAdvancedSampleLabel(event.target.value)} value={advancedSampleLabel} />
+        </CardContent>
       }
 
     </Card>

@@ -1,4 +1,4 @@
-import {Button, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@nextui-org/react";
+import {Button, Separator, Input, Modal, ModalBody, ModalDialog, ModalFooter, ModalHeader, useOverlayState} from "@heroui/react";
 import React, { useMemo, useState } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import {PUMPS} from "./PumpsWidget.tsx";
@@ -16,6 +16,7 @@ export interface PumpsModalProps {
 }
 
 const PumpsModal: React.FC<PumpsModalProps> = ({isOpen, onOpenChange}: PumpsModalProps) => {
+  const overlayState = useOverlayState({ isOpen, onOpenChange });
   const [defaultDurations, setDefaultDurations] = useGenericStore<Record<string, number>>("pumpDefaultDurations");
 
   // Filter out ml-based pumps - they use ml-based timing instead of default durations
@@ -78,14 +79,8 @@ const PumpsModal: React.FC<PumpsModalProps> = ({isOpen, onOpenChange}: PumpsModa
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      className="dark text-foreground"
-      size="lg"
-    >
-      <ModalContent>
-        {(onClose) => (
+    <Modal state={overlayState}>
+      <ModalDialog>
           <>
             <ModalHeader>Pump Settings</ModalHeader>
             <ModalBody>
@@ -94,33 +89,23 @@ const PumpsModal: React.FC<PumpsModalProps> = ({isOpen, onOpenChange}: PumpsModa
                 <h4 className="text-sm font-semibold mb-2">Time per ml (for ring pumps)</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <Input
-                    label="Inner Ring"
+                    aria-label="Inner Ring"
                     type="number"
                     step="0.1"
                     value={editingTimePerMl.inner}
-                    onValueChange={(val) => handleTimePerMlChange("inner", val)}
-                    endContent={
-                      <div className="pointer-events-none flex items-center">
-                        <span className="text-default-400 text-small">s/ml</span>
-                      </div>
-                    }
+                    onChange={(event) => handleTimePerMlChange("inner", event.target.value)}
                   />
                   <Input
-                    label="Outer Ring"
+                    aria-label="Outer Ring"
                     type="number"
                     step="0.1"
                     value={editingTimePerMl.outer}
-                    onValueChange={(val) => handleTimePerMlChange("outer", val)}
-                    endContent={
-                      <div className="pointer-events-none flex items-center">
-                        <span className="text-default-400 text-small">s/ml</span>
-                      </div>
-                    }
+                    onChange={(event) => handleTimePerMlChange("outer", event.target.value)}
                   />
                 </div>
               </div>
 
-              <Divider className="my-2" />
+              <Separator className="my-2" />
 
               {/* Default durations section */}
               <div>
@@ -129,40 +114,34 @@ const PumpsModal: React.FC<PumpsModalProps> = ({isOpen, onOpenChange}: PumpsModa
                   {timingBasedPumps.map((pump) => (
                     <Input
                       key={pump.value}
-                      label={pump.display}
+                      aria-label={pump.display}
                       type="number"
                       value={editingDurations[pump.value] ?? ""}
-                      onValueChange={(val) => handleEditingDurationChange(pump.value, val)}
-                      endContent={
-                        <div className="pointer-events-none flex items-center">
-                          <span className="text-default-400 text-small">s</span>
-                        </div>
-                      }
+                      onChange={(event) => handleEditingDurationChange(pump.value, event.target.value)}
                     />
                   ))}
                 </div>
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button color="danger" variant="light" onPress={() => {
+              <Button variant="danger" onPress={() => {
                 resetState();
-                onClose()
+                overlayState.close()
               }}>
                 Cancel
               </Button>
               <Button
-                color="primary"
+                variant="primary"
                 onPress={() => {
                   saveDefaultDurations();
-                  onClose();
+                  overlayState.close();
                 }}
               >
                 Save
               </Button>
             </ModalFooter>
           </>
-        )}
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

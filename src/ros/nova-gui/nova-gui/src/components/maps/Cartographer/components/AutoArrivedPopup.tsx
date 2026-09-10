@@ -1,4 +1,4 @@
-import {Button, Image, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@nextui-org/react";
+import {Button, Modal, ModalBody, ModalDialog, ModalFooter, ModalHeader,} from "@heroui/react";
 import {useEffect, useState} from "react";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";
@@ -38,7 +38,7 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
     <Modal isOpen={isOpen} size="5xl" onClose={onClose} className="dark text-foreground"  classNames={{
       base: "bg-success-100 text-[#a8b0d3]",
     }}>
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex justify-center gap-1 text-6xl mt-5">
           <span>Banksia Has Arrived</span>
         </ModalHeader>
@@ -49,14 +49,14 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
           <p className="text-4xl">
             {`(${arrivedLocation.latitude}, ${arrivedLocation.longitude})`}
           </p>
-          <Image src={BanksiaAuto} removeWrapper className="w-1/2 mt-10 items-center"/>
+          <img src={BanksiaAuto} removeWrapper className="w-1/2 mt-10 items-center"/>
         </ModalBody>
         <ModalFooter>
           <Button color="danger" variant="ghost" onPress={onClose}>
             Close
           </Button>
         </ModalFooter>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   )
 }

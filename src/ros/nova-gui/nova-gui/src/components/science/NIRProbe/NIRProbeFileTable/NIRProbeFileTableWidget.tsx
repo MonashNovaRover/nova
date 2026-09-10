@@ -1,10 +1,10 @@
 import {
   Button,
   Card,
-  CardBody,
+  CardContent,
   CardHeader,
   CardProps,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, {ReactNode, useState} from "react";
 import NIRProbeFileTable from "./NIRProbeFileTable.tsx";
 import {MoreHorizontal} from "react-feather";
@@ -49,10 +49,10 @@ const NIRProbeFileTableWidget: React.FC<NIRProbeFileTableWidgetProps> = ({
           </Button>
         }
       </CardHeader>
-      <CardBody className="flex flex-col gap-3 p-3">
+      <CardContent className="flex flex-col gap-3 p-3">
         {headerTable}
         <NIRProbeFileTable readingInfo={readingInfo} maxTableHeight={maxHeightPercent}/>
-      </CardBody>
+      </CardContent>
       {Modal && <Modal
         isOpen={calibrationModalIsOpen}
         setIsOpen={setCalibrationModalIsOpen}

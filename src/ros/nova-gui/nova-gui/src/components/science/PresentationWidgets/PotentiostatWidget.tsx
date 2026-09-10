@@ -1,5 +1,5 @@
 import React from "react";
-import {Card, CardHeader, CardBody} from "@nextui-org/react";
+import {Card, CardHeader, CardContent} from "@heroui/react";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import {usePotentiostatStorage} from "../Potentiostat/potentiostatStorage.ts";
 import {PotentiostatChart} from "../Potentiostat/PotentiostatChart.tsx";
@@ -18,9 +18,9 @@ const PotentiostatWidget: React.FC<PotentiostatWidgetProps> = ({site}) => {
         <CardHeader className="text-h1 pb-0">
           Site {site + 1} Potentiostat
         </CardHeader>
-        <CardBody className="h-full flex items-center justify-center">
+        <CardContent className="h-full flex items-center justify-center">
           <p className="text-default-500">No potentiostat available for this site</p>
-        </CardBody>
+        </CardContent>
       </Card>
     );
   }
@@ -32,7 +32,7 @@ const PotentiostatWidget: React.FC<PotentiostatWidgetProps> = ({site}) => {
       <CardHeader className="text-h1 pb-0">
         Site {site + 1} Potentiostat
       </CardHeader>
-      <CardBody className="h-full flex items-center justify-center">
+      <CardContent className="h-full flex items-center justify-center">
         {hasData ? (
           <PotentiostatChart
             channel1={data.channel1}
@@ -43,7 +43,7 @@ const PotentiostatWidget: React.FC<PotentiostatWidgetProps> = ({site}) => {
         ) : (
           <p className="text-default-500">No measurements recorded</p>
         )}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

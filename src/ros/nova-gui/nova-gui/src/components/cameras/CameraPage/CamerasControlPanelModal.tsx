@@ -2,7 +2,7 @@ import {
   Button,
   Modal,
   ModalBody,
-  ModalContent,
+  ModalDialog,
   ModalHeader,
   Table,
   TableBody,
@@ -11,7 +11,8 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
-} from "@nextui-org/react";
+  useOverlayState,
+} from "@heroui/react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useEffect } from "react";
@@ -30,6 +31,7 @@ export const CameraControlPanelModal = (props: {
   closeModal: () => void;
   refreshAvailabilies: () => void;
 }) => {
+  const overlayState = useOverlayState({ isOpen: props.showModal, onOpenChange: (isOpen) => !isOpen && props.closeModal() });
   const bifrost = useBifrost({ topic: RosTopic.CAMERAS });
 
   const nodes = useRosNodes();
@@ -44,45 +46,37 @@ export const CameraControlPanelModal = (props: {
   const onlineCameraSerials = onlineCameras.map((cam) => cam.serial);
 
   return (
-    <Modal
-      isOpen={props.showModal}
-      className="dark text-foreground"
-      size="5xl"
-      onClose={props.closeModal}
-    >
-      <ModalContent>
+    <Modal state={overlayState}>
+      <ModalDialog>
         <ModalHeader>Cameras Control Panel</ModalHeader>
         <ModalBody>
           <div className="flex flex-row m-4 ml-0 gap-4 items-center justify-between">
             <div className="flex flex-row gap-4">
-              <Button size="sm" color="primary" onPress={()=>startStreaming(onlineCameraSerials, true)}>
+              <Button size="sm" variant="primary" onPress={()=>startStreaming(onlineCameraSerials, true)}>
                 <Play size="15px" fill="white"/> Start Streaming
               </Button>
-              <Button size="sm" color="warning" onPress={()=>pauseStreaming(onlineCameraSerials, true)}>
+              <Button size="sm" variant="secondary" onPress={()=>pauseStreaming(onlineCameraSerials, true)}>
                 <Pause size="15px" fill="white" /> Pause Streaming
               </Button>
-              <Button size="sm" color="danger" onPress={()=>stopStreaming(onlineCameraSerials, true)}>
+              <Button size="sm" variant="danger" onPress={()=>stopStreaming(onlineCameraSerials, true)}>
                 <Square size="15px" fill="white" /> Stop Streaming
               </Button>
             </div>
-            <Tooltip
-              className="dark text-foreground"
-              content="Not Real Time"
-              closeDelay={100}
-            >
-              <BooleanChip
+            <Tooltip closeDelay={100}>
+              <Tooltip.Trigger><BooleanChip
                 boolean={camerasRunning}
                 variant="dot"
                 trueText="Cameras Running"
                 falseText="Cameras Stopped"
                 size="lg"
-              />
+              /></Tooltip.Trigger>
+              <Tooltip.Content>Not Real Time</Tooltip.Content>
             </Tooltip>
           </div>
 
           <CamerasTable refreshAvailabilies={props.refreshAvailabilies} />
         </ModalBody>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };
@@ -142,22 +136,17 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
 
   return (
     <Table
-      removeWrapper
-      isCompact
       className="overflow-scroll h-[45vh] overflow-x-hidden hide-scrollbar"
-      isHeaderSticky
     >
       <TableHeader>
         <TableColumn>Serial</TableColumn>
         <TableColumn>Connection</TableColumn>
         <TableColumn>Status</TableColumn>
-        <TableColumn align="end">
+        <TableColumn>
           <div className="flex flex-row justify-end">Actions</div>
         </TableColumn>
       </TableHeader>
-      <TableBody
-        emptyContent={"No Cameras Detected. Check if Cameras is running"}
-      >
+      <TableBody>
         {cameras.map((serial) => (
           <TableRow>
             <TableCell>{serial}</TableCell>
@@ -193,8 +182,8 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                 <Button
                   isIconOnly
                   size="sm"
-                  color="primary"
-                  disabled={!onlineCameraSerials.includes(serial)}
+                  variant="primary"
+                  isDisabled={!onlineCameraSerials.includes(serial)}
                   onPress={() => startStreaming(serial)}
                 >
                   <Play size="15px" fill="white" />
@@ -202,8 +191,8 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                 <Button
                   isIconOnly
                   size="sm"
-                  color="warning"
-                  disabled={!onlineCameraSerials.includes(serial)}
+                  variant="secondary"
+                  isDisabled={!onlineCameraSerials.includes(serial)}
                   onPress={() => pauseStreaming(serial)}
                 >
                   <Pause size="15px" fill="white" />
@@ -211,8 +200,8 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                 <Button
                   isIconOnly
                   size="sm"
-                  color="danger"
-                  disabled={!onlineCameraSerials.includes(serial)}
+                  variant="danger"
+                  isDisabled={!onlineCameraSerials.includes(serial)}
                   onPress={() => stopStreaming(serial)}
                 >
                   <Square size="15px" fill="white" />
@@ -220,7 +209,7 @@ const CamerasTable = (props: { refreshAvailabilies: () => void }) => {
                 <Button
                   isIconOnly
                   size="sm"
-                  color="default"
+                  variant="ghost"
                   onPress={() => window.open(
                     `/cameras/${serial}?autostart=true`,
                     "_blank",

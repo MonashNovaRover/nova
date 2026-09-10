@@ -1,12 +1,12 @@
 import {
   Modal,
-  ModalContent,
+  ModalDialog,
   ModalHeader,
   ModalBody,
   ModalFooter,
   Button,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { useState, useEffect, useRef } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore";
 import { CameraProfilesState, CameraProfile, CameraSettings } from "../../../redux/models/CameraProfilesState";
@@ -127,7 +127,7 @@ export const SaveAllCamerasModal: React.FC<SaveAllCamerasModalProps> = ({
       className="dark text-foreground"
       size="lg"
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-col gap-1">
           Save All Camera Settings
         </ModalHeader>
@@ -169,7 +169,7 @@ export const SaveAllCamerasModal: React.FC<SaveAllCamerasModalProps> = ({
             Save Profile
           </Button>
         </ModalFooter>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

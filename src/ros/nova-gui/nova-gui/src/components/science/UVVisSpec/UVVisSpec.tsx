@@ -6,11 +6,11 @@ import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
   Button,
   Card,
-  CardBody,
+  CardContent,
   CardHeader,
   Input,
   Switch,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";
@@ -235,7 +235,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
         <UVVisSpecStartStopButtons/>
         {settingsDropdown}
       </CardHeader>
-      <CardBody className="flex flex-col gap-3">
+      <CardContent className="flex flex-col gap-3">
         {settingsOpen && settings}
         <div>
           {chart}
@@ -244,7 +244,7 @@ const UVVisSpec: React.FC<UVVisSpecProps> = (props) => {
           {blankButtons}
           <RamanLocalStorageSaveButton key={suggestedName} onSave={onSave} onCSVSave={download} suggestedName={suggestedName} />
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
   )
 

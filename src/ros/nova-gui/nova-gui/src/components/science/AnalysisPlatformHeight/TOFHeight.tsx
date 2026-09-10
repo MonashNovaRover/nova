@@ -8,13 +8,13 @@ import { RootState } from "../../../redux/RootState.ts";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useEffect } from "react";
-import { Button, Card, CardBody, CardHeader, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, CardProps } from "@nextui-org/react";
+import { Button, Card, CardContent, CardHeader, Modal, ModalDialog, ModalHeader, ModalBody, useOverlayState, CardProps } from "@heroui/react";
 import { HelpCircle } from "react-feather";
 
 interface TOFHeightProps extends CardProps {}
 
 const TOFHeight: React.FC<TOFHeightProps> = (props) => {
-    const {isOpen, onOpen, onOpenChange} = useDisclosure();
+    const { isOpen, open: onOpen, setOpen: onOpenChange } = useOverlayState();
 
     const tofStore = useSelector(
         (state: RootState) => state.tofStore
@@ -53,7 +53,7 @@ const TOFHeight: React.FC<TOFHeightProps> = (props) => {
     const infoModal = () => {
         return (
             <Modal isOpen={isOpen} onOpenChange={onOpenChange} className="dark text-foreground">
-                <ModalContent>
+                <ModalDialog>
                 {() => (
                     <>
                     <ModalHeader className="flex flex-col gap-1 text-rose-600">Height (TOF Sensor) Error</ModalHeader>
@@ -62,7 +62,7 @@ const TOFHeight: React.FC<TOFHeightProps> = (props) => {
                     </ModalBody>
                     </>
                 )}
-                </ModalContent>
+                </ModalDialog>
             </Modal>
         )
     }
@@ -70,13 +70,13 @@ const TOFHeight: React.FC<TOFHeightProps> = (props) => {
 
     const tofReading = () => {
         return (
-            <CardBody className={`${outOfRange || dangerRange ? "bg-danger" :  warningRange ? "bg-orange-500" : "bg-default"} rounded-lg text-xl p-3 flex flex-row justify-center`}>
+            <CardContent className={`${outOfRange || dangerRange ? "bg-danger" :  warningRange ? "bg-orange-500" : "bg-default"} rounded-lg text-xl p-3 flex flex-row justify-center`}>
                 {
                     !outOfRange ? 
                         <p>Height: {range} mm</p> : 
                         <p>Error: {range} mm</p>                
                 }
-            </CardBody>
+            </CardContent>
         )
     }
 
@@ -87,9 +87,9 @@ const TOFHeight: React.FC<TOFHeightProps> = (props) => {
                 {outOfRange && infoButton()}
                 {infoModal()}
             </CardHeader>
-            <CardBody>
+            <CardContent>
                 {tofReading()}
-            </CardBody>
+            </CardContent>
         </Card>
     );
 }

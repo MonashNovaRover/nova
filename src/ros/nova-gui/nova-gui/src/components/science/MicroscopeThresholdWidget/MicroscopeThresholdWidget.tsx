@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
   Button,
   Card,
-  CardBody,
+  CardContent,
   Checkbox,
   Input,
   Slider,
@@ -12,7 +12,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow
-} from "@nextui-org/react";
+} from "@heroui/react";
 import CopyableInput from "../../shared/components/CopyableInput/CopyableInput.tsx";
 import {CameraComponentProps} from "../../cameras/CameraComponent/CameraComponent.tsx";
 import CameraSessionStartStopButton from "../../cameras/CameraComponent/components/CameraSessionStartStopButton.tsx";
@@ -215,7 +215,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
   return (
     <div className="flex flex-col gap-1.5">
       <Card className="z-0" shadow="none">
-        <CardBody className="flex flex-col gap-3 overflow-hidden">
+        <CardContent className="flex flex-col gap-3 overflow-hidden">
           <div className="flex flex-row">
             <div className="grow justify-self-stretch text-left col-span-3">Microscope Thresholding</div>
             <CameraSessionStartStopButton streamingState={streamingState}
@@ -283,7 +283,7 @@ const MicroscopeThresholdWidget: React.FC<CameraComponentProps> = (props) => {
               <Checkbox isSelected={showThreshold} onValueChange={setShowThreshold} aria-label="thresholding enabled"/>
             </div>
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
 
       <div className="flex flex-col bg-default-100 rounded-xl rounded-b-2xl overflow-hidden">

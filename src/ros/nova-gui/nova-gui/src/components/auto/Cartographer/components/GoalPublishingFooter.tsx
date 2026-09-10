@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Select, SelectItem, Input } from "@nextui-org/react";
+import { Button, ListBox, ListBoxItem, Select, Input } from "@heroui/react";
 import { Edit, Check } from "react-feather";
 import { GoalType } from "../../../../redux/models/CartographerState.ts";
 
@@ -37,14 +37,21 @@ export const GoalPublishingFooter: React.FC<GoalPublishingFooterProps> = ({
                   <Select
                     aria-label="goal-input"
                     selectedKeys={[String(goalType)]}
-                    onChange={(e) => onGoalTypeChange(Number(e.target.value) as GoalType)}
+                    onSelectionChange={(key) => key !== null && onGoalTypeChange(Number(key) as GoalType)}
                     className="inline-flex w-32"
                     size="sm"
-                    variant="bordered"
                   >
-                    <SelectItem key={String(GoalType.GNSS)}>GNSS</SelectItem>
-                    <SelectItem key={String(GoalType.AR_TAG)}>AR Tag</SelectItem>
-                    <SelectItem key={String(GoalType.OBJECT)}>Object</SelectItem>
+                    <Select.Trigger>
+                      <Select.Value />
+                      <Select.Indicator />
+                    </Select.Trigger>
+                    <Select.Popover>
+                      <ListBox>
+                        <ListBoxItem id={String(GoalType.GNSS)}>GNSS</ListBoxItem>
+                        <ListBoxItem id={String(GoalType.AR_TAG)}>AR Tag</ListBoxItem>
+                        <ListBoxItem id={String(GoalType.OBJECT)}>Object</ListBoxItem>
+                      </ListBox>
+                    </Select.Popover>
                   </Select>
                 ) : (
                   <span className="font-semibold">{GoalType[goalType]?.replace('_', ' ')}</span>

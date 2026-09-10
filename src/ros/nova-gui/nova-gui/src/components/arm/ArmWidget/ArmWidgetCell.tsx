@@ -1,8 +1,8 @@
 import {
     Card,
-    CardBody,
+    CardContent,
     CardProps
-  } from "@nextui-org/react";
+  } from "@heroui/react";
   import React, {ReactNode} from "react";
   import { OverlayedProgress } from "../../shared/components/OverlayedProgress/OverlayedProgress.tsx";
   
@@ -47,13 +47,13 @@ import {
         )
     
         return <Card shadow="sm" {...props} >
-        <CardBody className="pt-1 pl-1.5 pr-1.5 pb-1.5 flex gap-1 font-semibold flex-col content-center bg-content2">
+        <CardContent className="pt-1 pl-1.5 pr-1.5 pb-1.5 flex gap-1 font-semibold flex-col content-center bg-content2">
             {label}
             <div className="flex flex-col gap-2 content-center">
             {jointCurrent}
             {jointVelocity}
             </div>
-        </CardBody>
+        </CardContent>
         </Card>
     }
 

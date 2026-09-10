@@ -1,6 +1,6 @@
 import {
-  Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
-} from "@nextui-org/react";
+  Button, Input, Modal, ModalBody, ModalDialog, ModalFooter, ModalHeader,
+} from "@heroui/react";
 import React, { useState } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import { LitmusDipperConfig } from "./LitmusDipperWidget";
@@ -35,7 +35,7 @@ const LitmusDipperModal: React.FC<LitmusDipperModalProps> = ({ isOpen, onOpenCha
       onOpenChange={onOpenChange}
       className="dark text-foreground"
     >
-      <ModalContent>
+      <ModalDialog>
         {(onClose) => (
           <>
             <ModalHeader>Default Litmus Dipper Settings</ModalHeader>
@@ -99,7 +99,7 @@ const LitmusDipperModal: React.FC<LitmusDipperModalProps> = ({ isOpen, onOpenCha
             </ModalFooter>
           </>
         )}
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   );
 };

@@ -4,7 +4,7 @@
  * It uses the old mechanical inputs (from 2023)
  */
 
-import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure, Tabs, Tab, Avatar } from "@nextui-org/react";
+import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalDialog, ModalHeader, useOverlayState, Tabs, Tab, TabList, Avatar } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { HelpCircle } from "react-feather";
 import { IRosScienceInterfacesRamanMechRequest } from "../../../ros/rosTypes.ts";
@@ -31,7 +31,7 @@ const RamanMechanicalInputs: React.FC = () => {
     useEffect(() => { bifrost.syncWithTopic(); }, [bifrost]);
 
 
-    const {isOpen, onOpen, onOpenChange} = useDisclosure();
+    const { isOpen, open: onOpen, setOpen: onOpenChange } = useOverlayState();
     const [currentLaserKey, setCurrentLaserKey] = useState(OFF_LASER_KEY);
     const [ramanMechInputs, setRamanMechInputs] = useState({
         green_laser_on: false,
@@ -70,7 +70,7 @@ const RamanMechanicalInputs: React.FC = () => {
                 <HelpCircle className="w-6 h-6" />
             </Button>
             <Modal className="dark text-foreground" isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false}>
-                <ModalContent>
+                <ModalDialog>
                 {() => (
                     <>
                     <ModalHeader className="flex flex-col gap-1">Mechanical Inputs Help</ModalHeader>
@@ -79,7 +79,7 @@ const RamanMechanicalInputs: React.FC = () => {
                     </ModalBody>
                     </>
                 )}
-                </ModalContent>
+                </ModalDialog>
             </Modal>
             <div className="mx-1 w-60 flex flex-row">
                 <Avatar size="lg" name={ramanMechState.green_laser_on ? "On" : ramanMechState.red_laser_on ? "On" : "Off"} className={ramanMechState.green_laser_on ? "bg-green-600" : ramanMechState.red_laser_on ? "bg-red-600" : ""}></Avatar>
@@ -99,9 +99,11 @@ const RamanMechanicalInputs: React.FC = () => {
                         }
                     }}
                 >
-                    <Tab key="green-laser" className="text-green-400" title="Green" />
-                    <Tab key="red-laser" title="Red" />
-                    <Tab key="off" title="Off" />
+                    <TabList>
+                        <Tab id="green-laser" className="text-green-400">Green</Tab>
+                        <Tab id="red-laser">Red</Tab>
+                        <Tab id="off">Off</Tab>
+                    </TabList>
                 </Tabs>
             </div>
             <div className="mx-1 flex w-52 flex-row">

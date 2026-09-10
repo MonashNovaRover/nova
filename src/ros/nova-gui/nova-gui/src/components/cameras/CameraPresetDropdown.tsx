@@ -5,7 +5,7 @@ import {
   DropdownItem,
   DropdownSection,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Trash2, Save, Upload, User, Check } from "react-feather";
 import { useGenericStore } from "../../hooks/useGenericStore";
 import { CameraProfilesState } from "../../redux/models/CameraProfilesState";
@@ -64,7 +64,7 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
   };
 
   return (
-    <Dropdown placement="bottom-end">
+    <Dropdown>
       <DropdownTrigger>
         <Button
           isIconOnly
@@ -75,13 +75,14 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
           <User size={20} />
         </Button>
       </DropdownTrigger>
+      <Dropdown.Popover placement="bottom end">
       <DropdownMenu 
         aria-label="Camera Preset Actions"
         className="max-h-[400px] overflow-y-auto"
       >
         <DropdownSection title="Actions" showDivider>
           <DropdownItem
-            key="save"
+            id="save"
             startContent={<Save size={16} />}
             onPress={onSavePress}
           >
@@ -90,13 +91,13 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
         </DropdownSection>
         <DropdownSection title="Load Preset">
           {profiles.length === 0 ? (
-            <DropdownItem key="no-profiles" isReadOnly>
+            <DropdownItem id="no-profiles" isReadOnly>
               No saved presets
             </DropdownItem>
           ) : (
             profiles.map((profile) => (
               <DropdownItem
-                key={profile.name}
+                id={profile.name}
                 description={new Date(profile.timestamp).toLocaleString()}
                 startContent={
                   cameraProfiles.lastLoadedProfile === profile.name ? (
@@ -125,6 +126,7 @@ export const CameraPresetDropdown: React.FC<CameraPresetDropdownProps> = ({
           )}
         </DropdownSection>
       </DropdownMenu>
+      </Dropdown.Popover>
     </Dropdown>
   );
 };

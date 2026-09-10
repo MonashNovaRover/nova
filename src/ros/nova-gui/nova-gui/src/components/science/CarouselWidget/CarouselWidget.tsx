@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {Button, Card, CardBody, CardHeader, CardProps, Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger
-} from "@nextui-org/react";
+import {Button, Card, CardContent, CardHeader, CardProps, Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger
+} from "@heroui/react";
 import {Check, MoreHorizontal, Trash2} from "react-feather";
 import CarouselDial, {PumpedCuvettes} from "./CarouselDial.tsx";
 import CarouselControls from "./CarouselControls.tsx";
@@ -175,7 +175,7 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
         </Dropdown>
       </div>
     </CardHeader>
-    <CardBody className="flex flex-col gap-3">
+    <CardContent className="flex flex-col gap-3">
       <div className="grid grid-cols-2 w-full gap-3">
         <Button className="w-full" color="primary" onPress={() => triggerZero(RING.INNER)}>Zero Inner</Button>
         <Button className="w-full" color="secondary" onPress={() => triggerZero(RING.OUTER)}>Zero Outer</Button>
@@ -221,7 +221,7 @@ const CarouselWidgetV2: React.FC<CarouselWidgetProps> = (props) => {
           disabled={isZeroing}
         />
       </div>
-    </CardBody>
+    </CardContent>
   </Card>
 }
 

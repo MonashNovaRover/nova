@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Card, CardBody, CardHeader, Chip } from "@nextui-org/react";
+import { Button, Card, CardContent, CardHeader, Chip } from "@heroui/react";
 import { useSelector } from "react-redux";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
@@ -138,7 +138,7 @@ export const PotentiostatWidget = ({ isCompact = false }: PotentiostatWidgetProp
           />
         </div>
       </CardHeader>
-      <CardBody className={`flex flex-col ${isCompact ? "gap-3" : "gap-6"}`}>
+      <CardContent className={`flex flex-col ${isCompact ? "gap-3" : "gap-6"}`}>
         {/* Status and trigger buttons */}
         <div className={`grid grid-cols-8 ${isCompact ? "gap-2" : "gap-3"} items-center place-items-center`}>
           <Chip
@@ -191,7 +191,7 @@ export const PotentiostatWidget = ({ isCompact = false }: PotentiostatWidgetProp
           mode={mode}
           height={isCompact ? 200 : 300}
         />
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };

@@ -12,7 +12,7 @@ import useUniform, {vec} from "../../../../hooks/webgl/program/uniform/useUnifor
 import GLWrapMode from "../../../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import {Image} from "react-feather";
 import ExtendedDownloadButton from "../../components/ExtendedDownload.tsx";
-import {Tooltip} from "@nextui-org/react";
+import {Tooltip} from "@heroui/react";
 import { AngleType } from "./Theta360CamWidget.tsx";
 
 const DEG_TO_RAD = 0.0174532925199;

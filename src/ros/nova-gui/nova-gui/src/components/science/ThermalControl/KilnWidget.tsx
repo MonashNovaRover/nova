@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
-import { Card, CardBody, CardProps } from "@nextui-org/react";
+import { Card, CardContent, CardProps } from "@heroui/react";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useSelector } from "react-redux";
@@ -36,7 +36,7 @@ const KilnWidget: React.FC<KilnWidgetWidgetProps> = (props) => {
     const setKilnStatus = (state: boolean) => sendCommand(state, targetTemp)
 
     return <Card {...props}>
-        <CardBody className="flex flex-col gap-4">
+        <CardContent className="flex flex-col gap-4">
             <ThermalControl
                 heaterName="Kiln"
                 currentHeaterStatus={tempReadings.state}
@@ -45,7 +45,7 @@ const KilnWidget: React.FC<KilnWidgetWidgetProps> = (props) => {
                 setTargetTemp={updateTargetTemp}
             />
             <KilnChart></KilnChart>
-        </CardBody>
+        </CardContent>
     </Card>
 }
 

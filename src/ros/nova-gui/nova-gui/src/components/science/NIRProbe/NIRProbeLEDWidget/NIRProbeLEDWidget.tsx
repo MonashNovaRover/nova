@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader, CardProps} from "@nextui-org/react";
+import {Card, CardContent, CardHeader, CardProps} from "@heroui/react";
 import {useEffect} from "react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
@@ -34,14 +34,14 @@ const NIRProbeLEDWidget: React.FC<INIRProbeLEDWidgetProps> = ({readingInfo, ...c
       <CardHeader className="pb-0">
         NIR Probe LED
       </CardHeader>
-      <CardBody className="">
+      <CardContent className="">
         <SpinnerButton
           onPressStart={() => takeReading()}
           isLoading = {taking_reading}
         >
           Request LED Readings
         </SpinnerButton>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

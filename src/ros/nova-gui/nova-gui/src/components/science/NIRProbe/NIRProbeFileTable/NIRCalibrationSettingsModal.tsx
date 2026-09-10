@@ -1,4 +1,4 @@
-import {Button, Input, Modal, ModalBody, ModalContent, ModalHeader} from "@nextui-org/react";
+import {Button, Input, Modal, ModalBody, ModalDialog, ModalHeader} from "@heroui/react";
 import React, {useCallback, useMemo} from "react";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
 import {
@@ -103,7 +103,7 @@ const NIRCalibrationSettingsModal: React.FC<NIRSettingsModalProps> = ({
       isOpen={isOpen}
       onClose={() => setIsOpen(false)}
     >
-      <ModalContent>
+      <ModalDialog>
         <ModalHeader className="flex flex-col gap-1">
           NIR Calibration Settings
         </ModalHeader>
@@ -123,7 +123,7 @@ const NIRCalibrationSettingsModal: React.FC<NIRSettingsModalProps> = ({
             Reset Offsets
           </Button>
         </ModalBody>
-      </ModalContent>
+      </ModalDialog>
     </Modal>
   )
 }

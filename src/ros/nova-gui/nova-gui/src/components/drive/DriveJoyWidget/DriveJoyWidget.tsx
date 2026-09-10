@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, CardProps, Switch } from "@nextui-org/react";
+import { Button, Card, CardContent, CardHeader, CardProps, Switch } from "@heroui/react";
 import { useState, useEffect, useRef } from "react";
 import { Info, Lock } from "react-feather";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";
@@ -202,7 +202,7 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
         <div className="grow" />
         {widgetLocked ? widgetLockMessage : !isConnected ? disconnectedMessage : isLocked ? lockedMessage : <></>}
       </CardHeader>
-      <CardBody className="flex-row mx-auto justify-between p-3 gap-4">
+      <CardContent className="flex-row mx-auto justify-between p-3 gap-4">
         {Stick(JoystickSide.LEFT)}
         <div className="space-y-2 w-full">
           <div className="grid grid-cols-4 gap-3">
@@ -279,7 +279,7 @@ const DriveJoyWidget: React.FC<IDriveJoyWidgetProps> = (props) => {
         </div>
         {Stick(JoystickSide.RIGHT)}
         {widgetLocked ? blurOverlay : <></>}
-      </CardBody>
+      </CardContent>
     </Card>
   );
 };
