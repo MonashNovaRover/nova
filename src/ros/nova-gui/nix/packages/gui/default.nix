@@ -1,36 +1,38 @@
-{ lib
-, stdenv
-, buildEnv
-, fetchYarnDeps
-, yarnConfigHook
-, yarnBuildHook
-, writers
-, nodejs
-, rosbridge-server
-, ros-typescript-definitions
-, ros-core
-, nova-drive-interfaces
-, nova-blcmd-interfaces
-, nova-arm-interfaces
-, nova-input-interfaces
-, nova-cmd-interfaces
-, nova-interfaces
-, nova-camera-msgs
-, nova-science-interfaces
+{ 
+  buildEnv, 
+  fetchYarnDeps, 
+  lib, 
+  nodejs, 
+  nova-arm-interfaces, 
+  nova-blcmd-interfaces, 
+  nova-camera-msgs, 
+  nova-cmd-interfaces, 
+  nova-drive-interfaces, 
+  nova-input-interfaces, 
+  nova-interfaces, 
+  nova-science-interfaces, 
+  ros-core, 
+  ros-typescript-definitions, 
+  rosbridge-server, 
+  stdenv, 
+  writers, 
+  yarnBuildHook, 
+  yarnConfigHook, 
+  yarnInstallHook, 
 }:
 
 let
   # ROS packages for message generation
   rosMessagePackages = [
-    ros-core
-    nova-drive-interfaces
-    nova-blcmd-interfaces
     nova-arm-interfaces
-    nova-input-interfaces
-    nova-cmd-interfaces
-    nova-interfaces
+    nova-blcmd-interfaces
     nova-camera-msgs
+    nova-cmd-interfaces
+    nova-drive-interfaces
+    nova-input-interfaces
+    nova-interfaces
     nova-science-interfaces
+    ros-core
   ];
   serve-gui-script = writers.writePython3 "gui-serve" { doCheck = false; } (builtins.readFile ../../../serve.py);
 in
@@ -51,19 +53,11 @@ stdenv.mkDerivation {
   };
 
   nativeBuildInputs = [
-    yarnConfigHook
-    yarnBuildHook
     nodejs
+    yarnBuildHook
+    yarnConfigHook
+    yarnInstallHook
   ];
-
-  postConfigure = ''
-    export HOME="$(mktemp -d)"
-
-    # Link deps/nova-gui to use the node_modules from the root
-    mkdir -p deps/nova-gui
-    rm -f deps/nova-gui/node_modules
-    ln -s "$PWD/node_modules" deps/nova-gui/node_modules
-  '';
 
   ROS_TS_DEFINITIONS = (ros-typescript-definitions.override {
     typePrefix = "IRos";
@@ -79,10 +73,11 @@ stdenv.mkDerivation {
     ln -s "$ROS_TS_DEFINITIONS" "$sourceRoot/src/ros/rosTypes.ts"
   '';
 
-  buildPhase = ''
-    runHook preBuild
-    yarn --offline build
-    runHook postBuild
+  preBuild = ''
+    # without this, the built css file is missing 2/3rds of the content
+    # maybe the deps we pull in aren't specifically marked as deps of nova-gui
+    mkdir -p deps/nova-gui
+    ln -s "$PWD/node_modules" deps/nova-gui/node_modules
   '';
 
   installPhase = ''
