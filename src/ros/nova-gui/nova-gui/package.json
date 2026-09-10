@@ -16,8 +16,11 @@
     "@dnd-kit/react": "^0.3.2",
     "@dnd-kit/sortable": "^10.0.0",
     "@eslint/js": "^10.0.1",
+    "@heroui/react": "^3.2.4",
     "@maptiler/sdk": "^3.11.0",
-    "@nextui-org/react": "^2.3.0",
+    "@react-aria/i18n": "^3.13.1",
+    "@react-aria/ssr": "^3.10.1",
+    "@react-aria/utils": "^3.34.1",
     "@reduxjs/toolkit": "^2.11.2",
     "@types/geolib": "^2.0.23",
     "@types/uuid": "^11.0.0",
@@ -41,6 +44,8 @@
     "rc-joystick": "^1.2.0",
     "react": "^19.2.4",
     "react-apexcharts": "^1.9.0",
+    "react-aria": "^3.52.1",
+    "react-aria-components": "^1.21.1",
     "react-battery-gauge": "1.0.7",
     "react-bootstrap-icons": "^1.11.6",
     "react-dom": "^19.2.4",
@@ -64,6 +69,7 @@
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.2",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/file-saver": "^2.0.7",
     "@types/lodash": "^4.17.23",
     "@types/plotly.js": "^3.0.9",
@@ -80,7 +86,7 @@
     "eslint-plugin-react-refresh": "^0.5.0",
     "postcss": "^8.5.6",
     "prettier": "3.8.1",
-    "tailwindcss": "^3",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   }
