@@ -7,7 +7,7 @@ import {
   ModalFooter,
   Button,
   Input,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import type { CalibrationOffsets } from "./potentiostatStorage.ts";
 
 export interface ManualOffsetDialogProps {

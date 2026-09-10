@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@nextui-org/react";
+import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@heroui/react";
 import React from "react";
 import {Box, Droplet} from "react-feather";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";

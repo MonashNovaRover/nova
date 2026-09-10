@@ -1,4 +1,4 @@
-import {Button, ButtonProps, Spinner, SpinnerProps} from "@nextui-org/react";
+import {Button, ButtonProps, Spinner, SpinnerProps} from "@heroui/react";
 import {FC, ReactNode} from "react";
 import Overlay from "../Overlay/Overlay.tsx";
 

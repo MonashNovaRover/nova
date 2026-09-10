@@ -1,5 +1,5 @@
 import {useCarouselFeedback} from "./useCarouselBifrost.ts";
-import {Chip} from "@nextui-org/react";
+import {Chip} from "@heroui/react";
 
 // temp hall effect sensor display
 export const CarouselHallEffects = () => {

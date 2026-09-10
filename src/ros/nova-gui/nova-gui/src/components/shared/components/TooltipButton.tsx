@@ -1,4 +1,4 @@
-import { Button, ButtonProps, Tooltip, TooltipProps } from "@nextui-org/react";
+import { Button, ButtonProps, Tooltip, TooltipProps } from "@heroui/react";
 
 interface TooltipButtonProps extends ButtonProps {
   tooltipContent: string;

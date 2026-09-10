@@ -4,7 +4,7 @@ import {
   CardBody,
   CardProps,
   Image,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useEffect } from "react";
 import '../DriveModeWidget/DriveWidget.css';
 import './WheelTelemetryWidget.css';

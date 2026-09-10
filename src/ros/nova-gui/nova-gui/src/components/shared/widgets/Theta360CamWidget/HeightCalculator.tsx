@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {useGenericStore} from "../../../../hooks/useGenericStore.ts";
-import {Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Tooltip} from "@nextui-org/react";
+import {Button, Input, Modal, ModalBody, ModalContent, ModalHeader, Tooltip} from "@heroui/react";
 import { AngleType } from "./Theta360CamWidget.tsx";
 import { HelpCircle } from "react-feather";
 

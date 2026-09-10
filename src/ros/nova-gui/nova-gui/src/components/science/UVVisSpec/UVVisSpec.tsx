@@ -10,7 +10,7 @@ import {
   CardHeader,
   Input,
   Switch,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../ros/topics/rosTopic.ts";
 import {useSelector} from "react-redux";

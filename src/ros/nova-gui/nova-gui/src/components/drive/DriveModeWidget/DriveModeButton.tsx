@@ -1,7 +1,7 @@
-import { Badge, Button, ButtonProps, Tooltip } from "@nextui-org/react"
+import { Badge, Button, ButtonProps, Tooltip } from "@heroui/react"
 import { IDriveModeDisplayData } from "./DriveModeDisplayData.tsx"
 import { cloneElement } from "react"
-import { OverlayPlacement } from "@nextui-org/aria-utils"
+import { OverlayPlacement } from "@heroui/aria-utils"
 
 type BadgePlacement = "top-right" | "top-left" |  "bottom-right" | "bottom-left"
 
