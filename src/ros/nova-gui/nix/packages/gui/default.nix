@@ -117,6 +117,7 @@ stdenv.mkDerivation {
         --offline \
     rm yarn.lock
     mv yarn.lock.keep yarn.lock
+    yarn config delete yarn-offline-mirror
 
     # automatically link generated ROS TypeScript definitions to rostypes.ts
     echo -e "\e[33mLinking generated ROS TypeScript definitions\e[0m"
