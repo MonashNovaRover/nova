@@ -1,54 +1,48 @@
-{ fetchFromGitHub
-, buildRosPackage
-, python3Packages
-, opencv4
-, sensor-msgs
-, visualization-msgs
-, rclpy
-, std-msgs
-, cv-bridge
-, std-srvs
-, message-filters
-, yolo-msgs
+{ 
+  buildRosPackage, 
+  cv-bridge, 
+  fetchFromGitHub, 
+  message-filters, 
+  opencv4, 
+  python3Packages, 
+  rclpy, 
+  sensor-msgs, 
+  std-msgs, 
+  std-srvs, 
+  visualization-msgs, 
+  yolo-msgs, 
 }:
 
-buildRosPackage rec
-{
+buildRosPackage rec {
   name = "yolo-ros";
-  version = "4.0.1";
+  version = "4.7.1";
   buildType = "ament_python";
 
   src = fetchFromGitHub {
     owner = "mgonzs13";
     repo = "yolo_ros";
-    rev = "fa4c774294c915dcdc31e7359c2b887a0c30221a";
-    hash = "sha256-BH+orBLTaqkPCx42/liMJyPF6IOWzeLiL8AsiyuvtCI=";
+    rev = version;
+    hash = "sha256-SZaG+IEINVn9lR7U5JrUYLpJdNHOKXH0jq1k3xjUB9k=";
   };
 
   sourceRoot = "${src.name}/yolo_ros";
 
-  propagatedBuildInputs = [
-    rclpy
-    python3Packages.typing-extensions
-    python3Packages.torch
-    python3Packages.numpy
-    python3Packages.ultralytics
-    python3Packages.super-gradients
-    python3Packages.lap
-    opencv4
+  buildInputs = [
     cv-bridge
+    message-filters
+    opencv4
+    rclpy
     sensor-msgs
-    visualization-msgs
     std-msgs
     std-srvs
-    message-filters
+    visualization-msgs
     yolo-msgs
-  ];
-
-  # UNNEEDED DUE TO sourceRoot
-  # The package name is just "opencv", not "opencv-python".
-  # https://discourse.nixos.org/t/how-to-give-opencv-dependency-to-python-package/16949
-  #preBuild = ''
-  #  sed -i 's/opencv-python/opencv/g' requirements.txt
-  #'';
+  ] ++ (with python3Packages; [
+    lap
+    numpy
+    super-gradients
+    torch
+    typing-extensions
+    ultralytics
+  ]);
 }
