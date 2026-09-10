@@ -109,19 +109,24 @@ def launch_setup(context, *args, **kwargs):
                     arguments=[end_effector_velocity_controller_name, '--inactive', "-c", "/arm/controller_manager"],
                     additional_env=show_colours_additional_env,
                 ),
-                IncludeLaunchDescription(
-                    launch_description_source=PythonLaunchDescriptionSource(
-                        PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
-                    ),
-                    launch_arguments={
-                        "bus" : "can1",
-                        "bitrate" : IfElseSubstitution(
-                            condition=arm,
-                            if_value="250000",
-                            else_value="200000",
+                GroupAction(
+                    condition=UnlessCondition(use_mock_hardware),
+                    actions=[
+                        IncludeLaunchDescription(
+                            launch_description_source=PythonLaunchDescriptionSource(
+                                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
+                            ),
+                            launch_arguments={
+                                "bus" : "can1",
+                                "bitrate" : IfElseSubstitution(
+                                    condition=arm,
+                                    if_value="250000",
+                                    else_value="200000",
+                                ),
+                                "log_name" : "arm",
+                            }.items()
                         ),
-                        "log_name" : "arm",
-                    }.items()
+                    ],
                 ),
             ]
         ),
