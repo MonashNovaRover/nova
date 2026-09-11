@@ -126,6 +126,7 @@ def launch_setup(context, *args, **kwargs):
     img_en = int(LaunchConfiguration('img_en').perform(context).lower() == 'true')
     sim = LaunchConfiguration('sim')
     uncompress_img = LaunchConfiguration('uncompress_img')
+    use_livox_ros_driver2 = LaunchConfiguration('use_livox_ros_driver2')
 
     # comp defaults
     if comp == 'arch':
@@ -204,12 +205,20 @@ def launch_setup(context, *args, **kwargs):
     return [
         SetParameter(name='use_sim_time', value=sim),
         Node(
-            condition=IfCondition(AndSubstitution(driver, NotSubstitution(sim))),
+            condition=IfCondition(AndSubstitution(AndSubstitution(driver, NotSubstitution(sim)), use_livox_ros_driver2)),
             package='livox_ros_driver2',
             executable='livox_ros_driver2_node',
             name='livox_lidar_publisher',
             output='screen',
             parameters=[lidar_params, {'user_config_path': rewrite_lidar_config_host_ip(lidar_config, lidar_host_ip, logger)}],
+        ),
+        Node(
+            condition=IfCondition(AndSubstitution(AndSubstitution(driver, NotSubstitution(sim)), NotSubstitution(use_livox_ros_driver2))),
+            package='fast_livox_ros_driver',
+            executable='fast_livox_ros_driver_node_main',
+            name='fast_livox_lidar_publisher',
+            output='screen',
+            parameters=[lidar_params, {'config_file_path': rewrite_lidar_config_host_ip(lidar_config, lidar_host_ip, logger)}],
         ),
         Node(
             # Remove points that intersect with the rover
@@ -440,6 +449,11 @@ def generate_launch_description():
             default_value='False',
             description='Use /clock instead of system clock?',
         ),
+        DeclareLaunchArgument(
+            name='use_livox_ros_driver2',
+            default_value = 'False',
+            description="Use Livox ROS Driver 2 instead of Fast Livox ROS Driver"
+        )
     ]
 
     return LaunchDescription(

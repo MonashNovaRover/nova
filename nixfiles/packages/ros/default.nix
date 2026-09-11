@@ -15,6 +15,7 @@
   iridescence = callPackage ./iridescence { };
   livox-ros-driver2 = callPackage ./livox-ros-driver2 { };
   livox-sdk2 = callPackage ./livox-sdk2 { };
+  fast-livox-ros-driver = callPackage ./fast-livox-ros-driver { };
   nova-workspace = callPackage ./nova-workspace {
     inherit git-metadata;
   };

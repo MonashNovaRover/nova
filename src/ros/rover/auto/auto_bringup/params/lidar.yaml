@@ -24,3 +24,8 @@ livox_lidar_publisher:
       0.0,      5.72e-05, 0.0,
       0.0,      0.0,      3.84e-05
     ]
+
+fast_livox_lidar_publisher:
+  ros__parameters:
+    frame_id: "livox_frame"
+    lidar_ip: "10.0.0.117"
