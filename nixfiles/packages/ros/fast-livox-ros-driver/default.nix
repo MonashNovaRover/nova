@@ -11,11 +11,11 @@
 }:
 
 buildRosPackage {
-  pname = "livox-ros-driver2";
+  pname = "fast-livox-ros-driver";
   version = "0.0.0";
 
   src = fetchgit {
-    name = "livox-ros-driver2-source";
+    name = "fast-livox-ros-driver-source";
     url = "https://github.com/zz990099/fast_livox_ros_driver";
     rev= "db654af7acc8e033d2bd06336d950cb592049ac7";
     hash = "sha256-S195RXCI2lT0L4P/MZL0cWrOtVGNUdAjMEgk26VTOac=";
