@@ -120,8 +120,8 @@ joy_input_source:
             name: "TRIGGERLEFT"
             threshold: -0.5
           from: "PADDLE1"
-        enter_typing:
+        enter_path_planning:
             from: "LEFTSTICK"
-        exit_typing:
+        exit_path_planning:
             from: "RIGHTSTICK"
 
