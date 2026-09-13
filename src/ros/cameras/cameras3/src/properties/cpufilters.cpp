@@ -12,7 +12,8 @@ void set_queue(GstElement* element) {
     "max-size-buffers", 1,
     "max-size-bytes", 1,
     "max-size-time", 1,
-    "leaky", 2, // Drop old buffers
+    //"leaky", 2, // Drop old buffers
+    //"silent", true,
   NULL);
 };
 

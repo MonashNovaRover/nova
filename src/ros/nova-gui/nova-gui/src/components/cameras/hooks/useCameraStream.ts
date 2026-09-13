@@ -3,7 +3,7 @@ import { PeerMessage, ServerMessage } from "./serverMessages.ts";
 import useWebSocket from "react-use-websocket";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
-import { useStreamingBifrost } from "./cameraBifrostHooks.ts";
+//import { useStreamingBifrost } from "./cameraBifrostHooks.ts";
 import toast from "react-hot-toast";
 
 export enum StreamingState {
@@ -43,8 +43,8 @@ const RESET_SESSION_COOLDOWN = 3000; // ms, suppress heartbeat action right afte
 export const useCameraStream = (
   cameraSerial: string,
   videoRef: React.MutableRefObject<HTMLVideoElement | null>,
-  autoStart?: boolean,
-  refreshAvailabilies?: () => void
+  autoStart?: boolean
+  //refreshAvailabilies?: () => void
 ) => {
   const [isWsOpen, setWsOpen] = useState(false);
   const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
@@ -58,7 +58,7 @@ export const useCameraStream = (
     }
   ); 
 
-  const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(refreshAvailabilies);
+  //const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(refreshAvailabilies);
 
   const camerasFromRos = useSelector(
     (state: RootState) => state.camerasStore.cameras
