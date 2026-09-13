@@ -1,27 +1,33 @@
-{ mkYarnPackage
-, fetchFromGitHub
-, fetchYarnDeps
+{
+  fetchFromGitHub, 
+  fetchYarnDeps, 
+  nodejs, 
+  stdenv, 
+  yarnBuildHook, 
+  yarnConfigHook, 
+  yarnInstallHook, 
 }:
 
-mkYarnPackage rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "ros-typescript-generator";
-  version = "1.7.0";
+  version = "1.10.0";
 
   src = fetchFromGitHub {
     owner = "Greenroom-Robotics";
-    repo = pname;
-    rev = "v${version}";
-    hash = "sha256-cw14FDLHIxfjKnYN1WWNCXHIPsgdSBh+NyxFzQVhPlw=";
+    repo = finalAttrs.pname;
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-R9orKPGpzfJG8XDXfOcFQeaTh0gRaWtGaAZMbb72vu8=";
   };
 
-  buildPhase = ''
-    runHook preBuild
+  yarnOfflineCache = fetchYarnDeps {
+    yarnLock = "${finalAttrs.src}/yarn.lock";
+    hash = "sha256-e4IrZUQ78abLgAhT7SlqXlFa6io7B/U73afYFaLhWg8=";
+  };
 
-    export HOME="$(mktemp -d)"
-    yarn --offline build
-
-    runHook postBuild
-  '';
-
-  doDist = false;
-}
+  nativeBuildInputs = [
+    nodejs 
+    yarnBuildHook 
+    yarnConfigHook 
+    yarnInstallHook 
+  ];
+})

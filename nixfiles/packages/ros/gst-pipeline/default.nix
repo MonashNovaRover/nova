@@ -22,7 +22,6 @@
   audio-msgs, 
   builtin-interfaces, 
   gst_all_1, 
-  breakpointHook, 
 }:
 
 buildRosPackage {
@@ -42,7 +41,7 @@ buildRosPackage {
   cmakeFlags = [ "-DCMAKE_CXX_FLAGS=-I${gst_all_1.gst-plugins-base.dev}/include/gstreamer-1.0"];
 
   buildType = "ament_cmake";
-  buildInputs = [ ament-cmake pkg-config breakpointHook ];
+  buildInputs = [ ament-cmake pkg-config ];
   checkInputs = [ ament-cmake-copyright ament-cmake-cppcheck ament-cmake-uncrustify ament-lint-auto ament-lint-common ];
   propagatedBuildInputs = [ rclcpp rclcpp-components gst-bridge image-transport cv-bridge class-loader pluginlib tinyxml2 std-msgs std-srvs gst-msgs sensor-msgs audio-msgs builtin-interfaces ];
   nativeBuildInputs = [ ament-cmake ];
