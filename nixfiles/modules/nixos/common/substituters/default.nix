@@ -28,7 +28,7 @@ in
   };
 
   config.nix.extraOptions = ''
-    allowed-uris = https://github.com/eProsima/Fast-CDR
+    allowed-uris = https://github.com/
   '';
 
   config.nix.settings = lib.mkMerge [
