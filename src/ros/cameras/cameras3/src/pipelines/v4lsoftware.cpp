@@ -69,15 +69,13 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   GstElement* cpu_valve = gst_element_factory_make("valve", "cpu_valve");
   GstElement* cpu_crop = gst_element_factory_make("videocrop", "cpu_crop");
   GstElement* cpu_convertscale = gst_element_factory_make("videoconvertscale", "cpu_convertscale");
-  GstElement* cpu_gpu_selector = gst_element_factory_make("input-selector", "cpu_gpu_selector");
 
   if (
     !cpu_gpu_tee ||
     !cpu_queue ||
     !cpu_valve ||
     !cpu_crop ||
-    !cpu_convertscale ||
-    !cpu_gpu_selector
+    !cpu_convertscale
   ) {
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
@@ -128,7 +126,6 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     cpu_valve,
     cpu_crop,
     cpu_convertscale, 
-    cpu_gpu_selector,
 
     encode_filter,
     encode_tee,
@@ -193,15 +190,9 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     link_elements(streamer_node, next_element, ros_filter, props->serial);
     link_elements(streamer_node, next_element, ros_sink, props->serial);
   }
- 
-  GstPad* cpu_source_pad = gst_element_get_static_pad(cpu_convertscale, "src");
-  GstPad* cpu_sink_pad = gst_element_get_request_pad(cpu_gpu_selector, "sink_%u");
-  gst_pad_link(cpu_source_pad, cpu_sink_pad);
-  g_object_set(cpu_gpu_selector, "active-pad", cpu_sink_pad, NULL); // Selects which path to use
-  gst_object_unref(cpu_source_pad);
-  gst_object_unref(cpu_sink_pad);
 
-  next_element = cpu_gpu_selector;
+  next_element = cpu_convertscale;
+
   link_elements(streamer_node, next_element, encode_filter, props->serial);
   link_elements(streamer_node, next_element, encode_tee, props->serial);
   link_elements(streamer_node, next_element, encode_queue, props->serial);
@@ -329,8 +320,6 @@ void set_v4lsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   // 1. Initialize constants
   GstElement* source_v4l = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_v4l");
   GstElement* source_filter = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_filter");
-  GstPad* source_source_pad = gst_element_get_static_pad(source_filter, "src");
-  GstCaps* source_caps = gst_pad_get_current_caps(source_source_pad);
   GstElement* source_decode = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_decode");
 
   GstElement* cpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_crop");
@@ -338,14 +327,7 @@ void set_v4lsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstElement* encode_encoder = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_encoder");
   GstElementFactory* encode_factory = gst_element_get_factory(encode_encoder);
 
-
-  GstElement* cpu_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_valve");
   GstElement* source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
-
-  GstElement* cpu_gpu_selector = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_gpu_selector");
-  GstElement* cpu_convertscale = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_convertscale");
-  GstPad* cpu_source_pad = gst_element_get_static_pad(cpu_convertscale, "src");
-  GstPad* cpu_sink_pad = gst_pad_get_peer(cpu_source_pad);
   
   // 2. Set properties for elements
   g_object_set(source_valve, "drop", true, NULL);
@@ -384,18 +366,12 @@ void set_v4lsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
     (encoderX == 9) ? set_vp9enc(encode_encoder, props) :
     set_vp8enc(encode_encoder, props);
     gst_object_unref(encode_encoder);
+    gst_object_unref(encode_factory);
   }
 
   // 3. Swap input now, avoids race condition
   g_object_set(source_valve, "drop", false, NULL);
 
   // 4. Unreference every element
-  gst_object_unref(source_source_pad);
-  gst_caps_unref(source_caps);
-  gst_object_unref(cpu_source_pad);
-  gst_object_unref(cpu_sink_pad);
-  gst_object_unref(cpu_gpu_selector);
-  gst_object_unref(cpu_convertscale);
   gst_object_unref(source_valve);
-  gst_object_unref(cpu_valve);
 }

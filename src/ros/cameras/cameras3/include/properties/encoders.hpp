@@ -27,7 +27,7 @@ template <typename properties> static void set_h264enc(GstElement* element, cons
     "dct8x8", true,
     "ip-factor", 1.7, // Less priority on I frames
     "noise-reduction", std::clamp(props->encoder_denoise * 1000, 0, 100000), // higher is more blurry
-    "option-string", "aq-mode=2:aq-strength=1.0:deblock=-3,-3:scenecut=0",
+    "option-string", "aq-mode=2:aq-strength=0.8:deblock=3,3:scenecut=0",
     "pass", 0, // cbr
     "psy-tune", 5, // ssim, better for humans
     "rc-lookahead", std::clamp(props->deadline, 0, 250), // how far to delay frames for quality

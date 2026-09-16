@@ -318,6 +318,9 @@ class CameraStreamer : public rclcpp::Node
             g_object_set(source_valve, "drop", true, NULL);
             gst_object_unref(source_valve);
             gst_element_set_state(pipeline->gst_pipeline, GST_STATE_NULL);
+
+            GstStateChangeReturn ret = gst_element_get_state(pipeline->gst_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
+
             gst_object_unref(pipeline->gst_pipeline);
             pipeline->gst_pipeline = nullptr;
 
