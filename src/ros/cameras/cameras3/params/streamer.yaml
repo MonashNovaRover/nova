@@ -489,7 +489,7 @@ camera_streamer:
         width: 800
         height: 600
         framerate: 30
-        brightness: 0
+        brightness: 64
         contrast: 5
         saturation: 110
         sharpness: 0
