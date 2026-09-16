@@ -131,7 +131,6 @@ export const useCameraStream = (
     if (videoRef.current) videoRef.current.srcObject = null;
 
     sendJsonMessage({ type: "endSession", sessionId });
-    console.log("Yes");
   }, [cameraSerial, isWsOpen, peerId, sendJsonMessage, sessionId, videoRef]);
 
   const destroyRTCPeerConnection = useCallback(() => {

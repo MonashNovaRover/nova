@@ -49,7 +49,7 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   }
 
   section = "ros";
-  GstElement* ros_queue = (props->rossink) ? gst_element_factory_make("ts-queue", "queue_ros") : nullptr;
+  GstElement* ros_queue = (props->rossink) ? gst_element_factory_make("queue", "queue_ros") : nullptr;
   GstElement* ros_convert = (props->rossink) ? gst_element_factory_make("videoconvertscale", "ros_convert") : nullptr;
   GstElement* ros_filter = (props->rossink) ? gst_element_factory_make("capsfilter", "ros_filter") : nullptr;
   GstElement* ros_sink = (props->rossink) ? gst_element_factory_make("rosimagesink", "ros_sink") : nullptr;
@@ -65,7 +65,7 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   
   section = "cpu";
   GstElement* cpu_gpu_tee = gst_element_factory_make("tee", "cpu_gpu_tee");
-  GstElement* cpu_queue = gst_element_factory_make("ts-queue", "cpu_queue");
+  GstElement* cpu_queue = gst_element_factory_make("queue", "cpu_queue");
   GstElement* cpu_valve = gst_element_factory_make("valve", "cpu_valve");
   GstElement* cpu_crop = gst_element_factory_make("videocrop", "cpu_crop");
   GstElement* cpu_convertscale = gst_element_factory_make("videoconvertscale", "cpu_convertscale");
@@ -84,7 +84,7 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   section = (std::string) "encode " + (std::string) "h26" + std::to_string(encoderX);
   GstElement* encode_filter = gst_element_factory_make("capsfilter", "encode_filter");
   GstElement* encode_tee = gst_element_factory_make("tee", "encode_tee");
-  GstElement* encode_queue = gst_element_factory_make("ts-queue", "encode_queue");
+  GstElement* encode_queue = gst_element_factory_make("queue", "encode_queue");
   GstElement* encode_valve = gst_element_factory_make("valve", "encode_valve");
   GstElement* encode_encoder = (
     (encoderX == 4) ? gst_element_factory_make("x264enc", "encode_encoder") :
@@ -315,7 +315,7 @@ std::unique_ptr<v4lsoftwarePipelineProperties> get_v4lsoftware_pipeline_properti
   return props;
 }
 
-void set_v4lsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lsoftwarePipelineProperties>& props) {
+void set_v4lsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lsoftwarePipelineProperties>& props, const int encoderX) {
 
   // 1. Initialize constants
   GstElement* source_v4l = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_v4l");
@@ -325,19 +325,11 @@ void set_v4lsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
   GstElement* cpu_crop = gst_bin_get_by_name(GST_BIN(gst_pipeline), "cpu_crop");
 
   GstElement* encode_encoder = gst_bin_get_by_name(GST_BIN(gst_pipeline), "encode_encoder");
-  GstElementFactory* encode_factory = gst_element_get_factory(encode_encoder);
 
   GstElement* source_valve = gst_bin_get_by_name(GST_BIN(gst_pipeline), "source_valve");
   
   // 2. Set properties for elements
   g_object_set(source_valve, "drop", true, NULL);
-  const int encoderX = (
-    ((std::string) gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(encode_factory)) == "x264enc") ? 4 :
-    ((std::string) gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(encode_factory)) == "x265enc") ? 5 :
-    ((std::string) gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(encode_factory)) == "vp8enc") ? 8 :
-    ((std::string) gst_plugin_feature_get_name(GST_PLUGIN_FEATURE(encode_factory)) == "vp9enc") ? 9 :
-    8
-  );
 
   if (source_v4l) {
     set_v4lsource(source_v4l, props);
@@ -366,7 +358,6 @@ void set_v4lsoftware_pipeline_properties(GstElement* gst_pipeline, const std::un
     (encoderX == 9) ? set_vp9enc(encode_encoder, props) :
     set_vp8enc(encode_encoder, props);
     gst_object_unref(encode_encoder);
-    gst_object_unref(encode_factory);
   }
 
   // 3. Swap input now, avoids race condition

@@ -188,13 +188,13 @@ class CameraStreamer : public rclcpp::Node
       props->zoom = pipeline->zoom;
       props->zoom_longitude = pipeline->zoom_longitude;
       props->zoom_latitude = pipeline->zoom_latitude;
-      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props, 4);
     } else if (pipeline->camera->pipeline_type == "h265software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 5);
       props->zoom = pipeline->zoom;
       props->zoom_longitude = pipeline->zoom_longitude;
       props->zoom_latitude = pipeline->zoom_latitude;
-      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props, 5);
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       set_h264passthrough_pipeline_properties(pipeline->gst_pipeline, props);
@@ -206,13 +206,13 @@ class CameraStreamer : public rclcpp::Node
       props->zoom = pipeline->zoom;
       props->zoom_longitude = pipeline->zoom_longitude;
       props->zoom_latitude = pipeline->zoom_latitude;
-      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props, 8);
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 9);
       props->zoom = pipeline->zoom;
       props->zoom_longitude = pipeline->zoom_longitude;
       props->zoom_latitude = pipeline->zoom_latitude;
-      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props, 9);
     }
 
     gst_bin_recalculate_latency(GST_BIN(pipeline->gst_pipeline));
@@ -453,7 +453,7 @@ class CameraStreamer : public rclcpp::Node
       pipeline->zoom = props->zoom = new_zoom;
       pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
       pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
-      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props, 4);
     }
 
     else if (pipeline->camera->pipeline_type == "h265software") {
@@ -461,7 +461,7 @@ class CameraStreamer : public rclcpp::Node
       pipeline->zoom = props->zoom = new_zoom;
       pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
       pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
-      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props, 5);
     }
 
     else if (pipeline->camera->pipeline_type == "vp8software") {
@@ -469,7 +469,7 @@ class CameraStreamer : public rclcpp::Node
       pipeline->zoom = props->zoom = new_zoom;
       pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
       pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
-      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props, 8);
     }
 
     else if (pipeline->camera->pipeline_type == "vp9software") {
@@ -477,7 +477,7 @@ class CameraStreamer : public rclcpp::Node
       pipeline->zoom = props->zoom = new_zoom;
       pipeline->zoom_longitude = props->zoom_longitude = (new_zoom == 1.0) ? 0.0 : centreX;
       pipeline->zoom_latitude = props->zoom_latitude = (new_zoom == 1.0) ? 0.0 : centreY;
-      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props);
+      set_v4lsoftware_pipeline_properties(pipeline->gst_pipeline, props, 9);
     }
 
     RCLCPP_DEBUG(this->get_logger(), "%sApplied %s%.2f%sx zoom at: (%s%.2f %.2f%s) to %s%s%s", C_QUIET, C_TITLE, pipeline->zoom, C_QUIET, C_MODE, pipeline->zoom_longitude, pipeline->zoom_latitude, C_QUIET, C_MODE, serial.c_str(), C_RESET);
