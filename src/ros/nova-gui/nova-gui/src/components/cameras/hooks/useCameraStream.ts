@@ -3,7 +3,7 @@ import { PeerMessage, ServerMessage } from "./serverMessages.ts";
 import useWebSocket from "react-use-websocket";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
-//import { useStreamingBifrost } from "./cameraBifrostHooks.ts";
+import { useStreamingBifrost } from "./cameraBifrostHooks.ts";
 import toast from "react-hot-toast";
 
 export enum StreamingState {
@@ -44,7 +44,6 @@ export const useCameraStream = (
   cameraSerial: string,
   videoRef: React.MutableRefObject<HTMLVideoElement | null>,
   autoStart?: boolean
-  //refreshAvailabilies?: () => void
 ) => {
   const [isWsOpen, setWsOpen] = useState(false);
   const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
@@ -57,8 +56,6 @@ export const useCameraStream = (
       },
     }
   ); 
-
-  //const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(refreshAvailabilies);
 
   const camerasFromRos = useSelector(
     (state: RootState) => state.camerasStore.cameras
@@ -84,6 +81,7 @@ export const useCameraStream = (
     StreamingState.STOPPED
   );
 
+
   const sendSessionStartMessage = useCallback(() => {
     if (!isWsOpen) return;
     if (!peerId) {
@@ -92,14 +90,11 @@ export const useCameraStream = (
     }
     setStreamingState(StreamingState.LOADING);
     sendJsonMessage({ type: "startSession", peerId });
-    //startStreaming([cameraSerial], false);
   }, [sendJsonMessage, peerId, isWsOpen, cameraSerial]);
 
   const requestRandomAccessKeyframe = useCallback(() => {
     if (!rtcRef.current) return;
 
-    // Guard against request storms: H.265 HW decoders can wedge if a new
-    // keyframe is requested before the previous one has been processed.
     if (keyframeRequestInFlight.current) return;
     const now = Date.now();
     if (now - lastKeyframeRequestTime.current < MIN_KEYFRAME_REQUEST_INTERVAL) {
@@ -122,7 +117,6 @@ export const useCameraStream = (
   }, [cameraSerial]);
 
   const closeSession = useCallback(() => {
-    //pauseStreaming([cameraSerial], false);
     if (!isWsOpen) return;
     if (!peerId) {
       toast.error(`${cameraSerial} unable to start up`);
@@ -138,6 +132,7 @@ export const useCameraStream = (
     if (videoRef.current) videoRef.current.srcObject = null;
 
     sendJsonMessage({ type: "endSession", sessionId });
+    console.log("Yes");
   }, [cameraSerial, isWsOpen, peerId, sendJsonMessage, sessionId, videoRef]);
 
   const destroyRTCPeerConnection = useCallback(() => {
@@ -159,9 +154,6 @@ export const useCameraStream = (
     setStreamingState(StreamingState.LOADING);
     lastResetSessionTime.current = Date.now();
     lastFrameCallbackTime.current = 0;
-    // The new connection's first frame is already an IDR by nature of
-    // negotiation, so skip the redundant auto keyframe request in ontrack
-    // to avoid immediately re-triggering the same latency spike.
     suppressNextAutoKeyframe.current = true;
 
     const oldSessionId = sessionId;
@@ -399,10 +391,10 @@ export const useCameraStream = (
       }
 
       if (
-        lastFrameCallbackTime.current !== 0 &&
-        Date.now() - lastFrameCallbackTime.current > MAX_LATENCY * 5 &&
-        Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN &&
-        streamingState === StreamingState.STOPPED
+        lastFrameCallbackTime.current !== 0
+        && Date.now() - lastFrameCallbackTime.current > MAX_LATENCY * 5
+        && Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN
+        && streamingState === StreamingState.STOPPED
       ) {
         resetSession();
       }
