@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
 
     sim = LaunchConfiguration('sim')
     urdf_path = LaunchConfiguration('urdf_path').perform(context)
+    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
@@ -48,7 +49,9 @@ def launch_setup(context, *args, **kwargs):
         urdf_path, ' ',
         'sim:=', sim.perform(context), ' ',
         'robot_name:=', robot_name, ' ',
-        'auto_mount:=', 'true']), 
+        'auto_mount:=', 'true', ' ',
+        'shortened_auto_mount:=', shortened_auto_mount
+]), 
     value_type=str)
     
     return [
