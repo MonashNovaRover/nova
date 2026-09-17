@@ -97,6 +97,11 @@ def generate_launch_description():
             description='name of the robot',
         ),
         DeclareLaunchArgument(
+            name='shortened_auto_mount',
+            default_value='True',
+            description='Whether to use the shortened auto mount model',
+        ),
+        DeclareLaunchArgument(
             name='rviz',
             default_value='False',
             description='Whether to launch RViz2.',

@@ -431,6 +431,11 @@ def generate_launch_description():
             description='',
         ),
         DeclareLaunchArgument(
+            name='shortened_auto_mount',
+            default_value='True',
+            description='Whether to use the shortened auto mount model',
+        ),
+        DeclareLaunchArgument(
             name='uncompress_img',
             default_value='False',
             description='Uncompress compressed image stream? (for playing back from rosbag)',
