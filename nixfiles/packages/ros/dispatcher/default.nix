@@ -36,8 +36,10 @@
   rosidl-runtime-c, 
   gccNGPackages_15, 
   gcc, 
+  rmw-fastrtps-cpp, 
+  rmw-dds-common, 
   lib, 
-  patchelf, 
+  makeWrapper, 
   breakpointHook,
 }:
 
@@ -55,7 +57,7 @@ buildRosPackage rec {
 
   nativeBuildInputs = [ 
     ament-cmake 
-    patchelf 
+    makeWrapper 
     breakpointHook 
   ];
 
@@ -103,14 +105,15 @@ buildRosPackage rec {
     qt5.qtbase
     yaml-cpp 
     gccNGPackages_15.libatomic 
-    gccNGPackages_15.libstdcxx 
-    gcc
+    gcc.cc.lib
+    rmw-fastrtps-cpp
+    rmw-dds-common
   ];
 
-  postInstall = ''
-    patchelf --set-rpath "${lib.makeLibraryPath runtimeDependencies}" $out/lib/${pname}/${pname}
-
-    # mkdir -p $out/bin
-    # ln -s $out/lib/dispatcher/dispatcher $out/bin
+  postFixup = ''
+    wrapProgram $out/lib/${pname}/${pname} \
+      --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeDependencies} \
+      --set QT_QPA_PLATFORM_PLUGIN_PATH \
+      "${qt5.qtbase.bin}/lib/qt-${qt5.qtbase.version}/plugins/platforms"
   '';
 }

@@ -49,6 +49,7 @@
   nova-auto-start,
   ros-tcp-endpoint,
   nova-unity-sim, 
+  dispatcher, 
 }:
 
 buildRosPackage rec {
@@ -110,7 +111,8 @@ buildRosPackage rec {
       direct-visual-lidar-calibration
       nova-auto-start
       ros-tcp-endpoint
-      nova-unity-sim;
+      nova-unity-sim
+      dispatcher;
   };
 
   # After installing params and resources folders in nix store's auto_bringup,
