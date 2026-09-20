@@ -62,6 +62,7 @@ install(PROGRAMS
   electronics/wheel_publisher.py
   electronics/LED_transmitter.py
   electronics/led_strip.py
+  electronics/auto_mock.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
