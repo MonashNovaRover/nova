@@ -29,8 +29,7 @@ const CameraSessionStartStopButton: React.FC<CameraSessionStartStopButtonProps> 
         className="w-min mx-auto"
         onPress={sendSessionStartMessage}
       >
-        <Eye size="15px" fill="white" />
-        Show
+        <Eye size="15px" fill="white" /> Show
       </Button>
     ) : (
       <Button {...buttonProps}
