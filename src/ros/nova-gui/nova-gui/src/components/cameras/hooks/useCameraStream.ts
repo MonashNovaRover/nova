@@ -54,7 +54,7 @@ export const useCameraStream = (
         setWsOpen(true);
       },
     }
-  );
+  ); 
 
   const camerasFromRos = useSelector(
     (state: RootState) => state.camerasStore.cameras
@@ -76,6 +76,11 @@ export const useCameraStream = (
     (state: RootState) => state.cameraStreamerState.cameras[cameraSerial]
   );
 
+  const [streamingState, setStreamingState] = useState<StreamingState>(
+    StreamingState.STOPPED
+  );
+
+
   const sendSessionStartMessage = useCallback(() => {
     if (!isWsOpen) return;
     if (!peerId) {
@@ -86,15 +91,9 @@ export const useCameraStream = (
     sendJsonMessage({ type: "startSession", peerId });
   }, [sendJsonMessage, peerId, isWsOpen, cameraSerial]);
 
-  const [streamingState, setStreamingState] = useState<StreamingState>(
-    StreamingState.STOPPED
-  );
-
   const requestRandomAccessKeyframe = useCallback(() => {
     if (!rtcRef.current) return;
 
-    // Guard against request storms: H.265 HW decoders can wedge if a new
-    // keyframe is requested before the previous one has been processed.
     if (keyframeRequestInFlight.current) return;
     const now = Date.now();
     if (now - lastKeyframeRequestTime.current < MIN_KEYFRAME_REQUEST_INTERVAL) {
@@ -153,9 +152,6 @@ export const useCameraStream = (
     setStreamingState(StreamingState.LOADING);
     lastResetSessionTime.current = Date.now();
     lastFrameCallbackTime.current = 0;
-    // The new connection's first frame is already an IDR by nature of
-    // negotiation, so skip the redundant auto keyframe request in ontrack
-    // to avoid immediately re-triggering the same latency spike.
     suppressNextAutoKeyframe.current = true;
 
     const oldSessionId = sessionId;
@@ -384,10 +380,6 @@ export const useCameraStream = (
       const video = videoRef.current;
       if (!video) return;
 
-      // Self-heal: if the <video> element wasn't attached yet when this
-      // effect first ran, or was swapped for a different element (e.g. a
-      // "hide and show" that remounts it), (re)attach the frame-callback
-      // chain to whatever element is current.
       if (video !== attachedVideo) {
         if (attachedVideo && rvfcHandle !== undefined) {
           attachedVideo.cancelVideoFrameCallback(rvfcHandle);
@@ -396,15 +388,11 @@ export const useCameraStream = (
         scheduleFrameCallback(video);
       }
 
-      // Watchdog: requestVideoFrameCallback only fires when a new frame is
-      // actually presented. If the stream has genuinely stalled (frozen
-      // decoder, dead track, etc.) it can stop firing entirely, which means
-      // the delay-based check above never runs and never recovers. Detect
-      // that "no frames at all" case on a plain wall clock instead.
       if (
-        lastFrameCallbackTime.current !== 0 &&
-        Date.now() - lastFrameCallbackTime.current > MAX_LATENCY * 5 &&
-        Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN
+        lastFrameCallbackTime.current !== 0
+        && Date.now() - lastFrameCallbackTime.current > MAX_LATENCY * 5
+        && Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN
+        && streamingState === StreamingState.STOPPED
       ) {
         resetSession();
       }
