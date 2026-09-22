@@ -99,12 +99,18 @@ protected:
 
         /// A reduction ratio resolver readings are scaled by.
         double resolver_reduction {std::numeric_limits<double>::quiet_NaN()};
+
+        /// When true, only a single zero command is sent instead of continuously spamming zeros.
+        bool send_single_zero = true;
     };
 
 private:
     std::string QCMDHardwareLoggerName;
 
     EffortInterface hw_effort_;
+
+    /// The last value written to CAN. Empty until the first frame is sent.
+    std::optional<int64_t> last_sent_data_;
 
     std::unique_ptr<leigh::jcan::Bus> bus_;
 
