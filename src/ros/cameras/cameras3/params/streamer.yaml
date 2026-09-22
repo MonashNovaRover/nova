@@ -168,7 +168,7 @@ camera_streamer:
           cpu_usage: 9
           jpegdec_method: islow
           bitrate: 32
-          saturation: 0
+          #saturation: 0
 
       webcamvendor_SK_series1_20220325JWGD2093:
         default:
@@ -201,6 +201,7 @@ camera_streamer:
           dither: bayer
           method: bilinear
         snail:
+          pipeline_type: h264passthrough
           io_mode: dmabuf
           width: 320
           height: 240
@@ -215,7 +216,7 @@ camera_streamer:
           cpu_usage: 9
           jpegdec_method: islow
           bitrate: 32
-          saturation: 0
+          #saturation: 0
 
       HZ_USB_Camera_20220301104:
         default:
@@ -272,7 +273,7 @@ camera_streamer:
           cpu_usage: 9
           jpegdec_method: islow
           bitrate: 32
-          saturation: 0
+          #saturation: 0
 
       Microsoft_Microsoft®_LifeCam_HD-3000:
         default:
@@ -329,7 +330,7 @@ camera_streamer:
           cpu_usage: 9
           jpegdec_method: islow
           bitrate: 32
-          saturation: 0
+          #saturation: 0
 
     presets:
       auto:
