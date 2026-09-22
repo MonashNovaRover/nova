@@ -40,7 +40,7 @@ const ThermalControl: React.FC<ThermalControlProps> = ({heaterName = "Heater", c
           {currentHeaterStatus ? "POWERED ON" : "POWERED OFF"}
       </Button>
       <Button className="w-1/3 text-h1" color="primary" onPress={() => setHeaterStatus(!currentHeaterStatus)}>
-        {currentHeaterStatus ? "STOP HEATER" : "START HEATER"}
+        {`${currentHeaterStatus ? "STOP" : "START"} ${heaterName.toUpperCase()}`}
         {currentHeaterStatus ? <Square size="15" fill="white"/> : <Power size="15"/>}
       </Button>
     </div>
