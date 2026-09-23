@@ -3,6 +3,7 @@
     nova-cli = buildPythonPackage {
       pname = "nova-cli";
       version = "1.0.0";
+      format = "setuptools";
 
       src = builtins.path rec {
         name = "nova-cli-source";

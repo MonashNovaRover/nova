@@ -1,4 +1,4 @@
-import { Modal, ModalBody, ModalContent, ModalHeader } from "@nextui-org/react";
+import { Modal, ModalBody, ModalContent, ModalHeader } from "@heroui/react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";

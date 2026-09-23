@@ -44,7 +44,7 @@ buildRosPackage
     launch 
     launch-ros 
     python3Packages.typing-extensions
-    python3Packages.pytorch
+    python3Packages.torch
     python3Packages.numpy
     python3Packages.ultralytics
     python3Packages.super-gradients

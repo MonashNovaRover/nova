@@ -1,5 +1,5 @@
 import React, {useMemo} from "react";
-import {Card, CardHeader, CardBody, Button} from "@nextui-org/react";
+import {Card, CardHeader, CardBody, Button} from "@heroui/react";
 import {useLocalStorage} from "../../../hooks/useLocalStorage.ts";
 import {ApexDataset} from "../SpectraDisplay/DataChart.tsx";
 import ReactApexChart from "react-apexcharts";

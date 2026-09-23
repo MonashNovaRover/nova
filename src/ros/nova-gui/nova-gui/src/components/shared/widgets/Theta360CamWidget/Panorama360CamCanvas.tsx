@@ -14,7 +14,7 @@ import useUniform, {vec} from "../../../../hooks/webgl/program/uniform/useUnifor
 import GLWrapMode from "../../../../hooks/webgl/program/sampler/GLWrapMode.ts";
 import {Image} from "react-feather";
 import ExtendedDownloadButton from "../../components/ExtendedDownload.tsx";
-import {Input, Slider, Tooltip} from "@nextui-org/react";
+import {Input, Slider, Tooltip} from "@heroui/react";
 import useImageTexture from "../../../../hooks/webgl/program/sampler/useImageTexture.ts";
 import Compass from "../../../../assets/compass.png";
 import {isArray} from "lodash";

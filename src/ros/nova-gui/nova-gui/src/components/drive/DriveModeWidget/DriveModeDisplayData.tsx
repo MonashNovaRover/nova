@@ -1,6 +1,6 @@
 import {DetailedReactHTMLElement} from "react";
 import {Maximize2, RefreshCw} from "react-feather";
-import {Image} from "@nextui-org/react";
+import {Image} from "@heroui/react";
 import Tank from "../../../assets/tank-icon.svg";
 import {CarFront} from "react-bootstrap-icons";
 

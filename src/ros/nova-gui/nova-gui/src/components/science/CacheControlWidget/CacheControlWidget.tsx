@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Card, CardBody, CardHeader, Input, Tab, Tabs } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Input, Tab, Tabs } from "@heroui/react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import { ArrowClockwise, ArrowCounterclockwise } from "react-bootstrap-icons";

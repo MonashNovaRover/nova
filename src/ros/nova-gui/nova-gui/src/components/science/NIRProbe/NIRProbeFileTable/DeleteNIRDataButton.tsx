@@ -1,4 +1,4 @@
-import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "@nextui-org/react";
+import {Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader} from "@heroui/react";
 import React, {useState} from "react";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {Trash2} from "react-feather";

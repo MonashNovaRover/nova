@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { BLCMDStatusModal } from "./BLCMDStatusModal.tsx";
 import { ExclamationCircleFill } from "react-bootstrap-icons";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";

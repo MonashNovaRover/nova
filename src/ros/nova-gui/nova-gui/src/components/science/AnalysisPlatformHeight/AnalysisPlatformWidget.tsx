@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader} from "@nextui-org/react";
+import {Card, CardBody, CardHeader} from "@heroui/react";
 import AnalysisArmDiagram from "./AnalysisPlatformDiagram.tsx";
 import {useAnalysisArmPosition, useAnalysisArmServices} from "./useAnalysisArmPosition.ts";
 import {useCallback, useEffectEvent, useMemo, useState} from "react";

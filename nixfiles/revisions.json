@@ -1,16 +1,16 @@
 {
   "nixpkgs": {
-    "rev": "cb9e5af795f0307a41dfe32748f025a050d9fe30",
-    "hash": "sha256-C0CZcQB9wAsfvk5fQuO1ET1GCCYVzPB8Yj/j2MbBkkg="
-  }, 
+    "rev": "e72e4f299401a3689d4b3d5fc6496b11db7064eb",
+    "hash": "sha256-8fsyqeO+mJqvIzeO4xIpgJe/f7MTbbVTEC6RT6WSXNs="
+  },
   "nix-ros-overlay": {
-    "rev": "4072d6ed51d9053d2cc85c0ec4f69884cc99f392",
-    "hash": "sha256-xvre4xiezhPhU794dpjcHusVLBIfA4jPg9Kq439x4yY="
-  }, 
+    "rev": "d32b9f8be7e7c63b48c9ea468b1d9911e04dbe37",
+    "hash": "sha256-jdbrpe9VQWb5VvivEoUUQ/T+Q7P4I6PzNLTFm5UXVBE="
+  },
   "nix-ros-workspace": {
     "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
     "hash": "sha256-q2xrIUD+kgyxGXp6oi7QW0QzxL6PsOODRoj/ru9P9ig="
-  }, 
+  },
   "teleop-modular": {
     "rev": "0ccb9e3aa3d8258b59e9ccc31a8bb68d4980f296",
     "hash": "sha256-Qtre2HN+am2BwgBqX45n4DvwsBvO2InCyiR7rB5TbEc="

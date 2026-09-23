@@ -1,7 +1,7 @@
 import {
   Button, Card, CardBody, CardHeader, CardProps, Input, Progress,
   useDisclosure
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useEffect, useState } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";

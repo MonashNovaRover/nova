@@ -1,4 +1,4 @@
-import { Select, SelectItem, SharedSelection, Switch } from "@nextui-org/react";
+import { Select, SelectItem, SharedSelection, Switch } from "@heroui/react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import { getYoloConfig, YoloModelOptions } from "../../auto/ObjectDetection/YoloConfig.ts";
 

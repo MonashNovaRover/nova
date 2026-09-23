@@ -5,7 +5,7 @@
 import React, {memo, ReactNode, useCallback, useMemo, useState} from "react";
 import {ApexDataset} from "../../../science/SpectraDisplay/DataChart.tsx";
 import {ApexOptions} from "apexcharts";
-import {Button, Card, CardBody, CardHeader, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem} from "@nextui-org/react";
+import {Button, Card, CardBody, CardHeader, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Select, SelectItem} from "@heroui/react";
 import {Trash} from "react-feather";
 import ReactApexChart from "react-apexcharts";
 

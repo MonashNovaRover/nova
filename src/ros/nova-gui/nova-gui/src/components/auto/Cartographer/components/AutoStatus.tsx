@@ -1,4 +1,4 @@
-import {Chip} from "@nextui-org/react";
+import {Chip} from "@heroui/react";
 import {useEffect} from "react";
 import {useSelector} from "react-redux";
 import {RootState} from "../../../../redux/RootState.ts";

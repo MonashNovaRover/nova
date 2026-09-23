@@ -71,9 +71,6 @@ list(APPEND plugin_libs nova_get_goal_action_bt_node)
 add_library(nova_pop_goal_action_bt_node SHARED plugins/action/pop_goal_action.cpp)
 list(APPEND plugin_libs nova_pop_goal_action_bt_node)
 
-add_library(nova_get_current_pose_action_bt_node SHARED plugins/action/get_current_pose_action.cpp)
-list(APPEND plugin_libs nova_get_current_pose_action_bt_node)
-
 add_library(nova_led_service_bt_node SHARED plugins/action/led_service.cpp)
 list(APPEND plugin_libs nova_led_service_bt_node)
 
@@ -108,9 +105,6 @@ list(APPEND plugin_libs nova_object_detected_condition_bt_node)
 
 add_library(nova_goals_empty_condition_bt_node SHARED plugins/condition/goals_empty_condition.cpp)
 list(APPEND plugin_libs nova_goals_empty_condition_bt_node)
-
-add_library(nova_are_poses_near_condition_bt_node SHARED plugins/condition/are_poses_near_condition.cpp)
-list(APPEND plugin_libs nova_are_poses_near_condition_bt_node)
 
 # ========================================= DECORATOR NODES ========================================= #
 

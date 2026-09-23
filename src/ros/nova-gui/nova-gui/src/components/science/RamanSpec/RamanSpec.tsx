@@ -5,7 +5,7 @@
  */
 
 
-import { Card, CardBody, CardHeader } from "@nextui-org/react";
+import { Card, CardBody, CardHeader } from "@heroui/react";
 import RamanCCDInputs from "./RamanCCDInputs.tsx";
 import RamanMechanicalInputs from "./RamanMechanicalInputs.tsx";
 import RamanOutput, {RamanOutputProps} from "./RamanOutput.tsx";

@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardHeader, CardBody, Chip } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, Chip } from "@heroui/react";
 import { BaseCameraComponentProps } from "../CameraComponent.tsx";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../../../redux/RootState.ts";

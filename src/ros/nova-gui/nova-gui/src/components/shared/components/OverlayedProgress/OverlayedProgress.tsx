@@ -1,4 +1,4 @@
-import { Progress, ProgressProps } from "@nextui-org/react"
+import { Progress, ProgressProps } from "@heroui/react"
 import "./OverlayedProgress.css";
 
 // Properties for the DriveModeButton component.

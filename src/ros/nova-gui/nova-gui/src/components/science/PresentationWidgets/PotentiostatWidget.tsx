@@ -1,5 +1,5 @@
 import React from "react";
-import {Card, CardHeader, CardBody} from "@nextui-org/react";
+import {Card, CardHeader, CardBody} from "@heroui/react";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import {usePotentiostatStorage} from "../Potentiostat/potentiostatStorage.ts";
 import {PotentiostatChart} from "../Potentiostat/PotentiostatChart.tsx";

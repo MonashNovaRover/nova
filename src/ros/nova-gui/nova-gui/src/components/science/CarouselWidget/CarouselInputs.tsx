@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Button, Input} from "@nextui-org/react";
+import {Button, Input} from "@heroui/react";
 import {Anchor, Minus, Plus, RotateCcw} from "react-feather";
 import {CuvettePositions, RING} from "./CarouselWidget.tsx";
 

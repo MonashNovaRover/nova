@@ -18,7 +18,7 @@
   tf2-msgs,
   tf-transformations,
   rerun,
-  pythonPackages,
+  python3Packages,
   nova-interfaces,
 }:
 
@@ -53,9 +53,9 @@ buildRosPackage rec {
     cv-bridge
     sensor-msgs
     sensor-msgs-py
-    pythonPackages.geographiclib
-    pythonPackages.rerun-sdk
-    pythonPackages.rich
+    python3Packages.geographiclib
+    python3Packages.rerun-sdk
+    python3Packages.rich
     nova-interfaces
   ];
 }

@@ -1,4 +1,4 @@
-import { Chip } from "@nextui-org/react";
+import { Chip } from "@heroui/react";
 import { IRosBlcmdInterfacesBlcmdStatus } from "../../../ros/rosTypes.ts";
 
 export const ComplainingChips = (props: IRosBlcmdInterfacesBlcmdStatus) => {

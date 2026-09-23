@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownSection,
   DropdownTrigger,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Check, Settings, Trash2, Sliders } from "react-feather";
 import type { CalibrationState } from "./potentiostatStorage.ts";
 import { ManualOffsetDialog } from "./ManualOffsetDialog.tsx";

@@ -8,7 +8,7 @@ import { RootState } from "../../../redux/RootState.ts";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { useEffect } from "react";
-import { Button, Card, CardBody, CardHeader, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, CardProps } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Modal, ModalContent, ModalHeader, ModalBody, useDisclosure, CardProps } from "@heroui/react";
 import { HelpCircle } from "react-feather";
 
 interface TOFHeightProps extends CardProps {}
