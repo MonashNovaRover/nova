@@ -9,7 +9,7 @@ in
 rec {
   mkGitHubInput = { owner, repo, branch ? null }: {
     type = "git";
-    value = "git@github.com:${owner}/${repo}.git${pkgs.lib.optionalString (branch != null) (" ${branch}")}";
+    value = "https://github.com/${owner}/${repo}.git${pkgs.lib.optionalString (branch != null) (" ${branch}")}";
     emailresponsible = false;
   };
 
