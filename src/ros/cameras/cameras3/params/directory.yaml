@@ -90,6 +90,11 @@ camera_directory:
             '2.1:1.0': science_litmus
             '2.2:1.0': science_spectroscope
             '2.3:1.0': science_cuvettes
+        science-arc:
+          payload_1: science_analysis_arm_down
+          payload_2: science_boom
+          payload_3: science_gimbal_cam
+          payload_4: science_microscope
 
         example:
           payload_2: science_kiln
