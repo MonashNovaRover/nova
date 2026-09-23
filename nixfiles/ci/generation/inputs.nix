@@ -10,8 +10,7 @@ rec {
   mkGitHubInput = { owner, repo, branch ? null, clone ? "ssh" }: {
     type = "git";
     value = 
-      (pkgs.lib.optionalString (clone == "ssh") "git@github.com:${owner}/${repo}.git")
-      + (pkgs.lib.optionalString (clone == "https") "https://github.com/${owner}/${repo}.git")
+      (pkgs.lib.optionalString (clone == "https") "https://github.com/${owner}/${repo}.git")
       + (pkgs.lib.optionalString (branch != null) " ${branch}");
     emailresponsible = false;
   };
