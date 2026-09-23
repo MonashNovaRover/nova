@@ -17,8 +17,8 @@
             "emailresponsible": false
         },
         "nova-monorepo": {
-            "type": "git",
-            "value": "git@github.com:MonashNovaRover/nova.git main",
+            "type": "https",
+            "value": "https://github.com/MonashNovaRover/nova.git main",
             "emailresponsible": false
         },
         "nova-pr-json": {
