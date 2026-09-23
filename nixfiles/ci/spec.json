@@ -12,7 +12,7 @@
     "keepnr": 3,
     "inputs": {
         "nixpkgs": {
-            "type": "git",
+            "type": "https",
             "value": "https://github.com/NixOS/nixpkgs.git nixos-unstable",
             "emailresponsible": false
         },
