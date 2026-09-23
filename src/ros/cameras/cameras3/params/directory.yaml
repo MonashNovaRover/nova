@@ -96,6 +96,12 @@ camera_directory:
           payload_3: science_gimbal_cam
           payload_4: science_microscope
 
+        ec:
+          payload_1: ec_forklift_forward
+          payload_2: ec_scraper
+          payload_3: ec_forklift_down
+          payload_4: ec_scraper_leg
+
         example:
           payload_2: science_kiln
           mast_arm_stow: science_microscope
