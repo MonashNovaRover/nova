@@ -64,7 +64,9 @@ let
     (mkJobsets (planRosDistroAndPrJobsets "tests" {
       description = "Tests";
       nixexprpath = "nixfiles/ci/jobsets/tests.nix";
-      inputs = novaInputs;
+      inputs = novaInputs // {
+        home-manager = homeManagerInput;
+      };
     })) //
     {
       docs = mkJobset {
