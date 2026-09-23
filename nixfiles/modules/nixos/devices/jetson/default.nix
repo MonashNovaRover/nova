@@ -2,16 +2,9 @@
 
 let
   cfg = config.devices.jetson;
-  hasJetpackChannel = (builtins.tryEval <jetpack-nixos>).success
-  revisions = builtins.fromJSON (builtins.readFile ../../revisions.json);
-  # When hydra builds the devices jobset it passes jetpack as <jetpack-nixos> so that needs to work
-  # in the restricted evaluation mode where it can't get stuff from github.
-  # When the orin builds it it doesn't have that currently so it needs it to work without it as well.
-  # The docs job evalutates the options here too but I forgot how it handles this.
-  jetpack-nixos = if hasJetpackChannel then <jetpack-nixos> else builtins.fetchTarball {
-    url = "https://github.com/anduril/jetpack-nixos/archive/${revisions.jetpack-nixos.rev}.tar.gz";
-    sha256 = revisions.jetpack-nixos.hash;
-  };
+  hasJetpackChannel = (builtins.tryEval <jetpack-nixos>).success;
+  revisions = builtins.fromJSON (builtins.readFile ../../../../revisions.json);
+  jetpack-nixos = if hasJetpackChannel then <jetpack-nixos> else null;
   jetpack-nixos-module = (import (builtins.toPath "${jetpack-nixos}/modules/default.nix") (import ( builtins.toPath "${jetpack-nixos}/overlay.nix")));
 in
 {
@@ -24,7 +17,7 @@ in
 
   options = {
     devices.jetson.enable = lib.mkEnableOption "configuration for NVIDIA Jetson SoMs" // { internal = true; };
-  } // lib.optionalAttrs (!hasJetpackChannel) {
+  } // lib.optionalAttrs (jetpack-nixos == null) {
     hardware.nvidia-jetpack = lib.mkOption {
       description = "Modules for Jetpack 6";
       type = with lib.types; attrsOf (submodule {

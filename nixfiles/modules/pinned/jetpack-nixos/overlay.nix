@@ -1,0 +1,2 @@
+# shim for compatibility
+{ }
