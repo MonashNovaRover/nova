@@ -8,7 +8,6 @@
   system.nixos.tags = [ "docker" ];
 
   # Undo some changes made by the minimal profile
-  environment.noXlibs = false;
   programs.command-not-found.enable = true;
 
   # Networking

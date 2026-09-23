@@ -102,7 +102,7 @@ let
         description = "Workshop slides";
         nixexprpath = "nixfiles/ci/jobsets/slides.nix";
         checkinterval = 60 * 60 * 24;
-        inputs.slides = mkNovaInput { repo = "slides"; };
+        inputs.slides = mkNovaInput { repo = "slides"; branch = "master"; };
       };
     };
 in

@@ -4,6 +4,7 @@
 
 let
   pkgs = import nixpkgs { };
+  revisions = builtins.fromJSON (builtins.readFile ../../revisions.json);
   allNovaRepos = builtins.foldl' pkgs.lib.recursiveUpdate { } (builtins.attrValues (import ../nova-repos.nix));
 in
 rec {
@@ -27,6 +28,7 @@ rec {
   jetpackNixosInput = mkGitHubInput {
     owner = "anduril";
     repo = "jetpack-nixos";
+    branch = revisions.jetpack-nixos.rev; # Pin this as they have broken it before.
   };
 
   nixosHardwareInput = mkGitHubInput {
