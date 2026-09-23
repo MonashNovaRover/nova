@@ -7,9 +7,6 @@
 
   system.nixos.tags = [ "docker" ];
 
-  # Undo some changes made by the minimal profile
-  programs.command-not-found.enable = true;
-
   # Networking
   networking.hostName = "";
   networking.useHostResolvConf = false;
