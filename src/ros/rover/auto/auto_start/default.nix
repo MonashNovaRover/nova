@@ -18,7 +18,7 @@
   tf2-msgs,
   tf-transformations,
   rerun,
-  pythonPackages,
+  python3Packages,
 }:
 
 buildRosPackage rec {
@@ -52,7 +52,7 @@ buildRosPackage rec {
     cv-bridge
     sensor-msgs
     sensor-msgs-py
-    pythonPackages.geographiclib
-    pythonPackages.rerun-sdk
+    python3Packages.geographiclib
+    python3Packages.rerun-sdk
   ];
 }

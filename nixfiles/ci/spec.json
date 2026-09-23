@@ -12,13 +12,13 @@
     "keepnr": 3,
     "inputs": {
         "nixpkgs": {
-            "type": "git",
-            "value": "git@github.com:NixOS/nixpkgs.git nixos-unstable",
+            "type": "https",
+            "value": "https://github.com/NixOS/nixpkgs.git nixos-unstable",
             "emailresponsible": false
         },
         "nova-monorepo": {
-            "type": "git",
-            "value": "git@github.com:MonashNovaRover/nova.git main",
+            "type": "https",
+            "value": "https://github.com/MonashNovaRover/nova.git main",
             "emailresponsible": false
         },
         "nova-pr-json": {
