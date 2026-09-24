@@ -71,7 +71,7 @@ in
       buildMachinesFiles =
         (lib.optional (config.nix.buildMachines != [ ]) "/etc/nix/machines") ++
         (lib.optional (cfg.hydra.localMaxJobs != 0) (pkgs.writeText "hydra-build-machines" ''
-          localhost ${builtins.concatStringsSep "," ([ builtins.currentSystem ] ++ config.nix.settings.extra-platforms or [ ])} - ${toString cfg.hydra.localMaxJobs} ${toString cfg.hydra.localSpeedFactor} ${builtins.concatStringsSep "," [ "nixos-test" "big-parallel" ]}
+          localhost ${builtins.concatStringsSep "," ([ builtins.currentSystem ] ++ config.nix.settings.extra-platforms or [ ])} - ${toString cfg.hydra.localMaxJobs} ${toString cfg.hydra.localSpeedFactor} ${builtins.concatStringsSep "," [ "kvm" "nixos-test" "big-parallel" ]}
         ''));
       logo = pkgs.nova.nova-icons + /share/icons/hicolor/512x512/apps/nova-logo-white-and-orange.png;
       #maxServers = 2; # Max number of hydra web workers
