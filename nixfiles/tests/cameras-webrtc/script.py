@@ -5,16 +5,18 @@ start_all()
 rover.wait_for_unit("default.target")
 rover.wait_for_unit("nova-mock-cameras.service")
 
+asNova = "sudo -iu nova "
 with subtest("Launch the camera services"):
-    rover.succeed("ros2 launch cameras cameras.launch.py param-dir:=\"$(mktemp -d)\" >&2 &")
+    rover.succeed(asNova+"ros2 launch cameras cameras.launch.py param-dir:=\"$(mktemp -d)\" >&2 &")
 
+rover.succeed(asNova+"env")
 with subtest("Check the camera list"):
     def check_camera_list(last: bool) -> bool:
         # The camera capabilities do not update appropriately. Trigger the
         # relevant rules manually.
         rover.succeed("udevadm trigger --subsystem-match=video4linux --attr-match=max_openers='?*'")
 
-        cameras_yaml = rover.succeed("ros2 topic echo --once --timeout 30 --full-length --qos-reliability reliable --qos-durability transient_local camera_directory/cameras camera_msgs/Cameras")
+        cameras_yaml = rover.succeed(asNova+"ros2 topic echo --once --timeout 30 --full-length --qos-reliability reliable --qos-durability transient_local camera_directory/cameras camera_msgs/Cameras")
         rover.log(cameras_yaml)
         cameras = next(yaml.load_all(cameras_yaml, Loader=yaml.CLoader))["cameras"]
 
@@ -40,7 +42,7 @@ with subtest("Start streaming the cameras"):
     base.succeed("sudo ip addr add dev eth1 10.0.0.101/23")
     rover.succeed("sudo ip addr add dev eth1 10.0.0.10/23")
 
-    rover.succeed("ros2 service call camera_streamer/stream/start camera_msgs/CameraOperation '{ serials: [ ] }'")
+    rover.succeed(asNova+"ros2 service call camera_streamer/stream/start camera_msgs/CameraOperation '{ serials: [ ] }'")
     #base.succeed("gui-serve >&2 &")
     #base.succeed("ros2 launch rosbridge_server rosbridge_websocket_launch.xml >&2 &")
 
