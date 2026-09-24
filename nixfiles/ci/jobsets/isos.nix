@@ -193,6 +193,7 @@ let
       })
       {
         includeGraphical = false;
+        includeWorkspace = false; # somehow includes nccl which is x86 only
       };
 
     macbook-t2 = mkIsoJobs mkMacbookT2Iso {
