@@ -37,7 +37,7 @@ let
     keepnr = 1;
   } // args // {
     inputs = {
-      nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-unstable"; };
+      nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-26.05"; };
       nova-monorepo = mkNovaInput { repo = "nova"; };
       supportedSystems = {
         type = "nix";
