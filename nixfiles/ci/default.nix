@@ -29,7 +29,7 @@ let
     inherit description;
     nixexprinput = "nova-monorepo";
     inherit nixexprpath;
-    checkinterval = 60;
+    checkinterval = 120;
     schedulingshares = 100;
     enableemail = false;
     enable_dynamic_run_command = false;

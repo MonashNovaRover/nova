@@ -4,7 +4,7 @@
     "description": "Project jobset generator",
     "nixexprinput": "nova-monorepo",
     "nixexprpath": "nixfiles/ci/default.nix",
-    "checkinterval": 60,
+    "checkinterval": 120,
     "schedulingshares": 100,
     "enableemail": false,
     "enable_dynamic_run_command": true,
