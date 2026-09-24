@@ -6,7 +6,7 @@ rover.wait_for_unit("default.target")
 rover.wait_for_unit("nova-mock-cameras.service")
 
 with subtest("Launch the camera services"):
-    rover.succeed("ros2 launch --noninteractive cameras2 camera_server_launch.py param-dir:=\"$(mktemp -d)\" >&2 &")
+    rover.succeed("ros2 launch cameras cameras.launch.py param-dir:=\"$(mktemp -d)\" >&2 &")
 
 with subtest("Check the camera list"):
     def check_camera_list(last: bool) -> bool:
@@ -14,7 +14,7 @@ with subtest("Check the camera list"):
         # relevant rules manually.
         rover.succeed("udevadm trigger --subsystem-match=video4linux --attr-match=max_openers='?*'")
 
-        cameras_yaml = rover.succeed("ros2 topic echo --once --full-length --qos-reliability reliable --qos-durability transient_local camera_directory/cameras camera_msgs/Cameras")
+        cameras_yaml = rover.succeed("ros2 topic echo --once --timeout 30 --full-length --qos-reliability reliable --qos-durability transient_local camera_directory/cameras camera_msgs/Cameras")
         rover.log(cameras_yaml)
         cameras = next(yaml.load_all(cameras_yaml, Loader=yaml.CLoader))["cameras"]
 
