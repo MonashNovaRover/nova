@@ -7,7 +7,9 @@ Add to your `/etc/nixos/configuration.nix`:
 ```nix
 { ... }:
 {
-  nix.nixPath = [ "/home/nova/nova/nixfiles/modules/pinned" ];
+  environment.extraInit = ''
+    export NIX_PATH="/home/nova/nova/nixfiles/modules/pinned''${NIX_PATH:+:$NIX_PATH}"
+  '';
 }
 ```
 
