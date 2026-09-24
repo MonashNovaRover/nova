@@ -61,13 +61,6 @@ let
       description = "Miscellaneous packages";
       nixexprpath = "nixfiles/ci/jobsets/misc.nix";
     })) //
-    (mkJobsets (planRosDistroAndPrJobsets "tests" {
-      description = "Tests";
-      nixexprpath = "nixfiles/ci/jobsets/tests.nix";
-      inputs = novaInputs // {
-        home-manager = homeManagerInput;
-      };
-    })) //
     {
       docs = mkJobset {
         description = "Nova Rover documentation";
@@ -99,6 +92,14 @@ let
           jetpack-nixos = jetpackNixosInput;
         };
         checkinterval = 60 * 60 * 24 * 7;
+      };
+      tests = mkJobset {
+        description = "Tests";
+        nixexprpath = "nixfiles/ci/jobsets/tests.nix";
+        inputs = novaInputs // {
+          home-manager = homeManagerInput;
+        };
+        checkinterval = 60 * 60 * 24;
       };
       slides = mkJobset {
         description = "Workshop slides";
