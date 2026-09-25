@@ -5,6 +5,10 @@
     nixpkgs = {
       url = "github:nixos/nixpkgs/cb9e5af795f0307a41dfe32748f025a050d9fe30";
     };
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-ros-overlay = {
       url = "github:lopsided98/nix-ros-overlay/4072d6ed51d9053d2cc85c0ec4f69884cc99f392";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -27,7 +31,15 @@
   };
 
 
-  outputs = { nixpkgs, nix-ros-overlay, nix-ros-workspace, teleop-modular, jetpack-nixos, self }@inputs: let
+  outputs = {
+    nixpkgs,
+    home-manager,
+    nix-ros-overlay,
+    nix-ros-workspace,
+    teleop-modular,
+    jetpack-nixos,
+    self
+  }@inputs: let
 
     inherit (nixpkgs.lib.evalModules {
       modules = [
@@ -43,12 +55,6 @@
       }) systems);
 
   in {
-    checks = {}; # import ./tests { hostPkgs = pkgs; inherit novaPkgs};
-
-    nixosModules.default = import nixfiles/modules/nixos;
-
-      #throw (builtins.removeAttrs self [ "outPath" "_type" "a" "checks" "dirtyRev" "inputs" "outputs" "overlays" "packages" "nixosModules" "narHash"
-  #"dirtyShortRev" "lastModified" "lastModifiedDate"]);
     overlays.default = final: prev: nixpkgs.lib.composeManyExtensions [
       # Add the nix-ros-overlay. This supplies vanilla ROS packages.
       nix-ros-overlay.overlays.default
@@ -124,13 +130,20 @@
       # Add the return value of this function. Some other attributes are useful
       # when  only pkgs is available.
       #(self: super: { nova = result; })
-    ]
-      final
-      prev;
+    ] final prev;
 
+    checks = forAllSystems (system:
+      import nixfiles/tests { hostPkgs = self.legacyPackages."${system}"; novaPkgs = self.legacyPackages."${system}"; }
+    );
 
+    nixosModules.default = {
+      imports = [
+        home-manager.nixosModules.default
+        nixfiles/modules/nixos
+      ];
+    };
 
-    packages = forAllSystems (system: let
+    legacyPackages = forAllSystems (system: let
       pkgs = import nixpkgs {
         inherit system;
 
@@ -145,8 +158,25 @@
           self.overlays.default
         ];
       };
-    in pkgs // {
-      default = pkgs.ros.nova-workspace;
+    in pkgs);
+
+    nixosConfigurations."test" = nixpkgs.lib.nixosSystem {
+      modules = [
+        self.nixosModules.default
+        {
+          nixpkgs.hostPlatform = "x86_64-linux";
+          fileSystems."/" = { device = "/dev/null"; };
+          boot.loader.grub.enable = false;
+        }
+      ];
+
+    };
+
+    # devShells
+    # hydraJobs puts all its attrs into one jobset each flake
+
+    packages = forAllSystems (system: {
+      default = self.legacyPackages."${system}".ros.nova-workspace;
     });
 
 

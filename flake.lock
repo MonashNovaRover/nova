@@ -43,6 +43,26 @@
         "type": "github"
       }
     },
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790292277,
+        "narHash": "sha256-z+knvdMItRrMonmG4RIsqKYIa/hwYUzKjotDTfC5DDc=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "4b9add8645d5e2b0f7de18f7a442d08fe2bdcc91",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
     "jetpack-nixos": {
       "inputs": {
         "cuda-legacy": "cuda-legacy",
@@ -122,6 +142,7 @@
     },
     "root": {
       "inputs": {
+        "home-manager": "home-manager",
         "jetpack-nixos": "jetpack-nixos",
         "nix-ros-overlay": "nix-ros-overlay",
         "nix-ros-workspace": "nix-ros-workspace",

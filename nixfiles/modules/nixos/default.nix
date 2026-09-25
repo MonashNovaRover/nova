@@ -3,7 +3,6 @@
 {
   imports = [
     ../common
-    <home-manager/nixos>
     ./common
     ./profiles
     ./devices
