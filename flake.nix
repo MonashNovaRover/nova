@@ -27,9 +27,8 @@
   };
 
 
-  outputs = inputs: let
-    git-metadata = throw (builtins.removeAttrs inputs.self.sourceInfo [ "outPath" ]);
-    inherit (inputs.nixpkgs.lib.evalModules {
+  outputs = { nixpkgs, nix-ros-overlay, nix-ros-workspace, teleop-modular, jetpack-nixos, self, self-clean }@inputs: let
+    inherit (nixpkgs.lib.evalModules {
       modules = [
         (import nixfiles/external/out-of-tree.nix)
         (import ./src)
@@ -43,9 +42,79 @@
       }) systems);
 
   in {
-    tests = {}; # import ./tests { hostPkgs = pkgs; inherit novaPkgs};
+    checks = {}; # import ./tests { hostPkgs = pkgs; inherit novaPkgs};
+
+    nixosModules.default = import nixfiles/modules/nixos;
+
+      #throw (builtins.removeAttrs self [ "outPath" "_type" "a" "checks" "dirtyRev" "inputs" "outputs" "overlays" "packages" "nixosModules" "narHash"
+  #"dirtyShortRev" "lastModified" "lastModifiedDate"]);
+    overlays.default = final: prev: nixpkgs.lib.composeManyExtensions [
+      # Add the nix-ros-overlay. This supplies vanilla ROS packages.
+      nix-ros-overlay.overlays.default
+
+      # Add the nix-ros-overlay FOD as a package.
+      # This, much like Nixpkgs's path attribute, allows callers to access files
+      # from the project.
+      (self: super: { inherit nix-ros-overlay; })
+
+      # Add the nix-ros-workspace overlay. This adds more functionallity to nix-ros-overlay.
+      (import nix-ros-workspace { }).overlay
+
+      # Add the custom overlay. This:
+      #  - Adds custom library functions
+      #  - Applies patches to existing packages from Nixpkgs and the ROS overlay
+      #  - Creates a "ros" alias pointing to "rosPackages.${version}"
+      (import nixfiles/overlay)
+
+      # Add teleop_modular
+      (import (teleop-modular + "/overlay.nix"))
+
+      # Add internally defined packages.
+      (self: super: import nixfiles/packages/other { inherit (self) pkgs callPackage; })
+      (self: super: {
+        pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
+          (pyself: pysuper: import nixfiles/packages/python { inherit (pyself) callPackage; })
+        ];
+      })
+      (self: super: {
+        rosPackages = super.rosPackages.appendDistroOverlay
+        (rosSelf: rosSuper: import nixfiles/packages/ros {
+          inherit (rosSelf) callPackage;
+          pkgs = rosSelf;
+          git-metadata = builtins.readFile (
+            self.pkgs.writers.writeJSON "metadata.json" (
+                # if outPath is in the attrset, it just prints the store path not the rest of the set.
+                (builtins.removeAttrs inputs.self.sourceInfo [ "outPath" ]) // { source = inputs.self.sourceInfo.outPath; }
+              )
+            );
+        })
+          super.rosPackages;
+      })
+
+      # Add externally defined (out-of-tree) packages.
+      (self: super: config.packages self)
+      (self: super: {
+        pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
+          (pyself: pysuper: config.pythonPackages pyself)
+        ];
+      })
+      (self: super: {
+        rosPackages = super.rosPackages.appendDistroOverlay
+          (rosSelf: rosSuper: config.rosPackages rosSelf)
+          super.rosPackages;
+      })
+
+      # Add the return value of this function. Some other attributes are useful
+      # when  only pkgs is available.
+      #(self: super: { nova = result; })
+    ]
+      final
+      prev;
+
+
+
     packages = forAllSystems (system: let
-      pkgs = import inputs.nixpkgs {
+      pkgs = import nixpkgs {
         inherit system;
 
         config = {
@@ -56,60 +125,7 @@
         };
 
         overlays = [
-          # Add the nix-ros-overlay. This supplies vanilla ROS packages.
-          inputs.nix-ros-overlay.overlays.default
-
-          # Add the nix-ros-overlay FOD as a package.
-          # This, much like Nixpkgs's path attribute, allows callers to access files
-          # from the project.
-          (self: super: { inherit (inputs) nix-ros-overlay; })
-
-          # Add the nix-ros-workspace overlay. This adds more functionallity to nix-ros-overlay.
-          (import inputs.nix-ros-workspace { }).overlay
-
-          # Add the custom overlay. This:
-          #  - Adds custom library functions
-          #  - Applies patches to existing packages from Nixpkgs and the ROS overlay
-          #  - Creates a "ros" alias pointing to "rosPackages.${version}"
-          (import nixfiles/overlay)
-
-          # Add teleop_modular
-          (import (inputs.teleop-modular + "/overlay.nix"))
-
-          # Add internally defined packages.
-          (self: super: import nixfiles/packages/other { inherit (self) pkgs callPackage; })
-          (self: super: {
-            pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
-              (pyself: pysuper: import nixfiles/packages/python { inherit (pyself) callPackage; })
-            ];
-          })
-          (self: super: {
-            rosPackages = super.rosPackages.appendDistroOverlay
-            (rosSelf: rosSuper: import nixfiles/packages/ros {
-              inherit (rosSelf) callPackage;
-              pkgs = rosSelf;
-              inherit git-metadata;
-            })
-              super.rosPackages;
-          })
-
-          # Add externally defined (out-of-tree) packages.
-          (self: super: config.packages self)
-          (self: super: {
-            pythonPackagesExtensions = super.pythonPackagesExtensions ++ [
-              (pyself: pysuper: config.pythonPackages pyself)
-            ];
-          })
-          (self: super: {
-            rosPackages = super.rosPackages.appendDistroOverlay
-              (rosSelf: rosSuper: config.rosPackages rosSelf)
-              super.rosPackages;
-          })
-
-          # Add the return value of this function. Some other attributes are useful
-          # when  only pkgs is available.
-          #(self: super: { nova = result; })
-
+          self.overlays.default
         ];
       };
     in pkgs // {
