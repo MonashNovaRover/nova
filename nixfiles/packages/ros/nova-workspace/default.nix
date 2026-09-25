@@ -29,7 +29,7 @@
       nova-diff-drive-controller
       nova-teleop-drive-joy
       nova-teleop-arm-joy
-      nova-gui
+      #nova-gui
       nova-drive
       nova-drive-interfaces
       nova-blcmd-interfaces
@@ -43,7 +43,7 @@
       nova-gimbal-cam
       nova-interfaces
       nova-bringup
-      nova-auto-bringup
+      #nova-auto-bringup
       nova-arm-bringup
       nova-drive-bringup
       nova-rover-description

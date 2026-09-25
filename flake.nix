@@ -28,7 +28,7 @@
 
 
   outputs = inputs: let
-    git-metadata = inputs.self.sourceInfo.narHash;
+    git-metadata = throw (builtins.removeAttrs inputs.self.sourceInfo [ "outPath" ]);
     inherit (inputs.nixpkgs.lib.evalModules {
       modules = [
         (import nixfiles/external/out-of-tree.nix)
