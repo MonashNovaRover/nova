@@ -59,7 +59,7 @@ in
 
   #extraPythonPackages = ps: with ps; [ pyyaml types-pyyaml ];
 
-  testScript = { ... }@args: ''
+  testScript = { nodes, ... }@args: ''
     ${testScriptCommon args}
   '' + builtins.readFile ./script.py;
 }

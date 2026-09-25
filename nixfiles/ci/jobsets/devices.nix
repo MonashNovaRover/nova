@@ -46,7 +46,5 @@ let
   }).config.system.build.toplevel;
 in
 {
-  metabox-n850hk = mkDeviceSystem { devices.metabox-n850hk.enable = true; };
-  metabox-v158pnh = mkDeviceSystem { devices.metabox-v158pnh.enable = true; };
   jetson-orin-nano-devkit = mkDeviceSystem { devices.jetson = { orin-nano.enable = true; devkit.enable = true; }; };
 }
