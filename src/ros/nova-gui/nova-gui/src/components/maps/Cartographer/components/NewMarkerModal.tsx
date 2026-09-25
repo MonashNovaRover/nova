@@ -14,6 +14,7 @@ import { MapPoint } from "../../../../redux/models/CartographerState.ts";
 import { useEffect, useState } from "react";
 import CopyableInput from "../../../shared/components/CopyableInput/CopyableInput.tsx";
 import toast from "react-hot-toast";
+import { calcLatFromDD, calcLatFromDDM, calcLatFromDMS, calcLongFromDD, calcLongFromDDM, calcLongFromDMS } from "../utils/convertCoords.ts";
 
 interface NewMarkerModalProps {
   isOpen: boolean;
@@ -36,21 +37,39 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
     (state: RootState) => state.cartographerState.points
   );
 
+  const convertLatLong = (val: string, isLat: boolean = false) => {
+    const doFuncs = (functions: ((_: string) => number)[]) => {
+      for (const f in functions) {
+        const result = functions[f](val);
+        console.log(result, functions[f])
+        if (!isNaN(result)) return result;
+      }
+      return NaN
+    }
+    if (isLat) {
+      const functions = [calcLatFromDD, calcLatFromDMS, calcLatFromDDM]
+      return doFuncs(functions)
+    } else {
+      const functions = [calcLongFromDD, calcLongFromDMS, calcLongFromDDM]
+      return doFuncs(functions)
+    }
+  }
+
   const isValidPoint = () => {
     return (
       latitude !== "" &&
       longitude !== "" &&
-      !isNaN(Number(latitude)) &&
-      !isNaN(Number(longitude)) && 
-      points.reduce((acc, point) => acc && !(point.lat === Number(latitude) && point.long === Number(longitude)) && point.name !== name, true)
+      !isNaN(convertLatLong(latitude, true)) &&
+      !isNaN(convertLatLong(longitude)) && 
+      points.reduce((acc, point) => acc && !(point.lat === convertLatLong(latitude, true) && point.long === convertLatLong(longitude)) && point.name !== name, true)
     );
   }
 
   const handleDropPin = () => {
     if (isValidPoint()) {
       const newPoint = {
-        lat: Number(latitude),
-        long: Number(longitude),
+        lat: convertLatLong(latitude, true),
+        long: convertLatLong(longitude),
         labelNumber: labelNumber,
         labelName: labelName,
         name: !name || name === "" ? `Point ${points.length + 1}` : name,
@@ -61,6 +80,7 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
       props.closeModal();
     }
     else{
+      console.log(convertLatLong(latitude, true), convertLatLong(longitude))
       toast.error("Point must have unique coordinates and name")
     }
 };
@@ -97,6 +117,9 @@ export const NewMarkerModal = (props: NewMarkerModalProps) => {
               }
             }}
           />
+          <div className="text-xs text-default-500">
+            Lat/Long entry allows DD, DMS and DDM where {`°, ' and "`} are optional<br/> Direction indicator(N, E for Lat or S, W) is not optional for DMS & DDM
+          </div>
           <CopyableInput
             value={latitude}
             onChange={(event) => setLatitude(event.target.value as string)}
