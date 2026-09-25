@@ -70,7 +70,7 @@ let
                   # environment derivation, which have not yet been added.
                   # We can find the missing inputs by creating an empty ROS
                   # environment.
-                  (workspace.override { novaPackages = { }; extraPackages = { }; }).rosEnv.inputDerivation
+                  #(workspace.override { novaPackages = { }; extraPackages = { }; }).rosEnv.inputDerivation
                 ] ++ (builtins.attrValues pkgs.nova.nova.inputs));
               };
 
@@ -78,15 +78,7 @@ let
               # files.
               installer.cloneConfig = false;
 
-              # Some device configurations explicitly enable NetworkManager,
-              # but the installation profiles configure their own networking.
-              # In particular, some use networking.wireless.enable, which is
-              # incompatible with NetworkManager. In these cases, it should be
-              # disabled.
-              networking.networkmanager.enable = lib.mkIf config.networking.wireless.enable (lib.mkForce false);
-
               nova = {
-                inherit (ciLib) repos;
                 substituters.nova.password = builtins.readFile ../../secrets/hydra-password.txt;
                 desktop.enable = graphical;
                 workspace = {
@@ -201,6 +193,7 @@ let
       })
       {
         includeGraphical = false;
+        includeWorkspace = false; # somehow includes nccl which is x86 only
       };
 
     macbook-t2 = mkIsoJobs mkMacbookT2Iso {

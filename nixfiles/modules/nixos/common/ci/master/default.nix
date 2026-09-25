@@ -71,7 +71,7 @@ in
       buildMachinesFiles =
         (lib.optional (config.nix.buildMachines != [ ]) "/etc/nix/machines") ++
         (lib.optional (cfg.hydra.localMaxJobs != 0) (pkgs.writeText "hydra-build-machines" ''
-          localhost ${builtins.concatStringsSep "," ([ builtins.currentSystem ] ++ config.nix.settings.extra-platforms or [ ])} - ${toString cfg.hydra.localMaxJobs} ${toString cfg.hydra.localSpeedFactor} ${builtins.concatStringsSep "," [ "nixos-test" "big-parallel" ]}
+          localhost ${builtins.concatStringsSep "," ([ builtins.currentSystem ] ++ config.nix.settings.extra-platforms or [ ])} - ${toString cfg.hydra.localMaxJobs} ${toString cfg.hydra.localSpeedFactor} ${builtins.concatStringsSep "," [ "kvm" "nixos-test" "big-parallel" ]}
         ''));
       logo = pkgs.nova.nova-icons + /share/icons/hicolor/512x512/apps/nova-logo-white-and-orange.png;
       #maxServers = 2; # Max number of hydra web workers
@@ -140,6 +140,10 @@ in
           github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
           github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
         ''} ~/.ssh/known_hosts
+
+        # Configure https auth for github
+        echo ${cfg.hydra.githubToken} | ${pkgs.gh}/bin/gh auth login --with-token
+        ${pkgs.git}/bin/git config --global --replace-all 'credential.https://github.com.helper' '!${pkgs.gh}/bin/gh auth git-credential'
       '';
     };
 
