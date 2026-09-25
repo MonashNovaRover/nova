@@ -7,7 +7,7 @@ rover.wait_for_unit("nova-mock-cameras.service")
 
 asNova = "sudo -iu nova "
 with subtest("Launch the camera services"):
-    rover.succeed(asNova+"ros2 launch cameras cameras.launch.py param-dir:=\"$(mktemp -d)\" >&2 &")
+    rover.succeed(asNova+"ros2 launch cameras cameras.launch.py local:=False >&2 &")
 
 rover.succeed(asNova+"env")
 with subtest("Check the camera list"):
