@@ -19,7 +19,7 @@ const URCAutoTypingView: React.FC = () => {
     <div className="flex flex-col lg:flex-row gap-3">
       {/* Left Column (Col 1) */}
       <div className="flex flex-col gap-3 w-full lg:w-1/2">
-        <KeyboardOverlayedCameraComponent cameraSerial={CameraSerials.ARM_END_PERISCOPE}/>
+        <KeyboardOverlayedCameraComponent cameraSerial={CameraSerials.ARM_END_FINGER}/>
         <AutoTypingKeyEntryWidget showHelp={() => setInfoPanelOpen(true)}/>
       </div>
 
