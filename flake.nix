@@ -27,7 +27,8 @@
   };
 
 
-  outputs = { nixpkgs, nix-ros-overlay, nix-ros-workspace, teleop-modular, jetpack-nixos, self, self-clean }@inputs: let
+  outputs = { nixpkgs, nix-ros-overlay, nix-ros-workspace, teleop-modular, jetpack-nixos, self }@inputs: let
+
     inherit (nixpkgs.lib.evalModules {
       modules = [
         (import nixfiles/external/out-of-tree.nix)
@@ -76,17 +77,33 @@
           (pyself: pysuper: import nixfiles/packages/python { inherit (pyself) callPackage; })
         ];
       })
-      (self: super: {
+      (self: super:
+        let
+          # Copy of the source code for this build without binary and large files
+          sourceCode = self.pkgs.callPackage (
+            { runCommand, gnugrep, coreutils }:
+            runCommand "source" {
+              nativeBuildInputs = [ gnugrep coreutils ];
+              preferLocalBuild = true;
+            }
+            ''
+              # As we will have a copy of this for every workspace build, it must be small.
+              mkdir $out && cd $out
+              cp -r ${inputs.self.sourceInfo}/* ./
+              chmod -R u+w .
+              # truncate all binary files
+              grep -rI . -H -L | while read line; do truncate -s 0 "$line"; done
+              # some svg, stl, yarn.lock etc are large plain text files not caught by the first line.
+              find . -size +200k | while read line; do truncate -s 0 "$line"; done
+
+            '') { };
+        in
+      {
         rosPackages = super.rosPackages.appendDistroOverlay
         (rosSelf: rosSuper: import nixfiles/packages/ros {
           inherit (rosSelf) callPackage;
           pkgs = rosSelf;
-          git-metadata = builtins.readFile (
-            self.pkgs.writers.writeJSON "metadata.json" (
-                # if outPath is in the attrset, it just prints the store path not the rest of the set.
-                (builtins.removeAttrs inputs.self.sourceInfo [ "outPath" ]) // { source = inputs.self.sourceInfo.outPath; }
-              )
-            );
+          git-metadata = builtins.toJSON ((builtins.removeAttrs inputs.self.sourceInfo [ "outPath" ]) // {source = sourceCode;});
         })
           super.rosPackages;
       })
