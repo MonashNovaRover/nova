@@ -1,0 +1,167 @@
+{
+  "nodes": {
+    "cuda-legacy": {
+      "inputs": {
+        "flake-parts": [
+          "jetpack-nixos",
+          "cuda-legacy"
+        ],
+        "nixpkgs": [
+          "jetpack-nixos",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1779836515,
+        "narHash": "sha256-X/AwJZeTjxetRM7JG2BXeffKa1PIg/uo8AP5TX/+kb0=",
+        "owner": "nixos-cuda",
+        "repo": "cuda-legacy",
+        "rev": "baf22622e1114bb36412e5cebe2303f302edb882",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos-cuda",
+        "repo": "cuda-legacy",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "jetpack-nixos": {
+      "inputs": {
+        "cuda-legacy": "cuda-legacy",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785439247,
+        "narHash": "sha256-NSwtPEFxHlN7+l/dX0H+9bN/fOol+Tjurdq2P1v1Gyk=",
+        "owner": "anduril",
+        "repo": "jetpack-nixos",
+        "rev": "4d857d6da48c420da39964b6fb7ba23a958abad3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anduril",
+        "repo": "jetpack-nixos",
+        "rev": "4d857d6da48c420da39964b6fb7ba23a958abad3",
+        "type": "github"
+      }
+    },
+    "nix-ros-overlay": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1745796487,
+        "narHash": "sha256-xvre4xiezhPhU794dpjcHusVLBIfA4jPg9Kq439x4yY=",
+        "owner": "lopsided98",
+        "repo": "nix-ros-overlay",
+        "rev": "4072d6ed51d9053d2cc85c0ec4f69884cc99f392",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lopsided98",
+        "repo": "nix-ros-overlay",
+        "rev": "4072d6ed51d9053d2cc85c0ec4f69884cc99f392",
+        "type": "github"
+      }
+    },
+    "nix-ros-workspace": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1749001346,
+        "narHash": "sha256-q2xrIUD+kgyxGXp6oi7QW0QzxL6PsOODRoj/ru9P9ig=",
+        "owner": "hacker1024",
+        "repo": "nix-ros-workspace",
+        "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hacker1024",
+        "repo": "nix-ros-workspace",
+        "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1747378343,
+        "narHash": "sha256-C0CZcQB9wAsfvk5fQuO1ET1GCCYVzPB8Yj/j2MbBkkg=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "cb9e5af795f0307a41dfe32748f025a050d9fe30",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "cb9e5af795f0307a41dfe32748f025a050d9fe30",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "jetpack-nixos": "jetpack-nixos",
+        "nix-ros-overlay": "nix-ros-overlay",
+        "nix-ros-workspace": "nix-ros-workspace",
+        "nixpkgs": "nixpkgs",
+        "teleop-modular": "teleop-modular"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "teleop-modular": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1779094963,
+        "narHash": "sha256-Qtre2HN+am2BwgBqX45n4DvwsBvO2InCyiR7rB5TbEc=",
+        "owner": "baileychessum",
+        "repo": "teleop_modular",
+        "rev": "0ccb9e3aa3d8258b59e9ccc31a8bb68d4980f296",
+        "type": "github"
+      },
+      "original": {
+        "owner": "baileychessum",
+        "repo": "teleop_modular",
+        "rev": "0ccb9e3aa3d8258b59e9ccc31a8bb68d4980f296",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
