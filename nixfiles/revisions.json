@@ -8,7 +8,7 @@
     "hash": "sha256-jdbrpe9VQWb5VvivEoUUQ/T+Q7P4I6PzNLTFm5UXVBE="
   },
   "nix-ros-workspace": {
-    "rev": "3937d8e413c2b15fc406d58d9e6f315ecf971405",
+    "rev": "7412bd913a3b2746fa3557e2efa7718c51858e14",
     "hash": "sha256-TtxreLJfYUPp6Ma3f6Rl7EDuR53OxP+rizc3IzwdiOU="
   },
   "teleop-modular": {
