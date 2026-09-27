@@ -4,13 +4,15 @@
 , bleach
 , bleach-allowlist
 , pytest
-, pytest-runner
+  , pytestrunner
 , pytest-cov
 }:
 
 buildPythonPackage rec {
   pname = "mkdocs-safe-text-plugin";
   version = "1.5.1";
+
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "raimon49";
@@ -20,7 +22,7 @@ buildPythonPackage rec {
   };
 
   nativeBuildInputs = [
-    pytest-runner
+    pytestrunner
   ];
 
   propagatedBuildInputs = [
@@ -31,7 +33,7 @@ buildPythonPackage rec {
 
   nativeCheckInputs = [
     pytest
-    pytest-runner
+    pytestrunner
     pytest-cov
   ];
 

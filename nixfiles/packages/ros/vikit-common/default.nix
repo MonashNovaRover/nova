@@ -6,9 +6,8 @@
   sophus,
   boost,
   fmt,
-  tbb_2021_11,
+   onetbb,
   pkg-config,
-  breakpointHook,
 }:
 
 stdenv.mkDerivation rec {
@@ -33,7 +32,6 @@ stdenv.mkDerivation rec {
   buildType = "ament_cmake";
   nativeBuildInputs = [ 
     ament-cmake 
-    breakpointHook
   ];
 
   buildInputs = [
@@ -41,7 +39,7 @@ stdenv.mkDerivation rec {
     sophus
     boost
     fmt
-    tbb_2021_11
+    onetbb
     pkg-config
   ];
   

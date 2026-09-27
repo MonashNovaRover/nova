@@ -44,7 +44,6 @@ self: super:
 
         nav2-behavior-tree = rosSuper.nav2-behavior-tree.overrideAttrs ({ patches ? [ ], nativeBuildInputs ? [ ], ... }: {
           patchFlags = [ "-p2" ];
-          nativeBuildInputs = nativeBuildInputs ++ [ self.breakpointHook ];
           patches = patches ++ [
             # Remove temp BT.CPP build warning workaround
             # https://github.com/ros-navigation/navigation2/pull/4500

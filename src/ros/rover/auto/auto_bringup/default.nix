@@ -49,7 +49,6 @@
   direct-visual-lidar-calibration,
   nova-auto-start,
   ros-tcp-endpoint,
-  nova-unity-sim,
 }:
 
 buildRosPackage rec {

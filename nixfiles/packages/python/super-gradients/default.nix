@@ -1,7 +1,7 @@
 { buildPythonPackage
 , fetchFromGitHub
 , callPackage
-, albumentations
+, albumentationsx
 , boto3
 , deprecated
 , einops
@@ -18,7 +18,7 @@
 , pip-tools
 , psutil
 , pygments
-, pytorch
+, torch
 , rapidfuzz
 , scipy
 , setuptools
@@ -34,12 +34,16 @@
 }:
 
 let
+  pytorch = torch;
+  albumentations = albumentationsx;
   data-gradients = callPackage ./data-gradients.nix { };
   # onnx-simplifier = callPackage ./onnx-simplifier.nix { };
 in
 buildPythonPackage rec {
   pname = "super-gradients";
   version = "8.0.146";
+
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "Deci-AI";
@@ -50,7 +54,7 @@ buildPythonPackage rec {
   };
 
   propagatedBuildInputs = [
-    albumentations
+    albumentationsx
     boto3
     data-gradients
     deprecated
@@ -69,7 +73,7 @@ buildPythonPackage rec {
     pip-tools
     psutil
     pygments
-    pytorch
+    torch
     rapidfuzz
     scipy
     setuptools

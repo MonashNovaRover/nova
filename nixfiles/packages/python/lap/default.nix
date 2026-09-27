@@ -9,6 +9,8 @@
     pname = "lap";
     version = "0.5.12";
 
+    pyproject = true;
+
     src = fetchFromGitHub {
       owner = "gatagat";
       repo = pname;
