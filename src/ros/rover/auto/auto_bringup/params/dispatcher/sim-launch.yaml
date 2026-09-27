@@ -13,8 +13,8 @@ variables:
     - warn
 
 configurations:
-  - name: cpp
-    icon: :/icons/source_code.png
+  - name: all
+    icon: :/icons/play.png
 
 nodes:
   # `namespace: /` is spelled out for clarity, but it is the default: an omitted
@@ -25,7 +25,7 @@ nodes:
     - namespace: /
       name: unity-sim
     configurations:
-    - name: cpp
+    - name: all
       cmd: ros2 launch auto_bringup unity.launch.py
         local:=true
         comp:=ARCh
@@ -42,7 +42,7 @@ nodes:
     - namespace: /
       name: cameras
     configurations:
-    - name: cpp
+    - name: all
       cmd: ros2 launch auto_bringup realsense.launch.py
         local:=true
         comp:=ARCh
@@ -54,7 +54,7 @@ nodes:
     - namespace: /
       name: localization
     configurations:
-    - name: cpp
+    - name: all
       cmd: ros2 launch auto_bringup navigation.launch.py
         local:=true
         comp:=ARCh
@@ -73,7 +73,7 @@ nodes:
     - namespace: /
       name: lidar
     configurations:
-    - name: cpp
+    - name: all
       cmd: ros2 launch auto_bringup lidar.launch.py
         local:=true
         comp:=ARCh
