@@ -8,8 +8,8 @@
     "hash": "sha256-jdbrpe9VQWb5VvivEoUUQ/T+Q7P4I6PzNLTFm5UXVBE="
   },
   "nix-ros-workspace": {
-    "rev": "e341a5fd27af73be15bc0396c5745c54398193aa",
-    "hash": "sha256-q2xrIUD+kgyxGXp6oi7QW0QzxL6PsOODRoj/ru9P9ig="
+    "rev": "3937d8e413c2b15fc406d58d9e6f315ecf971405",
+    "hash": "sha256-TtxreLJfYUPp6Ma3f6Rl7EDuR53OxP+rizc3IzwdiOU="
   },
   "teleop-modular": {
     "rev": "0ccb9e3aa3d8258b59e9ccc31a8bb68d4980f296",
