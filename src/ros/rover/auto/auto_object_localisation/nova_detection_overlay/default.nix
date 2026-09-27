@@ -1,6 +1,6 @@
 { lib
 , buildRosPackage
-, pythonPackages
+, python3Packages
 , rclpy
 , sensor-msgs
 , vision-msgs
@@ -19,7 +19,7 @@ buildRosPackage
     filter = lib.novaSourceFilter [ ] path;
   };
 
-  propagatedBuildInputs = with pythonPackages; [
+  propagatedBuildInputs = with python3Packages; [
     rclpy
     sensor-msgs
     vision-msgs

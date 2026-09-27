@@ -1,19 +1,20 @@
-{ lib
-, pkgs
-, git-metadata
-, buildROSWorkspace
-, buildEnv
+{ 
+  lib, 
+  pkgs, 
+  git-metadata, 
+  buildROSWorkspace, 
+  buildEnv, 
   # Configuration options
   ## Include graphical applications in the workspace.
-, graphical ? true
+  graphical ? true, 
 
   ## Configure the workspace for interactive use.
-, interactive ? true
+  interactive ? true, 
 
   ## Manually specify which Nova Rover packages to include.
   ## Note that some packages may have dependencies on others that will be
   ## implicitly included.
-, novaPackages ? {
+  novaPackages ? {
     inherit (pkgs.ros)
       nova-dgnss
       nova-electronics
@@ -78,10 +79,10 @@
       nova-cli
       ;
     nova-git-metadata = (pkgs.writeTextDir "nova-git-metadata" git-metadata);
-  }
+  }, 
 
   ## Extra packages to add to the workspace.
-, extraPackages ? { 
+  extraPackages ? { 
     inherit (pkgs.ros)
       tf2-tools
       moveit-core   # needed to dynamically load the kinematics_solver plugin for nova_twistmapper
@@ -97,14 +98,12 @@
       livox-ros-driver2
       rmw-cyclonedds-cpp
       rqt-controller-manager
+      unbag
       ;
     inherit (pkgs)
       mbtileserver
       ;
-    inherit (pkgs.python3Packages)
-      ros2-unbag
-      ;
-}
+}, 
 }:
 
 let
