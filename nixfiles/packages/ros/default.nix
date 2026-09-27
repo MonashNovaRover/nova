@@ -3,6 +3,7 @@
   audio-msgs = callPackage ./audio-msgs { };
   depthai = callPackage ./depthai { };
   direct-visual-lidar-calibration = callPackage ./direct-visual-lidar-calibration { };
+  dispatcher = callPackage ./dispatcher { };
   fast-calib = callPackage ./fast-calib { };
   fast-livo2 = callPackage ./fast-livo2 { };
   ground-segmentation = callPackage ./ground-segmentation { };

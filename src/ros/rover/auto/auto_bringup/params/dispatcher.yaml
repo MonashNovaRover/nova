@@ -1,0 +1,104 @@
+# ============================================================================
+# ROS 2 talker/listener -- the standard publisher/subscriber "hello world".
+# ============================================================================
+#
+# Runs out of the box against stock ROS 2 packages; no custom package needed:
+#
+#   sudo apt install ros-$ROS_DISTRO-demo-nodes-cpp \
+#                    ros-$ROS_DISTRO-demo-nodes-py \
+#                    ros-$ROS_DISTRO-rqt-graph
+#
+# Launch from the root of the colcon workspace that contains dispatcher:
+#
+#   source install/setup.bash
+#   ros2 run dispatcher dispatcher --ros-args \
+#     -p dispatcher_config_path:=src/dispatcher/config/example_ros2_talker_listener.yaml \
+#     -p initial_configuration:=cpp \
+#     -p start_checked_on_startup:=true
+#
+# /talker publishes std_msgs/String on /chatter and /listener prints what it
+# receives. The 'cpp' and 'python' configurations run the same demo from
+# demo_nodes_cpp and demo_nodes_py, so switching configurations swaps the
+# implementation while the monitored node names stay the same.
+
+# ROS process items run `cd <workspace>` then `source install/setup.bash` before
+# the command, so this must be the colcon workspace root. '.' works when
+# dispatcher is launched from there.
+workspace: .
+
+variables:
+  # Substituted into the $LOG_LEVEL references below. Pick a value in the UI
+  # before pressing start; `debug` makes the demo nodes noticeably chattier.
+  - name: LOG_LEVEL
+    choices:
+    - info
+    - debug
+    - warn
+
+configurations:
+  - name: cpp
+    icon: :/icons/source_code.png
+  - name: python
+    icon: :/icons/application.png
+
+nodes:
+
+  # `namespace: /` is spelled out for clarity, but it is the default: an omitted
+  # namespace resolves to the root namespace, so `- name: talker` alone matches
+  # the graph's `/talker` just as well.
+  - name: talker
+    ros_nodes:
+    - namespace: /
+      name: talker
+    configurations:
+    - name: cpp
+      cmd: ros2 run demo_nodes_cpp talker --ros-args --log-level $LOG_LEVEL
+    - name: python
+      cmd: ros2 run demo_nodes_py talker --ros-args --log-level $LOG_LEVEL
+    start_checked: true
+
+  - name: listener
+    ros_nodes:
+    - namespace: /
+      name: listener
+    configurations:
+    - name: cpp
+      cmd: ros2 run demo_nodes_cpp listener --ros-args --log-level $LOG_LEVEL
+    - name: python
+      cmd: ros2 run demo_nodes_py listener --ros-args --log-level $LOG_LEVEL
+    start_checked: true
+
+scripts:
+
+# A script with `use_terminal: false` runs as a blocking system() call on the Qt
+# main thread, so it MUST end in `&` or the dispatcher UI freezes until the
+# command exits. Scripts with `use_terminal: true` are wrapped in
+# `gnome-terminal --`, which returns immediately, so those do not need the `&`.
+
+  - name: rqt_graph
+    cmd: ros2 run rqt_graph rqt_graph &
+    icon: :/icons/plot.png
+    row: 0
+    column: 0
+    use_terminal: false
+
+  - name: echo /chatter
+    cmd: ros2 topic echo /chatter
+    icon: :/icons/terminal.png
+    row: 0
+    column: 1
+    use_terminal: true
+
+  - name: hz /chatter
+    cmd: ros2 topic hz /chatter
+    icon: :/icons/terminal.png
+    row: 1
+    column: 0
+    use_terminal: true
+
+  - name: graph summary
+    cmd: ros2 node list && echo && ros2 topic list && echo && ros2 topic info /chatter && read -n 1 -s -p "Press any key to close"
+    icon: :/icons/source_code.png
+    row: 1
+    column: 1
+    use_terminal: true

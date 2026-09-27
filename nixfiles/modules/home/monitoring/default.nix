@@ -11,6 +11,13 @@ in
     # General resource monitor
     programs = {
       btop.enable = true;
+      gnome-terminal = {
+        enable = true;
+        profile.c661e430-2d09-4470-993d-d45e65eb4f84 = {
+          visibleName = "";
+          default = true;
+        };
+      };
     };
 
     # Network bandwidth by process/application monitor
