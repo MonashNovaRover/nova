@@ -1,0 +1,117 @@
+# ROS process items run `cd <workspace>` then `source install/setup.bash` before
+# the command, so this must be the colcon workspace root. '.' works when
+# dispatcher is launched from there.
+workspace: .
+
+variables:
+  # Substituted into the $LOG_LEVEL references below. Pick a value in the UI
+  # before pressing start; `debug` makes the demo nodes noticeably chattier.
+  - name: LOG_LEVEL
+    choices:
+    - info
+    - debug
+    - warn
+
+configurations:
+  - name: cpp
+    icon: :/icons/source_code.png
+
+nodes:
+  # `namespace: /` is spelled out for clarity, but it is the default: an omitted
+  # namespace resolves to the root namespace, so `- name: talker` alone matches
+  # the graph's `/talker` just as well.
+  - name: Unity-Sim
+    ros_nodes:
+    - namespace: /
+      name: unity-sim
+    configurations:
+    - name: cpp
+      cmd: ros2 launch auto_bringup unity.launch.py
+        local:=true
+        comp:=ARCh
+        controller_params:=/home/nova/nova/src/ros/rover/drive/drive_bringup/params/auto.yaml
+        model:=/home/nova/nova/src/ros/rover/rover_description/banksia/urdf/rover.urdf.xacro
+        world:=ARCh2026
+        release:=true
+        rviz:=true
+        rviz_params:=everything
+    start_checked: true
+
+  - name: Cameras
+    ros_nodes:
+    - namespace: /
+      name: cameras
+    configurations:
+    - name: cpp
+      cmd: ros2 launch auto_bringup realsense.launch.py
+        local:=true
+        comp:=ARCh
+        sim:=true
+    start_checked: true
+
+  - name: Navigation
+    ros_nodes:
+    - namespace: /
+      name: localization
+    configurations:
+    - name: cpp
+      cmd: ros2 launch auto_bringup navigation.launch.py
+        local:=true
+        comp:=ARCh
+        autostart:=true
+        container_name:=nav2_container
+        log_level:=info
+        nav2_params_dir:=/home/nova/nova/src/ros/rover/auto/auto_bringup/params/arch/nav2
+        use_respawn:=false
+        sim:=true
+        map_params:=/home/nova/nova/src/ros/rover/auto/auto_bringup/params/arch/map.yaml
+        mppi_config:=regular
+    start_checked: true
+
+  - name: LiDAR
+    ros_nodes:
+    - namespace: /
+      name: lidar
+    configurations:
+    - name: cpp
+      cmd: ros2 launch auto_bringup lidar.launch.py
+        local:=true
+        comp:=ARCh
+        fastlivo2_params:=/home/nova/nova/src/ros/rover/auto/auto_bringup/params/fast_livo2/fastlivo2.yaml
+        sim:=true
+    start_checked: true
+
+scripts:
+
+# A script with `use_terminal: false` runs as a blocking system() call on the Qt
+# main thread, so it MUST end in `&` or the dispatcher UI freezes until the
+# command exits. Scripts with `use_terminal: true` are wrapped in
+# `gnome-terminal --`, which returns immediately, so those do not need the `&`.
+
+  - name: rqt_graph
+    cmd: ros2 run rqt_graph rqt_graph &
+    icon: :/icons/plot.png
+    row: 0
+    column: 0
+    use_terminal: false
+
+  - name: rqt_tf_tree
+    cmd: rqt_tf_tree
+    icon: :/icons/plot.png
+    row: 0
+    column: 1
+    use_terminal: false
+
+  - name: hz /chatter
+    cmd: ros2 topic hz /chatter
+    icon: :/icons/terminal.png
+    row: 1
+    column: 0
+    use_terminal: true
+
+  - name: echo /chatter
+    cmd: ros2 topic echo /chatter
+    icon: :/icons/terminal.png
+    row: 1
+    column: 1
+    use_terminal: true
