@@ -1,14 +1,5 @@
-From ffe7713ba1b2378d2fc2a487bf3fbb0b35f23ee6 Mon Sep 17 00:00:00 2001
-From: Monash Nova Rover <novaroverteam@monash.edu>
-Date: Thu, 29 Jan 2026 15:20:46 +1100
-Subject: [PATCH 1/1] don't wrap qt apps for the whole env
-
----
- distros/build-env/default.nix | 1 +
- 1 file changed, 1 insertion(+)
-
 diff --git a/distros/build-env/default.nix b/distros/build-env/default.nix
-index f76bffdb..fa977aa4 100644
+index f76bffdba4..fa977aa40a 100644
 --- a/distros/build-env/default.nix
 +++ b/distros/build-env/default.nix
 @@ -65,6 +65,7 @@ let
@@ -19,6 +10,3 @@ index f76bffdb..fa977aa4 100644
  
        # nixpkgs's buildEnv disables substitutes, which can lead to
        # unnecessarily long build times for development environments.
--- 
-2.51.2
-
