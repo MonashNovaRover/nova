@@ -48,7 +48,6 @@ buildRosPackage {
     gst_all_1.gst-plugins-bad
     gst_all_1.gst-plugins-ugly
     gst_all_1.gst-libav
-    gst_all_1.gst-vaapi
     gst_all_1.gst-plugins-rs  # webrtc
     libnice                   # needed for webrtc
     v4l-utils                 # v4l2-ctl

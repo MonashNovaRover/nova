@@ -1,38 +1,40 @@
-{ buildPythonPackage
-, fetchFromGitHub
-, mkdocs
-, bleach
-, bleach-allowlist
-, pytest
-, pytest-runner
-, pytest-cov
+{ 
+  bleach, 
+  bleach-allowlist, 
+  buildPythonPackage, 
+  fetchFromGitHub, 
+  mkdocs, 
+  pytest-cov, 
+  pytestCheckHook, 
+  setuptools, 
 }:
 
 buildPythonPackage rec {
   pname = "mkdocs-safe-text-plugin";
-  version = "1.5.1";
+  version = "1.6.1";
+
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "raimon49";
     repo = pname;
     rev = "v-${version}";
-    hash = "sha256-RVGaHhgIdUTW4rBXPbdp7tMeeYRYPmqRoRuvSCJmCiU=";
+    hash = "sha256-gH6JVaRIQUIl4AXEka6tfHcwLQWlL0zOjZBijDU5Z10=";
   };
 
-  nativeBuildInputs = [
-    pytest-runner
+  nativeBuildInputs = [ 
+    setuptools 
   ];
 
   propagatedBuildInputs = [
-    mkdocs
     bleach
     bleach-allowlist
+    mkdocs
   ];
 
   nativeCheckInputs = [
-    pytest
-    pytest-runner
     pytest-cov
+    pytestCheckHook
   ];
 
   # Requires pytest-pycodestyle

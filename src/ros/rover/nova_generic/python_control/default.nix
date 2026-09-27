@@ -2,7 +2,7 @@
 , writeShellApplication
 , buildRosPackage
 , rclpy
-, pythonPackages
+, python3Packages
 }:
 
 buildRosPackage {
@@ -17,7 +17,7 @@ buildRosPackage {
 
   propagatedBuildInputs = [
     rclpy
-    pythonPackages.jcan
+    python3Packages.jcan
   ];
 
 }

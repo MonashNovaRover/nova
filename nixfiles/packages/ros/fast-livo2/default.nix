@@ -25,7 +25,6 @@
   fmt,
   libusb1,
   libpcap,
-  breakpointHook,
 }:
 
 buildRosPackage {
@@ -67,7 +66,6 @@ buildRosPackage {
     fmt
     libusb1
     libpcap
-    breakpointHook
   ];
 
   postPatch = ''

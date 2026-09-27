@@ -27,6 +27,10 @@ in
     nvidia.enable = lib.mkEnableOption "the upstream nvidia binary caches";
   };
 
+  config.nix.extraOptions = ''
+    allowed-uris = https://github.com/
+  '';
+
   config.nix.settings = lib.mkMerge [
     (lib.mkIf cfg.ros.enable {
       substituters = [ "https://ros.cachix.org" ];

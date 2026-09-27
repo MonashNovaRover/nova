@@ -33,11 +33,9 @@ bt_navigator:
       - nova_get_goal_action_bt_node
       - nova_pop_goal_action_bt_node
       - nova_set_detection_goal_action_bt_node
-      - nova_get_current_pose_action_bt_node
       - nova_place_search_goals_action_bt_node
       - nova_object_detected_condition_bt_node
       - nova_goals_empty_condition_bt_node
-      - nova_are_poses_near_condition_bt_node
       - nova_force_running_decorator_bt_node
 
 bt_navigator_navigate_through_poses_rclcpp_node:

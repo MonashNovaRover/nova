@@ -12,7 +12,6 @@
   std-msgs, 
   sensor-msgs, 
   rosidl-default-generators, 
-  breakpointHook, 
 }:
 
 buildRosPackage {
@@ -31,7 +30,7 @@ buildRosPackage {
   sourceRoot = "ros-gst-bridge-7310277/gst_msgs";
 
   buildType = "ament_cmake";
-  buildInputs = [ ament-cmake pkg-config breakpointHook ];
+  buildInputs = [ ament-cmake pkg-config ];
   checkInputs = [ ament-cmake-copyright ament-cmake-cppcheck ament-cmake-uncrustify ament-lint-auto ament-lint-common ];
   propagatedBuildInputs = [ rclcpp rclcpp-components std-msgs sensor-msgs rosidl-default-generators ];
   nativeBuildInputs = [ ament-cmake ];

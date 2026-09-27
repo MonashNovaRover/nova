@@ -2,7 +2,7 @@
 , writeShellApplication
 , buildRosPackage
 , rclpy
-, pythonPackages
+, python3Packages
 , teleop-modular-python-utils
 , nova-interfaces
 }:
@@ -19,7 +19,7 @@ buildRosPackage {
 
   propagatedBuildInputs = [
     rclpy
-    pythonPackages.jcan
+    python3Packages.jcan
     teleop-modular-python-utils
     nova-interfaces
   ];

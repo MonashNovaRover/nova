@@ -2,7 +2,7 @@
 , writeShellApplication
 , buildRosPackage
 , rclpy
-, pythonPackages
+, python3Packages
 , nova-blcmd-interfaces
 }:
 
@@ -19,7 +19,7 @@ buildRosPackage {
   propagatedBuildInputs = [
     rclpy
     nova-blcmd-interfaces
-    pythonPackages.jcan
+    python3Packages.jcan
   ];
 
   postInstall = ''
