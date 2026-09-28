@@ -7,9 +7,14 @@ Add to your `/etc/nixos/configuration.nix`:
 ```nix
 { ... }:
 {
-  environment.extraInit = ''
-    export NIX_PATH="/home/nova/nova/nixfiles/modules/pinned''${NIX_PATH:+:$NIX_PATH}"
-  '';
+  nix.nixPath = [
+    # default
+    "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixos"
+    "nixos-config=/etc/nixos/configuration.nix"
+    "/nix/var/nix/profiles/per-user/root/channels"
+    # for pinned <jetpack-nixos>
+    "/home/nova/nova/nixfiles/modules/pinned"
+  ];
 }
 ```
 
