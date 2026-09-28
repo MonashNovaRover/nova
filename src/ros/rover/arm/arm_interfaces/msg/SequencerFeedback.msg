@@ -2,3 +2,4 @@
 string[] sequence
 string[] partial_sequence
 string current_key
+string error
