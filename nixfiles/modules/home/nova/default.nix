@@ -58,13 +58,37 @@ in
         enable = true;
         extraConfig = ''
           inoremap jk <Esc>
+          set number
+          set ignorecase
+          set smartcase
+          set hlsearch
+          set foldlevel=99
+          set foldmethod=indent
+          set hidden
+          set encoding=utf-8
+          set termguicolors
+          set laststatus=2
+          set breakindent
+          set showbreak=↳
+          set cursorlineopt=number
           set mouse=a
           set tabstop=2
           set shiftwidth=2
           set expandtab
           set clipboard=unnamedplus
+          colorscheme catppuccin_mocha
+
+          " Clear backgrounds for a completely transparent look
+          autocmd ColorScheme * highlight Normal ctermbg=NONE guibg=NONE
+          autocmd ColorScheme * highlight NonText ctermbg=NONE guibg=NONE
+          autocmd ColorScheme * highlight LineNr ctermbg=NONE guibg=NONE
+          autocmd ColorScheme * highlight CursorLineNr ctermbg=NONE guibg=NONE
+          autocmd ColorScheme * highlight SignColumn ctermbg=NONE guibg=NONE
         '';
         defaultEditor = true;
+        plugins = with pkgs.vimPlugins; [ 
+          catppuccin-vim
+        ];
       };
 
       tmux.enable = true;
