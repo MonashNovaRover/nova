@@ -5,7 +5,7 @@ import {
   DropdownItem,
   DropdownSection,
   Button,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { Trash2, Save, Upload, User, Check } from "react-feather";
 import { useGenericStore } from "../../hooks/useGenericStore";
 import { CameraProfilesState } from "../../redux/models/CameraProfilesState";

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Card, CardBody, CardHeader, Input, Switch } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Input, Switch } from "@heroui/react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import { useToolRotatorServices } from "./useToolRotator.ts";
 import { ArrowClockwise, ArrowCounterclockwise } from "react-bootstrap-icons";

@@ -1,4 +1,4 @@
-import { Button, Slider, Switch } from "@nextui-org/react";
+import { Button, Slider, Switch } from "@heroui/react";
 import {
   ArrowCounterclockwise,
   CircleFill,

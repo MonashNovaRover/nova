@@ -3,7 +3,7 @@ import {
     CardHeader,
     CardBody,
     CardProps,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useEffect } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RootState } from "../../../redux/RootState.ts";

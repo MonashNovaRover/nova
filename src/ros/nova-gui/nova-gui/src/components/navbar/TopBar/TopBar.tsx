@@ -9,7 +9,7 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { ChevronDown, Settings, HelpCircle } from "react-feather";
 import novaLogo from "../../../assets/nova-logo.png";
 import { useSelector } from "react-redux";

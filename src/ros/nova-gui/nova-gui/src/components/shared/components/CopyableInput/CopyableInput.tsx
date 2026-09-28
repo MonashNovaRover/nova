@@ -1,4 +1,4 @@
-import { Button, Input, InputProps, Tooltip } from "@nextui-org/react";
+import { Button, Input, InputProps, Tooltip } from "@heroui/react";
 import React, { useCallback } from "react";
 import { Copy } from "react-feather";
 

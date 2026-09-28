@@ -4,7 +4,7 @@
  * It sends requests to the 'raman_spectra' ROS service.
  */
 
-import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@nextui-org/react";
+import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure } from "@heroui/react";
 import { HelpCircle } from "react-feather";
 import { useState, useEffectEvent } from "react";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";

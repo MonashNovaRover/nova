@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, CardProps } from "@nextui-org/react";
+import { Card, CardHeader, CardBody, CardProps } from "@heroui/react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {useEffect, useState} from "react";
 import { RosTopic } from "../../../../ros/topics/rosTopic.ts";

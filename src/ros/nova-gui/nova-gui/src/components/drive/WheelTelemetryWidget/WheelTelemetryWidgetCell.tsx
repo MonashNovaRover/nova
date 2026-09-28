@@ -2,7 +2,7 @@ import {
   Card,
   CardBody,
   CardProps
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, {ReactNode} from "react";
 import '../DriveModeWidget/DriveWidget.css';
 import './WheelTelemetryWidget.css';
