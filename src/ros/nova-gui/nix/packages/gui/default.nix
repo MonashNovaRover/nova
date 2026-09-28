@@ -49,7 +49,7 @@ stdenv.mkDerivation {
 
   yarnOfflineCache = fetchYarnDeps {
     yarnLock = ../../../nova-gui/yarn.lock;
-    hash = "sha256-fHq9S4lLBhV/IzHr+FpsF7mdBmp26eqg8PwvqB5ZsDY=";
+    hash = "sha256-wZogBRfwbMJsHxFnq7mQ0VgxfN61lcwk0ekFctaNU/o=";
   };
 
   nativeBuildInputs = [
