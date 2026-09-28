@@ -1,26 +1,23 @@
-# file: gstreamer.nix
-# Usage: nix-shell -p 'with import <nixpkgs> {}; callPackage ./gstreamer.nix {}'
-
 { pkgs ? import <nixpkgs> {} }:
 
+let
+  unstable = import <nixos-unstable> {
+    inherit (pkgs) system;
+  };
+in
+
 pkgs.mkShell {
-  buildInputs = with pkgs; [
-    # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
-    gst_all_1.gstreamer
-    # Common plugins like "filesrc" to combine within e.g. gst-launch
-    gst_all_1.gst-plugins-base
-    # Specialized plugins separated by quality
-    gst_all_1.gst-plugins-good
-    gst_all_1.gst-plugins-bad
-    gst_all_1.gst-plugins-ugly
-    # Plugins to reuse ffmpeg to play almost every video format
-    gst_all_1.gst-libav
-    # Support the Video Audio (Hardware) Acceleration API
-    gst_all_1.gst-vaapi
-    # for webrtcsink
-    gst_all_1.gst-plugins-rs
-    libnice
-    # v4l-utils for v4l2-ctl
-    v4l-utils
+  buildInputs = with unstable.gst_all_1; [
+    gstreamer
+    gst-plugins-base
+    gst-plugins-good
+    gst-plugins-bad
+    gst-plugins-ugly
+    gst-libav
+    gst-plugins-rs
+  ] ++ [
+    unstable.svt-av1
+    unstable.libnice
+    unstable.v4l-utils
   ];
 }

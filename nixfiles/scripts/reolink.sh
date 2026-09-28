@@ -16,7 +16,7 @@ PORT="554"
 USERNAME="admin"
 PASSWORD="$(cat ~/nova/nixfiles/secrets/reolink-password.txt)"
 NAME="Banksia Cam"
-STREAM_NAME="Preview_01_main"
+STREAM_NAME="Preview_01_sub"
 
 FLIP=""
 URI=""
