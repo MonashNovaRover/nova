@@ -1,0 +1,6 @@
+string serial
+float64 zoom
+float64 zoom_longitude
+float64 zoom_latitude
+---
+bool success

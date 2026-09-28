@@ -14,7 +14,7 @@
 #include "properties/capsfilters.hpp"
 #include "properties/cpufilters.hpp"
 
-#include "properties/h264.hpp"
+#include "properties/h26X.hpp"
 #include "cameras/colors.hpp"
 
 /*
@@ -82,7 +82,7 @@ GstElement* h264passthrough_pipeline(rclcpp::Node* streamer_node, const std::uni
   if (props->payload_quirk) {
     set_h264payload(h264_payload);
   }
-  set_h264parse(h264_parse, -1);
+  set_h264parse(h264_parse, 0);
 
   set_webrtcsink(webrtc_sink, props);
 
@@ -129,17 +129,18 @@ std::unique_ptr<h264passthroughPipelineProperties> get_h264passthrough_pipeline_
   default_string = "mmap";
   props->io_mode = set_property(streamer_node, camera, "io_mode", default_string);
 
-  // scale
-  props->downscale = 1; // Do not change scale
-
-  // rate
-  props->downrate = 1; // Do not change framerate
+  props->brightness = set_property(streamer_node, camera, "brightness", -1);
+  props->contrast = set_property(streamer_node, camera, "contrast", -1);
+  props->saturation = set_property(streamer_node, camera, "saturation", -1);
+  props->gain = set_property(streamer_node, camera, "gain", -1);
+  props->gamma = set_property(streamer_node, camera, "gamma", -1);
+  props->sharpness = set_property(streamer_node, camera, "sharpness", -1);
+  props->exposure = set_property(streamer_node, camera, "exposure", -1);
+  props->backlight_compensation = set_property(streamer_node, camera, "backlight_compensation", -1);
 
   // filter
   props->mime = "video/x-h264";
 
-  props->brightness = set_property(streamer_node, camera, "brightness", 0);
-  props->contrast = set_property(streamer_node, camera, "contrast", 0);
   props->framerate = set_property(streamer_node, camera, "framerate", 30);
   props->framerate_denominator = set_property(streamer_node, camera, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera, "height", 720);

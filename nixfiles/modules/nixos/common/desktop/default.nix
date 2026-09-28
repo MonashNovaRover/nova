@@ -21,7 +21,6 @@ in
     services = {
       displayManager.gdm = {
         enable = true;
-        wayland = cfg.wayland.enable;
       };
       desktopManager.gnome.enable = true;
       xserver.excludePackages = with pkgs; [
@@ -67,7 +66,7 @@ in
       gnome-contacts
       gnome-maps
       gnome-music
-      gnome-photos
+      loupe
       gnome-connections
       gnome-weather
       simple-scan

@@ -69,7 +69,8 @@ class LivoxFieldRepublisher(Node):
 
         n = msg.width * msg.height
         step = msg.point_step
-        ft = '>' if msg.is_bigendian else '<'
+        # UnitySensors currently publishes LiDAR data with is_bigendian = True, even though it is actually False.
+        ft = '<' # '>' if msg.is_bigendian else '<'
         buf = np.frombuffer(msg.data, dtype=np.uint8)
 
         x = self._extract(buf, fmap['x'].offset, n, step, 4, f'{ft}f4')
@@ -113,7 +114,8 @@ class LivoxFieldRepublisher(Node):
         out.header     = msg.header
         out.height     = 1
         out.width      = n_valid
-        out.is_bigendian = msg.is_bigendian
+        # UnitySensors currently publishes LiDAR data with is_bigendian = True, even though it is actually False.
+        out.is_bigendian = False
         out.is_dense   = True
         out.fields     = [
             PointField(name='x',         offset=0,  datatype=PointField.FLOAT32, count=1),

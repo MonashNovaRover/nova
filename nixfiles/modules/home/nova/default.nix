@@ -111,7 +111,7 @@ in
         # Shell utilities
         pciutils
         pcl
-        cloudcompare
+        # cloudcompare
         usbutils
         gpsd
         can-utils
@@ -125,6 +125,7 @@ in
         # Desktop apps
         gitkraken
         libreoffice-qt6-fresh
+        graphwar # very important
       ]);
     };
   };

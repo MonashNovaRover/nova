@@ -22,6 +22,8 @@ import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import { CameraProfileEvents, emitCameraFiltersReadyEvent } from "../../../utils/cameraProfileEvents.ts";
 import { CameraProfilesState } from "../../../redux/models/CameraProfilesState.ts";
+import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
+import {RosService} from "../../../ros/services/rosService.ts";
 import html2canvas from "html2canvas";
 
 const ASPECT_RATIO = 4 / 3;
@@ -81,6 +83,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const [currentSite, _] = useGenericStore<Site>("currentSite");
   const [cameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
+  const bifrost = useBifrost({ service: RosService.ZOOM_CAM });
   
   // Use ref to always have latest profiles without recreating event listeners
   const cameraProfilesRef = useRef(cameraProfiles);
@@ -194,6 +197,40 @@ export const CameraComponent = (props: CameraComponentProps) => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (!isHovered) return;
+
+      // Ctrl + mouse wheel
+      if (e.ctrlKey) {
+        e.preventDefault();
+
+        const rect = cardRef.current?.getBoundingClientRect();
+        if (rect) {
+          const magnitude = -e.deltaY/120;
+          const x = ((e.clientX - rect.left)/rect.width - 0.5)*2;
+          const y = ((e.clientY - rect.top)/rect.height - 0.5)*2;
+
+          console.log("Within card:", x, y, magnitude);
+          bifrost.callService({
+            serial: cameraSerial,
+            zoom: magnitude,
+            zoom_longitude: x,
+            zoom_latitude: y,
+          }, {
+            responseToast: false,
+          })
+        }
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+    };
+  }, [isHovered, cameraSerial]);
 
   const VideoComponent = props.cameraVideoComponent;
   const cameraVideo = VideoComponent

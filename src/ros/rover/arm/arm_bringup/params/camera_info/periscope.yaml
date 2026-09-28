@@ -1,0 +1,8 @@
+camera_info_publisher:
+  ros__parameters:
+    publish_rate: 10.0
+    camera_info_topic: /arm/periscope/camera_info
+    image_topic: /arm/periscope
+    frame_id: arm_end_periscope_optical
+    hfov: 61.3727248
+    distortion_matrix: [0.000477749236441667163, -0.06869748182906846, -0.0030440664969761, 0.00015872921312327083, -0.35803596544161447]

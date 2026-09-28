@@ -6,6 +6,7 @@
 #define SERVICE_STOP        "/camera_streamer/stream/stop"
 #define SERVICE_PAUSE       "/camera_streamer/stream/pause"
 #define SERVICE_PROFILE     "/camera_streamer/stream/profile"
+#define SERVICE_ZOOM        "/camera_streamer/stream/zoom"
 #define SERVICE_STATS       "/camera_streamer/stream/get_stats"
 #define SERVICE_IPS         "/camera_streamer/get_host_ip"
 #define SERVICE_DISCOVERY   "/camera_directory/discover"

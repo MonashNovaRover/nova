@@ -30,7 +30,7 @@ except subprocess.CalledProcessError as e:
     print(f"{e}")
 
 def launch_setup(context, *args, **kwargs):
-    gazebo = LaunchConfiguration('gazebo')
+    sim = LaunchConfiguration('sim')
 
     return [
         Node(
@@ -38,14 +38,14 @@ def launch_setup(context, *args, **kwargs):
             executable='drive_inputs', 
             output='screen', 
             emulate_tty=True,
-            parameters=[{'use_sim_time': gazebo}],
+            parameters=[{'use_sim_time': sim}],
         ),
         Node(
             package='drive', 
             executable='driver', 
             output='screen', 
             emulate_tty=True,
-            parameters=[{'use_sim_time': gazebo, 'gazebo': gazebo}],
+            parameters=[{'use_sim_time': sim, 'sim': sim}],
         ),
         Node(
             package='blcmd_utils', 
@@ -58,7 +58,7 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     declared_arguments = [
         DeclareLaunchArgument(
-            name='gazebo', 
+            name='sim', 
             default_value='False',
             description='',
         ),

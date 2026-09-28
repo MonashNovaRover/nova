@@ -51,24 +51,15 @@ in
 
     services.hydra = {
       enable = true;
-      package = (options.services.hydra.package.default.override { nix = pkgs.nixVersions.nix_2_20; }).overrideAttrs ({ patches ? [ ], ... }: {
-        # https://github.com/NixOS/hydra/pull/1359 completely broke the .narinfo
-        # server.
-        version = "2024-03-08";
+      package = options.services.hydra.package.default.overrideAttrs (old: {
+        version = "0-unstable-2026-03-13";
+        # nixpkgs-update: no auto update
         src = pkgs.fetchFromGitHub {
           owner = "NixOS";
           repo = "hydra";
-          rev = "8f56209bd6f3b9ec53d50a23812a800dee7a1969";
-          hash = "sha256-mhEj02VruXPmxz3jsKHMov2ERNXk9DwaTAunWEO1iIQ=";
+          rev = "5decc46ce66335b225c1504a509fefa0f804436f";
+          hash = "sha256-wBVp3TDCBKyqyWbMlya+egjhSN7R067v20pUZINSF0g=";
         };
-        patches = patches ++ [
-          # https://github.com/NixOS/hydra/security/advisories/GHSA-2p75-6g9f-pqgx
-          (pkgs.fetchpatch {
-            name = "CVE-2024-32657.patch";
-            url = "https://github.com/NixOS/hydra/commit/b72528be5074f3e62e9ae2c2ae8ef9c07a0b4dd3.patch";
-            hash = "sha256-KqX7fJGxJXpj5OdVp7Cc/XWMlrkTjTztoSHJhJanpgI=";
-          })
-        ];
       });
       listenHost = "localhost";
       hydraURL =
@@ -80,12 +71,17 @@ in
       buildMachinesFiles =
         (lib.optional (config.nix.buildMachines != [ ]) "/etc/nix/machines") ++
         (lib.optional (cfg.hydra.localMaxJobs != 0) (pkgs.writeText "hydra-build-machines" ''
-          localhost ${builtins.concatStringsSep "," ([ builtins.currentSystem ] ++ config.nix.settings.extra-platforms or [ ])} - ${toString cfg.hydra.localMaxJobs} ${toString cfg.hydra.localSpeedFactor} ${builtins.concatStringsSep "," [ "nixos-test" "big-parallel" ]}
+          localhost ${builtins.concatStringsSep "," ([ builtins.currentSystem ] ++ config.nix.settings.extra-platforms or [ ])} - ${toString cfg.hydra.localMaxJobs} ${toString cfg.hydra.localSpeedFactor} ${builtins.concatStringsSep "," [ "kvm" "nixos-test" "big-parallel" ]}
         ''));
       logo = pkgs.nova.nova-icons + /share/icons/hicolor/512x512/apps/nova-logo-white-and-orange.png;
+      #maxServers = 2; # Max number of hydra web workers
+      #maxSpareServers = 2; # Max idle workers
+      #minSpareServers = 1; # Min idle workers
       extraConfig = ''
         binary_cache_secret_key_file = ${cfg.cacheSecretKey}
         binary_cache_public_uri = ${config.services.hydra.hydraURL}
+
+        allow_import_from_derivation = true
 
         # Increase the maximum output size (useful for things like ISO images)
         max_output_size = 34359738368
@@ -105,7 +101,8 @@ in
           <githubstatus>
             jobs = nova:workspaces(?:-pr-.*-\d+)?:(?!.*-inputs).*
             useShortContext = 1
-            inputs = nova
+            excludeBuildFromContext = 1
+            inputs = nova-monorepo
             ${builtins.concatStringsSep "\n" (map
               (repo: "inputs = ${repo}")
               (builtins.foldl' (repos: category: repos ++ builtins.attrNames category) [ ] (builtins.attrValues (import ../../../../../ci/nova-repos.nix))))}
@@ -133,7 +130,7 @@ in
         hydra-create-user nova \
           --full-name 'Monash Nova Rover' \
           --email-address 'novaroverteam@monash.edu' \
-          --password-hash '${builtins.readFile ../../../../../secrets/hydra-hashed-password.txt}' \
+          --password '${builtins.readFile ../../../../../secrets/hydra-password.txt}' \
           --role admin
 
         # Configure SSH
@@ -143,6 +140,10 @@ in
           github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
           github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
         ''} ~/.ssh/known_hosts
+
+        # Configure https auth for github
+        echo ${cfg.hydra.githubToken} | ${pkgs.gh}/bin/gh auth login --with-token
+        ${pkgs.git}/bin/git config --global --replace-all 'credential.https://github.com.helper' '!${pkgs.gh}/bin/gh auth git-credential'
       '';
     };
 
@@ -152,7 +153,7 @@ in
         hostName = "${cfg.hydra.subdomain}.${cfg.domain}";
         extraConfig = ''
           basicauth {
-            nova $2a$14$4EcarI150GjEOzkmgmTS2eynl4P5XBNcr9n3tDV8P2igqgLyrFtky
+            nova ${builtins.readFile ../../../../../secrets/hydra-hashed-password.txt}
           }
 
           reverse_proxy :${toString config.services.hydra.port}

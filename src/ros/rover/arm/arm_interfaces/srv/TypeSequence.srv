@@ -1,4 +1,5 @@
 string[] sequence
+bool relocalise
 ---
 bool success
 string message

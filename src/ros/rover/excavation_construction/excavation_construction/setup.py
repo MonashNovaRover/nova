@@ -21,9 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'scraper = excavation_construction.scraper:main',
-            'scraper_old = excavation_construction.scraper_old:main',
             'tile_placer = excavation_construction.tile_placer:main',
-            'tile_placer_old = excavation_construction.tile_placer_old:main'
         ],
     },
 )

@@ -5,5 +5,9 @@ https://raw.githubusercontent.com/eclipse-cyclonedds/cyclonedds/master/etc/cyclo
         <Internal>
             <SocketReceiveBufferSize min="10MB"/>
         </Internal>
+        <Discovery>
+            <!-- This limits the total number of nodes that can be spinned up. Jazzy default is 32 -->
+            <MaxAutoParticipantIndex>100</MaxAutoParticipantIndex>
+        </Discovery>
     </Domain>
 </CycloneDDS>

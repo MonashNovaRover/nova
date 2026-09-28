@@ -195,7 +195,7 @@ def launch_setup(context, *args, **kwargs):
                     respawn=use_respawn,
                     respawn_delay=2.0,
                     parameters=nav2_params,
-                    arguments=['--ros-abt_navigatorrgs', '--log-level', log_level],
+                    arguments=['--ros-args', '--log-level', log_level],
                     remappings=remappings,
                 )],
         ),
@@ -205,6 +205,7 @@ def launch_setup(context, *args, **kwargs):
             package='nova_utils',
             executable='goal_marker.py',
             namespace=namespace,
+            parameters=[{'use_sim_time': sim}],
         ),
     ]
 

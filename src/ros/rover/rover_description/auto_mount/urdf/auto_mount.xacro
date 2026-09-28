@@ -76,7 +76,7 @@
 
     <!-- realsense d415 -->
     <xacro:include filename="$(arg rover_description_dir)/auto_mount/urdf/realsense.xacro"/>
-    <xacro:sensor_d415 parent="mount" name="d415" use_nominal_extrinsics="$(arg gazebo)">
+    <xacro:sensor_d415 parent="mount" name="d415" use_nominal_extrinsics="${('$(arg gazebo)' == 'true') or ('$(arg sim)' == 'true')}">
         <origin xyz="0.07835 0.02469 -0.04" rpy="1.5708 1.5708 0" />
     </xacro:sensor_d415>
 

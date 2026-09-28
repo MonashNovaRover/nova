@@ -99,7 +99,7 @@ in
         if [ -f "/run/user/$UID/nova/active_build" ]; then
           . "/run/user/$UID/nova/active_build"
         else
-          ln -sfn "$HOME/Builds/master" "$HOME/Builds/active"
+          ln -sfn "$HOME/Builds/main" "$HOME/Builds/active"
         fi
 
         # Calculate box width based on longest content line (in subshell to auto-cleanup)
@@ -156,12 +156,17 @@ in
           echo   "Config is written to ~/.config/nova/comp"
           echo   ""
           printf "''${yellow}Active Build:''${end} Set with set_active <build_path> function.\n"
-          echo   "~/Builds/active -> <build_path> symlink. Allows aliases to point to a build other than master. Currently only used by auto."
+          echo   "~/Builds/active -> <build_path> symlink. Allows aliases to point to a build other than main. Currently only used by auto."
           echo   "Config is written to /run/user/''${UID}/nova/active_build"
           echo   ""
           echo   "The files written to are sourced on shell startup."
           echo   ""
         }
+
+        # Source nova CLI completion
+        if [[ -f ~/Builds/active/share/bash-completion/completions/nova ]]; then
+          . ~/Builds/active/share/bash-completion/completions/nova
+        fi
       '';
 
       initExtra = lib.mkAfter ''
@@ -185,27 +190,28 @@ in
           set_arch = "set_arch";
           set_urc = "set_urc";
           set_active = "set_active";
+          pub_heading = "pub_heading";
 
           # Nix CLI shortcuts
           nova-build = "nom-build ${cfg.nixfileDir}";
           nova-shell = "nom-shell ${cfg.nixfileDir}";
-          ws-build = "${nova-build} -A pkgs.ros.nova-workspace";
+          ws-build = "${nova-build} -A pkgs.ros.nova-workspace --argstr git-metadata \"$(cd ${cfg.sourceDir}/.. && ${../../../scripts/generate-git-metadata.sh})\"";
           ws-shell = "${nova-shell} -A pkgs.ros.nova-workspace.env";
+          docs-build = "${nova-build} -A docs";
+           
 
-          cameras-build = "${nova-build} -A misc.cameras2-legacy.launcher -o ~/Builds/cameras2legacy";
 
           # Directory aliases
-          nova = "cd ${cfg.sourceDir}/..";
           nixfiles = "cd ${cfg.nixfileDir}";
-          rover = "${nova}/src/ros/rover";
-          arm = "${nova}/src/ros/rover/arm";
-          autonomous = "${nova}/src/ros/rover/auto";
+          rover = "cd ${cfg.sourceDir}/ros/rover";
+          arm = "cd ${cfg.sourceDir}/ros/rover/arm";
+          autonomous = "cd ${cfg.sourceDir}/ros/rover/auto";
           auto = autonomous;
-          core = "${nova}/src/ros/rover/core";
-          science = "${nova}/src/ros/rover/science";
-          camerasdir = "${nova}/src/ros/cameras";
-          gui = "${nova}/src/ros/nova-gui/nova-gui";
-          coms = "${nova}/src/other/coms_utils";
+          core = "cd ${cfg.sourceDir}/ros/rover/core";
+          science = "cd ${cfg.sourceDir}/ros/rover/science";
+          camerasdir = "cd ${cfg.sourceDir}/ros/cameras";
+          gui = "cd ${cfg.sourceDir}/ros/nova-gui/nova-gui";
+          coms = "cd ${cfg.sourceDir}/other/coms_utils";
 
           # Networking 
           jetson = "ssh -C -Y nvidia@10.0.0.10";
@@ -235,6 +241,7 @@ in
           rover-help = "more ${cfg.nixfileDir}/doc/rover-help.md";
           launch-teleop = "echo 'DEPRECATED - Please use launch-teleop-drive instead for drive teleop'";
           launch-teleop-drive = "~/Builds/active/bin/ros2 launch teleop_drive_joy teleop.launch.py";
+          launch-terryop-drive = "launch-teleop-drive";
           launch-drive = "~/Builds/active/bin/ros2 launch drive_bringup drive.launch.py";
           launch-base = "~/Builds/active/bin/ros2 launch nova_bringup base.launch.py";
           launch-old-drive = "~/Builds/active/bin/ros2 launch nova_bringup old_drive.launch.py";
@@ -252,11 +259,7 @@ in
           reolink = "${pkgs.bash}/bin/bash ${../../../scripts/reolink.sh}";
           reolink-ctl = "~/Builds/active/bin/reolink-ctl";
 
-          cameras3 = "~/Builds/active/bin/ros2 launch cameras cameras.launch.py";
-          cameras2 = "~/Builds/active/bin/ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:=/home/nova/nova/src/ros/cameras2/cameras2/params";
-          cameras2-legacy = "~/Builds/cameras2legacy/bin/gst-nova-launcher ros2 launch cameras2 camera_server_launch.py platform:=orin param-dir:='/home/nova/nova/src/ros/cameras2/cameras2/params'";
-          cameras-orin ="echo 'DEPRECATED - Please use cameras instead for cameras operation, or cameras2-legacy for old camera stack'";
-          cameras = "${cameras3}";
+          launch-cameras = "~/Builds/active/bin/ros2 launch cameras cameras.launch.py";
           nix-enable = "sudo systemctl enable nix-daemon.service";
           nix-start = "sudo systemctl start nix-daemon.service";
 
@@ -268,8 +271,6 @@ in
 
           # GUI
           gui-serve = "~/Builds/active/bin/gui-serve 5173 && echo http://localhost:5173";
-
-          gui-dev-shell = "nova-shell -A pkgs.ros.nova-gui-dev-shell";
           gui-shell = "nova-shell -A pkgs.ros.nova-gui";
           gui-link = "ln -sf \"$ROS_TS_DEFINITIONS\" ~/nova/src/ros/nova-gui/nova-gui/src/ros/rosTypes.ts";
           gui-rosbridge = "~/Builds/active/bin/ros2 launch rosbridge_server rosbridge_websocket_launch.xml";
@@ -307,7 +308,6 @@ in
           start-auto-arch = "~/Builds/active/bin/ros2 run auto_start start_auto_arch.py";
           start-auto-urc = "~/Builds/active/bin/ros2 run auto_start start_auto_urc.py";
           scp-pcd = "scp nova@10.0.0.50:/home/nova/output.pcd.zip ~/ && unzip ~/output.pcd.zip";
-          pub_heading = "pub_heading";
 
           # GPS
           launch-gps-rover = "~/Builds/active/bin/ros2 launch nova_bringup gps_rover.launch.py";
@@ -315,17 +315,19 @@ in
           launch-magnetometer = "~/Builds/active/bin/ros2 run electronics magnetometer.py";
           mast = "ssh -C nova@10.0.0.150";
 
-          # Master build binaries
+          # Active build binaries
           mros2 = "~/Builds/active/bin/ros2";
           mrviz2 = "~/Builds/active/bin/rviz2";
           mrviz = "~/Builds/active/bin/rviz2";
           mxacro = "~/Builds/active/bin/xacro ${cfg.sourceDir}/ros/rover/rover_description/banksia/urdf/rover.urdf.xacro";
           mrqt = "~/Builds/active/bin/rqt";
+          mpython3 = "~/Builds/active/bin/python3";
 
           # Arm
           launch-typing = "~/Builds/active/bin/ros2 launch arm_bringup typing.launch.py";
+          launch-usbc = "~/Builds/active/bin/ros2 launch arm_bringup usbc.launch.py";
           launch-arm-control = "~/Builds/active/bin/ros2 launch arm_bringup control.launch.py arm:=False old_arm:=True";
-          launch-path-control = "~/Builds/active/bin/ros2 launch arm_bringup path.control.launch.py arm:=False old_arm:=True";
+          launch-path-control = "~/Builds/active/bin/ros2 launch arm_bringup path.control.launch.py";
           launch-arm-urdf = "~/Builds/active/bin/ros2 launch arm_bringup urdf.launch.py arm:=False old_arm:=True auto_camera:=False";
           launch-arm-teleop = "~/Builds/active/bin/ros2 launch teleop_arm teleop.launch.py";
           run-arm-teleop = "~/Builds/active/bin/ros2 run teleop_arm_joy teleop_arm_joy_node";
@@ -334,8 +336,8 @@ in
 
           # Science
           predict-shell = "nom-shell ~/nova/src/other/ilmenite_ml"; # please come up with a more descriptive and less generic alias
-          run-spec = "~/Builds/master/bin/ros2 run science urc_uv_vis_spec.py";
-          run-theta = "sudo -E LANG=C ~/Builds/master/bin/ros2 run science urc_theta_360_cam.py";
+          run-spec = "~/Builds/main/bin/ros2 run science urc_uv_vis_spec.py";
+          run-theta = "sudo -E LANG=C ~/Builds/main/bin/ros2 run science urc_theta_360_cam.py";
 
           # ros2_control
           controllers-list = "~/Builds/active/bin/ros2 control list_controllers";
@@ -360,6 +362,11 @@ in
           can-viewer = "can_viewer";
           can_viewer = "~/Builds/active/bin/can_viewer -i socketcan -c";
 
+          # Nova CLI shortcuts
+          nova = "~/Builds/active/bin/nova";
+          launch = "nova launch";
+          run = "nova run";
+
           # Drive
           reset-flw = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 1}"'';
           reset-blw = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 2}"'';
@@ -369,6 +376,9 @@ in
           reset-blp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 6}"'';
           reset-brp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 7}"'';
           reset-frp = ''~/Builds/active/bin/ros2 service call /blcmds/blcmd_reset blcmd_interfaces/srv/BLCMDReset "{type: 1, id: 8}"'';
+
+          # Nix sisyphus
+          nix-sisyphus = "${pkgs.bash}/bin/bash ${../../../scripts/nix-sisyphus.sh}";
         }
       ];
 

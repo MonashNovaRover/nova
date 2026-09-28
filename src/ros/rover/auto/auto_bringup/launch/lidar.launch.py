@@ -245,7 +245,6 @@ def launch_setup(context, *args, **kwargs):
             parameters=[
                 {'input_topic': '/livox/lidar_sim'},
                 {'output_topic': '/livox/lidar'},
-                {'default_tag': 16},
             ],
         ),
         Node(

@@ -34,11 +34,6 @@ def launch_setup(context, *args, **kwargs):
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
     )
-    nova_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
-        FindPackageShare('nova_bringup')
-    )
-    nova_gazebo_dir = FindPackageShare('nova_gazebo')
 
     comp = LaunchConfiguration('comp').perform(context).lower()
     
@@ -51,6 +46,7 @@ def launch_setup(context, *args, **kwargs):
     model = LaunchConfiguration('model')
     namespace = LaunchConfiguration('namespace')
     navigation = LaunchConfiguration('navigation')
+    release = LaunchConfiguration('release')
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
     use_respawn = LaunchConfiguration('use_respawn')
@@ -63,13 +59,13 @@ def launch_setup(context, *args, **kwargs):
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'nav2'])
         localization = 'False'
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'arch', 'rl_arch.yaml'])
-        world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'auto_cubes.sdf'])
+        world = 'ARCh2026'
         gps = 'False'
     elif comp == 'urc':
         nav2_params_dir = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'nav2'])
         localization = 'True'
         rl_params = PathJoinSubstitution([auto_bringup_dir, 'params', 'urc', 'rl_urc.yaml'])
-        world = PathJoinSubstitution([nova_gazebo_dir, 'worlds', 'urc_obstacles.sdf'])
+        world = 'ARCh2026'
         gps = 'True'
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
@@ -86,7 +82,7 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'gazebo.launch.py'])),
+            launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'unity.launch.py'])),
             launch_arguments={
                 'local': local,
                 'comp': comp,
@@ -94,6 +90,7 @@ def launch_setup(context, *args, **kwargs):
                 'model': model,
                 'namespace': namespace,
                 'world': world,
+                'release': release,
                 'rviz': rviz,
                 'rviz_params': rviz_params,
             }.items(),
@@ -143,23 +140,6 @@ def launch_setup(context, *args, **kwargs):
                 'fastlivo2_params': fastlivo2_params,
                 'sim': 'True',
             }.items(),
-        ),
-        IncludeLaunchDescription(
-            launch_description_source=PythonLaunchDescriptionSource(
-                PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
-            ),
-            launch_arguments={
-                "bus" : "vcan0",
-                "bitrate" : "250000",
-                "log_name" : "auto",
-            }.items()
-        ),
-        Node(
-            package='electronics', 
-            executable='led_strip.py', 
-            output='screen', 
-            emulate_tty=True,
-            ros_arguments=['--log-level', log_level],
         ),
     ]
 
@@ -232,7 +212,7 @@ def generate_launch_description():
             default_value='True',
             description='Flag to launch rviz',
         ),
-        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
+        DeclareLaunchArgument(
             name='rviz_params',
             default_value='everything',
             description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
@@ -262,6 +242,11 @@ def generate_launch_description():
             name='localization',
             default_value='',
             description='Run robot_localization?',
+        ),
+        DeclareLaunchArgument(
+            name='release',
+            default_value='True',
+            description='Use released build of Unity?',
         ),
         DeclareLaunchArgument(
             name='rl_params',

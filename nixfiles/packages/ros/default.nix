@@ -1,4 +1,4 @@
-{ callPackage, pkgs }:
+{ callPackage, pkgs, git-metadata }:
 {
   audio-msgs = callPackage ./audio-msgs { };
   depthai = callPackage ./depthai { };
@@ -15,8 +15,11 @@
   iridescence = callPackage ./iridescence { };
   livox-ros-driver2 = callPackage ./livox-ros-driver2 { };
   livox-sdk2 = callPackage ./livox-sdk2 { };
-  nova-workspace = callPackage ./nova-workspace { };
+  nova-workspace = callPackage ./nova-workspace {
+    inherit git-metadata;
+  };
   nova-workspace-mast = callPackage ./nova-workspace {
+    inherit git-metadata;
     graphical = false;
     novaPackages = {
       nova-electronics = pkgs.nova-electronics;
@@ -25,8 +28,8 @@
     extraPackages = {};
   };
   rclnodejs = callPackage ./rclnodejs { };
+  ros-tcp-endpoint = callPackage ./ros-tcp-endpoint { };
   ros-typescript-definitions = callPackage ./ros-typescript-definitions { };
-  spatio-temporal-voxel-layer = callPackage ./spatio-temporal-voxel-layer { };
   vikit-common = callPackage ./vikit-common { };
   vikit-ros = callPackage ./vikit-ros { };
   yolo-ros = callPackage ./yolo-ros { };

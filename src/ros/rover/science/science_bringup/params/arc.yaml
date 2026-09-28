@@ -121,8 +121,8 @@ kiln:
     update_rate: 5
     controllers:
       controller:
-        command_service: "/science/kiln_command"
-        data_topic: "/science/kiln_data"
+        command_service: "/science/thermal_command"
+        data_topic: "/science/thermal_data"
         temp_sensors: [ "kiln_sensor", "condenser_sensor" ]
         heaters: [ "left_heater", "right_heater" ]
     hardware:

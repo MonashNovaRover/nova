@@ -1,8 +1,7 @@
 { lib
 , buildRosPackage
-, pythonPackages
-, ament-cmake
 , python3Packages
+, ament-cmake
 , rclcpp
 , rclpy
 , geometry-msgs
@@ -28,23 +27,31 @@ buildRosPackage {
 
   nativeBuildInputs = [ ament-cmake ];
 
-  buildInputs = [ rclcpp rclpy geometry-msgs nav-msgs trajectory-msgs ];
+  buildInputs = [ rclcpp geometry-msgs nav-msgs trajectory-msgs ];
 
-  propagatedBuildInputs = with pythonPackages; [
-    jcan
+  propagatedBuildInputs = with python3Packages; [
     nova-coms-utils
+    rclpy
+    jcan
     pymodbus
     gphoto2
     opencv4
     pyserial
     python3Packages.minimalmodbus
-  ] ++
-  [
     nova-python-control
     nova-python-control2
     nova-input-interfaces
     nova-camera-msgs
     teleop-modular-python-utils
     nova-science-interfaces
+    nova-pytest-framework
   ];
+
+  doCheck = true;
+
+  checkPhase = ''
+    runHook preCheck
+    ${python3Packages.pytest}/bin/pytest ../science/tests
+    runHook postCheck
+  '';
 }

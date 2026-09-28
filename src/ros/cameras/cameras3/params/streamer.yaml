@@ -49,288 +49,292 @@ camera_streamer:
         meta: Arm - Wrist 
       arm_end_periscope:
         meta: Arm - Periscope
+        rossink: true
+        ros_topic: arm/periscope
       arm_end_top:
         meta: Arm - Top
       arm_end_finger:
         meta: Arm - Finger
+        rossink: true
+        ros_topic: arm/finger
       arm_end_side:
         meta: Arm - Side
 
     profiles:
       unknown:
         default:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 1920
-          height: 1080
-          downscale: 3
-          framerate: 30
-          bitrate: 512
-          denoise: true
-        super:
-          pipeline_type: vp9software
-          width: 1280
-          height: 720
-          framerate: 30
-          cpu_usage: 5
-          jpegdec_method: float
-          bitrate: 1024
-          threads: 6
-          gop: 5
-          encoder_denoise: 0
-        still:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 1280
-          height: 720
-          framerate: 30
-          downrate: 2
-          cpu_usage: 2
-          jpegdec_method: float
-          bitrate: 512
-          gop: 10
-          denoise: true
-          sharpen: true        
-        snail:  
-          pipeline_type: vp8software
-          use_gl: true
+          pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 4
           framerate: 30
           downrate: 2
-          bitrate: 128
-          denoise: true
-        emergency:
-          pipeline_type: vp9software
-          use_gl: true
+          cpu_usage: 0
+          bitrate: 256
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
+        super:
+          pipeline_type: h264software
           width: 1280
           height: 720
-          downscale: 8
           framerate: 30
-          downrate: 4
-          cpu_usage: 8
+          downrate: 2
+          cpu_usage: 9
+          bitrate: 1024
+          encoder_denoise: 0
+        still:
+          pipeline_type: h265software
+          width: 1280
+          height: 720
+          downscale: 2
+          framerate: 30
+          downrate: 3
+          cpu_usage: 3
+          bitrate: 256
+          gop: 5
+          encoder_denoise: 0
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
+        snail:
+          pipeline_type: h265software
+          width: 1920
+          height: 1080
+          downscale: 6
+          framerate: 30
+          downrate: 2
+          cpu_usage: 3
+          bitrate: 96
+        emergency:
+          pipeline_type: h265software
+          width: 1920
+          height: 1080
+          downscale: 12
+          framerate: 30
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 32
-          denoise: 10
-          greyscale: true
-          denoise: true
 
       openaicam_openaicam_2505121128:
         default:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 1920
-          height: 1080
-          downscale: 3
-          framerate: 30
-          bitrate: 512
-          denoise: true
-        super:
-          pipeline_type: vp9software
-          width: 1280
-          height: 720
-          framerate: 30
-          cpu_usage: 5
-          jpegdec_method: float
-          bitrate: 1024
-          threads: 6
-          gop: 5
-          encoder_denoise: 0
-        still:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 1280
-          height: 720
-          framerate: 30
-          downrate: 2
-          cpu_usage: 2
-          jpegdec_method: float
-          bitrate: 512
-          gop: 10
-          denoise: true
-          sharpen: true        
-        snail:  
-          pipeline_type: vp8software
-          use_gl: true
+          pipeline_type: h265software
           width: 1920
           height: 1080
           downscale: 4
           framerate: 30
           downrate: 2
-          bitrate: 128
-          denoise: true
-        emergency:
-          pipeline_type: vp9software
-          use_gl: true
+          cpu_usage: 0
+          bitrate: 256
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
+        super:
+          pipeline_type: h264software
           width: 1280
           height: 720
-          downscale: 8
           framerate: 30
-          downrate: 4
-          cpu_usage: 8
+          downrate: 2
+          cpu_usage: 9
+          bitrate: 1024
+          encoder_denoise: 0
+        still:
+          pipeline_type: h265software
+          width: 1280
+          height: 720
+          downscale: 2
+          framerate: 30
+          downrate: 3
+          cpu_usage: 3
+          bitrate: 256
+          gop: 5
+          encoder_denoise: 0
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
+        snail:
+          pipeline_type: h265software
+          width: 1920
+          height: 1080
+          downscale: 6
+          framerate: 30
+          downrate: 2
+          cpu_usage: 3
+          bitrate: 96
+        emergency:
+          pipeline_type: h265software
+          width: 1920
+          height: 1080
+          downscale: 12
+          framerate: 30
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 32
-          gop: 10
-          greyscale: true
-          denoise: true
+          #saturation: 0
 
       webcamvendor_SK_series1_20220325JWGD2093:
         default:
           pipeline_type: h264passthrough
+          io_mode: dmabuf
           width: 640
           height: 480
           framerate: 30
         super:
-          pipeline_type: h264passthrough
+          pipeline_type: h264software
           width: 1280
           height: 960
           framerate: 30
+          downrate: 3
+          cpu_usage: 9
+          bitrate: 1024
+          encoder_denoise: 0
         still:
-          pipeline_type: vp9software
-          use_gl: true
-          mime: image/jpeg
+          pipeline_type: h265software
           width: 1280
           height: 960
-          downscale: 2
+          downscale: 3
           framerate: 30
-          downrate: 2
-          cpu_usage: 2
-          bitrate: 512
-          gop: 10
-          denoise: true
+          downrate: 3
+          cpu_usage: 3
+          bitrate: 256
+          gop: 5
+          encoder_denoise: 0
+          chroma_resample: linear
+          dither: bayer
+          method: bilinear
         snail:
           pipeline_type: h264passthrough
+          io_mode: dmabuf
           width: 320
           height: 240
           framerate: 30
         emergency:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 1280
-          height: 960
-          downscale: 10
-          framerate: 30
-          downrate: 8
-          cpu_usage: 10
-          bitrate: 32
-          gop: 10
-          greyscale: true
-          denoise: true
-
-      HZ_USB_Camera_20220301104:
-        default:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 1024
-          height: 768
-          downscale: 2
-          framerate: 30
-          bitrate: 512
-          denoise: true
-        super:
-          pipeline_type: vp9software
-          width: 1024
-          height: 768
-          framerate: 30
-          cpu_usage: 5
-          jpegdec_method: float
-          bitrate: 1024
-          threads: 6
-          gop: 5
-          encoder_denoise: 0
-        still:
-          pipeline_type: vp9software
-          use_gl: true
-          width:  1024
-          height: 768
-          framerate: 30
-          downrate: 2
-          cpu_usage: 2
-          jpegdec_method: float
-          bitrate: 512
-          gop: 10
-          denoise: true
-          sharpen: true
-        snail: 
-          pipeline_type: vp8software
-          use_gl: true
-          width: 640
-          height: 480
-          downscale: 2
-          framerate: 30
-          downrate: 2
-          bitrate: 128
-          denoise: true
-        emergency:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 640
-          height: 480
-          downscale: 5
-          framerate: 30
-          downrate: 4
-          cpu_usage: 8
-          bitrate: 32
-          gop: 10
-          greyscale: true
-          denoise: true
-
-      Microsoft_Microsoft®_LifeCam_HD-3000:
-        default:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 800
-          height: 600
-          downscale: 2
-          framerate: 30
-          bitrate: 512
-          denoise: true
-        super:
-          pipeline_type: vp9software
-          width: 800
-          height: 600
-          framerate: 30
-          cpu_usage: 5
-          jpegdec_method: float
-          bitrate: 1024
-          threads: 6
-          gop: 5
-          encoder_denoise: 0
-        still:
-          pipeline_type: vp9software
-          use_gl: true
-          width: 800
-          height: 600
-          framerate: 30
-          downrate: 2
-          cpu_usage: 2
-          jpegdec_method: float
-          bitrate: 512
-          gop: 10
-          denoise: true
-          sharpen: true
-        snail:
-          pipeline_type: vp8software
-          use_gl: true
-          width: 800
-          height: 600
+          pipeline_type: h265software
+          width: 320
+          height: 240
           downscale: 3
           framerate: 30
           downrate: 2
-          bitrate: 128
-          denoise: true
+          cpu_usage: 9
+          jpegdec_method: islow
+          bitrate: 32
+          #saturation: 0
+
+      HZ_USB_Camera_20220301104:
+        default:
+          pipeline_type: h265software
+          width: 1024
+          height: 768
+          downscale: 3
+          framerate: 30
+          downrate: 2
+          cpu_usage: 0
+          bitrate: 256
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
+        super:
+          pipeline_type: h264software
+          width: 1024
+          height: 768
+          framerate: 30
+          downrate: 2
+          cpu_usage: 9
+          bitrate: 1024
+          encoder_denoise: 0
+        still:
+          pipeline_type: h265software
+          width:  1024
+          height: 768
+          downscale: 2
+          framerate: 30
+          downrate: 3
+          cpu_usage: 1
+          bitrate: 256
+          gop: 5
+          encoder_denoise: 0
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
+        snail:
+          pipeline_type: h265software
+          width: 1024
+          height: 768
+          downscale: 4
+          framerate: 30
+          downrate: 2
+          cpu_usage: 9
+          bitrate: 96
         emergency:
-          pipeline_type: vp9software
-          use_gl: true
+          pipeline_type: h265software
+          width: 1024
+          height: 768
+          downscale: 8
+          framerate: 30
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
+          bitrate: 32
+          #saturation: 0
+
+      Microsoft_Microsoft®_LifeCam_HD-3000:
+        default:
+          pipeline_type: h265software
+          width: 1280
+          height: 720
+          downscale: 3
+          framerate: 30
+          downrate: 2
+          cpu_usage: 0
+          bitrate: 256
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
+        super:
+          pipeline_type: h264software
           width: 800
           height: 600
-          downscale: 7
           framerate: 30
-          downrate: 4
-          cpu_usage: 8
+          downrate: 2
+          cpu_usage: 9
+          bitrate: 1024
+          encoder_denoise: 0
+        still:
+          pipeline_type: h265software
+          width: 1280
+          height: 720
+          downscale: 2
+          framerate: 30
+          downrate: 3
+          cpu_usage: 3
+          bitrate: 256
+          gop: 5
+          encoder_denoise: 0
+          chroma_resample: nearest
+          dither: bayer
+          method: nearest-neighbour
+        snail:
+          pipeline_type: h265software
+          width: 1280
+          height: 720
+          downscale: 4
+          framerate: 30
+          downrate: 2
+          cpu_usage: 3
+          bitrate: 96
+        emergency:
+          pipeline_type: h265software
+          width: 1280
+          height: 720
+          downscale: 8
+          framerate: 30
+          downrate: 2
+          cpu_usage: 9
+          jpegdec_method: islow
           bitrate: 32
-          gop: 10
-          greyscale: true
-          denoise: true
+          #saturation: 0
 
     presets:
       auto:
@@ -436,10 +440,16 @@ camera_streamer:
     defaults:
       # Waveshare
       openaicam_openaicam_2505121128:
-        pipeline_type: vp8software
+        pipeline_type: h265software
         width: 1280
         height: 720
         framerate: 30
+        brightness: 0
+        contrast: 32
+        saturation: 100
+        sharpness: 0
+        gain: 28
+        gamma: 108
 
       webcamvendor_SK_series1_20220325JWGD2093:
         pipeline_type: h264passthrough
@@ -447,30 +457,35 @@ camera_streamer:
         height: 1080
         framerate: 30
         payload_quirk: true
-        denoise: true
-        denoise_sigma: 12.0
-        denoise_threshold: 0.15
-        denoise_radius: 4
-        undistort: true
-        undistort_k1: -0.11
-        undistort_k2: 0.01
+        brightness: 128
+        contrast: 128
+        saturation: 144
+        sharpness: 0
+        gain: 0
 
       HZ_USB_Camera_20220301104:
-        pipeline_type: vp9software
+        pipeline_type: h265software
         width: 1024
         height: 768
         framerate: 30
-        brightness: 255
-        undistort: true
-        undistort_k1: -0.08
-        undistort_k2: 0.007
+        brightness: 180
+        contrast: 100
+        saturation: 64
+        sharpness: 0
+        gamma: 100
+        backlight_compensation: 0
 
       # Legacy
       Microsoft_Microsoft®_LifeCam_HD-3000:
-        pipeline_type: vp8software
+        pipeline_type: h265software
         width: 800
         height: 600
         framerate: 30
+        brightness: 64
+        contrast: 5
+        saturation: 110
+        sharpness: 0
+        backlight_compensation: 0
 
       # Name violates yaml rules
       # Ricoh_Company__Ltd._RICOH_THETA_Z1_34122798:

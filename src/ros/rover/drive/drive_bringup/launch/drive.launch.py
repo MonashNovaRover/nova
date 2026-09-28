@@ -32,11 +32,11 @@ def launch_setup(context, *args, **kwargs):
     local = LaunchConfiguration('local')
     
     nova_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/nova_bringup']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/nova_bringup']),
         FindPackageShare('nova_bringup')
     )
     auto_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
     )
 
@@ -47,12 +47,14 @@ def launch_setup(context, *args, **kwargs):
     
     arm = LaunchConfiguration('arm')
     rviz = LaunchConfiguration('rviz')
+    rviz_params = LaunchConfiguration('rviz_params')
     
     sim = LaunchConfiguration('sim')
     log_level = LaunchConfiguration('log_level')
-    model = LaunchConfiguration('model')
+    urdf_path = LaunchConfiguration('urdf_path')
     urdf = LaunchConfiguration('urdf')
     active_controller = LaunchConfiguration('active_controller')
+    canbus = IfElseSubstitution(sim, 'vcan0', 'can0')
 
     def spawner_args(controller: str) -> list[str]:
         arguments = [controller]
@@ -61,6 +63,13 @@ def launch_setup(context, *args, **kwargs):
         return arguments
 
     return [
+        Node(
+            package='controller_manager',
+            executable='ros2_control_node',
+            parameters=[params, {'use_sim_time': sim}],
+            remappings=[('/controller_manager/robot_description', '/robot_description')],
+            ros_arguments=['--log-level', log_level],
+        ),
         Node(
             package='controller_manager',
             executable='spawner',
@@ -86,73 +95,59 @@ def launch_setup(context, *args, **kwargs):
             arguments=spawner_args('diff_drive_controller'),
             ros_arguments=['--log-level', log_level],
         ),
+        Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=['joint_state_broadcaster',
+                        '--controller-ros-args', '-r __ns:=/drive'],
+            ros_arguments=['--log-level', log_level],
+        ),
         GroupAction(
-            condition=UnlessCondition(sim),
+            condition=IfCondition(urdf),
             actions=[
-                Node(
-                    package='controller_manager',
-                    executable='spawner',
-                    arguments=['joint_state_broadcaster',
-                               '--controller-ros-args', '-r __ns:=/drive'],
-                    ros_arguments=['--log-level', log_level],
-                ),
-                Node(
-                    package='controller_manager',
-                    executable='ros2_control_node',
-                    parameters=[params],
-                    remappings=[
-                        ('/controller_manager/robot_description', '/robot_description'),
-                    ],
-                    ros_arguments=['--log-level', log_level],
-                ),
-                GroupAction(
-                    condition=IfCondition(urdf),
-                    actions=[
-                        IncludeLaunchDescription(
-                            condition=IfCondition(auto),
-                            launch_description_source=PythonLaunchDescriptionSource(
-                                PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
-                            launch_arguments={'model': model}.items(),
-                        ),
-                        IncludeLaunchDescription(
-                            condition=UnlessCondition(auto),
-                            launch_description_source=PythonLaunchDescriptionSource(
-                                PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
-                            launch_arguments = {
-                                'arm': arm,
-                                'rover': 'True',
-                                'rviz': rviz
-                            }.items(),
-                        ),
-                    ],
-                ),
-                Node(
-                    package='blcmd_utils', 
-                    executable='status_monitor', 
-                    output='screen', 
-                    emulate_tty=True,
-                    ros_arguments=['--log-level', log_level],
-                    parameters=[params]
+                IncludeLaunchDescription(
+                    condition=IfCondition(auto),
+                    launch_description_source=PythonLaunchDescriptionSource(
+                        PathJoinSubstitution([auto_bringup_dir, 'launch', 'urdf.launch.py'])),
+                    launch_arguments={'local': local, 'urdf_path': urdf_path, 'sim': 'true', 'rviz': rviz, 'rviz_params': rviz_params}.items(),
                 ),
                 IncludeLaunchDescription(
+                    condition=UnlessCondition(auto),
                     launch_description_source=PythonLaunchDescriptionSource(
-                        PathJoinSubstitution([nova_bringup_dir, "launch", "can.launch.py"])
-                    ),
-                    launch_arguments={
-                        "bus" : "can0",
-                        "bitrate" : "250000",
-                        "log_name" : "drive",
-                    }.items()
-                ),
-                Node(
-                    condition=IfCondition(auto),
-                    package='electronics', 
-                    executable='led_strip.py', 
-                    output='screen', 
-                    emulate_tty=True,
-                    ros_arguments=['--log-level', log_level],
+                        PathJoinSubstitution([nova_bringup_dir, 'launch', 'urdf.launch.py'])),
+                    launch_arguments = {
+                        'arm': arm,
+                        'rover': 'True',
+                        'rviz': rviz
+                    }.items(),
                 ),
             ],
+        ),
+        IncludeLaunchDescription(
+            launch_description_source=PythonLaunchDescriptionSource(
+                PathJoinSubstitution([nova_bringup_dir, 'launch', 'can.launch.py'])
+            ),
+            launch_arguments={
+                'bus' : canbus,
+                'bitrate' : '250000',
+                'log_name' : 'drive',
+            }.items()
+        ),
+        Node(
+            condition=IfCondition(auto),
+            package='electronics', 
+            executable='led_strip.py', 
+            output='screen', 
+            emulate_tty=True,
+            ros_arguments=['--log-level', log_level],
+        ),
+        Node(
+            package='blcmd_utils', 
+            executable='status_monitor', 
+            output='screen', 
+            emulate_tty=True,
+            ros_arguments=['--log-level', log_level],
+            parameters=[params]
         ),
     ]
 
@@ -160,11 +155,11 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     local = LaunchConfiguration('local')
     drive_bringup_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/drive/drive_bringup']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/drive/drive_bringup']),
         FindPackageShare('drive_bringup')
     )
     rover_description_dir = IfElseSubstitution(local,
-        PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/rover_description']),
+        PathJoinSubstitution([expanduser('~') + '/nova/src/ros/rover/rover_description']),
         FindPackageShare('rover_description')
     )
 
@@ -202,6 +197,11 @@ def generate_launch_description():
             default_value='False',
             description='Launch rviz?',
         ),
+        DeclareLaunchArgument( # Do not include 'rviz' argument in nested launch files https://github.com/ros2/launch/issues/313
+            name='rviz_params',
+            default_value='everything',
+            description='Name of the rviz config file to use, without the .rviz extension. Must be located in src/ros/rover/auto/auto_bringup/rviz',
+        ),
         DeclareLaunchArgument(
             name='sim',
             default_value='False',
@@ -214,7 +214,7 @@ def generate_launch_description():
                         '(set log level of individual node with "log_level:=<node name>:=<log level>")',
         ),
         DeclareLaunchArgument(
-            name='model', 
+            name='urdf_path', 
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),

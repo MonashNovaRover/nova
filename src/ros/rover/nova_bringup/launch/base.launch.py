@@ -33,7 +33,7 @@ def launch_setup(context, *args, **kwargs):
 
     arm = LaunchConfiguration('arm')
     arm_urdf_path = LaunchConfiguration('arm_urdf_path')
-    gazebo = LaunchConfiguration('gazebo')
+    sim = LaunchConfiguration('sim')
     rover = LaunchConfiguration('rover')
     urdf = LaunchConfiguration('urdf')
 
@@ -43,7 +43,7 @@ def launch_setup(context, *args, **kwargs):
             executable='inputs_publisher',
             output='screen',
             emulate_tty=True,
-            parameters=[{'use_sim_time': gazebo}],
+            parameters=[{'use_sim_time': sim}],
         ),
         Node(
             package='electronics',
@@ -81,7 +81,7 @@ def generate_launch_description():
             description='Absolute path to arm urdf file',
         ),
         DeclareLaunchArgument(
-            name='gazebo', 
+            name='sim', 
             default_value='False',
             description='',
         ),

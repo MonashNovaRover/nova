@@ -37,6 +37,6 @@ let
   };
 in
 {
-  gui = bashBuilder gui-setup "run-gui";
-  gui-maps = bashBuilder gui-maps-setup "run-gui-maps";
+  gui = bashBuilder gui-setup "gui";
+  gui-maps = bashBuilder gui-maps-setup "gui-maps";
 }

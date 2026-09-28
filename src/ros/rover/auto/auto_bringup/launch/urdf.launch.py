@@ -37,37 +37,32 @@ def launch_setup(context, *args, **kwargs):
         FindPackageShare('auto_bringup')
     )
 
-    sim = LaunchConfiguration('sim').perform(context)
-    model = LaunchConfiguration('model').perform(context)
+    sim = LaunchConfiguration('sim')
+    urdf_path = LaunchConfiguration('urdf_path').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
-    joints = LaunchConfiguration('joints').perform(context)
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
 
+    robot_description = ParameterValue(Command([
+        'xacro ', 
+        urdf_path, ' ',
+        'sim:=', sim.perform(context), ' ',
+        'robot_name:=', robot_name, ' ',
+        'auto_mount:=', 'true']), 
+    value_type=str)
+    
     return [
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
-            parameters=[{'robot_description': 
-                ParameterValue(Command(['xacro ', 
-                                        model, ' ', 
-                                        'gazebo:=', sim, ' ', 
-                                        'robot_name:=', robot_name, ' ',
-                                        'auto_mount:=', 'true', ' ',
-                                       ]), value_type=str)
-            }]
-        ),
-        Node(
-            condition=IfCondition(joints),
-            package = 'joint_state_publisher',
-            executable = 'joint_state_publisher',
-            parameters=[{'source_list': ['/joint_states']}],
-            output='screen',
+            parameters=[{'use_sim_time': sim},
+                        {'robot_description': robot_description}],
+            remappings=[('joint_states', 'drive/joint_states')],
         ),
         IncludeLaunchDescription(
             condition=IfCondition(rviz),
             launch_description_source=PythonLaunchDescriptionSource(PathJoinSubstitution([auto_bringup_dir, 'launch', 'rviz.launch.py'])),
-            launch_arguments={'sim': sim, 'model': model, 'robot_name': robot_name, 'rviz_params': rviz_params}.items(),
+            launch_arguments={'sim': sim, 'urdf_path': urdf_path, 'robot_name': robot_name, 'rviz_params': rviz_params}.items(),
         ),
     ]
 
@@ -92,7 +87,7 @@ def generate_launch_description():
             description='Use simulation clock if True',
         ),
         DeclareLaunchArgument(
-            name='model',
+            name='urdf_path',
             default_value=PathJoinSubstitution([rover_description_dir, 'banksia', 'urdf', 'rover.urdf.xacro']),
             description='Absolute path to robot urdf file',
         ),
@@ -100,11 +95,6 @@ def generate_launch_description():
             name='robot_name',
             default_value='Banksia',
             description='name of the robot',
-        ),
-        DeclareLaunchArgument(
-            name='joints',
-            default_value='False',
-            description='Whether to launch joint_state_publisher.',
         ),
         DeclareLaunchArgument(
             name='rviz',

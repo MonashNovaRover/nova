@@ -1,17 +1,16 @@
 {
-  stdenv,
-  fetchgit,
-  ament-cmake,
-  opencv,
-  sophus,
-  boost,
-  fmt,
-  tbb_2021_11,
-  pkg-config,
-  breakpointHook,
+  ament-cmake, 
+  boost, 
+  fetchgit, 
+  fmt, 
+  onetbb, 
+  opencv, 
+  pkg-config, 
+  sophus, 
+  stdenv, 
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   name = "vikit-common";
   version = "0.0.0";
 
@@ -31,19 +30,21 @@ stdenv.mkDerivation rec {
   sourceRoot = "rpg_vikit-4b7abc8/vikit_common";
   
   buildType = "ament_cmake";
+
   nativeBuildInputs = [ 
     ament-cmake 
-    breakpointHook
   ];
 
   buildInputs = [
-    opencv
-    sophus
     boost
     fmt
-    tbb_2021_11
+    onetbb
+    opencv
     pkg-config
+    sophus
   ];
+
+  cmakeFlags = [ "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" ];
   
   postPatch = ''
     sed -i '/lib )/aINSTALL(DIRECTORY ''${CMAKE_CURRENT_BINARY_DIR} DESTINATION ''${CMAKE_INSTALL_PREFIX}/share/''${PROJECT_NAME}/CMakeModules )' CMakeLists.txt

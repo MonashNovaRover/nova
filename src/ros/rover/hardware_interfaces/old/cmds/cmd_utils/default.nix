@@ -4,7 +4,7 @@
 , ament-cmake
 , rclcpp
 , rclpy
-, pythonPackages
+, python3Packages
 , nova-cmd-interfaces
 , libcanmd
 }:

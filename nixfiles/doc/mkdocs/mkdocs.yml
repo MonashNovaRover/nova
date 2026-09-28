@@ -1,0 +1,38 @@
+site_name: Nova Documentation
+
+theme:
+  name: material
+  favicon: assets/favicon.png
+  logo: assets/logo.png
+  
+  palette: # TODO: Use colours from branding standards (ask business)
+    - media: 
+        prefers-color-scheme: light
+      scheme: default
+      primary: pink
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    - media: 
+        prefers-color-scheme: dark
+      scheme: slate
+      primary: black
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.share
+
+markdown_extensions:
+  - toc:
+      permalink: true
+
+plugins:
+  search: 
+    separator: '[\s\-\.]+'

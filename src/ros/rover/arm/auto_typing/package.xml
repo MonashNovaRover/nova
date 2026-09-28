@@ -21,6 +21,7 @@
   <depend>arm_interfaces</depend>
   <depend>nova_interfaces</depend>
   <depend>opencv_python</depend>
+  <depend>aruco_opencv_msgs</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

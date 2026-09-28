@@ -6,6 +6,7 @@
 
     <!-- Loading args -->
     <xacro:arg name="gazebo" default="false"/>
+    <xacro:arg name="sim" default="false"/>
     <xacro:arg name="use_mock_hardware" default="false"/>
     <xacro:arg name="arm" default="false"/>
     <xacro:arg name="old_arm" default="false"/>
@@ -70,13 +71,8 @@
     </xacro:if>
 
     <xacro:if value="$(arg drive_control)">
-        <xacro:unless value="$(arg gazebo)">
-            <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/ros2_control.xacro" />
-            <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
-        </xacro:unless>
-        <xacro:if value="$(arg gazebo)">
-            <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/gz_ros2_control.xacro" />
-        </xacro:if>
+        <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/ros2_control.xacro" />
+        <xacro:rover_ros2_control use_mock_hardware="$(arg use_mock_hardware)"/>
     </xacro:if>
 
     <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/p3d.xacro"/>

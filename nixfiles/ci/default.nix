@@ -29,7 +29,7 @@ let
     inherit description;
     nixexprinput = "nova-monorepo";
     inherit nixexprpath;
-    checkinterval = 60;
+    checkinterval = 120;
     schedulingshares = 100;
     enableemail = false;
     enable_dynamic_run_command = false;
@@ -37,7 +37,7 @@ let
     keepnr = 1;
   } // args // {
     inputs = {
-      nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-unstable"; };
+      nixpkgs = mkGitHubInput { owner = "NixOS"; repo = "nixpkgs"; branch = "nixos-26.05"; };
       nova-monorepo = mkNovaInput { repo = "nova"; };
       supportedSystems = {
         type = "nix";
@@ -60,11 +60,6 @@ let
     (mkJobsets (planRosDistroAndPrJobsets "misc" {
       description = "Miscellaneous packages";
       nixexprpath = "nixfiles/ci/jobsets/misc.nix";
-    })) //
-    (mkJobsets (planRosDistroAndPrJobsets "tests" {
-      description = "Tests";
-      nixexprpath = "nixfiles/ci/jobsets/tests.nix";
-      inputs = novaInputs;
     })) //
     {
       docs = mkJobset {
@@ -98,11 +93,19 @@ let
         };
         checkinterval = 60 * 60 * 24 * 7;
       };
+      tests = mkJobset {
+        description = "Tests";
+        nixexprpath = "nixfiles/ci/jobsets/tests.nix";
+        inputs = novaInputs // {
+          home-manager = homeManagerInput;
+        };
+        checkinterval = 60 * 60 * 24;
+      };
       slides = mkJobset {
         description = "Workshop slides";
         nixexprpath = "nixfiles/ci/jobsets/slides.nix";
         checkinterval = 60 * 60 * 24;
-        inputs.slides = mkNovaInput { repo = "slides"; };
+        inputs.slides = mkNovaInput { repo = "slides"; branch = "master"; };
       };
     };
 in

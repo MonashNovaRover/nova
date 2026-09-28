@@ -38,7 +38,7 @@ local_costmap:
         combination_method:       1     # 1=max, 0=override
         origin_z:                 0.0   # meters
         publish_voxel_map:        false # default off
-        transform_tolerance:      0.2   # seconds
+        transform_tolerance:      0.4   # seconds
         mapping_mode:             false # default off, saves map not for navigation
         map_save_duration:        60.0  # default 60s, how often to autosave
         observation_sources:      obstacles ground

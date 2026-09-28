@@ -1,0 +1,19 @@
+diff --git a/pkgs/development/python-modules/imagededup/default.nix b/pkgs/development/python-modules/imagededup/default.nix
+index 715c42c2170d..783ff0018739 100644
+--- a/pkgs/development/python-modules/imagededup/default.nix
++++ b/pkgs/development/python-modules/imagededup/default.nix
+@@ -31,13 +31,13 @@ let
+ in
+ buildPythonPackage rec {
+   pname = "imagededup";
+-  version = "03.3";
++  version = "0.3.3";
+   pyproject = true;
+ 
+   src = fetchFromGitHub {
+     owner = "idealo";
+     repo = "imagededup";
+-    tag = "v${version}";
++    tag = "v03.3";
+     hash = "sha256-tm6WGf74xu3CcwpyeA7+rvO5wemO0daXpj/jvYrH19E=";
+   };
