@@ -1,0 +1,8 @@
+camera_info_publisher:
+  ros__parameters:
+    publish_rate: 10.0
+    camera_info_topic: /arm/camera_info
+    image_topic: /arm/finger
+    frame_id: image_frame
+    hfov: 61.3727248
+    distortion_matrix: [0.1748, -0.9582, -0.001254, -0.000797, 0.6523]

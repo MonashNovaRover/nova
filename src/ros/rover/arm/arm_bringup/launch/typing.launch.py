@@ -14,17 +14,24 @@ CREATION:	25/05/2025
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.conditions import IfCondition
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, GroupAction
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
 
 from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
+
+from os.path import expanduser
+
+typing_dir = expanduser('~') + '/nova/src/ros/rover/arm/arm_bringup'
 
 def launch_setup(context, *args, **kwargs):
     old_arm = LaunchConfiguration('old_arm').perform(context)
     auto_mode = LaunchConfiguration('auto_mode')
     params = LaunchConfiguration('typing_params')
+    localiser_params = LaunchConfiguration('localiser_params')
+    camera_info_params = LaunchConfiguration('camera_info_params')
+    aruco_params = LaunchConfiguration('aruco_params')
 
     base_frame = "arm_kinematics_origin"
     if old_arm.lower() in ["true", "t", "1"]:
@@ -34,7 +41,7 @@ def launch_setup(context, *args, **kwargs):
         Node(
             package='auto_typing',
             executable='keyboard_localiser.py',
-            parameters=[params, {"base_frame": base_frame}, {"using_auto": auto_mode}]
+            parameters=[localiser_params, {"base_frame": base_frame}, {"using_auto": auto_mode}]
         ),
         Node(
             package='auto_typing',
@@ -46,22 +53,62 @@ def launch_setup(context, *args, **kwargs):
             package='auto_typing',
             executable='pokey.py',
             parameters=[params]
-        )
+        ),
+        GroupAction(
+            condition=IfCondition(auto_mode),
+            actions=[
+                Node(
+                    package='auto_typing',
+                    executable='camera_info_publisher.py',
+                    parameters=[camera_info_params],
+                ),
+                Node(
+                    package='aruco_opencv',
+                    executable='aruco_tracker_autostart',
+                    arguments=['--ros-args', '--params-file', aruco_params],
+                ),
+            ]
+        ),
     ]
 
 
 def generate_launch_description():
-    arm_bringup_dir = FindPackageShare('arm_bringup')
+    local = LaunchConfiguration('local')
+
+    arm_bringup_dir = IfElseSubstitution(local,
+        PathJoinSubstitution([typing_dir]),
+        FindPackageShare('arm_bringup')
+    )
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='local',
+            default_value='True',
+            description='Use local source directories instead of the nix store.',
+        ),
+        DeclareLaunchArgument(
             name='typing_params',
             default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'typing.yaml']),
-            description='Absolute path to robot urdf file',
+            description='Path to typing params file',
+        ),
+        DeclareLaunchArgument(
+            name='localiser_params',
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'localisers.yaml']),
+            description='Path to localiser params file',
+        ),
+        DeclareLaunchArgument(
+            name='camera_info_params',
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'camera_info', 'finger.yaml']),
+            description='Path to camera info params file',
+        ),
+        DeclareLaunchArgument(
+            name='aruco_params',
+            default_value=PathJoinSubstitution([arm_bringup_dir, 'params', 'aruco', 'typing_tracker.yaml']),
+            description='Path to ArUco tracker params file',
         ),
         DeclareLaunchArgument(
             name='old_arm',
-            default_value='True',
+            default_value='False',
             description='Switch to old arm mode if true',
         ),
         DeclareLaunchArgument(
