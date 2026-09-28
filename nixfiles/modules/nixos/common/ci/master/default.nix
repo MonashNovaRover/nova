@@ -60,6 +60,9 @@ in
           rev = "5decc46ce66335b225c1504a509fefa0f804436f";
           hash = "sha256-wBVp3TDCBKyqyWbMlya+egjhSN7R067v20pUZINSF0g=";
         };
+        patchPhase = ''
+          cp ${./GithubStatusEval.pm} src/lib/Hydra/Plugin/GithubStatusEval.pm
+        '';
       });
       listenHost = "localhost";
       hydraURL =
@@ -98,6 +101,8 @@ in
             MonashNovaRover = Bearer ${cfg.hydra.githubToken}
           </github_authorization>
 
+          <githubstatuseval>
+          </githubstatuseval>
           <githubstatus>
             jobs = nova:workspaces(?:-pr-.*-\d+)?:(?!.*-inputs).*
             useShortContext = 1
