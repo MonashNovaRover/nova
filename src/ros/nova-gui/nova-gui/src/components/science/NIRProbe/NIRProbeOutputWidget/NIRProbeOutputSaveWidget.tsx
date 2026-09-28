@@ -259,7 +259,7 @@ const NIRProbeOutputSaveWidget: React.FC<NIRProbeOutputSaveWidgetProps> = ({
             startContent={icons[type]}
           >
             {readingInfo.slice(1).map(({ type, name }) => (
-              <SelectItem key={`${type}`} value={type} startContent={icons[type]}>
+              <SelectItem key={`${type}`} startContent={icons[type]}>
                 {name}
               </SelectItem>
             ))}

@@ -61,7 +61,7 @@ const SiteTypeSelectWidget: React.FC<SiteSelectWidgetProps> = (
           startContent={siteTypeSelectOptions[currentSiteType].icon}
         >
           {siteTypeSelectOptions.map(({type, name, icon}) => (
-            <SelectItem key={`${type}`} value={type} startContent={icon}>
+            <SelectItem key={`${type}`} startContent={icon}>
               {name}
             </SelectItem>
           ))}
