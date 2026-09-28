@@ -115,10 +115,11 @@ in
           rmw_label="RMW: " rmw_value="''${RMW_IMPLEMENTATION:-not set}"
           comp_label="COMP: " comp_value="''${COMP:-not set}"
           build_label="Active Build: " build_value="$active_build"
+          nova_label="Run the rover: " nova_value="nova"
           
           # Find maximum width
           max_len=''${#title}
-          for val in "''${rmw_label}''${rmw_value}" "''${comp_label}''${comp_value}" "''${build_label}''${build_value}"; do
+          for val in "''${rmw_label}''${rmw_value}" "''${comp_label}''${comp_value}" "''${build_label} ''${build_value}" ''${nova_label} ''${nova_value}; do
             [ $((''${#val} + 2 )) -gt $max_len ] && max_len=$((''${#val} + 2 ))
           done
           [ $((''${#help_label} + ''${#help_value})) -gt $max_len ] && max_len=$((''${#help_label} + ''${#help_value}))
@@ -140,6 +141,7 @@ in
           printf "│   $yellow%s$end%s%-$((width-3-''${#rmw_label}-''${#rmw_value}))s│\n" "$rmw_label" "$rmw_value" ""
           printf "│   $yellow%s$end%s%-$((width-3-''${#comp_label}-''${#comp_value}))s│\n" "$comp_label" "$comp_value" ""
           printf "│   $yellow%s$end%s%-$((width-3-''${#build_label}-''${#build_value}))s│\n" "$build_label" "$build_value" ""
+          printf "│   $magenta%s$end%s%-$((width-3-''${#nova_label}-''${#nova_value}))s│\n" "$nova_label" "$nova_value" ""
           echo   "└$border┘"
           echo   ""
         )
