@@ -92,6 +92,9 @@ stdenv.mkDerivation {
     ${serve-gui-script} \"$out/share/nova-gui/www\" \$@" > "$out/bin/gui-serve"
     chmod +x "$out/bin/gui-serve"
 
+    mkdir -p "$out/nix-support"
+    echo doc gui "$out/share/nova-gui/www" > "$out/nix-support/hydra-build-products"
+
     runHook postInstall
   '';
 

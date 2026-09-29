@@ -61,7 +61,7 @@ if __name__ == '__main__':
         httpd.server_bind()
         httpd.server_activate()
 
-        print(f"serving {path} at port {port}")
+        print(f"serving {path} at http://localhost:{port}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
