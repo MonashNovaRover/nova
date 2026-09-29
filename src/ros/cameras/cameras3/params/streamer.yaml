@@ -8,6 +8,9 @@ camera_streamer:
         height: 1080
         framerate: 30
 
+      theta:
+        pipeline_type: theta
+
       # Mast
       mast_backward:
         meta : Mast - Backwards
@@ -481,12 +484,4 @@ camera_streamer:
         saturation: 110
         sharpness: 0
         backlight_compensation: 0
-
-      # Name violates yaml rules
-      # Ricoh_Company__Ltd._RICOH_THETA_Z1_34122798:
-      #  pipeline_type: h264passthrough
-      #  width: 3840
-      #  height: 1920
-      #  framerate: 30000
-      #  framerate_denominator: 1001
 

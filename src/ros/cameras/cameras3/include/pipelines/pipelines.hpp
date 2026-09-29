@@ -18,6 +18,11 @@ GstElement* rtsppassthrough_pipeline(rclcpp::Node* log_node, const std::unique_p
 std::unique_ptr<rtsppassthroughPipelineProperties> get_rtsppassthrough_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
 void set_rtsppassthrough_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<rtsppassthroughPipelineProperties>& props);
 
+struct thetaPipelineProperties : Properties, webRTCProperties {};
+GstElement* theta_pipeline(rclcpp::Node* log_node, const std::unique_ptr<thetaPipelineProperties>& props);
+std::unique_ptr<thetaPipelineProperties> get_theta_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
+void set_theta_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<thetaPipelineProperties>& props);
+
 struct v4lsoftwarePipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, softwareEncProperties, cpuFiltersProperties, clockProperties, decodeProperties, rossinkProperties, zoomProperties {};
 GstElement* v4lsoftware_pipeline(rclcpp::Node* log_node, const std::unique_ptr<v4lsoftwarePipelineProperties>& props, const int encoderX);
 std::unique_ptr<v4lsoftwarePipelineProperties> get_v4lsoftware_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const int encoderX);

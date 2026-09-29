@@ -4,7 +4,9 @@
 , gobject-introspection
 , gst_all_1
 , gst-bridge
+, gstthetauvc
 , libnice
+, libuvc-theta
 , nova-camera-msgs
 , pkg-config
 , rclcpp
@@ -57,6 +59,9 @@ buildRosPackage {
     mesa                      # GPU acceleration for x86
     libGL
     pciutils
+
+    libuvc-theta
+    gstthetauvc
   ];
 
   postInstall = ''
@@ -83,7 +88,7 @@ buildRosPackage {
     if echo "$GPU_TYPE" | grep -iq "AMD\|Intel"; then
       # AMD or Intel GPU detected
       wrapGApp "$out/lib/cameras/camera_streamer_service" \
-        --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib" \
+        --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib:${gstthetauvc}/lib/gstreamer-1.0" \
         --prefix GBM_BACKENDS_PATH : "${mesa}/lib/gbm" \
         --prefix LIBGL_DRIVERS_PATH : "${mesa}/lib/dri" \
         --prefix LIBVA_DRIVERS_PATH : "${mesa}/lib/dri" \
@@ -92,8 +97,8 @@ buildRosPackage {
     else
       # If NVIDIA GPU is detected, use the default paths 
       wrapGApp "$out/lib/cameras/camera_streamer_service"\
-        --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib"\
-        --prefix GST_GL_PLATFORM : "egl"\
+        --prefix GST_PLUGIN_PATH : "${gst-bridge}/lib:${gstthetauvc}/lib/gstreamer-1.0" \
+        --prefix GST_GL_PLATFORM : "egl" \
         --prefix GST_GL_WINDOW : "surfaceless"
     fi
     set -e

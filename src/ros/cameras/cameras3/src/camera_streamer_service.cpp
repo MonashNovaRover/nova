@@ -159,6 +159,9 @@ class CameraStreamer : public rclcpp::Node
     } else if (pipeline->camera->pipeline_type == "rtsppassthrough") {
       std::unique_ptr<rtsppassthroughPipelineProperties> props = get_rtsppassthrough_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = rtsppassthrough_pipeline(this, props);
+    } else if (pipeline->camera->pipeline_type == "theta") {
+      std::unique_ptr<thetaPipelineProperties> props = get_theta_pipeline_properties(this, pipeline->camera);
+      pipeline->gst_pipeline = theta_pipeline(this, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 8);
       pipeline->gst_pipeline = v4lsoftware_pipeline(this, props, 8);
@@ -201,6 +204,9 @@ class CameraStreamer : public rclcpp::Node
     } else if (pipeline->camera->pipeline_type == "rtsppassthrough") {
       std::unique_ptr<rtsppassthroughPipelineProperties> props = get_rtsppassthrough_pipeline_properties(this, pipeline->camera);
       set_rtsppassthrough_pipeline_properties(pipeline->gst_pipeline, props);
+    } else if (pipeline->camera->pipeline_type == "theta") {
+      std::unique_ptr<thetaPipelineProperties> props = get_theta_pipeline_properties(this, pipeline->camera);
+      set_theta_pipeline_properties(pipeline->gst_pipeline, props);
     } else if (pipeline->camera->pipeline_type == "vp8software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 8);
       props->zoom = pipeline->zoom;

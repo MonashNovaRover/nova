@@ -27,6 +27,7 @@ struct V4lDevice {
 };
 
 std::vector<V4lDevice> find_v4l_capture_devices(void);
+V4lDevice find_theta(void);
 
 class CameraDirectory : public rclcpp::Node
 {
@@ -166,6 +167,12 @@ class CameraDirectory : public rclcpp::Node
     std::vector<V4lDevice> devices = find_v4l_capture_devices();
     std::unordered_map<std::string, std::string> new_camera_map;
 
+    // Check for theta cam
+    V4lDevice theta_device = find_theta();
+    if (!theta_device.model.empty()) {
+      devices.push_back(theta_device);
+    }
+
     std::stringstream log;
     if (devices.size() != last_device_count) {
       log << C_MODE << "Detected Cameras:" << C_RESET;
@@ -276,6 +283,48 @@ std::vector<V4lDevice> find_v4l_capture_devices() {
   sd_device_enumerator_unref(enumerator);
   return matches;
 }
+
+V4lDevice find_theta() {
+  V4lDevice theta_cam;
+
+  sd_device_enumerator *enumerator = NULL;
+  sd_device *device = NULL;
+
+  sd_device_enumerator_new(&enumerator);
+  sd_device_enumerator_add_match_subsystem(enumerator, "usb", 1);
+
+  for (device = sd_device_enumerator_get_device_first(enumerator);
+    device != NULL;
+    device = sd_device_enumerator_get_device_next(enumerator)) {
+
+    const char *devtype = NULL;
+    sd_device_get_devtype(device, &devtype);
+
+    // Only whole USB devices, not per-interface nodes
+    if (!devtype || strcmp(devtype, "usb_device") != 0) continue;
+
+    const char *dev_node, *model_id = NULL, *serial = NULL, *path_id = NULL;
+
+    sd_device_get_devname(device, &dev_node);
+
+    // Get device properties
+    sd_device_get_property_value(device, "ID_MODEL", &model_id);
+    sd_device_get_property_value(device, "ID_SERIAL", &serial);
+    sd_device_get_property_value(device, "ID_PATH", &path_id);
+
+    if (model_id && strstr(model_id, "THETA")) {
+      theta_cam.devname = dev_node;
+      theta_cam.model = model_id;
+      theta_cam.serial = serial;
+      theta_cam.path = path_id;
+      break;
+    }
+  }
+
+  sd_device_enumerator_unref(enumerator);
+  return theta_cam;
+}
+
 
 int main(int argc, char * argv[])
 {

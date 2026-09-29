@@ -60,4 +60,6 @@ template<typename properties> void set_rtspsource(GstElement* element, const pro
   NULL);
 }
 
+void set_thetasource(GstElement* element);
+
 #endif
