@@ -309,7 +309,11 @@ public:
     solution_state[0] = j1;
     solution_state[1] = j2bo + M_PI / 2;
     solution_state[2] = j3bo + j2bo + M_PI / 2;
-    solution_state[3] = j4;
+    if (std::abs(ik_seed_state[4] + M_PI/2) < 10*M_PI/180) {
+        solution_state[3] = ik_seed_state[3];
+    } else {
+      solution_state[3] = j4;
+    }
     solution_state[4] = j5;
     solution_state[5] = j6;
 
