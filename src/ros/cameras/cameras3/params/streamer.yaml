@@ -8,7 +8,7 @@ camera_streamer:
         height: 1080
         framerate: 30
 
-      theta:
+      Ricoh_Theta_Cam:
         pipeline_type: theta
 
       # Mast

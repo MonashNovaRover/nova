@@ -315,7 +315,7 @@ V4lDevice find_theta() {
     if (model_id && strstr(model_id, "THETA")) {
       theta_cam.devname = dev_node;
       theta_cam.model = model_id;
-      theta_cam.serial = serial;
+      theta_cam.serial = "Ricoh_Theta_Cam";
       theta_cam.path = path_id;
       break;
     }
