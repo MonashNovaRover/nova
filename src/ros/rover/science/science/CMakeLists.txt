@@ -53,6 +53,7 @@ install(PROGRAMS
         science/arc/kiln.py
         science/arc/kiln_door.py
         science/arc/sweeper.py
+        science/workshop/new_sweeper.py
         science/arc/water_pump.py
         science/arc/diaphragm_pump.py
         science/urc/auger_hall_effect.py
