@@ -78,6 +78,7 @@ export interface RootState {
 
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
+  cameraCaptureStore: IRosSensorMsgsCompressedImage;
   ipList: IRosCameraMsgsGetIpListResponse;
 
   // Error Related Stores
@@ -124,6 +125,7 @@ export interface RootState {
   autoStatus: IRosNovaInterfacesStatus;
 
   // Generic Stores
+  sourceCapture: GenericStoreState<Record<string, boolean>>;
   currentSite: GenericStoreState<Site>;
   siteData: GenericStoreState<SiteDataState>;
   nirProbeCalibrationData: GenericStoreState<NIRProbeCalibrationData>

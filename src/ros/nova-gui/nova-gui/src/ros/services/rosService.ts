@@ -22,6 +22,7 @@ export enum RosService {
   STOP_CAMS = "/camera_streamer/stream/stop",
   PRESET_CAMS = "/camera_streamer/stream/profile",
   ZOOM_CAM = "/camera_streamer/stream/zoom",
+  CAPTURE_CAM = "/camera_streamer/stream/capture",
   GET_IP_LIST = "/camera_streamer/get_host_ip",
   BLCMD_RESET = "/blcmds/blcmd_reset",
   

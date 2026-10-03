@@ -26,6 +26,7 @@ export enum RosTopic {
 
   // Camera Related topics
   CAMERAS = "/camera_directory/cameras",
+  CAMERA_IMAGE = "/cameras/image",
 
   // Error Related Topics
   BLCMD_ERRORS = "/blcmds/blcmd_status",

@@ -65,6 +65,7 @@ export interface RosTopicInterfaces {
 
   // Cameras Related
   [RosTopic.CAMERAS]: IRosCameraMsgsCameras;
+  [RosTopic.CAMERA_IMAGE]: IRosSensorMsgsCompressedImage;
 
   // Errors Related
   [RosTopic.BLCMD_ERRORS]: IRosBlcmdInterfacesBlcmdStatusArray;
