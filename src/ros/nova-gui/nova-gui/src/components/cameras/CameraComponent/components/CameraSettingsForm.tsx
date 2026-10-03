@@ -4,15 +4,16 @@ import {
   CircleFill,
   CircleHalf,
 } from "react-bootstrap-icons";
-import { Droplet, Pause, Play, RotateCcw, Square } from "react-feather";
+import { Camera, Droplet, Pause, Play, RotateCcw, Square } from "react-feather";
 import { CameraFilters } from "../CameraComponent.tsx";
-import {ReactNode} from "react";
+import { ReactNode } from "react";
 import { useStreamingBifrost } from "../../hooks/cameraBifrostHooks.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../redux/RootState.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
-import {CameraProfileSelector} from "../../CameraPage/CameraProfileSelector.tsx";
-import {defaultCameraProfileOptions,} from "../../../../views/shared/CamerasPage/CameraProfileConstants.ts";
+import { CameraProfileSelector } from "../../CameraPage/CameraProfileSelector.tsx";
+import { defaultCameraProfileOptions, } from "../../../../views/shared/CamerasPage/CameraProfileConstants.ts";
+import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
 
 const snapTo90 = (value: number): number => {
   const remainder = value % 90;
@@ -31,17 +32,18 @@ export const CameraSettingsForm = ({
   cameraSerial: string,
   children?: ReactNode
 }) => {
-  const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(()=>{});
+  const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(() => { });
+  const [sourceCapture, setSourceCapture] = useGenericStore<Record<string, boolean>>("sourceCapture");
 
   const onlineCameras = useSelector((state: RootState) => state.camerasStore.cameras);
-  const isOnline = onlineCameras.map(v=>v.serial).includes(cameraSerial)
-  const currentProfile = isOnline ? onlineCameras.filter(v=> v.serial === cameraSerial)[0].profile : ""
+  const isOnline = onlineCameras.map(v => v.serial).includes(cameraSerial)
+  const currentProfile = isOnline ? onlineCameras.filter(v => v.serial === cameraSerial)[0].profile : ""
 
   const cameraStreamerMap = useSelector((state: RootState) => state.cameraStreamerState.cameras);
   const isStreaming = !!cameraStreamerMap[cameraSerial]
   return (
     <div className="mt-2 flex flex-col gap-3 w-full">
-      <div className="grid grid-cols-2 grid-rows-2 w-full">
+      <div className="grid grid-cols-2 grid-rows-3 w-full">
         <Switch
           className="col-start-1 row-start-1 pb-2"
           size="sm"
@@ -70,6 +72,15 @@ export const CameraSettingsForm = ({
         >
           Invert Colors
         </Switch>
+        <Switch
+          className="col-start-1 row-start-3"
+          size="sm"
+          thumbIcon={<Camera fill="white" />}
+          isSelected={sourceCapture[cameraSerial] ?? false}
+          onValueChange={(v) => setSourceCapture({ ...sourceCapture, [cameraSerial]: v })}>
+          Source Capture
+        </Switch>
+
         <div className="col-start-2 row-start-1 justify-self-end">
           <Button
             isIconOnly
@@ -120,7 +131,7 @@ export const CameraSettingsForm = ({
           )}
         </div>
       </div>
-      <CameraProfileSelector serials={[cameraSerial]} options={defaultCameraProfileOptions} currentProfile={currentProfile}/>
+      <CameraProfileSelector serials={[cameraSerial]} options={defaultCameraProfileOptions} currentProfile={currentProfile} />
       <Slider
         className="max-w-md"
         size="lg"

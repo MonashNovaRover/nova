@@ -97,6 +97,10 @@ export interface RosServiceInterface {
     IRosCameraMsgsCameraZoomSelectionRequest,
     IRosCameraMsgsCameraZoomSelectionResponse
   >;
+  [RosService.CAPTURE_CAM]: RosServiceMessage<
+    IRosCameraMsgsCameraOperationRequest,
+    IRosCameraMsgsCameraOperationResponse
+  >;
   [RosService.GET_IP_LIST]: RosServiceMessage<
     EmptyMessage,
     IRosCameraMsgsGetIpListResponse
