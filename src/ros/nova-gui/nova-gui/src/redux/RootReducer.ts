@@ -146,6 +146,10 @@ export const reduxStores = {
   // Cameras2 Reducers
   camerasStore: createBifrostStore({ topic: RosTopic.CAMERAS }, { cameras: [] }),
   ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
+  cameraCaptureStore: createBifrostStore(
+    { topic: RosTopic.CAMERA_IMAGE },
+    { data: [], format: "" }
+  ),
 
   blcmdStatusStore: createBifrostStore(
     { topic: RosTopic.BLCMD_ERRORS },
@@ -419,6 +423,7 @@ export const reduxStores = {
 
 
   // Generic stores
+  sourceCapture: createGenericStore<Record<string, boolean>>("sourceCapture", {}),
   currentSite: createGenericStore("currentSite", Site.SITE_1),
   siteData: createGenericStore("siteData", initialSiteDataState),
   nirProbeCalibrationData: createGenericStore("nirProbeCalibrationData", DEFAULT_NIR_PROBE_CALIBRATION_DATA),

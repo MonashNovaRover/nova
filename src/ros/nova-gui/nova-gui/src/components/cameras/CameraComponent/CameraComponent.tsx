@@ -18,12 +18,13 @@ import humanizeString from "humanize-string";
 import { ExternalLink } from "react-feather";
 import toast from "react-hot-toast";
 import CameraSessionStartStopButton from "./components/CameraSessionStartStopButton.tsx";
-import {useGenericStore} from "../../../hooks/useGenericStore.ts";
-import {Site} from "../../../redux/models/genericStores/CurrentSiteStore.ts";
+import { useGenericStore } from "../../../hooks/useGenericStore.ts";
+import { Site } from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import { CameraProfileEvents, emitCameraFiltersReadyEvent } from "../../../utils/cameraProfileEvents.ts";
 import { CameraProfilesState } from "../../../redux/models/CameraProfilesState.ts";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
-import {RosService} from "../../../ros/services/rosService.ts";
+import { RosTopic } from "../../../ros/topics/rosTopic.ts";
+import { RosService } from "../../../ros/services/rosService.ts";
 import html2canvas from "html2canvas";
 
 const ASPECT_RATIO = 4 / 3;
@@ -82,8 +83,15 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const [currentSite, _] = useGenericStore<Site>("currentSite");
+  const [sourceCaptureBySerial] = useGenericStore<Record<string, boolean>>("sourceCapture");
+  const sourceCapture = sourceCaptureBySerial[cameraSerial] ?? false;
   const [cameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
-  const bifrost = useBifrost({ service: RosService.ZOOM_CAM });
+  const zoomBifrost = useBifrost({ service: RosService.ZOOM_CAM });
+  const captureBifrost = useBifrost({
+      topic: RosTopic.CAMERA_IMAGE,
+      service: RosService.CAPTURE_CAM,
+  })
+  
   
   // Use ref to always have latest profiles without recreating event listeners
   const cameraProfilesRef = useRef(cameraProfiles);
@@ -175,6 +183,11 @@ export const CameraComponent = (props: CameraComponentProps) => {
     }
   }, [cameraSerial, currentSite, cameraName, getScreenshotName]);
 
+  const takeCapture = useCallback(() => {
+    captureBifrost.callService(
+      { serials: [cameraSerial] }, { successToastMessage: `${cameraSerial} captured`, responseToast: true });
+  }, [captureBifrost, cameraSerial]);
+
   useEffect(() => {
     const handleMouseEnter = () => {
       setIsHovered(true);
@@ -213,7 +226,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
           const y = ((e.clientY - rect.top)/rect.height - 0.5)*2;
 
           console.log("Within card:", x, y, magnitude);
-          bifrost.callService({
+          zoomBifrost.callService({
             serial: cameraSerial,
             zoom: magnitude,
             zoom_longitude: x,
@@ -266,7 +279,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
               <CameraSessionStartStopButton streamingState={streamingState}
                                             sendSessionStartMessage={sendSessionStartMessage}
                                             closeSession={closeSession}/>
-              <Button isIconOnly size="sm" onPress={takeScreenshot}>
+              <Button isIconOnly size="sm" onPress={sourceCapture ? takeCapture : takeScreenshot}>
                 <CameraIcon size="15px"/>
               </Button>
               <Button isIconOnly size="sm" onPress={openCameraInTab}>
