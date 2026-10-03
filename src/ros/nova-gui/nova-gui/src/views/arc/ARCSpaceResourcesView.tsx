@@ -7,6 +7,7 @@ import {RootState} from "../../redux/RootState.ts";
 import ToolRotatorWidget from "../../components/science/ToolRotatorWidget/ToolRotatorWidget.tsx";
 import KilnWidget from "../../components/science/ThermalControl/KilnWidget.tsx";
 import AnalysisArmWidget from "../../components/science/AnalysisPlatformHeight/AnalysisPlatformWidget.tsx";
+import SweeperWidget from "../../components/science/SweeperWidget/SweeperWidget.tsx";
 
 const ARCSpaceResourcesView: React.FC = () => {
   return (
@@ -32,6 +33,7 @@ const ARCSpaceResourcesView: React.FC = () => {
         </div>
         <div className="flex flex-col gap-3 col-span-3">
           <KilnWidget />
+          <SweeperWidget/>
           <AnalysisArmWidget/>
         </div>
       </div>
