@@ -12,6 +12,7 @@ EDITED:         09/07/2026
 
 from nova_cli.commands.build import BuildCommand
 from nova_cli.commands.env import EnvCommand
+from nova_cli.commands.gui import RunCommand as GuiCommand
 from nova_cli.commands.launch import LaunchCommand
 from nova_cli.commands.rebuild_main import RebuildMainCommand
 from nova_cli.commands.run import RunCommand
@@ -22,6 +23,7 @@ from nova_cli.commands.start import StartCommand
 COMMANDS = {
     'build': BuildCommand,
     'env': EnvCommand,
+    'gui': GuiCommand,
     'launch': LaunchCommand,
     'rebuild-main': RebuildMainCommand,
     'run': RunCommand,

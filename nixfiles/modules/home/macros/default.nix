@@ -270,7 +270,6 @@ in
           mast-up="cansend can0 0E2#1000; sleep 5.2; cansend can0 0E2#0000";
 
           # GUI
-          gui-build = "$(nova-build -A pkgs.ros.nova-gui --no-out-link)/bin/gui-serve 5173 && echo http://localhost:5173";
           gui-serve = "~/Builds/active/bin/gui-serve 5173 && echo http://localhost:5173";
           gui-shell = "nova-shell -A pkgs.ros.nova-gui";
           gui-run = "yarn --cwd ~/nova/src/ros/nova-gui/nova-gui dev";

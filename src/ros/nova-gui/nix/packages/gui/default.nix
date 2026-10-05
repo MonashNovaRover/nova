@@ -130,7 +130,7 @@ stdenv.mkDerivation {
 
     cd $oldDir
 
-    echo -e "\e[32mRun the gui in dev mode with \e[0m\e[37;41mgui-run\e[0m\n\e[32mTo build the production version gui, run: \e[0m\e[37;41mgui-build\e[0m\n\e[33mDon't forget to run Rosbridge! \e[0m\e[37;41mgui-rosbridge;\e[0m"
+    echo -e "\e[32mRun the gui in dev mode with \e[0m\e[37;41mgui-run\e[0m\n\e[32mDon't forget to run Rosbridge! \e[0m\e[37;41mnova gui rosbridge;\e[0m"
 
     # for some reason this shell likes to print out the yarn output again when it exits. Not harmful but I can't seem to fix it and i've spent half an hour on it already so i give up
   '';
