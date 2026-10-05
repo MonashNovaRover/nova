@@ -11,7 +11,6 @@
 #include "properties/sources.hpp"
 #include "properties/sinks.hpp"
 
-#include "properties/capsfilters.hpp"
 #include "properties/cpufilters.hpp"
 
 #include "properties/h26X.hpp"

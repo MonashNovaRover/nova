@@ -113,6 +113,8 @@ struct rtspProperties
   std::string rtsp_protocol;
   
   int latency;
+
+  bool non_compliant_url;
 };
 
 struct Pipeline

@@ -11,6 +11,12 @@ camera_streamer:
       Ricoh_Theta_Cam:
         pipeline_type: theta
 
+      rtsp_cam:
+        pipeline_type: rtsppassthrough
+        url: rtsp://admin:Having_Set0p%25*7@192.168.0.137:8554/Streaming/Channels/102
+        rtsp_protocol: udp
+        non_compliant_url: false
+
       # Mast
       mast_backward:
         meta : Mast - Backwards

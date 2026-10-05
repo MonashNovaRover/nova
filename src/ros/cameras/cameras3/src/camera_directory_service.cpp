@@ -28,6 +28,7 @@ struct V4lDevice {
 
 std::vector<V4lDevice> find_v4l_capture_devices(void);
 V4lDevice find_theta(void);
+V4lDevice find_rtsp(const std::string& rtsp_url);
 
 class CameraDirectory : public rclcpp::Node
 {
@@ -63,6 +64,7 @@ class CameraDirectory : public rclcpp::Node
   std::unordered_map<std::string, std::string> serial_remaps;
   std::string platform;
   std::string task;
+  std::string rtsp_url;
   std::unordered_map<std::string, std::string> serial_overrides;
   std::unordered_map<std::string, std::string> camera_map;
   size_t last_device_count = -1;
@@ -89,6 +91,13 @@ class CameraDirectory : public rclcpp::Node
     } else {
       log << C_QUIET << "Node argument \"" << C_INPUT << "task" << C_QUIET << "\" is empty" << C_RESET;
     }
+
+    if (this->get_parameter<std::string>("rtsp_url", rtsp_url)) {
+      log << C_QUIET << "IP Camera detected" << C_SUBTITLE << rtsp_url << C_RESET << "\n";
+    } else {
+      log << C_QUIET << "Node argument \"" << C_INPUT << "rtsp_url" << C_QUIET << "\" is empty" << C_RESET << "\n";
+    }
+
 
     // Pretty print cameras
     RCLCPP_INFO(this->get_logger(), "%s", log.str().c_str());
@@ -170,7 +179,12 @@ class CameraDirectory : public rclcpp::Node
     // Check for theta cam
     V4lDevice theta_device = find_theta();
     if (!theta_device.model.empty()) {
-      devices.push_back(theta_device);
+      devices.emplace_back(theta_device);
+    }
+
+    if (!rtsp_url.empty()) {
+      V4lDevice rtsp_device = find_rtsp(rtsp_url);
+      devices.emplace_back(rtsp_device);
     }
 
     std::stringstream log;
@@ -323,6 +337,17 @@ V4lDevice find_theta() {
 
   sd_device_enumerator_unref(enumerator);
   return theta_cam;
+}
+
+V4lDevice find_rtsp(const std::string& rtsp_url) {
+  V4lDevice rtsp_cam;
+
+  rtsp_cam.devname = "/dev/rtsp";
+  rtsp_cam.model = "blahblahblah";
+  rtsp_cam.serial = "rtsp_cam";
+  rtsp_cam.path = rtsp_url;
+
+  return rtsp_cam;
 }
 
 

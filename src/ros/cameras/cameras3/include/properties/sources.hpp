@@ -47,6 +47,7 @@ template<typename properties> void set_rtspsource(GstElement* element, const pro
     "buffer-mode", 4, // synced
     "do-retransmission", props->do_retransmission, // No retransmission, keep latency low
     "drop-on-latency", true, // Keeps latency below set ms
+    "force-non-compliant-url", props->non_compliant_url, // Needed for cheap ip cameras
     "latency", props->latency,
     "ntp-sync", true, // Sync to computer
     "ntp-time-source", 1, // unix, works best on linux devices

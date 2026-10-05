@@ -27,6 +27,7 @@ def generate_launch_description():
     preset = LaunchConfiguration("preset")
     port = LaunchConfiguration("port")
     autostart = LaunchConfiguration("autostart")
+    rtsp_url = LaunchConfiguration("rtsp_url")
 
     return LaunchDescription(
         [
@@ -74,6 +75,11 @@ def generate_launch_description():
                 default_value="true",
                 description="Specify whether to start camera streaming automatically",
             ),
+            DeclareLaunchArgument(
+                "rtsp_url",
+                default_value="rtsp://192.168.0.137:8554/Streaming/Channels/101",
+                description="RTSP stream URL",
+            ),
 
             ExecuteProcess(
                 cmd=["gst-webrtc-signalling-server", "--port", port],
@@ -85,7 +91,7 @@ def generate_launch_description():
             Node(
                 package="cameras",
                 executable="camera_directory_service",
-                parameters=[{'platform': platform, 'task': task, 'preset': preset}, directory_params, streamer_params],
+                parameters=[{'platform': platform, 'task': task, 'preset': preset, 'rtsp_url': rtsp_url}, directory_params, streamer_params],
             ),
             Node(
                 package="cameras",
