@@ -38,7 +38,7 @@ class RunCommand(Command):
         parser.add_argument(
             'service',
             nargs='?',
-            choices=('dir', 'shell', 'rosbridge', 'tileserver'),
+            choices=('shell', 'rosbridge', 'tileserver'),
             default='gui',
             help='Service to run (default: gui)'
         )
