@@ -1,5 +1,5 @@
 import {StreamingState} from "../../hooks/useCameraStream.ts";
-import {Button, ButtonProps} from "@nextui-org/react";
+import {Button, ButtonProps} from "@heroui/react";
 import {Eye, EyeOff} from "react-feather";
 import React from "react";
 

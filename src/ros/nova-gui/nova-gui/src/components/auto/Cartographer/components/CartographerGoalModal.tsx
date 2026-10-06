@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis, restrictToWindowEdges, restrictToFirstScrollableAncestor } from "@dnd-kit/modifiers";
-import { Modal, ModalHeader, ModalFooter, ModalBody, ModalContent, Card, Divider } from "@nextui-org/react";
+import { Modal, ModalHeader, ModalFooter, ModalBody, ModalContent, Card, Divider } from "@heroui/react";
 import { useBifrost } from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../../ros/services/rosService.ts";
 import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";

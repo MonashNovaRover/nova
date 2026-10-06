@@ -3,7 +3,7 @@
  * Author: Connor Macdougall
  */
 
-import { Card, CardHeader, ScrollShadow } from "@nextui-org/react";
+import { Card, CardHeader, ScrollShadow } from "@heroui/react";
 import { ApexOptions } from "apexcharts";
 import DataChart from "./DataChart.tsx";
 import { ChartOptions, ChartStyle } from "./ChartOptions.ts";

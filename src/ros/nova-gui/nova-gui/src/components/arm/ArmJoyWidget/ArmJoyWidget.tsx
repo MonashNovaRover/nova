@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, CardProps, Slider, Switch } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, CardProps, Slider, Switch } from "@heroui/react";
 import { useState, useEffect, useRef } from "react";
 import { Lock } from "react-feather";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction";

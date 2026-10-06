@@ -1,4 +1,4 @@
-import { Modal } from "@nextui-org/react";
+import { Modal } from "@heroui/react";
 
 interface SidebarProps {
   isOpen: boolean;

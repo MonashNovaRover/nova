@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from "react";
-import {Button, Card, CardBody, CardHeader,} from "@nextui-org/react";
+import {Button, Card, CardBody, CardHeader,} from "@heroui/react";
 import {MoreHorizontal} from "react-feather";
 import NIR3DCalibrationCurve, {ScatterPlotData} from "./NIR3DCalibrationCurve.tsx";
 import NIR3DCurveSettingsModal from "./NIR3DCurveSettingsModal.tsx";

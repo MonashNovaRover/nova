@@ -1,5 +1,5 @@
 import {useNIRSiteData} from "../useNIRSiteData.ts";
-import {Button} from "@nextui-org/react";
+import {Button} from "@heroui/react";
 import {Download} from "react-feather";
 import {ISpaceResourcesEntry, NIRProbeReadingType} from "../SpaceResourcesSiteType.tsx";
 import {useCallback} from "react";

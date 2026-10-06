@@ -4,7 +4,7 @@ import {
   CardBody,
   CardHeader,
   CardProps,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, {ReactNode, useState} from "react";
 import NIRProbeFileTable from "./NIRProbeFileTable.tsx";
 import {MoreHorizontal} from "react-feather";

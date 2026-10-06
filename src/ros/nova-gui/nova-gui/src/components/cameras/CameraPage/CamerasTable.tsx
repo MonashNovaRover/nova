@@ -1,4 +1,4 @@
-import {Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip} from "@nextui-org/react";
+import {Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip} from "@heroui/react";
 import {BooleanChip} from "../CameraComponent/components/BooleanChip.tsx";
 import {ExternalLink, Pause, Play, Square} from "react-feather";
 import {CircleFill} from "react-bootstrap-icons";

@@ -1,4 +1,4 @@
-import {Button, Card, CardBody, CardHeader} from "@nextui-org/react";
+import {Button, Card, CardBody, CardHeader} from "@heroui/react";
 import {useCallback, useState} from "react";
 import SpinnerButton from "../../../components/shared/components/buttons/SpinnerButton.tsx";
 

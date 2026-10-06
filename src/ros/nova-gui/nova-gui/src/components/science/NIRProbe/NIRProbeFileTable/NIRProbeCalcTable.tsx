@@ -1,4 +1,4 @@
-import {CardProps, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@nextui-org/react";
+import {CardProps, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow} from "@heroui/react";
 import React from "react";
 import {useAverageReading} from "../NIRProbeCalibration/NIRCalibration.ts";
 import {NIRProbeReadingType, XYNames} from "../SpaceResourcesSiteType.tsx";

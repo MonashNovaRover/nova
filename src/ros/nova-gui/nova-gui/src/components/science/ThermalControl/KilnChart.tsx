@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Button, CardProps, Chip } from "@nextui-org/react";
+import { Button, CardProps, Chip } from "@heroui/react";
 
 import { useSelector } from "react-redux";
 import { RootState } from "../../../redux/RootState.ts";

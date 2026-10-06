@@ -6,7 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Spinner,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { Camera as CameraIcon, Settings } from "react-feather";
 import { StreamingState, useCameraStream } from "../hooks/useCameraStream.ts";

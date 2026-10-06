@@ -1,6 +1,6 @@
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosService} from "../../../ros/services/rosService.ts";
-import {Button, Tooltip} from "@nextui-org/react";
+import {Button, Tooltip} from "@heroui/react";
 import {RefreshCcw, Square} from "react-feather";
 
 export const UVVisSpecStartStopButtons = () => {

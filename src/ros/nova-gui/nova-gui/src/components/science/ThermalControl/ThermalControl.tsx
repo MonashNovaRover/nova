@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {Button, Slider, Tooltip} from "@nextui-org/react";
+import {Button, Slider, Tooltip} from "@heroui/react";
 import {Power, Square} from "react-feather";
 import {isArray} from "lodash";
 

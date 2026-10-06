@@ -112,7 +112,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    nova-shell -A pkgs.ros.nova-gui
    ```
 
-2. Install the dependencies*
+2. Install the dependencies (OPTIONAL)*
 
    ```sh
    gui-yarn install
@@ -121,7 +121,7 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    ```
    Errors are likely caused by network issues. Try setting your DNS and restarting your connection. 
 
-3. Link in the generated message definitions*
+3. Link in the generated message definitions (OPTIONAL)*
    
    This will create a symlink at `nova-gui/src/ros/rosTypes.ts` to the nix store file containing ros type definitions.
 
@@ -153,4 +153,4 @@ For Developing Nova-GUI, the reccomended method of development is using `nova-sh
    gui-run --host
    ```
 
-\* Steps 2 and 3 only need to be run the first time you run the GUI, or whenever a `yarn` dependancy or ROS2 interface respectively changes.
+\* Steps 2 and 3 only need to be run whenever a `yarn` dependancy or ROS2 interface respectively changes.

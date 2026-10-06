@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Select, SelectItem, Input } from "@nextui-org/react";
+import { Button, Select, SelectItem, Input } from "@heroui/react";
 import { Edit, Check } from "react-feather";
 import { GoalType } from "../../../../redux/models/CartographerState.ts";
 

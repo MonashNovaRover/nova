@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import SerialMappedCameraComponent from "../shared/CamerasPage/SerialMappedCameraComponent.tsx";
 import { CameraControlPanelModal } from "../../components/cameras/CameraPage/CamerasControlPanelModal.tsx";
 import { useCameraStreamer } from "../../components/cameras/hooks/useCameraStreamer";

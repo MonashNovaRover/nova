@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Card, CardBody, CardHeader, Chip } from "@nextui-org/react";
+import { Button, Card, CardBody, CardHeader, Chip } from "@heroui/react";
 import { useSelector } from "react-redux";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosTopic } from "../../../ros/topics/rosTopic.ts";

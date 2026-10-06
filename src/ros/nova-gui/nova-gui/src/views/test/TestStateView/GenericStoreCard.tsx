@@ -1,4 +1,4 @@
-import {Button, Card, CardHeader} from "@nextui-org/react";
+import {Button, Card, CardHeader} from "@heroui/react";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
 
 /**

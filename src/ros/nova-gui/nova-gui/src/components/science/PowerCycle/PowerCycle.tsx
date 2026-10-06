@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Input } from "@nextui-org/react";
+import { Button, Input } from "@heroui/react";
 import { Zap } from "react-feather";
 import toast from "react-hot-toast";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";

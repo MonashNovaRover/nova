@@ -1,5 +1,5 @@
 import {useCallback, useRef, useState} from "react";
-import {Button} from "@nextui-org/react";
+import {Button} from "@heroui/react";
 import Vert from "./gl/test.vert";
 import Frag from "./gl/test.frag";
 import LineVert from "./gl/line.vert";

@@ -1,4 +1,4 @@
-import {Tab, Tabs, TabsProps} from "@nextui-org/react";
+import {Tab, Tabs, TabsProps} from "@heroui/react";
 import React, {Children, Key, ReactNode} from "react";
 
 export interface SegmentedPickerProps extends TabsProps {

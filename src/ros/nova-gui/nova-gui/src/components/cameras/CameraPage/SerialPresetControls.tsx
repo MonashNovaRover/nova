@@ -1,4 +1,4 @@
-import {Button, Switch, Tooltip, Tab, Tabs} from "@nextui-org/react";
+import {Button, Switch, Tooltip, Tab, Tabs} from "@heroui/react";
 import {Pause, Play, Square} from "react-feather";
 import {SerialPreset, SerialPresetGroup} from "../../../views/shared/CamerasPage/CameraViewConstants.tsx";
 import {useState} from "react";

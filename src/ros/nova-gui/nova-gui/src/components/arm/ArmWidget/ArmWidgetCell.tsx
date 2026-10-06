@@ -2,7 +2,7 @@ import {
     Card,
     CardBody,
     CardProps
-  } from "@nextui-org/react";
+  } from "@heroui/react";
   import React, {ReactNode} from "react";
   import { OverlayedProgress } from "../../shared/components/OverlayedProgress/OverlayedProgress.tsx";
   

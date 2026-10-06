@@ -1,6 +1,6 @@
 import {CameraComponent, CameraComponentProps} from "../CameraComponent.tsx";
 import {FC, ReactNode, useState} from "react";
-import {Switch} from "@nextui-org/react";
+import {Switch} from "@heroui/react";
 import Overlay from "../../../shared/components/Overlay/Overlay.tsx";
 import CameraVideo, {CameraVideoProps} from "../components/CameraVideo.tsx";
 

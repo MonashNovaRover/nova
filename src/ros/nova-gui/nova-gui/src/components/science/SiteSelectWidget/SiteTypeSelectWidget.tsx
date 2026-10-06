@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@nextui-org/react";
+import {Card, CardBody, CardHeader, CardProps, Select, SelectItem} from "@heroui/react";
 import React from "react";
 import {Box, Droplet} from "react-feather";
 import {useGenericStore} from "../../../hooks/useGenericStore.ts";
@@ -61,7 +61,7 @@ const SiteTypeSelectWidget: React.FC<SiteSelectWidgetProps> = (
           startContent={siteTypeSelectOptions[currentSiteType].icon}
         >
           {siteTypeSelectOptions.map(({type, name, icon}) => (
-            <SelectItem key={`${type}`} value={type} startContent={icon}>
+            <SelectItem key={`${type}`} startContent={icon}>
               {name}
             </SelectItem>
           ))}

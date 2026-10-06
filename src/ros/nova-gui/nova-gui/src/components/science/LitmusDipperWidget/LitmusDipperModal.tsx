@@ -1,6 +1,6 @@
 import {
   Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, { useState } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import { LitmusDipperConfig } from "./LitmusDipperWidget";

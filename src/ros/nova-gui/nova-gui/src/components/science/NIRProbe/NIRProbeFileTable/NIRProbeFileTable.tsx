@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
   Tabs
-} from "@nextui-org/react";
+} from "@heroui/react";
 import React, {useCallback, useMemo} from "react";
 import {useNIRSiteData} from "../useNIRSiteData.ts";
 import {ISpaceResourcesEntries, NIRProbeReadingType, NIRProbeReadingTypeInfo} from "../SpaceResourcesSiteType.tsx";

@@ -1,4 +1,4 @@
-import {Button, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@nextui-org/react";
+import {Button, Divider, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,} from "@heroui/react";
 import React, { useMemo, useState } from "react";
 import { useGenericStore } from "../../../hooks/useGenericStore.ts";
 import {PUMPS} from "./PumpsWidget.tsx";
