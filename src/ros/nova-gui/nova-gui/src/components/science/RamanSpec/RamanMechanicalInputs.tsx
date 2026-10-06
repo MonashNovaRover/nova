@@ -4,7 +4,7 @@
  * It uses the old mechanical inputs (from 2023)
  */
 
-import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure, Tabs, Tab, Avatar } from "@nextui-org/react";
+import { Button, Card, CardHeader, Input, Modal, ModalBody, ModalContent, ModalHeader, useDisclosure, Tabs, Tab, Avatar } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { HelpCircle } from "react-feather";
 import { IRosScienceInterfacesRamanMechRequest } from "../../../ros/rosTypes.ts";

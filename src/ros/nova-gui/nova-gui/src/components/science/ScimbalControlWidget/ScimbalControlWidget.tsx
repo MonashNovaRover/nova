@@ -8,7 +8,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal } from "react-feather";
 import toast from "react-hot-toast";
 import { useBifrost } from "../../../redux/actions/bifrost/useBifrostAction.ts";

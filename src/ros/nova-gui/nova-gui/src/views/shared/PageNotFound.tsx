@@ -1,4 +1,4 @@
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import { useNavigate } from "react-router-dom";
 
 const PageNotFoundView = () => {

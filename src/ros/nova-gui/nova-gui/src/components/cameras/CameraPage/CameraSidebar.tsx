@@ -1,4 +1,4 @@
-import {Button, Card, CardBody, CardFooter, CardHeader, Input, Tooltip} from "@nextui-org/react";
+import {Button, Card, CardBody, CardFooter, CardHeader, Input, Tooltip} from "@heroui/react";
 import {Minus, Pause, Play, Plus, Square, X} from "react-feather";
 import {BooleanChip} from "../CameraComponent/components/BooleanChip.tsx";
 import {CamerasTable} from "./CamerasTable.tsx";

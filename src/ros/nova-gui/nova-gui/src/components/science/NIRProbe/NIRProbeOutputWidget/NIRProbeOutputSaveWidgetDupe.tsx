@@ -12,7 +12,7 @@ import {
   Input,
   Select,
   SelectItem
-} from "@nextui-org/react";
+} from "@heroui/react";
 import CopyableOutput from "../../../shared/components/CopyableOutput/CopyableOutput.tsx";
 import React, {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
@@ -268,7 +268,7 @@ const NIRProbeOutputSaveWidgetDupe: React.FC<NIRProbeOutputSaveWidgetProps> = ({
             startContent={icons[type]}
           >
             {readingInfo.slice(1).map(({type, name}) => (
-              <SelectItem key={`${type}`} value={type} startContent={icons[type]}>
+              <SelectItem key={`${type}`} startContent={icons[type]}>
                 {name}
               </SelectItem>
             ))}

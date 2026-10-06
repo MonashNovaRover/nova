@@ -1,7 +1,7 @@
 import LSObjectCard from "./LSObjectCard.tsx";
 import SiteSelectorTest from "./SiteSelectorTest.tsx";
 import GenericStoreCard from "./GenericStoreCard.tsx";
-import {Button, Card, CardBody} from "@nextui-org/react";
+import {Button, Card, CardBody} from "@heroui/react";
 
 export default function TestStateView () {
 

@@ -5,7 +5,7 @@ import {
     ModalBody,
     ModalContent,
     ModalHeader,
-} from "@nextui-org/react";
+} from "@heroui/react";
 import RGBInput from "./RGBInput.tsx";
 
 /**

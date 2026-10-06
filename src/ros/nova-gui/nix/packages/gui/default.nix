@@ -49,7 +49,7 @@ stdenv.mkDerivation {
 
   yarnOfflineCache = fetchYarnDeps {
     yarnLock = ../../../nova-gui/yarn.lock;
-    hash = "sha256-fHq9S4lLBhV/IzHr+FpsF7mdBmp26eqg8PwvqB5ZsDY=";
+    hash = "sha256-wZogBRfwbMJsHxFnq7mQ0VgxfN61lcwk0ekFctaNU/o=";
   };
 
   nativeBuildInputs = [
@@ -99,4 +99,42 @@ stdenv.mkDerivation {
   passthru.workspacePackages = {
     inherit rosbridge-server;
   };
+
+  shellHook = ''
+    # These 3 lines fix the nom-shell printing after exiting issue. Thanks GPT-5.6 Luna, only took 38.2 tokens
+    if [[ $- != *i* ]]; then
+      return
+    fi
+
+    export oldDir=$(pwd)
+    cd ${toString ../../../nova-gui}
+
+    # auto install node_modules from the offline cache
+    # inspired by https://github.com/NixOS/nixpkgs/blob/c27cdad491a991b11ed731760aa2ef8db0cb0410/pkgs/build-support/node/fetch-yarn-deps/yarn-config-hook.sh
+    echo -e "\e[33mInstalling node_modules from yarn offline cache...\e[0m"
+    cp yarn.lock yarn.lock.keep
+    yarn config --offline set yarn-offline-mirror "$yarnOfflineCache"
+    fixup-yarn-lock yarn.lock
+    yarn install \
+        --frozen-lockfile \
+        --force \
+        --production=false \
+        --ignore-engines \
+        --ignore-platform \
+        --ignore-scripts \
+        --non-interactive \
+        --offline \
+    rm yarn.lock
+    mv yarn.lock.keep yarn.lock
+    yarn config delete yarn-offline-mirror
+
+    # automatically link generated ROS TypeScript definitions to rostypes.ts
+    echo -e "\e[33mLinking generated ROS TypeScript definitions\e[0m"
+    rm src/ros/rosTypes.ts
+    ln -s "$ROS_TS_DEFINITIONS" "src/ros/rosTypes.ts"
+
+    cd $oldDir
+
+    echo -e "\e[32mRun the gui in dev mode with \e[0m\e[37;41mgui-run\e[0m\n\e[32mDon't forget to run Rosbridge! \e[0m\e[37;41mnova gui rosbridge;\e[0m"
+  '';
 }

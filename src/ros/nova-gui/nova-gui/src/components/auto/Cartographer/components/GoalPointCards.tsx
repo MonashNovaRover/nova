@@ -1,7 +1,7 @@
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Card, Checkbox, Chip } from "@nextui-org/react";
+import { Card, Checkbox, Chip } from "@heroui/react";
 import { GoalType, MapPoint } from "../../../../redux/models/CartographerState.ts";
 
 interface SortableItemProps {

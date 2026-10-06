@@ -14,7 +14,7 @@ import {
     DropdownTrigger,
     DropdownMenu,
     DropdownItem
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 import { useCallback, useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
