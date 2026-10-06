@@ -19,7 +19,7 @@ CREATION:	27/04/2023
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
 from launch.conditions import IfCondition
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, EnvironmentVariable
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -36,10 +36,11 @@ def launch_setup(context, *args, **kwargs):
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
     )
+    
+    comp = LaunchConfiguration('comp').perform(context).lower()
 
     sim = LaunchConfiguration('sim')
     urdf_path = LaunchConfiguration('urdf_path').perform(context)
-    shortened_auto_mount = LaunchConfiguration('shortened_auto_mount').perform(context)
     robot_name = LaunchConfiguration('robot_name').perform(context)
     rviz = LaunchConfiguration('rviz')
     rviz_params = LaunchConfiguration('rviz_params')
@@ -50,7 +51,7 @@ def launch_setup(context, *args, **kwargs):
         'sim:=', sim.perform(context), ' ',
         'robot_name:=', robot_name, ' ',
         'auto_mount:=', 'true', ' ',
-        'shortened_auto_mount:=', shortened_auto_mount
+        'comp:=', comp, ' ',
 ]), 
     value_type=str)
     
@@ -80,6 +81,11 @@ def generate_launch_description():
 
     declared_arguments = [
         DeclareLaunchArgument(
+            name='comp',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
+            description='ARCh or URC',
+        ),
+        DeclareLaunchArgument(
             name='local',
             default_value='False',
             description='Whether to use local directories instead of the nix store.',
@@ -98,11 +104,6 @@ def generate_launch_description():
             name='robot_name',
             default_value='Banksia',
             description='name of the robot',
-        ),
-        DeclareLaunchArgument(
-            name='shortened_auto_mount',
-            default_value='True',
-            description='Whether to use the shortened auto mount model',
         ),
         DeclareLaunchArgument(
             name='rviz',
