@@ -27,8 +27,7 @@ install(DIRECTORY
   waratah
   banksia
   taipan
-  auto_mount_urc
-  auto_mount_arch
+  auto_mount
   DESTINATION share/${PROJECT_NAME}
 )
 

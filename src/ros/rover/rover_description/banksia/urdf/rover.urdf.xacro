@@ -39,10 +39,10 @@
 
     <xacro:if value="$(arg auto_mount)">
         <xacro:if value="${'$(arg comp)' == 'urc'}">
-            <xacro:include filename="$(arg rover_description_dir)/auto_mount_urc/urdf/auto_mount.xacro"/>
+            <xacro:include filename="$(arg rover_description_dir)/auto_mount/urc/urdf/auto_mount.xacro"/>
         </xacro:if>
         <xacro:if value="${'$(arg comp)' == 'arch'}">
-            <xacro:include filename="$(arg rover_description_dir)/auto_mount_arch/urdf/auto_mount.xacro"/>
+            <xacro:include filename="$(arg rover_description_dir)/auto_mount/arch/urdf/auto_mount.xacro"/>
         </xacro:if>
     </xacro:if>
 

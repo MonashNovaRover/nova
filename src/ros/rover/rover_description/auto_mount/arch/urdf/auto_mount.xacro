@@ -42,7 +42,7 @@
         <visual>
             <origin xyz="0.542061 -0.00202068 0.0980872" rpy="-1.61388e-15 0.00348764 1.5708"/>
             <geometry>
-                <mesh filename="file://$(arg rover_description_dir)/auto_mount_arch/meshes/clam.stl"/>
+                <mesh filename="file://$(arg rover_description_dir)/auto_mount/arch/meshes/clam.stl"/>
             </geometry>
             <material name="clam_material">
                 <color rgba="0.647059 0.647059 0.647059 1"/>
@@ -90,7 +90,7 @@
         <visual>
             <origin xyz="0.081 0.0375 -0.0275769" rpy="1.5708 2.97004e-16 -8.22153e-19"/>
             <geometry>
-                <mesh filename="file://$(arg rover_description_dir)/auto_mount_arch/meshes/mount.stl"/>
+                <mesh filename="file://$(arg rover_description_dir)/auto_mount/arch/meshes/mount.stl"/>
             </geometry>
             <material name="mount_material">
                 <color rgba="0.615686 0.811765 0.929412 1"/>
@@ -114,7 +114,7 @@
         <visual>
             <origin xyz="-0.065 0.115 0.042" rpy="1.5708 1.5708 0"/>
             <geometry>
-                <mesh filename="file://$(arg rover_description_dir)/auto_mount_arch/meshes/lidar_holder.stl"/>
+                <mesh filename="file://$(arg rover_description_dir)/auto_mount/arch/meshes/lidar_holder.stl"/>
             </geometry>
             <material name="lidar_holder_material">
                 <color rgba="0.231373 0.380392 0.705882 1"/>
@@ -122,13 +122,13 @@
         </visual>
     </link>
     <!-- livox_frame -->
-    <xacro:include filename="$(arg rover_description_dir)/auto_mount_arch/urdf/livox.xacro"/>
-    <!-- Joint from lidar_holder to livox_frame -->
-    <joint name="lidar_mate" type="fixed">
+    <xacro:include filename="$(arg rover_description_dir)/auto_mount/shared/urdf/livox.xacro"/>
+
+    <!-- Livox mounted on lidar_holder -->
+    <xacro:sensor_livox parent="lidar_holder">
         <origin xyz="-0.09 -0.03 0.0435" rpy="1.5708 3.14159 0"/>
-        <parent link="lidar_holder"/>
-        <child link="livox_frame"/>
-    </joint>
+    </xacro:sensor_livox>
+
     <!-- Joint from mount to lidar_holder -->
     <joint name="mount_to_lidar" type="fixed">
         <origin xyz="0.123 -0.0775 0.0124231" rpy="-1.5708 -1.5708 1.5708"/>
@@ -159,7 +159,7 @@
         <visual>
             <origin xyz="-0.005 0.025 -0.06" rpy="1.5708 1.5708 0"/>
             <geometry>
-                <mesh filename="file://$(arg rover_description_dir)/auto_mount_arch/meshes/camera_holder.stl"/>
+                <mesh filename="file://$(arg rover_description_dir)/auto_mount/arch/meshes/camera_holder.stl"/>
             </geometry>
             <material name="camera_holder_material">
                 <color rgba="0.647059 0.647059 0.647059 1"/>
@@ -196,7 +196,7 @@
         <visual>
             <origin xyz="-0.005 0.025 -0.06" rpy="1.5708 1.5708 0"/>
             <geometry>
-                <mesh filename="file://$(arg rover_description_dir)/auto_mount_arch/meshes/camera_holder.stl"/>
+                <mesh filename="file://$(arg rover_description_dir)/auto_mount/arch/meshes/camera_holder.stl"/>
             </geometry>
             <material name="camera_holder_2_material">
                 <color rgba="0.647059 0.647059 0.647059 1"/>
@@ -204,7 +204,7 @@
         </visual>
     </link>
     <!-- realsense d415 -->
-    <xacro:include filename="$(arg rover_description_dir)/auto_mount_arch/urdf/realsense.xacro"/>
+    <xacro:include filename="$(arg rover_description_dir)/auto_mount/shared/urdf/realsense.xacro"/>
     <xacro:sensor_d415 parent="camera_holder_2" name="d415" use_nominal_extrinsics="$(arg gazebo)">
         <origin xyz="-0.09 0.0115 -0.058" rpy="-1.5708 0 3.14159" />
     </xacro:sensor_d415>
