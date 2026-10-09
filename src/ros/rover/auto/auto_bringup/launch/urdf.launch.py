@@ -14,6 +14,11 @@ NODES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
+AUTHOR:     Max Tory
+
+EDITED:     09/10/2026
+EDITED BY:  Harry Mills, Victor Bartlinski, Terry Tian
+            Anthony Lew
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
