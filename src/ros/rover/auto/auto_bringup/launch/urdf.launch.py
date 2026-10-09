@@ -14,12 +14,17 @@ NODES:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PACKAGE: 	auto_bringup
 CREATION:	27/04/2023
+AUTHOR:     Max Tory
+
+EDITED:     09/10/2026
+EDITED BY:  Harry Mills, Victor Bartlinski, Terry Tian
+            Anthony Lew
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
 from launch.conditions import IfCondition
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, IfElseSubstitution, EnvironmentVariable
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -36,6 +41,8 @@ def launch_setup(context, *args, **kwargs):
         PathJoinSubstitution([expanduser("~") + '/nova/src/ros/rover/auto/auto_bringup']),
         FindPackageShare('auto_bringup')
     )
+    
+    comp = LaunchConfiguration('comp').perform(context).lower()
 
     sim = LaunchConfiguration('sim')
     urdf_path = LaunchConfiguration('urdf_path').perform(context)
@@ -48,7 +55,9 @@ def launch_setup(context, *args, **kwargs):
         urdf_path, ' ',
         'sim:=', sim.perform(context), ' ',
         'robot_name:=', robot_name, ' ',
-        'auto_mount:=', 'true']), 
+        'auto_mount:=', 'true', ' ',
+        'comp:=', comp, ' ',
+]), 
     value_type=str)
     
     return [
@@ -76,6 +85,11 @@ def generate_launch_description():
     )
 
     declared_arguments = [
+        DeclareLaunchArgument(
+            name='comp',
+            default_value=EnvironmentVariable('COMP', default_value='ARCh'),
+            description='ARCh or URC',
+        ),
         DeclareLaunchArgument(
             name='local',
             default_value='False',
