@@ -48,9 +48,17 @@
 # free_thresh: 0.196 
 
 # 2026 ARCh Comp
-image: ../../maps/ARCh_2026_COMP_MAP_WITH_ROCKS.png     
-resolution: 0.12 # 30 m / 250 pixels
-origin: [-3.63, -16.5185, 0]
+# image: ../../maps/ARCh_2026_COMP_MAP_WITH_ROCKS.png     
+# resolution: 0.12 # 30 m / 250 pixels
+# origin: [-3.63, -16.5185, 0]
+# negate: 0
+# occupied_thresh: 0.65
+# free_thresh: 0.196 
+
+# 2026 Comp Demo
+image: ../../maps/2026_comp_demo_100x100.png   
+resolution: 0.28 # 28 m / 100 pixels
+origin: [-3.19, -10.41, 0]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196 

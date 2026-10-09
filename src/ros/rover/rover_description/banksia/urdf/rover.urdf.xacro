@@ -12,6 +12,7 @@
     <xacro:arg name="old_arm" default="false"/>
     <xacro:arg name="auto_mount" default="false"/>
     <xacro:arg name="robot_name" default="Banksia"/>
+    <xacro:arg name="comp" default ="arch"/>
     <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 
     <!-- Needed to prevent arm control from launching hardware interfaces for the wheels/pivots -->
@@ -37,7 +38,12 @@
     <xacro:include filename="$(arg rover_description_dir)/banksia/urdf/ckc.xacro"/>
 
     <xacro:if value="$(arg auto_mount)">
-        <xacro:include filename="$(arg rover_description_dir)/auto_mount/urdf/auto_mount.xacro"/>
+        <xacro:if value="${'$(arg comp)' == 'urc'}">
+            <xacro:include filename="$(arg rover_description_dir)/auto_mount/urc/urdf/auto_mount.xacro"/>
+        </xacro:if>
+        <xacro:if value="${'$(arg comp)' == 'arch'}">
+            <xacro:include filename="$(arg rover_description_dir)/auto_mount/arch/urdf/auto_mount.xacro"/>
+        </xacro:if>
     </xacro:if>
 
     <xacro:if value="$(arg arm)">
