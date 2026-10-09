@@ -16,6 +16,7 @@ import { getDistance } from "./utils/geojson.ts";
 import { useLocalStorage } from "../../../hooks/useLocalStorage.ts";
 import { MapTile } from "./config.tsx";
 import AutoArrivedPopup from "./components/AutoArrivedPopup.tsx";
+import {useDisplayMapCoordinate} from "./utils/convertCoords.ts";
 
 interface CartographerProps {
   pointLabels?: { key: number; text: string }[];
@@ -72,6 +73,8 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[storedPoints])
 
+  const {lat: mouseLat, long: mouseLong} = useDisplayMapCoordinate({lat: mousePosition?.lat ?? 0, long: mousePosition?.long ?? 0})
+
   return (
     <div className="w-full h-full">
       <AutoArrivedPopup/>
@@ -95,8 +98,8 @@ export const Cartographer : React.FC<CartographerProps> = ({ bottomOverlayCompon
                     mousePosition && (
                       <PropRenderer
                         props={{
-                          latitude: mousePosition.lat,
-                          longitude: mousePosition.long,
+                          latitude: mouseLat,
+                          longitude: mouseLong,
                         }}
                         ignoreProps={[]}
                         row
