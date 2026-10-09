@@ -73,7 +73,7 @@ class RadioMonitor(Node):
         # Create SSH connection
         self.ssh_connection = Connection(
             host=f"{self.get_parameter(f"{self.device_prefix}.{self.HOST_PARAM}").value}@{self.get_parameter(f"{self.device_prefix}.{self.BASE_IP_PARAM}").value}",
-            connect_kwargs={"password": open(os.path.expanduser(self.get_parameter(f"{self.device_prefix}.{self.PASSWORD_PATH_PARAM}").value)).read()},
+            connect_kwargs={"password": open(os.path.expanduser(self.get_parameter(f"{self.device_prefix}.{self.PASSWORD_PATH_PARAM}").value)).read(), "compress": True},
             connect_timeout=3,
         )
 
