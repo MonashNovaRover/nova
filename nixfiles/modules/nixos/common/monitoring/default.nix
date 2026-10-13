@@ -12,6 +12,7 @@ in
       wireshark.enable = true;
       usbtop.enable = true;
       tcpdump.enable = true;
+      iftop.enable = true;
     };
 
     # User groups for wireshark and tcpdump
