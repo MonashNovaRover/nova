@@ -11,7 +11,7 @@
   <xacro:arg name="rover_description_dir" default="$(find rover_description)" />
 
   <xacro:include
-        filename="$(find rover_description)/auto_mount_arch/urdf/livox.xacro"
+        filename="$(find rover_description)/auto_mount/shared/urdf/livox.xacro"
     />
 
   <!-- Manually added links-->
