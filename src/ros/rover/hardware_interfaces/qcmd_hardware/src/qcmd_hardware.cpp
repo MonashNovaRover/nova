@@ -213,6 +213,13 @@ hardware_interface::CallbackReturn QCMDHardware::apply_parameters() {
       RCLCPP_INFO(rclcpp::get_logger(QCMDHardwareLoggerName), "max_effort parameter was undefined.");
     }
 
+    auto send_single_zero_search = info_.hardware_parameters.find("send_single_zero");
+    if (send_single_zero_search != info_.hardware_parameters.end()) {
+      params_.send_single_zero = is_true(send_single_zero_search->second);
+    }
+    RCLCPP_INFO(rclcpp::get_logger(QCMDHardwareLoggerName), "Using send_single_zero of %s",
+                params_.send_single_zero ? "true" : "false");
+
     return CallbackReturn::SUCCESS;
 }
 
@@ -283,6 +290,16 @@ bool QCMDHardware::set_control_interface(
     template<typename T>
     void QCMDHardware::send_scaled(uint32_t id, double value, double max) {
         T data = static_cast<T>( (abs(value) > max ? (value > 0 ? 1 : -1) : value/max)* std::numeric_limits<T>::max());
+
+        // Only send one zero command instead of spamming zeros
+        if (params_.send_single_zero) {
+            // If the current data is zero and the last sent was also zero, skip sending
+            if (data == 0 && last_sent_data_.has_value() && last_sent_data_.value() == 0) {
+                return;
+            }
+            last_sent_data_ = static_cast<int64_t>(data);
+        }
+
         send_raw(id, data);
     }
 
