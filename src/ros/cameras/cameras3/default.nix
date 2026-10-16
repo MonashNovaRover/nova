@@ -58,21 +58,6 @@ buildRosPackage {
     pciutils
   ];
 
-  postInstall = ''
-    mkdir $out/bin
-    if [ -d "${gst_all_1.gstreamer }/bin" ]; then
-      for file in ${gst_all_1.gstreamer}/bin/*; do
-        ln -sf "$file" "$out/bin/"
-      done
-    fi
-    if [ -d "${gst_all_1.gst-plugins-rs}/bin" ]; then
-      ln -sf "${gst_all_1.gst-plugins-rs}/bin/gst-webrtc-signalling-server" "$out/bin/gst-webrtc-signalling-server"
-    fi
-    if [ -d "${v4l-utils}/bin" ]; then
-      ln -sf "${v4l-utils}/bin/v4l2-ctl" "$out/bin/v4l2-ctl"
-    fi
-    '';
-
   preFixup = ''
     set +e
     # Detect GPU type (Intel or AMD)
