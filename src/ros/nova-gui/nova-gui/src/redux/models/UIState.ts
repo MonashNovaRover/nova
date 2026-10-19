@@ -6,6 +6,7 @@ export interface UIState {
   sidebarIsVisible: boolean;
   blcmdStatusModalOpen: boolean;
   radioStatusModalOpen: boolean;
+  batteryModalOpen: boolean;
 }
 
 export const initialUIState: UIState = {
@@ -16,4 +17,5 @@ export const initialUIState: UIState = {
   sidebarIsVisible: false,
   blcmdStatusModalOpen: false,
   radioStatusModalOpen: false,
+  batteryModalOpen: false,
 };

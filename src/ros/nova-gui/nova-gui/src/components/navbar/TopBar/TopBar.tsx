@@ -23,7 +23,7 @@ import humanizeString from "humanize-string";
 import { BLCMDStatusButton } from "../BLCMDStatusModal/BLCMDStatusButton.tsx";
 import "./TopBar.css";
 import { List } from "react-bootstrap-icons";
-import { BatteryWidget } from "../BatteryWidget/BatteryWidget.tsx";
+import { BatteryWidget } from "../BatteryWidget/BatteryButton.tsx";
 import {RGBInputModal} from "../RGBWidget/RGBModal.tsx";
 import {RadioStatusButton} from "../RadioStatusModal/RadioStatusButton.tsx";
 
@@ -171,13 +171,8 @@ export const NovaTopBar: React.FC = () => {
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>
-        <NavbarItem className="">
-          <Button
-            radius="sm"
-            size="sm"
-          >
+        <NavbarItem>
             <BatteryWidget />
-          </Button>
         </NavbarItem>
         <NavbarItem className="">
           <>

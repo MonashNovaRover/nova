@@ -28,7 +28,7 @@ export function RadioStatusButton() {
         size="sm"
         variant="shadow"
         className="w-32"
-        isDisabled={radioHealth === RadioConnectionStatus.STARTING}
+        // isDisabled={radioHealth === RadioConnectionStatus.STARTING}
         color={radioConnectionStatusColor[radioHealth]}
         onPress={() => uiActions.setRadioStatusModalOpen(true)}
       >

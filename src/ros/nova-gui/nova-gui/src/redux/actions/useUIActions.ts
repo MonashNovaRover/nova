@@ -44,5 +44,11 @@ export function useUIActions() {
         payload: radioStatusModalOpen,
       });
     },
+    setBatteryModalOpen(batteryModalOpen: boolean) {
+      dispatch({
+        type: UIActions.BATTERY_MODAL_UPDATE.toString(),
+        payload: batteryModalOpen,
+      });
+    },
   };
 }

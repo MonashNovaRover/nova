@@ -56,6 +56,15 @@ export const uiSlice = createSlice({
         radioStatusModalOpen: action.payload,
       };
     },
+    BATTERY_MODAL_UPDATE: (
+      state: UIState,
+      action: PayloadAction<boolean>
+    ) => {
+      return {
+        ...state,
+        batteryModalOpen: action.payload,
+      };
+    },
   },
   initialState: initialUIState,
   name: "UIReducer",
