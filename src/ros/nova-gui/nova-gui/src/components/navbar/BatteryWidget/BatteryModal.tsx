@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 import type { RootState } from "../../../redux/RootState";
 import { useUIActions } from "../../../redux/actions/useUIActions.ts";
 
+import BatteryChart from "./BatteryChart.tsx";
+
 export const BatteryModal = () => {
 
     const uiActions = useUIActions();
@@ -30,6 +32,7 @@ export const BatteryModal = () => {
                 <ModalHeader className="flex flex-col gap-1"></ModalHeader>
                 <ModalBody>
                     <p>Battery Status: {batteryStatus.percentage}%</p>
+                    <BatteryChart/>
                 </ModalBody>
             </ModalContent>
         </Modal>

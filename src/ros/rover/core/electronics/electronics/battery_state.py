@@ -58,6 +58,8 @@ class BatteryStateController(Controller):
         msg.voltage = self.voltage_state.value
         msg.current = self.current_state.value
 
+        msg.header.stamp = self.node.get_clock().now().to_msg()
+
         self.publisher_battery_state.publish(msg)
 
 class BatteryStateHardware(HardwareInterface):
