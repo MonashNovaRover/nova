@@ -6,6 +6,7 @@ import BanksiaAuto from "../../../../assets/banksia-auto.png"
 import {useBifrost} from "../../../../redux/actions/bifrost/useBifrostAction.ts";
 import {RosTopic} from "../../../../ros/topics/rosTopic.ts";
 import {IRosNovaInterfacesStatusConst} from "../../../../ros/rosTypes.ts";
+import {useDisplayMapCoordinate} from "../utils/convertCoords.ts";
 
 interface AutoArrivedPopupProps {
 }
@@ -34,6 +35,8 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
 
   const onClose = () => setIsOpen(false)
 
+  const {lat, long} = useDisplayMapCoordinate({lat: arrivedLocation.latitude, long: arrivedLocation.longitude})
+
   return (
     <Modal isOpen={isOpen} size="5xl" onClose={onClose} className="dark text-foreground"  classNames={{
       base: "bg-success-100 text-[#a8b0d3]",
@@ -47,7 +50,7 @@ export const AutoArrivedPopup : React.FC<AutoArrivedPopupProps> = () => {
             at:
           </p>
           <p className="text-4xl">
-            {`(${arrivedLocation.latitude}, ${arrivedLocation.longitude})`}
+            {`(${lat}, ${long})`}
           </p>
           <Image src={BanksiaAuto} removeWrapper className="w-1/2 mt-10 items-center"/>
         </ModalBody>
