@@ -26,4 +26,14 @@ self: super:
         ]);
     }
   );
+
+  # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/libraries/gstreamer/rs/default.nix  #
+  # Nixpkgs has excluded webrtc because its upstream fails tests
+  # This is a temporary fix to enable webrtc until upstream fixes the tests
+  gst_all_1 = super.gst_all_1 // {
+    gst-plugins-rs = super.gst_all_1.gst-plugins-rs.overrideAttrs (old: {
+      mesonFlags = old.mesonFlags ++ [ "-Dwebrtc=enabled" ];
+      doCheck = false;
+    });
+  };
 }
