@@ -21,6 +21,7 @@ pokey:
     controllers:
       controller:
         duration: 5.0
+        effort: 0.4
     hardware:
       end_effector:
         can_id: 0x0C1
