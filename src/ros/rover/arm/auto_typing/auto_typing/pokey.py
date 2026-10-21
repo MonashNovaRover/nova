@@ -41,6 +41,7 @@ class EndEffectorController(Controller):
         self.logger.info("Ready to poke!")
 
         self.duration = self.declare_parameter("duration", 1.0, "How long to poke for, in seconds")
+        self.effort = self.declare_parameter("effort", 0.4, "Effort magnitude to poke at, between 0 and 1")
 
         self._action_server = ActionServer(
             self.node,
@@ -81,7 +82,7 @@ class EndEffectorController(Controller):
         return result
 
     def poke(self, forward: bool):
-        self.callback_ee_value = 1 if forward else -1
+        self.callback_ee_value = self.effort.value if forward else -self.effort.value
 
 
 def main():
