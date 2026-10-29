@@ -101,10 +101,15 @@
       rqt-controller-manager
       unbag
       ;
+    inherit (pkgs.gst_all_1)
+      gstreamer
+      gst-plugins-rs # webrtc signalling server
+      ;
     inherit (pkgs)
       mbtileserver
+      v4l-utils
       ;
-}, 
+  },
 }:
 
 let
