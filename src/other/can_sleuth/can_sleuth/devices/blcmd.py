@@ -16,6 +16,7 @@ EDITED BY: Orlando Chamberlain
 from . import candevice
 
 import math
+import ctypes
 
 def _toHex(x):
     if x:
@@ -107,18 +108,17 @@ class BLCMD(candevice.CanDevice):
                 ),
                 (0x401 | self.id << 4): (
                     ("velocity", ">H", "", None),
-                    ("Qcurrent", ">H", "", None),
+                    ("Qcurrent", ">H", "", lambda x: f"{ctypes.c_int16(x).value/0x7FFF*50: .2f}A"),
                 ),
                 (0x402 | self.id << 4): (
                     ("interval", ">H", "", None),
-                    ("Dcurrent", ">H", "", None),
+                    ("Dcurrent", ">H", "", lambda x: f"{ctypes.c_int16(x).value/0x7FFF*50: .2f}A"),
                 ),
                 (0x403 | self.id << 4): telem3,
                 (0x404 | self.id << 4): (
-                    ("power", ">H", "", None),
-                    ("voltage", ">H", "", None),
-                    ("temperature", ">H", "", None),
-                    ("current", ">H", "", None),
+                    ("voltage", ">H", "", lambda x: f"{x/1000:.2f}V"),
+                    ("temp FET", ">H", "", lambda x: f"{x-273:d}°C"),
+                    ("temp PIC", ">H", "", lambda x: f"{x-273:d}°C"),
                 ),
             }
 
