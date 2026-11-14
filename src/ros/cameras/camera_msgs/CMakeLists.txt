@@ -33,6 +33,7 @@ endif()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Camera.msg"
   "msg/Cameras.msg"
+  "srv/CameraCapture.srv"
   "srv/CameraOperation.srv"
   "srv/CameraProfileSelection.srv"
   "srv/CameraZoomSelection.srv"
