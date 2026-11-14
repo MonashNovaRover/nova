@@ -31,6 +31,8 @@ import {
   IRosRclInterfacesSetParametersResponse,
   IRosScienceInterfacesRunPumpRequest,
   IRosScienceInterfacesRunPumpResponse,
+  IRosCameraMsgsCameraCaptureRequest,
+  IRosCameraMsgsCameraCaptureResponse,
   IRosCameraMsgsCameraProfileSelectionRequest,
   IRosCameraMsgsCameraProfileSelectionResponse,
   IRosCameraMsgsCameraZoomSelectionRequest,
@@ -89,6 +91,10 @@ export interface RosServiceInterface {
     IRosCameraMsgsCameraOperationRequest,
     IRosCameraMsgsCameraOperationResponse
   >;
+  [RosService.CAPTURE_CAM]: RosServiceMessage<
+    IRosCameraMsgsCameraCaptureRequest,
+    IRosCameraMsgsCameraCaptureResponse
+  >;
   [RosService.PRESET_CAMS]: RosServiceMessage<
     IRosCameraMsgsCameraProfileSelectionRequest,
     IRosCameraMsgsCameraProfileSelectionResponse
@@ -96,10 +102,6 @@ export interface RosServiceInterface {
   [RosService.ZOOM_CAM]: RosServiceMessage<
     IRosCameraMsgsCameraZoomSelectionRequest,
     IRosCameraMsgsCameraZoomSelectionResponse
-  >;
-  [RosService.CAPTURE_CAM]: RosServiceMessage<
-    IRosCameraMsgsCameraOperationRequest,
-    IRosCameraMsgsCameraOperationResponse
   >;
   [RosService.GET_IP_LIST]: RosServiceMessage<
     EmptyMessage,
