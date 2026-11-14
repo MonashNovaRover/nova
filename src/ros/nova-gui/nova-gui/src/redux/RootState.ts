@@ -78,7 +78,6 @@ export interface RootState {
 
   // Camera Stores
   camerasStore: IRosCameraMsgsCameras;
-  cameraCaptureStore: IRosSensorMsgsCompressedImage;
   ipList: IRosCameraMsgsGetIpListResponse;
 
   // Error Related Stores

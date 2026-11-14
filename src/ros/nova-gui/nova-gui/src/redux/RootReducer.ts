@@ -146,10 +146,6 @@ export const reduxStores = {
   // Cameras2 Reducers
   camerasStore: createBifrostStore({ topic: RosTopic.CAMERAS }, { cameras: [] }),
   ipList: createBifrostStore({ service: RosService.GET_IP_LIST }, { ips: [] }),
-  cameraCaptureStore: createBifrostStore(
-    { topic: RosTopic.CAMERA_IMAGE },
-    { data: [], format: "" }
-  ),
 
   blcmdStatusStore: createBifrostStore(
     { topic: RosTopic.BLCMD_ERRORS },

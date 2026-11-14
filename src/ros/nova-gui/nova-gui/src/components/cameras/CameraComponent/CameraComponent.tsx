@@ -23,7 +23,6 @@ import { Site } from "../../../redux/models/genericStores/CurrentSiteStore.ts";
 import { CameraProfileEvents, emitCameraFiltersReadyEvent } from "../../../utils/cameraProfileEvents.ts";
 import { CameraProfilesState } from "../../../redux/models/CameraProfilesState.ts";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
-import { RosTopic } from "../../../ros/topics/rosTopic.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
 import html2canvas from "html2canvas";
 
@@ -88,7 +87,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const [cameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
   const zoomBifrost = useBifrost({ service: RosService.ZOOM_CAM });
   const captureBifrost = useBifrost({
-      topic: RosTopic.CAMERA_IMAGE,
       service: RosService.CAPTURE_CAM,
   })
   
@@ -185,7 +183,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
 
   const takeCapture = useCallback(() => {
     captureBifrost.callService(
-      { serials: [cameraSerial] }, { successToastMessage: `${cameraSerial} captured`, responseToast: true });
+      { serial: cameraSerial }, { successToastMessage: `${cameraSerial} captured`, responseToast: true });
   }, [captureBifrost, cameraSerial]);
 
   useEffect(() => {
