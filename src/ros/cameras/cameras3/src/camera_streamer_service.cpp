@@ -17,6 +17,7 @@
 #include <stdlib.h>
 
 #include <camera_msgs/srv/camera_operation.hpp>
+#include <camera_msgs/srv/camera_capture.hpp>
 #include <camera_msgs/srv/camera_profile_selection.hpp>
 #include <camera_msgs/srv/camera_zoom_selection.hpp>
 #include <camera_msgs/srv/get_camera_stream_stats.hpp>
@@ -66,6 +67,11 @@ class CameraStreamer : public rclcpp::Node
       SERVICE_PAUSE,
       std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::PAUSE)
+    );
+    capture_service_ = this->create_service<camera_msgs::srv::CameraCapture>(
+      SERVICE_CAPTURE,
+      std::bind(&CameraStreamer::capture_callback,
+        this, _1, _2)
     );
     profile_service_ = this->create_service<camera_msgs::srv::CameraProfileSelection>(
       SERVICE_PROFILE,
@@ -122,6 +128,7 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr stop_service_;
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr pause_service_;
+  rclcpp::Service<camera_msgs::srv::CameraCapture>::SharedPtr capture_service_;
   rclcpp::Service<camera_msgs::srv::CameraProfileSelection>::SharedPtr profile_service_;
   rclcpp::Service<camera_msgs::srv::CameraZoomSelection>::SharedPtr zoom_service_;
   rclcpp::Service<camera_msgs::srv::GetCameraStreamStats>::SharedPtr stats_service_;
@@ -359,9 +366,16 @@ class CameraStreamer : public rclcpp::Node
     }
   }
 
+  private: void capture_callback(
+    const std::shared_ptr<camera_msgs::srv::CameraCapture::Request> request,
+    std::shared_ptr<camera_msgs::srv::CameraCapture::Response> response)
+  {
+    response->success = true;
+  }
+
   private: void profile_callback(
     const std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Request> request,
-    std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Response> response)  
+    std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Response> response)
   {
     response->success = true;
     for (std::string serial : request->serials) { 
