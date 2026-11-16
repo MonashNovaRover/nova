@@ -182,6 +182,31 @@ class CameraStreamer : public rclcpp::Node
 
     // Use shared clock
     gst_pipeline_set_clock(GST_PIPELINE(pipeline->gst_pipeline), shared_clock);
+
+    // Manage data channels for captures
+    GstElement* webrtc_sink = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "webrtc_sink");
+    if (webrtc_sink) {
+
+      // Create a data channel whenever a new consumer is added 
+      g_signal_connect(webrtc_sink, "consumer-added", G_CALLBACK(+[](GstElement*, gchar* id, GstElement* webrtcbin, gpointer user_data)
+      {
+        GObject* channel = nullptr;
+        g_signal_emit_by_name(webrtcbin, "create-data-channel", "capture", nullptr, &channel);
+
+        Pipeline* pipeline = static_cast<Pipeline*>(user_data);
+        RCLCPP_INFO(rclcpp::get_logger("camera_streamer"), "[%s] consumer-added id=%s channel=%p", pipeline->camera->serial.c_str(), id, (void*)channel);
+      }), pipeline.get());
+
+      // Remove data channel whenever a consumer is removed
+      g_signal_connect(webrtc_sink, "consumer-removed", G_CALLBACK(+[](GstElement*, gchar* id, GstElement* webrtcbin, gpointer user_data)
+      {
+        Pipeline* pipeline = static_cast<Pipeline*>(user_data);
+        RCLCPP_INFO(rclcpp::get_logger("camera_streamer"), "[%s] consumer-removed id=%s", pipeline->camera->serial.c_str(), id);
+
+      }), pipeline.get());
+
+      gst_object_unref(webrtc_sink);
+    }
   }
 
   private: void change_profile_properties(const std::unique_ptr<Pipeline>& pipeline)
@@ -265,7 +290,7 @@ class CameraStreamer : public rclcpp::Node
         // Get pipeline_type
         this->get_pipeline_type(pipeline);
         this->start_pipeline(pipeline);
-
+        
         bool autostart = false;
         this->get_parameter("autostart", autostart);
 

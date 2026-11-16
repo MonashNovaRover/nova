@@ -290,6 +290,21 @@ export const useCameraStream = (
         if (videoRef.current) videoRef.current.srcObject = event.streams[0];
       };
 
+      // Handle data channel once created
+      rtcConnection.ondatachannel = (event) => {
+        event.channel.onopen = () => {
+          console.log("capture channel opened");
+        }
+
+        event.channel.onclose = () => {
+          console.log("capture channel closed");
+        }
+
+        event.channel.onmessage = (event) => {
+          console.log(event.data);
+        };
+      };
+
       rtcRef.current = rtcConnection;
       return rtcRef.current;
     }
