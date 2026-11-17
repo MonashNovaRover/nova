@@ -190,18 +190,22 @@ class CameraStreamer : public rclcpp::Node
       // Create a data channel whenever a new consumer is added 
       g_signal_connect(webrtc_sink, "consumer-added", G_CALLBACK(+[](GstElement*, gchar* id, GstElement* webrtcbin, gpointer user_data)
       {
-        GObject* channel = nullptr;
-        g_signal_emit_by_name(webrtcbin, "create-data-channel", "capture", nullptr, &channel);
-
         Pipeline* pipeline = static_cast<Pipeline*>(user_data);
-        RCLCPP_INFO(rclcpp::get_logger("camera_streamer"), "[%s] consumer-added id=%s channel=%p", pipeline->camera->serial.c_str(), id, (void*)channel);
+        GObject* channel = nullptr;
+
+        g_signal_emit_by_name(webrtcbin, "create-data-channel", "capture", nullptr, &channel);
+        pipeline->capture_channel = channel;
+
+        RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "[%s] consumer-added id=%s channel=%p", pipeline->camera->serial.c_str(), id, (void*)channel);
       }), pipeline.get());
 
       // Remove data channel whenever a consumer is removed
       g_signal_connect(webrtc_sink, "consumer-removed", G_CALLBACK(+[](GstElement*, gchar* id, GstElement* webrtcbin, gpointer user_data)
       {
         Pipeline* pipeline = static_cast<Pipeline*>(user_data);
-        RCLCPP_INFO(rclcpp::get_logger("camera_streamer"), "[%s] consumer-removed id=%s", pipeline->camera->serial.c_str(), id);
+        pipeline->capture_channel = nullptr;
+        
+        RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "[%s] consumer-removed id=%s", pipeline->camera->serial.c_str(), id);
 
       }), pipeline.get());
 
@@ -395,6 +399,24 @@ class CameraStreamer : public rclcpp::Node
     const std::shared_ptr<camera_msgs::srv::CameraCapture::Request> request,
     std::shared_ptr<camera_msgs::srv::CameraCapture::Response> response)
   {
+    std::string serial = request->serial;
+    auto it = this->pipelines.find(serial);
+    if (it == pipelines.end() || !it->second || !it->second->gst_pipeline) {
+      response->success = false;
+      return;
+    }
+
+    GObject* channel = it->second->capture_channel;
+    if (!channel) {
+      RCLCPP_ERROR(this->get_logger(), "%sPipeline of %s%s %shas no capture channel%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
+      response->success = false;
+      return;
+    }
+    
+    std::string msg = "<capture of " + serial + ">";
+    g_signal_emit_by_name(channel, "send-string", msg.c_str()); // TODO: send actual raw frame using send-data instead of ts
+
+    RCLCPP_INFO(this->get_logger(), "%sSent capture for %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
     response->success = true;
   }
 
@@ -447,7 +469,7 @@ class CameraStreamer : public rclcpp::Node
     response->success = true;
     std::string serial = request->serial;
     auto it = this->pipelines.find(serial);
-    if (it == pipelines.end() || !it->second->gst_pipeline || !it->second) {
+    if (it == pipelines.end() || !it->second || !it->second->gst_pipeline) {
       response->success = false;
       return;
     }

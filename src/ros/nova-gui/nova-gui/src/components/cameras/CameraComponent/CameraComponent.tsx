@@ -86,9 +86,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const sourceCapture = sourceCaptureBySerial[cameraSerial] ?? false;
   const [cameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
   const zoomBifrost = useBifrost({ service: RosService.ZOOM_CAM });
-  const captureBifrost = useBifrost({
-      service: RosService.CAPTURE_CAM,
-  })
+  const captureBifrost = useBifrost({service: RosService.CAPTURE_CAM})
   
   
   // Use ref to always have latest profiles without recreating event listeners
@@ -183,7 +181,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
 
   const takeCapture = useCallback(() => {
     captureBifrost.callService(
-      { serial: cameraSerial }, { successToastMessage: `${cameraSerial} captured`, responseToast: true });
+      { serial: cameraSerial }, { successToastMessage: `${cameraSerial} capture requested` });
   }, [captureBifrost, cameraSerial]);
 
   useEffect(() => {
