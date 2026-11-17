@@ -413,8 +413,28 @@ class CameraStreamer : public rclcpp::Node
       return;
     }
     
-    std::string msg = "<capture of " + serial + ">";
-    g_signal_emit_by_name(channel, "send-string", msg.c_str()); // TODO: send actual raw frame using send-data instead of ts
+    GstElement* capture_sink = gst_bin_get_by_name(GST_BIN(it->second->gst_pipeline), "capture_sink");
+    if (capture_sink) {
+      GstSample* frame = nullptr;
+      g_object_get(capture_sink, "last-sample", &frame, NULL);
+
+      if (frame) {
+        g_signal_emit_by_name(channel, "send-data", frame);
+        gst_sample_unref(frame);
+      } else {
+        RCLCPP_ERROR(this->get_logger(), "%sPipeline of %s%s %shas no capture frame%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
+        response->success = false;
+        return;
+      }
+      gst_object_unref(capture_sink);
+    } else {
+      RCLCPP_ERROR(this->get_logger(), "%sPipeline of %s%s %shas no capture sink%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
+      response->success = false;
+      return;
+    }
+
+    // std::string msg = "<capture of " + serial + ">";
+    // g_signal_emit_by_name(channel, "send-string", msg.c_str()); // TODO: send actual raw frame using send-data instead of ts
 
     RCLCPP_INFO(this->get_logger(), "%sSent capture for %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
     response->success = true;
