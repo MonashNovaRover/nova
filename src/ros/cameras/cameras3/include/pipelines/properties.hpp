@@ -107,6 +107,11 @@ struct rossinkProperties
   bool rossink;
 };
 
+struct capturesinkProperties
+{
+  bool capturesink;
+};
+
 struct rtspProperties
 {
   std::string url;
