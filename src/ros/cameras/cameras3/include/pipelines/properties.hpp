@@ -123,6 +123,8 @@ struct Pipeline
   double zoom;
   double zoom_longitude;
   double zoom_latitude;
+
+  GObject* capture_channel;
 };
 
 #endif
