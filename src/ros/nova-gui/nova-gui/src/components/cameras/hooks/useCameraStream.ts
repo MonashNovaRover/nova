@@ -54,7 +54,7 @@ export const useCameraStream = (
         setWsOpen(true);
       },
     }
-  ); 
+  );
 
   const camerasFromRos = useSelector(
     (state: RootState) => state.camerasStore.cameras
@@ -292,6 +292,10 @@ export const useCameraStream = (
 
       // Handle data channel once created
       rtcConnection.ondatachannel = (event) => {
+        let expected = 0;
+        let received = 0;
+        let image: ArrayBuffer[] = [];
+
         event.channel.onopen = () => {
           console.log("capture channel opened");
         }
@@ -302,132 +306,158 @@ export const useCameraStream = (
 
         event.channel.onmessage = (event) => {
           console.log(event.data);
-        };
-      };
+          try {
+            // Get image size
+            if (typeof event.data === "string") {
+              expected = parseInt(event.data);
+            } else if (event.data instanceof ArrayBuffer) {
+              // Append to image buffer
+              image.push(event.data);
+              received += event.data.byteLength;
 
-      rtcRef.current = rtcConnection;
-      return rtcRef.current;
-    }
+              // Create blob and download when all image data received
+              if (received >= expected) {;
+                const url = URL.createObjectURL(new Blob(image, { type: "image/jpeg" }));
+                const link = document.createElement("a");
+                const timestamp = Date.now();
+                link.href = url;
+                link.download = `site1-${cameraSerial}-${timestamp}.jpeg`;
+                link.click();
+
+                // Reset for next image
+                image = [];
+                received = 0;
+              }
+            }
+          } catch (err) {
+            toast(`Unable to save capture: ${err}`);
+          }
+      };
+    };
+
+    rtcRef.current = rtcConnection;
+    return rtcRef.current;
+  }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoRef, requestRandomAccessKeyframe]);
 
-  useEffect(() => {
-    if (!lastJsonMessage) return;
-    switch (lastJsonMessage.type) {
-      case "welcome":
-        break;
-      case "registered": {
-        sendSessionStartMessage();
-        break;
-      }
-      case "sessionStarted": {
-        setSessionId(lastJsonMessage.sessionId);
-        break;
-      }
-      case "peer": {
-        if (!lastJsonMessage.sessionId) break;
-
-        if (
-          sessionId &&
-          lastJsonMessage.sessionId !== sessionId
-        ) {
-          console.warn(
-            "Ignoring peer message for stale session",
-            lastJsonMessage.sessionId
-          );
-          break;
-        }
-
-        const rtcPeerConnection = handOverRTCPeerConnection();
-
-        handlePeerMessage(
-          rtcPeerConnection,
-          lastJsonMessage
-        );
-
-        break;
-      }
-      default: {
-        if (!erroredOut) {
-          toast.error("Cameras Errored Out. Please check Cameras");
-          setErroredOut(true);
-        }
-      }
+useEffect(() => {
+  if (!lastJsonMessage) return;
+  switch (lastJsonMessage.type) {
+    case "welcome":
+      break;
+    case "registered": {
+      sendSessionStartMessage();
+      break;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastJsonMessage]);
-
-  // Magic sauce that resets desynced cameras
-  useEffect(() => {
-    let cancelled = false;
-    let rvfcHandle: number | undefined;
-    let attachedVideo: HTMLVideoElement | undefined;
-
-    const scheduleFrameCallback = (video: HTMLVideoElement) => {
-      attachedVideo = video;
-      rvfcHandle = video.requestVideoFrameCallback((now, metadata) => {
-        if (cancelled) return;
-
-        lastFrameCallbackTime.current = Date.now();
-
-        // Skip while a reset is still settling in, so we don't stack
-        // another reset/keyframe request on top of a connection that
-        // hasn't finished renegotiating yet.
-        if (Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN) {
-          const display_delay = now - (metadata.receiveTime ?? now);
-          if (display_delay > MAX_LATENCY) {
-            if (display_delay > MAX_LATENCY * 5) {
-              // Session terminated
-              resetSession();
-            } else {
-              // Minor lag
-              requestRandomAccessKeyframe();
-            }
-          }
-        }
-
-        // Keep chaining so we get called on every frame, not just once.
-        scheduleFrameCallback(video);
-      });
-    };
-
-    const interval = setInterval(() => {
-      const video = videoRef.current;
-      if (!video) return;
-
-      if (video !== attachedVideo) {
-        if (attachedVideo && rvfcHandle !== undefined) {
-          attachedVideo.cancelVideoFrameCallback(rvfcHandle);
-        }
-        lastFrameCallbackTime.current = 0;
-        scheduleFrameCallback(video);
-      }
+    case "sessionStarted": {
+      setSessionId(lastJsonMessage.sessionId);
+      break;
+    }
+    case "peer": {
+      if (!lastJsonMessage.sessionId) break;
 
       if (
-        lastFrameCallbackTime.current !== 0
-        && Date.now() - lastFrameCallbackTime.current > MAX_LATENCY * 5
-        && Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN
-        && streamingState === StreamingState.STOPPED
+        sessionId &&
+        lastJsonMessage.sessionId !== sessionId
       ) {
-        resetSession();
+        console.warn(
+          "Ignoring peer message for stale session",
+          lastJsonMessage.sessionId
+        );
+        break;
       }
-    }, HEARTBEAT_INTERVAL);
 
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-      if (rvfcHandle !== undefined && attachedVideo) {
+      const rtcPeerConnection = handOverRTCPeerConnection();
+
+      handlePeerMessage(
+        rtcPeerConnection,
+        lastJsonMessage
+      );
+
+      break;
+    }
+    default: {
+      if (!erroredOut) {
+        toast.error("Cameras Errored Out. Please check Cameras");
+        setErroredOut(true);
+      }
+    }
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [lastJsonMessage]);
+
+// Magic sauce that resets desynced cameras
+useEffect(() => {
+  let cancelled = false;
+  let rvfcHandle: number | undefined;
+  let attachedVideo: HTMLVideoElement | undefined;
+
+  const scheduleFrameCallback = (video: HTMLVideoElement) => {
+    attachedVideo = video;
+    rvfcHandle = video.requestVideoFrameCallback((now, metadata) => {
+      if (cancelled) return;
+
+      lastFrameCallbackTime.current = Date.now();
+
+      // Skip while a reset is still settling in, so we don't stack
+      // another reset/keyframe request on top of a connection that
+      // hasn't finished renegotiating yet.
+      if (Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN) {
+        const display_delay = now - (metadata.receiveTime ?? now);
+        if (display_delay > MAX_LATENCY) {
+          if (display_delay > MAX_LATENCY * 5) {
+            // Session terminated
+            resetSession();
+          } else {
+            // Minor lag
+            requestRandomAccessKeyframe();
+          }
+        }
+      }
+
+      // Keep chaining so we get called on every frame, not just once.
+      scheduleFrameCallback(video);
+    });
+  };
+
+  const interval = setInterval(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video !== attachedVideo) {
+      if (attachedVideo && rvfcHandle !== undefined) {
         attachedVideo.cancelVideoFrameCallback(rvfcHandle);
       }
-    };
-  }, [resetSession, requestRandomAccessKeyframe, videoRef]);
+      lastFrameCallbackTime.current = 0;
+      scheduleFrameCallback(video);
+    }
 
-  return {
-    streamingState,
-    sendSessionStartMessage,
-    isCameraOnline,
-    closeSession,
-    resetSession,
-    requestRandomAccessKeyframe,
+    if (
+      lastFrameCallbackTime.current !== 0
+      && Date.now() - lastFrameCallbackTime.current > MAX_LATENCY * 5
+      && Date.now() - lastResetSessionTime.current >= RESET_SESSION_COOLDOWN
+      && streamingState === StreamingState.STOPPED
+    ) {
+      resetSession();
+    }
+  }, HEARTBEAT_INTERVAL);
+
+  return () => {
+    cancelled = true;
+    clearInterval(interval);
+    if (rvfcHandle !== undefined && attachedVideo) {
+      attachedVideo.cancelVideoFrameCallback(rvfcHandle);
+    }
   };
+}, [resetSession, requestRandomAccessKeyframe, videoRef]);
+
+return {
+  streamingState,
+  sendSessionStartMessage,
+  isCameraOnline,
+  closeSession,
+  resetSession,
+  requestRandomAccessKeyframe,
+};
 };
