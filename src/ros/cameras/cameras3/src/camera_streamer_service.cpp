@@ -414,21 +414,33 @@ class CameraStreamer : public rclcpp::Node
     }
     
     GstElement* capture_sink = gst_bin_get_by_name(GST_BIN(it->second->gst_pipeline), "capture_sink");
-    if (capture_sink) {
-      GstSample* frame = nullptr;
-      g_object_get(capture_sink, "last-sample", &frame, NULL);
-
-      if (frame) {
-        g_signal_emit_by_name(channel, "send-data", frame);
-        gst_sample_unref(frame);
-      } else {
-        RCLCPP_ERROR(this->get_logger(), "%sPipeline of %s%s %shas no capture frame%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
-        response->success = false;
-        return;
-      }
-      gst_object_unref(capture_sink);
-    } else {
+    if (!capture_sink) {
       RCLCPP_ERROR(this->get_logger(), "%sPipeline of %s%s %shas no capture sink%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
+      response->success = false;
+      return;
+    }
+  
+    GstSample* frame = nullptr;
+    g_object_get(capture_sink, "last-sample", &frame, NULL);
+    gst_object_unref(capture_sink);
+    if (!frame) {
+      RCLCPP_ERROR(this->get_logger(), "%sPipeline of %s%s %shas no capture frame%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
+      response->success = false;
+      return;
+    }
+
+    GstBuffer* buffer = gst_sample_get_buffer(frame);
+    GstMapInfo map;
+    if (buffer && gst_buffer_map(buffer, &map, GST_MAP_READ)) {
+      GBytes* bytes = g_bytes_new(map.data, map.size);
+      g_signal_emit_by_name(channel, "send-data", bytes);
+      
+      g_bytes_unref(bytes);
+      gst_buffer_unmap(buffer, &map);
+      gst_sample_unref(frame);
+    } else {
+      RCLCPP_ERROR(this->get_logger(), "%sFailed to map capture buffer for %s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
+      gst_sample_unref(frame);
       response->success = false;
       return;
     }
