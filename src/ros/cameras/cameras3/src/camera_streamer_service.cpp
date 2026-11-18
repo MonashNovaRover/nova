@@ -434,10 +434,19 @@ class CameraStreamer : public rclcpp::Node
     if (buffer && gst_buffer_map(buffer, &map, GST_MAP_READ)) {
       RCLCPP_INFO(this->get_logger(), "Mapped frame size: %zu bytes", map.size);
 
-      GBytes* bytes = g_bytes_new(map.data, map.size);
-      g_signal_emit_by_name(channel, "send-data", bytes);
-      
-      g_bytes_unref(bytes);
+      const size_t chunk_size = 16 * 1024;
+      size_t offset = 0;
+
+      while (offset < map.size) {
+        size_t current_chunk_size = std::min(chunk_size, map.size - offset);
+
+        GBytes* bytes = g_bytes_new(map.data + offset, current_chunk_size);
+        g_signal_emit_by_name(channel, "send-data", bytes);
+        g_bytes_unref(bytes);
+
+        offset += current_chunk_size;
+      }
+
       gst_buffer_unmap(buffer, &map);
       gst_sample_unref(frame);
     } else {
