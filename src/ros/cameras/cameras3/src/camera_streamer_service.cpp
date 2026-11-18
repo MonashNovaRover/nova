@@ -419,7 +419,7 @@ class CameraStreamer : public rclcpp::Node
       response->success = false;
       return;
     }
-  
+
     GstSample* frame = nullptr;
     g_object_get(capture_sink, "last-sample", &frame, NULL);
     gst_object_unref(capture_sink);
@@ -432,6 +432,8 @@ class CameraStreamer : public rclcpp::Node
     GstBuffer* buffer = gst_sample_get_buffer(frame);
     GstMapInfo map;
     if (buffer && gst_buffer_map(buffer, &map, GST_MAP_READ)) {
+      RCLCPP_INFO(this->get_logger(), "Mapped frame size: %zu bytes", map.size);
+
       GBytes* bytes = g_bytes_new(map.data, map.size);
       g_signal_emit_by_name(channel, "send-data", bytes);
       
