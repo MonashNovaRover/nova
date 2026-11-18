@@ -292,6 +292,10 @@ export const useCameraStream = (
 
       // Handle data channel once created
       rtcConnection.ondatachannel = (event) => {
+        let expected = 0;
+        let received = 0;
+        let image: ArrayBuffer[] = [];
+
         event.channel.onopen = () => {
           console.log("capture channel opened");
         }
@@ -302,7 +306,33 @@ export const useCameraStream = (
 
         event.channel.onmessage = (event) => {
           console.log(event.data);
-        };
+          try {
+            // Get image size
+            if (typeof event.data === "string") {
+              expected = parseInt(event.data);
+            } else if (event.data instanceof ArrayBuffer) {
+              // Append to image buffer
+              image.push(event.data);
+              received += event.data.byteLength;
+
+              // Create blob and download when all image data received
+              if (received >= expected) {;
+                const url = URL.createObjectURL(new Blob(image, { type: "image/jpeg" }));
+                const link = document.createElement("a");
+                const timestamp = Date.now();
+                link.href = url;
+                link.download = `site1-${cameraSerial}-${timestamp}.jpeg`;
+                link.click();
+
+                // Reset for next image
+                image = [];
+                received = 0;
+              }
+            }
+          } catch (err) {
+            toast(`Unable to save capture: ${err}`);
+          }
+      };
       };
 
       rtcRef.current = rtcConnection;

@@ -437,6 +437,10 @@ class CameraStreamer : public rclcpp::Node
       const size_t chunk_size = 16 * 1024;
       size_t offset = 0;
 
+      // Send byte count
+      std::string msg = std::to_string(map.size);
+      g_signal_emit_by_name(channel, "send-string", msg.c_str()); // TODO: send actual raw frame using send-data instead of ts
+
       while (offset < map.size) {
         size_t current_chunk_size = std::min(chunk_size, map.size - offset);
 
@@ -455,9 +459,6 @@ class CameraStreamer : public rclcpp::Node
       response->success = false;
       return;
     }
-
-    // std::string msg = "<capture of " + serial + ">";
-    // g_signal_emit_by_name(channel, "send-string", msg.c_str()); // TODO: send actual raw frame using send-data instead of ts
 
     RCLCPP_INFO(this->get_logger(), "%sSent capture for %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
     response->success = true;
