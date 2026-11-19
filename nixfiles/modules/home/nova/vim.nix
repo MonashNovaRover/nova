@@ -14,29 +14,57 @@ in
       ];
 
       extraConfig = ''
+        " Interface
         set number
-        set ignorecase
-        set smartcase
-        set showmatch
-        set hlsearch
-        set incsearch
-        set foldlevel=99
-        set foldmethod=indent
-        set hidden
-        set encoding=utf-8
-        set termguicolors
         set laststatus=2
-        set breakindent
+        set showmatch
         set showbreak=↳
         set cursorlineopt=number
-        set clipboard=unnamedplus
-        set mouse=a
+
+        " Search
+        set ignorecase
+        set smartcase
+        set hlsearch
+        set incsearch
+        set gdefault
+
+        " Folding
+        set foldlevel=99
+        set foldmethod=indent
+
+        " Indentation
+        set autoindent
+        set shiftround
+        set copyindent
+        set breakindent
         set shiftwidth=2
         set tabstop=2
         set expandtab
+
+        " Navigation
+        set scrolloff=8
+        set sidescrolloff=8
+        set nostartofline
+
+        " Command-line completion
+        set wildmenu
+        set wildmode=longest:full,full
+        set wildignorecase
+
+        " Clipboard and terminal
+        set clipboard=unnamedplus
+        set mouse=a
+        set hidden
+        set encoding=utf-8
+        set termguicolors
+
+        " Highlighting
         syntax enable
         filetype plugin indent on
+        let g:colorizer_auto_filetype = '*'
+        let g:colorizer_maxlines = 3000
 
+        " Colourscheme
         augroup BackgroundOverride
           autocmd!
           autocmd ColorScheme * highlight Normal guibg=#000000 ctermbg=NONE
@@ -45,12 +73,15 @@ in
         augroup END
         colorscheme catppuccin_mocha
 
-        let g:colorizer_auto_filetype = '*'
+        " Whitespace highlighter
+        highlight ExtraWhitespace ctermbg=NONE guibg=#f5e0dc
+        match ExtraWhitespace /\s\+$/
 
+        " Performance
         augroup LargeFile
           autocmd!
           autocmd BufReadPre *
-            \ if getfsize(expand("%")) > 1024 * 1024 |
+            \ if getfsize(expand("%")) >= 1024 * 1024 |
             \ setlocal noswapfile |
             \ setlocal syntax=off |
             \ ColorClear |
