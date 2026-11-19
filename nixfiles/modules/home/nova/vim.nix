@@ -87,6 +87,10 @@ in
             \ ColorClear |
             \ endif
         augroup END
+
+        " Yazi keybind
+        command! Yazi terminal y
+        command! Y terminal y
       '';
       defaultEditor = true;
     };
