@@ -80,7 +80,7 @@ in
         " Performance
         augroup LargeFile
           autocmd!
-          autocmd BufReadPre *
+          autocmd BufReadPost *
             \ if getfsize(expand("%")) >= 1024 * 1024 |
             \ setlocal noswapfile |
             \ setlocal syntax=off |
