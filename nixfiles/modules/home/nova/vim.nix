@@ -10,7 +10,6 @@ in
 
       plugins = [
         pkgs.vimPlugins.catppuccin-vim
-        pkgs.vimPlugins.colorizer
       ];
 
       extraConfig = ''
@@ -61,8 +60,6 @@ in
         " Highlighting
         syntax enable
         filetype plugin indent on
-        let g:colorizer_auto_filetype = '*'
-        let g:colorizer_maxlines = 3000
 
         " Colourscheme
         augroup BackgroundOverride
@@ -84,7 +81,6 @@ in
             \ if getfsize(expand("%")) >= 1024 * 1024 |
             \ setlocal noswapfile |
             \ setlocal syntax=off |
-            \ ColorClear |
             \ endif
         augroup END
 
