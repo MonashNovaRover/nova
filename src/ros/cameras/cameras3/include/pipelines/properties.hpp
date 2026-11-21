@@ -109,6 +109,8 @@ struct rossinkProperties
 
 struct capturesinkProperties
 {
+  std::string capture_format;
+
   bool capturesink;
 };
 
@@ -128,6 +130,8 @@ struct Pipeline
   double zoom;
   double zoom_longitude;
   double zoom_latitude;
+
+  std::string capture_format;
 
   GObject* capture_channel;
 };

@@ -303,6 +303,8 @@ std::unique_ptr<v4lsoftwarePipelineProperties> get_v4lsoftware_pipeline_properti
 
   // capturesink
   props->capturesink = set_property(streamer_node, camera, "capturesink", false);
+  default_string = "image/jpeg";
+  props->capture_format = set_property(streamer_node, camera, "capture_format", default_string);
   
   // convert
   default_string = "cubic";
