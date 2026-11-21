@@ -27,7 +27,7 @@ template<typename properties> void set_rostopicsink(GstElement* element, const p
   g_object_set(element, "ros-topic", props->ros_topic.c_str(), NULL);
 }
 
-template<typename properties> void set_capturesink(GstElement* element, const properties& props) {
+inline void set_capturesink(GstElement* element) {
   g_object_set(element, "enable-last-sample", TRUE, NULL); // make fakesink keep the latest frame
 }
 
