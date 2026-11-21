@@ -430,10 +430,11 @@ class CameraStreamer : public rclcpp::Node
       return;
     }
 
-    // If frame is raw, convert to jpeg before sending
+    // If frame is raw, convert to specified format before sending
     std::string mime = gst_structure_get_name(gst_caps_get_structure(gst_sample_get_caps(frame), 0));
+    std::string capture_format = set_property(this, it->second->camera, "capture_format", std::string("image/jpeg"));
     if (mime == "video/x-raw") {
-      GstCaps* caps = gst_caps_from_string("image/jpeg");
+      GstCaps* caps = gst_caps_from_string(capture_format.c_str());
       GError* err = nullptr;
       GstSample* encoded = gst_video_convert_sample(frame, caps, GST_SECOND, &err);
       gst_caps_unref(caps);
@@ -448,7 +449,7 @@ class CameraStreamer : public rclcpp::Node
       frame = encoded;
     }
 
-    // Send frame size and data over the data channel
+    // Send frame size, mime, and data over the data channel
     GstBuffer* buffer = gst_sample_get_buffer(frame);
     GstMapInfo map;
     if (buffer && gst_buffer_map(buffer, &map, GST_MAP_READ)) {
@@ -457,9 +458,9 @@ class CameraStreamer : public rclcpp::Node
       const size_t chunk_size = 16 * 1024;
       size_t offset = 0;
 
-      // Send byte count
-      std::string msg = std::to_string(map.size);
-      g_signal_emit_by_name(channel, "send-string", msg.c_str());
+      // Send byte count and mime
+      std::string frame_header = "{\"num_bytes\": " + std::to_string(map.size) + ", \"mime\": \"" + capture_format + "\"}";
+      g_signal_emit_by_name(channel, "send-string", frame_header.c_str());
       
       // Send the data in chunks
       while (offset < map.size) {
@@ -481,7 +482,7 @@ class CameraStreamer : public rclcpp::Node
       return;
     }
 
-    RCLCPP_INFO(this->get_logger(), "%sSent capture for %s%s%s", C_QUIET, C_TITLE, serial.c_str(), C_RESET);
+    RCLCPP_INFO(this->get_logger(), "%sSent capture for %s%s%s as %s%s", C_QUIET, C_TITLE, serial.c_str(), C_QUIET, capture_format.c_str(), C_RESET);
     response->success = true;
   }
 
