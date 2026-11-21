@@ -294,6 +294,7 @@ export const useCameraStream = (
       rtcConnection.ondatachannel = (event) => {
         let expected = 0;
         let received = 0;
+        let mime = "image/jpeg";
         let image: ArrayBuffer[] = [];
 
         event.channel.onopen = () => {
@@ -307,9 +308,11 @@ export const useCameraStream = (
         event.channel.onmessage = (event) => {
           console.log(event.data);
           try {
-            // Get image size
+            // Get image size and mime
             if (typeof event.data === "string") {
-              expected = parseInt(event.data);
+              const header = JSON.parse(event.data);
+              expected = header.num_bytes;
+              mime = header.mime;
             } else if (event.data instanceof ArrayBuffer) {
               // Append to image buffer
               image.push(event.data);
@@ -317,11 +320,11 @@ export const useCameraStream = (
 
               // Create blob and download when all image data received
               if (received >= expected) {;
-                const url = URL.createObjectURL(new Blob(image, { type: "image/jpeg" }));
+                const url = URL.createObjectURL(new Blob(image, { type: mime }));
                 const link = document.createElement("a");
                 const timestamp = Date.now();
                 link.href = url;
-                link.download = `site1-${cameraSerial}-${timestamp}.jpeg`;
+                link.download = `site1-${cameraSerial}-${timestamp}.${mime.split('/')[1]}`;
                 link.click();
 
                 // Reset for next image
