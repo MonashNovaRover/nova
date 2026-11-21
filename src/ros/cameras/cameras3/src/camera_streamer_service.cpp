@@ -198,6 +198,7 @@ class CameraStreamer : public rclcpp::Node
         Pipeline* pipeline = static_cast<Pipeline*>(user_data);
         GObject* channel = nullptr;
         g_signal_emit_by_name(webrtcbin, "create-data-channel", "capture", nullptr, &channel);
+        g_clear_object(&pipeline->capture_channel);
         pipeline->capture_channel = channel;
         RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "%sconsumer-added for %s%s%s id=%s channel=%p%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, id, (void*)channel, C_RESET);
       }), pipeline.get());
@@ -206,7 +207,7 @@ class CameraStreamer : public rclcpp::Node
       g_signal_connect(webrtc_sink, "consumer-removed", G_CALLBACK(+[](GstElement*, gchar* id, GstElement*, gpointer user_data)
       {
         Pipeline* pipeline = static_cast<Pipeline*>(user_data);
-        pipeline->capture_channel = nullptr;
+        g_clear_object(&pipeline->capture_channel);
         RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "%sconsumer-removed for %s%s%s id=%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, id, C_RESET);
       }), pipeline.get());
 
@@ -358,6 +359,7 @@ class CameraStreamer : public rclcpp::Node
 
             GstStateChangeReturn ret = gst_element_get_state(pipeline->gst_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
 
+            g_clear_object(&pipeline->capture_channel);
             gst_object_unref(pipeline->gst_pipeline);
             pipeline->gst_pipeline = nullptr;
 
