@@ -14,6 +14,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include <gst/gst.h> 
+#include <gst/video/video.h>
 #include <stdlib.h>
 
 #include <camera_msgs/srv/camera_operation.hpp>
@@ -115,7 +116,7 @@ class CameraStreamer : public rclcpp::Node
               gst_object_unref(pipeline->gst_pipeline);
               pipeline->gst_pipeline = nullptr;
 
-              RCLCPP_INFO(this->get_logger(), "%sPipeline for %s stopped and released%s", C_QUIET, pipeline->camera->serial.c_str(), C_RESET);
+              RCLCPP_INFO(this->get_logger(), "%sPipeline for %s%s%s stopped and released%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_RESET);
           }
       }
 
@@ -196,16 +197,16 @@ class CameraStreamer : public rclcpp::Node
         g_signal_emit_by_name(webrtcbin, "create-data-channel", "capture", nullptr, &channel);
         pipeline->capture_channel = channel;
 
-        RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "[%s] consumer-added id=%s channel=%p", pipeline->camera->serial.c_str(), id, (void*)channel);
+        RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "%sconsumer-added for %s%s%s id=%s channel=%p%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, id, (void*)channel, C_RESET);
       }), pipeline.get());
 
       // Remove data channel whenever a consumer is removed
-      g_signal_connect(webrtc_sink, "consumer-removed", G_CALLBACK(+[](GstElement*, gchar* id, GstElement* webrtcbin, gpointer user_data)
+      g_signal_connect(webrtc_sink, "consumer-removed", G_CALLBACK(+[](GstElement*, gchar* id, GstElement*, gpointer user_data)
       {
         Pipeline* pipeline = static_cast<Pipeline*>(user_data);
         pipeline->capture_channel = nullptr;
         
-        RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "[%s] consumer-removed id=%s", pipeline->camera->serial.c_str(), id);
+        RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "%sconsumer-removed for %s%s%s id=%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, id, C_RESET);
 
       }), pipeline.get());
 
@@ -429,18 +430,38 @@ class CameraStreamer : public rclcpp::Node
       return;
     }
 
+    // If frame is raw, convert to jpeg before sending
+    std::string mime = gst_structure_get_name(gst_caps_get_structure(gst_sample_get_caps(frame), 0));
+    if (mime == "video/x-raw") {
+      GstCaps* caps = gst_caps_from_string("image/jpeg");
+      GError* err = nullptr;
+      GstSample* encoded = gst_video_convert_sample(frame, caps, GST_SECOND, &err);
+      gst_caps_unref(caps);
+      gst_sample_unref(frame);
+
+      if(!encoded) {
+        RCLCPP_ERROR(this->get_logger(), "%sFailed to convert capture frame for %s%s%s%s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, err ? ":" : "", err ? err->message : "", C_RESET);
+        if (err) g_error_free(err);
+        response->success = false;
+        return;
+      }
+      frame = encoded;
+    }
+
+    // Send frame size and data over the data channel
     GstBuffer* buffer = gst_sample_get_buffer(frame);
     GstMapInfo map;
     if (buffer && gst_buffer_map(buffer, &map, GST_MAP_READ)) {
-      RCLCPP_INFO(this->get_logger(), "Mapped frame size: %zu bytes", map.size);
+      RCLCPP_DEBUG(this->get_logger(), "%sMapped frame size of capture for %s%s%s: %zu bytes %s", C_QUIET, C_TITLE, serial.c_str(), C_QUIET, map.size, C_RESET);
 
       const size_t chunk_size = 16 * 1024;
       size_t offset = 0;
 
       // Send byte count
       std::string msg = std::to_string(map.size);
-      g_signal_emit_by_name(channel, "send-string", msg.c_str()); // TODO: send actual raw frame using send-data instead of ts
-
+      g_signal_emit_by_name(channel, "send-string", msg.c_str());
+      
+      // Send the data in chunks
       while (offset < map.size) {
         size_t current_chunk_size = std::min(chunk_size, map.size - offset);
 
@@ -454,7 +475,7 @@ class CameraStreamer : public rclcpp::Node
       gst_buffer_unmap(buffer, &map);
       gst_sample_unref(frame);
     } else {
-      RCLCPP_ERROR(this->get_logger(), "%sFailed to map capture buffer for %s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
+      RCLCPP_ERROR(this->get_logger(), "%sFailed to map capture buffer for %s%s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
       gst_sample_unref(frame);
       response->success = false;
       return;
