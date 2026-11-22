@@ -320,8 +320,9 @@ export const useCameraStream = (
               received += event.data.byteLength;
 
               // Create blob and download when all image data received
-              if (received >= expected) {
-                onCaptureRef.current?.(new Blob(image, { type: mime }));
+              if (received >= expected && onCaptureRef.current) {
+                onCaptureRef.current(new Blob(image, { type: mime }));
+                toast.success(`${cameraSerial} captured`);
               }
             }
           } catch (err) {

@@ -24,6 +24,7 @@ import { CameraProfileEvents, emitCameraFiltersReadyEvent } from "../../../utils
 import { CameraProfilesState } from "../../../redux/models/CameraProfilesState.ts";
 import {useBifrost} from "../../../redux/actions/bifrost/useBifrostAction.ts";
 import { RosService } from "../../../ros/services/rosService.ts";
+import { IRosCameraMsgsCameraCaptureResponse } from "../../../ros/rosTypes.ts";
 import html2canvas from "html2canvas";
 
 const ASPECT_RATIO = 4 / 3;
@@ -97,8 +98,8 @@ export const CameraComponent = (props: CameraComponentProps) => {
     isCameraOnline,
     closeSession,
   } = useCameraStream(cameraSerial, videoRef, allCamerasStarted, saveImage);
-  
-  
+
+
   // Use ref to always have latest profiles without recreating event listeners
   const cameraProfilesRef = useRef(cameraProfiles);
   useEffect(() => {
@@ -113,7 +114,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     };
 
     window.addEventListener(CameraProfileEvents.SAVE_PROFILE, handleSaveProfile);
-    
+
     return () => {
       window.removeEventListener(CameraProfileEvents.SAVE_PROFILE, handleSaveProfile);
     };
@@ -124,10 +125,10 @@ export const CameraComponent = (props: CameraComponentProps) => {
     const handleLoadProfile = (event: Event) => {
       const customEvent = event as CustomEvent<{ profileName: string }>;
       const { profileName } = customEvent.detail;
-      
+
       // Use ref to get current profiles without recreating listener
       const currentProfiles = cameraProfilesRef.current.profiles;
-      
+
       const profile = currentProfiles[profileName];
       if (profile) {
         if (profile.cameras[cameraSerial]) {
@@ -139,7 +140,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
     };
 
     window.addEventListener(CameraProfileEvents.LOAD_PROFILE, handleLoadProfile);
-    
+
     return () => {
       window.removeEventListener(CameraProfileEvents.LOAD_PROFILE, handleLoadProfile);
     };
@@ -179,12 +180,26 @@ export const CameraComponent = (props: CameraComponentProps) => {
     } catch (err) {
       toast(`Unable to Take a Screenshot: ${err}`);
     }
-  }, [cameraSerial, currentSite, cameraName, getScreenshotName]);
+  }, [saveImage]);
 
   const takeCapture = useCallback(() => {
-    captureBifrost.callService(
-      { serial: cameraSerial }, { successToastMessage: `${cameraSerial} capture requested` });
-  }, [captureBifrost, cameraSerial]);
+    captureBifrost.callService({ serial: cameraSerial }, {
+      errorToastMessage: `Failed to request capture for ${cameraName}`,
+      handleResponse: (response) => {
+        const { success } = response as IRosCameraMsgsCameraCaptureResponse;
+        if (!success) toast.error(`Unable to capture ${cameraName}`);
+      },
+    });
+  }, [cameraName, captureBifrost, cameraSerial]);
+
+  const takePhoto = () => {
+      if (streamingState !== StreamingState.STREAMING) {
+        toast.error(`${cameraName} is not streaming!`, { id: `${cameraSerial}-not-streaming` });
+        return;
+      }
+      if (sourceCapture) takeCapture();
+      else takeScreenshot();
+    };
 
   useEffect(() => {
     const handleMouseEnter = () => {
@@ -275,9 +290,9 @@ export const CameraComponent = (props: CameraComponentProps) => {
           {(isHovered || isSettingsOpen) && (
             <div className="flex flex-ow gap-2">
               <CameraSessionStartStopButton streamingState={streamingState}
-                                            sendSessionStartMessage={sendSessionStartMessage}
+                sendSessionStartMessage={sendSessionStartMessage}
                                             closeSession={closeSession}/>
-              <Button isIconOnly size="sm" onPress={sourceCapture ? takeCapture : takeScreenshot}>
+              <Button isIconOnly size="sm" onPress={takePhoto}>
                 <CameraIcon size="15px"/>
               </Button>
               <Button isIconOnly size="sm" onPress={openCameraInTab}>
