@@ -14,4 +14,5 @@
   wmm-calculator = callPackage ./wmm-calculator { };
   pypcd4 = callPackage ./pypcd4 { };
   nova-cli = callPackage ../../src/other/nova_cli { };
+  onvif-python = callPackage ./onvif-python { };
 }
