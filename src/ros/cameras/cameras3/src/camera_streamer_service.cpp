@@ -155,14 +155,14 @@ class CameraStreamer : public rclcpp::Node
       pipeline->zoom = props->zoom;
       pipeline->zoom_longitude = props->zoom_longitude;
       pipeline->zoom_latitude = props->zoom_latitude;
-      pipeline->capture_format = props->capture_format;
+      pipeline->capture_mime = props->capture_mime;
     } else if (pipeline->camera->pipeline_type == "h265software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 5);
       pipeline->gst_pipeline = v4lsoftware_pipeline(this, props, 5);
       pipeline->zoom = props->zoom;
       pipeline->zoom_longitude = props->zoom_longitude;
       pipeline->zoom_latitude = props->zoom_latitude;
-      pipeline->capture_format = props->capture_format;
+      pipeline->capture_mime = props->capture_mime;
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
@@ -175,14 +175,14 @@ class CameraStreamer : public rclcpp::Node
       pipeline->zoom = props->zoom;
       pipeline->zoom_longitude = props->zoom_longitude;
       pipeline->zoom_latitude = props->zoom_latitude;
-      pipeline->capture_format = props->capture_format;
+      pipeline->capture_mime = props->capture_mime;
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 9);      
       pipeline->gst_pipeline = v4lsoftware_pipeline(this, props, 9);
       pipeline->zoom = props->zoom;
       pipeline->zoom_longitude = props->zoom_longitude;
       pipeline->zoom_latitude = props->zoom_latitude;
-      pipeline->capture_format = props->capture_format;
+      pipeline->capture_mime = props->capture_mime;
     }
 
     // Use shared clock
@@ -424,7 +424,7 @@ class CameraStreamer : public rclcpp::Node
     // If frame is raw, convert to specified format before sending
     std::string mime = gst_structure_get_name(gst_caps_get_structure(gst_sample_get_caps(frame), 0));
     if (mime == "video/x-raw") {
-      mime = pipeline->capture_format;
+      mime = pipeline->capture_mime;
       GstCaps* caps = gst_caps_from_string(mime.c_str());
       GError* err = nullptr;
       GstSample* encoded = gst_video_convert_sample(frame, caps, GST_SECOND, &err);
