@@ -149,6 +149,7 @@ class CameraStreamer : public rclcpp::Node
     {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
+      pipeline->capture_mime = props->capture_mime;
     } else if (pipeline->camera->pipeline_type == "h264software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 4);
       pipeline->gst_pipeline = v4lsoftware_pipeline(this, props, 4);

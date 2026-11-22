@@ -23,7 +23,7 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* log_node, const std::unique_ptr<v
 std::unique_ptr<v4lsoftwarePipelineProperties> get_v4lsoftware_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera, const int encoderX);
 void set_v4lsoftware_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lsoftwarePipelineProperties>& props, const int encoderX);
 
-struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cpuFiltersProperties, clockProperties, zoomProperties {};
+struct v4lfallbackPipelineProperties : Properties, v4lProperties, capsProperties, webRTCProperties, cpuFiltersProperties, clockProperties, capturesinkProperties, zoomProperties {};
 GstElement* v4lfallback_pipeline(rclcpp::Node* log_node, const std::unique_ptr<v4lfallbackPipelineProperties>& props);
 std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properties(rclcpp::Node* node, const std::unique_ptr<camera_msgs::msg::Camera>& camera);
 void set_v4lfallback_pipeline_properties(GstElement* gst_pipeline, const std::unique_ptr<v4lfallbackPipelineProperties>& props);

@@ -54,6 +54,19 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
     return nullptr;
   }
 
+  section = "capture";
+  GstElement* capture_tee = (props->capturesink) ? gst_element_factory_make("tee", "capture_tee") : nullptr;
+  GstElement* capture_queue = (props->capturesink) ? gst_element_factory_make("queue", "capture_queue") : nullptr;
+  GstElement* capture_sink = (props->capturesink) ? gst_element_factory_make("fakesink", "capture_sink") : nullptr;
+
+  if (props->capturesink && (
+    !capture_tee ||
+    !capture_queue ||
+    !capture_sink)) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
   section = "cpu";
   GstElement* cpu_crop = gst_element_factory_make("videocrop", "cpu_crop");
   GstElement* cpu_convertscale = gst_element_factory_make("videoconvertscale", "cpu_convertscale");
@@ -95,6 +108,7 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
     webrtc_sink,
   NULL);
   if (props->show_clock) gst_bin_add(GST_BIN(gst_pipeline), cpu_clock);
+  if (props->capturesink) gst_bin_add_many(GST_BIN(gst_pipeline), capture_tee, capture_queue, capture_sink, NULL);
 
   // 3. Set element properties
   set_v4lsource(source_v4l, props);
@@ -103,6 +117,11 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
   set_cpu_crop43(cpu_crop, props);
   set_convertscale(cpu_convertscale, props);
   set_scalefilter(cpu_filter, props);
+
+  if (props->capturesink) {
+    set_queue(capture_queue);
+    set_capturesink(capture_sink);
+  }
 
   set_webrtcsink(webrtc_sink, props);
 
@@ -116,6 +135,14 @@ GstElement* v4lfallback_pipeline(rclcpp::Node* streamer_node, const std::unique_
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
+
+  if (props->capturesink) {
+    link_elements(streamer_node, next_element, capture_tee, props->serial);
+    link_elements(streamer_node, next_element, capture_queue, props->serial);
+    link_elements(streamer_node, next_element, capture_sink, props->serial);
+    next_element = capture_tee;
+  }
+
   link_elements(streamer_node, next_element, source_decode, props->serial);
 
   g_signal_connect(source_decode, "pad-added", G_CALLBACK(+[](GstElement* , GstPad* new_pad, gpointer user_data) {
@@ -187,6 +214,11 @@ std::unique_ptr<v4lfallbackPipelineProperties> get_v4lfallback_pipeline_properti
   props->framerate_denominator = set_property(streamer_node, camera, "framerate_denominator", 1);
   props->height = set_property(streamer_node, camera, "height", 720);
   props->width = set_property(streamer_node, camera, "width", 1280);
+
+  // capturesink
+  props->capturesink = set_property(streamer_node, camera, "capturesink", false);
+  default_string = "image/jpeg";
+  props->capture_mime = set_property(streamer_node, camera, "capture_mime", default_string);
 
   // convert
   default_string = "linear";
