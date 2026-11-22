@@ -42,7 +42,8 @@ const RESET_SESSION_COOLDOWN = 3000; // ms, suppress heartbeat action right afte
 export const useCameraStream = (
   cameraSerial: string,
   videoRef: React.MutableRefObject<HTMLVideoElement | null>,
-  autoStart?: boolean
+  autoStart?: boolean,
+  onCapture?: (image: Blob) => void
 ) => {
   const [isWsOpen, setWsOpen] = useState(false);
   const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
@@ -54,7 +55,12 @@ export const useCameraStream = (
         setWsOpen(true);
       },
     }
-  ); 
+  );
+
+  const onCaptureRef = useRef(onCapture);
+  useEffect(() => {
+    onCaptureRef.current = onCapture;
+  }, [onCapture]);
 
   const camerasFromRos = useSelector(
     (state: RootState) => state.camerasStore.cameras
@@ -297,45 +303,31 @@ export const useCameraStream = (
         let mime = "image/jpeg";
         let image: ArrayBuffer[] = [];
 
-        event.channel.onopen = () => {
-          console.log("capture channel opened");
-        }
-
-        event.channel.onclose = () => {
-          console.log("capture channel closed");
-        }
-
         event.channel.onmessage = (event) => {
-          console.log(event.data);
           try {
             // Get image size and mime
             if (typeof event.data === "string") {
               const header = JSON.parse(event.data);
               expected = header.num_bytes;
               mime = header.mime;
+
+              // Clear before receiving new image
+              image = [];
+              received = 0;
             } else if (event.data instanceof ArrayBuffer) {
               // Append to image buffer
               image.push(event.data);
               received += event.data.byteLength;
 
               // Create blob and download when all image data received
-              if (received >= expected) {;
-                const url = URL.createObjectURL(new Blob(image, { type: mime }));
-                const link = document.createElement("a");
-                const timestamp = Date.now();
-                link.href = url;
-                link.download = `site1-${cameraSerial}-${timestamp}.${mime.split('/')[1]}`;
-                link.click();
-
-                // Reset for next image
-                image = [];
-                received = 0;
+              if (received >= expected) {
+                onCaptureRef.current?.(new Blob(image, { type: mime }));
               }
             }
           } catch (err) {
             toast(`Unable to save capture: ${err}`);
           }
-      };
+        };
       };
 
       rtcRef.current = rtcConnection;

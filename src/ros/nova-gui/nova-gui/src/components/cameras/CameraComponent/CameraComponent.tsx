@@ -67,18 +67,6 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const screenshotRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const {
-    streamingState,
-    sendSessionStartMessage,
-    isCameraOnline,
-    closeSession,
-  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted);
-  // const {
-  //   streamingState,
-  //   sendSessionStartMessage,
-  //   isCameraOnline,
-  //   closeSession,
-  // } = useWebcam(videoRef);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [filters, setFilters] = useState(getInitialFilters(cameraSerial));
   const [currentSite, _] = useGenericStore<Site>("currentSite");
@@ -87,6 +75,28 @@ export const CameraComponent = (props: CameraComponentProps) => {
   const [cameraProfiles] = useGenericStore<CameraProfilesState>("cameraProfiles");
   const zoomBifrost = useBifrost({ service: RosService.ZOOM_CAM });
   const captureBifrost = useBifrost({service: RosService.CAPTURE_CAM})
+
+  const saveImage = useCallback((image: Blob) => {
+    const timestamp = Date.now();
+    const extension = image.type.split("/")[1];
+    const filename = getScreenshotName
+      ? getScreenshotName(cameraName, timestamp)
+      : `site${(currentSite + 1).toString()}-${cameraSerial}-${timestamp}.${extension}`;
+
+    const url = URL.createObjectURL(image);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, [cameraSerial, currentSite, cameraName, getScreenshotName]);
+
+  const {
+    streamingState,
+    sendSessionStartMessage,
+    isCameraOnline,
+    closeSession,
+  } = useCameraStream(cameraSerial, videoRef, allCamerasStarted, saveImage);
   
   
   // Use ref to always have latest profiles without recreating event listeners
@@ -165,15 +175,7 @@ export const CameraComponent = (props: CameraComponentProps) => {
         return;
       }
 
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      const timestamp = Date.now();
-      const filename = getScreenshotName
-        ? getScreenshotName(cameraName, timestamp)
-        : `site${(currentSite + 1).toString()}-${cameraSerial}-${timestamp}.png`;
-      link.href = url;
-      link.download = filename;
-      link.click();
+      saveImage(blob);
     } catch (err) {
       toast(`Unable to Take a Screenshot: ${err}`);
     }
