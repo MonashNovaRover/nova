@@ -93,6 +93,9 @@
       <input_port name="server_timeout">Server timeout</input_port>
     </Action>
 
+    <Action ID="DummyNode">
+    </Action>
+
     <!-- ############################### CONDITION NODES ############################## -->
     <Condition ID="ARTagDetected">
       <input_port name="detections_topic">Topic to subscribe to for detections</input_port>
