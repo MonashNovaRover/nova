@@ -95,6 +95,9 @@ list(APPEND plugin_libs nova_remove_in_collision_goals_action_bt_node)
 add_library(nova_get_dist_between_poses_action_bt_node SHARED plugins/action/get_dist_between_poses_action.cpp)
 list(APPEND plugin_libs nova_get_dist_between_poses_action_bt_node)
 
+add_library(nova_dummy_node SHARED plugins/action/dummy_node.cpp)
+list(APPEND plugin_libs dummy_bt_node)
+
 # ========================================= CONDITION NODES ========================================= #
 
 add_library(nova_ar_tag_detected_condition_bt_node SHARED plugins/condition/ar_tag_detected_condition.cpp)
