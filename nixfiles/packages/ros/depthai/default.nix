@@ -22,8 +22,8 @@ buildRosPackage rec {
     #
     # http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai
     x86_64-linux = {
-      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20260225.231606_amd64.deb";
-      hash = "sha256-fMo9fv70IZYeJHbOOLWoZIpXxQJrcdyn36p80j7e9I8=";
+      url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20261102.180226_amd64.deb";
+      hash = "sha256-vrKGikDeREYH3JkSsxYECMwTLJ7KVOKOtkn0hN9FGvU";
     };
     aarch64-linux = {
       url = "http://packages.ros.org/ros2/ubuntu/pool/main/r/ros-jazzy-depthai/ros-jazzy-depthai_${version}-1noble.20260305.233843_arm64.deb";
