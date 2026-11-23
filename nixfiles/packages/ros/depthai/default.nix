@@ -9,7 +9,7 @@
 
 buildRosPackage rec {
   pname = "depthai";
-  version = "2.31.1";
+  version = "2.33.0";
   buildType = "prebuilt";
 
   src = fetchurl {
