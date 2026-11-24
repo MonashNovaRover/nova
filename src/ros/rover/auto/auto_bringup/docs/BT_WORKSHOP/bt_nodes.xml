@@ -96,10 +96,10 @@
     <Action ID="DummyNode">
     </Action>
 
-    <Action ID="CheckPathLength">
-      <input_port name="path">Input path to check</input_port>
-      <input_port name="max_length">Maximum allowed path length (m)</input_port>
-      <output_port name="output_goals">Updated goals</output_port>
+    <Action ID="GoalDistanceFilter">
+      <input_port name="goal">Goal pose to check (removed from the blackboard if too far)</input_port>
+      <input_port name="max_distance">Furthest allowed robot-to-goal distance (m)</input_port>
+      <output_port name="distance">Measured robot-to-goal distance (m)</output_port>
     </Action>
 
     <!-- ############################### CONDITION NODES ############################## -->
