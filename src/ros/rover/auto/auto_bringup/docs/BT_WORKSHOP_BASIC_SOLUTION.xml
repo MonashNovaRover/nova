@@ -11,7 +11,7 @@
           </Sequence>
         </RateController>
         <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
-        <Spin spin_dist="6.28"/>
+        <Spin spin_dist="3.14" time_allowance="1000.0" />
       </PipelineSequence>
       <Sequence name="ClearingActions">
         <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
