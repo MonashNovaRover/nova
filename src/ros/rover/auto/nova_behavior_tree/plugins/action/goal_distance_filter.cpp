@@ -32,13 +32,14 @@ constexpr char kRobotBaseFrame[] = "base_link";
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// Constructor + Initialise function
+// Constructor + initializer
 // ---------------------------------------------------------------------------
 GoalDistanceFilter::GoalDistanceFilter(
   const std::string & name,
   const BT::NodeConfiguration & config)
 : BT::SyncActionNode(name, config)
 {
+  initialize();
 }
 
 void GoalDistanceFilter::initialize()
@@ -55,7 +56,7 @@ BT::PortsList GoalDistanceFilter::providedPorts()
 {
   // TODO: return a list of the node's three ports:
   //   - an input  "goal"         of type geometry_msgs::msg::PoseStamped
-  //   - an input  "max_distance" of type double, with a default of 100.0
+  //   - an input  "max_distance" of type double, with a default of 10.0
   //   - an output "distance"     of type double
   // Each port can also take a short description string as its last argument.
 

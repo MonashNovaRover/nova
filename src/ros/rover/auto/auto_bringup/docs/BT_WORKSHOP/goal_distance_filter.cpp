@@ -15,7 +15,6 @@
 #include "nova_behavior_tree/action/goal_distance_filter.hpp"
 
 #include <cmath>
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -32,13 +31,14 @@ constexpr char kRobotBaseFrame[] = "base_link";
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// Constructor + Initialise function
+// Constructor + initializer
 // ---------------------------------------------------------------------------
 GoalDistanceFilter::GoalDistanceFilter(
   const std::string & name,
   const BT::NodeConfiguration & config)
 : BT::SyncActionNode(name, config)
 {
+  initialize();
 }
 
 void GoalDistanceFilter::initialize()
@@ -52,9 +52,9 @@ void GoalDistanceFilter::initialize()
 // ---------------------------------------------------------------------------
 BT::PortsList GoalDistanceFilter::providedPorts()
 {
-  // TODO(student): return a list of the node's three ports:
+  // TODO: return a list of the node's three ports:
   //   - an input  "goal"         of type geometry_msgs::msg::PoseStamped
-  //   - an input  "max_distance" of type double, with a default of 100.0
+  //   - an input  "max_distance" of type double, with a default of 10.0
   //   - an output "distance"     of type double
   // Each port can also take a short description string as its last argument.
   // Hint: BT::InputPort<T>(name, default_value, description),
@@ -84,7 +84,7 @@ BT::NodeStatus GoalDistanceFilter::tick()
     return BT::NodeStatus::FAILURE;
   }
 
-  auto max_distance = getInput<double>("max_distance");
+  double max_distance = getInput<double>("max_distance");
   if (!max_distance) {
     RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] could not read 'max_distance' input");
     return BT::NodeStatus::FAILURE;
@@ -110,7 +110,6 @@ BT::NodeStatus GoalDistanceFilter::tick()
   // --- WRITE YOUR SOLUTION HERE ---
   // Hint: Check out the computeDistance function to see what it expects as an input, and the type it returns.
   const double distance = computeDistance(robot_position, goal.value().pose.position);
-
   setOutput("distance", distance);
 
   // ---------------------------------------------------------------------------
@@ -125,7 +124,7 @@ BT::NodeStatus GoalDistanceFilter::tick()
   
   // --- WRITE YOUR SOLUTION HERE ---
   if (distance > max_distance.value()) {
-    RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] Goal too far");
+    RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] Goal too far: %.2f m > %.2f m", distance, max_distance);
     removeGoal();
     return BT::NodeStatus::FAILURE;
   }
@@ -152,6 +151,10 @@ double GoalDistanceFilter::computeDistance(
 // END OF EXERCISES
 // ---------------------------------------------------------------------------
 
+
+// ---------------------------------------------------------------------------
+// get robot position
+// ---------------------------------------------------------------------------
 
 bool GoalDistanceFilter::getRobotPosition(
   const std::string & frame,
@@ -180,7 +183,7 @@ bool GoalDistanceFilter::getRobotPosition(
 }
 
 // ---------------------------------------------------------------------------
-// PROVIDED: goal removal. Not part of the exercise.
+// goal removal
 // ---------------------------------------------------------------------------
 void GoalDistanceFilter::removeGoal()
 {
@@ -200,7 +203,7 @@ void GoalDistanceFilter::removeGoal()
 }  // namespace nova_behavior_tree
 
 // ---------------------------------------------------------------------------
-// PROVIDED: registration. Not part of the exercise.
+// Registration
 // ---------------------------------------------------------------------------
 BT_REGISTER_NODES(factory)
 {
