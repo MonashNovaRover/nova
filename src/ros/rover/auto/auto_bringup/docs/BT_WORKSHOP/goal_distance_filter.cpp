@@ -132,7 +132,7 @@ BT::NodeStatus GoalDistanceFilter::tick()
 }
 
 // ---------------------------------------------------------------------------
-// EXERCISE 5: a plain C++ helper (no BT knowledge needed).
+// EXERCISE 5: C++ helper (no BT knowledge needed).
 // ---------------------------------------------------------------------------
 double GoalDistanceFilter::computeDistance(
   const geometry_msgs::msg::Point & a,
