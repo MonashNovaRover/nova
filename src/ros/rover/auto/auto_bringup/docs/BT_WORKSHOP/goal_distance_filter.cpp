@@ -55,76 +55,74 @@ BT::PortsList GoalDistanceFilter::providedPorts()
   //       BT::OutputPort<T>(name, description)
   return {
     // --- BEGIN SOLUTION ---
-    BT::InputPort<geometry_msgs::msg::PoseStamped>(
-      "goal", "Goal pose to check (removed from the blackboard if too far)"),
-    BT::InputPort<double>(
-      "max_distance", 10.0, "Furthest allowed robot-to-goal distance (m)"),
-    BT::OutputPort<double>(
-      "distance", "Measured robot-to-goal distance (m)")
-    // --- END SOLUTION ---
+    BT::InputPort<geometry_msgs::msg::PoseStamped>("goal", "Goal pose to check"),
+    BT::InputPort<double>("max_distance", 10.0, "Furthest allowed robot-to-goal distance (m)"),
+    BT::OutputPort<double>("distance", "Measured robot-to-goal distance (m)")
   };
 }
 
 // ---------------------------------------------------------------------------
-// EXERCISES 2-4: the tick.
+// EXERCISE 2: on Tick function
 // ---------------------------------------------------------------------------
 BT::NodeStatus GoalDistanceFilter::tick()
 {
-  // TODO(student) Exercise 2: read the inputs.
-  //   - Read "goal" and "max_distance" with getInput<T>().
-  //   - getInput returns BT::Expected<T>. Check it before using it:
-  //     if (!result) { ... } then use result.value() to get the real value.
-  //   - If an input can't be read, print result.error() and return FAILURE.
-  //     Why FAILURE, and not SUCCESS?
-  // --- BEGIN SOLUTION ---
+ // TODO: read and validate the inputs
+  //   - Read "goal" and "max_distance" with getInput<Type>(....).
+  //   - Check if (!result) { ... }
+  //   - If an input can't be read, print an error message and return a status for the node.
+
+  // --- WRITE YOUR SOLUTION HERE ---
   auto goal = getInput<geometry_msgs::msg::PoseStamped>("goal");
   if (!goal) {
-    std::cerr << "[GoalDistanceFilter] '" << name() << "' could not read 'goal': " <<
-      goal.error() << std::endl;
+    RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] could not read 'goal' input");
     return BT::NodeStatus::FAILURE;
   }
 
   auto max_distance = getInput<double>("max_distance");
   if (!max_distance) {
-    std::cerr << "[GoalDistanceFilter] '" << name() << "' could not read 'max_distance': " <<
-      max_distance.error() << std::endl;
+    RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] could not read 'max_distance' input");
     return BT::NodeStatus::FAILURE;
   }
-  // --- END SOLUTION ---
 
-  // TODO(student) Exercise 3: measure the distance and write the output.
-  //   - Call the provided getRobotPosition(frame, position) helper. The frame
-  //     to use is the goal's frame: goal.value().header.frame_id.
-  //     If it returns false, return FAILURE (we can't tell how far away the
-  //     goal is, so we shouldn't remove it).
-  //   - Call computeDistance() with the robot's position and the goal's
-  //     position (goal.value().pose.position).
-  //   - Write the result to the "distance" output port with setOutput().
-  // --- BEGIN SOLUTION ---
+  // ---------------------------------------------------------------------------
+  // EXERCISE 3: Measure the distance and write the output
+  // ---------------------------------------------------------------------------
+  
+  // First we check to make sure we can actually get the position of the goal and the robot
+  // Side Tangent (Ros2 Geometry Msgs)
+  // https://docs.ros2.org/foxy/api/geometry_msgs/index-msg.html 
+
   geometry_msgs::msg::Point robot_position;
   if (!getRobotPosition(goal.value().header.frame_id, robot_position)) {
     return BT::NodeStatus::FAILURE;
   }
 
+  // TODO:
+  //   - Call computeDistance() with the robot's position and the goal's position (goal.value().pose.position).
+  //   - Write the result to the "distance" output port with setOutput().
+  
+  // --- WRITE YOUR SOLUTION HERE ---
+  // Hint: Check out the computeDistance function to see what it expects as an input, and the type it returns.
   const double distance = computeDistance(robot_position, goal.value().pose.position);
-  setOutput("distance", distance);
-  // --- END SOLUTION ---
 
-  // TODO(student) Exercise 4: decide the status.
+  setOutput("distance", distance);
+
+  // ---------------------------------------------------------------------------
+  // EXERCISE 4: Decide if the goal is valid or not
+  // ---------------------------------------------------------------------------
+
+  // TODO:
   //   - If distance is greater than max_distance, the goal is too far:
   //     call the provided removeGoal() helper, then return FAILURE.
   //   - Otherwise do nothing: the goal is allowed, and the SUCCESS below
-  //     is returned.
-  // Discussion: what happens higher up the tree when this returns FAILURE?
-  // --- BEGIN SOLUTION ---
+  //     is returned
+  
+  // --- WRITE YOUR SOLUTION HERE ---
   if (distance > max_distance.value()) {
-    std::cout << "[GoalDistanceFilter] '" << name() << "' goal too far: " << distance <<
-      " m > " << max_distance.value() << " m, removing goal" << std::endl;
+    RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] Goal too far");
     removeGoal();
     return BT::NodeStatus::FAILURE;
   }
-  // --- END SOLUTION ---
-
   return BT::NodeStatus::SUCCESS;
 }
 
@@ -137,16 +135,18 @@ double GoalDistanceFilter::computeDistance(
 {
   double distance = 0.0;
   // TODO(student): set distance to the 2D (x, y) distance between a and b.
-  // Hint: std::hypot(dx, dy) from <cmath>.
-  // --- BEGIN SOLUTION ---
+  // Hint: std::hypot(dx, dy) from <cmath>
+  // https://manuals.quinngrier.com/cppreference/20140208/reference/en/cpp/numeric/math/hypot.html 
+
   distance = std::hypot(b.x - a.x, b.y - a.y);
-  // --- END SOLUTION ---
   return distance;
 }
 
 // ---------------------------------------------------------------------------
-// PROVIDED: TF lookup. Not part of the exercise.
+// END OF EXERCISES
 // ---------------------------------------------------------------------------
+
+
 bool GoalDistanceFilter::getRobotPosition(
   const std::string & frame,
   geometry_msgs::msg::Point & position)
@@ -154,8 +154,7 @@ bool GoalDistanceFilter::getRobotPosition(
   // Get the TF buffer from the blackboard (looked up once, then cached).
   if (!tf_buffer_) {
     if (!config().blackboard->get("tf_buffer", tf_buffer_) || !tf_buffer_) {
-      std::cerr << "[GoalDistanceFilter] '" << name() <<
-        "' could not find 'tf_buffer' on the blackboard" << std::endl;
+      RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] Could not find 'tf_buffer' on the blackboard");
       return false;
     }
   }
@@ -167,8 +166,7 @@ bool GoalDistanceFilter::getRobotPosition(
     position.x = transform.transform.translation.x;
     position.y = transform.transform.translation.y;
   } catch (const tf2::TransformException & ex) {
-    std::cerr << "[GoalDistanceFilter] '" << name() << "' TF lookup failed: " <<
-      ex.what() << std::endl;
+    RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] TF lookup failed");
     return false;
   }
 
@@ -186,9 +184,7 @@ void GoalDistanceFilter::removeGoal()
   if (it == config().input_ports.end() ||
     !BT::TreeNode::isBlackboardPointer(it->second, &key))
   {
-    std::cerr << "[GoalDistanceFilter] '" << name() <<
-      "' could not remove goal: 'goal' port is not mapped to a blackboard entry" <<
-      std::endl;
+    RCLCPP_ERROR(node_->get_logger(), "[GoalDistanceFilter] could not remove goal: 'goal' port is not mapped to a blackboard entry");
     return;
   }
 
