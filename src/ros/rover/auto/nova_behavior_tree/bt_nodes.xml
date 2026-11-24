@@ -96,6 +96,12 @@
     <Action ID="DummyNode">
     </Action>
 
+    <Action ID="CheckPathLength">
+      <input_port name="path">Input path to check</input_port>
+      <input_port name="max_length">Maximum allowed path length (m)</input_port>
+      <output_port name="output_goals">Updated goals</output_port>
+    </Action>
+
     <!-- ############################### CONDITION NODES ############################## -->
     <Condition ID="ARTagDetected">
       <input_port name="detections_topic">Topic to subscribe to for detections</input_port>

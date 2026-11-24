@@ -7,6 +7,7 @@
         <RateController hz="1.0">
           <Sequence name="ComputeAndSmoothPath">
             <ComputePathToPose goal="{goal}" planner_id="NavFn" path="{path}"/>
+            <CheckPathLength />
             <SmoothPath smoother_id="savitzky_golay_smoother" unsmoothed_path="{path}" smoothed_path="{smoothed_path}"/>
           </Sequence>
         </RateController>
