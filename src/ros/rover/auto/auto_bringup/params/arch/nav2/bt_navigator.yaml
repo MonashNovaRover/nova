@@ -14,7 +14,8 @@ bt_navigator:
     
     navigate_to_pose:
       plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
-    default_nav_to_pose_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/basic_behaviour_tree.xml
+    # TODO: Replace the path here with the path to the new behaviour tree we just made
+    default_nav_to_pose_bt_xml: /home/nova/nova/src/ros/rover/auto/nova_behavior_tree/behavior_tree/shared/nav_to_pose.xml
     
     navigate_through_poses:
       plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
@@ -33,7 +34,7 @@ bt_navigator:
       - nova_goals_empty_condition_bt_node
       - nova_force_running_decorator_bt_node
       - nova_dummy_bt_node
-      #lazily added more than i need in preparation for comp demo
+      # TODO: Add your custom node in here
 
 bt_navigator_navigate_through_poses_rclcpp_node:
   ros__parameters:
