@@ -14,19 +14,28 @@
 
 #include "nova_behavior_tree/action/dummy_node.hpp"
 
+#include <iostream>
+#include <string>
+
 namespace nova_behavior_tree
 {
 
-    DummyNode::DummyNode(
-        const std::string & name,
-        const BT::NodeConfiguration & config)
-        : ActionNodeBase<std_srvs::srv::Trigger>(name, config)
-    {
-    }
+DummyNode::DummyNode(
+  const std::string & name,
+  const BT::NodeConfiguration & config)
+: BT::SyncActionNode(name, config)
+{
+}
 
-} // namespace nova_behavior_tree
+BT::NodeStatus DummyNode::tick()
+{
+  std::cout << "[DummyNode] '" << name() << "' ticked" << std::endl;
+  return BT::NodeStatus::SUCCESS;
+}
 
+}  // namespace nova_behavior_tree
+#include "behaviortree_cpp/bt_factory.h"
 BT_REGISTER_NODES(factory)
 {
-    factory.registerNodeType<nova_behavior_tree::DummyNode>("DUMMY_NODE");
+  factory.registerNodeType<nova_behavior_tree::DummyNode>("DummyNode");
 }
