@@ -7,6 +7,7 @@ appimageTools.wrapType2 {
   version = "1.6.1"; 
 
   src = fetchurl {
+    # This URL is from the official Groot2 website: https://www.behaviortree.dev/groot/ 
     # This URL can be taken down at any time without warning. The AppImage could be downloaded and stored in the monorepo to 
     # ward against this, but would take up ~109.7 MB, so we'll avoid it unless the URL does go down. Currently, the AppImage
     # is downloaded on Victor's laptop.
