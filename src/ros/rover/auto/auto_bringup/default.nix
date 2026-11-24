@@ -19,7 +19,7 @@
   image-view,
   image-transport,
   navigation2,
-  depthai-ros,
+  # depthai-ros,
   ground-segmentation-ros2,
   nova-behavior-tree,
   nova-object-localisation,
@@ -82,7 +82,7 @@ buildRosPackage rec {
       image-view
       image-transport
       navigation2
-      depthai-ros
+      # depthai-ros
       ground-segmentation-ros2
       nova-behavior-tree
       nova-object-localisation
