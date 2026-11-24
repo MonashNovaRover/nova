@@ -11,40 +11,40 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
- 
+
 #ifndef NOVA_BEHAVIOR_TREE__ACTION__DUMMY_NODE_HPP_
 #define NOVA_BEHAVIOR_TREE__ACTION__DUMMY_NODE_HPP_
- 
+
 #include <string>
- 
+
 #include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/bt_factory.h"
- 
+
 namespace nova_behavior_tree
 {
- 
+
 /**
  * @brief A minimal stand-in action node
  *
  * When ticked it prints a message and immediately returns SUCCESS.
  * It has no ports and no ROS dependencies.
  */
-namespace nova_behaviour_tree
+class DummyNode : public BT::SyncActionNode
 {
-    class DummyNode : public BT::SyncActionNode
-    {
-        public:
-            DummyNode(
-                const std::string & name,
-                const BT::NodeConfiguration & config
-            );
-            // Required by BT.CPP; this node has no ports.
-            static BT::PortsList providedPorts()
-            {
-                return {};
-            }
-            BT::NodeStatus tick() override;
-    }
+public:
+  DummyNode(
+    const std::string & name,
+    const BT::NodeConfiguration & config);
+
+  // Required by BT.CPP; this node has no ports.
+  static BT::PortsList providedPorts()
+  {
+    return {};
+  }
+
+  BT::NodeStatus tick() override;
+};
+
 }  // namespace nova_behavior_tree
- 
+
 #endif  // NOVA_BEHAVIOR_TREE__ACTION__DUMMY_NODE_HPP_
