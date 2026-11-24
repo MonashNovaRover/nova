@@ -23,6 +23,7 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "tf2_ros/buffer.h"
+#include "rclcpp/rclcpp.hpp"
 
 namespace nova_behavior_tree
 {
@@ -52,6 +53,12 @@ public:
   // Declares the node's ports. BT.CPP calls this when registering the node.
   static BT::PortsList providedPorts();
 
+  /**
+  * @brief Function to initialize variables,
+  * called only once in the lifecycle of the navigator
+  */
+  void initialize();
+
   // Called every time the node is ticked. Must return SUCCESS or FAILURE
   // (a SyncActionNode can never return RUNNING).
   BT::NodeStatus tick() override;
@@ -63,16 +70,13 @@ public:
     const geometry_msgs::msg::Point & b);
 
 private:
-  // Provided helper (not part of the exercise): looks up the robot's position
-  // in the given frame using TF. Returns false if the lookup fails.
-  bool getRobotPosition(
-    const std::string & frame,
-    geometry_msgs::msg::Point & position);
+  // Provided helper: ooks up the robot's position in the given frame using TF. Returns false if the lookup fails.
+  bool getRobotPosition(const std::string & frame, geometry_msgs::msg::Point & position);
 
-  // Provided helper (not part of the exercise): removes the blackboard entry
-  // that the "goal" port is mapped to.
+  // Provided helper removes the blackboard entry that the "goal" port is mapped to.
   void removeGoal();
 
+  rclcpp::Node::SharedPtr node_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 };
 

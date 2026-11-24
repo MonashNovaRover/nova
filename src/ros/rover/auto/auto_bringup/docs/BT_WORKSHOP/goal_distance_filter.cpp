@@ -32,13 +32,19 @@ constexpr char kRobotBaseFrame[] = "base_link";
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// PROVIDED: constructor. Nothing to implement here.
+// Constructor + Initialise function
 // ---------------------------------------------------------------------------
 GoalDistanceFilter::GoalDistanceFilter(
   const std::string & name,
   const BT::NodeConfiguration & config)
 : BT::SyncActionNode(name, config)
 {
+}
+
+void GoalDistanceFilter::initialize()
+{
+  node_ = config().blackboard->get<rclcpp::Node::SharedPtr>("node");
+  RCLCPP_INFO(node_->get_logger(), "GoalDistanceFilter successfully initialized!");
 }
 
 // ---------------------------------------------------------------------------
