@@ -88,19 +88,15 @@
       <output_port name="output_goals">Updated goals</output_port>
     </Action>
 
+    <Action ID="DummyNode">
+    </Action>
+
     <Action ID="LED">
       <input_port name="service_name">Service name</input_port>
       <input_port name="server_timeout">Server timeout</input_port>
     </Action>
 
-    <Action ID="DummyNode">
-    </Action>
-
-    <Action ID="CheckPathLength">
-      <input_port name="path">Input path to check</input_port>
-      <input_port name="max_length">Maximum allowed path length (m)</input_port>
-      <output_port name="output_goals">Updated goals</output_port>
-    </Action>
+    <!--Add the new node here!-->
 
     <!-- ############################### CONDITION NODES ############################## -->
     <Condition ID="ARTagDetected">
