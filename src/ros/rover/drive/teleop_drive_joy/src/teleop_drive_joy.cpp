@@ -441,7 +441,7 @@ void TeleopDriveJoy::switch_controller(const DriveMode requested_control_mode)
     return;
   }
 
-  elif (requested_control_mode == drive_mode_)
+  else if (requested_control_mode == drive_mode_)
   {
     RCLCPP_INFO_STREAM(
       this->get_logger(),
