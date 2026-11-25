@@ -432,7 +432,16 @@ void TeleopDriveJoy::send_halt_command()
 
 void TeleopDriveJoy::switch_controller(const DriveMode requested_control_mode)
 {
-  if (requested_control_mode == drive_mode_)
+
+  if (locked_)
+  {
+    RCLCPP_INFO_STREAM(
+      this->get_logger(),
+      C_INFO << "Drive is locked, remaining in " << C_MODE << pretty_print_mode(drive_mode_) << C_END);
+    return;
+  }
+
+  elif (requested_control_mode == drive_mode_)
   {
     RCLCPP_INFO_STREAM(
       this->get_logger(),
