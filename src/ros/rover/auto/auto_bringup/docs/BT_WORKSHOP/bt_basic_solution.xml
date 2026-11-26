@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode name="NavigateRecovery" number_of_retries="6">
+      <PipelineSequence name="NavigateToGoalAndSpin">
+        <BlackboardPublisher topic_name="blackboard" keys="goals" publish_frequency="1"/>
+        <RateController hz="1.0">
+          <Sequence name="ComputeAndSmoothPath">
+            <ComputePathToPose goal="{goal}" planner_id="NavFn" path="{path}"/>
+            <SmoothPath smoother_id="savitzky_golay_smoother" unsmoothed_path="{path}" smoothed_path="{smoothed_path}"/>
+          </Sequence>
+        </RateController>
+        <FollowPath path="{smoothed_path}" controller_id="RotationShimMPPI" goal_checker_id="goal_checker" progress_checker_id="progress_checker"/>
+        <Spin spin_dist="3.14" time_allowance="1000.0" />
+      </PipelineSequence>
+      <Sequence name="ClearingActions">
+        <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+        <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+      </Sequence>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

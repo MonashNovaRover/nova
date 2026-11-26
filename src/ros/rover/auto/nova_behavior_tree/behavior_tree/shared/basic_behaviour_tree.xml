@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" BTCPP_version="4.10">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode name="NavigateRecovery" number_of_retries="6">
+      <PipelineSequence name="NavigateToGoalAndSpin">
+        <BlackboardPublisher topic_name="blackboard"keys="goals" publish_frequency="1"/>
+        <RateController hz="1.0">
+          <Sequence name="ComputeAndSmoothPath">
+            <DummyNode/>
+            <DummyNode/>
+          </Sequence>
+        </RateController>
+        <DummyNode/>
+        <DummyNode/>
+      </PipelineSequence>
+      <Sequence name="ClearGlobalAndLocalCostmaps">
+        <DummyNode/>
+        <DummyNode/>
+      </Sequence>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>
