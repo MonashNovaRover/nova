@@ -19,6 +19,7 @@ def generate_launch_description():
         FindPackageShare('cameras')
     ) 
 
+    log_level = LaunchConfiguration("log_level")
     params = LaunchConfiguration("param_dir")
     directory_params = PathJoinSubstitution([params, "directory.yaml"])
     streamer_params = PathJoinSubstitution([params, "streamer.yaml"])
@@ -40,7 +41,12 @@ def generate_launch_description():
                 default_value='False',
                 description='Whether to use development parameter directory.',
             ),
-
+            
+            DeclareLaunchArgument(
+                "log_level",
+                default_value="info",
+                description="Log level for the camera streamer (debug, info, warn, error)",
+            ),
             DeclareLaunchArgument(
                 "param_dir",
                 default_value=IfElseSubstitution(dev,
@@ -91,6 +97,7 @@ def generate_launch_description():
                 package="cameras",
                 executable="camera_streamer_service",
                 parameters=[{'task': task, 'preset': preset, 'autostart': autostart}, streamer_params],
+                arguments=['--ros-args', '--log-level', ['camera_streamer:=', log_level]],
             ),
         ]
     )

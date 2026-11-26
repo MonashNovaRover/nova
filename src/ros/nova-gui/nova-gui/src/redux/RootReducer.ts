@@ -419,6 +419,7 @@ export const reduxStores = {
 
 
   // Generic stores
+  sourceCapture: createGenericStore<Record<string, boolean>>("sourceCapture", {}),
   currentSite: createGenericStore("currentSite", Site.SITE_1),
   siteData: createGenericStore("siteData", initialSiteDataState),
   nirProbeCalibrationData: createGenericStore("nirProbeCalibrationData", DEFAULT_NIR_PROBE_CALIBRATION_DATA),

@@ -4,7 +4,7 @@ import {
   CircleFill,
   CircleHalf,
 } from "react-bootstrap-icons";
-import { Droplet, Pause, Play, RotateCcw, Square } from "react-feather";
+import { Camera, Droplet, Pause, Play, RotateCcw, Square } from "react-feather";
 import { CameraFilters } from "../CameraComponent.tsx";
 import {ReactNode} from "react";
 import { useStreamingBifrost } from "../../hooks/cameraBifrostHooks.ts";
@@ -13,6 +13,7 @@ import { RootState } from "../../../../redux/RootState.ts";
 import { BooleanChip } from "./BooleanChip.tsx";
 import {CameraProfileSelector} from "../../CameraPage/CameraProfileSelector.tsx";
 import {defaultCameraProfileOptions,} from "../../../../views/shared/CamerasPage/CameraProfileConstants.ts";
+import { useGenericStore } from "../../../../hooks/useGenericStore.ts";
 
 const snapTo90 = (value: number): number => {
   const remainder = value % 90;
@@ -32,6 +33,7 @@ export const CameraSettingsForm = ({
   children?: ReactNode
 }) => {
   const [startStreaming, pauseStreaming, stopStreaming] = useStreamingBifrost(()=>{});
+  const [sourceCapture, setSourceCapture] = useGenericStore<Record<string, boolean>>("sourceCapture");
 
   const onlineCameras = useSelector((state: RootState) => state.camerasStore.cameras);
   const isOnline = onlineCameras.map(v=>v.serial).includes(cameraSerial)
@@ -70,6 +72,15 @@ export const CameraSettingsForm = ({
         >
           Invert Colors
         </Switch>
+        <Switch
+          className="col-start-1 row-start-3"
+          size="sm"
+          thumbIcon={<Camera fill="white" />}
+          isSelected={sourceCapture[cameraSerial] ?? false}
+          onValueChange={(v) => setSourceCapture({ ...sourceCapture, [cameraSerial]: v })}>
+          Source Capture
+        </Switch>
+
         <div className="col-start-2 row-start-1 justify-self-end">
           <Button
             isIconOnly

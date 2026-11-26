@@ -14,9 +14,11 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include <gst/gst.h> 
+#include <gst/video/video.h>
 #include <stdlib.h>
 
 #include <camera_msgs/srv/camera_operation.hpp>
+#include <camera_msgs/srv/camera_capture.hpp>
 #include <camera_msgs/srv/camera_profile_selection.hpp>
 #include <camera_msgs/srv/camera_zoom_selection.hpp>
 #include <camera_msgs/srv/get_camera_stream_stats.hpp>
@@ -67,6 +69,11 @@ class CameraStreamer : public rclcpp::Node
       std::bind(&CameraStreamer::operation_callback, 
         this, _1, _2, CameraState::PAUSE)
     );
+    capture_service_ = this->create_service<camera_msgs::srv::CameraCapture>(
+      SERVICE_CAPTURE,
+      std::bind(&CameraStreamer::capture_callback,
+        this, _1, _2)
+    );
     profile_service_ = this->create_service<camera_msgs::srv::CameraProfileSelection>(
       SERVICE_PROFILE,
       std::bind(&CameraStreamer::profile_callback,
@@ -109,7 +116,7 @@ class CameraStreamer : public rclcpp::Node
               gst_object_unref(pipeline->gst_pipeline);
               pipeline->gst_pipeline = nullptr;
 
-              RCLCPP_INFO(this->get_logger(), "%sPipeline for %s stopped and released%s", C_QUIET, pipeline->camera->serial.c_str(), C_RESET);
+              RCLCPP_INFO(this->get_logger(), "%sPipeline for %s%s%s stopped and released%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, C_RESET);
           }
       }
 
@@ -122,6 +129,7 @@ class CameraStreamer : public rclcpp::Node
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr start_service_;
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr stop_service_;
   rclcpp::Service<camera_msgs::srv::CameraOperation>::SharedPtr pause_service_;
+  rclcpp::Service<camera_msgs::srv::CameraCapture>::SharedPtr capture_service_;
   rclcpp::Service<camera_msgs::srv::CameraProfileSelection>::SharedPtr profile_service_;
   rclcpp::Service<camera_msgs::srv::CameraZoomSelection>::SharedPtr zoom_service_;
   rclcpp::Service<camera_msgs::srv::GetCameraStreamStats>::SharedPtr stats_service_;
@@ -141,18 +149,21 @@ class CameraStreamer : public rclcpp::Node
     {
       std::unique_ptr<v4lfallbackPipelineProperties> props = get_v4lfallback_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = v4lfallback_pipeline(this, props);
+      pipeline->capture_mime = props->capture_mime;
     } else if (pipeline->camera->pipeline_type == "h264software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 4);
       pipeline->gst_pipeline = v4lsoftware_pipeline(this, props, 4);
       pipeline->zoom = props->zoom;
       pipeline->zoom_longitude = props->zoom_longitude;
       pipeline->zoom_latitude = props->zoom_latitude;
+      pipeline->capture_mime = props->capture_mime;
     } else if (pipeline->camera->pipeline_type == "h265software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 5);
       pipeline->gst_pipeline = v4lsoftware_pipeline(this, props, 5);
       pipeline->zoom = props->zoom;
       pipeline->zoom_longitude = props->zoom_longitude;
       pipeline->zoom_latitude = props->zoom_latitude;
+      pipeline->capture_mime = props->capture_mime;
     } else if (pipeline->camera->pipeline_type == "h264passthrough") {
       std::unique_ptr<h264passthroughPipelineProperties> props = get_h264passthrough_pipeline_properties(this, pipeline->camera);
       pipeline->gst_pipeline = h264passthrough_pipeline(this, props);
@@ -165,16 +176,44 @@ class CameraStreamer : public rclcpp::Node
       pipeline->zoom = props->zoom;
       pipeline->zoom_longitude = props->zoom_longitude;
       pipeline->zoom_latitude = props->zoom_latitude;
+      pipeline->capture_mime = props->capture_mime;
     } else if (pipeline->camera->pipeline_type == "vp9software") {
       std::unique_ptr<v4lsoftwarePipelineProperties> props = get_v4lsoftware_pipeline_properties(this, pipeline->camera, 9);      
       pipeline->gst_pipeline = v4lsoftware_pipeline(this, props, 9);
       pipeline->zoom = props->zoom;
       pipeline->zoom_longitude = props->zoom_longitude;
       pipeline->zoom_latitude = props->zoom_latitude;
+      pipeline->capture_mime = props->capture_mime;
     }
 
     // Use shared clock
     gst_pipeline_set_clock(GST_PIPELINE(pipeline->gst_pipeline), shared_clock);
+
+    // Manage data channels for captures
+    GstElement* webrtc_sink = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "webrtc_sink");
+    if (webrtc_sink) {
+
+      // Create a data channel whenever a new consumer is added 
+      g_signal_connect(webrtc_sink, "consumer-added", G_CALLBACK(+[](GstElement*, gchar* id, GstElement* webrtcbin, gpointer user_data)
+      {
+        Pipeline* pipeline = static_cast<Pipeline*>(user_data);
+        GObject* channel = nullptr;
+        g_signal_emit_by_name(webrtcbin, "create-data-channel", "capture", nullptr, &channel);
+        g_clear_object(&pipeline->capture_channel);
+        pipeline->capture_channel = channel;
+        RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "%sconsumer-added for %s%s%s id=%s channel=%p%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, id, (void*)channel, C_RESET);
+      }), pipeline.get());
+
+      // Remove data channel whenever a consumer is removed
+      g_signal_connect(webrtc_sink, "consumer-removed", G_CALLBACK(+[](GstElement*, gchar* id, GstElement*, gpointer user_data)
+      {
+        Pipeline* pipeline = static_cast<Pipeline*>(user_data);
+        g_clear_object(&pipeline->capture_channel);
+        RCLCPP_DEBUG(rclcpp::get_logger("camera_streamer"), "%sconsumer-removed for %s%s%s id=%s%s", C_QUIET, C_TITLE, pipeline->camera->serial.c_str(), C_QUIET, id, C_RESET);
+      }), pipeline.get());
+
+      gst_object_unref(webrtc_sink);
+    }
   }
 
   private: void change_profile_properties(const std::unique_ptr<Pipeline>& pipeline)
@@ -258,7 +297,7 @@ class CameraStreamer : public rclcpp::Node
         // Get pipeline_type
         this->get_pipeline_type(pipeline);
         this->start_pipeline(pipeline);
-
+        
         bool autostart = false;
         this->get_parameter("autostart", autostart);
 
@@ -321,6 +360,7 @@ class CameraStreamer : public rclcpp::Node
 
             GstStateChangeReturn ret = gst_element_get_state(pipeline->gst_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
 
+            g_clear_object(&pipeline->capture_channel);
             gst_object_unref(pipeline->gst_pipeline);
             pipeline->gst_pipeline = nullptr;
 
@@ -359,9 +399,79 @@ class CameraStreamer : public rclcpp::Node
     }
   }
 
+  private: void capture_callback(
+    const std::shared_ptr<camera_msgs::srv::CameraCapture::Request> request,
+    std::shared_ptr<camera_msgs::srv::CameraCapture::Response> response)
+  {
+    response->success = false;
+
+    std::string serial = request->serial;
+    auto it = this->pipelines.find(serial);
+    if (it == pipelines.end() || !it->second->gst_pipeline || !it->second->capture_channel) return;
+    std::unique_ptr<Pipeline>& pipeline = it->second;
+    
+    // Get the latest frame held in the capture sink
+    GstSample* frame = nullptr;
+    GstElement* capture_sink = gst_bin_get_by_name(GST_BIN(pipeline->gst_pipeline), "capture_sink");
+    if (capture_sink) {
+      g_object_get(capture_sink, "last-sample", &frame, NULL);
+      gst_object_unref(capture_sink);
+    }
+    if (!frame) {
+      RCLCPP_ERROR(this->get_logger(), "%s%s%s's pipeline has no capture frame%s", C_FAIL, serial.c_str(), C_QUIET, C_RESET); 
+      return;
+    }
+
+    // If frame is raw, convert to specified format before sending
+    std::string mime = gst_structure_get_name(gst_caps_get_structure(gst_sample_get_caps(frame), 0));
+    if (mime == "video/x-raw") {
+      mime = pipeline->capture_mime;
+      GstCaps* caps = gst_caps_from_string(mime.c_str());
+      GError* err = nullptr;
+      GstSample* encoded = gst_video_convert_sample(frame, caps, GST_SECOND, &err);
+      gst_caps_unref(caps);
+      gst_sample_unref(frame);
+      if(!encoded) {
+        RCLCPP_ERROR(this->get_logger(), "%sFailed to convert capture frame for %s%s%s%s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, err ? ":" : "", err ? err->message : "", C_RESET);
+        if (err) g_error_free(err);
+        return;
+      }
+      frame = encoded;
+    }
+
+    // Send frame size, mime, and data over the data channel
+    GstBuffer* buffer = gst_sample_get_buffer(frame);
+    GstMapInfo map;
+    if (buffer && gst_buffer_map(buffer, &map, GST_MAP_READ)) {
+      RCLCPP_DEBUG(this->get_logger(), "%sMapped frame size of capture for %s%s%s: %zu bytes %s", C_QUIET, C_TITLE, serial.c_str(), C_QUIET, map.size, C_RESET);
+
+      // Send byte count and mime
+      std::string frame_header = "{\"num_bytes\": " + std::to_string(map.size) + ", \"mime\": \"" + mime + "\"}";
+      g_signal_emit_by_name(pipeline->capture_channel, "send-string", frame_header.c_str());
+      
+      // Send the data in chunks
+      const size_t chunk_size = 16 * 1024;
+      for (size_t offset = 0; offset < map.size; offset += chunk_size) {
+        GBytes* bytes = g_bytes_new(map.data + offset, std::min(chunk_size, map.size - offset));
+        g_signal_emit_by_name(pipeline->capture_channel, "send-data", bytes);
+        g_bytes_unref(bytes);
+      }
+
+      gst_buffer_unmap(buffer, &map);
+      gst_sample_unref(frame);
+    } else {
+      RCLCPP_ERROR(this->get_logger(), "%sFailed to map capture buffer for %s%s%s%s", C_QUIET, C_FAIL, serial.c_str(), C_QUIET, C_RESET);
+      gst_sample_unref(frame);
+      return;
+    }
+
+    RCLCPP_INFO(this->get_logger(), "%sSent capture for %s%s%s as %s%s", C_QUIET, C_TITLE, serial.c_str(), C_QUIET, mime.c_str(), C_RESET);
+    response->success = true;
+  }
+
   private: void profile_callback(
     const std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Request> request,
-    std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Response> response)  
+    std::shared_ptr<camera_msgs::srv::CameraProfileSelection::Response> response)
   {
     response->success = true;
     for (std::string serial : request->serials) { 
@@ -408,7 +518,7 @@ class CameraStreamer : public rclcpp::Node
     response->success = true;
     std::string serial = request->serial;
     auto it = this->pipelines.find(serial);
-    if (it == pipelines.end() || !it->second->gst_pipeline || !it->second) {
+    if (it == pipelines.end() || !it->second || !it->second->gst_pipeline) {
       response->success = false;
       return;
     }

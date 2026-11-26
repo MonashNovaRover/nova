@@ -5,6 +5,7 @@
 #define SERVICE_START       "/camera_streamer/stream/start"
 #define SERVICE_STOP        "/camera_streamer/stream/stop"
 #define SERVICE_PAUSE       "/camera_streamer/stream/pause"
+#define SERVICE_CAPTURE     "/camera_streamer/stream/capture"
 #define SERVICE_PROFILE     "/camera_streamer/stream/profile"
 #define SERVICE_ZOOM        "/camera_streamer/stream/zoom"
 #define SERVICE_STATS       "/camera_streamer/stream/get_stats"

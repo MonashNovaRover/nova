@@ -107,6 +107,13 @@ struct rossinkProperties
   bool rossink;
 };
 
+struct capturesinkProperties
+{
+  std::string capture_mime;
+
+  bool capturesink;
+};
+
 struct rtspProperties
 {
   std::string url;
@@ -123,6 +130,10 @@ struct Pipeline
   double zoom;
   double zoom_longitude;
   double zoom_latitude;
+
+  std::string capture_mime;
+
+  GObject* capture_channel;
 };
 
 #endif

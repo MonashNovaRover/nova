@@ -62,7 +62,21 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
-  
+
+  section = "capture";
+  GstElement* capture_tee = gst_element_factory_make("tee", "capture_tee");
+  GstElement* capture_queue = gst_element_factory_make("queue", "capture_queue");
+  GstElement* capture_sink = gst_element_factory_make("fakesink", "capture_sink");
+
+  if (
+    !capture_tee ||
+    !capture_queue ||
+    !capture_sink
+  ) {
+    RCLCPP_ERROR(streamer_node->get_logger(), "%sCould not create %s%s%s elements pipeline for %s%s%s", C_FAIL, C_INPUT, section.c_str(), C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
+    return nullptr;
+  }
+
   section = "cpu";
   GstElement* cpu_gpu_tee = gst_element_factory_make("tee", "cpu_gpu_tee");
   GstElement* cpu_queue = gst_element_factory_make("queue", "cpu_queue");
@@ -121,6 +135,10 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     source_rate,
     source_filter,
 
+    capture_tee,
+    capture_queue,
+    capture_sink,
+
     cpu_gpu_tee,
     cpu_queue,
     cpu_valve,
@@ -154,6 +172,9 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     set_rostopicsink(ros_sink, props);
   }
 
+  set_queue(capture_queue);
+  set_capturesink(capture_sink);
+
   set_scalefilter(encode_filter, props);
   set_queue(encode_queue);
   (encoderX == 4) ? set_h264enc(encode_encoder, props) :
@@ -173,6 +194,12 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
     RCLCPP_ERROR(streamer_node->get_logger(), "%sWrong resolution for %s%s%s", C_FAIL, C_TITLE, props->serial.c_str(), C_RESET);
     return nullptr;
   }
+
+  link_elements(streamer_node, next_element, capture_tee, props->serial);
+  link_elements(streamer_node, next_element, capture_queue, props->serial);
+  link_elements(streamer_node, next_element, capture_sink, props->serial);
+  next_element = capture_tee;
+
   link_elements(streamer_node, next_element, source_decode, props->serial);
 
   link_elements(streamer_node, next_element, cpu_gpu_tee, props->serial);
@@ -184,7 +211,6 @@ GstElement* v4lsoftware_pipeline(rclcpp::Node* streamer_node, const std::unique_
   next_element = cpu_gpu_tee;
 
   if (props->rossink) {
-    next_element = cpu_gpu_tee;
     link_elements(streamer_node, next_element, ros_queue, props->serial);
     link_elements(streamer_node, next_element, ros_convert, props->serial);
     link_elements(streamer_node, next_element, ros_filter, props->serial);
@@ -264,6 +290,10 @@ std::unique_ptr<v4lsoftwarePipelineProperties> get_v4lsoftware_pipeline_properti
   props->ros_topic = set_property(streamer_node, camera, "ros_topic", default_string);
 
   props->rossink = set_property(streamer_node, camera, "rossink", false);
+
+  // capturesink
+  default_string = "image/jpeg";
+  props->capture_mime = set_property(streamer_node, camera, "capture_mime", default_string);
   
   // convert
   default_string = "cubic";

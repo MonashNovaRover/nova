@@ -42,7 +42,8 @@ const RESET_SESSION_COOLDOWN = 3000; // ms, suppress heartbeat action right afte
 export const useCameraStream = (
   cameraSerial: string,
   videoRef: React.MutableRefObject<HTMLVideoElement | null>,
-  autoStart?: boolean
+  autoStart?: boolean,
+  onCapture?: (image: Blob) => void
 ) => {
   const [isWsOpen, setWsOpen] = useState(false);
   const roverIP = useSelector((state: RootState) => state.uiState.roverIP);
@@ -54,7 +55,12 @@ export const useCameraStream = (
         setWsOpen(true);
       },
     }
-  ); 
+  );
+
+  const onCaptureRef = useRef(onCapture);
+  useEffect(() => {
+    onCaptureRef.current = onCapture;
+  }, [onCapture]);
 
   const camerasFromRos = useSelector(
     (state: RootState) => state.camerasStore.cameras
@@ -288,6 +294,41 @@ export const useCameraStream = (
           requestRandomAccessKeyframe();
         }
         if (videoRef.current) videoRef.current.srcObject = event.streams[0];
+      };
+
+      // Handle data channel once created
+      rtcConnection.ondatachannel = (event) => {
+        let expected = 0;
+        let received = 0;
+        let mime = "image/jpeg";
+        let image: ArrayBuffer[] = [];
+
+        event.channel.onmessage = (event) => {
+          try {
+            // Get image size and mime
+            if (typeof event.data === "string") {
+              const header = JSON.parse(event.data);
+              expected = header.num_bytes;
+              mime = header.mime;
+
+              // Clear before receiving new image
+              image = [];
+              received = 0;
+            } else if (event.data instanceof ArrayBuffer) {
+              // Append to image buffer
+              image.push(event.data);
+              received += event.data.byteLength;
+
+              // Create blob and download when all image data received
+              if (received >= expected && onCaptureRef.current) {
+                onCaptureRef.current(new Blob(image, { type: mime }));
+                toast.success(`${cameraSerial} captured`);
+              }
+            }
+          } catch (err) {
+            toast(`Unable to save capture: ${err}`);
+          }
+        };
       };
 
       rtcRef.current = rtcConnection;
