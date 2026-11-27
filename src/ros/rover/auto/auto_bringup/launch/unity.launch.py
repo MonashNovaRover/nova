@@ -92,7 +92,7 @@ def launch_setup(context, *args, **kwargs):
                 '-logFile', '-',
                 'enable_gamepad=false',
                 'robot_source=robot_description',
-                ['publish_ground_truth=', publish_ground_truth]
+                ['publish_ground_truth=', publish_ground_truth],
                 ['world=', world], 
                 ['robot=', robot_type]],
             output='screen',

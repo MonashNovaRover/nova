@@ -35,7 +35,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   src = fetchurl {
     url = "https://github.com/MonashNovaRover/unity-sim/releases/download/${finalAttrs.version}/${finalAttrs.build}.tar.xz";
-    hash = "sha256:01fd3a9b369e90a10c1c6e7275c355ecb87c42d89b646d8a0fc0065704b954e2";
+    hash = "sha256:b0381fd5fce3226ba047a90d2404512a455763e8c2a3826a250339e167f2be84";
   };
 
   sourceRoot = ".";
