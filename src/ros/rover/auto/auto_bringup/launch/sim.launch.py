@@ -139,6 +139,8 @@ def launch_setup(context, *args, **kwargs):
                 'comp': comp,
                 'fastlivo2_params': fastlivo2_params,
                 'sim': 'True',
+                'tfs': 'False',
+                'fastlivo2': 'False'
             }.items(),
         ),
     ]

@@ -236,17 +236,17 @@ def launch_setup(context, *args, **kwargs):
             ],
             output="screen",
         ),
-        Node(
-            condition=IfCondition(sim),
-            package='nova_utils',
-            executable='livox_field_republisher.py',
-            name='livox_field_republisher',
-            output='screen',
-            parameters=[
-                {'input_topic': '/livox/lidar_sim'},
-                {'output_topic': '/livox/lidar'},
-            ],
-        ),
+        #Node(
+        #    condition=IfCondition(sim),
+        #    package='nova_utils',
+        #    executable='livox_field_republisher.py',
+        #    name='livox_field_republisher',
+        #    output='screen',
+        #    parameters=[
+        #        {'input_topic': '/livox/lidar_sim'},
+        #        {'output_topic': '/livox/lidar'},
+        #    ],
+        #),
         Node(
             # NOTE image_transport only creates subscribers if subscribers exist for its publishers. 
             condition=IfCondition(uncompress_img),

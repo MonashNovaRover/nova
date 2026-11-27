@@ -43,14 +43,19 @@ def launch_setup(context, *args, **kwargs):
     # comp defaults
     if comp == 'arch':
         world = 'ARCh2026'
+        publish_ground_truth = 'true'
     elif comp == 'urc':
         world = 'ARCh2026'
+        publish_ground_truth = 'false'
     else:
         raise ValueError('"comp" arg must be either "arch" or "urc"')
 
     # comp defaults overrides
     if LaunchConfiguration('world').perform(context) != '':
         world = LaunchConfiguration('world')
+
+    if LaunchConfiguration('publish_ground_truth').perform(context) != '':
+        publish_ground_truth = LaunchConfiguration('publish_ground_truth')
 
     return [
         # Start ROS2 Controllers
@@ -84,7 +89,11 @@ def launch_setup(context, *args, **kwargs):
                 'nova-unity-sim', 
                 '-screen-fullscreen', '0', 
                 '-window-mode', 'windowed', 
-                ['scene=', world], 
+                '-logFile', '-',
+                'enable_gamepad=false',
+                'robot_source=robot_description',
+                ['publish_ground_truth=', publish_ground_truth]
+                ['world=', world], 
                 ['robot=', robot_type]],
             output='screen',
         ),
@@ -125,6 +134,11 @@ def generate_launch_description():
             name='world',
             default_value='',
             description='Full path to world model file to load',
+        ),
+        DeclareLaunchArgument(
+            name='publish_ground_truth',
+            default_value='',
+            description='Publish ground truth map->odom->base_link to /tf',
         ),
     ]
 

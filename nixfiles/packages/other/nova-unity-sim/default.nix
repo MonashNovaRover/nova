@@ -30,12 +30,12 @@
 # https://github.com/NixOS/nixpkgs/blob/master/doc/stdenv/stdenv.chapter.md#makewrapper-executable-wrapperfile-args-fun-makewrapper
 stdenv.mkDerivation (finalAttrs: {
   name = "nova-unity-sim";
-  version = "1.0.0";
+  version = "1.0.2-testing";
   build = "build";
 
   src = fetchurl {
     url = "https://github.com/MonashNovaRover/unity-sim/releases/download/${finalAttrs.version}/${finalAttrs.build}.tar.xz";
-    hash = "sha256-Kv7CSyNJQKMuEATjBTDXIpn/u9sjAvPVJOlm7/SETN8=";
+    hash = "sha256:01fd3a9b369e90a10c1c6e7275c355ecb87c42d89b646d8a0fc0065704b954e2";
   };
 
   sourceRoot = ".";
