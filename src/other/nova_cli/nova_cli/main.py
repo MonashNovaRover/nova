@@ -49,6 +49,7 @@ Examples:
   nova start gui                    Run ~/Builds/active/launch/run-gui script
   nova build main                 Build workspace to ~/Builds/main
   nova env set build main         Switch active build to main
+  nova garbage-collect              Delete old packages to free space
         '''
     )
 
